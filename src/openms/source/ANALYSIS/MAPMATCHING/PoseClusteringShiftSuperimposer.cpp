@@ -334,7 +334,7 @@ namespace OpenMS
 
     // OLD STUFF
     // double shift_low;
-    double shift_centroid;
+    double shift_centroid(0.0);
     // double shift_high;
     do
     {

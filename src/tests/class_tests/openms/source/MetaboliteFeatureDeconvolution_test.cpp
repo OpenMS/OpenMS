@@ -297,6 +297,36 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   TEST_FILE_SIMILAR(out_file_n, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_neg_output.consensusXML"));
 
 
+  //small pos test file with specific ions and ppm error
+  Param p_pos_ppm;
+  p_pos_ppm.setValue("potential_adducts", ListUtils::create<String>("H:+:0.6,Na:+:0.4"), "Ad_p");
+  p_pos_ppm.setValue("charge_min", 1, "minimal possible charge");
+  p_pos_ppm.setValue("charge_max", 3, "maximal possible charge");
+  p_pos_ppm.setValue("charge_span_max", 3);
+  p_pos_ppm.setValue("max_neutrals", 1);
+  p_pos_ppm.setValue("q_try", "feature");
+  p_pos_ppm.setValue("mass_max_diff", 50.0);
+  p_pos_ppm.setValue("unit", "ppm");
+  p_pos_ppm.setValue("retention_max_diff", 1.0);
+  p_pos_ppm.setValue("retention_max_diff_local", 1.0);
+  p_pos_ppm.setValue("intensity_filter", "false");
+  p_pos_ppm.setValue("use_minority_bound", "false");
+
+  fd.setParameters(p_pos_ppm);
+
+  FeatureMap fm_ppm_in, fm_ppm_out;
+  ConsensusMap cm_ppm, cm_ppm2;
+  FeatureXMLFile fl_ppm;
+  fl_ppm.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test_ppm.featureXML"), fm_ppm_in);
+  fd.compute(fm_ppm_in, fm_ppm_out, cm_ppm, cm_ppm2);
+
+  String out_file_ppm;
+  NEW_TMP_FILE(out_file_ppm)
+  ConsensusXMLFile f_ppm;
+  f_ppm.store(out_file_ppm,cm_ppm);
+
+  WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
+  TEST_FILE_SIMILAR(out_file_ppm, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_ppm_output.consensusXML"));
 
 END_SECTION
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -16,11 +16,14 @@
 
 #include "element_tables.h"
 
+namespace IsoSpec
+{
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const int elem_table_atomicNo [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const int elem_table_atomicNo [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1,
 1,
 2,
@@ -312,7 +315,7 @@ const int elem_table_atomicNo [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const double elem_table_mass [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const double elem_table_mass [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1.00782503227,
 2.01410177819,
 3.016029322,
@@ -604,7 +607,7 @@ const double elem_table_mass [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const int elem_table_massNo [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const int elem_table_massNo [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1,
 2,
 3,
@@ -896,7 +899,7 @@ const int elem_table_massNo [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const int elem_table_extraNeutrons [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const int elem_table_extraNeutrons [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0,
 1,
 0,
@@ -1188,7 +1191,7 @@ const int elem_table_extraNeutrons [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const char* elem_table_element [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const char* elem_table_element [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 "hydrogen",
 "hydrogen",
 "helium",
@@ -1480,7 +1483,7 @@ const char* elem_table_element [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const char* elem_table_symbol [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const char* elem_table_symbol [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 "H",
 "H",
 "He",
@@ -1772,7 +1775,7 @@ const char* elem_table_symbol [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const bool elem_table_Radioactive [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const bool elem_table_Radioactive [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 false,
 false,
 false,
@@ -2064,7 +2067,7 @@ true,
 };
 
 
-const double elem_table_probability [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const double elem_table_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0.999884290164307909520857720053754746913909912109375000000000,
 0.000115709835692033314582735648023970043141162022948265075684,
 0.000001342999991941999914655050951672876635711872950196266174,
@@ -2356,7 +2359,7 @@ const double elem_table_probability [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 };
 
 
-const double elem_table_log_probability [NUMBER_OF_ISOTOPIC_ENTRIES] = {
+const double elem_table_log_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 -0.000115716530591520062594239337538937206772970966994762420654,
 -9.064424917075021070900220365729182958602905273437500000000000,
 -13.520604646423175054792409355286508798599243164062500000000000,
@@ -2651,4 +2654,5 @@ const double elem_table_log_probability [NUMBER_OF_ISOTOPIC_ENTRIES] = {
 }
 #endif
 
+} // namespace IsoSpec
 

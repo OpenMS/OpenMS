@@ -264,6 +264,10 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
   p.addTag("file_parameter", "input file");
   p.setValidStrings("file_parameter", ListUtils::create<String>("*.mzML,*.mzXML"));
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", ListUtils::create<String>("advanced"));
+  p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
+  p.setValidStrings("flag",{"true","false"});
+  p.setValue("noflagJustTrueFalse", "true", "This is not a flag but has a boolean meaning.");
+  p.setValidStrings("noflagJustTrueFalse", {"true","false"});
 
   String filename;
   NEW_TMP_FILE(filename)

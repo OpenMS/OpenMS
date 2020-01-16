@@ -49,16 +49,6 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-void FunctionChangeSpectrum (OpenMS::MSSpectrum & s)
-{
-  s.sortByIntensity();
-}
-
-void FunctionChangeChromatogram (OpenMS::MSChromatogram & c)
-{
-  c.sortByIntensity();
-}
-
 
 START_TEST(MSDataChainingConsumer, "$Id$")
 
@@ -110,9 +100,14 @@ END_SECTION
 
 START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
 {
+   auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
+
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -169,9 +164,14 @@ END_SECTION
 
 START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
 {
+  auto f2 = [](OpenMS::MSChromatogram & c)
+  {
+    c.sortByIntensity();
+  };
+  
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setChromatogramProcessingPtr(FunctionChangeChromatogram);
+  transforming_consumer->setChromatogramProcessingFunc(f2);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -215,8 +215,12 @@ END_SECTION
 START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
+  auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());

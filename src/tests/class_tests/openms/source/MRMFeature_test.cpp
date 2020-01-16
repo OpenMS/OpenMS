@@ -72,8 +72,20 @@ START_SECTION(MRMFeature(const MRMFeature &rhs))
 
   MRMFeature tmp2 (tmp);
 
-  TEST_EQUAL(tmp2.getScore("testscore"), 200)
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("testscore"), 200)
   TEST_REAL_SIMILAR(tmp2.getIntensity(), 100.0)
+}
+END_SECTION
+
+START_SECTION((MRMFeature(const MRMFeature&& source)))
+{
+#ifndef OPENMS_COMPILER_MSVC
+  // Ensure that MRMFeature has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
+  TEST_EQUAL(noexcept(MRMFeature(std::declval<MRMFeature&&>())), true)
+#endif
 }
 END_SECTION
 
@@ -86,7 +98,7 @@ START_SECTION(MRMFeature& operator=(const MRMFeature &rhs))
   MRMFeature tmp2;
   tmp2 = tmp;
 
-  TEST_EQUAL(tmp2.getScore("testscore"), 200)
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("testscore"), 200)
   TEST_REAL_SIMILAR(tmp2.getIntensity(), 100.0)
 }
 END_SECTION
@@ -120,15 +132,11 @@ END_SECTION
 START_SECTION (void setScores(const PGScoresType & scores))
 {
   MRMFeature mrmfeature;
-  MRMFeature::PGScoresType scores;
-  scores["score1"] = 1;
-  scores["score2"] = 2;
+  OpenSwath_Scores scores;
+  scores.library_sangle = 99;
   mrmfeature.setScores(scores);
-  scores = mrmfeature.getScores();
-  TEST_EQUAL(mrmfeature.getScore("score1"), 1)
-  TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(scores[String("score1")], 1)
-  TEST_EQUAL(scores[String("score2")], 2)
+
+  TEST_REAL_SIMILAR(scores.library_sangle, mrmfeature.getScores().library_sangle)
 }
 END_SECTION
 
@@ -137,11 +145,8 @@ START_SECTION (void addScore(const String & score_name, double score))
   MRMFeature mrmfeature;
   mrmfeature.addScore("score1",1);
   mrmfeature.addScore("score2",2);
-  MRMFeature::PGScoresType scores = mrmfeature.getScores();
-  TEST_EQUAL(mrmfeature.getScore("score1"), 1)
-  TEST_EQUAL(mrmfeature.getScore("score2"), 2)
-  TEST_EQUAL(scores[String("score1")], 1)
-  TEST_EQUAL(scores[String("score2")], 2)
+  TEST_REAL_SIMILAR(mrmfeature.getMetaValue("score1"), 1)
+  TEST_REAL_SIMILAR(mrmfeature.getMetaValue("score2"), 2)
 }
 END_SECTION
 

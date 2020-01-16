@@ -52,46 +52,8 @@ namespace OpenMS
   class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {
 public:
-    AbsoluteQuantitationMethod(); ///< Constructor
-    ~AbsoluteQuantitationMethod() = default; ///< Destructor
-
-    inline bool operator==(const AbsoluteQuantitationMethod& other) const
-    {
-      return
-        std::tie(
-          component_name_,
-          feature_name_,
-          IS_name_,
-          llod_,
-          ulod_,
-          lloq_,
-          uloq_,
-          n_points_,
-          correlation_coefficient_,
-          concentration_units_,
-          transformation_model_,
-          transformation_model_params_
-        ) == std::tie(
-          other.component_name_,
-          other.feature_name_,
-          other.IS_name_,
-          other.llod_,
-          other.ulod_,
-          other.lloq_,
-          other.uloq_,
-          other.n_points_,
-          other.correlation_coefficient_,
-          other.concentration_units_,
-          other.transformation_model_,
-          other.transformation_model_params_
-        )
-      ;
-    }
-
-    inline bool operator!=(const AbsoluteQuantitationMethod& other) const
-    {
-      return !(*this == other);
-    }
+    bool operator==(const AbsoluteQuantitationMethod& other) const;
+    bool operator!=(const AbsoluteQuantitationMethod& other) const;
 
     void setComponentName(const String& component_name); ///< Component name setter
     String getComponentName() const; ///< Component name getter
@@ -130,18 +92,18 @@ public:
     Param getTransformationModelParams() const; ///< Transformation model parameters getter
 
 private:
+    Param transformation_model_params_; ///< transformation model parameters
     String component_name_; ///< id of the component
     String feature_name_; ///< name of the feature (i.e., peak_apex_int or peak_area)
     String IS_name_; ///< the internal standard (IS) name for the transition
-    double llod_; ///< lower limit of detection (LLOD) of the transition
-    double ulod_; ///< upper limit of detection (ULOD) of the transition
-    double lloq_; ///< lower limit of quantitation (LLOQ) of the transition
-    double uloq_; ///< upper limit of quantitation (ULOQ) of the transition
-    Int n_points_; ///< number of points used in a calibration curve
-    double correlation_coefficient_; ///< the Pearson R value for the correlation coefficient of the calibration curve
     String concentration_units_; ///< concentration units of the component's concentration
     String transformation_model_; ///< transformation model
-    Param transformation_model_params_; ///< transformation model parameters
+    double llod_ { 0.0 }; ///< lower limit of detection (LLOD) of the transition
+    double ulod_ { 0.0 }; ///< upper limit of detection (ULOD) of the transition
+    double lloq_ { 0.0 }; ///< lower limit of quantitation (LLOQ) of the transition
+    double uloq_ { 0.0 }; ///< upper limit of quantitation (ULOQ) of the transition
+    double correlation_coefficient_ { 0.0 }; ///< the Pearson R value for the correlation coefficient of the calibration curve
+    Int n_points_ { 0 }; ///< number of points used in a calibration curve
   };
 }
 

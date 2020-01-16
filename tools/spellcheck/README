@@ -16,3 +16,6 @@ find  ./doc/ | grep -v "doxygen.images" | grep -v png | xargs  \
 find  ./src/openms/source/ | grep -v GzipIfstream |  xargs  \
   perl tools/spellcheck/lspell.pl stop2_large.txt  > badwords_source
 
+# find docu errors
+grep -R ';[ ]*//' OpenMS/ | grep -v '///<' | grep -v '=' | grep -v using | grep -v return | grep -v '}' | grep -v Corasick | grep -v PeptideIndex | grep -v ProteinRes | grep -v Morpholo | grep -v IDFilter | grep -v SpectraMer > docu_errors
+

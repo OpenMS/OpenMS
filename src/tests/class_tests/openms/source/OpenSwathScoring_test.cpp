@@ -74,12 +74,12 @@ START_SECTION(~OpenSwathScoring())
 }
 END_SECTION
 
-START_SECTION((void initialize(double rt_normalization_factor_, int add_up_spectra_, double spacing_for_spectra_resampling_, OpenSwath_Scores_Usage & su_)))
+START_SECTION(( void initialize(double rt_normalization_factor, int add_up_spectra, double spacing_for_spectra_resampling, const OpenSwath_Scores_Usage & su, const std::string& spectrum_addition_method) ))
 {
 	ptr = new OpenSwathScoring();
   OpenSwath_Scores_Usage su;
 	TEST_NOT_EQUAL(ptr, nullPointer)
-  ptr->initialize(100.0, 1, 0.01, su);
+  ptr->initialize(100.0, 1, 0.01, 0.0, su, "simple");
   delete ptr;
 }
 END_SECTION
@@ -148,6 +148,8 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
     OpenSwathScoring sc;
+    OpenSwath_Scores_Usage su;
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample");
     OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, 0, 0);
 
     TEST_EQUAL(sp->getMZArray()->data.size(), 1);
@@ -155,6 +157,16 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
     TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 200.0);
+
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple");
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, 0, 0);
+
+    TEST_EQUAL(sp->getMZArray()->data.size(), 1);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
+
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 200.0);
+    // delete eptr;
   }
 
   // test result for map with three spectra
@@ -176,6 +188,8 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
     OpenSwathScoring sc;
+    OpenSwath_Scores_Usage su;
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample");
     OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, 0, 0);
 
     TEST_EQUAL(sp->getMZArray()->data.size(), 1);
@@ -183,36 +197,78 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
     TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 600.0);
+
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple");
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, 0, 0);
+
+    TEST_EQUAL(sp->getMZArray()->data.size(), 3);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 3);
+
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 200.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[1], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[1], 200.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[2], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[2], 200.0);
+    // delete eptr;
   }
 
   // test result for map with uneven number of spectra
   {
     PeakMap* eptr = new PeakMap;
-    MSSpectrum s;
-    Peak1D p;
-    p.setMZ(20.0);
-    p.setIntensity(200.0);
-    s.push_back(p);
-    s.setRT(10.0);
-    eptr->addSpectrum(s);
-    s.setRT(20.0);
-    eptr->addSpectrum(s);
-    /*
-    s.setRT(30.0);
-    eptr->addSpectrum(s);
-    */
+    {
+      MSSpectrum s;
+      s.emplace_back(20.0, 200.0);
+      s.setRT(10.0);
+      eptr->addSpectrum(s);
+    }
+    {
+      MSSpectrum s;
+      s.emplace_back(20.001, 200.0);
+      s.setRT(20.0);
+      eptr->addSpectrum(s);
+    }
+    {
+      MSSpectrum s;
+      s.emplace_back(250.001, 300.0);
+      s.setRT(50.0);
+      eptr->addSpectrum(s);
+    }
+    {
+      MSSpectrum s;
+      s.emplace_back(250.002, 500.0);
+      s.setRT(60.0);
+      eptr->addSpectrum(s);
+    }
     boost::shared_ptr<PeakMap > swath_map (eptr);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
-    TEST_EQUAL(swath_ptr->getNrSpectra(), 2)
+    TEST_EQUAL(swath_ptr->getNrSpectra(), 4)
     OpenSwathScoring sc;
+    OpenSwath_Scores_Usage su;
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample");
     OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, 0, 0);
 
-    TEST_EQUAL(sp->getMZArray()->data.size(), 1);
-    TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
+    TEST_EQUAL(sp->getMZArray()->data.size(), 3);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 3);
 
     TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
-    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 400.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 360.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[1], 20.005);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[1], 40.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[2], 250.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[2], 300.0);
+
+    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple");
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, 0, 0);
+    TEST_EQUAL(sp->getMZArray()->data.size(), 3);
+    TEST_EQUAL(sp->getIntensityArray()->data.size(), 3);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[0], 20.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[0], 200.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[1], 20.001);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[1], 200.0);
+    TEST_REAL_SIMILAR(sp->getMZArray()->data[2], 250.0);
+    TEST_REAL_SIMILAR(sp->getIntensityArray()->data[2], 300.0);
   }
 }
 END_SECTION

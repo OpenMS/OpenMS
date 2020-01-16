@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -989,7 +990,7 @@ namespace OpenMS
   }
 
 //  void SequestOutfile::getPValuesFromOutFiles(vector< pair < String, vector< double > > >& out_filenames_and_pvalues)
-//  throw (Exception::FileNotFound, Exception::ParseError)
+//  throw (Exception::FileNotFound&, Exception::ParseError)
 //  {
 //      DateTime datetime;
 //      double

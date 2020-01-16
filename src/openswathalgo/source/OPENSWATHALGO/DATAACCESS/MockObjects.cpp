@@ -34,7 +34,6 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h>
 
-#include <string>
 
 namespace OpenSwath
 {

@@ -53,7 +53,7 @@ public:
     TMTTenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() override;
+    ~TMTTenPlexQuantitationMethod() = default;
 
     /// Copy c'tor
     TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
@@ -64,7 +64,7 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getName() const override;
+    const String& getMethodName() const override;
 
     const IsobaricChannelList& getChannelInformation() const override;
 

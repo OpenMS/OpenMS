@@ -53,7 +53,7 @@ public:
       The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
 
       @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to LOG_ERROR?
+      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
       @return Returns false if Java executable can not be called; true if Java executable can be executed
     **/
     static bool canRun(const String& java_executable, bool verbose_on_error = true);

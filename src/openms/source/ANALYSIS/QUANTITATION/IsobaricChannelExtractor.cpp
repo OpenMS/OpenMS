@@ -455,7 +455,7 @@ namespace OpenMS
   {
     if (ms_exp_data.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.\n";
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Experiment has no scans!");
     }
@@ -471,7 +471,7 @@ namespace OpenMS
     consensus_map.setExperimentType("labeled_MS2");
 
     // create predicate for spectrum checking
-    LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
+    OPENMS_LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << std::endl;
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // walk through spectra and count the number of scans with valid activation method per MS-level
@@ -489,22 +489,22 @@ namespace OpenMS
     }
     if (ms_level.empty())
     {
-      LOG_WARN << "Filtering by MS/MS(/MS) and activation mode: no spectra pass activation mode filter!\n"
+      OPENMS_LOG_WARN << "Filtering by MS/MS(/MS) and activation mode: no spectra pass activation mode filter!\n"
                << "Activation modes found:\n";
       for (std::map<String, int>::const_iterator it = activation_modes.begin(); it != activation_modes.end(); ++it)
       {
-        LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
+        OPENMS_LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
       }
-      LOG_WARN << "Result will be empty!" << std::endl;
+      OPENMS_LOG_WARN << "Result will be empty!" << std::endl;
       return;
     }
-    LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
+    OPENMS_LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
     for (std::map<UInt, UInt>::const_iterator it = ms_level.begin(); it != ms_level.end(); ++it)
     {
-      LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
+      OPENMS_LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
     }
     UInt quant_ms_level = ms_level.rbegin()->first;
-    LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << std::endl;
+    OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << std::endl;
 
     // now we have picked data
     // --> assign peaks to channels
@@ -532,17 +532,10 @@ namespace OpenMS
         it_last_MS2 = ms_exp_data.end();
         continue;
       }
-      else if (it->getMSLevel() == 2)
-      { // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
-        it_last_MS2 = it;
-        if (it_last_MS2->getPrecursors().empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
-        }
-      }
+
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
-      if (!(selected_activation_ == "" || isValidActivation(*it))) continue;
+      if (!(selected_activation_.empty() || isValidActivation(*it))) continue;
 
       // find following ms1 scan (needed for purity computation)
       if (!pState.followUpValid(it->getRT()))
@@ -551,16 +544,10 @@ namespace OpenMS
         pState.advanceFollowUp(it->getRT());
       }
 
-      // check if precursor is available
-      if (it->getPrecursors().empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
-      }
-
       // check precursor constraints
       if (!isValidPrecursor_(it->getPrecursors()[0]))
       {
-        LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << std::endl;
+        OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor doesn't fulfill all constraints." << std::endl;
         continue;
       }
 
@@ -572,20 +559,37 @@ namespace OpenMS
         // check if purity is high enough
         if (precursor_purity < min_precursor_purity_)
         {
-          LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
+          OPENMS_LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
           continue;
         }
       }
       else
       {
-        LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
+        OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
       }
 
-      // store RT&MZ of MS1 parent ion as centroid of ConsensusFeature
-      if (it_last_MS2 == ms_exp_data.end())
-      { // this only happens if an MS3 spec does not have a preceding MS2
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      if (it->getMSLevel() == 3)
+      {
+        // we cannot save just the last MS2 but need to compare to the precursor info stored in the (potential MS3 spectrum)
+        it_last_MS2 = ms_exp_data.getPrecursorSpectrum(it);
+
+        if (it_last_MS2 == ms_exp_data.end())
+        { // this only happens if an MS3 spec does not have a preceding MS2
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+        }
       }
+      else
+      {
+        it_last_MS2 = it;
+      }
+
+      // check if MS1 precursor info is available
+      if (it_last_MS2->getPrecursors().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      }
+
+      // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
       ConsensusFeature cf;
       cf.setUniqueId();
       cf.setRT(it_last_MS2->getRT());
@@ -682,13 +686,13 @@ namespace OpenMS
     } // ! Experiment iterator
 
     // print stats about m/z calibration / presence of signal
-    LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
+    OPENMS_LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
     bool impurities_found(false);
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
       cl_it != quant_method_->getChannelInformation().end();
       ++cl_it)
     {
-      LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
+      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
       if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
       {
         // sort
@@ -697,27 +701,27 @@ namespace OpenMS
             (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
             (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
-          LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+          OPENMS_LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
         }
         else
         {
-          LOG_INFO << median << " Th";
+          OPENMS_LOG_INFO << median << " Th";
           if (channel_mz_delta[cl_it->name].signal_not_unique > 0) 
           {
-            LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
+            OPENMS_LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
             impurities_found = true;
           }
-          LOG_INFO << "\n";
+          OPENMS_LOG_INFO << "\n";
         }
       }
       else
       {
-        LOG_INFO << "<no data>\n";
+        OPENMS_LOG_INFO << "<no data>\n";
       }
     }
-    if (impurities_found) LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
+    if (impurities_found) OPENMS_LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
                                    << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
 
     /// add meta information to the map
@@ -734,7 +738,7 @@ namespace OpenMS
     {
       ConsensusMap::ColumnHeader channel_as_map;
       // label is the channel + description provided in the Params
-      channel_as_map.label = quant_method_->getName() + "_" + cl_it->name;
+      channel_as_map.label = quant_method_->getMethodName() + "_" + cl_it->name;
 
       // TODO(aiche): number of features need to be set later
       channel_as_map.size = consensus_map.size();

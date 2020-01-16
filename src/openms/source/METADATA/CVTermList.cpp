@@ -45,6 +45,12 @@ namespace OpenMS
   {
   }
 
+  CVTermList::CVTermList(CVTermList&& rhs) noexcept :
+    MetaInfoInterface(std::move(rhs)),
+    cv_terms_(std::move(rhs.cv_terms_))
+  {
+  }
+
   void CVTermList::addCVTerm(const CVTerm& cv_term)
   {
     // TODO exception if empty

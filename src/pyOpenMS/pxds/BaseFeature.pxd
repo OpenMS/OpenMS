@@ -8,9 +8,10 @@ from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
-    cdef cppclass BaseFeature(UniqueIdInterface):
+    cdef cppclass BaseFeature(UniqueIdInterface, RichPeak2D):
         # wrap-inherits:
         #    UniqueIdInterface
+        #    RichPeak2D
 
         BaseFeature()  nogil except +
         BaseFeature(BaseFeature &) nogil except +
@@ -32,18 +33,6 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
         bool operator==(BaseFeature) nogil except +
         bool operator!=(BaseFeature) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-        void clearMetaInfo() nogil except +
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS::BaseFeature":
     

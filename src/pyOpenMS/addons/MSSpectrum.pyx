@@ -4,7 +4,16 @@ import numpy as np
 
 
 
+
+
+
+
     def get_peaks(self):
+        """Cython signature: numpy_vector, numpy_vector get_peaks()
+        
+        Will return a tuple of two numpy arrays (m/z, intensity) corresponding
+        to the peaks in the MSSpectrum. Provides fast access to peaks.
+        """
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
@@ -26,6 +35,11 @@ import numpy as np
         return mzs, intensities
 
     def set_peaks(self, peaks):
+        """Cython signature: set_peaks((numpy_vector, numpy_vector))
+        
+        Takes a tuple or list of two arrays (m/z, intensity) and populates the
+        MSSpectrum. The arrays can be numpy arrays (faster).
+        """
 
         assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"
         assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"

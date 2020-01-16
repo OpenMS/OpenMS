@@ -110,11 +110,11 @@ protected:
     // "in" is not required, in case we only want to invert a transformation:
     registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
+    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
     registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
     setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
-    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' has to be provided; they can be used together.", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerFlag_("invert", "Invert transformation (approximatively) before applying it");
     registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output file");
@@ -162,7 +162,7 @@ protected:
     //-------------------------------------------------------------
     if (out.empty() && trafo_out.empty())
     {
-      writeLog_("Error: Either a data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
+      writeLog_("Error: A data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     if (in.empty() != out.empty())

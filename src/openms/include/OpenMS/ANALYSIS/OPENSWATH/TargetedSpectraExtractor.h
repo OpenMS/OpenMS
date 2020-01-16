@@ -71,7 +71,7 @@ namespace OpenMS
   {
 public:
     TargetedSpectraExtractor();
-    virtual ~TargetedSpectraExtractor() = default;
+    ~TargetedSpectraExtractor() override = default;
 
     /**
       Structure for a match against a spectral library
@@ -80,14 +80,15 @@ public:
     struct Match
     {
       Match() = default;
-      Match(MSSpectrum a, double b) : spectrum(a), score(b) {}
+      Match(MSSpectrum a, double b) : spectrum(std::move(a)), score(b) {}
       MSSpectrum spectrum;
-      double score;
+      double score = 0.0;
     };
 
     class Comparator
     {
     public:
+      virtual ~Comparator() = default;
       virtual void generateScores(
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
@@ -111,11 +112,12 @@ public:
     class BinnedSpectrumComparator : public Comparator
     {
     public:
-      void generateScores(
+      ~BinnedSpectrumComparator() override = default;
+      void generateScores (
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
         double min_score
-      ) const
+      ) const override
       {
         scores.clear();
         const BinnedSpectrum in_bs(spec, bin_size_, false, peak_spread_, bin_offset_);
@@ -129,7 +131,7 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
+      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override
       {
         if (options.count("bin_size"))
         {
@@ -149,13 +151,13 @@ public:
         {
           bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
         }
-        LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
+        OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
       }
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
       double bin_size_ = 1.0;
-      double peak_spread_ = 0.0;
+      UInt peak_spread_ = 0;
       double bin_offset_ = 0.4;
     };
 
@@ -182,7 +184,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra,
       FeatureMap& features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -247,7 +249,7 @@ public:
       const std::vector<MSSpectrum>& picked_spectra,
       FeatureMap& features,
       std::vector<MSSpectrum>& scored_spectra,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -286,7 +288,7 @@ public:
       const FeatureMap& features,
       std::vector<MSSpectrum>& selected_spectra,
       FeatureMap& selected_features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -322,7 +324,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -415,7 +417,7 @@ public:
 
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /**

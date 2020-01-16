@@ -134,6 +134,14 @@ endif()
 find_package(SQLITE 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
+# HDF5
+# For MSVC use static linking to the HDF5 libraries
+if(MSVC)
+  set(HDF5_USE_STATIC_LIBRARIES ON)
+endif()
+find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
+
+#------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
@@ -167,5 +175,10 @@ add_definitions(${Qt5Network_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
+#------------------------------------------------------------------------------
+# PTHREAD
+#------------------------------------------------------------------------------
+# at least FFSuperHirn requires linking against pthread
+find_package (Threads REQUIRED)
 
 #------------------------------------------------------------------------------

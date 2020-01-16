@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 
 #include <vector>
 #include <map>
@@ -55,7 +56,8 @@ namespace OpenMS
       Method 2: If relative tolerance (ppm) is specified a simple matching of peaks is performed:
       Peaks from s1 (usually the theoretical spectrum) are assigned to the closest peak in s2 if it lies in the tolerance window
       @note: a peak in s2 can be matched to none, one or multiple peaks in s1. Peaks in s1 may be matched to none or one peak in s2.
-      @note: intensity is ignored TODO: improve time complexity, currently O(|s1|*log(|s2|))
+      @note: intensity is ignored 
+      TODO: improve time complexity, currently O(|s1|*log(|s2|))
 
       @htmlinclude OpenMS_SpectrumAlignment.parameters
 
@@ -83,7 +85,7 @@ public:
     // @}
 
     template <typename SpectrumType1, typename SpectrumType2>
-    void getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const SpectrumType1 & s1, const SpectrumType2 & s2) const
+    void getSpectrumAlignment(std::vector<std::pair<Size, Size> >& alignment, const SpectrumType1& s1, const SpectrumType2& s2) const
     {
       if (!s1.isSorted() || !s2.isSorted())
       {
@@ -280,8 +282,8 @@ public:
 
       std::reverse(alignment.begin(), alignment.end());
 
-    #ifdef ALIGNMENT_DEBUG
-    #if 0
+      #ifdef ALIGNMENT_DEBUG
+      #if 0
           // print alignment
           cerr << "Alignment (size=" << alignment.size() << "): " << endl;
 
@@ -301,27 +303,15 @@ public:
         cerr << "(" << s1[it->first - 1].getPosition()[0] << " <-> " << s2[it->second - 1].getPosition()[0] << ") ("
              << it->first << "|" << it->second << ") (" << s1[it->first - 1].getIntensity() << "|" << s2[it->second - 1].getIntensity() << ")" << endl;
           }
-    #endif
-    #endif
-    }
-    else  // relative alignment (ppm tolerance)
-    {        
-      for (Size i = 0; i != s1.size(); ++i)
-      {
-        const double& theo_mz = s1[i].getMZ();
-        double max_dist_dalton = theo_mz * tolerance * 1e-6;
- 
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size j = s2.findNearest(theo_mz);
-        double exp_mz = s2[j].getMZ();
-
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
-        {
-          alignment.push_back(std::make_pair(i, j));
-        }
+      #endif
+      #endif
+      }
+      else  // relative alignment (ppm tolerance)
+      {        
+        // find  closest match of s1[i] in s2 for all i
+        MatchedIterator<SpectrumType1, PpmTrait> it(s1, s2, tolerance);
+        for (; it != it.end(); ++it) alignment.emplace_back(it.refIdx(), it.tgtIdx());
       }
     }
-  }
- };
+  };
 }

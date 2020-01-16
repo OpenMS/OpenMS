@@ -20,6 +20,8 @@
         </NODE>
       </NODE>
     </NODE>    
+    <!--
+    === disable these elements for now (Deuterium is available via 'H(2)' anyways) since they cause mem-leaks in ElementsDB (design choice for speed) ===
     <NODE name="Deuterium">
       <ITEM name="Name" value="Deuterium" type="string" />
       <ITEM name="Symbol" value="D" type="string" />
@@ -41,7 +43,8 @@
           <ITEM name="AtomicMass" value="3.01604927" type="float" />
         </NODE>
       </NODE>
-    </NODE>    
+    </NODE>
+    -->
     <NODE name="Helium">
       <ITEM name="Name" value="Helium" type="string"/>
       <ITEM name="Symbol" value="He" type="string"/>
@@ -664,6 +667,17 @@
         </NODE>
       </NODE>
     </NODE>
+     <NODE name="Yttrium">
+      <ITEM name="Name" value="Yttrium" type="string" />
+      <ITEM name="Symbol" value="Y" type="string" />
+      <ITEM name="AtomicNumber" value="39" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="89">
+          <ITEM name="RelativeAbundance" value="100" type="float" />
+          <ITEM name="AtomicMass" value="88.90585" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
     <NODE name="Zirconium">
       <ITEM name="Name" value="Zirconium" type="string" />
       <ITEM name="Symbol" value="Zr" type="string" />
@@ -684,6 +698,17 @@
         <NODE name="94">
           <ITEM name="RelativeAbundance" value="17.38" type="float" />
           <ITEM name="AtomicMass" value="93.9063152" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="Niobium">
+      <ITEM name="Name" value="Nibium" type="string" />
+      <ITEM name="Symbol" value="Nb" type="string" />
+      <ITEM name="AtomicNumber" value="41" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="93">
+          <ITEM name="RelativeAbundance" value="100" type="float" />
+          <ITEM name="AtomicMass" value="92.9063781" type="float" />
         </NODE>
       </NODE>
     </NODE>
@@ -1202,7 +1227,7 @@
         </NODE>
         <NODE name="208">
           <ITEM name="RelativeAbundance" value="52.4" type="float" />
-          <ITEM name="AtomicMass" value="206.9758969" type="float" />
+          <ITEM name="AtomicMass" value="207.9766538" type="float" />
         </NODE>
       </NODE>
     </NODE>

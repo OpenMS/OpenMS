@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(OSSpectrum_data)
   inten->data.push_back(100.1);
   BinaryDataArrayPtr im(new BinaryDataArray);
   im->data.push_back(300.1);
-  im->description = "Ion Mobility";
+  im->description = "Ion Mobility"; // old format
 
   s.setMZArray(mz);
   s.setIntensityArray(inten);
@@ -109,6 +109,43 @@ BOOST_AUTO_TEST_CASE(OSSpectrum_data)
   TEST_REAL_SIMILAR (s.getMZArray()->data[0], 1.5)
   TEST_REAL_SIMILAR (s.getIntensityArray()->data[0], 100.1)
   TEST_REAL_SIMILAR (s.getDriftTimeArray()->data[0], 300.1)
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(OSSpectrum_data_2)
+{
+  OSSpectrum s;
+
+  BinaryDataArrayPtr mz(new BinaryDataArray);
+  mz->data.push_back(1.5);
+  BinaryDataArrayPtr inten(new BinaryDataArray);
+  inten->data.push_back(100.1);
+  BinaryDataArrayPtr im(new BinaryDataArray);
+  im->data.push_back(300.1);
+  im->description = "Ion Mobility (MS:1002476)"; // new format
+
+  s.setMZArray(mz);
+  s.setIntensityArray(inten);
+  s.getDataArrays().push_back(im);
+
+  TEST_EQUAL (s.getMZArray() == nullptr, false)
+  TEST_EQUAL (s.getIntensityArray() == nullptr, false)
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+
+  TEST_EQUAL (s.getMZArray()->data.size(), 1)
+  TEST_EQUAL (s.getIntensityArray()->data.size(), 1)
+  TEST_EQUAL (s.getDriftTimeArray()->data.size(), 1)
+
+  TEST_REAL_SIMILAR (s.getMZArray()->data[0], 1.5)
+  TEST_REAL_SIMILAR (s.getIntensityArray()->data[0], 100.1)
+  TEST_REAL_SIMILAR (s.getDriftTimeArray()->data[0], 300.1)
+
+  s.getDataArrays().back()->description = "";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, true)
+  s.getDataArrays().back()->description = "Ion Mobility (blah)";
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, false)
+  s.getDataArrays().back()->description = "Ion mOBILITY (blah)"; // wrong
+  TEST_EQUAL (s.getDriftTimeArray() == nullptr, true)
 }
 END_SECTION
 

@@ -176,45 +176,26 @@ public:
         }
       }
 
-      if (peaks_in_window.empty()) // last window is empty -> no special handling needed
+      if (!peaks_in_window.empty()) // last window is not empty
       {
-        // select peaks that were retained
-        std::vector<Size> indices;
-        for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
-        {
-          if (std::find(out.begin(), out.end(), *it) != out.end())
-          {
-            Size index(it - spectrum.begin());
-            indices.push_back(index);
-          }
+        // Note that the last window might be much smaller than windowsize.
+        // Therefore the number of peaks copied from this window should be adapted accordingly.
+        // Otherwise a lot of noise peaks are copied from each end of a spectrum.
+
+        double last_window_size = peaks_in_window.back().getMZ() - window_start;
+        double last_window_size_fraction = last_window_size / windowsize_;
+        Size last_window_peakcount = static_cast<Size>(std::round(last_window_size_fraction * peakcount_));
+
+        if (peaks_in_window.size() > last_window_peakcount)
+        { // sort for last_window_peakcount highest peaks
+          std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), 
+                            reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+          std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
         }
-        spectrum.select(indices);
-        return;
-      }
-
-      // Note that the last window might be much smaller than windowsize.
-      // Therefor the number of peaks copied from this window should be adapted accordingly.
-      // Otherwise a lot of noise peaks are copied from each end of a spectrum.
-
-      double last_window_size = peaks_in_window.back().getMZ() - window_start;
-      double last_window_size_fraction = last_window_size / windowsize_;
-      Size last_window_peakcount = last_window_size_fraction * peakcount_;
-
-      if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
-      {
-        last_window_peakcount = 1;
-      }
-
-      // sort for last_window_peakcount highest peaks
-      std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
-
-      if (peaks_in_window.size() > last_window_peakcount)
-      {
-        std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
-      }
-      else
-      {
-        std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
+        else
+        {
+          std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
+        }
       }
 
       // select peaks that were retained

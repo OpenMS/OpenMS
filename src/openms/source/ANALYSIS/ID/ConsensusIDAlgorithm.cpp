@@ -127,7 +127,7 @@ namespace OpenMS
       hit.setScore(res_it->second.second[0]);
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
+      OPENMS_LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
                 << hit.getScore() << endl;
 #endif
     }

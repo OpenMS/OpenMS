@@ -11,8 +11,10 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
     cdef cppclass CVTermList(MetaInfoInterface):
         # wrap-inherits:
         #    MetaInfoInterface
+
         ######################################################################
-        # cython has a problem with inheritance of overloaded methods,
+        # Cython has a problem with inheritance of overloaded methods, so we
+        # can only declare one of the two methods here.
         # see eg Precursor.pxd 
 
         CVTermList()            nogil except +
@@ -21,8 +23,9 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         void setCVTerms(libcpp_vector[CVTerm] & terms)  nogil except +
         void replaceCVTerm(CVTerm & term)               nogil except +
 
+        # will not wrap due to Cython inheritance issue
         void replaceCVTerms(libcpp_vector[CVTerm] cv_terms, String accession) nogil except +
-        void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
+        # void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
 
         void consumeCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map) nogil except +
 

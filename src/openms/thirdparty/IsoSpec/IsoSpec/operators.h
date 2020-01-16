@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,16 +14,15 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef OPERATORS_HPP
-#define OPERATORS_HPP
+#pragma once
 
 #include <string.h>
 #include "conf.h"
 #include "isoMath.h"
 #include "misc.h"
 
-
+namespace IsoSpec
+{
 
 class KeyHasher
 {
@@ -52,7 +51,14 @@ public:
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
-        return !memcmp(conf1, conf2, size);
+        // The memcmp() function returns zero if the two strings are identical, oth-
+        // erwise returns the difference between the first two differing bytes
+        // (treated as unsigned char values, so that `\200' is greater than `\0',
+        // for example).  Zero-length strings are always identical.  This behavior
+        // is not required by C and portable code should only depend on the sign of
+        // the returned value.
+        //                                          sacred man of memcmp.
+        return memcmp(conf1, conf2, size) == 0;
     }
 };
 
@@ -112,4 +118,25 @@ public:
 	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
 
-#endif
+} // namespace IsoSpec
+
+#include "marginalTrek++.h"
+
+class PrecalculatedMarginal; // In case marginalTrek++.h us including us, and can't be included again...
+
+namespace IsoSpec
+{
+
+class OrderMarginalsBySizeDecresing
+{
+    PrecalculatedMarginal const* const* const T;
+public:
+    OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * const _T);
+    bool operator()(int m1, int m2);
+};
+
+
+} // namespace IsoSpec
+
+
+

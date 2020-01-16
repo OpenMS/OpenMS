@@ -118,7 +118,7 @@ namespace OpenMS
           scan_no = extractScanNumber(native_id, scan_regexp_, true);
           if (scan_no < 0)
           {
-            LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
+            OPENMS_LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
           }
         }
         addEntry_(i, spectrum.getRT(), scan_no, native_id);

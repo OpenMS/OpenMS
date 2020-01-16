@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 namespace OpenMS
 {
 
@@ -139,7 +141,7 @@ namespace OpenMS
 
     if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
     {
-      LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
+      OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
     }
 
     DocumentIdentifier::operator=(empty_map);
@@ -199,10 +201,10 @@ namespace OpenMS
     {
       UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
+    catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
-      LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+      OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
     return *this;
@@ -217,7 +219,7 @@ namespace OpenMS
 
     if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
     {
-      LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
+      OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
     }
 
     DocumentIdentifier::operator=(empty_map);
@@ -281,26 +283,20 @@ namespace OpenMS
           pid.setMetaValue("map_index", lhs_map_size + old_index);
         }
       }
-      
-      // we can't directly update the map index of consensus features
-      // so we need to create a temporary one.
-      ConsensusFeature new_cf;
-      new_cf.setCharge(cf.getCharge());
-      new_cf.setRT(cf.getRT());
-      new_cf.setMZ(cf.getMZ());
-      new_cf.setQuality(cf.getQuality());
-      new_cf.setIntensity(cf.getIntensity());
-      new_cf.setWidth(cf.getWidth());
-      new_cf.getPeptideIdentifications() = cf.getPeptideIdentifications();
 
-      // transfer feature intensities
-      Size element_index(0);
-      for (auto it = cf.begin(); it != cf.end(); ++it, ++element_index)
+      // update map indices
+      ConsensusFeature::HandleSetType new_handles;
+      // std::set only provides const iterators, so we copy
+      for (auto handle : cf) // OMS_CODING_TEST_EXCLUDE
       {
-        new_cf.insert(lhs_map_size + it->getMapIndex(), *it, element_index);
+        //since we only add a constant to the map_index, the set order will not change.
+        handle.setMapIndex(lhs_map_size + handle.getMapIndex());
+        new_handles.insert(handle);
       }
-      
-      emplace_back(new_cf);
+      cf.setFeatures(std::move(new_handles));
+      new_handles.clear();
+
+      emplace_back(cf);
     }
 
     // consistency
@@ -308,10 +304,10 @@ namespace OpenMS
     {
       UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition ) // assign new UID's for conflicting entries
+    catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
-      LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+      OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
     return *this;
@@ -496,6 +492,12 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
+  /// sets the protein identifications
+  void ConsensusMap::setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications)
+  {
+    protein_identifications_ = std::move(protein_identifications);
+  }
+
   /// non-mutable access to the unassigned peptide identifications
   const std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications() const
   {
@@ -537,12 +539,11 @@ namespace OpenMS
   {
     if (s.empty())
     {
-      LOG_WARN << "Setting empty MS runs paths. Expected " + String(column_description_.size()) << std::endl;
+      OPENMS_LOG_WARN << "Setting empty MS runs paths. Expected one for each map. Resulting ConsensusMap contains " + String(column_description_.size()) + " maps." << std::endl;
       for (auto & cd : column_description_)
       {
-        LOG_WARN << "Setting empty MS runs paths. Expected " + String(column_description_.size()) << std::endl;
-        cd.second.filename = "UKNOWN";
-       }
+        cd.second.filename = "UNKNOWN";
+      }
     } 
     else if (!column_description_.empty() && s.size() != column_description_.size())
     {
@@ -554,9 +555,29 @@ namespace OpenMS
     Size i(0);
     for (auto const & p : s)
     {
+      if (!p.hasSuffix("mzML"))
+      {
+        OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
+                        << "Filename: '" << p << "'" << std::endl;                          
+      }
+
       column_description_[i].filename = p;
       ++i;
     }
+  }
+
+  void ConsensusMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  {
+    StringList ms_path;
+    e.getPrimaryMSRunPath(ms_path);
+    if (ms_path.size() == 1 && ms_path[0].hasSuffix("mzML") && File::exists(ms_path[0]))
+    {
+      setPrimaryMSRunPath(ms_path);
+    }
+    else
+    {
+      setPrimaryMSRunPath(s);
+    }        
   }
 
   void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const
@@ -668,6 +689,7 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
@@ -692,11 +714,14 @@ namespace OpenMS
     {
       if (stream != nullptr)
       {
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
         for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
+OPENMS_THREAD_CRITICAL(oms_log)
           *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
+OPENMS_THREAD_CRITICAL(oms_log)
         *stream << std::endl;
       }
       return false;
@@ -704,5 +729,93 @@ namespace OpenMS
 
     return true;
   }
+
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned)
+  {
+    for (auto& feat : *this)
+    {
+      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned)
+  {
+    for (auto& feat : *this)
+    {
+      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f, bool include_unassigned) const
+  {
+    for (const auto& feat : *this)
+    {
+      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned) const
+  {
+    for (const auto& feat : *this)
+    {
+      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
+    }
+    if (include_unassigned)
+    {
+      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
+    }
+  }
+
+
+  void ConsensusMap::applyFunctionOnPeptideIDs_(vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f)
+  {
+    for (auto& id : idvec)
+    {
+      f(id);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits_(vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f)
+  {
+    for (auto& id : idvec)
+    {
+      for (auto& hit : id.getHits())
+      {
+        f(hit);
+      }
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideIDs_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const
+  {
+    for (const auto& id : idvec)
+    {
+      f(id);
+    }
+  }
+
+  void ConsensusMap::applyFunctionOnPeptideHits_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const
+  {
+    for (const auto& id : idvec)
+    {
+      for (const auto& hit : id.getHits())
+      {
+        f(hit);
+      }
+    }
+  }
+
 
 } // namespace OpenMS

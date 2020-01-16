@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,15 +14,15 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef ALLOCATOR_HPP
-#define ALLOCATOR_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
 #include <string.h>
 #include "conf.h"
 
+namespace IsoSpec
+{
 
 template <typename T> inline void copyConf(
     const T* source, T* destination,
@@ -70,4 +70,5 @@ public:
     }
 };
 
-#endif
+}
+

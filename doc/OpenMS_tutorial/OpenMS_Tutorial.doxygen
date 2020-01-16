@@ -450,15 +450,15 @@ http://www.psidev.info/
 @subsection tutorial_logging Logging
 To make direct output to std::out and std::err more consistent, %OpenMS provides several low-level macros:
 <br>
-LOG_FATAL_ERROR, 
+OPENMS_LOG_FATAL_ERROR, 
 <br>
-LOG_ERROR
+OPENMS_LOG_ERROR
 <br>
-LOG_WARN,
+OPENMS_LOG_WARN,
 <br>
-LOG_INFO and
-<br
->LOG_DEBUG
+OPENMS_LOG_INFO and
+<br>
+OPENMS_LOG_DEBUG
 <br>
 which should be used instead of the less descriptive std::out and std::err streams. 
 

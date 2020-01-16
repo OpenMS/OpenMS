@@ -99,9 +99,7 @@ namespace OpenMS
     // construct outer hull if required
     if (outer_points_.empty() && map_points_.size() > 0)
     {
-
       // walk the outer hull
-      outer_points_.clear();
       outer_points_.reserve(map_points_.size() * 2);
 
       // traverse lower m/z's of RT scans

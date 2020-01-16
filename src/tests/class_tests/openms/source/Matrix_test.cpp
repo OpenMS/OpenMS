@@ -42,6 +42,8 @@
 // Includes go here....
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
+#include <sstream>
+
 ///////////////////////////
 
 START_TEST(Matrix, "$Id$");

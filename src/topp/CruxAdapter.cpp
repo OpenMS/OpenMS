@@ -113,7 +113,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -206,7 +206,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -305,7 +305,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -355,7 +355,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -401,7 +401,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -426,12 +426,44 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
+    // fill search parameters
+    ProteinIdentification::SearchParameters sp;
+    sp.db = getStringOption_("database");
+    //sp.charges = getIntList_("charge"); //dont know. Seems like tide doesnt support ranges and usually searches all?
+    //TODO input options do not follow our standard so we cant just copy here
+    sp.fixed_modifications = {}; //getStringList_("fixed_modifications");
+    sp.variable_modifications = {}; //getStringList_("variable_modifications");
+    sp.missed_cleavages = getIntOption_("allowed_missed_cleavages");
+    sp.fragment_mass_tolerance = getDoubleOption_("fragment_bin_width");
+    sp.fragment_mass_tolerance_ppm = "Da";
+    sp.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    sp.precursor_mass_tolerance_ppm = getStringOption_("precursor_mass_units") == "ppm";
+    sp.digestion_enzyme = *static_cast<const DigestionEnzymeProtein*>(ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme")));
+
     std::cout << " will load file now " << std::endl;
     if (run_percolator)
     {
       String mzid = out_dir_q + "percolator.target.mzid";
       String mzid_decoy = out_dir_q + "percolator.decoy.mzid";
       MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
+      for (auto& protID : protein_identifications)
+      {
+        protID.setSearchEngine("Percolator");
+        String SE = "tide_search";
+        protID.setMetaValue("SE:"+SE,"");
+        protID.setMetaValue(SE+":db",sp.db);
+        protID.setMetaValue(SE+":db_version",sp.db_version);
+        protID.setMetaValue(SE+":taxonomy",sp.taxonomy);
+        protID.setMetaValue(SE+":charges",sp.charges);
+        protID.setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
+        protID.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
+        protID.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
+        protID.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
+        protID.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+        protID.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
+        protID.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+        protID.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+      }
 
       // also load the decoys
       if (report_decoys)
@@ -443,6 +475,11 @@ protected:
     {
       String mzid = out_dir_q + "tide-search.mzid";
       MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
+      for (auto& protID : protein_identifications)
+      {
+        protID.setSearchEngine("tide-search");
+        protID.setSearchParameters(sp);
+      }
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);

@@ -40,6 +40,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -187,7 +189,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -246,6 +248,7 @@ protected:
       std::vector<MassTrace> splitted_mtraces;
       epd_param.remove("enabled"); // artificially added above
       epd_param.insert("", common_param);
+      epd_param.remove("noise_threshold_int");
       ElutionPeakDetection epdet;
       epdet.setParameters(epd_param);
       // fill mass traces with smoothed data as well .. bad design..
@@ -269,7 +272,7 @@ protected:
       }
       if (ffm_param.getValue("use_smoothed_intensities").toBool())
       {
-        LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
+        OPENMS_LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
         ffm_param.setValue("use_smoothed_intensities", "false");
       }
     }
@@ -300,20 +303,24 @@ protected:
 
     if (trace_count != m_traces_final.size())
     {
-      if (ffm_param.getValue("remove_single_traces").toBool() == false)
+      if (!ffm_param.getValue("remove_single_traces").toBool())
       { 
-        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+        OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
+        OPENMS_LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
       }     
     }
 
-    LOG_INFO << "-- FF-Metabo stats --\n"
+    OPENMS_LOG_INFO << "-- FF-Metabo stats --\n"
              << "Input traces:    " << m_traces_final.size() << "\n"
              << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
+
+    // filter features with zero intensity (this can happen if the FWHM is zero (bc of overly skewed shape) and no peaks end up being summed up)
+    auto intensity_zero = [&](Feature& f) { return f.getIntensity() == 0; };
+    feat_map.erase(remove_if(feat_map.begin(),feat_map.end(),intensity_zero),feat_map.end());
 
     // store chromatograms
     if (!out_chrom.empty())
@@ -332,13 +339,13 @@ protected:
         }
         else
         {
-            LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
+            OPENMS_LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
             return UNEXPECTED_RESULT;
         }
     }
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
-    if (feat_map.size() > 0)
+    if (!feat_map.empty())
     {
       set<IonSource::Polarity> pols;
       for (Size i = 0; i < ms_peakmap.size(); ++i)
@@ -362,9 +369,15 @@ protected:
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // annotate "spectra_data" metavalue
-    StringList ms_runs;
-    ms_peakmap.getPrimaryMSRunPath(ms_runs);
-    feat_map.setPrimaryMSRunPath(ms_runs);
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      feat_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+    }    
 
     FeatureXMLFile feature_xml_file;
     feature_xml_file.setLogType(log_type_);

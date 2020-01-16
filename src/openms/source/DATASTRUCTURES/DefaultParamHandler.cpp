@@ -101,7 +101,7 @@ namespace OpenMS
     {
       if (defaults_.empty() && warn_empty_defaults_)
       {
-        LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+        OPENMS_LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
       }
 
       //remove registered subsections

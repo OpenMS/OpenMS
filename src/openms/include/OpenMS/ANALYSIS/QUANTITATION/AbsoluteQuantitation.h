@@ -113,7 +113,7 @@ public:
       @brief This function calculates the ratio between features.
 
       @param component_1 component of the numerator
-      @param component_2 component of the denomenator
+      @param component_2 component of the denominator
       @param feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 

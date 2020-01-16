@@ -229,7 +229,7 @@ protected:
           {
             list.writeTargets(map, out);
           }
-          catch (Exception::UnableToCreateFile)
+          catch (Exception::UnableToCreateFile&)
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -242,9 +242,7 @@ protected:
           PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
-          StringList ms_runs;
-          exp.getPrimaryMSRunPath(ms_runs);
-          out_map.setPrimaryMSRunPath(ms_runs);
+          out_map.setPrimaryMSRunPath({raw_data_path}, exp);
 
           IntList levels;
           levels.push_back(1);
@@ -305,7 +303,7 @@ protected:
             }
             else list.writeTargets(out_map, out);
           }
-          catch (Exception::UnableToCreateFile)
+          catch ( Exception::UnableToCreateFile& )
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -360,7 +358,7 @@ protected:
           {
             list.writeTargets(entries, out, incl_charges, rt_model_file);
           }
-          catch (Exception::UnableToCreateFile)
+          catch (Exception::UnableToCreateFile&)
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -396,7 +394,7 @@ protected:
         {
           list.writeTargets(map, out);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -411,17 +409,17 @@ protected:
         {
           list.writeTargets(pep_ids, out, excl_charges);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
-        catch (Exception::InvalidSize)
+        catch (Exception::InvalidSize&)
         {
           writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
           return ILLEGAL_PARAMETERS;
         }
-        catch (Exception::MissingInformation)
+        catch (Exception::MissingInformation&)
         {
           writeLog_("Error: Peptide identification contains no RT information.");
           return ILLEGAL_PARAMETERS;
@@ -449,7 +447,7 @@ protected:
         {
           list.writeTargets(entries, out, excl_charges, rt_model_file);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;

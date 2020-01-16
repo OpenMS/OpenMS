@@ -54,7 +54,7 @@ namespace OpenMS
     {
       sl << accessions << RNA << peptide << String(charge) << String(score)
          << best_localization_score  << localization_scores << best_localization
-         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) 
+         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4)
          << String::number(peptide_weight + RNA_weight, 4);
     }
 
@@ -126,7 +126,7 @@ namespace OpenMS
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       int scan_index = s_it - spectra.begin();
-     std::vector<Precursor> precursor = s_it->getPrecursors();
+      std::vector<Precursor> precursor = s_it->getPrecursors();
 
       // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
       if (s_it->getMSLevel() == 2 && precursor.size() == 1)
@@ -232,8 +232,8 @@ namespace OpenMS
           row.m_3H = weight_z3;
           row.m_4H = weight_z4;
 
-          if (ph.metaValueExists("RNPxl:best_localization_score") && 
-              ph.metaValueExists("RNPxl:localization_scores") && 
+          if (ph.metaValueExists("RNPxl:best_localization_score") &&
+              ph.metaValueExists("RNPxl:localization_scores") &&
               ph.metaValueExists("RNPxl:best_localization"))
           {
             row.best_localization_score = ph.getMetaValue("RNPxl:best_localization_score");
@@ -242,7 +242,7 @@ namespace OpenMS
           }
 
           ph.setMetaValue("RNPxl:Da difference", (double)absolute_difference);
-          ph.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
+          ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
           ph.setMetaValue("RNPxl:z1 mass", (double)weight_z1);
           ph.setMetaValue("RNPxl:z2 mass", (double)weight_z2);
           ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);
@@ -251,35 +251,35 @@ namespace OpenMS
 
           // In the last annotation step we add the oligo as delta mass modification
           // to get the proper theoretical mass annotated in the PeptideHit
-          // Try to add it to the C- then N-terminus. 
+          // Try to add it to the C- then N-terminus.
           // If already modified search for an unmodified amino acid and add it there
           if (rna_weight > 0)
           {
             const AASequence& aa = ph.getSequence();
             const String seq = ph.getSequence().toString();
 
-            if (!aa.hasCTerminalModification()) 
+            if (!aa.hasCTerminalModification())
             {
               AASequence new_aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
               ph.setSequence(new_aa);
             }
-            else if (!aa.hasNTerminalModification()) 
+            else if (!aa.hasNTerminalModification())
             {
               AASequence new_aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
               ph.setSequence(new_aa);
             }
             else // place it anywhere
             {
-              for (auto a : aa)
+              for (auto a : aa) // NOTE: performs copy, this cannot possibly work!
               {
                 if (!a.isModified())
                 {
                   a.setModification("[" + String(rna_weight) + "]");
                   break;
                 }
-              }             
+              }
             }
-          }          
+          }
       }
     }
   }

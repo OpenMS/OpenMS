@@ -31,22 +31,25 @@
 // $Maintainer: Leon Bichmann $
 // $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
-#include <OpenMS/config.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <cmath>
 #include <string>
 #include <set>
 
+#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
@@ -187,10 +190,10 @@ protected:
         #else
                        "maracluster",
         #endif
-                       "maracluster executable of the installation e.g. 'maracluster.exe'", is_required, !is_advanced_option, ListUtils::create<String>("skipexists")
+                       "The maracluster executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", is_required, !is_advanced_option, {"is_executable"}
     );
 
-    //Advanced parameters
+    // Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
     registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
@@ -239,7 +242,7 @@ protected:
       else
       {
         scan_identifier = "index=" + String(it - start + 1);
-        LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
+        OPENMS_LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
       }
     }
     return scan_identifier.removeWhitespaces();
@@ -281,20 +284,6 @@ protected:
 
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
-
-    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
-    {
-      writeLog_("No maracluster executable specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-    else if (!File::exists(maracluster_executable))
-    {
-      writeLog_("Maracluster executable not found at location specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-   
  
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
@@ -367,6 +356,7 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
+    writeLog_("Executing maracluster ...");
     runExternalProcess_(maracluster_executable.toQString(), arguments);
 
     //-------------------------------------------------------------

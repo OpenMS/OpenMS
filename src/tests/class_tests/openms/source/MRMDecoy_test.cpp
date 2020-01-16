@@ -44,7 +44,6 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
@@ -545,7 +544,7 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         enable_unspecific_losses); 
   traml.store(test, targeted_decoy);
 
-  TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
+  TEST_FILE_SIMILAR(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 
 END_SECTION

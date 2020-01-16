@@ -1,4 +1,4 @@
-=========================================================================
+﻿=========================================================================
                  OpenMS -- Open Source Mass Spectrometry
 =========================================================================
 
@@ -21,6 +21,7 @@ the authors tag in the respective file header.
  - David Wojnar
  - Dilek Dere
  - Dimitri Schachmann
+ - Dominik Schmitz
  - Douglas McCloskey
  - Erhan Kenar
  - Eugen Netz
@@ -40,6 +41,7 @@ the authors tag in the respective file header.
  - Johan Teleman
  - Johannes Junker
  - Johannes Veit
+ - Juliane Schmachtenberg
  - Julianus Pfeuffer
  - Katharina Albers
  - Knut Reinert
@@ -52,13 +54,17 @@ the authors tag in the respective file header.
  - Marc Sturm
  - Markus Mueller
  - Martin Langwisch
+ - Mateusz Łącki
  - Mathias Walzer
  - Matthew The
+ - Matthias Bernt
+ - Michał Startek
  - Nico Pfeifer
  - Ole Schulz-Trieglaff
  - Oliver Alka
  - Oliver Kohlbacher
  - Pasquale Domenico Colaianni
+ - Patricia Scheil
  - Peter Kunszt
  - Petra Gutenbrunner
  - Rene Hussong
@@ -67,7 +73,9 @@ the authors tag in the respective file header.
  - Steffen Sass
  - Stephan Aiche
  - Sven Nahnsen
+ - Swenja Wagner
  - Timo Sachsenberg
+ - Tom Waschischeck
  - Uwe Schmitt
  - Vipul Patel
  - Volker Mosthaf

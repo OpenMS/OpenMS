@@ -39,7 +39,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -65,11 +68,19 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
   EmpiricalFormula ef ("C6H12O6");
 
   // simple way of getting an IsotopeDistribution
-  IsotopeDistribution test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
+  IsotopeDistribution test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator(0.01, false, false));
   TEST_EQUAL(test_id.size(), 3)
 
+  // simple way of getting an IsotopeDistribution using absolute tol
+  test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator(0.01, false, true));
+  TEST_EQUAL(test_id.size(), 3)
+
+  // simple way of getting an IsotopeDistribution using total probability
+  test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator(0.01, true, false));
+  TEST_EQUAL(test_id.size(), 6)
+
   {
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(0.01, false, false);
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 3)
 
@@ -82,7 +93,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 
   {
     const double threshold = 1e-5;
-    FineIsotopePatternGenerator gen(threshold);
+    FineIsotopePatternGenerator gen(threshold, false, false);
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 14)
 
@@ -97,7 +108,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
   }
 
   {
-    FineIsotopePatternGenerator gen(1e-12);
+    FineIsotopePatternGenerator gen(1e-12, false, false);
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 104)
 
@@ -110,16 +121,19 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-100);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
   }
 
   // For a C100 molecule
   {
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(0.01, false, false);
     gen.setThreshold(1e-2);
     IsotopeDistribution id = gen.run(EmpiricalFormula("C100"));
     TEST_EQUAL(id.size(), 6)
+
+    // for (auto i : id.getContainer())
+    //   std::cout << i << std::endl;
 
     gen.setThreshold(1e-5);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 9)
@@ -151,22 +165,33 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-250);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
     TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getIntensity(), 8.67e-198) // note: Intensity is only float, so nothing beyond 1e-38
     TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getMZ(), 1300.3355000000001)
   }
 
+  // {
+  //   std::string formula = "C100H202"; // add 202 hydrogen
+  //   FineIsotopePatternGenerator gen(0.99, true, true);
+  //   IsotopeDistribution id = gen.run(EmpiricalFormula(formula));
+  //   TEST_EQUAL(id.size(), 9)
+
+  //   for (auto i : id.getContainer())
+  //     std::cout << i << std::endl;
+  // }
+
   {
-    std::string formula = "C100H202";
-    FineIsotopePatternGenerator gen;
+    std::string formula = "C100H202"; // add 202 hydrogen
+    FineIsotopePatternGenerator gen(0.01, false, false);
     gen.setThreshold(1e-2);
     IsotopeDistribution id = gen.run(EmpiricalFormula(formula));
     TEST_EQUAL(id.size(), 9)
 
     gen.setThreshold(1e-5);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 21)
+    id = gen.run(EmpiricalFormula(formula));
 
     gen.setThreshold(1e-10);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 50)
@@ -192,41 +217,48 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-320);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 7687)
 
-    gen.setThreshold(1e-350);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
+  }
 
-    gen.setThreshold(1e-1000);
-    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
+  // Also test a molecule with 2048 atoms (a value that does not fit into the
+  // lookup table any more, it should still work).
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    gen.setThreshold(1e-2);
+    IsotopeDistribution id = gen.run(EmpiricalFormula("C2048"));
+    TEST_EQUAL(id.size(), 28)
+
+    gen.setThreshold(1e-5);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C2048")).size(), 44)
   }
 }
 END_SECTION
 
 START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
 {
-  // human insulin
-  EmpiricalFormula ef ("C520H817N139O147S8");
-
   {
-    FineIsotopePatternGenerator gen;
+    // human insulin
+    EmpiricalFormula ef ("C520H817N139O147S8");
+
+    FineIsotopePatternGenerator gen(0.01, false, false);
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 267)
 
     gen.setThreshold(1e-5);
-    id = gen.run(ef);
-    TEST_EQUAL(id.size(), 5513)
-  }
-
-  {
-    IsotopeDistribution id = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
-    TEST_EQUAL(id.size(), 267)
-
-    IsotopeDistribution id2 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(1e-5));
+    IsotopeDistribution id2 = gen.run(ef);
     TEST_EQUAL(id2.size(), 5513)
+
+    IsotopeDistribution id3 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(0.01, false, false));
+    TEST_EQUAL(id3.size(), 267)
+
+    IsotopeDistribution id4 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(1e-5, false, false));
+    TEST_EQUAL(id4.size(), 5513)
   }
 
   {
     EmpiricalFormula ef("C222N190O110");
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(0.01, false, false);
     gen.setThreshold(1e-3);
     IsotopeDistribution id = gen.run(ef);
 
@@ -284,7 +316,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
 
     EmpiricalFormula ef("CBr2");
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(0.01, false, false);
     gen.setThreshold(1e-3);
     IsotopeDistribution id = gen.run(ef);
 
@@ -315,7 +347,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
   for (Size k = 0; k < 2e5; k++)
   {
     EmpiricalFormula ef ("C520H817N139O147");
-    FineIsotopePatternGenerator gen(1e-2, false);
+    FineIsotopePatternGenerator gen(1e-2, false, false);
     IsotopeDistribution id = gen.run(ef);
     sum += id.size();
   }
@@ -334,7 +366,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
 
     {
-      FineIsotopePatternGenerator gen;
+      FineIsotopePatternGenerator gen(0.01, false, false);
       IsotopeDistribution id = gen.run(ef);
       calculated_masses += id.size();
 
@@ -356,7 +388,7 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
 
     {
-      FineIsotopePatternGenerator gen;
+      FineIsotopePatternGenerator gen(0.01, false, false);
       IsotopeDistribution id = gen.run(ef);
       calculated_masses += id.size();
 
@@ -372,17 +404,18 @@ END_SECTION
 
 START_SECTION(( void setAbsolute(bool absolute) ))
 {
-  FineIsotopePatternGenerator gen;
-  gen.setAbsolute(true);
-  TEST_EQUAL(gen.getAbsolute(), true);
-  gen.setAbsolute(false);
-  TEST_EQUAL(gen.getAbsolute(), false);
-
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    gen.setAbsolute(true);
+    TEST_EQUAL(gen.getAbsolute(), true);
+    gen.setAbsolute(false);
+    TEST_EQUAL(gen.getAbsolute(), false);
+  }
   // human insulin
   EmpiricalFormula ef ("C520H817N139O147S8");
 
   {
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(0.01, false, false);
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 267)
 

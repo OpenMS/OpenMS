@@ -46,6 +46,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 // interfaces
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -200,7 +202,7 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
           continue;
         }
 
@@ -286,9 +288,16 @@ protected:
     run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
-    StringList ms_runs;
-    exp->getPrimaryMSRunPath(ms_runs);
-    output.setPrimaryMSRunPath(ms_runs);
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)}, *exp);
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, *exp);
+    }      
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

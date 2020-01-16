@@ -38,10 +38,15 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/METADATA/DataArrays.h>
+
+
+
 #include <set>
 
 namespace OpenMS
 {
+  class MSExperiment;
   class PeptideIdentification;
 
   /**
@@ -73,8 +78,19 @@ public:
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
-    struct OPENMS_DLLAPI ProteinGroup
+    class OPENMS_DLLAPI ProteinGroup
     {
+    public:
+      /// Float data array vector type
+      typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
+      typedef std::vector<FloatDataArray> FloatDataArrays;
+      /// String data array vector type
+      typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
+      typedef std::vector<StringDataArray> StringDataArrays;
+      /// Integer data array vector type
+      typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
+      typedef std::vector<IntegerDataArray> IntegerDataArrays;
+
       /// Probability of this group
       double probability;
 
@@ -95,6 +111,100 @@ public:
         everything else being equal, accessions are compared lexicographically.
       */
       bool operator<(const ProteinGroup& rhs) const;
+
+      /// Float data arrays
+      /**
+      @name data array methods
+
+      These methods are used to annotate protein group meta information.
+
+      These statements should help you chose which approach to use
+        - Access to meta info arrays is slower than to a member variable
+        - Access to meta info arrays is faster than to a %MetaInfoInterface
+        - Meta info arrays are stored when using mzML format for storing
+    */
+    //@{
+      /// Returns a const reference to the float meta data arrays
+      const FloatDataArrays& getFloatDataArrays() const;
+
+      /// Returns a mutable reference to the float meta data arrays
+      FloatDataArrays& getFloatDataArrays()
+      {
+        return float_data_arrays_;
+      }
+
+      /// Sets the float meta data arrays
+      void setFloatDataArrays(const FloatDataArrays& fda);
+
+      /// Returns a const reference to the string meta data arrays
+      const StringDataArrays& getStringDataArrays() const;
+
+      /// Returns a mutable reference to the string meta data arrays
+      StringDataArrays& getStringDataArrays();
+
+      /// Sets the string meta data arrays
+      void setStringDataArrays(const StringDataArrays& sda);
+
+      /// Returns a const reference to the integer meta data arrays
+      const IntegerDataArrays& getIntegerDataArrays() const;
+
+      /// Returns a mutable reference to the integer meta data arrays
+      IntegerDataArrays& getIntegerDataArrays();
+
+      /// Sets the integer meta data arrays
+      void setIntegerDataArrays(const IntegerDataArrays& ida);
+
+      /// Returns a mutable reference to the first integer meta data array with the given name
+      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first string meta data array with the given name
+      inline StringDataArray& getStringDataArrayByName(String name)
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first float meta data array with the given name
+      inline FloatDataArray& getFloatDataArrayByName(String name)
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first integer meta data array with the given name
+      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first string meta data array with the given name
+      inline const StringDataArray& getStringDataArrayByName(String name) const
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first float meta data array with the given name
+      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+    private:
+      /// Float data arrays
+      FloatDataArrays float_data_arrays_;
+
+      /// String data arrays
+      StringDataArrays string_data_arrays_;
+
+      /// Integer data arrays
+      IntegerDataArrays integer_data_arrays_;
     };
 
     /// Peak mass type
@@ -127,20 +237,23 @@ public:
 
       SearchParameters();
       /// Copy constructor
-      SearchParameters(const SearchParameters &) = default;
+      SearchParameters(const SearchParameters&) = default;
       /// Move constructor
       SearchParameters(SearchParameters&&) = default;
       /// Destructor
       ~SearchParameters() = default;
 
       /// Assignment operator
-      SearchParameters & operator=(const SearchParameters &) = default;
+      SearchParameters& operator=(const SearchParameters&) = default;
       /// Move assignment operator
-      SearchParameters& operator=(SearchParameters&&) & = default;
+      SearchParameters& operator=(SearchParameters&&)& = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
       bool operator!=(const SearchParameters& rhs) const;
+
+      std::pair<int,int> getChargeRange() const;
+      int getChargeValue_(String& charge_str) const;
 
     };
 
@@ -169,13 +282,13 @@ public:
     ///@name Protein hit information (public members)
     //@{
     /// Returns the protein hits
-    const std::vector<ProteinHit> & getHits() const;
+    const std::vector<ProteinHit>& getHits() const;
     /// Returns the protein hits (mutable)
-    std::vector<ProteinHit> & getHits();
+    std::vector<ProteinHit>& getHits();
     /// Appends a protein hit
-    void insertHit(const ProteinHit & input);
+    void insertHit(const ProteinHit& input);
     /// Appends a protein hit
-    void insertHit(ProteinHit && input);
+    void insertHit(ProteinHit&& input);
 
     /**
         @brief Sets the protein hits
@@ -192,7 +305,7 @@ public:
     /// Returns the protein groups (mutable)
     std::vector<ProteinGroup>& getProteinGroups();
     /// Appends a new protein group
-    void insertProteinGroup(const ProteinGroup & group);
+    void insertProteinGroup(const ProteinGroup& group);
 
     /// Returns the indistinguishable proteins
     const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
@@ -200,6 +313,8 @@ public:
     std::vector<ProteinGroup>& getIndistinguishableProteins();
     /// Appends new indistinguishable proteins
     void insertIndistinguishableProteins(const ProteinGroup& group);
+    /// Appends singleton groups (with the current score) for every yet ungrouped protein hit
+    void fillIndistinguishableGroupsWithSingletons();
 
     /// Returns the protein significance threshold value
     double getSignificanceThreshold() const;
@@ -227,6 +342,17 @@ public:
     void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
     //@}
 
+    /**
+       @brief Compute the modifications of all ProteinHits given PeptideHits
+
+      For every protein accession, the pair of position and modification is returned.
+      Because fixed modifications might not be of interest, a list can be provided to skip those.
+    */
+    void computeModifications(
+      const std::vector<PeptideIdentification>& pep_ids,
+      const StringList& skip_modifications);
+
+
     ///@name General information
     //@{
     /// Returns the date of the protein identification run
@@ -241,20 +367,45 @@ public:
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
     const String& getSearchEngineVersion() const;
+    /// Sets the inference engine type
+    void setInferenceEngine(const String& search_engine);
+    /// Returns the type of search engine used
+    const String getInferenceEngine() const;
+    /// Sets the search engine version
+    void setInferenceEngineVersion(const String& inference_engine_version);
+    /// Returns the search engine version
+    const String getInferenceEngineVersion() const;
     /// Sets the search parameters
     void setSearchParameters(const SearchParameters& search_parameters);
+    /// Sets the search parameters (move)
+    void setSearchParameters(SearchParameters&& search_parameters);
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
     /// Returns the search parameters (mutable)
-    SearchParameters& getSearchParameters();    
+    SearchParameters& getSearchParameters();
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String& id);
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s);
-    /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
+    /**
+       Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+
+       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+    */
+    void setPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    void addPrimaryMSRunPath(const String& s, bool raw = false);
+    void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+    /**
+       Get the file paths to the primary MS runs
+
+       @param raw Get raw files (or equivalent) instead of mzMLs
+    */
+    void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
+    /// if this object has inference data
+    bool hasInferenceData() const;
+    bool hasInferenceEngineAsSearchEngine() const;
     //@}
 
 protected:

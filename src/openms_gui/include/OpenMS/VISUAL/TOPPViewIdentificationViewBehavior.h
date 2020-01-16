@@ -34,7 +34,7 @@
 
 #pragma once
 
-// #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
@@ -133,10 +133,8 @@ namespace OpenMS
     /// Helper function for generateSequenceDiagram_() - overload for peptides
     void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
 
-/*
     /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
     void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
-*/
 
     /// Helper function, that collapses a vector of Strings into one String
     String collapseStringVector(std::vector<String> strings);

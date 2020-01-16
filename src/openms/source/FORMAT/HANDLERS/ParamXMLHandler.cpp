@@ -97,7 +97,8 @@ namespace OpenMS
         {
           param_.setValue(name, asInt_(value), description, tags);
         }
-        else if (type == "string")
+        // since 1.7 it supports a separate bool type
+        else if (type == "bool" || type == "string")
         {
           param_.setValue(name, value, description, tags);
         }
@@ -122,59 +123,70 @@ namespace OpenMS
         }
 
         //restrictions
-        Int restrictions_index = attributes.getIndex(s_restrictions);
-        if (restrictions_index != -1)
+
+        // we internally handle bool parameters as strings with restrictions true/false
+        if (type == "bool")
         {
-          String val = sm_.convert(attributes.getValue(restrictions_index));
-          std::vector<String> parts;
-          if (type == "int")
+          param_.setValidStrings(name, {"true","false"});
+        }
+        else
+        {
+          // parse restrictions if present
+          Int restrictions_index = attributes.getIndex(s_restrictions);
+          if (restrictions_index != -1)
           {
-            val.split(':', parts);
-            if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
-            if (parts.size() == 2)
+            String val = sm_.convert(attributes.getValue(restrictions_index));
+            std::vector<String> parts;
+            if (type == "int")
             {
-              if (parts[0] != "")
+              val.split(':', parts);
+              if (parts.size() != 2)
+                val.split('-', parts); //for downward compatibility
+              if (parts.size() == 2)
               {
-                param_.setMinInt(name, parts[0].toInt());
+                if (parts[0] != "")
+                {
+                  param_.setMinInt(name, parts[0].toInt());
+                }
+                if (parts[1] != "")
+                {
+                  param_.setMaxInt(name, parts[1].toInt());
+                }
               }
-              if (parts[1] != "")
+              else
               {
-                param_.setMaxInt(name, parts[1].toInt());
+                warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
               }
             }
-            else
+            else if (type == "string")
             {
-              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
+              val.split(',', parts);
+              param_.setValidStrings(name, parts);
             }
-          }
-          else if (type == "string")
-          {
-            val.split(',', parts);
-            param_.setValidStrings(name, parts);
-          }
-          else if (type == "float" || type == "double")
-          {
-            val.split(':', parts);
-            if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
-            if (parts.size() == 2)
+            else if (type == "float" || type == "double")
             {
-              if (parts[0] != "")
+              val.split(':', parts);
+              if (parts.size() != 2)
+                val.split('-', parts); //for downward compatibility
+              if (parts.size() == 2)
               {
-                param_.setMinFloat(name, parts[0].toDouble());
+                if (parts[0] != "")
+                {
+                  param_.setMinFloat(name, parts[0].toDouble());
+                }
+                if (parts[1] != "")
+                {
+                  param_.setMaxFloat(name, parts[1].toDouble());
+                }
               }
-              if (parts[1] != "")
+              else
               {
-                param_.setMaxFloat(name, parts[1].toDouble());
+                warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
               }
-            }
-            else
-            {
-              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
             }
           }
         }
+
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
         if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && (type == "string" || type == "input-file" || type == "output-file"))

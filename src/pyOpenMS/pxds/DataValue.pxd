@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          DataValue() nogil except +
          DataValue(DataValue) nogil except + # wrap-ignore
          DataValue(char *) nogil except +
+         DataValue(const String&) nogil except +
          DataValue(int) nogil except +
          DataValue(double) nogil except +
          DataValue(StringList) nogil except +
@@ -19,7 +20,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
          #conversion ops, different declarations as in c++ !
          int operator()(int) nogil except + #wrap-cast:toInt
-         libcpp_string operator()(DataValue) nogil except + #wrap-cast:toString
+         String operator()(DataValue) nogil except + #wrap-cast:toString
          double operator()(DataValue) nogil except + #wrap-cast:toDouble
          StringList toStringList() nogil except +
          libcpp_vector[ double ] toDoubleList() nogil except +

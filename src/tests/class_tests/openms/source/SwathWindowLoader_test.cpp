@@ -143,12 +143,12 @@ START_SECTION ( static void annotateSwathMapsFromFile(const std::string& filenam
   ///////////////////////////////////
   // Test exceptions
   std::vector< OpenSwath::SwathMap > swath_maps_too_large(5);
-  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument,
       SwathWindowLoader::annotateSwathMapsFromFile(
         OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_large, true, false));
 
   std::vector< OpenSwath::SwathMap > swath_maps_too_small(3);
-  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument,
       SwathWindowLoader::annotateSwathMapsFromFile(
         OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_small, true, false));
 
@@ -159,7 +159,7 @@ START_SECTION ( static void annotateSwathMapsFromFile(const std::string& filenam
   TEST_EQUAL(swath_maps_test[0].center, 4)
   TEST_EQUAL(swath_maps_test[3].lower, 399)
   TEST_EQUAL(swath_maps_test[3].center, 1)
-  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument,
       SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), 
                                                    swath_maps_test, false, false));
   // wrong order && no sorting && force --> ok

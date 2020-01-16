@@ -34,11 +34,16 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/MetaInfo.h>
+#include <vector>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/METADATA/MetaInfoRegistry.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
 namespace OpenMS
 {
   class String;
+  class MetaInfo;
 
   /**
     @brief Interface for classes that can store arbitrary meta information
@@ -75,10 +80,10 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfoInterface& rhs) const;
 
-    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
-    const DataValue& getMetaValue(const String& name) const;
-    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
-    const DataValue& getMetaValue(UInt index) const;
+    /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getMetaValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
+    /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getMetaValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
 
     /// Returns whether an entry with the given name exists
     bool metaValueExists(const String& name) const;
@@ -111,8 +116,10 @@ public:
     void clearMetaInfo();
 
 protected:
+
     /// Creates the MetaInfo object if it does not exist
     inline void createIfNotExists_();
+
     /// Pointer to the MetaInfo object (0 by default)
     MetaInfo* meta_;
   };

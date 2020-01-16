@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -50,6 +52,8 @@
 
 namespace OpenMS
 {
+  class PeptideIdentification;
+  class PeptideHit;
   class ProteinIdentification;
   class DataProcessing;
   namespace Logger
@@ -127,6 +131,24 @@ public:
       Size size;
       /// Unique id of the file
       UInt64 unique_id;
+
+      unsigned getLabelAsUInt(const String& experiment_type) const
+      {
+        if (metaValueExists("channel_id"))
+        {
+          return static_cast<unsigned int>(getMetaValue("channel_id")) + 1;
+        }
+        else
+        {
+          if (experiment_type != "label-free")
+          {
+            // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
+            //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
+            OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
+          }
+          return 1;
+        }
+      }
     };
 
     ///@name Type definitions
@@ -249,6 +271,9 @@ public:
     /// sets the protein identifications
     OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+    /// sets the protein identifications by moving
+    OPENMS_DLLAPI void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
+
     /// non-mutable access to the unassigned peptide identifications
     OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
@@ -270,8 +295,24 @@ public:
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
+    /// If it doesn't exist, fallback to @param s.
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+
     /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
+
+    /// applies a function on all PeptideHits or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned = true);
+
+    /// applies a function on all PeptideIDs or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned = true);
+
+    /// applies a const function on all PeptideHits or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>&, bool include_unassigned = true) const;
+
+    /// applies a const function on all PeptideIDs or only assigned ones
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned = true) const;
 
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
@@ -342,15 +383,27 @@ protected:
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;
 
-    /// protein identifications
+    /// unassigned peptide identifications (without feature)
     std::vector<PeptideIdentification> unassigned_peptide_identifications_;
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
+
+private:
+
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const;
+
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const;
+
+    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f);
+
+    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f);
   };
 
   ///Print the contents of a ConsensusMap to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
+
+
 
 } // namespace OpenMS
 

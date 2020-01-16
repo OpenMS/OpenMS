@@ -37,6 +37,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <vector>
+#include <memory>
 
 namespace OpenMS
 {

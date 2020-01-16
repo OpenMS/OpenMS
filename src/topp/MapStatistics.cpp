@@ -41,10 +41,13 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <iomanip>     // setw
 
 using namespace OpenMS;
 using namespace std;

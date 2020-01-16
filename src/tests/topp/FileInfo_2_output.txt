@@ -1,12 +1,12 @@
 
 -- General information --
 
-File name: /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/FileInfo_2_input.dta2d
+File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_2_input.dta2d
 File type: dta2d
 
 MS levels: 1
+Total number of peaks: 8
 Number of spectra: 8
-Number of peaks: 8
 
 Number of spectra per MS level:
   level 1: 8

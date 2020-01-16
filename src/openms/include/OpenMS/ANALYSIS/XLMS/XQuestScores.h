@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 #include <vector>
 
 namespace OpenMS
@@ -77,6 +78,9 @@ namespace OpenMS
     */
     static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
 
+    static double matchOddsScoreSimpleSpec(const std::vector< SimpleTSGXLMS::SimplePeak >& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
+
+
     /**
      * @brief compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
      * @param theoretical_spec theoretical spectrum, sorted by position
@@ -85,7 +89,6 @@ namespace OpenMS
      * @param fragment_mass_tolerance_unit the tolerance unit of the alignment, true = ppm, false = Da
      */
     static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
-
 
    /**
     * @brief compute the weighted total ion current score for a cross-link. Reimplementation from xQuest.

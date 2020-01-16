@@ -321,8 +321,8 @@ public:
       typename MapType::ChromatogramType TIC = map.getTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
       {
-        // write rt and intensity.
-        os << precisionWrapper(it->getRT()) << "\t" << precisionWrapper(0) << "\t" << precisionWrapper(it->getIntensity()) << "\n";
+        // write rt, (mz=0) and intensity.
+        os << precisionWrapper(it->getRT()) << "\t0\t" << precisionWrapper(it->getIntensity()) << "\n";
       }
 
       os.close();

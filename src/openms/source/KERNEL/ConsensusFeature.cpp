@@ -32,9 +32,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -45,12 +45,6 @@ namespace OpenMS
   ConsensusFeature::ConsensusFeature() :
     BaseFeature(), handles_(), ratios_()
   {
-  }
-
-  ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs) :
-    BaseFeature(rhs), handles_(rhs.handles_), ratios_()
-  {
-    ratios_ = rhs.ratios_;
   }
 
   ConsensusFeature::ConsensusFeature(const BaseFeature& feature) :
@@ -65,20 +59,9 @@ namespace OpenMS
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
-    BaseFeature(element), handles_(), ratios_()
+    BaseFeature(element, map_index), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
-  }
-
-  ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    BaseFeature::operator=(rhs);
-    handles_ = rhs.handles_;
-    ratios_ = rhs.ratios_;
-    return *this;
   }
 
   ConsensusFeature::~ConsensusFeature()
@@ -88,6 +71,7 @@ namespace OpenMS
   void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
+    peptides_.insert(peptides_.end(), cf.getPeptideIdentifications().begin(), cf.getPeptideIdentifications().end());
   }
 
   void ConsensusFeature::insert(const FeatureHandle& handle)
@@ -122,6 +106,11 @@ namespace OpenMS
       it->setMetaValue("map_index", map_index);
     }
     peptides_.insert(peptides_.end(), ids.begin(), ids.end());
+  }
+
+  void ConsensusFeature::setFeatures(HandleSetType h)
+  {
+    handles_ = std::move(h);
   }
 
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
@@ -279,7 +268,7 @@ namespace OpenMS
     {
       Int q = it->getCharge();
       if (q == 0)
-        LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
+        OPENMS_LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())

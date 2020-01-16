@@ -255,27 +255,27 @@ namespace OpenMS
 
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &OpenMS_Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
-      log = &Log_debug;
+      log = &OpenMS_Log_debug;
     }
     else if (stream_name == "INFO")
     {
-      log = &Log_info;
+      log = &OpenMS_Log_info;
     }
     else if (stream_name == "WARNING")
     {
-      log = &Log_warn;
+      log = &OpenMS_Log_warn;
     }
     else if (stream_name == "ERROR")
     {
-      log = &Log_error;
+      log = &OpenMS_Log_error;
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &Log_fatal;
+      log = &OpenMS_Log_fatal;
     }
     else
     {
@@ -377,11 +377,11 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch)
   {
 
-    printStreamConfig_(os, "LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_INFO", lch.info_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
     return os;
   }

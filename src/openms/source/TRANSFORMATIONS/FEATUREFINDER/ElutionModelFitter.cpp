@@ -153,12 +153,12 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   }
 
   // collect peaks that constitute mass traces:
-  LOG_DEBUG << "Fitting elution models to features:" << endl;
+  OPENMS_LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
   for (FeatureMap::Iterator feat_it = features.begin(); 
        feat_it != features.end(); ++feat_it, ++index)
   {
-    // LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
+    // OPENMS_LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
     double region_start = double(feat_it->getMetaValue("leftWidth"));
     double region_end = double(feat_it->getMetaValue("rightWidth"));
 
@@ -243,7 +243,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     }
     catch (Exception::UnableToFit& except)
     {
-      LOG_ERROR << "Error fitting model to feature '" << feat_it->getUniqueId()
+      OPENMS_LOG_ERROR << "Error fitting model to feature '" << feat_it->getUniqueId()
                 << "': " << except.getName() << " - " << except.getMessage()
                 << endl;
       fit_success = false;
@@ -413,7 +413,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       if (impute)
       { // apply log-transform to weight down high outliers:
         double raw_intensity = feat_it->getIntensity();
-        LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
+        OPENMS_LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
                   << area << "; log(x) = " << log(raw_intensity) 
                   << ", log(y) = " << log(area) << endl;
         quant_values.push_back(make_pair(log(raw_intensity), log(area)));
@@ -422,7 +422,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       model_successes++;
     }
   }
-  LOG_INFO << "Model fitting: " << model_successes << " successes, "
+  OPENMS_LOG_INFO << "Model fitting: " << model_successes << " successes, "
            << model_failures << " failures" << endl;
 
   if (impute) // impute results for cases where the model fit failed
@@ -432,7 +432,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     String x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-    LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
+    OPENMS_LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)
     {

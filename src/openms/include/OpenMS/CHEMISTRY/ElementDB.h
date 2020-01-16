@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg $
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -69,20 +69,14 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-
+    
     /** @name Accessors
     */
     //@{
     /// returns a pointer to the singleton instance of the element db
-    inline static const ElementDB * getInstance()
-    {
-      static ElementDB * db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ElementDB;
-      }
-      return db_;
-    }
+    /// Upon first call, the Elements.xml file is parsed
+    /// This is thread safe upon first and subsequent calls.
+    static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const Map<String, const Element *> & getNames() const;
@@ -137,6 +131,10 @@ protected:
      */
     void readFromFile_(const String & file_name);
 
+
+    /// store element after parsing it
+    void storeElement_(const UInt an, const String& name, const String& symbol, const Map<UInt, double>& Z_to_abundancy, const Map<UInt, double>& Z_to_mass);
+
     /*_ resets all containers
      */
     void clear_();
@@ -148,14 +146,12 @@ protected:
     Map<UInt, const Element *> atomic_numbers_;
 
 private:
-
     ElementDB();
+    ~ElementDB();
+    ElementDB(const ElementDB& db) = delete;
+    ElementDB(const ElementDB&& db) = delete;
+    ElementDB& operator=(const ElementDB& db) = delete;
 
-    ElementDB(const ElementDB & db);
-
-    ElementDB & operator=(const ElementDB & db);
-
-    virtual ~ElementDB();
   };
 
 } // namespace OpenMS

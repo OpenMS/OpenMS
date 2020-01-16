@@ -1,10 +1,10 @@
 MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
-MTD	description	Export from featureXML
+MTD	description	OpenMS export from featureXML
 MTD	peptide_search_engine_score[1]	null
 MTD	psm_search_engine_score[1]	null
-MTD	uri[1]	/Users/timosachsenberg/oms/src/tests/topp/MzTabExporter_3_input.featureXML
+MTD	uri[1]	/home/sachsenb/OpenMS/src/tests/topp/MzTabExporter_3_input.featureXML
 MTD	fixed_mod[1]	[MS, MS:1002453, No fixed modifications searched, ]
 MTD	variable_mod[1]	[MS, MS:1002454, No variable modifications searched, ]
 MTD	ms_run[1]-location	file://tmp/mzTabtest.mzML

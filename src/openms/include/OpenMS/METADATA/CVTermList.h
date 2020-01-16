@@ -60,14 +60,18 @@ public:
     /// Copy constructor
     CVTermList(const CVTermList&) = default;
 
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
     /// Move constructor
-    CVTermList(CVTermList&&) = default;
+    CVTermList(CVTermList&&) noexcept;
 
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList& operator=(const CVTermList&) = default;
+    CVTermList& operator=(const CVTermList& rhs) & = default;
 
     /// Move assignment operator
     CVTermList& operator=(CVTermList&&) & = default;

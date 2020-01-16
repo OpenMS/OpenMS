@@ -79,7 +79,9 @@ END_SECTION
 
 START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
   ModificationsDB* ptr = ModificationsDB::getInstance();
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)") < ptr->getModification("Phospho (S)"), true);
+  const ResidueModification* cm = ptr->getModification("Carboxymethyl (C)");
+  const ResidueModification* pm = ptr->getModification("Phospho (S)");
+  TEST_EQUAL(*cm < *pm, true);
 END_SECTION
 
 START_SECTION(void setId(const String& id))

@@ -58,10 +58,6 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  TMTSixPlexQuantitationMethod::~TMTSixPlexQuantitationMethod()
-  {
-  }
-
   void TMTSixPlexQuantitationMethod::setDefaultParams_()
   {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
@@ -102,7 +98,8 @@ namespace OpenMS
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 126;
   }
 
-  TMTSixPlexQuantitationMethod::TMTSixPlexQuantitationMethod(const TMTSixPlexQuantitationMethod& other)
+  TMTSixPlexQuantitationMethod::TMTSixPlexQuantitationMethod(const TMTSixPlexQuantitationMethod& other):
+  IsobaricQuantitationMethod(other)
   {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -123,7 +120,7 @@ namespace OpenMS
     return *this;
   }
 
-  const String& TMTSixPlexQuantitationMethod::getName() const
+  const String& TMTSixPlexQuantitationMethod::getMethodName() const
   {
     return TMTSixPlexQuantitationMethod::name_;
   }

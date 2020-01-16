@@ -51,31 +51,31 @@ CVTermListInterface* ptr = nullptr;
 CVTermListInterface* nullPointer = nullptr;
 START_SECTION(CVTermListInterface())
 {
-	ptr = new CVTermListInterface();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new CVTermListInterface();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(virtual ~CVTermListInterface())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION((bool operator==(const CVTermListInterface &cv_term_list) const ))
 {
   CVTermListInterface cv_term_list, cv_term_list2;
-	TEST_EQUAL(cv_term_list == cv_term_list2, true)
-	cv_term_list.setMetaValue("blubb", "blubber");
-	TEST_EQUAL(cv_term_list == cv_term_list2, false)
-	cv_term_list2.setMetaValue("blubb", "blubber");
-	TEST_EQUAL(cv_term_list == cv_term_list2, true)
-	CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
-	CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
-	cv_term_list.addCVTerm(cv_term);
-	TEST_EQUAL(cv_term_list == cv_term_list2, false)
-	cv_term_list2.addCVTerm(cv_term);
-	TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  cv_term_list.setMetaValue("blubb", "blubber");
+  TEST_EQUAL(cv_term_list == cv_term_list2, false)
+  cv_term_list2.setMetaValue("blubb", "blubber");
+  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  cv_term_list.addCVTerm(cv_term);
+  TEST_EQUAL(cv_term_list == cv_term_list2, false)
+  cv_term_list2.addCVTerm(cv_term);
+  TEST_EQUAL(cv_term_list == cv_term_list2, true)
 }
 END_SECTION
 
@@ -99,11 +99,11 @@ END_SECTION
 START_SECTION((bool hasCVTerm(const String &accession) const ))
 {
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
-	CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
-	CVTermListInterface cv_term_list;
-	TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
-	cv_term_list.addCVTerm(cv_term);
-	TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  CVTermListInterface cv_term_list;
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
+  cv_term_list.addCVTerm(cv_term);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
 }
 END_SECTION
 
@@ -118,14 +118,14 @@ START_SECTION((void setCVTerms(const std::vector< CVTerm > &terms)))
 {
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
-	CVTerm cv_term2("my_accession2", "my_name2", "my_cv_identifier_ref2", "4.0", unit);
-	CVTermListInterface cv_term_list;
-	vector<CVTerm> cv_terms;
-	cv_terms.push_back(cv_term);
-	cv_terms.push_back(cv_term2);
-	cv_term_list.setCVTerms(cv_terms);
-	TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true);
-	TEST_EQUAL(cv_term_list.hasCVTerm("my_accession2"), true);
+  CVTerm cv_term2("my_accession2", "my_name2", "my_cv_identifier_ref2", "4.0", unit);
+  CVTermListInterface cv_term_list;
+  vector<CVTerm> cv_terms;
+  cv_terms.push_back(cv_term);
+  cv_terms.push_back(cv_term2);
+  cv_term_list.setCVTerms(cv_terms);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true);
+  TEST_EQUAL(cv_term_list.hasCVTerm("my_accession2"), true);
 }
 END_SECTION
 
@@ -245,14 +245,14 @@ START_SECTION(([EXTRA] bool checkCVTerms(const ControlledVocabulary &cv) const )
   cv_term_list.addCVTerm(cv_term);
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), true)
 
-	ControlledVocabulary cv;
-	cv.loadFromOBO("MS", "CV/psi-ms.obo");
+  ControlledVocabulary cv;
+  cv.loadFromOBO("MS", "CV/psi-ms.obo");
 
-	TEST_EQUAL(cv_term_list.checkCVTerms(cv), true)
+  TEST_EQUAL(cv_term_list.checkCVTerms(cv), true)
 
   CVTerm cv_term2("MS:1000132", "percent of base peaks wrong", "MS", "3.0", unit);
-	cv_term_list.addCVTerm(cv_term2);
-	TEST_EQUAL(cv_term_list.checkCVTerms(cv), false)
+  cv_term_list.addCVTerm(cv_term2);
+  TEST_EQUAL(cv_term_list.checkCVTerms(cv), false)
 }
 END_SECTION
 
@@ -274,8 +274,8 @@ START_SECTION(([EXTRA] void correctCVTermNames()))
   cv_term_list.addCVTerm(cv_term2);
   TEST_EQUAL(cv_term_list.checkCVTerms(cv), false)
 
-	cv_term_list.correctCVTermNames();
-	TEST_EQUAL(cv_term_list.checkCVTerms(cv), true)	
+  cv_term_list.correctCVTermNames();
+  TEST_EQUAL(cv_term_list.checkCVTerms(cv), true)  
 }
 END_SECTION
 */
@@ -284,7 +284,7 @@ START_SECTION((CVTermListInterface(const CVTermListInterface &rhs)))
 {
   CVTermListInterface cv_term_list;
   cv_term_list.setMetaValue("blubb", "blubber");
-	CVTermListInterface cv_term_list2(cv_term_list);
+  CVTermListInterface cv_term_list2(cv_term_list);
   TEST_EQUAL(cv_term_list == cv_term_list2, true)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
@@ -294,32 +294,59 @@ START_SECTION((CVTermListInterface(const CVTermListInterface &rhs)))
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// Copy constructor, move constructor, assignment operator, move assignment operator, equality
+
 START_SECTION((CVTermListInterface& operator=(const CVTermListInterface &rhs)))
 {
   CVTermListInterface cv_term_list;
   cv_term_list.setMetaValue("blubb", "blubber");
   CVTermListInterface cv_term_list2;
-	cv_term_list2 = cv_term_list;
+  cv_term_list2 = cv_term_list;
   TEST_EQUAL(cv_term_list == cv_term_list2, true)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list.addCVTerm(cv_term);
   CVTermListInterface cv_term_list3;
-	cv_term_list3 = cv_term_list;
+  cv_term_list3 = cv_term_list;
   TEST_EQUAL(cv_term_list == cv_term_list3, true)
+}
+END_SECTION
+
+START_SECTION((CVTermListInterface(CVTermListInterface &&rhs) noexcept))
+{
+  // Ensure that CVTermListInterface has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(CVTermListInterface(std::declval<CVTermListInterface&&>())), true)
+
+  CVTermListInterface cv_term_list;
+  cv_term_list.setMetaValue("blubb2", "blubbe");
+
+  CVTermListInterface orig = cv_term_list;
+  CVTermListInterface cv_term_list2(std::move(cv_term_list));
+
+  TEST_EQUAL(orig == cv_term_list2, true)
+  CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
+  CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
+  cv_term_list2.addCVTerm(cv_term);
+
+  orig = cv_term_list2;
+  CVTermListInterface cv_term_list3(std::move(cv_term_list2));
+  TEST_EQUAL(orig == cv_term_list3, true)
+  TEST_EQUAL(cv_term_list3.getCVTerms().size(), 1)
 }
 END_SECTION
 
 START_SECTION((bool empty() const))
 {
-	CVTerm::Unit unit("MS:1000043", "intensity unit", "MS");
+  CVTerm::Unit unit("MS:1000043", "intensity unit", "MS");
   CVTerm cv_term("MS:1000132", "percent of base peak", "MS", "3.0", unit);
   CVTermListInterface cv_term_list;
-	TEST_EQUAL(cv_term_list.empty(), true)
+  TEST_EQUAL(cv_term_list.empty(), true)
   TEST_EQUAL(cv_term_list.hasCVTerm("my_accession"), false)
   cv_term_list.addCVTerm(cv_term);
   TEST_EQUAL(cv_term_list.hasCVTerm("MS:1000132"), true)
-	TEST_EQUAL(cv_term_list.empty(), false)
+  TEST_EQUAL(cv_term_list.empty(), false)
 }
 END_SECTION
 

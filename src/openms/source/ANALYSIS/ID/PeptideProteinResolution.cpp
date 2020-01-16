@@ -34,6 +34,7 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 
 #include <queue>
+#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,26 +71,246 @@ namespace OpenMS
 
   // C'tor
   PeptideProteinResolution::PeptideProteinResolution(bool statistics) :
-  indist_prot_grp_to_pep_(), pep_to_indist_prot_grp_(),
+      /*indist_prot_grp_td_(),*/ indist_prot_grp_to_pep_(), pep_to_indist_prot_grp_(),
   prot_acc_to_indist_prot_grp_(), statistics_(statistics)
   {
   }
 
-  // Initialization of global variables (= graph)
-  void PeptideProteinResolution::buildGraph(const ProteinIdentification& protein,
-                      const vector<PeptideIdentification>& peptides)
+  void PeptideProteinResolution::resolve(ProteinIdentification& protein,
+                                            vector<PeptideIdentification>& peptides,
+                                            bool resolve_ties,
+                                            bool targets_first)
   {
+
+    vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
+    vector<bool> indist_prot_grp_decoy(groups.size());
+    unordered_map<string, Size> prot_acc_to_indist_prot_grp;
+
+    if (groups.empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
+    }
+
+    OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
+
+    // I dont think we need to assume sortedness here
+    //if (!skip_sort) sort(groups.begin(), groups.end());
+
+    std::unordered_set<std::string> decoy_accs;
+    for (const ProteinHit& p : protein.getHits())
+    {
+      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      {
+        decoy_accs.insert(p.getAccession());
+      }
+    }
+
     // Construct intermediate mapping of single protein accessions
     // to indist. protein groups
     for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
-         protein.getIndistinguishableProteins().begin();
-         group_it != protein.getIndistinguishableProteins().end(); ++group_it)
+        groups.begin();
+         group_it != groups.end(); ++group_it)
     {
       for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
            acc_it != group_it->accessions.end(); ++acc_it)
       {
-        prot_acc_to_indist_prot_grp_[*acc_it] =
-        group_it - protein.getIndistinguishableProteins().begin();
+        Size idx = group_it - groups.begin();
+        prot_acc_to_indist_prot_grp[*acc_it] = idx;
+        if (decoy_accs.find(*acc_it) != decoy_accs.end())
+        {
+          indist_prot_grp_decoy[idx] = true;
+        }
+      }
+    }
+
+    // Go through PeptideIDs
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end();
+         ++pep_it)
+    {
+
+      vector<PeptideHit>& hits = pep_it->getHits();
+      if (!hits.empty())
+      {
+        PeptideHit& best_hit = hits[0];
+        const vector<PeptideEvidence>& pepev = best_hit.getPeptideEvidences();
+        set<Size> bestNonDecoyGrpTie;
+        set<Size> bestDecoyGrpTie;
+        unordered_map<Size,set<Size>> grpIdxToEvIdx;
+
+        Size ev_idx = 0;
+        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
+             pepev_it != pepev.end(); ++pepev_it, ++ev_idx)
+        {
+          String acc = pepev_it->getProteinAccession();
+
+          auto found = prot_acc_to_indist_prot_grp.find(acc);
+          if (found == prot_acc_to_indist_prot_grp.end())
+          {
+            throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Not all proteins present in an indistinguishable group. Make sure to add them as singletons.");
+          }
+          else
+          {
+            Size prot_group_index = found->second;
+            auto it = grpIdxToEvIdx.emplace(prot_group_index, set<Size>());
+            it.first->second.insert(ev_idx);
+            //TODO work with a tolerance for doubles instead?
+            if (indist_prot_grp_decoy[prot_group_index])
+            {
+              if (bestDecoyGrpTie.empty() ||
+                  groups[prot_group_index].probability < groups[*bestDecoyGrpTie.begin()].probability)
+              {
+                bestDecoyGrpTie.clear();
+                bestDecoyGrpTie.insert(prot_group_index);
+              }
+              else if (groups[prot_group_index].probability == groups[*bestDecoyGrpTie.begin()].probability)
+              {
+                bestDecoyGrpTie.insert(prot_group_index);
+              }
+            }
+            else
+            {
+              if (bestNonDecoyGrpTie.empty() ||
+                  groups[prot_group_index].probability < groups[*bestNonDecoyGrpTie.begin()].probability)
+              {
+                bestNonDecoyGrpTie.clear();
+                bestNonDecoyGrpTie.insert(prot_group_index);
+              }
+              else if (groups[prot_group_index].probability == groups[*bestNonDecoyGrpTie.begin()].probability)
+              {
+                bestNonDecoyGrpTie.insert(prot_group_index);
+              }
+            }
+          }
+        }
+
+        bool targets_first_resolve_ties = false;
+
+        set<Size>* toResolve;
+        set<Size> allGrpsSet;
+        if (bestNonDecoyGrpTie.empty())
+        {
+          toResolve = &bestDecoyGrpTie;
+        }
+        else if (bestDecoyGrpTie.empty() || targets_first)
+        {
+          toResolve = &bestNonDecoyGrpTie;
+        }
+        else if (groups[*bestNonDecoyGrpTie.begin()].probability > groups[*bestDecoyGrpTie.begin()].probability)
+        {
+          toResolve = &bestNonDecoyGrpTie;
+        }
+        else if (groups[*bestDecoyGrpTie.begin()].probability > groups[*bestNonDecoyGrpTie.begin()].probability)
+        {
+          toResolve = &bestDecoyGrpTie;
+        }
+        else // both equal
+        {
+          if (resolve_ties && targets_first_resolve_ties)
+          {
+            toResolve = &bestNonDecoyGrpTie;
+          }
+          else // take all best groups
+          {
+            vector<Size> allGrps;
+            merge(std::begin(bestNonDecoyGrpTie), std::end(bestNonDecoyGrpTie),
+                  std::begin(bestDecoyGrpTie), std::end(bestDecoyGrpTie),
+                  std::back_inserter(allGrps));
+            allGrpsSet = set<Size>(allGrps.begin(),allGrps.end());
+            toResolve = &allGrpsSet;
+          }
+        }
+
+        set<Size> evToKeep;
+        if (resolve_ties)
+        {
+          //TODO this tie resolution basically just takes the first group that occurred
+          evToKeep = grpIdxToEvIdx[*toResolve->begin()];
+          if (toResolve->size() > 1)
+          {
+           OPENMS_LOG_INFO << "Resolution: Peptide " << pep_it->getHits()[0].getSequence().toString() << " had groups:" << std::endl;
+
+           OPENMS_LOG_INFO << "tgt: ";
+            for (const auto& g : bestNonDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+           OPENMS_LOG_INFO << std::endl;
+           OPENMS_LOG_INFO << "dec: ";
+            for (const auto& g : bestDecoyGrpTie) OPENMS_LOG_INFO << g << "=" << groups[g].probability << ", ";
+           OPENMS_LOG_INFO << std::endl;
+           OPENMS_LOG_INFO << "Kept: " << *toResolve->begin() << std::endl;
+          }
+        }
+        else
+        {
+          for (const auto& grp : *toResolve)
+          {
+            evToKeep.insert(grpIdxToEvIdx[grp].begin(),grpIdxToEvIdx[grp].end());
+          }
+        }
+
+        vector<PeptideEvidence> newEv;
+        for (const auto& idx : evToKeep)
+        {
+          newEv.push_back(pepev[idx]);
+        }
+        best_hit.setPeptideEvidences(newEv);
+      }
+      else
+      {
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << std::endl;
+      }
+    }
+  }
+
+
+  // Initialization of global variables (= graph)
+  void PeptideProteinResolution::buildGraph(ProteinIdentification& protein,
+                      const vector<PeptideIdentification>& peptides, bool skip_sort)
+  {
+    vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
+
+    if (groups.empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
+    }
+
+   OPENMS_LOG_INFO << "Resolving peptides between " << protein.getHits().size() << " proteins in " << groups.size() << " indistinguishable groups." << std::endl;
+
+
+    if (!skip_sort) sort(groups.begin(), groups.end());
+
+    // TODO this is only needed for target_first option
+    std::unordered_set<std::string> decoy_accs;
+    for (const ProteinHit& p : protein.getHits())
+    {
+      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      {
+        decoy_accs.insert(p.getAccession());
+      }
+    }
+
+    // Construct intermediate mapping of single protein accessions
+    // to indist. protein groups
+    for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
+         groups.begin();
+         group_it != groups.end(); ++group_it)
+    {
+      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
+           acc_it != group_it->accessions.end(); ++acc_it)
+      {
+        Size idx = group_it - groups.begin();
+        prot_acc_to_indist_prot_grp_[*acc_it] = idx;
       }
     }
     
@@ -99,20 +320,39 @@ namespace OpenMS
          ++pep_it)
     {
       Size pep_index = pep_it - peptides.begin();
-      
-      PeptideHit best_hit = pep_it->getHits()[0];
-      const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
-      
-      for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
-           pepev_it != pepev.end(); ++pepev_it)
+
+      const vector<PeptideHit>& hits = pep_it->getHits();
+      if (!hits.empty())
       {
-        String acc = pepev_it->getProteinAccession();
-        Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
-        pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
-        indist_prot_grp_to_pep_[prot_group_index];
-        indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+        PeptideHit best_hit = hits[0];
+        const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
+
+        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
+             pepev_it != pepev.end(); ++pepev_it)
+        {
+          String acc = pepev_it->getProteinAccession();
+          auto found = prot_acc_to_indist_prot_grp_.find(acc);
+          if (found == prot_acc_to_indist_prot_grp_.end())
+          {
+            throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Not all proteins present in an indistinguishable group. Make sure to add them as singletons.");
+          }
+          else
+          {
+            Size prot_group_index = found->second;
+            pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
+            indist_prot_grp_to_pep_[prot_group_index];
+            indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+          }
+        }
       }
-      
+      else
+      {
+       OPENMS_LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << std::endl;
+      }
     }
   }
 
@@ -133,7 +373,7 @@ namespace OpenMS
     {
       if (statistics_ && (old_size - indist_prot_grp_to_pep_.size() > 1))
       {
-        LOG_INFO << "resolved group of size "
+        OPENMS_LOG_INFO << "resolved group of size "
         << old_size - indist_prot_grp_to_pep_.size() << " in last step "
         << endl;
         old_size = indist_prot_grp_to_pep_.size();
@@ -171,13 +411,13 @@ namespace OpenMS
         
         if (curr_component.prot_grp_indices.size() > 1)
         {
-          LOG_INFO << "found group: " << endl;
-          LOG_INFO << curr_component;
-          LOG_INFO << endl << "Processing ..." << endl;
+          OPENMS_LOG_INFO << "found group: " << endl;
+          OPENMS_LOG_INFO << curr_component;
+          OPENMS_LOG_INFO << endl << "Processing ..." << endl;
         }
       }
       
-      // resolve shared peptides based on Fido probabilities
+      // resolve shared peptides based on posterior probabilities
       // -> modifies PeptideIDs in peptides
       PeptideProteinResolution::resolveConnectedComponent(curr_component,
                                                            protein,
@@ -196,15 +436,14 @@ namespace OpenMS
     //TODO maybe extend statistics of connected components!
     if (statistics_)
     {
-      LOG_INFO << endl << "Most protein groups in component:" << endl;
-      LOG_INFO << most_grps;
-      LOG_INFO << endl << "Most peptides in component:"<< endl;
-      LOG_INFO << most_peps;
-      LOG_INFO << endl << "Biggest component:" << endl;
-      LOG_INFO << most_both;
+      OPENMS_LOG_INFO << endl << "Most protein groups in component:" << endl;
+      OPENMS_LOG_INFO << most_grps;
+      OPENMS_LOG_INFO << endl << "Most peptides in component:"<< endl;
+      OPENMS_LOG_INFO << most_peps;
+      OPENMS_LOG_INFO << endl << "Biggest component:" << endl;
+      OPENMS_LOG_INFO << most_both;
     }
   }
-
 
   /*
    * Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
@@ -274,7 +513,7 @@ namespace OpenMS
     return conn_comp;
   }
 
-  /*
+  /* TODO this does not produce correct results yet. Check again.
    * Resolves connected components based on Fido probabilities and adds them
    * as additional protein_groups to the output idXML.
    * Thereby greedily assigns shared peptides in this component uniquely to
@@ -285,82 +524,256 @@ namespace OpenMS
    * In accordance with Fido only the best hit (PSM) for an ID is considered.
    * Probability ties are _currently_ resolved by taking the first occurrence.
    */
-  void PeptideProteinResolution::resolveConnectedComponent(
-                                ConnectedComponent& conn_comp,
-                                ProteinIdentification& protein,
-                                vector<PeptideIdentification>& peptides)
+/*  void PeptideProteinResolution::resolveConnectedComponentTargetsFirst(
+      ConnectedComponent& conn_comp,
+      ProteinIdentification& protein,
+      vector<PeptideIdentification>& peptides,
+      bool targets_first)
   {
-  /* TODO for resolving ties:
-   while grpit not at end
-   while grpit.probability does not change:
-   save index with max nr of peptides in mapping and compare
-   grpit++
-   resolve(with max index grp)
-   */
-  
+    // Nothing to resolve in a singleton group (will not be added to output though)
+    if (conn_comp.prot_grp_indices.size() == 1) return;
+
     // Add proteins from a connected component to ambiguity groups
     ProteinIdentification::ProteinGroup ambiguity_grp;
-  
-    // Save the max probability in this component to add it (should be first one)
-    double max_prob = 0.0;
-  
-    // Go through protein groups (sorted by probability -> higher index
-    // means worse probability)
-    bool first_change = true;
-  
+
+    vector<ProteinIdentification::ProteinGroup>& origin_groups = protein.getIndistinguishableProteins();
+
+    // Save the max probability in this component to add it (should be first one, since groups were sorted and
+    // lower index means higher score and set is sorted by index)
+    ambiguity_grp.probability = origin_groups[*conn_comp.prot_grp_indices.begin()].probability;
+
     for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
-       grp_it != conn_comp.prot_grp_indices.end();
-       ++grp_it)
+         grp_it != conn_comp.prot_grp_indices.end();
+         ++grp_it)
     {
-    
-      // Take first probability -> best
-      if (first_change)
+      if (*grp_it >= origin_groups.size())
       {
-        max_prob = protein.getIndistinguishableProteins()[*grp_it].probability;
-        first_change = false;
+       OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
+                           "Group with index " << *grp_it << "doesnt exist. "
+                                                             " ProteinPeptideResolution: Groups changed"
+                                                             " after building data structures." << std::endl;
       }
-    
-      ambiguity_grp.probability = max_prob;
-    
-      vector<String> accessions =
-      protein.getIndistinguishableProteins()[*grp_it].accessions;
-    
+
+      vector<String> accessions = origin_groups[*grp_it].accessions;
+
       // Put the accessions of the indist. groups into the subsuming
       // ambiguity group
       ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
-                                    accessions.begin(),
-                                    accessions.end());
-    
+                                      accessions.begin(),
+                                      accessions.end());
+
+      if (targets_first && indist_prot_grp_td_[*grp_it].first)
+      {
+        if (statistics_)
+        {
+         OPENMS_LOG_DEBUG << "Group: ";
+          for (const String& s : origin_groups[*grp_it].accessions)
+          {
+           OPENMS_LOG_DEBUG << s << ", ";
+          }
+         OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+        }
+        // Update all the peptides the current best point to
+        for (set<Size>::iterator pepid_it =
+            indist_prot_grp_to_pep_[*grp_it].begin();
+             pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
+        {
+          vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
+          vector<PeptideEvidence> best_hit_ev =
+              pep_id_hits[0].getPeptideEvidences();
+
+          // go through all the evidence of this peptide and remove all
+          // proteins but the ones from the current indist. group
+          for (vector<PeptideEvidence>::iterator pepev_it = best_hit_ev.begin();
+               pepev_it != best_hit_ev.end();
+            //don't increase index, will be done by case
+              )
+          {
+            // if its accession is not in the current best group, remove evidence
+            if (find(accessions.begin(),
+                     accessions.end(),
+                     pepev_it->getProteinAccession()) == accessions.end())
+            {
+              // we get valid iterator from erase with shifted objects
+              pepev_it = best_hit_ev.erase(pepev_it);
+              // also erase from the mapping of this class
+              indist_prot_grp_to_pep_[prot_acc_to_indist_prot_grp_[pepev_it->getProteinAccession()]].erase(*pepid_it);
+            }
+            else
+            { // iterate further
+              ++pepev_it;
+            }
+          }
+          // Set the remaining evidences as new evidence
+          pep_id_hits[0].setPeptideEvidences(best_hit_ev);
+          peptides[*pepid_it].setHits(pep_id_hits);
+        }
+      }
+
+      if (targets_first) // we need a second run with only decoys to resolve potential remaining peptides
+      {
+        for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
+             grp_it != conn_comp.prot_grp_indices.end();
+             ++grp_it)
+        {
+          if (*grp_it >= origin_groups.size())
+          {
+           OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
+                               "Group with index " << *grp_it << "doesnt exist. "
+                                                                 " ProteinPeptideResolution: Groups changed"
+                                                                 " after building data structures." << std::endl;
+          }
+
+          vector<String> accessions = origin_groups[*grp_it].accessions;
+
+          // Put the accessions of the indist. groups into the subsuming
+          // ambiguity group
+          ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
+                                          accessions.begin(),
+                                          accessions.end());
+
+          if (!indist_prot_grp_td_[*grp_it].first)
+          {
+            if (statistics_)
+            {
+             OPENMS_LOG_DEBUG << "Group: ";
+              for (const String& s : origin_groups[*grp_it].accessions)
+              {
+               OPENMS_LOG_DEBUG << s << ", ";
+              }
+             OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+            }
+
+            // Update all the peptides the current best point to
+            for (set<Size>::iterator pepid_it =
+                indist_prot_grp_to_pep_[*grp_it].begin();
+                 pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
+            {
+              vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
+              vector<PeptideEvidence> best_hit_ev =
+                  pep_id_hits[0].getPeptideEvidences();
+
+              // go through all the evidence of this peptide and remove all
+              // proteins but the ones from the current indist. group
+              for (vector<PeptideEvidence>::iterator pepev_it = best_hit_ev.begin();
+                   pepev_it != best_hit_ev.end();
+                //don't increase index, will be done by case
+                  )
+              {
+                // if its accession is not in the current best group, remove evidence
+                if (find(accessions.begin(),
+                         accessions.end(),
+                         pepev_it->getProteinAccession()) == accessions.end())
+                {
+                  // we get valid iterator from erase with shifted objects
+                  pepev_it = best_hit_ev.erase(pepev_it);
+                  // also erase from the mapping of this class
+                  indist_prot_grp_to_pep_[prot_acc_to_indist_prot_grp_[pepev_it->getProteinAccession()]].erase(*pepid_it);
+                }
+                else
+                { // iterate further
+                  ++pepev_it;
+                }
+              }
+              // Set the remaining evidences as new evidence
+              pep_id_hits[0].setPeptideEvidences(best_hit_ev);
+              peptides[*pepid_it].setHits(pep_id_hits);
+            }
+          }
+        }
+      }
+    }
+
+    //Finally insert ambiguity group
+    protein.insertProteinGroup(ambiguity_grp);
+  }*/
+
+  void PeptideProteinResolution::resolveConnectedComponent(
+      ConnectedComponent& conn_comp,
+      ProteinIdentification& protein,
+      vector<PeptideIdentification>& peptides)
+  {
+    /* TODO for resolving ties:
+     while grpit not at end
+     while grpit.probability does not change:
+     save index with max nr of peptides in mapping and compare
+     grpit++
+     resolve(with max index grp)
+     */
+    // TODO think about ignoring decoy proteins (at least when resolving ties!)
+
+    // Nothing to resolve in a singleton group (will not be added to output though)
+    if (conn_comp.prot_grp_indices.size() <= 1) return;
+
+    // Add proteins from a connected component to ambiguity groups
+    ProteinIdentification::ProteinGroup ambiguity_grp;
+
+    vector<ProteinIdentification::ProteinGroup>& origin_groups = protein.getIndistinguishableProteins();
+
+    // Save the max probability in this component to add it (should be first one, since groups were sorted and
+    // lower index means higher score and set is sorted by index)
+    ambiguity_grp.probability = origin_groups[*conn_comp.prot_grp_indices.begin()].probability;
+
+    for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
+         grp_it != conn_comp.prot_grp_indices.end();
+         ++grp_it)
+    {
+      if (*grp_it >= origin_groups.size())
+      {
+       OPENMS_LOG_FATAL_ERROR << "Something went terribly wrong. "
+                           "Group with index " << *grp_it << "doesnt exist. "
+                                                             " ProteinPeptideResolution: Groups changed"
+                                                             " after building data structures." << std::endl;
+      }
+
+      vector<String> accessions = origin_groups[*grp_it].accessions;
+
+      // Put the accessions of the indist. groups into the subsuming
+      // ambiguity group
+      ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
+                                      accessions.begin(),
+                                      accessions.end());
+
+      if (statistics_)
+      {
+       OPENMS_LOG_DEBUG << "Group: ";
+        for (const String& s : origin_groups[*grp_it].accessions)
+        {
+         OPENMS_LOG_DEBUG << s << ", ";
+        }
+       OPENMS_LOG_DEBUG << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+      }
+
       // Update all the peptides the current best point to
       for (set<Size>::iterator pepid_it =
-         indist_prot_grp_to_pep_[*grp_it].begin();
-         pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
-      {  
+          indist_prot_grp_to_pep_[*grp_it].begin();
+           pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
+      {
         vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
         vector<PeptideEvidence> best_hit_ev =
-        pep_id_hits[0].getPeptideEvidences();
-       
+            pep_id_hits[0].getPeptideEvidences();
+
         // Go through all _remaining_ proteins of the component and remove this
         // peptide from their mapping
         set<Size>::iterator grp_it_cont = grp_it;
         ++grp_it_cont;
         for (/*grp_it_cont*/; grp_it_cont != conn_comp.prot_grp_indices.end();
-           ++grp_it_cont)
+                              ++grp_it_cont)
         {
           indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
         }
-      
+
         // go through all the evidence of this peptide and remove all
         // proteins but the ones from the current indist. group
         for (vector<PeptideEvidence>::iterator pepev_it = best_hit_ev.begin();
-           pepev_it != best_hit_ev.end();
-           //don't increase index, will be done by case
-           )
+             pepev_it != best_hit_ev.end();
+          //don't increase index, will be done by case
+            )
         {
           // if its accession is not in the current best group, remove evidence
           if (find(accessions.begin(),
-                 accessions.end(),
-                 pepev_it->getProteinAccession()) == accessions.end())
+                   accessions.end(),
+                   pepev_it->getProteinAccession()) == accessions.end())
           {
             // we get valid iterator from erase with shifted objects
             pepev_it = best_hit_ev.erase(pepev_it);
@@ -373,9 +786,9 @@ namespace OpenMS
         // Set the remaining evidences as new evidence
         pep_id_hits[0].setPeptideEvidences(best_hit_ev);
         peptides[*pepid_it].setHits(pep_id_hits);
-      }    
+      }
     }
-  
+
     //Finally insert ambiguity group
     protein.insertProteinGroup(ambiguity_grp);
   }

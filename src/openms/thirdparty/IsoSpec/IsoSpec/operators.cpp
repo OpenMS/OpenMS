@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,8 +14,11 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
 #include "operators.h"
+#include "marginalTrek++.h"
+
+namespace IsoSpec
+{
 
 KeyHasher::KeyHasher(int _dim)
 : dim(_dim)
@@ -33,4 +36,14 @@ ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs
 : logProbs(_logProbs), dim(_dim)
 {}
 
+
+OrderMarginalsBySizeDecresing::OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * const _T) : T(_T) {}
+
+bool OrderMarginalsBySizeDecresing::operator()(int m1, int m2)
+{
+    return T[m1]->get_no_confs() > T[m2]->get_no_confs();
+}
+
+
+} // namespace IsoSpec
 

@@ -113,7 +113,7 @@ namespace OpenMS
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
-    LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
+    OPENMS_LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
 
     // Including all MSMS derived peptides into the graph
     includeMSMSPeptides_(peptide_identifications, *peptide_nodes);

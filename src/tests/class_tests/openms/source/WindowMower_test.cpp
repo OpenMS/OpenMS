@@ -234,17 +234,21 @@ int  mz  DA_int DA_string
 48.1  48     48      up
 49.1  49     49      up
 50.2  50     50      down
+49.2  51     51      down
 */
-  TEST_EQUAL(s_da.size(), 3)
+  TEST_EQUAL(s_da.size(), 4)
   TEST_EQUAL(s_da[0].getIntensity(), 48.1)
   TEST_EQUAL(s_da[1].getIntensity(), 49.1)
   TEST_EQUAL(s_da[2].getIntensity(), 50.2)
+  TEST_EQUAL(s_da[3].getIntensity(), 49.2)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][0], 48)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][1], 49)
   TEST_EQUAL(s_da.getIntegerDataArrays()[0][2], 50)
+  TEST_EQUAL(s_da.getIntegerDataArrays()[0][3], 51)
   TEST_EQUAL(s_da.getStringDataArrays()[0][0], "up")
   TEST_EQUAL(s_da.getStringDataArrays()[0][1], "up")
   TEST_EQUAL(s_da.getStringDataArrays()[0][2], "down")
+  TEST_EQUAL(s_da.getStringDataArrays()[0][3], "down")
 
   p.setValue("windowsize", 10.0); 
   e_ptr->setParameters(p);
@@ -287,10 +291,11 @@ int  mz  DA_int DA_string
 20.2 80 80 down
 19.2 81 81 down
 10.2 90 90 down
+9.2 91 91 down
 */
 // note that the last window contains only one peak 
-// because the peak fraction in mindow mower is 0.9
-  TEST_EQUAL(s_da.size(), 19)
+// because the peak fraction in window mower is 0.9
+  TEST_EQUAL(s_da.size(), 20)
 
 
 END_SECTION

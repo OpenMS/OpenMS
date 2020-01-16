@@ -62,17 +62,17 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS::Instrument"
 
     cdef enum IonOpticsType:
     
-        UNKNOWN,                                          #< unknown
-        MAGNETIC_DEFLECTION,                      #< magnetic deflection
-        DELAYED_EXTRACTION,                       #< delayed extraction
-        COLLISION_QUADRUPOLE,                 #< collision quadrupole
-        SELECTED_ION_FLOW_TUBE,               #< selected ion flow tube
-        TIME_LAG_FOCUSING,                        #< time lag focusing
-        REFLECTRON,                                       #< reflectron
-        EINZEL_LENS,                                      #< einzel lens
-        FIRST_STABILITY_REGION,               #< first stability region
-        FRINGING_FIELD,                               #< fringing field
-        KINETIC_ENERGY_ANALYZER,              #< kinetic energy analyzer
-        STATIC_FIELD,                                     #< static field
+        UNKNOWN,                          #< unknown
+        MAGNETIC_DEFLECTION,              #< magnetic deflection
+        DELAYED_EXTRACTION,               #< delayed extraction
+        COLLISION_QUADRUPOLE,             #< collision quadrupole
+        SELECTED_ION_FLOW_TUBE,           #< selected ion flow tube
+        TIME_LAG_FOCUSING,                #< time lag focusing
+        REFLECTRON,                       #< reflectron
+        EINZEL_LENS,                      #< einzel lens
+        FIRST_STABILITY_REGION,           #< first stability region
+        FRINGING_FIELD,                   #< fringing field
+        KINETIC_ENERGY_ANALYZER,          #< kinetic energy analyzer
+        STATIC_FIELD,                     #< static field
         SIZE_OF_IONOPTICSTYPE
 

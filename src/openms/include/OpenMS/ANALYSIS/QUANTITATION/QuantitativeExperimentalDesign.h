@@ -71,22 +71,12 @@ public:
     */
     void applyDesign2Resolver(ProteinResolver & resolver, TextFile & file, StringList & fileNames);
 
-    /**
-        @brief xxxxxxx
-
-        @note xxxxxx
-    */
-    void applyDesign2Quantifier(PeptideAndProteinQuant & quantifier, TextFile & file, StringList & fileNames);
-    //std::vector< std::pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result);
-
 private:
     ///Not implemented
     QuantitativeExperimentalDesign(const QuantitativeExperimentalDesign &);
 
     ///Not implemented
     QuantitativeExperimentalDesign & operator=(const QuantitativeExperimentalDesign &);
-
-    void mergeFeatureMaps_(FeatureMap & map, const String & experiment, StringList & file_paths);
 
     void mergeConsensusMaps_(ConsensusMap & map, const String & experiment, StringList & file_paths);
 

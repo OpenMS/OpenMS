@@ -1,4 +1,4 @@
-Group 1	# Distinct Peptides	# Unambigous Proteins	Median Global LR	median RIA 1	median RIA 2
+Group 1	# Distinct Peptides	# Unambiguous Proteins	Median Global LR	median RIA 1	median RIA 2
 	1	1	0.269627132474428	0.603333333333335	36.4733333333347
 	Protein Accession	Description	# Unique Peptides	Median Global LR	median RIA 1	median RIA 2
 	CONTIG23640_802236	 length=2326  numreads=28 strand:-1 frame:0 orf_location:136:990	1	0.269627132474428	0.603333333333335	36.4733333333347

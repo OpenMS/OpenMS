@@ -201,14 +201,7 @@ namespace OpenMS
           ConsensusFeature& f = result_map.back();
 
           f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[0][fi0].getPeptideIdentifications().begin(),
-                                               input_maps[0][fi0].getPeptideIdentifications().end());
-
           f.insert(input_maps[1][fi1]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[1][fi1].getPeptideIdentifications().begin(),
-                                               input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
           double quality = 1.0 - nn_distance_0[fi0].first;

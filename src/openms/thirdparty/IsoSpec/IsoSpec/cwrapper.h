@@ -1,6 +1,5 @@
-
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -15,15 +14,13 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef CWRAPPER_H
-#define CWRAPPER_H
-
-#define ALGO_LAYERED 0
-#define ALGO_ORDERED 1
-#define ALGO_THRESHOLD_ABSOLUTE 2
-#define ALGO_THRESHOLD_RELATIVE 3
-#define ALGO_LAYERED_ESTIMATE 4
+#define ISOSPEC_ALGO_LAYERED 0
+#define ISOSPEC_ALGO_ORDERED 1
+#define ISOSPEC_ALGO_THRESHOLD_ABSOLUTE 2
+#define ISOSPEC_ALGO_THRESHOLD_RELATIVE 3
+#define ISOSPEC_ALGO_LAYERED_ESTIMATE 4
 
 
 #ifdef __cplusplus
@@ -40,18 +37,19 @@ void * setupIso(int             dimNumber,
 
 void deleteIso(void* iso);
 
-#define C_HEADER(generatorType, dataType, method)\
+#define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
 dataType method##generatorType(void* generator);
 
-#define C_HEADER_GET_CONF_SIGNATURE(generatorType)\
+#define ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType)\
 void method##generatorType(void* generator);
 
-#define C_HEADERS(generatorType)\
-C_HEADER(generatorType, double, mass) \
-C_HEADER(generatorType, double, lprob) \
-C_HEADER_GET_CONF_SIGNATURE(generatorType) \
-C_HEADER(generatorType, bool, advanceToNextConfiguration) \
-C_HEADER(generatorType, void, delete)
+#define ISOSPEC_C_FN_HEADERS(generatorType)\
+ISOSPEC_C_FN_HEADER(generatorType, double, mass) \
+ISOSPEC_C_FN_HEADER(generatorType, double, lprob) \
+ISOSPEC_C_FN_HEADER(generatorType, double, prob) \
+ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType) \
+ISOSPEC_C_FN_HEADER(generatorType, bool, advanceToNextConfiguration) \
+ISOSPEC_C_FN_HEADER(generatorType, void, delete)
 
 
 
@@ -62,25 +60,26 @@ void* setupIsoThresholdGenerator(void* iso,
                                  bool _absolute,
                                  int _tabSize,
                                  int _hashSize);
-C_HEADERS(IsoThresholdGenerator)
+ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
-                               double _delta,
+                               double _target_coverage,
+                               double _percentage_to_expand,
                                int _tabSize,
-                               int _hashSize);
-C_HEADERS(IsoLayeredGenerator)
+                               int _hashSize,
+                               bool _do_trim);
+ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
-C_HEADERS(IsoOrderedGenerator)
+ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
 
 
-// Check if there is bool in CFFI
 void* setupThresholdTabulator(void* generator,
                               bool  get_masses,
                               bool  get_probs,
@@ -95,8 +94,25 @@ const double* probsThresholdTabulator(void* tabulator);
 const int*    confsThresholdTabulator(void* tabulator);
 int confs_noThresholdTabulator(void* tabulator);
 
+
+
+void* setupLayeredTabulator(void* generator,
+                              bool  get_masses,
+                              bool  get_probs,
+                              bool  get_lprobs,
+                              bool  get_confs);
+
+void deleteLayeredTabulator(void* tabulator);
+
+const double* massesLayeredTabulator(void* tabulator);
+const double* lprobsLayeredTabulator(void* tabulator);
+const double* probsLayeredTabulator(void* tabulator);
+const int*    confsLayeredTabulator(void* tabulator);
+int confs_noLayeredTabulator(void* tabulator);
+
+void freeReleasedArray(void* array);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif

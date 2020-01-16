@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ITEMLIST name="stringlist" type="string" description="StringList Description" required="false" advanced="false">
     <LISTITEM value="a"/>
     <LISTITEM value="bb"/>
@@ -33,4 +33,6 @@
   </ITEMLIST>
   <ITEM name="file_parameter" value="" type="input-file" description="This is a file parameter." required="false" advanced="false" supported_formats="*.mzML,*.mzXML" />
   <ITEM name="advanced_parameter" value="" type="string" description="This is an advanced parameter." required="false" advanced="true" />
+  <ITEM name="flag" value="false" type="bool" description="This is a flag i.e. in a command line input it does not need a value." required="false" advanced="false" />
+  <ITEM name="noflagJustTrueFalse" value="true" type="string" description="This is not a flag but has a boolean meaning." required="false" advanced="false" restrictions="true,false" />
 </PARAMETERS>

@@ -48,15 +48,18 @@
 #include <QtNetwork/QHostInfo>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
-#else
+#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
 
-using namespace std;
+#ifdef OPENMS_HAS_UNISTD_H
+#include <unistd.h> // for readLink() and getpid()
+#endif
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
+
+using namespace std;
 
 namespace OpenMS
 {
@@ -128,13 +131,13 @@ namespace OpenMS
     // existing file? Qt won't overwrite, so try to remove it:
     if (overwrite_existing && exists(to) && !remove(to))
     {
-      if (verbose) LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      if (verbose) OPENMS_LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
       return false;
     }
     // move the file to the actual destination:
     if (!QFile::rename(from.toQString(), to.toQString()))
     {
-      if (verbose) LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      if (verbose) OPENMS_LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
       return false;
     }
     return true;
@@ -152,7 +155,7 @@ namespace OpenMS
     // check canonical path  
     if (canonical_source_dir == canonical_target_dir)
     {
-      LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
+      OPENMS_LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
       return false;
     }
 
@@ -186,7 +189,7 @@ namespace OpenMS
               case CopyOptions::CANCEL: 
                 return false;
               case CopyOptions::SKIP: 
-                LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
+                OPENMS_LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
                 continue;
               case CopyOptions::OVERWRITE:
                 target_dir.remove(entry.fileName());
@@ -249,7 +252,7 @@ namespace OpenMS
     {
       if (!dir.remove(file_name))
       {
-        LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
+        OPENMS_LOG_WARN << "Could not remove file " << String(file_name) << "!" << std::endl;
         fail = true;
       }
     }
@@ -480,7 +483,7 @@ namespace OpenMS
     path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
 
     if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
-    { // - do NOT use LOG_ERROR or similar for the messages below! (it might not even usable at this point)
+    { // - do NOT use OPENMS_LOG_ERROR or similar for the messages below! (it might not even usable at this point)
       std::cerr << "OpenMS FATAL ERROR!\n  Cannot find shared data! OpenMS cannot function without it!\n";
       if (from_env)
       {
@@ -568,11 +571,11 @@ namespace OpenMS
     try
     {
       full_db_name = find(db_name, sys_p.getValue("id_db_dir"));
-      LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
+      OPENMS_LOG_INFO << "Augmenting database name '" << db_name << "' with path given in 'OpenMS.ini:id_db_dir'. Full name is now: '" << full_db_name << "'" << std::endl;
     }
     catch (Exception::FileNotFound& e)
     {
-      LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "Input database '" + db_name + "' not found (" << e.getMessage() << "). Make sure it exists (and check 'OpenMS.ini:id_db_dir' if you used relative paths. Aborting!" << std::endl;
       throw;
     }
 
@@ -615,13 +618,13 @@ namespace OpenMS
       {
         if (!p.exists("version"))
         {
-          LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing." << std::endl;
+          OPENMS_LOG_WARN << "Broken file '" << filename << "' discovered. The 'version' tag is missing." << std::endl;
         }
         else // old version
         {
-          LOG_WARN << "File '" << filename << "' is deprecated." << std::endl;
+          OPENMS_LOG_WARN << "File '" << filename << "' is deprecated." << std::endl;
         }
-        LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!" << std::endl;
+        OPENMS_LOG_WARN << "Updating missing/wrong entries in '" << filename << "' with defaults!" << std::endl;
         Param p_new = getSystemParameterDefaults_();
         p.setValue("version", VersionInfo::getVersion()); // update old version, such that p_new:version does not get overwritten during update()
         p_new.update(p);
@@ -647,7 +650,64 @@ namespace OpenMS
     return p;
   }
 
-  String File::findExecutable(const OpenMS::String& toolName)
+#ifdef OPENMS_WINDOWSPLATFORM
+  StringList File::executableExtensions_(const String& ext)
+  {
+    // check if content of env-var %PATHEXT% makes sense
+    StringList exts;
+    ext.split(';', exts);
+    // sanity check
+    if (ListUtils::contains(exts, ".exe", ListUtils::CASE::INSENSITIVE)) return exts;
+    // .. use fallback otherwise
+    else return {".exe", ".bat" };
+  }
+#endif
+
+  StringList File::getPathLocations(const String& path)
+  {
+    // split by ":" or ";", depending on platform
+    StringList paths;
+#ifdef OPENMS_WINDOWSPLATFORM
+    path.split(';', paths);
+#else
+    path.split(':', paths);
+#endif
+    // ensure it ends with '/'
+    for (String& p : paths) p.substitute('\\', '/').ensureLastChar('/');
+    return paths;
+  }
+
+  bool File::findExecutable(OpenMS::String& exe_filename)
+  {
+    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
+
+    StringList paths = getPathLocations();
+    StringList exe_filenames = { exe_filename };
+#ifdef OPENMS_WINDOWSPLATFORM
+    // try extensions like .exe on Windows
+    if (!exe_filename.has('.'))
+    {
+      StringList exts = executableExtensions_();
+      for (String& ext : exts) ext = exe_filename + ext;
+      exe_filenames = exts;
+    }
+#endif
+    // try all filenames (on Windows its potentially more than one) in each path...
+    for (const String& p : paths)
+    {
+      for (const String& fn : exe_filenames)
+      {
+        if (exists(p + fn) && !isDirectory(p + fn))
+        {
+          exe_filename = p + fn;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  String File::findSiblingTOPPExecutable(const OpenMS::String& toolName)
   {
     // we first try the executablePath
     String exec = File::getExecutablePath() + toolName;

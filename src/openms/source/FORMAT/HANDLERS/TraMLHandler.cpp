@@ -680,8 +680,8 @@ namespace OpenMS
                 {
                   residue = it->sequence[mit->location];
                 }
-                const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
-                String modname = rmod.getId();
+                const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
+                String modname = rmod->getId();
                 os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }

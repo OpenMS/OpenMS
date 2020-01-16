@@ -34,23 +34,47 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
+#include <tuple>
+
 namespace OpenMS
 {
-  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod() :
-    component_name_(""),
-    feature_name_(""),
-    IS_name_(""),
-    llod_(0),
-    ulod_(0),
-    lloq_(0),
-    uloq_(0),
-    n_points_(0),
-    correlation_coefficient_(0),
-    concentration_units_(""),
-    transformation_model_("")
+
+  bool AbsoluteQuantitationMethod::operator==(const AbsoluteQuantitationMethod& other) const
   {
+    return
+      std::tie(
+        component_name_,
+        feature_name_,
+        IS_name_,
+        llod_,
+        ulod_,
+        lloq_,
+        uloq_,
+        n_points_,
+        correlation_coefficient_,
+        concentration_units_,
+        transformation_model_,
+        transformation_model_params_
+      ) == std::tie(
+        other.component_name_,
+        other.feature_name_,
+        other.IS_name_,
+        other.llod_,
+        other.ulod_,
+        other.lloq_,
+        other.uloq_,
+        other.n_points_,
+        other.correlation_coefficient_,
+        other.concentration_units_,
+        other.transformation_model_,
+        other.transformation_model_params_
+      );
   }
 
+  bool AbsoluteQuantitationMethod::operator!=(const AbsoluteQuantitationMethod& other) const
+  {
+    return !(*this == other);
+  }
   void AbsoluteQuantitationMethod::setLLOD(const double llod)
   {
     llod_ = llod;

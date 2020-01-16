@@ -3,7 +3,6 @@ sudo: false
 language: cpp
 os:
  - linux
-
 cache:
   - apt
   - ccache
@@ -21,11 +20,12 @@ addons:
          - sourceline: 'ppa:beineri/opt-qt591-trusty'
       packages:
          - cmake
+         - g++-4.9
          - qt59base
          - qt59svg
          - cmake-data
-         - g++-4.8
          - python-dev
+         - libhdf5-dev
          - libboost-chrono1.55-dev
          - libboost-date-time1.55-dev
          - libboost-filesystem1.55-dev
@@ -56,6 +56,9 @@ addons:
          - coinor-libosi-dev
          - coinor-libvol-dev
          - libpcre3-dev
+         - mono-complete
+         - mono-devel
+         - mono-runtime
          
 before_script:
   ./tools/travis/cibuild.before.sh
@@ -65,13 +68,13 @@ script:
 #second we exclude those that are redundant, don't make sense or take too long
 matrix:
   include:
-    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON 
+    - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
       os: linux
       compiler: gcc
 
 ## see for example https://github.com/taocpp/PEGTL/blob/master/.travis.yml
 ## gcc tests class and TOPP tests
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release OPENMP=On
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release OPENMP=On MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
       os: linux
       compiler: gcc
 
@@ -99,3 +102,6 @@ matrix:
 #      os: osx
 #      compiler: clang
 #
+
+before_install:
+  - eval "${MATRIX_EVAL}"

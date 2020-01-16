@@ -237,6 +237,11 @@ namespace OpenMS
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
 
+    if (pep.metaValueExists("GeneName"))
+    {
+      p.gene_name = (std::string)pep.getMetaValue("GeneName");
+    }
+
     // Is it potentially a metabolomics compound
     if (pep.metaValueExists("SumFormula"))
     {
@@ -317,12 +322,14 @@ namespace OpenMS
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
     aa_sequence = AASequence::fromString(peptide.sequence);
-    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
-        it != peptide.modifications.end(); ++it)
+    for (const auto & it : peptide.modifications)
     {
-      TargetedExperimentHelper::setModification(it->location, 
-                                                boost::numeric_cast<int>(peptide.sequence.size()), 
-                                                "UniMod:" + String(it->unimod_id), aa_sequence);
+      if (it.unimod_id != -1)
+      {
+        TargetedExperimentHelper::setModification(it.location,
+                                                  int(peptide.sequence.size()),
+                                                  "UniMod:" + String(it.unimod_id), aa_sequence);
+      }
     }
   }
 

@@ -348,6 +348,11 @@ namespace OpenMS
 
     number_of_residues = allowed_characters.size();
 
+    if (number_of_residues == 0)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, number_of_residues);
+    }
+
     libsvm_vector.clear();
     sequence_length = sequence.size();
 

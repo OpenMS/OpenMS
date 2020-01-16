@@ -97,7 +97,7 @@ public:
     void load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, std::vector<double> & pvalues, const String & database = "", const bool ignore_proteins_per_peptide = false);
 
 // /// retrieve the p-values from the out files
-//          void getPValuesFromOutFiles(vector< pair < String, vector< double > > >& filenames_and_pvalues) throw (Exception::FileNotFound, Exception::ParseError);
+//          void getPValuesFromOutFiles(vector< pair < String, vector< double > > >& filenames_and_pvalues) throw (Exception::FileNotFound&, Exception::ParseError);
 
     /// retrieve columns from a Sequest outfile line
     bool getColumns(const String & line, std::vector<String> & substrings, Size number_of_columns, Size reference_column);

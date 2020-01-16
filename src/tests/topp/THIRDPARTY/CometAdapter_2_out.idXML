@@ -19,6 +19,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="prot10" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/builder/jenkins/ws/openms_pr_ci/c797036f/source/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="360.1612405319" RT="1202.7" spectrum_reference="scan=1569" >
 			<PeptideHit score="1.26" sequence="YMGGYK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_0" >

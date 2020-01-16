@@ -90,12 +90,12 @@ namespace OpenMS
       {
         if (map_multiple_assays_)
         {
-          LOG_WARN << "Warning: Chromatogram " + 
+          OPENMS_LOG_WARN << "Warning: Chromatogram " + 
             String(chromatogram.getNativeID()) + " has no precursor or product m/z recorded, mapping may not work." << std::endl;
         }
         else
         {
-          LOG_WARN << "Skip mapping for chromatogram " + 
+          OPENMS_LOG_WARN << "Skip mapping for chromatogram " + 
             String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
           continue;
         }
@@ -107,7 +107,7 @@ namespace OpenMS
         if (fabs(chromatogram.getPrecursor().getMZ() - targeted_exp.getTransitions()[j].getPrecursorMZ()) < precursor_tol_ &&
             fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < product_tol_)
         {
-          LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
+          OPENMS_LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
              " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
              " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
 
@@ -145,7 +145,7 @@ namespace OpenMS
       //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
       if (mapped_chroms.empty())
       {
-        LOG_WARN << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
+        OPENMS_LOG_WARN << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
           " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
         notmapped++;
         if (error_on_unmapped_)
@@ -159,7 +159,7 @@ namespace OpenMS
         for (auto & c : mapped_chroms) output.addChromatogram(c);
         if (mapped_chroms.size() > 1)
         {
-          LOG_WARN << "Chromatogram " + String(chromatogram.getNativeID()) <<
+          OPENMS_LOG_WARN << "Chromatogram " + String(chromatogram.getNativeID()) <<
             " with " + String(chromatogram.getPrecursor().getMZ()) <<
             " -> " + String(chromatogram.getProduct().getMZ()) <<
             " maps to multiple assays!" << std::endl;
@@ -180,7 +180,7 @@ namespace OpenMS
 
     if (notmapped > 0)
     {
-      LOG_WARN << "Could not find mapping for " << notmapped  << " chromatogram(s)." << std::endl;
+      OPENMS_LOG_WARN << "Could not find mapping for " << notmapped  << " chromatogram(s)." << std::endl;
       if (error_on_unmapped_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + String(notmapped) + \

@@ -129,7 +129,7 @@ END_SECTION
 START_SECTION((CoordinateType const& getWeight() const))
 {
 	AveragePosition<1> avg;
-	avg.add(DPosition<1>(9),2);
+	avg.add(DPosition<1>{ 9.0 }, 2);
 	TEST_REAL_SIMILAR(avg.getWeight(),2);
 	TEST_REAL_SIMILAR(avg.getPosition()[0],9);
 	avg.add(DPosition<1>(9),3);

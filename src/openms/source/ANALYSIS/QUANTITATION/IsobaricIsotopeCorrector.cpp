@@ -174,7 +174,7 @@ namespace OpenMS
 
     if (s_negative == 0 && s_different_count > 0) //some solutions are inconsistent, despite being positive
     {
-      LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
+      OPENMS_LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
     }
 
     // update global stats

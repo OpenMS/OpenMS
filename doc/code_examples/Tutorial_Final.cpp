@@ -86,7 +86,7 @@ protected:
 
 //! [Register]
 
- void registerOptionsAndFlags_()
+ void registerOptionsAndFlags_() override
  {
    registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
    setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -122,7 +122,7 @@ protected:
 
  //! [Functionality_1]
 
-   LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
+   OPENMS_LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
 
  //! [Functionality_2]
 
@@ -139,7 +139,7 @@ protected:
  //! [Functionality_2]
  }
 
- ExitCodes main_(int, const char **)
+ ExitCodes main_(int, const char **) override
  {
 
    //! [InputParam]
@@ -197,7 +197,7 @@ protected:
        return ILLEGAL_PARAMETERS;
      }
 
-     LOG_INFO << "Identifications: " << ids.size() << endl;
+     OPENMS_LOG_INFO << "Identifications: " << ids.size() << endl;
 
      // run filter
      filterByProteinIDs_(db, peptide_identifications, whitelist, db_new);
@@ -207,7 +207,7 @@ protected:
    // writing output
    //-------------------------------------------------------------
 
-   LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
+   OPENMS_LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
    //! [output]  
 
    FASTAFile().store(out, db_new);

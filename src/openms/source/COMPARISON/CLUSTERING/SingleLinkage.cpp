@@ -83,7 +83,7 @@ namespace OpenMS
     cluster_tree.clear();
     if (threshold < 1)
     {
-      LOG_ERROR << "You tried to use Single Linkage clustering with a threshold. This is currently not supported!" << std::endl;
+      OPENMS_LOG_ERROR << "You tried to use Single Linkage clustering with a threshold. This is currently not supported!" << std::endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 

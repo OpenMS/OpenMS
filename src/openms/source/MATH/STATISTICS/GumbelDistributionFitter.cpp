@@ -47,14 +47,19 @@ namespace OpenMS
 {
   namespace Math
   {
+    double GumbelDistributionFitter::GumbelDistributionFitResult::log_eval_no_normalize(const double x) const
+    {
+      // -log b is a constant again
+      double diff = (x - a)/b;
+      return -log(b) - diff - exp(- diff);
+    }
+
     GumbelDistributionFitter::GumbelDistributionFitter()
     {
       init_param_ = GumbelDistributionFitResult(0.25, 0.1);
     }
 
-    GumbelDistributionFitter::~GumbelDistributionFitter()
-    {
-    }
+    GumbelDistributionFitter::~GumbelDistributionFitter() = default;
 
     void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult & param)
     {
@@ -75,8 +80,8 @@ namespace OpenMS
 
       int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
-        double a = x(0);
-        double b = x(1);
+        double a = x(0); //location
+        double b = x(1); //scale
 
         UInt i = 0;
         for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
@@ -137,7 +142,7 @@ namespace OpenMS
       cout << formula.str() << endl;
 #endif
 
-      return GumbelDistributionFitResult (x_init(0), x_init(1));
+      return {x_init(0), x_init(1)};
     }
 
   }   //namespace Math

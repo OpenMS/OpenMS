@@ -71,6 +71,10 @@
     they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
     If one fragment matches to multiple precursors, it is assigned to all of them. If it doesnt match any, it is assigned to all
   
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_CorrelateMassTraces.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_CorrelateMassTraces.html
 
 */
 

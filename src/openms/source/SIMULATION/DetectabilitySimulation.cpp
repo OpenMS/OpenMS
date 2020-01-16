@@ -71,7 +71,7 @@ namespace OpenMS
 
   void DetectabilitySimulation::filterDetectability(SimTypes::FeatureMapSim& features)
   {
-    LOG_INFO << "Detectability Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Detectability Simulation ... started" << std::endl;
     if (param_.getValue("dt_simulation_on") == "true")
     {
       svmFilter_(features);
@@ -172,7 +172,7 @@ namespace OpenMS
     }
 
 
-    LOG_INFO << "Predicting peptide detectabilities..    " << endl;
+    OPENMS_LOG_INFO << "Predicting peptide detectabilities..    " << endl;
 
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
 

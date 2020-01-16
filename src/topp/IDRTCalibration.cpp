@@ -37,6 +37,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -122,17 +124,17 @@ protected:
 
     if (rt_calibrant_1_input == rt_calibrant_2_input)
     {
-      LOG_ERROR << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
     if (rt_calibrant_1_reference == rt_calibrant_2_reference)
     {
-      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
     if (rt_calibrant_1_reference == -1 || rt_calibrant_2_reference == -1)
     {
-      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
       return ILLEGAL_PARAMETERS;
     }
 

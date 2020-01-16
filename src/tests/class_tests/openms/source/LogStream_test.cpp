@@ -72,7 +72,6 @@ class TestTarget
   bool notified;
 };
 
-
 START_TEST(LogStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -82,29 +81,34 @@ START_SECTION(([EXTRA] OpenMP - test))
 {
   // just see if this crashes with OpenMP
   ostringstream stream_by_logger;
-  Log_debug.insert(stream_by_logger);
-  Log_debug.remove(cout);
-  Log_info.insert(stream_by_logger);
-  Log_info.remove(cout);
-
+  OpenMS_Log_debug.insert(stream_by_logger);
+  OpenMS_Log_debug.remove(cout);
+  OpenMS_Log_info.insert(stream_by_logger);
+  OpenMS_Log_info.remove(cout);
 
   {
+    // create a long string that is of similar length as the buffer length to
+    // ensure buffering and flushing works correctly LogStream.cpp even in a
+    // multi-threaded environment.
+    std::string long_str;
+    for (int k = 0; k < 32768/2; k++) if (char(k) != 0) long_str += char(k);
+
     #ifdef _OPENMP
-	omp_set_num_threads(8);
+    omp_set_num_threads(8);
     #pragma omp parallel for
     #endif
     for (int i=0;i<10000;++i)
     {
-      LOG_DEBUG << "1\n";
-      LOG_DEBUG << "2" << endl;
-      LOG_INFO << "1\n";
-      LOG_INFO << "2" << endl;
+      OPENMS_LOG_DEBUG << long_str << "1\n";
+      OPENMS_LOG_DEBUG << "2" << endl;
+      OPENMS_LOG_INFO << "1\n";
+      OPENMS_LOG_INFO << "2" << endl;
     }
   }
 
   // remove logger after testing
-  Log_debug.remove(stream_by_logger);
-  Log_info.remove(stream_by_logger);
+  OpenMS_Log_debug.remove(stream_by_logger);
+  OpenMS_Log_info.remove(stream_by_logger);
 
   NOT_TESTABLE;
 }
@@ -393,17 +397,17 @@ START_SECTION(([EXTRA]Test log caching))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_FATAL_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_fatal.remove(cerr);
+  OpenMS_Log_fatal.remove(cerr);
   ostringstream stream_by_logger;
   {
-    Log_fatal.insert(stream_by_logger);
+    OpenMS_Log_fatal.insert(stream_by_logger);
 
-    LOG_FATAL_ERROR << "1\n";
-    LOG_FATAL_ERROR << "2" << endl;
+    OPENMS_LOG_FATAL_ERROR << "1\n";
+    OPENMS_LOG_FATAL_ERROR << "2" << endl;
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
@@ -417,81 +421,81 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_ERROR))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_ERROR))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_error.remove(cerr);
+  OpenMS_Log_error.remove(cerr);
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    Log_error.insert(s);
+    OpenMS_Log_error.insert(s);
 
-    LOG_ERROR << "1\n";
-    LOG_ERROR << "2" << endl;
+    OPENMS_LOG_ERROR << "1\n";
+    OPENMS_LOG_ERROR << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_WARN))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_WARN))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_warn.remove(cout);
+  OpenMS_Log_warn.remove(cout);
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    Log_warn.insert(s);
+    OpenMS_Log_warn.insert(s);
 
-    LOG_WARN << "1\n";
-    LOG_WARN << "2" << endl;
+    OPENMS_LOG_WARN << "1\n";
+    OPENMS_LOG_WARN << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_INFO))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_INFO))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_info.remove(cout);
+  OpenMS_Log_info.remove(cout);
 
   // clear cache to avoid pollution of the test output
   // by previous tests
-  Log_info.rdbuf()->clearCache();
+  OpenMS_Log_info.rdbuf()->clearCache();
 
   String filename;
   NEW_TMP_FILE(filename)
   ofstream s(filename.c_str(), std::ios::out);
   {
-    Log_info.insert(s);
+    OpenMS_Log_info.insert(s);
 
-    LOG_INFO << "1\n";
-    LOG_INFO << "2" << endl;
+    OPENMS_LOG_INFO << "1\n";
+    OPENMS_LOG_INFO << "2" << endl;
   }
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("LogStream_test_general.txt"))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
+START_SECTION(([EXTRA] Macro test - OPENMS_LOG_DEBUG))
 {
   // remove cout/cerr streams from global instances
   // and append trackable ones
-  Log_debug.remove(cout);
+  OpenMS_Log_debug.remove(cout);
 
   // clear cache to avoid pollution of the test output
   // by previous tests
-  Log_debug.rdbuf()->clearCache();
+  OpenMS_Log_debug.rdbuf()->clearCache();
 
   ostringstream stream_by_logger;
   {
-    Log_debug.insert(stream_by_logger);
+    OpenMS_Log_debug.insert(stream_by_logger);
 
-    LOG_DEBUG << "1\n";
-    LOG_DEBUG << "2" << endl;
+    OPENMS_LOG_DEBUG << "1\n";
+    OPENMS_LOG_DEBUG << "2" << endl;
   }
 
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');

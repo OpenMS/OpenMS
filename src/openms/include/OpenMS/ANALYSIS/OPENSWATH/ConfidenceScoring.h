@@ -102,20 +102,20 @@ namespace OpenMS
         }
       } rt_norm_;
 
-      TargetedExperiment library_; // assay library
+      TargetedExperiment library_; ///< assay library
 
-      IntList decoy_index_; // indexes of assays to use as decoys
+      IntList decoy_index_; ///< indexes of assays to use as decoys
 
-      Size n_decoys_; // number of decoys to use (per feature/true assay)
+      Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      Map<String, IntList> transition_map_; // assay (ID) -> transitions (indexes)
+      Map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
-      Size n_transitions_; // number of transitions to consider
+      Size n_transitions_; ///< number of transitions to consider
 
       /// RT transformation to map measured RTs to assay RTs
       TransformationDescription rt_trafo_;
 
-      boost::mt19937 generator_; // random number generation engine
+      boost::mt19937 generator_; ///< random number generation engine
 
       /// Random number generator (must be initialized in init. list of c'tor!)
       boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rand_gen_;
@@ -185,7 +185,7 @@ namespace OpenMS
         }
         if (n_assays - 1 < n_decoys_)
         {
-          LOG_WARN << "Warning: Parameter 'decoys' (" << n_decoys_ 
+          OPENMS_LOG_WARN << "Warning: Parameter 'decoys' (" << n_decoys_ 
                    << ") is higher than the number of unrelated assays in the "
                    << "library (" << n_assays - 1 << "). "
                    << "Using all unrelated assays as decoys." << std::endl;
@@ -196,14 +196,14 @@ namespace OpenMS
         for (Size i = 0; i < n_assays; ++i) decoy_index_[i] = boost::numeric_cast<Int>(i);
 
         // build mapping between assays and transitions:
-        LOG_DEBUG << "Building transition map..." << std::endl;
+        OPENMS_LOG_DEBUG << "Building transition map..." << std::endl;
         for (Size i = 0; i < library_.getTransitions().size(); ++i)
         {
           const String& ref = library_.getTransitions()[i].getPeptideRef();
           transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
         }
         // find min./max. RT in the library:
-        LOG_DEBUG << "Determining retention time range..." << std::endl;
+        OPENMS_LOG_DEBUG << "Determining retention time range..." << std::endl;
         rt_norm_.min_rt = std::numeric_limits<double>::infinity();
         rt_norm_.max_rt = -std::numeric_limits<double>::infinity();
         for (std::vector<TargetedExperiment::Peptide>::const_iterator it = 
@@ -217,13 +217,13 @@ namespace OpenMS
         }
 
         // log scoring progress:
-        LOG_DEBUG << "Scoring features..." << std::endl;
+        OPENMS_LOG_DEBUG << "Scoring features..." << std::endl;
         startProgress(0, features.size(), "scoring features");
 
         for (FeatureMap::Iterator feat_it = features.begin(); 
              feat_it != features.end(); ++feat_it)
         {
-          LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 
+          OPENMS_LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 
                     << " (ID '" << feat_it->getUniqueId() << "')"<< std::endl;
           scoreFeature_(*feat_it);
           setProgress(feat_it - features.begin());

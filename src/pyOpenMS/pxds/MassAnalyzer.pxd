@@ -90,7 +90,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         #   - one or many mass analyzers
         #   - one ion detector
         #
-        #   For more complex instuments, the order should be defined.
+        #   For more complex instruments the order should be defined.
         Int getOrder() nogil except +
         # sets the order
         void setOrder(Int order) nogil except +
@@ -101,21 +101,21 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     cdef enum AnalyzerType:
       # wrap-attach:
       #     MassAnalyzer
-      ANALYZERNULL,                                         #< Unknown
-      QUADRUPOLE,                                           #< Quadrupole
-      PAULIONTRAP,                                          #< Quadrupole ion trap / Paul ion trap
+      ANALYZERNULL,                         #< Unknown
+      QUADRUPOLE,                           #< Quadrupole
+      PAULIONTRAP,                          #< Quadrupole ion trap / Paul ion trap
       RADIALEJECTIONLINEARIONTRAP,          #< Radial ejection linear ion trap
       AXIALEJECTIONLINEARIONTRAP,           #< Axial ejection linear ion trap
-      TOF,                                                          #< Time-of-flight
-      SECTOR,                                                   #< Magnetic sector
-      FOURIERTRANSFORM,                                 #< Fourier transform ion cyclotron resonance mass spectrometer
-      IONSTORAGE,                                           #< Ion storage
-      ESA,                                                          #< Electrostatic energy analyzer
-      IT,                                                           #< Ion trap
-      SWIFT,                                                    #< Stored waveform inverse fourier transform
-      CYCLOTRON,                                            #< Cyclotron
-      ORBITRAP,                                                 #< Orbitrap
-      LIT,                                                          #< Linear ion trap
+      TOF,                                  #< Time-of-flight
+      SECTOR,                               #< Magnetic sector
+      FOURIERTRANSFORM,                     #< Fourier transform ion cyclotron resonance mass spectrometer
+      IONSTORAGE,                           #< Ion storage
+      ESA,                                  #< Electrostatic energy analyzer
+      IT,                                   #< Ion trap
+      SWIFT,                                #< Stored waveform inverse fourier transform
+      CYCLOTRON,                            #< Cyclotron
+      ORBITRAP,                             #< Orbitrap
+      LIT,                                  #< Linear ion trap
       SIZE_OF_ANALYZERTYPE
 
 
@@ -123,10 +123,10 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     cdef enum ResolutionMethod:
       # wrap-attach:
       #     MassAnalyzer
-      RESMETHNULL,                      #< Unknown
-      FWHM,                                     #< Full width at half max
+      RESMETHNULL,                  #< Unknown
+      FWHM,                         #< Full width at half max
       TENPERCENTVALLEY,             #< Ten percent valley
-      BASELINE,                             #< Baseline
+      BASELINE,                     #< Baseline
       SIZE_OF_RESOLUTIONMETHOD
 
     # Resolution type
@@ -134,7 +134,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       # wrap-attach:
       #     MassAnalyzer
       RESTYPENULL,              #< Unknown
-      CONSTANT,                     #< Constant
+      CONSTANT,                 #< Constant
       PROPORTIONAL,             #< Proportional
       SIZE_OF_RESOLUTIONTYPE
 
@@ -143,8 +143,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       # wrap-attach:
       #     MassAnalyzer
       SCANDIRNULL,              #< Unknown
-      UP,                               #< Up
-      DOWN,                             #< Down
+      UP,                       #< Up
+      DOWN,                     #< Down
       SIZE_OF_SCANDIRECTION
 
     #Scan law
@@ -153,7 +153,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       #     MassAnalyzer
       SCANLAWNULL,              #< Unknown
       EXPONENTIAL,              #< Unknown
-      LINEAR,                       #< Linear
+      LINEAR,                   #< Linear
       QUADRATIC,                #< Quadratic
       SIZE_OF_SCANLAW
 
@@ -162,8 +162,8 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
       # wrap-attach:
       #     MassAnalyzer
       REFLSTATENULL,            #< Unknown
-      ON,                                   #< On
-      OFF,                                  #< Off
-      NONE,                                 #< None
+      ON,                       #< On
+      OFF,                      #< Off
+      NONE,                     #< None
       SIZE_OF_REFLECTRONSTATE
 

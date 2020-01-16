@@ -60,21 +60,23 @@ namespace OpenMS
 
   public:
 
+    /** @name Constructors and Assignment
+    */
+    //@{
     // Constructor
     CVTermListInterface();
-
     /// Copy constructor
     CVTermListInterface(const CVTermListInterface & rhs);
     /// Move constructor
-    CVTermListInterface(CVTermListInterface&&);
-
+    CVTermListInterface(CVTermListInterface&&) noexcept;
     // Destructor (non virtual)
     ~CVTermListInterface();
 
     /// Assignment operator
     CVTermListInterface & operator=(const CVTermListInterface & rhs);
     /// Move assignment operator
-    CVTermListInterface& operator=(CVTermListInterface&&);
+    CVTermListInterface& operator=(CVTermListInterface&&) noexcept;
+    //@}
 
     /// equality operator
     bool operator==(const CVTermListInterface& rhs) const;

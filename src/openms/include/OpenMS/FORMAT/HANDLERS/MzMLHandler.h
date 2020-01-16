@@ -369,7 +369,7 @@ protected:
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
 
       /// Helper method that writes a software
       void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
@@ -487,8 +487,8 @@ protected:
        * <chromatogram> tag is stored and will then be stored at the end of the file.
        **/
       //@{
-      std::vector<std::pair<std::string, long> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
-      std::vector<std::pair<std::string, long> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
+      std::vector<std::pair<std::string, Int64> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
+      std::vector<std::pair<std::string, Int64> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
       //@}
 
       /// Progress logger

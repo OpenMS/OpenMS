@@ -50,6 +50,12 @@ namespace OpenMS
 {
   using namespace Math;
 
+  const char SpectrumWidget::RT_AXIS_TITLE[] = "Time [s]";
+  const char SpectrumWidget::MZ_AXIS_TITLE[] = "m/z";
+  const char SpectrumWidget::INTENSITY_AXIS_TITLE[] = "Intensity";
+  const char SpectrumWidget::IM_MS_AXIS_TITLE[] = "Ion Mobility [ms]";
+  const char SpectrumWidget::IM_ONEKZERO_AXIS_TITLE[] = "Ion Mobility [1/K0]";
+
   SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
     canvas_(nullptr)
@@ -145,7 +151,7 @@ namespace OpenMS
   {
     Histogram<> dist = createIntensityDistribution_();
     HistogramDialog dw(dist);
-    dw.setLegend("intensity");
+    dw.setLegend(SpectrumWidget::INTENSITY_AXIS_TITLE);
     dw.setLogMode(true);
     if (dw.exec() == QDialog::Accepted)
     {
@@ -232,8 +238,8 @@ namespace OpenMS
   void SpectrumWidget::updateAxes()
   {
     //change axis labels if necessary
-    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend().prefix(2) == "RT")
-       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend().prefix(2) == "RT"))
+    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend() == SpectrumWidget::RT_AXIS_TITLE)
+       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend() == SpectrumWidget::RT_AXIS_TITLE))
     {
       std::string tmp = x_axis_->getLegend();
       x_axis_->setLegend(y_axis_->getLegend());

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,33 +14,32 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef ELEMENT_TABLES_HPP
-#define ELEMENT_TABLES_HPP
-
+namespace IsoSpec
+{
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-#define NUMBER_OF_ISOTOPIC_ENTRIES 288
+#define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 288
 
-extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_mass[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const int elem_table_massNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const int elem_table_extraNeutrons[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_log_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_atomicNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_mass[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_massNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_extraNeutrons[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const char* elem_table_element[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const char* elem_table_symbol[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const bool elem_table_Radioactive[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 
 
 #ifdef __cplusplus
 }
 #endif
 
+} // namespace IsoSpec
 
-
-#endif
