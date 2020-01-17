@@ -1143,7 +1143,7 @@ protected:
     // presence of inosine can affect digestion:
     if (search_param.variable_mods.count("I"))
     {
-      digestor.setVariableInosine(true);
+      digestor.setVariableInosine(max_variable_mods_per_oligo);
     }
     // set minimum and maximum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
@@ -1191,9 +1191,11 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
+      // account for possible var. mods. required by the digestion:
+      Int n_var_mods = max_variable_mods_per_oligo - Int(oligo_ref->getMetaValue("variable_mods", 0));
+
       ModifiedNASequenceGenerator::applyVariableModifications(
-        variable_modifications, ns, max_variable_mods_per_oligo,
-        all_modified_oligos, true);
+        variable_modifications, ns, n_var_mods, all_modified_oligos, true);
 
       // group modified oligos by precursor mass - oligos with the same
       // combination of mods (just different placements) will have same mass:
