@@ -112,30 +112,29 @@ protected:
     registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("precursor_out", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
-    setValidFormats_("precursor_out", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_precursor", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
+    setValidFormats_("out_precursor", ListUtils::create<String>("csv"));
 
     registerStringList_("precursor_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
     setValidStrings_("precursor_columns", ListUtils::create<String>("MassDifference"));
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 
-    registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
-    setValidFormats_("fragment_out", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_fragment", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
+    setValidFormats_("out_fragment", ListUtils::create<String>("csv"));
     registerStringList_("fragment_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
     setValidStrings_("fragment_columns", ListUtils::create<String>("MassDifference"));
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
-    registerStringOption_("separator", "<character>", " ", "character which should be used to separate the columns in the output files", false);
 
     registerIntOption_("number_of_bins", "<#bins>", 100, "Number of bins that should be used to calculate the histograms for the fitting.", false, true);
     setMinInt_("number_of_bins", 10);
 
-    registerOutputFile_("precursor_fit_out", "<file>", "", "Gaussian fit of the frequency of the deviations from the precursors. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidFormats_("precursor_fit_out", ListUtils::create<String>("tsv"));
+    registerOutputFile_("out_precursor_fit", "<file>", "", "Gaussian fit to the histogram of mass deviations from the precursors.", false, true);
+    setValidFormats_("out_precursor_fit", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("fragment_fit_out", "<file>", "", "Gaussian fit of the frequency of fthe fragment ion m/z deviation. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidFormats_("fragment_fit_out", ListUtils::create<String>("tsv"));
+    registerOutputFile_("out_fragment_fit", "<file>", "", "Gaussian fit to the histogram of mass deviations from the fragments.", false, true);
+    setValidFormats_("out_fragment_fit", ListUtils::create<String>("tsv"));
   }
 
   double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
@@ -215,7 +214,7 @@ protected:
 
     // generate precursor statistics
     vector<MassDifference> precursor_diffs;
-    if (getStringOption_("precursor_out") != "")
+    if (getStringOption_("out_precursor") != "" || getStringOption_("out_precursor_fit") != "")
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -255,7 +254,7 @@ protected:
     sa_param.setValue("tolerance", fragment_mass_tolerance);
     sa.setParameters(sa_param);
 
-    if (getStringOption_("fragment_out") != "")
+    if (getStringOption_("out_fragment") != "" || getStringOption_("out_fragment_fit") != "")
     {
       for (Size i = 0; i != maps_raw.size(); ++i)
       {
@@ -298,16 +297,15 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    String precursor_out_file(getStringOption_("precursor_out"));
-    if (precursor_out_file != "")
+    String precursor_out_file(getStringOption_("out_precursor"));
+    if (precursor_out_file != "" || getStringOption_("out_precursor_fit")!="")
     {
       vector<double> errors;
-      ofstream precursor_out(precursor_out_file.c_str());
+      
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != precursor_diffs.size(); ++i)
       {
-        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm);
-        precursor_out << diff << "\n";
+        double diff = getMassDifference(precursor_diffs[i].theo_mz, precursor_diffs[i].exp_mz, precursor_error_ppm); 
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -319,7 +317,13 @@ protected:
           min_diff = diff;
         }
       }
-      precursor_out.close();
+      if (precursor_out_file != ""){
+        ofstream precursor_out(precursor_out_file.c_str());
+        for (Size i = 0; i != errors.size(); ++i){
+	  precursor_out << errors[i] << "\n";
+	}
+        precursor_out.close();
+      }
 
       // fill histogram with the collected values
       double bin_size = (max_diff - min_diff) / (double)number_of_bins;
@@ -362,8 +366,8 @@ protected:
       {
         gf.fit(values);
 
-        // write gnuplot scripts
-        String fit_out_file(getStringOption_("precursor_fit_out"));
+        // write fit data
+        String fit_out_file(getStringOption_("out_precursor_fit"));
         if (fit_out_file != "")
         {
           ofstream fit_out(fit_out_file.c_str());
@@ -391,16 +395,14 @@ protected:
       }
     }
 
-    String fragment_out_file(getStringOption_("fragment_out"));
-    if (fragment_out_file != "")
+    String fragment_out_file(getStringOption_("out_fragment"));
+    if (fragment_out_file != "" || getStringOption_("out_fragment_fit")!="")
     {
       vector<double> errors;
-      ofstream fragment_out(fragment_out_file.c_str());
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
       for (Size i = 0; i != fragment_diffs.size(); ++i)
       {
         double diff = getMassDifference(fragment_diffs[i].theo_mz, fragment_diffs[i].exp_mz, fragment_error_ppm);
-        fragment_out << diff << endl;
         errors.push_back(diff);
 
         if (diff > max_diff)
@@ -412,8 +414,13 @@ protected:
           min_diff = diff;
         }
       }
-      fragment_out.close();
-
+      if (fragment_out_file != ""){
+        ofstream fragment_out(fragment_out_file.c_str());
+        for (Size i = 0; i != errors.size(); ++i){
+	  fragment_out << errors[i] << "\n";
+	}
+        fragment_out.close();
+      }
       // fill histogram with the collected values
       // here we use the intensities to scale the error
       // low intensity peaks are likely to be random matches
@@ -457,8 +464,8 @@ protected:
       {
         gf.fit(values);
 
-        // write gnuplot scripts
-        String fit_out_file(getStringOption_("fragment_fit_out"));
+        // write fit data
+        String fit_out_file(getStringOption_("out_fragment_fit"));
         if (fit_out_file != "")
         {
           ofstream fit_out(fit_out_file.c_str());
