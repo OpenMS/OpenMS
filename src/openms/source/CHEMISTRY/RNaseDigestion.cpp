@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
   RNaseDigestion::RNaseDigestion():
-    variable_inosine_(false)
+    variable_inosine_(0)
   {
     setEnzyme("RNase_T1");
   }
@@ -75,13 +75,13 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::setVariableInosine(bool value)
+  void RNaseDigestion::setVariableInosine(Size max_per_oligo)
   {
-    variable_inosine_ = value;
+    variable_inosine_ = max_per_oligo;
   }
 
 
-  bool RNaseDigestion::getVariableInosine()
+  Size RNaseDigestion::getVariableInosine()
   {
     return variable_inosine_;
   }
@@ -197,8 +197,8 @@ namespace OpenMS
         Size start_pos = get<0>(fragment_pos[start_it]);
         Size missed_cleavages = 0;
         for (Size end_it = start_it + 1;
-             (missed_cleavages <= missed_cleavages_) && (end_it < fragment_pos.size());
-             ++end_it)
+             (missed_cleavages <= missed_cleavages_) &&
+             (end_it < fragment_pos.size()); ++end_it)
         {
           Size end_pos = get<0>(fragment_pos[end_it]);
 
@@ -208,7 +208,11 @@ namespace OpenMS
             DigestionFragment fragment(start_pos, length, missed_cleavages);
             fragment.req_mod_first = get<2>(fragment_pos[start_it]);
             fragment.req_mod_last = get<1>(fragment_pos[end_it]);
-            result.push_back(fragment);
+            if (fragment.req_mod_first + fragment.req_mod_last <=
+                variable_inosine_)
+            {
+              result.push_back(fragment);
+            }
           }
           // missed cleavage only occurs if no var. mod. is required:
           if (!get<1>(fragment_pos[end_it]) && !get<2>(fragment_pos[end_it]))
@@ -246,31 +250,41 @@ namespace OpenMS
       {
         NASequence seq = rna.getSubsequence(fragment.start, fragment.length);
         // if the fragment is only valid with mods, apply them:
+        Size n_var_mods = 0;
         if (fragment.req_mod_first)
         {
           seq[0] = inosine;
+          ++n_var_mods;
         }
         if (fragment.req_mod_last)
         {
           seq[fragment.length - 1] = inosine;
+          ++n_var_mods;
         }
         if (fragment.start > 0)
         {
           seq.setFivePrimeMod(five_prime_gain_);
         }
-        Size end_pos = fragment.start + fragment.length; // past-the-end position!
+        Size end_pos = fragment.start + fragment.length; // past-the-end pos.!
         if (end_pos < rna.size())
         {
           seq.setThreePrimeMod(three_prime_gain_);
         }
         IdentificationData::IdentifiedOligo oligo(seq);
-        IdentificationData::MoleculeParentMatch match(fragment.start, end_pos - 1);
-        match.left_neighbor = (fragment.start > 0) ? rna[fragment.start - 1]->getCode() :
+        IdentificationData::MoleculeParentMatch match(fragment.start,
+                                                      end_pos - 1);
+        match.left_neighbor = (fragment.start > 0) ?
+          rna[fragment.start - 1]->getCode() :
           IdentificationData::MoleculeParentMatch::LEFT_TERMINUS;
         match.right_neighbor = (end_pos < rna.size()) ?
           rna[end_pos]->getCode() :
           IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS;
         oligo.parent_matches[parent_ref].insert(match);
+        if (n_var_mods > 0)
+        {
+          oligo.setMetaValue("variable_mods", n_var_mods);
+        }
+        oligo.setMetaValue("missed_cleavages", fragment.missed_cleavages);
         id_data.registerIdentifiedOligo(oligo);
       }
     }

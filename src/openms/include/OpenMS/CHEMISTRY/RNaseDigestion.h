@@ -64,11 +64,11 @@ namespace OpenMS
     /// Sets the enzyme for the digestion (by name)
     void setEnzyme(const String& name);
 
-    /// Sets whether A may be modified to I
-    void setVariableInosine(bool value);
+    /// Sets how many As may be modified to I
+    void setVariableInosine(Size max_per_oligo);
 
-    /// Returns whether A may be modified to I
-    bool getVariableInosine();
+    /// Returns how many As may be modified to I
+    Size getVariableInosine();
 
     /**
        @brief Performs the enzymatic digestion of a (potentially modified) RNA
@@ -106,7 +106,7 @@ namespace OpenMS
     const Ribonucleotide* three_prime_gain_; ///< 3' mod added by the enzyme
     boost::regex cuts_after_regex_; ///< reg. exp. for enzyme cutting pattern
     boost::regex cuts_before_regex_; ///< reg. exp. for enzyme cutting pattern
-    bool variable_inosine_; ///< A may be modified to I, affecting cleavage
+    Size variable_inosine_; ///< max. number of As that may be modified to I
 
     /**
        @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
