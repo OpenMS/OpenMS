@@ -335,7 +335,6 @@ namespace OpenMS
 
     int n_r = 0;
     double factor = 4.0;
-    //int maxn_r = 0;
     double intensityThreshold = maxPerChargeIntensity / factor;//intensities[intensities.size()*95/100] / 5.0;
     for (int k = prevCharge + 1; k <= nonZeroEnd; k++)
     {
@@ -526,9 +525,7 @@ namespace OpenMS
 
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                                param.chargeRange,
-
-                                                               param.minContinuousChargePeakCount
-        );
+                                                               param.minContinuousChargePeakCount);
 
         if (!isChargeWellDistributed)
         {
@@ -537,8 +534,7 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty() ||
-            pg.chargeCosineScore <= 0)
+        if (pg.peaks.empty() || pg.chargeCosineScore <= 0)
         {
           continue;
         }
@@ -546,6 +542,50 @@ namespace OpenMS
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
 
+
+      if(msLevel != 1){
+        //perIsotopeIntensity = new double[param.maxIsotopeCount];
+        //int minI = -1;
+        //int maxI = 0;
+        /*for(auto j=0;j<param.maxIsotopeCount;++j){
+          if (perIsotopeIntensity[j]==0){
+            continue;
+          }
+          if(minI<0){
+            minI = j;
+          }
+          maxI = j;
+        }
+        pg.massPpmError = 0;
+        for(auto j=minI;j<=maxI;++j)
+        {
+          if (perIsotopeIntensity[j] != 0)
+          {
+            continue;
+          }
+          pg.massPpmError ++;
+        }
+        for(auto j=0;j<param.currentChargeRange;++j){
+          if (perChargeIntensity[j]==0){
+            continue;
+          }
+          if(minI<0){
+            minI = j;
+          }
+          maxI = j;
+        }
+        pg.massPpmError = 0;
+        for(auto j=minI;j<=maxI;++j)
+        {
+          if (perChargeIntensity[j] != 0)
+          {
+            continue;
+          }
+          pg.massPpmError ++;
+        }*/
+
+        //pg.massPpmError/=(maxI - minI+1);
+      }
       //if (msLevel != 1)
       //{
       //  pg.massPpmError = getAvgMassPpmError(pg);
@@ -566,27 +606,11 @@ namespace OpenMS
     filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
     removeOverlappingPeakGroups(msLevel <= 1 ? param.tolerance : param.tolerance2);
 
-
-    //std::cout<<" "<<peakGroups.size()<<std::endl;
-    //removeHarmonicPeakGroups(filteredPeakGroups, param);
-
-    /*for (int i = 0;  i < param.currentChargeRange ; i++)
-    {
-      delete[] intensityGrid[i];
-    }*/
-    //    delete[] intensityGrid;
-    /*for (int i = 0;  i < param.maxIsotopeCount ; i++)
-    {
-      delete[] intensityGrid2[i];
-    }*/
-    //    delete[] intensityGrid2;
-
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
 
     return peakGroups;
   }
-
 
   void PeakGroupScoring::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
   {

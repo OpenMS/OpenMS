@@ -145,7 +145,7 @@ namespace OpenMS
           param.currentMaxMass = prevMaxMasses[msLevel-1];
         }
 
-        param.currentMaxMassCount = (int)(param.currentMaxMass/110 * 2);
+        param.currentMaxMassCount = (int)(param.currentMaxMass/110*1.5);
 
       }
 

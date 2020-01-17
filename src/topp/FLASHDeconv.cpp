@@ -399,18 +399,30 @@ protected:
         {
           auto pgs = iter->second;
           monoMassSet.clear();
+
+          auto ints = vector<double>();
+          for (auto &pg : pgs)
+          {
+            ints.push_back(pg.intensity);
+          }
+          sort(ints.begin(),ints.end());
+          auto intmap = std::map<double, int>();
+          for (int j = 0; j < ints.size(); ++j)
+          {
+            intmap[ints[j]] = j;
+          }
+
           for (auto &pg : pgs)
           {
             auto intMass = (int) round(pg.monoisotopicMass);
             if (monoMassSet.find(intMass) != monoMassSet.end())
             {
-              continue;
+            //  continue;
             }
 
             monoMassSet.insert(intMass);
 
-            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity
-                << ";";
+            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " " << pg.chargeCosineScore << ";";
             //writePeakGroup(pg, param, fs);
             //writePeakGroupMfile(pg, param, fsm);
           }
