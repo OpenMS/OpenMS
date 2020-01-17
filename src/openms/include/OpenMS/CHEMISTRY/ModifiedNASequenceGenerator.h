@@ -37,9 +37,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
 
 namespace OpenMS
 {
@@ -66,22 +68,10 @@ namespace OpenMS
       bool keep_original = true);
 
   protected:
-    /// Recursively generate all combinatorial placements at compatible sites
-    static void recurseAndGenerateVariableModifiedSequences_(
-      const std::vector<int>& subset_indices,
-      const std::map<int, std::vector<ConstRibonucleotidePtr>>& map_compatibility,
-      int depth,
-      const NASequence& current_NASequence,
-      std::vector<NASequence>& modified_NASequences);
-
-    /// Fast implementation of modification placement. No combinatorial placement is needed in this case
-    /// - just every site is modified once by each compatible modification.
-    /// Already modified residues are skipped
-    static void applyAtMostOneVariableModification_(
-      const std::set<ConstRibonucleotidePtr>& var_mods,
-      const NASequence& seq,
-      std::vector<NASequence>& all_modified_NASequences,
-      bool keep_original = true);
+    /// Add a modification to a set of sequences using a functor
+    static void addModToSequences_(
+      std::vector<std::pair<Size, NASequence>>& temp_seqs, Size n_temp_seqs,
+      std::vector<NASequence>& finished_seqs,
+      const std::function<void(NASequence&)>& applyMod);
   };
 }
-

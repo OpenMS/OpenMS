@@ -36,12 +36,9 @@
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
-#include <vector>
-#include <map>
+#include <unordered_map>
 
-using std::vector;
-using std::set;
-using std::map;
+using namespace std;
 
 namespace OpenMS
 {
@@ -51,7 +48,7 @@ namespace OpenMS
     NASequence& seq)
   {
     // apply modifications at chain ends
-    std::for_each(fixed_mods.begin(), fixed_mods.end(), [&seq] (const ConstRibonucleotidePtr& f)
+    std::for_each(fixed_mods.begin(), fixed_mods.end(), [&seq](ConstRibonucleotidePtr f)
       {
         if (f->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
         {
@@ -90,209 +87,113 @@ namespace OpenMS
     }
   }
 
-  // static
-  void ModifiedNASequenceGenerator::applyVariableModifications(
-    const set<ConstRibonucleotidePtr>& var_mods,
-    const NASequence& seq,
-    size_t max_variable_mods_per_seq,
-    vector<NASequence>& all_modified_seqs,
-    bool keep_unmodified)
+
+  void ModifiedNASequenceGenerator::addModToSequences_(
+    vector<pair<Size, NASequence>>& temp_seqs, Size n_temp_seqs,
+    vector<NASequence>& finished_seqs,
+    const function<void(NASequence&)>& applyMod)
   {
-    // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
-    if (var_mods.empty() || max_variable_mods_per_seq == 0)
+    for (Size i = 0; i < n_temp_seqs; ++i)
     {
-      // if unmodified seqs should be kept return the original list of digested seqs
-      if (keep_unmodified) { all_modified_seqs.push_back(seq); }
-      return;
-    }
-
-    // if there is at most one variable modification allowed for a seq we don't need combinatoric placement and can resort to a faster implementation
-    if (max_variable_mods_per_seq == 1)
-    {
-      applyAtMostOneVariableModification_(var_mods,
-                                          seq,
-                                          all_modified_seqs,
-                                          keep_unmodified);
-      return;
-    }
-
-    // keep a list of all possible modifications of this seq
-    vector<NASequence> modified_seqs;
-
-    // only add unmodified version if flag is set (default)
-    if (keep_unmodified) { modified_seqs.push_back(seq); }
-
-    //iterate over each residue and build compatibility mapping describing
-    //which ribonucleotide (seq index) is compatible with which modification
-    map<int, vector<ConstRibonucleotidePtr>> map_compatibility;
-
-    const int FIVE_PRIME_MODIFICATION_INDEX = -1;
-    const int THREE_PRIME_MODIFICATION_INDEX = -2;
-
-    // set terminal modifications, if any are specified
-    std::for_each(var_mods.begin(), var_mods.end(), [&seq, &map_compatibility, &FIVE_PRIME_MODIFICATION_INDEX, &THREE_PRIME_MODIFICATION_INDEX] (ConstRibonucleotidePtr const & v)
+      NASequence new_seq = temp_seqs[i].second;
+      applyMod(new_seq);
+      Size mods_remaining = temp_seqs[i].first - 1;
+      if (mods_remaining > 0)
       {
-        if (v->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
-        {
-          if (!seq.hasFivePrimeMod()) { map_compatibility[FIVE_PRIME_MODIFICATION_INDEX].push_back(v); }
-        }
-        else if (v->getTermSpecificity() == Ribonucleotide::THREE_PRIME)
-        {
-          if (!seq.hasThreePrimeMod()) { map_compatibility[THREE_PRIME_MODIFICATION_INDEX].push_back(v); }
-        }
-      });
-
-    size_t residue_index(0);
-    for (auto const & r : seq)
-    {
-      // skip already modified residues
-      if (r.isModified()) { ++residue_index; continue; }
-
-      //determine compatibility of variable modifications
-      std::for_each(var_mods.begin(), var_mods.end(), [&residue_index, &r, &map_compatibility](ConstRibonucleotidePtr const & v)
-      {
-        // check if modification and current ribo match
-        const String& code = r.getCode();
-        if (code.size() == 1 && code[0] == v->getOrigin())
-        {
-          if (v->getTermSpecificity() == Ribonucleotide::ANYWHERE)
-          {
-            map_compatibility[static_cast<int>(residue_index)].push_back(v);
-          }
-        }
-      });
-      ++residue_index;
-    }
-
-    // Check if no compatible site that can be modified by variable
-    // modification. If so just return seqs without variable modifications.
-    const size_t & compatible_mod_sites = map_compatibility.size();
-    if (compatible_mod_sites == 0)
-    {
-      if (keep_unmodified) { all_modified_seqs.push_back(seq); }
-      return;
-    }
-
-    // generate powerset of max_variable_mods_per_seq sized subset of all compatible modification sites
-    size_t max_placements = std::min(max_variable_mods_per_seq, compatible_mod_sites);
-    for (size_t n_var_mods = 1; n_var_mods <= max_placements; ++n_var_mods)
-    {
-      // enumerate all modified seqs with n_var_mods variable modified residues
-      size_t zeros = std::max((size_t)0, compatible_mod_sites - n_var_mods);
-      vector<bool> subset_mask;
-
-      for (size_t i = 0; i != compatible_mod_sites; ++i)
-      {
-        // create mask 000011 to select last (e.g. n_var_mods = 2) two compatible sites as subset from the set of all compatible sites
-        if (i < zeros)
-        {
-          subset_mask.push_back(false);
-        }
-        else
-        {
-          subset_mask.push_back(true);
-        }
-      }
-
-      // generate all subsets of compatible sites {000011, ... , 101000, 110000} with current number of allowed variable modifications per seq
-      do
-      {
-        // create subset indices e.g.{4,12} from subset mask e.g. 1010000 corresponding to the positions in the seq sequence
-        vector<int> subset_indices;
-        map<int, vector<ConstRibonucleotidePtr>>::const_iterator mit = map_compatibility.begin();
-        for (size_t i = 0; i != compatible_mod_sites; ++i, ++mit)
-        {
-          if (subset_mask[i]) { subset_indices.push_back(mit->first); }
-        }
-
-        // now enumerate all modifications
-        recurseAndGenerateVariableModifiedSequences_(subset_indices, map_compatibility, 0, seq, modified_seqs);
-      }
-      while (next_permutation(subset_mask.begin(), subset_mask.end()));
-    }
-    // add modified version of the current seq to the list of all seqs
-    all_modified_seqs.insert(all_modified_seqs.end(), modified_seqs.begin(), modified_seqs.end());
-  }
-
-
-  // static
-  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedSequences_(
-    const vector<int>& subset_indices,
-    const map<int, vector<ConstRibonucleotidePtr>>& map_compatibility,
-    int depth,
-    const NASequence& current_seq,
-    vector<NASequence>& modified_seqs)
-  {
-    const int FIVE_PRIME_MODIFICATION_INDEX = -1;
-    const int THREE_PRIME_MODIFICATION_INDEX = -2;
-    // cout << depth << " " << subset_indices.size() << " " << current_seq.toString() << endl;
-
-    // end of recursion. Add the modified seq and return
-    if (depth == (int)subset_indices.size())
-    {
-      modified_seqs.push_back(current_seq);
-      return;
-    }
-
-    // get modifications compatible to residue at current seq position
-    const int current_index = subset_indices[depth];
-
-    auto const pos_mod_it = map_compatibility.find(current_index);
-    const vector<ConstRibonucleotidePtr>& mods = pos_mod_it->second; // we don't need to check for .end as entry is guaranteed to exist
-
-    for (auto const & m : mods)
-    {
-      // copy seq and apply modification
-      NASequence new_seq = current_seq;
-      if (current_index == THREE_PRIME_MODIFICATION_INDEX)
-      {
-        new_seq.setThreePrimeMod(m);
-      }
-      else if (current_index == FIVE_PRIME_MODIFICATION_INDEX)
-      {
-        new_seq.setFivePrimeMod(m);
+        temp_seqs.emplace_back(mods_remaining, new_seq);
       }
       else
       {
-        new_seq.set(current_index, m);
+        finished_seqs.push_back(new_seq);
       }
-
-      // recurse with modified seq
-      recurseAndGenerateVariableModifiedSequences_(subset_indices, map_compatibility, depth + 1, new_seq, modified_seqs);
     }
   }
 
-  // static
-  void ModifiedNASequenceGenerator::applyAtMostOneVariableModification_(
-    const set<ConstRibonucleotidePtr>& var_mods,
-    const NASequence& seq,
-    vector<NASequence>& all_modified_seqs,
-    bool keep_unmodified)
+
+  void ModifiedNASequenceGenerator::applyVariableModifications(
+      const set<ConstRibonucleotidePtr>& var_mods, const NASequence& seq,
+      size_t max_variable_mods_per_seq, vector<NASequence>& all_modified_seqs,
+      bool keep_unmodified)
   {
-    if (keep_unmodified) { all_modified_seqs.push_back(seq); }
-
-    // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
-    for (NASequence::ConstIterator ribo_it = seq.cend() - 1; ribo_it != seq.cbegin() - 1; --ribo_it)
+    all_modified_seqs.clear();
+    if (keep_unmodified) all_modified_seqs.push_back(seq);
+    if (var_mods.empty() || (max_variable_mods_per_seq == 0))
     {
-      // skip already modified residues
-      if (ribo_it->isModified()) { continue; }
+      return;
+    }
 
-      size_t residue_index = ribo_it - seq.cbegin();
-
-      // matches every variable modification to every site and return the new sequence with single modification
-      std::for_each(var_mods.begin(), var_mods.end(),
-                    [ribo_it, residue_index, &all_modified_seqs, &seq](ConstRibonucleotidePtr const & v)
+    // generate residue/mod. compatibility map:
+    unordered_map<Size, set<ConstRibonucleotidePtr>> compatible_mods;
+    set<ConstRibonucleotidePtr> compatible_5p_mods, compatible_3p_mods;
+    for (ConstRibonucleotidePtr mod : var_mods)
+    {
+      switch (mod->getTermSpecificity())
       {
-        // check if modification and current ribo match
-        const String& code = ribo_it->getCode();
-        if (code.size() == 1 && code[0] == v->getOrigin())
+      case Ribonucleotide::FIVE_PRIME:
+        if (!seq.hasFivePrimeMod()) compatible_5p_mods.insert(mod);
+        break;
+      case Ribonucleotide::THREE_PRIME:
+        if (!seq.hasThreePrimeMod()) compatible_3p_mods.insert(mod);
+        break;
+      default: // case Ribonucleotide::ANYWHERE
+        char origin = mod->getOrigin();
+        for (Size i = 0; i < seq.size(); ++i)
         {
-          NASequence new_seq = seq;
-          new_seq.set(residue_index, v);
-          all_modified_seqs.push_back(new_seq);
+          const String& code = seq[i]->getCode();
+          if ((code.size() == 1) && (code[0] == origin))
+          {
+            compatible_mods[i].insert(mod);
+          }
         }
-      });
+      }
+    }
+
+    // stop if there aren't any possible mod. placements:
+    if (compatible_mods.empty() && compatible_5p_mods.empty() && (compatible_3p_mods.empty()))
+    {
+      return;
+    }
+
+    // buffer of sequences that can accept further mods. (and how many):
+    vector<pair<Size, NASequence>> temp_seqs;
+    // starting with the original sequence, add one (more) possible mod. each time:
+    temp_seqs.emplace_back(max_variable_mods_per_seq, seq);
+    for (ConstRibonucleotidePtr mod : compatible_5p_mods)
+    {
+      addModToSequences_(temp_seqs, 1, all_modified_seqs,
+                         [mod](NASequence& new_seq)
+                         {
+                           new_seq.setFivePrimeMod(mod);
+                         });
+    }
+    for (const auto& comp_pair : compatible_mods)
+    {
+      Size pos = comp_pair.first;
+      // only apply mods to sequences that are already in the buffer now:
+      Size n_temp_seqs = temp_seqs.size();
+      for (ConstRibonucleotidePtr mod : comp_pair.second)
+      {
+        addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
+                           [mod, pos](NASequence& new_seq)
+                           {
+                             new_seq[pos] = mod;
+                           });
+      }
+    }
+    Size n_temp_seqs = temp_seqs.size();
+    for (ConstRibonucleotidePtr mod : compatible_3p_mods)
+    {
+      addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
+                         [mod](NASequence& new_seq)
+                         {
+                           new_seq.setThreePrimeMod(mod);
+                         });
+    }
+
+    // add "partially" modified sequences to the output:
+    for (Size i = 1; i < temp_seqs.size(); ++i)
+    {
+      all_modified_seqs.push_back(temp_seqs[i].second);
     }
   }
 }
-

@@ -76,7 +76,7 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
   set<ModifiedNASequenceGenerator::ConstRibonucleotidePtr> var_mods;
   // query modified ribos by code
   vector<string> mods_code = {"m3U", "s4U"};  // 3-methyluridine, 4-thiouridine
-  for (auto const & f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
+  for (const auto& f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
 
   NASequence sequence = NASequence::fromString("AUAUAUA");
   vector<NASequence> ams;
@@ -111,7 +111,7 @@ START_SECTION(static void applyVariableModifications(const std::set<ConstRibonuc
   ams.clear();
   var_mods.clear();
   mods_code = {"s4U", "m3U", "m1A"};
-  for (auto const & f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
+  for (const auto& f : mods_code) { var_mods.insert(db->getRibonucleotide(f)); }
 
   ModifiedNASequenceGenerator::applyVariableModifications(var_mods, sequence, 7, ams, true);
   TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
@@ -121,6 +121,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-
