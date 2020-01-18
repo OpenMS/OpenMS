@@ -499,6 +499,23 @@ protected:
 
       total_elapsed_cpu_secs += elapsed_cpu_secs;
       total_elapsed_wall_secs += elapsed_wall_secs;
+
+      //TODO remove
+
+      mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/CA_745_ETDReagentTarget_1e+06_.mzML", map);
+      fsm.open(outfilePath + "xtract.m", fstream::out);
+
+      fsm<<"\nxm=[";
+      for (auto it = map.begin(); it != map.end(); ++it)
+      {
+        for (auto p : *it)
+        {
+          fsm<< p.getMZ() << " " << p.getIntensity() << ";";
+        }
+      }
+      fsm<<"];\n";
+      fsm.close();
+
     }
 
 

@@ -77,10 +77,10 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinMap;
     std::vector<double> prevMinBinLogMassMap;
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
-    auto prevCharges = new int[param.maxMSLevel];
+    auto prevChargeRanges = new int[param.maxMSLevel];
     auto prevMaxMasses = new double[param.maxMSLevel];
 
-    std::fill_n(prevCharges, param.maxMSLevel, param.chargeRange);
+    std::fill_n(prevChargeRanges, param.maxMSLevel, param.chargeRange);
     std::fill_n(prevMaxMasses, param.maxMSLevel, param.maxMass);
 
     for (auto it = map.begin(); it != map.end(); ++it)
@@ -135,13 +135,13 @@ namespace OpenMS
           }
         }
         if(mc > 0){
-          param.currentChargeRange = mc;
+          param.currentChargeRange = mc  - param.minCharge;
           param.currentMaxMass = mm;
 
-          prevCharges[msLevel-1] = mc;
+          prevChargeRanges[msLevel - 1] = mc - param.minCharge;
           prevMaxMasses[msLevel-1] = mm;
         }else{
-          param.currentChargeRange =  prevCharges[msLevel-1];
+          param.currentChargeRange =  prevChargeRanges[msLevel - 1];
           param.currentMaxMass = prevMaxMasses[msLevel-1];
         }
 
@@ -174,7 +174,6 @@ namespace OpenMS
       }
       peakChargeMap[msLevel] = subPeakChargeMap;
 
-
       qspecCntr++;
 
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
@@ -190,7 +189,7 @@ namespace OpenMS
     }
     printProgress(1); //
     //allPeakGroups.shrink_to_fit();
-    delete[] prevCharges;
+    delete[] prevChargeRanges;
     delete[] prevMaxMasses;
 
     return allPeakGroups; //
