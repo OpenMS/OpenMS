@@ -525,17 +525,6 @@ namespace OpenMS
 
   double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge, Range isotope_window) const
   {
-    double mu, sd;
-    if (use_mz_scoring_C13_)
-    { // this reflects some data better (at least all Orbitrap)
-      mu = (Constants::C13C12_MASSDIFF_U * iso_pos) / charge; // using '1.0033548378'
-      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
-    }
-    else
-    { // original implementation from Kenar et al.;
-      mu = (1.000857 * iso_pos + 0.001091) / charge;
-      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
-    }
 
     double mz1(tr1.getCentroidMZ());
     double mz2(tr2.getCentroidMZ());
@@ -551,49 +540,83 @@ namespace OpenMS
 
     // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
+    double mz_score(0.0);
+
+    if (use_mz_scoring_by_element_range){
+      mz_score = scoreMZByExpectedRange_(charge, diff_mz, mt_variances, isotope_window);
+    }
+    else
+    {
+      mz_score = scoreMZByExpectedMean_(iso_pos, charge, diff_mz, mt_variances);
+    }
+
+    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+
+    return mz_score;
+  }
+
+  double FeatureFindingMetabo::scoreMZByExpectedMean_(Size iso_pos, Size charge, const double diff_mz, double mt_variances) const
+  {
+    double mu, sd;
+    if (use_mz_scoring_C13_)
+    { // this reflects some data better (at least all Orbitrap)
+      mu = (Constants::C13C12_MASSDIFF_U * iso_pos) / charge; // using '1.0033548378'
+      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
+    }
+    else
+    { // original implementation from Kenar et al.;
+      mu = (1.000857 * iso_pos + 0.001091) / charge;
+      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
+    }
+
+    double sigma_mult(3.0);
+    double mz_score(0.0);
+
+    //standard deviation including the estimated isotope deviation
     double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
 
     // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
 
-    double sigma_mult(3.0);
-
-    double mz_score(0.0);
-
-
-    if (use_mz_scoring_by_element_range){
-      //This part is based on the isotope picking procedure of SIRIUS
-      //todo can this sigma be used as absolute mass deviation?
-      double allowed_deviation = score_sigma * sigma_mult;
-
-      double lbound = isotope_window.left_boundary / charge;
-      double rbound = isotope_window.right_boundary / charge;
-
-      if ((diff_mz < rbound) && (diff_mz > lbound))
-      {
-        //isotope masstrace lies in the expected range
-        mz_score = 1.0;
-      } else if ((diff_mz < rbound + allowed_deviation) && (diff_mz > lbound - allowed_deviation))
-      {
-        //score only the m/z difference which cannot explained by the elements m/z ranges
-        double tmp_exponent;
-        if (diff_mz < lbound)
-        {
-          tmp_exponent = (lbound - diff_mz) / score_sigma;
-        } else
-        {
-          tmp_exponent = (diff_mz - rbound) / score_sigma;
-        }
-        mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
-      }
-      //else mz_score stays 0
-    }
-    else if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
+    if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
       double tmp_exponent((diff_mz - mu) / score_sigma);
       mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
     }
+    return mz_score;
+  }
 
-    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+  double FeatureFindingMetabo::scoreMZByExpectedRange_(Size charge, const double diff_mz, double mt_variances, Range isotope_window) const
+  {
+    //This isotope picking using m/z differences of elements' isotopes is based on the approach used in SIRIUS
+    double sigma_mult(3.0);
+    double mz_score(0.0);
+
+    //standard deviation of m/z distance between the 2 mass traces
+    double mt_sigma(std::sqrt(mt_variances));
+
+    double max_allowed_deviation = mt_sigma * sigma_mult;
+
+    double lbound = isotope_window.left_boundary / charge;
+    double rbound = isotope_window.right_boundary / charge;
+
+    if ((diff_mz < rbound) && (diff_mz > lbound))
+    {
+      //isotope masstrace lies in the expected range
+      mz_score = 1.0;
+    } else if ((diff_mz < rbound + max_allowed_deviation) && (diff_mz > lbound - max_allowed_deviation))
+    {
+      //score only the m/z difference which cannot explained by the elements m/z ranges
+      double tmp_exponent;
+      if (diff_mz < lbound)
+      {
+        tmp_exponent = (lbound - diff_mz) / mt_sigma;
+      } else
+      {
+        tmp_exponent = (diff_mz - rbound) / mt_sigma;
+      }
+      mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
+    }
+    //else mz_score stays 0
 
     return mz_score;
   }

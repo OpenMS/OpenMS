@@ -258,6 +258,26 @@ private:
     */
     double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge, Range isotope_window) const;
 
+    /**
+     * @brief score isotope m/z distance based on the expected m/z distances using C13-C12 or Kenar method
+     * @param iso_pos
+     * @param charge
+     * @param diff_mz
+     * @param mt_variances
+     * @return
+     */
+    double scoreMZByExpectedMean_(Size iso_pos, Size charge, const double diff_mz, double mt_variances) const;
+
+    /**
+     * @brief score isotope m/z distance based on an expected isotope window which was calculated from a set of expected elements
+     * @param charge
+     * @param diff_mz
+     * @param mt_variances m/z variance between the two mass traces which are compared
+     * @param isotope_window
+     * @return
+     */
+    double scoreMZByExpectedRange_(Size charge, const double diff_mz, double mt_variances, Range isotope_window) const;
+
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
