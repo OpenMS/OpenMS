@@ -361,7 +361,8 @@ namespace OpenMS
   std::vector<const Element*> FeatureFindingMetabo::elementsFromString_(const std::string& elements_string) const
   {
     std::vector<const Element*> elements;
-    for (auto element_with_amount : EmpiricalFormula(elements_string)) {
+    for (const auto& element_with_amount : EmpiricalFormula(elements_string))
+    {
       elements.push_back(element_with_amount.first);
     }
     return elements;
