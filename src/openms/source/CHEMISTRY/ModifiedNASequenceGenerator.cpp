@@ -89,18 +89,20 @@ namespace OpenMS
 
 
   void ModifiedNASequenceGenerator::addModToSequences_(
-    vector<pair<Size, NASequence>>& temp_seqs, Size n_temp_seqs,
+    vector<ModSeqInfo>& temp_seqs, Size n_temp_seqs,
     vector<NASequence>& finished_seqs,
-    const function<void(NASequence&)>& applyMod)
+    const function<bool(NASequence&, Int&)>& applyMod)
   {
     for (Size i = 0; i < n_temp_seqs; ++i)
     {
-      NASequence new_seq = temp_seqs[i].second;
-      applyMod(new_seq);
-      Size mods_remaining = temp_seqs[i].first - 1;
-      if (mods_remaining > 0)
+      NASequence new_seq = temp_seqs[i].seq;
+      Int missed_cleavages_left = temp_seqs[i].missed_cleavages_left;
+      bool success = applyMod(new_seq, missed_cleavages_left);
+      if (!success) continue; // no missed cleavages left, can't add inosine
+      Size var_mods_left = temp_seqs[i].var_mods_left - 1;
+      if (var_mods_left > 0)
       {
-        temp_seqs.emplace_back(mods_remaining, new_seq);
+        temp_seqs.emplace_back(new_seq, var_mods_left, missed_cleavages_left);
       }
       else
       {
@@ -112,12 +114,12 @@ namespace OpenMS
 
   void ModifiedNASequenceGenerator::applyVariableModifications(
       const set<ConstRibonucleotidePtr>& var_mods, const NASequence& seq,
-      size_t max_variable_mods_per_seq, vector<NASequence>& all_modified_seqs,
-      bool keep_unmodified)
+      Size max_var_mods, vector<NASequence>& all_modified_seqs,
+      bool keep_unmodified, Int max_missed_cleavages)
   {
     all_modified_seqs.clear();
     if (keep_unmodified) all_modified_seqs.push_back(seq);
-    if (var_mods.empty() || (max_variable_mods_per_seq == 0))
+    if (var_mods.empty() || (max_var_mods == 0))
     {
       return;
     }
@@ -155,15 +157,16 @@ namespace OpenMS
     }
 
     // buffer of sequences that can accept further mods. (and how many):
-    vector<pair<Size, NASequence>> temp_seqs;
+    vector<ModSeqInfo> temp_seqs;
     // starting with the original sequence, add one (more) possible mod. each time:
-    temp_seqs.emplace_back(max_variable_mods_per_seq, seq);
+    temp_seqs.emplace_back(seq, max_var_mods, max_missed_cleavages);
     for (ConstRibonucleotidePtr mod : compatible_5p_mods)
     {
       addModToSequences_(temp_seqs, 1, all_modified_seqs,
-                         [mod](NASequence& new_seq)
+                         [mod](NASequence& new_seq, Int& /* ignored */)
                          {
                            new_seq.setFivePrimeMod(mod);
+                           return true;
                          });
     }
     for (const auto& comp_pair : compatible_mods)
@@ -173,27 +176,44 @@ namespace OpenMS
       Size n_temp_seqs = temp_seqs.size();
       for (ConstRibonucleotidePtr mod : comp_pair.second)
       {
-        addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
-                           [mod, pos](NASequence& new_seq)
-                           {
-                             new_seq[pos] = mod;
-                           });
+        if ((max_missed_cleavages < 0) || (mod->getCode() != "I"))
+        {
+          addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
+                             [mod, pos](NASequence& new_seq, Int& /* ignored */)
+                             {
+                               new_seq[pos] = mod;
+                               return true;
+                             });
+        }
+        else // special case for inosines (add RNase T1 cleavage sites)
+        {
+          addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
+                             [mod, pos](NASequence& new_seq, Int& missed_cleavages_left)
+                             {
+                               if (missed_cleavages_left <= 0) return false;
+                               new_seq[pos] = mod;
+                               --missed_cleavages_left;
+                               return true;
+                             });
+
+        }
       }
     }
     Size n_temp_seqs = temp_seqs.size();
     for (ConstRibonucleotidePtr mod : compatible_3p_mods)
     {
       addModToSequences_(temp_seqs, n_temp_seqs, all_modified_seqs,
-                         [mod](NASequence& new_seq)
+                         [mod](NASequence& new_seq, Int& /* ignored */)
                          {
                            new_seq.setThreePrimeMod(mod);
+                           return true;
                          });
     }
 
     // add "partially" modified sequences to the output:
     for (Size i = 1; i < temp_seqs.size(); ++i)
     {
-      all_modified_seqs.push_back(temp_seqs[i].second);
+      all_modified_seqs.push_back(temp_seqs[i].seq);
     }
   }
 }
