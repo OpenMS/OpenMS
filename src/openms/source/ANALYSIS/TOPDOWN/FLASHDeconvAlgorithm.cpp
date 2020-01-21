@@ -129,23 +129,24 @@ namespace OpenMS
               break;
             }
             int pc = subPeakChargeMap[mz];
-            mc = mc > pc? mc : pc;
-            double pm = mc * mz;
-            mm = mm > pm ? mm : pm;
+            if(mc<pc){
+              mc = pc;
+              mm = mc * mz;
+            }
           }
         }
         if(mc > 0){
-          param.currentChargeRange = mc  - param.minCharge;
-          param.currentMaxMass = mm;
+          param.currentChargeRange = mc  - param.minCharge; //
+          param.currentMaxMass = mm + 1 ; // isotopie margin
 
-          prevChargeRanges[msLevel - 1] = mc - param.minCharge;
-          prevMaxMasses[msLevel-1] = mm;
+          prevChargeRanges[msLevel - 1] = param.currentChargeRange;
+          prevMaxMasses[msLevel-1] =  param.currentMaxMass;
         }else{
           param.currentChargeRange =  prevChargeRanges[msLevel - 1];
-          param.currentMaxMass = prevMaxMasses[msLevel-1];
+          param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
-
-        param.currentMaxMassCount = (int)(param.currentMaxMass/110*1.5);
+        //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
+        param.currentMaxMassCount = -1;//(int)(param.currentMaxMass/110*1.5);
 
       }
 
@@ -165,7 +166,7 @@ namespace OpenMS
       {
         for(auto& p : pg.peaks){
           int mc = p.charge;
-          if (subPeakChargeMap.find(p.mz) == subPeakChargeMap.end()){
+          if (subPeakChargeMap.find(p.mz) != subPeakChargeMap.end()){
             int pc = subPeakChargeMap[p.mz];
             mc = mc > pc? mc : pc;
           }
@@ -197,7 +198,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::printProgress(float progress)
   {
-    //return;
+    //return; //
     int barWidth = 70;
     std::cout << "[";
     int pos = (int) (barWidth * progress);

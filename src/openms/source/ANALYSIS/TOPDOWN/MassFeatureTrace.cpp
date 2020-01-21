@@ -154,7 +154,7 @@ namespace OpenMS
       }
 
       double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity,
-                                                               param.minCharge + param.chargeRange + 1);
+                                                               param.minCharge + param.chargeRange + 1, 0);
       if (chargeScore < param.minChargeCosine) //
       {
         continue;

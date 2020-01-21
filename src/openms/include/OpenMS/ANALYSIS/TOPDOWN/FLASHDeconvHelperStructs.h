@@ -88,7 +88,7 @@ namespace OpenMS
         int currentChargeRange;
         double binWidth;
         double binWidth2;
-        int minNumOverLappedScans = 1;
+        int minNumOverLappedScans = 2;
         int numOverlappedScans = minNumOverLappedScans;
         int threads = 1;
         int writeSpecTsv = 0;

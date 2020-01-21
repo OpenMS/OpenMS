@@ -62,7 +62,7 @@ namespace OpenMS
 
       //std::cout<< a << " "<<iso[10].getMZ() - iso[9].getMZ()<<std::endl;
 
-      auto factor = .02;
+      auto factor = .01;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
       double norm = .0;

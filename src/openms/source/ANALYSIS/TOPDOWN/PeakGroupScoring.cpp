@@ -33,7 +33,7 @@ namespace OpenMS
     return (sum / pg.peaks.size());
   }
 
-  double PeakGroupScoring::getChargeFitScore(double *perChargeIntensity, int range)
+  double PeakGroupScoring::getChargeFitScore(double *perChargeIntensity, int range, int minCharge)
   {
     double maxPerChargeIntensity = .0;
     std::vector<double> xs;
@@ -69,9 +69,9 @@ namespace OpenMS
       ys.push_back((1 + perChargeIntensity[i]));
     }
 
-    if (xs.size() <= 2)
+    if (xs.size() <= 3)
     {
-      return 0.01;
+      return 0.5;
     }
 
     Eigen::Matrix3d m;
@@ -280,7 +280,7 @@ namespace OpenMS
     }
     if (isotopeLength < 2)
     {
-      return 0;
+      //return 0;
     }
 
     for (int f = -isoSize + minIsotopeIndex; f <= maxIsotopeIndex; f++)
@@ -300,7 +300,7 @@ namespace OpenMS
                                               isoSize,
                                               f);
  */
-      if (maxCosine <= cos)
+      if (maxCosine < cos)
       {
         maxCosine = cos;
         offset = f;
@@ -513,7 +513,7 @@ namespace OpenMS
       {
         continue;
       }
-      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
+      pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange, param.minCharge);
 
       if (msLevel == 1)
       {
@@ -525,29 +525,33 @@ namespace OpenMS
 
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                                param.chargeRange,
-                                                               param.minContinuousChargePeakCount);
+                                                               msLevel==1 ? param.minContinuousChargePeakCount:param.minContinuousChargePeakCount2);
 
         if (!isChargeWellDistributed)
         {
           continue;
         }
+
       }
       else
       {
-        if (pg.peaks.empty() || pg.chargeCosineScore <= 0)
+        if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)
         {
-          continue;
+           continue;
         }
       }
+
+
+
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
 
 
-      if(msLevel != 1){
-        //perIsotopeIntensity = new double[param.maxIsotopeCount];
-        //int minI = -1;
-        //int maxI = 0;
-        /*for(auto j=0;j<param.maxIsotopeCount;++j){
+      if(false){
+        perIsotopeIntensity = new double[param.maxIsotopeCount];
+        int minI = -1;
+        int maxI = 0;
+        for(auto j=0;j<param.maxIsotopeCount;++j){
           if (perIsotopeIntensity[j]==0){
             continue;
           }
@@ -565,25 +569,9 @@ namespace OpenMS
           }
           pg.massPpmError ++;
         }
-        for(auto j=0;j<param.currentChargeRange;++j){
-          if (perChargeIntensity[j]==0){
-            continue;
-          }
-          if(minI<0){
-            minI = j;
-          }
-          maxI = j;
+        if (pg.massPpmError > 3){
+          continue;
         }
-        pg.massPpmError = 0;
-        for(auto j=minI;j<=maxI;++j)
-        {
-          if (perChargeIntensity[j] != 0)
-          {
-            continue;
-          }
-          pg.massPpmError ++;
-        }*/
-
         //pg.massPpmError/=(maxI - minI+1);
       }
       //if (msLevel != 1)
@@ -603,7 +591,7 @@ namespace OpenMS
 
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
-    filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
+    //filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
     removeOverlappingPeakGroups(msLevel <= 1 ? param.tolerance : param.tolerance2);
 
     delete[] perIsotopeIntensity;
@@ -673,7 +661,7 @@ namespace OpenMS
         {
           break;
         }
-        select &= pg.intensity >= pgo.intensity;
+        select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
       }
 
       if (!select)
@@ -687,7 +675,7 @@ namespace OpenMS
         {
           break;
         }
-        select &= pg.intensity >= pgo.intensity;
+        select &= pg.isotopeCosineScore >= pgo.isotopeCosineScore;
       }
       if (!select)
       {

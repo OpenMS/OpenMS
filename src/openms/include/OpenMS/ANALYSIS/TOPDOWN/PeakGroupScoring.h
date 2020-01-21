@@ -27,7 +27,7 @@ namespace OpenMS
     ~PeakGroupScoring();
 
 
-    static double getChargeFitScore(double *perChargeIntensity, int range);
+    static double getChargeFitScore(double *perChargeIntensity, int range, int minCharge);
 
     static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
                                                            double *perIsotopeIntensities,

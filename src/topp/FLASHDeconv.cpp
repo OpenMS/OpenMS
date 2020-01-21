@@ -88,7 +88,7 @@ protected:
     registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minC", "<min charge>", 1, "minimum charge state", false, false);
     registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
-    registerDoubleOption_("minM", "<min mass>", 10.0, "minimum mass (Da)", false, false);
+    registerDoubleOption_("minM", "<min mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleOption_("minIC",
@@ -140,7 +140,7 @@ protected:
     registerDoubleOption_("tol2", "<MSn tolerance>", 10.0, "ppm tolerance for MSn (n>1)", false, false);
     registerDoubleOption_("minICS2",
                           "<MSn cosine threshold 0 - 1>",
-                          .75,
+                          .8,
                           "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)",
                           false,
                           true);
@@ -152,7 +152,7 @@ protected:
 //                          true);
     registerIntOption_("minCP2",
                        "<MSn min continuous charge peak count>",
-                       1,
+                       2,
                        "minimum number of peaks of continuous charges per mass for MSn (n>1)",
                        false,
                        true);
@@ -200,10 +200,10 @@ protected:
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.05 * maxIso.getMostAbundant().getIntensity());
+    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
     param.maxIsotopeCount = (int) maxIso.size() - 1;
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalcularedAveragine(100, param.maxMass, 25, generator);
+    return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 25, generator);
   }
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -417,13 +417,16 @@ protected:
             auto intMass = (int) round(pg.monoisotopicMass);
             if (monoMassSet.find(intMass) != monoMassSet.end())
             {
-            //  continue;
+              continue;
             }
 
             monoMassSet.insert(intMass);
 
             fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " " << pg.chargeCosineScore << ";";
-            //writePeakGroup(pg, param, fs);
+            if (pg.spec->getMSLevel() > 1 && pg.monoisotopicMass > 2e4)
+            {
+              writePeakGroup(pg, param, fs);
+            }
             //writePeakGroupMfile(pg, param, fsm);
           }
         }
@@ -501,21 +504,31 @@ protected:
       total_elapsed_wall_secs += elapsed_wall_secs;
 
       //TODO remove
-
-      mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/CA_745_ETDReagentTarget_1e+06_.mzML", map);
-      fsm.open(outfilePath + "xtract.m", fstream::out);
-
-      fsm<<"\nxm=[";
-      for (auto it = map.begin(); it != map.end(); ++it)
+      if(false)
       {
-        for (auto p : *it)
-        {
-          fsm<< p.getMZ() << " " << p.getIntensity() << ";";
-        }
-      }
-      fsm<<"];\n";
-      fsm.close();
+        auto monoMassSet = set<int>();
+        mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/CA_745_ETDReagentTarget_1e+06_.mzML", map);
+        fsm.open(outfilePath + "xtract.m", fstream::out);
 
+        fsm << "\nxm=[";
+        for (auto it = map.begin(); it != map.end(); ++it)
+        {
+          for (auto p : *it)
+          {
+            auto intMass = round(p.getMZ());
+            if (monoMassSet.find(intMass) != monoMassSet.end())
+            {
+              continue;
+            }
+            monoMassSet.insert(intMass);
+
+            fsm << p.getMZ() << " " << p.getIntensity() << ";";
+          }
+          monoMassSet.clear();
+        }
+        fsm << "];\n";
+        fsm.close();
+      }
     }
 
 

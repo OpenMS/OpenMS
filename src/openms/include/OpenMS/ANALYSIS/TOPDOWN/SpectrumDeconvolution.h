@@ -83,8 +83,8 @@ namespace OpenMS
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                            float *massIntensities,
-                           long &binStart, long &binEnd
-                           //unsigned int &msLevel
+                           long &binStart, long &binEnd,
+                           unsigned int &msLevel
     );
 
     Byte **updateMassBins(double &massBinMinValue,
