@@ -337,18 +337,11 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        // if a TITLE is available, it was (most likely) parsed from an MGF file
-        // in that case, a nativeID was constructed from the TITLE and the spectrum index
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
         if (spec.metaValueExists("TITLE"))
         {
-          if (String(spec.getMetaValue("TITLE")).hasSubstring("_index="))
-          {
-            os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
-          }
-          else
-          {
-            os << "TITLE=" << spec.getMetaValue("TITLE") << "_" << spec.getNativeID() << "\n";
-          }
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
         }
         else
         {
@@ -368,18 +361,11 @@ namespace OpenMS
       }
       else
       {
-        // if a TITLE is available, it was (most likely) parsed from an MGF file
-        // in that case, a nativeID was constructed from the TITLE and the spectrum index
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
         if (spec.metaValueExists("TITLE"))
         {
-          if (String(spec.getMetaValue("TITLE")).hasSubstring("_index="))
-          {
-            os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
-          }
-          else
-          {
-            os << "TITLE=" << spec.getMetaValue("TITLE") << spec.getNativeID() << "\n";
-          }
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
         }
         else
         {

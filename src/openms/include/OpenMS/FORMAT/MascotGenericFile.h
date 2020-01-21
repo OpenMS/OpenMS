@@ -292,12 +292,19 @@ protected:
                   }
                 }
               }
-              else // just write the title as metainfo to the spectrum
+              else // just write the title as metainfo to the spectrum and add native ID to make the titles unique
               {
                 Size firstEqual = line.find('=', 4);
                 if (firstEqual != std::string::npos)
                 {
-                  spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring(spectrum.getNativeID()))
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                  }
+                  else
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1) + "_" + spectrum.getNativeID());
+                  }
                 }
               }
             }
