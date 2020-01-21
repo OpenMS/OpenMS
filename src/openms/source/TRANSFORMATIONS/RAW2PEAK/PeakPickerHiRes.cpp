@@ -404,8 +404,8 @@ namespace OpenMS
 
   struct SpectraPickInfo
   {
-    int picked{0}; //< number of picked spectra
-    int total{0}; //< overall number of spectra
+    uint32_t picked{0}; //< number of picked spectra
+    uint32_t total{0}; //< overall number of spectra
   };
 
   void PeakPickerHiRes::pickExperiment(const PeakMap& input,
