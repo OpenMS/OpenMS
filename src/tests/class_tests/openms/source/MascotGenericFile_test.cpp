@@ -119,6 +119,36 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
     TEST_EQUAL(mgf_file.hasSubstring(strings[i]), true)
   }
 
+  // test of making default TITLE
+  exp[0].removeMetaValue("TITLE");
+  stringstream ss2;
+  ptr->store(ss2, "test", exp);
+  vector<String> strings2;
+  strings2.push_back("BEGIN IONS\n"
+                    "TITLE=1998.0_25.379000000000001_index=0_test\n" // different from input!
+                    "PEPMASS=1998.0\n"
+                    "RTINSECONDS=25.379000000000001\n"
+                    "SCANS=0");
+  strings2.push_back("1.0 1.0\n"
+                    "2.0 4.0\n"
+                    "3.0 9.0\n"
+                    "4.0 16.0\n"
+                    "5.0 25.0\n"
+                    "6.0 36.0\n"
+                    "7.0 49.0\n"
+                    "8.0 64.0\n"
+                    "9.0 81.0\n"
+                    "END IONS\n");
+  strings2.push_back("MODS=Carbamidomethyl (C)\n");
+  strings2.push_back("MODS=Phospho (ST)\n");
+  strings2.push_back("IT_MODS=Deamidated (NQ)");
+  strings2.push_back("IT_MODS=Oxidation (M)");
+  String mgf_file2(ss2.str());
+  for (Size i = 0; i < strings2.size(); ++i)
+  {
+    TEST_EQUAL(mgf_file2.hasSubstring(strings2[i]), true)
+  }
+
   ptr->setParameters(ptr->getDefaults()); // reset parameters
 
   // test compact format:
