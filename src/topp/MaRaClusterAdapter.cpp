@@ -287,7 +287,6 @@ protected:
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
 
-    String maracluster_output_directory = getStringOption_("output_directory");
     String maracluster_output_directory = getStringOption_("output_directory");   
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
