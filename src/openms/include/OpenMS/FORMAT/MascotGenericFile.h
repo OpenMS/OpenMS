@@ -159,6 +159,7 @@ protected:
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
       spectrum.resize(0);
+      spectrum.setNativeID(String("index=") + (spectrum_number));
 
       if (spectrum.metaValueExists("TITLE"))
       {
@@ -218,22 +219,6 @@ protected:
 
               if (line == "END IONS")
               {
-                // if a TITLE was read in from the MGF file, use it as a part of the nativeID, instead of overwriting it
-                if (spectrum.metaValueExists("TITLE"))
-                {
-                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring("_index="))
-                  {
-                    spectrum.setNativeID(spectrum.getMetaValue("TITLE"));
-                  }
-                  else
-                  {
-                    spectrum.setNativeID(String(spectrum.getMetaValue("TITLE")) + String("_index=") + (spectrum_number));
-                  }
-                }
-                else
-                {
-                  spectrum.setNativeID(String("index=") + (spectrum_number));
-                }
                 return true; // found end of spectrum
               }
               else

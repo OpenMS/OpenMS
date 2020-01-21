@@ -341,7 +341,14 @@ namespace OpenMS
         // in that case, a nativeID was constructed from the TITLE and the spectrum index
         if (spec.metaValueExists("TITLE"))
         {
-          os << "TITLE=" << spec.getNativeID() << "\n";
+          if (String(spec.getMetaValue("TITLE")).hasSubstring("_index="))
+          {
+            os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+          }
+          else
+          {
+            os << "TITLE=" << spec.getMetaValue("TITLE") << "_" << spec.getNativeID() << "\n";
+          }
         }
         else
         {
@@ -365,7 +372,14 @@ namespace OpenMS
         // in that case, a nativeID was constructed from the TITLE and the spectrum index
         if (spec.metaValueExists("TITLE"))
         {
-          os << "TITLE=" << spec.getNativeID() << "\n";
+          if (String(spec.getMetaValue("TITLE")).hasSubstring("_index="))
+          {
+            os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+          }
+          else
+          {
+            os << "TITLE=" << spec.getMetaValue("TITLE") << spec.getNativeID() << "\n";
+          }
         }
         else
         {
