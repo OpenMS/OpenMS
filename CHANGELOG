@@ -14,12 +14,21 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 OpenMS 2.5 features some exciting new tools and improvements. 
 
 General:
-- Support for VS2019 and GCC 9.1 (see PR #4211)
-- Speed improvements (loading/storing files, handling peptide sequences)
+- support for RNA mass spectrometry
 - TMT16plex support for IsobaricAnalyzer (see PR #4295)
-- Extend MaxQuant-compatible mzXML support (via FileConverter) (see PR #4432, #4423)
-- Improved MsStats/MsStatsTMT output support (#4181, #4207)
+- improved MsStats/MsStatsTMT output support (#4181, #4207)
+- extended MaxQuant-compatible mzXML support (via FileConverter) (see PR #4432, #4423)
+- QC Workflow (all in the QC folder)
+- OpenMS and pyOpenMS support for oligonucleotides
+- OpenSWATH support for ion mobility extraction and scoring
+- OpenSWATH support for metabolite assay library building through SIRIUS (and metabolite extraction and scoring)
+- OpenSWATH support for PRM
 - TOPPAS improvements (#4266, #4121, #4100)
+- support for HDF5
+- support for hyperfine isotopic distributions (through IsoSpec)
+- json support
+- speed improvements (loading/storing files, handling peptide sequences)
+- support for VS2019 and GCC 9.1 (see PR #4211)
 
 New Tools:
 - Epifany -- Runs a Bayesian protein inference (UTIL)
