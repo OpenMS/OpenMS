@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <QFile>
 #include <unordered_map>
 
 using namespace std;
@@ -426,7 +427,7 @@ namespace OpenMS
       const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
       if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
           params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-          params.db != sp.db ||
+          QFile(params.db.toQString()).fileName().section("/",-1,-1) != QFile(sp.db.toQString()).fileName().section("/",-1,-1) ||
           params.db_version != sp.db_version ||
           params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
           params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
