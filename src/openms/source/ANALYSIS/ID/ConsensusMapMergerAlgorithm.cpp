@@ -35,7 +35,6 @@
 #include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <QFile>
 #include <unordered_map>
 
 using namespace std;
@@ -377,9 +376,13 @@ namespace OpenMS
         break;
       }
       const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
+      String spdb = sp.db;
+      spdb.substitute("\\","/");
+      String pdb = params.db;
+      pdb.substitute("\\","/");
       if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
           params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-          QFile(params.db.toQString()).fileName().section("/",-1,-1) != QFile(sp.db.toQString()).fileName().section("/",-1,-1) ||
+          File::basename(pdb) != File::basename(spdb) ||
           params.db_version != sp.db_version ||
           params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
           params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
@@ -418,10 +421,9 @@ namespace OpenMS
     }
     if (!ok /*&& TODO and no force flag*/)
     {
-      throw Exception::BaseException(__FILE__,
+      throw Exception::MissingInformation(__FILE__,
                                      __LINE__,
                                      OPENMS_PRETTY_FUNCTION,
-                                     "InvalidData",
                                      "Search settings are not matching across IdentificationRuns. "
                                      "See warnings. Aborting..");
     }
@@ -447,9 +449,13 @@ namespace OpenMS
       + " does not match with the others." + warn;
     }
     const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
+    String spdb = sp.db;
+    spdb.substitute("\\","/");
+    String pdb = params.db;
+    pdb.substitute("\\","/");
     if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
         params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-        QFile(params.db.toQString()).fileName().section("/",-1,-1) != QFile(sp.db.toQString()).fileName().section("/",-1,-1) ||
+        File::basename(pdb) != File::basename(spdb) ||
         params.db_version != sp.db_version ||
         params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
         params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
@@ -485,10 +491,9 @@ namespace OpenMS
 
     if (!ok /*&& TODO and no force flag*/)
     {
-      throw Exception::BaseException(__FILE__,
+      throw Exception::MissingInformation(__FILE__,
                                      __LINE__,
                                      OPENMS_PRETTY_FUNCTION,
-                                     "InvalidData",
                                      "Search settings are not matching across IdentificationRuns. "
                                      "See warnings. Aborting..");
     }
