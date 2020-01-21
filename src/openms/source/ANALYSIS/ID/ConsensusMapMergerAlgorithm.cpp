@@ -32,8 +32,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
 

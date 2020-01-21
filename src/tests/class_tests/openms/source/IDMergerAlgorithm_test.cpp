@@ -38,8 +38,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/test_config.h>
-#include <QFile>
-#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
