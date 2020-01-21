@@ -402,7 +402,14 @@ namespace OpenMS
     pickExperiment(input, output, boundaries_spec, boundaries_chrom, check_spectrum_type);
   }
 
-  void PeakPickerHiRes::pickExperiment(const PeakMap& input, PeakMap& output, 
+  struct SpectraPickInfo
+  {
+    int picked{0}; //< number of picked spectra
+    int total{0}; //< overall number of spectra
+  };
+
+  void PeakPickerHiRes::pickExperiment(const PeakMap& input,
+                                       PeakMap& output, 
                                        std::vector<std::vector<PeakBoundary> >& boundaries_spec, 
                                        std::vector<std::vector<PeakBoundary> >& boundaries_chrom,
                                        const bool check_spectrum_type) const
@@ -419,13 +426,17 @@ namespace OpenMS
     Size progress = 0;
     startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
 
+    // MSLevel -> stats
+    map<int, SpectraPickInfo> pick_info;
+
     if (input.getNrSpectra() > 0)
     {
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
+        bool was_picked{false};
         if (ms_levels_.empty()) // auto mode
         {
-          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true);
           if (spectrum_type == SpectrumSettings::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
@@ -435,7 +446,8 @@ namespace OpenMS
             std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
 
             pick(input[scan_idx], output[scan_idx], boundaries_s);
-            boundaries_spec.push_back(boundaries_s);
+            was_picked = true;
+            boundaries_spec.push_back(std::move(boundaries_s));
           }
         }
         else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
@@ -445,18 +457,18 @@ namespace OpenMS
         else
         {
           std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
-
-                                                  // determine type of spectral data (profile or centroided)
-          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
-
+          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true);
           if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }
 
           pick(input[scan_idx], output[scan_idx], boundaries_s);
-          boundaries_spec.push_back(boundaries_s);
+          was_picked = true;
+          boundaries_spec.push_back(std::move(boundaries_s));
         }
+        pick_info[input[scan_idx].getMSLevel()].picked += was_picked;
+        ++pick_info[input[scan_idx].getMSLevel()].total;
         setProgress(++progress);
       }
     }
@@ -472,6 +484,12 @@ namespace OpenMS
       setProgress(++progress);
     }
     endProgress();
+
+    OPENMS_LOG_INFO << "Picked spectra by MS-level:\n";
+    for (const auto& info : pick_info)
+    {
+      OPENMS_LOG_INFO << "  MS-level " << info.first << ": " << info.second.picked << " / " << info.second.total << "\n";
+    }
 
     return;
   }
