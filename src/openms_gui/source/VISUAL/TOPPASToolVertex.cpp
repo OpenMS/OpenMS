@@ -504,8 +504,8 @@ namespace OpenMS
 
     // maximum number of filenames per TOPP parameter file-list to put on the commandline
     // If more filenames are needed, e.g. for MapAligner's -in/-out etc., they are put in the .INI file
-    // to avoid exceed the 8kb length limit of the Windows commandline
-    static constexpr size_t MAX_FILES_CMDLINE {10};
+    // to avoid exceeding the 8KB length limit of the Windows commandline
+    static constexpr int MAX_FILES_CMDLINE {10};
 
     for (int round = 0; round < round_total_; ++round)
     {
