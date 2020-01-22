@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -501,6 +502,11 @@ namespace OpenMS
 
     bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
+    // maximum number of filenames per TOPP parameter file-list to put on the commandline
+    // If more filenames are needed, e.g. for MapAligner's -in/-out etc., they are put in the .INI file
+    // to avoid exceed the 8kb length limit of the Windows commandline
+    static constexpr size_t MAX_FILES_CMDLINE {10};
+
     for (int round = 0; round < round_total_; ++round)
     {
       debugOut_(String("Enqueueing process nr ") + round + "/" + round_total_);
@@ -530,7 +536,7 @@ namespace OpenMS
         bool store_to_ini = false;
         // check for GenericWrapper input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
-        if (param_name.hasPrefix("ETool:") || file_list.size() > 10)
+        if (param_name.hasPrefix("ETool:") || file_list.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
@@ -573,7 +579,7 @@ namespace OpenMS
         
         // check for GenericWrapper input/output files and put them in INI file:
         // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
-        if (param_name.hasPrefix("ETool:") || output_files.size() > 10)
+        if (param_name.hasPrefix("ETool:") || output_files.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
