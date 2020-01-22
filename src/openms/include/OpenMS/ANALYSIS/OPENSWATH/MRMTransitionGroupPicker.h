@@ -180,7 +180,6 @@ public:
           break;
         }
 
-
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
         double total_xic = 0;

@@ -550,7 +550,6 @@ protected:
     void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
-
   };
 
   /**
