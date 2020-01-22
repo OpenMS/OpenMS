@@ -546,9 +546,14 @@ namespace OpenMS
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
     if (threads_outer_loop_ > -1)
     {
+      std::cout << "Setting up nested loop with " << std::min(threads_outer_loop_, omp_get_max_threads()) << " threads out of "<< omp_get_max_threads() << std::endl;
       omp_set_nested(1);
       omp_set_dynamic(0);
       omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
+    }
+    else
+    {
+      std::cout << "Use non-nested loop with " << total_nr_threads << " threads." << std::endl;
     }
 #endif
 #pragma omp parallel for schedule(dynamic,1)
