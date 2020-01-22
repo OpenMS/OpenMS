@@ -133,6 +133,7 @@ public:
         }
 
         MSChromatogram picked_chrom, smoothed_chrom;
+        smoothed_chrom.setNativeID(native_id);
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
         picked_chroms.push_back(std::move(picked_chrom));
@@ -173,7 +174,12 @@ public:
           findWidestPeakIndices(picked_chroms, chr_idx, peak_idx);
         }
 
-        if (chr_idx == -1 && peak_idx == -1) break;
+        if (chr_idx == -1 && peak_idx == -1)
+        {
+          OPENMS_LOG_DEBUG << "**** MRMTransitionGroupPicker : no more peaks left" << picked_chroms.size() << std::endl;
+          break;
+        }
+
 
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
@@ -183,9 +189,9 @@ public:
         {
           total_xic = mrm_feature.getMetaValue("total_xic");
           features.push_back(std::move(mrm_feature));
+          cnt++;
         }
 
-        cnt++;
         if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
         if (intensity > 0 && intensity / total_xic < stop_after_intensity_ratio_)
         {
