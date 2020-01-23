@@ -302,7 +302,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             TheoreticalSpectrumGenerator tsg;
             vector<pair<Size, Size> > alignment;
             MSSpectrum theoretical_spec;
-            tsg.getSpectrum(theoretical_spec, aas, 1, std::min((int)charge - 1, 2));
+            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
             SpectrumAlignment sa;
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
 
@@ -319,7 +319,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
           if (annotation_precursor_error_ppm)
           {
-            double theo_mz = aas.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
+            double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue("precursor_error_ppm", ppm_difference);
           }

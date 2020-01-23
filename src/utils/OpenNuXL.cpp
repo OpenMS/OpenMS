@@ -69,6 +69,8 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 // preprocessing and filtering
+#include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
+
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
@@ -102,6 +104,8 @@
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+
 #include <boost/accumulators/statistics/p_square_quantile.hpp>
 using namespace boost::accumulators;
 
@@ -119,7 +123,7 @@ using namespace boost::accumulators;
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 //#define SVM_RECALIBRATE
-#define FILTER_RANKS 1
+//#define FILTER_RANKS 1
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
 
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
@@ -1928,6 +1932,7 @@ static void scoreXLIons_(
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
 
+    BinnedSpectrum peak_density(MSSpectrum(), 0.05, false, 0, 0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -1948,7 +1953,21 @@ static void scoreXLIons_(
                                          annotate_charge,
                                          false, // no iso peak count annotation
                                          false); // no isotope model
+      BinnedSpectrum bs(spec, 0.05, false, 0, 0);
+      bs.getBins().coeffs().cwiseMax(1);
+#pragma omp critical (peak_density_access)
+{
+      peak_density.getBins() += bs.getBins();
+}
     }
+
+    ofstream dist_file;
+    dist_file.open(getStringOption_("in") + ".csv");
+    for (double mz = 0; mz < 2500.0; mz+=0.05)
+    {
+      dist_file << peak_density.getBinIntensity(mz) << "\n";
+    }
+    dist_file.close();
 
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
@@ -3764,16 +3783,81 @@ static void scoreXLIons_(
     }
 
     String in_db = getStringOption_("database");
+
+
+    Int min_precursor_charge = getIntOption_("precursor:min_charge");
+    Int max_precursor_charge = getIntOption_("precursor:max_charge");
+    double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    bool generate_decoys = getFlag_("RNPxl:decoys");
+
+    // autotune (only works if non-XL peptides present)
+    {
+      SimpleSearchEngineAlgorithm sse;
+      vector<ProteinIdentification> prot_ids;
+      vector<PeptideIdentification> pep_ids;
+      Param p = sse.getParameters();
+      p.setValue("precursor:mass_tolerance", precursor_mass_tolerance);
+      p.setValue("precursor:mass_tolerance_unit", getStringOption_("precursor:mass_tolerance_unit"));
+      p.setValue("fragment:mass_tolerance", fragment_mass_tolerance);
+      p.setValue("fragment:mass_tolerance_unit", getStringOption_("fragment:mass_tolerance_unit"));
+      p.setValue("modifications:fixed", getStringList_("modifications:fixed"));
+      p.setValue("modifications:variable", getStringList_("modifications:variable"));
+      p.setValue("modifications:variable_max_per_peptide", getIntOption_("modifications:variable_max_per_peptide"));
+      p.setValue("precursor:isotopes", IntList{0});
+      p.setValue("decoys", generate_decoys ? "true" : "false");
+      p.setValue("enzyme", getStringOption_("peptide:enzyme"));
+      p.setValue("annotate:PSM", StringList{"median_fragment_error_ppm", "precursor_error_ppm"});
+      sse.setParameters(p);
+      cout << "Running autotune..." << endl;
+      sse.search(in_mzml, in_db, prot_ids, pep_ids);      
+
+      cout << "Calculating FDR..." << endl;
+      FalseDiscoveryRate fdr;
+      fdr.apply(pep_ids); 
+      cout << "Filtering ..." << endl;
+      IDFilter::filterHitsByScore(pep_ids, 0.01); // 1% PSM-FDR
+      IDFilter::removeEmptyIdentifications(pep_ids);
+      cout << "Peptide identifications left: " << pep_ids.size() << endl;
+      if (pep_ids.size() > 100)
+      {
+        vector<double> median_fragment_error_ppm;
+        vector<double> precursor_error_ppm;
+        for (const auto& pi : pep_ids)
+        {
+          const PeptideHit& ph = pi.getHits()[0];
+          if (ph.metaValueExists("median_fragment_error_ppm"))
+          {
+            //cout << ph.getMetaValue("median_fragment_error_ppm") << endl;
+            median_fragment_error_ppm.push_back(fabs((double)ph.getMetaValue("median_fragment_error_ppm")));
+          }
+          if (ph.metaValueExists("precursor_error_ppm"))
+          {
+            precursor_error_ppm.push_back(fabs((double)ph.getMetaValue("precursor_error_ppm")));
+          }
+        }
+        sort(median_fragment_error_ppm.begin(), median_fragment_error_ppm.end());        
+        sort(precursor_error_ppm.begin(), precursor_error_ppm.end());
+
+        // use 68-percentile as in identipy
+        double new_fragment_mass_tolerance = 4.0 * median_fragment_error_ppm[median_fragment_error_ppm.size() * 0.68];
+        fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
+        double new_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
+        cout << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
+        cout << "Estimated max precursor mass tolerance (ppm): " << new_precursor_mass_tolerance << endl;
+      }
+      else
+      {
+         OPENMS_LOG_INFO << "autotune: too few non-cross-linked peptides found. Will keep parameters as-is." << endl;
+      }
+    }
+    
+
     String out_idxml = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
 
     fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
 
-    bool generate_decoys = getFlag_("RNPxl:decoys");
-
-    Int min_precursor_charge = getIntOption_("precursor:min_charge");
-    Int max_precursor_charge = getIntOption_("precursor:max_charge");
-    double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
 
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
@@ -3782,7 +3866,6 @@ static void scoreXLIons_(
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
 
-    double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
     double marker_ions_tolerance = getDoubleOption_("RNPxl:marker_ions_tolerance");
@@ -4685,8 +4768,8 @@ static void scoreXLIons_(
       }
 
       // calculate mean ppm error from top scoring PSMs (max. 1000 considered)
-      double mean(0);
-      size_t c(0);
+      double mean(0), mean_negative(0), mean_positive(0);
+      size_t c(0), c_negative(0), c_positive(0);
       for (auto it = map_score2ppm.begin(); it != map_score2ppm.end(); ++it)
       {
          mean += it->second;
@@ -4695,18 +4778,48 @@ static void scoreXLIons_(
       }
       if (c != 0) { mean /= c; }
 
-      double sd(0);
+      for (auto it = map_score2ppm.begin(); it != map_score2ppm.end(); ++it)
+      {
+         if (it->second > 0) continue; // skip positive ppm
+         mean_negative += it->second;
+         ++c_negative;
+         if (c_negative > 1000) break;
+      }
+      if (c_negative != 0) { mean_negative /= c_negative; }
+
+      for (auto it = map_score2ppm.begin(); it != map_score2ppm.end(); ++it)
+      {
+         if (it->second < 0) continue; // skip negative ppm
+         mean_positive += it->second;
+         ++c_positive;
+         if (c_positive > 1000) break;
+      }
+      if (c_positive != 0) { mean_positive /= c_positive; }
+
+      double sd(0), sd_negative(0), sd_positive(0);
       auto it = map_score2ppm.begin();
       for (size_t i = 0; i != c; ++i)
       {
          sd += pow(it->second - mean, 2.0);
+         if (it->second < 0) sd_negative += pow(it->second - mean, 2.0);
+         if (it->second > 0) sd_positive += pow(it->second - mean, 2.0);
          ++it;
       }
 
       if (c != 0) 
       { 
         sd = sqrt(1.0/static_cast<double>(c) * sd); 
+        if (c_negative != 0) 
+        { 
+          sd_negative = sqrt(1.0/static_cast<double>(c_negative) * sd_negative);
+        }
+        if (c_positive != 0) 
+        { 
+          sd_positive = sqrt(1.0/static_cast<double>(c_positive) * sd_positive);
+        }
         cout << "mean ppm error: " << mean << " sd: " << sd << " 5*sd: " << 5*sd << " calculated based on " << c << " best ids." << endl;
+        cout << "mean negative ppm error: " << mean_negative << " sd: " << sd_negative << " 5*sd: " << 5*sd_negative << " calculated based on " << c_negative << " best ids." << endl;
+        cout << "mean positive ppm error: " << mean_positive << " sd: " << sd_positive << " 5*sd: " << 5*sd_positive << " calculated based on " << c_positive << " best ids." << endl;
       } 
   
       if (filter_pc_mass_error && c != 0)
@@ -4747,13 +4860,33 @@ static void scoreXLIons_(
           std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
           return Math::median(decoy_XL_scores.begin(), decoy_XL_scores.end());
         };
-      
+     
+        // all medians 
+        auto metaMean = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+        {
+          vector<double> decoy_XL_scores;
+          for (const auto & pi : peptide_ids)
+          {
+            for (const auto & ph : pi.getHits())
+            {
+              const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+              if (!is_XL) continue;
+              double score = ph.getMetaValue(name);
+              decoy_XL_scores.push_back(score); 
+            }
+          }
+          std::sort(decoy_XL_scores.begin(), decoy_XL_scores.end(), greater<double>());
+          return Math::mean(decoy_XL_scores.begin(), decoy_XL_scores.end());
+        };
+
         map<String, double> medians;
         for (const String mn : { "NuXL:marker_ions_score", "NuXL:partial_loss_score", "NuXL:pl_MIC", "NuXL:pl_err", "NuXL:pl_Morph", "NuXL:pl_modds", "NuXL:pl_pc_MIC", "NuXL:pl_im_MIC" })
         {
-          medians[mn] = metaMedian(peptide_ids, mn);
+//          medians[mn] = metaMedian(peptide_ids, mn);
+           medians[mn] = metaMean(peptide_ids, mn);
         }
 
+        size_t imputed(0);
         for (auto & pi : peptide_ids)
         {
           for (auto & ph : pi.getHits())
@@ -4765,10 +4898,12 @@ static void scoreXLIons_(
                {
                  ph.setMetaValue(mn, medians[mn]);   // impute missing with medians
                }
+               ++imputed;
              }
           }
           pi.assignRanks();
         }
+        cout << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
 
 
@@ -4783,7 +4918,7 @@ static void scoreXLIons_(
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
          if (peptide_ids[index].getHits().empty()) continue;
-         const PeptideHit& ph = peptide_ids[index].getHits()[0];
+         const PeptideHit& ph = peptide_ids[index].getHits()[0]; // get best match to current spectrum
          bool is_target = ph.getMetaValue("target_decoy") == "target";
          bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
          double score = ph.getScore();
@@ -4813,6 +4948,8 @@ static void scoreXLIons_(
       size_t minority_class = std::min({pep_t.size(), pep_d.size(), XL_t.size(), XL_d.size()});
       cout << "Peptide (target/decoy)\t XL (target/decoy):" << endl;
       cout << pep_t.size() << "\t" << pep_d.size() << "\t" << XL_t.size() << "\t" << XL_d.size() << endl; 
+
+      if (minority_class > 250) minority_class = 250;
 
       // keep only top elements (=highest scoring hits) for all classes
       pep_t.erase(pep_t.begin(), next(pep_t.begin(), pep_t.size() - minority_class));
@@ -4904,6 +5041,8 @@ static void scoreXLIons_(
           << "NuXL:rank_product"
           << "NuXL:isXL" 
           << "NuXL:wTop50";
+
+
 /*
  *
 Feature weights:
@@ -5048,8 +5187,8 @@ variable_modifications  -0.0944707
   
         SimpleSVM svm;
         Param svm_param = svm.getParameters();        
-//        svm_param.setValue("kernel", "linear");
-        svm_param.setValue("kernel", "RBF");
+        svm_param.setValue("kernel", "linear");
+//        svm_param.setValue("kernel", "RBF");
 //        svm_param.setValue("log2_C", ListUtils::create<double>("0"));
 //        svm_param.setValue("log2_gamma", ListUtils::create<double>("1"));
         svm.setParameters(svm_param);
@@ -5095,9 +5234,10 @@ variable_modifications  -0.0944707
 #ifdef FILTER_RANKS
       for (auto & pi : peptide_ids)
       {
-        double best_HS(0);
         auto & phs = pi.getHits();
         if (phs.empty()) continue;
+        if (static_cast<int>(phs[0].getMetaValue("NuXL:isXL")) == 0) continue; // only rerank cross-links
+
         double max_total_Morph = std::max_element(phs.begin(), phs.end(), 
            [] (PeptideHit const& lhs, PeptideHit const& rhs) 
            {
@@ -5174,13 +5314,17 @@ variable_modifications  -0.0944707
         // run percolator on idXML
         String perc_out = out_idxml;
         perc_out.substitute(".idXML", "_perc.idXML");
+        String weights_out = out_idxml;
+        weights_out.substitute(".idXML", ".weights");
+
         QStringList process_params;
         process_params << "-in" << out_idxml.toQString()
                        << "-out" << perc_out.toQString()
                        << "-percolator_executable" << percolator_executable.toQString()
                        << "-train-best-positive" 
                        << "-score_type" << "svm"
-                       << "-post-processing-tdc";
+                       << "-post-processing-tdc"
+                       << "-weights" << weights_out.toQString();
 #if DEBUG_OpenNuXL
         process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
 #endif
