@@ -408,6 +408,7 @@ namespace OpenMS
     bool ok = true;
     for (const auto& idRun : protRuns)
     {
+      // collect warnings and throw at the end if at least one failed
       ok = ok && ref.peptideIDsMergeable(idRun, experiment_type);
     }
     if (!ok /*&& TODO and no force flag*/)

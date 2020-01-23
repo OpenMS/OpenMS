@@ -492,7 +492,7 @@ namespace OpenMS
         se == "ProteinInference";
   }
 
-  bool ProteinIdentification::peptideIDsMergeable(const ProteinIdentification& idRun, const String& experiment_type) const
+  bool ProteinIdentification::peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const
   {
     const String& warn = " You probably do not want to merge the results with this tool."
                          " For merging searches with different engines/settings please use ConsensusID or PercolatorAdapter"
@@ -502,18 +502,18 @@ namespace OpenMS
 
     bool ok = true;
 
-    if (idRun.getSearchEngine() != engine || idRun.getSearchEngineVersion() != version)
+    if (id_run.getSearchEngine() != engine || id_run.getSearchEngineVersion() != version)
     {
       ok = false;
-      OPENMS_LOG_WARN << "Search engine " + idRun.getSearchEngine() + "from IDRun " + idRun.getIdentifier()
+      OPENMS_LOG_WARN << "Search engine " + id_run.getSearchEngine() + "from IDRun " + id_run.getIdentifier()
                          + " does not match with the others." + warn;
     }
     const ProteinIdentification::SearchParameters& params = this->getSearchParameters();
-    const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
+    const ProteinIdentification::SearchParameters& sp = id_run.getSearchParameters();
     if (!params.mergeable(sp, experiment_type))
     {
       ok = false;
-      OPENMS_LOG_WARN << "Searchengine settings or modifications from IDRun " + idRun.getIdentifier() + " do not match with the others." + warn;
+      OPENMS_LOG_WARN << "Searchengine settings or modifications from IDRun " + id_run.getIdentifier() + " do not match with the others." + warn;
     }
     // TODO else merge as far as possible (mainly mods I guess)
     return ok;
