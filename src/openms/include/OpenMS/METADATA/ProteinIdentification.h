@@ -254,6 +254,7 @@ public:
 
       std::pair<int,int> getChargeRange() const;
       int getChargeValue_(String& charge_str) const;
+      bool mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const;
 
     };
 
@@ -406,6 +407,7 @@ public:
     /// if this object has inference data
     bool hasInferenceData() const;
     bool hasInferenceEngineAsSearchEngine() const;
+    bool peptideIDsMergeable(const ProteinIdentification& idRun, const String& experiment_type) const;
     //@}
 
 protected:
