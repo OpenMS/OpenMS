@@ -274,6 +274,7 @@ protected:
     registerFlag_("quick-validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
     registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
     registerInputFile_("init-weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
+    registerFlag_("static", "Use static model (requires init-weights parameter to be set)", is_advanced_option);
     registerStringOption_("default-direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerFlag_("unitnorm", "Use unit normalization [0-1] instead of standard deviation normalization", is_advanced_option);
@@ -1020,6 +1021,7 @@ protected:
       if (getFlag_("quick-validation")) arguments << "-x";
       if (getFlag_("post-processing-tdc")) arguments << "-Y";
       if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
+      if (getFlag_("static")) arguments << "--static";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
@@ -1251,6 +1253,7 @@ protected:
         search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
         search_parameters.setMetaValue("Percolator:subset-max-train", getIntOption_("subset-max-train"));
         search_parameters.setMetaValue("Percolator:quick-validation", getFlag_("quick-validation"));
+        search_parameters.setMetaValue("Percolator:static", getFlag_("static"));
         search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
         search_parameters.setMetaValue("Percolator:init-weights", getStringOption_("init-weights"));
         search_parameters.setMetaValue("Percolator:default-direction", getStringOption_("default-direction"));
