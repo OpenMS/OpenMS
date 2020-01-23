@@ -372,9 +372,6 @@ protected:
     //if specified keep original output in designated directory
     if (!maracluster_output_directory.empty())
     {
-      // convert path to absolute path
-      QDir mara_out_dir(maracluster_output_directory.toQString());
-      maracluster_output_directory = String(mara_out_dir.absolutePath());
       bool copy_status = File::copyDirRecursively(temp_directory_body.toQString(), maracluster_output_directory.toQString());
 
       if (copy_status)
