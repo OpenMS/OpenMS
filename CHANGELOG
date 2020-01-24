@@ -6,27 +6,30 @@ TOPPView - Versatile viewer for HPLC/MS data
 INI file - parameter configuration file, holding custom parameter settings for TOPP tools
 INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
+PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
+UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.5                                        ----
 ------------------------------------------------------------------------------------------
 
-OpenMS 2.5 features some exciting new tools and improvements. 
+OpenMS 2.5 ships exciting new tools and improvements. 
 
 General:
 - support for RNA mass spectrometry
 - TMT16plex support for IsobaricAnalyzer (see PR #4295)
-- improved MsStats/MsStatsTMT output support (#4181, #4207)
+- improved MsStats/MsStatsTMT output support (see PR #4181, #4207)
 - extended MaxQuant-compatible mzXML support (via FileConverter) (see PR #4432, #4423)
-- QC Workflow (all in the QC folder)
+- QualityControl Workflow (all in the QC folder)
 - OpenMS and pyOpenMS support for oligonucleotides
 - OpenSWATH support for ion mobility extraction and scoring
 - OpenSWATH support for metabolite assay library building through SIRIUS (and metabolite extraction and scoring)
 - OpenSWATH support for PRM
-- TOPPAS improvements (#4266, #4121, #4100)
+- TOPPAS improvements (see PR #4100, #4121, #4266, #4497)
+- fixes to PeptideIndexer for X!Tandem special cutting rules and ambiguous amino acids (see PR #4356)
 - support for HDF5
 - support for hyperfine isotopic distributions (through IsoSpec)
-- json support
+- JSON support
 - speed improvements (loading/storing files, handling peptide sequences)
 - support for VS2019 and GCC 9.1 (see PR #4211)
 
