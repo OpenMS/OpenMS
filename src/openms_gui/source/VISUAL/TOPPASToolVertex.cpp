@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -501,6 +502,11 @@ namespace OpenMS
 
     bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
+    // maximum number of filenames per TOPP parameter file-list to put on the commandline
+    // If more filenames are needed, e.g. for MapAligner's -in/-out etc., they are put in the .INI file
+    // to avoid exceeding the 8KB length limit of the Windows commandline
+    static constexpr int MAX_FILES_CMDLINE {10};
+
     for (int round = 0; round < round_total_; ++round)
     {
       debugOut_(String("Enqueueing process nr ") + round + "/" + round_total_);
@@ -525,19 +531,22 @@ namespace OpenMS
 
         String param_name = in_params[param_index].param_name;
 
+        const QStringList& file_list = ite->second.filenames.get();
+
         bool store_to_ini = false;
         // check for GenericWrapper input/output files and put them in INI file:
-        if (param_name.hasPrefix("ETool:"))
+        // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
+        if (param_name.hasPrefix("ETool:") || file_list.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
         }
+
         if (!store_to_ini)
-          args << "-" + param_name.toQString();
-
-        const QStringList& file_list = ite->second.filenames.get();
-
-        if (store_to_ini)
+        {
+          args << "-" + param_name.toQString() << file_list;
+        }
+        else
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
           {
@@ -552,11 +561,6 @@ namespace OpenMS
             param_tmp.setValue(param_name, String(file_list[0]));
           }
         }
-        else
-        {
-          args << file_list;
-        }
-
       }
 
       // OUTGOING EDGES
@@ -570,18 +574,23 @@ namespace OpenMS
         String param_name = out_params[param_index].param_name;
 
         bool store_to_ini = false;
+        
+        const QStringList& output_files = output_files_[round][param_index].filenames.get();
+        
         // check for GenericWrapper input/output files and put them in INI file:
-        if (param_name.hasPrefix("ETool:"))
+        // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
+        if (param_name.hasPrefix("ETool:") || output_files.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
         }
+
+        
         if (!store_to_ini)
-          args << "-" + param_name.toQString();
-
-        const QStringList& output_files = output_files_[round][param_index].filenames.get();
-
-        if (store_to_ini)
+        {
+          args << "-" + param_name.toQString() << output_files;
+        }
+        else
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
           {
@@ -592,10 +601,6 @@ namespace OpenMS
             if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             param_tmp.setValue(param_name, String(output_files[0]));
           }
-        }
-        else
-        {
-          args << output_files;
         }
       }
 
