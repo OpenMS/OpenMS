@@ -29,7 +29,7 @@ General:
 - fixes to PeptideIndexer for X!Tandem special cutting rules and ambiguous amino acids (see PR #4356)
 - support for HDF5
 - support for hyperfine isotopic distributions (through IsoSpec)
-- JSON support
+- JSON support (see PR #3786)
 - speed improvements (loading/storing files, handling peptide sequences)
 - support for VS2019 and GCC 9.1 (see PR #4211)
 
