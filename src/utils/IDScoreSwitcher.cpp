@@ -92,8 +92,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerStringOption_("new_score", "<name>", "", "Name of the meta value to use as the new score");
-    registerStringOption_("new_score_orientation", "<choice>", "", "Orientation of the new score (are higher or lower values better?)");
+    registerStringOption_("new_score", "<name>", "", "Name of the meta value to use as the new score (empty values will just copy the old score to a meta value)", false);
+    registerStringOption_("new_score_orientation", "<choice>", "", "Orientation of the new score (are higher or lower values better?). Required if you want to set a new score.", false);
     setValidStrings_("new_score_orientation", ListUtils::create<String>("lower_better,higher_better"));
     registerStringOption_("new_score_type", "<name>", "", "Name to use as the type of the new score (default: same as 'new_score')", false);
     registerStringOption_("old_score", "<name>", "", "Name to use for the meta value storing the old score (default: old score type)", false);
@@ -122,7 +122,7 @@ protected:
     for (typename vector<typename IDType::HitType>::iterator hit_it = id.getHits().begin();
          hit_it != id.getHits().end(); ++hit_it, ++counter)
     {
-      if (!hit_it->metaValueExists(new_score_))
+      if (!new_score_.empty() && !hit_it->metaValueExists(new_score_))
       {
         String msg = "Meta value '" + new_score_ + "' not found for " + 
           describeHit_(*hit_it);
@@ -148,10 +148,13 @@ protected:
       {
         hit_it->setMetaValue(old_score_meta, hit_it->getScore());
       }
-      hit_it->setScore(hit_it->getMetaValue(new_score_));
+       if (!new_score_.empty()) hit_it->setScore(hit_it->getMetaValue(new_score_));
     }
-    id.setScoreType(new_score_type_);
-    id.setHigherScoreBetter(higher_better_);
+    if (!new_score_.empty())
+    {
+      id.setScoreType(new_score_type_);
+      id.setHigherScoreBetter(higher_better_);
+    }
   }
 
 
