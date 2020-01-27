@@ -12,9 +12,9 @@ set -e
 # Note that we cannot use git any more as it refuses to communicate with
 # github, but we have a patched version of wget with a newer OpenSSL version
 # capable of downloading the release tar file.
-wget https://github.com/OpenMS/OpenMS/releases/download/Release2.4.0/OpenMS-2.4.0-src.tar.gz -O OpenMS-2.4.0-src.tar.gz
-tar xzvf OpenMS-2.4.0-src.tar.gz
-mv OpenMS-2.4.0/ OpenMS
+wget https://github.com/OpenMS/OpenMS/releases/download/Release2.5.0/OpenMS-2.5.0-src.tar.gz -O OpenMS-2.5.0-src.tar.gz
+tar xzvf OpenMS-2.5.0-src.tar.gz
+mv OpenMS-2.5.0/ OpenMS
 
 # Apply a patches / fixes
 # 1. Updated readme (due to pypi.org not displaying markdown)
@@ -22,7 +22,7 @@ mv OpenMS-2.4.0/ OpenMS
 # 3. Patch init (since the linked libraries are all in .lib)
 cd OpenMS
 wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
-sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.4.0/' src/pyOpenMS/env.py.in
+sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.5.0/' src/pyOpenMS/env.py.in
 patch -p0 src/pyOpenMS/pyopenms/__init__.py < /data/manylinux.patch 
 patch -p0 src/pyOpenMS/setup.py < /data/manylinux.patch2 ## somehow required to link against regex boost lib
 cd /
