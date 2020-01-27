@@ -47,6 +47,7 @@ Deprecated and removed Tools:
 Changed Tools:
 - OpenPepXL and OpenPepXLLF runtime and memory efficiency improved by orders of magnitude
 - IDFilter can now filter by using all MetaValues available in the ID files
+- ImageCreator uses updated gradients and has gained RT and m/z filtering options (PR #4188)
 
 Status changed:
 - OpenPepXL (UTIL -> TOPP)
