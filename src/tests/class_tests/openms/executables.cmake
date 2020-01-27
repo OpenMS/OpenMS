@@ -470,6 +470,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
+  FIAMSDataProcessor_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test

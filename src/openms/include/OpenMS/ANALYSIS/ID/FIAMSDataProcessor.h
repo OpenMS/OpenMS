@@ -31,7 +31,7 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
-
+ 
 #pragma once
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -53,12 +53,13 @@ namespace OpenMS
   /**
     description
   */
-  class OPENMS_DLLAPI FIAMSDataProcessor :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI FIAMSDataProcessor
   {
 public:
     /// Default constructor
     FIAMSDataProcessor();
+    /// Default desctructor
+    ~FIAMSDataProcessor();
 
     /// Copy constructor
     FIAMSDataProcessor(const FIAMSDataProcessor& cp);
@@ -66,22 +67,22 @@ public:
     /// Assignment
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
-    /// Process the given file
-    void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
+//     /// Process the given file
+//     void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
 
-protected:
+// protected:
 
-    /// Apply sliding bin smoothing
-    void applySlidingBin_(const MSSpectrum & input, MSSpectrum & output);
+//     /// Apply sliding bin smoothing
+//     void applySlidingBin_(const MSSpectrum & input, MSSpectrum & output);
 
-    /// Cut the spectra for time
-    void cutForTime_(const MSSpectrum & input, MSSpectrum & output);
+//     /// Cut the spectra for time
+//     void cutForTime_(const MSSpectrum & input, MSSpectrum & output);
 
-    /// Estimate noise for each peak
-    void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
+//     /// Estimate noise for each peak
+//     void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
 
-    /// Perform accurate mass search
-    void massSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
+//     /// Perform accurate mass search
+//     void massSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
   };
 
 } // namespace OpenMS

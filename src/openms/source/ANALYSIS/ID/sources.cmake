@@ -19,6 +19,7 @@ ConsensusIDAlgorithmSimilarity.cpp
 ConsensusIDAlgorithmWorst.cpp
 ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
+FIAMSDataProcessor.cpp
 HiddenMarkovModel.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp

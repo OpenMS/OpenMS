@@ -46,11 +46,13 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+using namespace OpenMS;
 
 
   /// default constructor
   FIAMSDataProcessor::FIAMSDataProcessor()
   {
+    std::cout << "test now" << std::endl;
   }
 
   /// default destructor
@@ -59,7 +61,7 @@
   }
 
   /// copy constructor
-  FIAMSDataProcessor::FIAMSDataProcessor(const AccurateMassSearchResult& source)
+  FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source)
   {
   }
 
