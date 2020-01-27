@@ -54,6 +54,13 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     ".*qsharedpointer_impl.h:595:43.*"
     )
 
+ set (
+   CTEST_CUSTOM_WARNING_MATCH
+     ${CTEST_CUSTOM_WARNING_MATCH} # keep current warning matches and add pyOpenMS warnings
+     "warning:"
+     "FutureWarning:"
+ )
+
 # try to speed up the builds so we don't get killed
 set(CTEST_BUILD_FLAGS -j5)
 
