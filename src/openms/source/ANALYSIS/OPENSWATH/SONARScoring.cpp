@@ -43,6 +43,8 @@
 
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
+#include <boost/cast.hpp>
+
 // #define DEBUG_SONAR
 
 namespace OpenMS

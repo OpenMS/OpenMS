@@ -32,17 +32,16 @@
 // $Authors: Clemens Groepl, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 
 #include <QtGui/QImage>

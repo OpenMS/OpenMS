@@ -66,24 +66,22 @@ public:
       {
       }
 
-
       /// Copy constructor
       Unit(const Unit &) = default;
-      
+
       /// Move constructor
       Unit(Unit&&) = default;
-
 
       /// Destructor
       virtual ~Unit()
       {
       }
 
-
       /// Assignment operator
-      Unit & operator=(const Unit &) = default;
+      Unit& operator=(const Unit&) = default;
+
       /// Move assignment operator
-      Unit& operator=(Unit&&) & = default;
+      Unit& operator=(Unit&&)& = default;
 
       bool operator==(const Unit& rhs) const
       {
@@ -109,7 +107,7 @@ public:
     CVTerm(const String& accession, const String& name = "", const String& cv_identifier_ref = "", const String& value = "", const Unit& unit = Unit());
 
     /// Copy constructor
-    CVTerm(const CVTerm &) = default;
+    CVTerm(const CVTerm&) = default;
 
     /// Move constructor
     CVTerm(CVTerm&&) = default;
@@ -118,10 +116,10 @@ public:
     virtual ~CVTerm();
 
     /// Assignment operator
-    CVTerm & operator=(const CVTerm &) = default;
+    CVTerm& operator=(const CVTerm&) = default;
 
     /// Move assignment operator
-    CVTerm& operator=(CVTerm&&) & = default;
+    CVTerm& operator=(CVTerm&&)& = default;
 
     /** @name Accessors
     */
@@ -130,7 +128,7 @@ public:
     void setAccession(const String& accession);
 
     /// returns the accession string of the term
-    const String & getAccession() const;
+    const String& getAccession() const;
 
     /// sets the name of the term
     void setName(const String& name);

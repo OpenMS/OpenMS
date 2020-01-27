@@ -56,7 +56,7 @@
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/QC/RTAlignment.h>
 #include <OpenMS/QC/TIC.h>
-#include <OpenMS/QC/TopNoverRT.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <cstdio>
 
 #include <map>
@@ -64,9 +64,44 @@
 using namespace OpenMS;
 using namespace std;
 
+
 //-------------------------------------------------------------
-// Doxygen docu
+//Doxygen docu
 //-------------------------------------------------------------
+
+/**
+@page TOPP_QualityControl QualityControl
+
+@brief Generates an mzTab file from various sources of a pipeline (mainly a ConsensusXML) which can be used for QC plots (e.g. via the R package 'PTX-QC').
+
+<CENTER>
+<table>
+<tr>
+<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ QualityControl \f$ \longrightarrow \f$</td>
+<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeledKD (or FLs; for consensusXML)</td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=3> <a href="https://github.com/cbielow/PTXQC/" target="_blank">PTX-QC</a> </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper (for featureXMLs)</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_InternalCalibration </td>
+</tr>
+</table>
+</CENTER>
+
+See @ref TOPP_example_qualitycontrol for details.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QualityControl.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QualityControl.html
+*/
+
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
@@ -110,7 +145,8 @@ struct Mapping
 class TOPPQualityControl : public TOPPBase
 {
 public:
-  TOPPQualityControl() : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+  TOPPQualityControl()
+   : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
@@ -256,7 +292,7 @@ protected:
     MzCalibration qc_mz_calibration;
     RTAlignment qc_rt_alignment;
     TIC qc_tic;
-    TopNoverRT qc_top_n_over_rt;
+    Ms2SpectrumStats qc_ms2stats;
 
     // Loop through file lists
     vector<PeptideIdentification> all_new_upep_ids;
@@ -303,11 +339,6 @@ protected:
         qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
-      if (isRunnable_(&qc_missed_cleavages, status))
-      {
-        qc_missed_cleavages.compute(fmap);
-      }
-
       if (isRunnable_(&qc_ms2ir, status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
@@ -316,6 +347,12 @@ protected:
       if (isRunnable_(&qc_mz_calibration, status))
       {
         qc_mz_calibration.compute(fmap, exp, spec_map);
+      }
+      
+      // after qc_mz_calibration, because it calculates 'mass' metavalue
+      if (isRunnable_(&qc_missed_cleavages, status))
+      {
+        qc_missed_cleavages.compute(fmap);
       }
 
       if (isRunnable_(&qc_rt_alignment, status))
@@ -328,10 +365,10 @@ protected:
         qc_tic.compute(exp);
       }
 
-      if (isRunnable_(&qc_top_n_over_rt, status))
+      if (isRunnable_(&qc_ms2stats, status))
       {
         // copies FWHM metavalue to PepIDs as well
-        vector<PeptideIdentification> new_upep_ids = qc_top_n_over_rt.compute(exp, fmap, spec_map);
+        vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, fmap, spec_map);
         // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
         const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
         const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);

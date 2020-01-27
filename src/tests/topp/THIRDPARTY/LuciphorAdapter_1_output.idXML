@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="D:\data\AD_Agostina\coli-reference_2019-03-28_plus-iRTs_plus-CONs_Plus-AMM_with-dev-rev.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin/p" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+		<VariableModification name="Phospho (H)" />
+		<VariableModification name="Phospho (S)" />
+		<VariableModification name="Phospho (T)" />
+		<VariableModification name="Phospho (Y)" />
+	</SearchParameters>
+	<IdentificationRun date="2019-10-14T00:03:41" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="dec_sp|P21889|SYD_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P09099|XYLB_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P0AAT2|YBDF_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|P0AEC5|BARA_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|P0CK95|ACFD_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|P15977|MALQ_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="sp|P21889|SYD_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="sp|P33666|YDBA_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="sp|P77503|YCJS_ECOLI" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[N:\AD_Agostina\AD1_10\AD2_KsAmt5_wt_LB.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="351.178375244140966" RT="914.674740000000043" spectrum_reference="controllerType=0 controllerNumber=1 scan=4269" >
+			<PeptideHit score="21.127745000000001" sequence="LS(Phospho)PEELKR" charge="3" aa_before="K" aa_after="L" start="47" end="54" protein_refs="PH_7" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="8.0"/>
+				<UserParam type="float" name="delta" value="0.00222"/>
+				<UserParam type="float" name="mass" value="1051.518350000000055"/>
+				<UserParam type="float" name="E-Value" value="2.3"/>
+				<UserParam type="float" name="hyperscore" value="12.5"/>
+				<UserParam type="float" name="b_score" value="5.0"/>
+				<UserParam type="int" name="b_ions" value="1"/>
+				<UserParam type="float" name="y_score" value="9.300000000000001"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.5"/>
+				<UserParam type="float" name="q-value_score" value="0.039325842696629"/>
+				<UserParam type="string" name="search_engine_sequence" value="LS(Phospho)PEELKR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="21.127745000000001"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="0.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="435.868133544921989" RT="1257.810359999999946" spectrum_reference="controllerType=0 controllerNumber=1 scan=6225" >
+			<PeptideHit score="3.844931000000001" sequence="MKSAMTSS(Phospho)PLR" charge="3" aa_before="[" aa_after="V" start="0" end="10" protein_refs="PH_8" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="10.1"/>
+				<UserParam type="float" name="delta" value="0.00788"/>
+				<UserParam type="float" name="mass" value="1305.581969999999956"/>
+				<UserParam type="float" name="E-Value" value="2.3"/>
+				<UserParam type="float" name="hyperscore" value="12.6"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.5"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.6"/>
+				<UserParam type="float" name="q-value_score" value="0.034090909090909"/>
+				<UserParam type="string" name="search_engine_sequence" value="MKSAMTSS(Phospho)PLR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="12.195266"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="1.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="1.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="499.867412723291011" RT="1477.122900000000072" spectrum_reference="controllerType=0 controllerNumber=1 scan=7529" >
+			<PeptideHit score="20.119319000000001" sequence="AS(Phospho)LM(Oxidation)S(Phospho)M(Oxidation)T(Phospho)PT(Phospho)LNR" charge="3" aa_before="K" aa_after="G" start="607" end="618" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="12.800000000000001"/>
+				<UserParam type="float" name="delta" value="-1.6e-04"/>
+				<UserParam type="float" name="mass" value="1497.587849999999889"/>
+				<UserParam type="float" name="E-Value" value="2.0"/>
+				<UserParam type="float" name="hyperscore" value="12.800000000000001"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.699999999999999"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.800000000000001"/>
+				<UserParam type="float" name="q-value_score" value="0.027656477438137"/>
+				<UserParam type="string" name="search_engine_sequence" value="AS(Phospho)LM(Oxidation)S(Phospho)M(Oxidation)T(Phospho)PT(Phospho)LNR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="20.119319000000001"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="0.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="360.176788330078011" RT="1545.107999999999947" spectrum_reference="controllerType=0 controllerNumber=1 scan=7962" >
+			<PeptideHit score="9.931862000000001" sequence="Y(Phospho)RY(Phospho)LDLR" charge="3" aa_before="K K" aa_after="R R" start="123 123" end="129 129" protein_refs="PH_6 PH_0" >
+				<UserParam type="string" name="target_decoy" value="target+decoy"/>
+				<UserParam type="float" name="nextscore" value="11.0"/>
+				<UserParam type="float" name="delta" value="0.00769"/>
+				<UserParam type="float" name="mass" value="1078.508119999999963"/>
+				<UserParam type="float" name="E-Value" value="1.2"/>
+				<UserParam type="float" name="hyperscore" value="12.4"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.300000000000001"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.4"/>
+				<UserParam type="float" name="q-value_score" value="0.042876901798064"/>
+				<UserParam type="string" name="search_engine_sequence" value="Y(Phospho)RY(Phospho)LDLR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="9.931862000000001"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="0.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="585.619323730468977" RT="1986.072240000000193" spectrum_reference="controllerType=0 controllerNumber=1 scan=10676" >
+			<PeptideHit score="8.297155" sequence="IKS(Phospho)EFLANMSHELR" charge="3" aa_before="R" aa_after="T" start="291" end="304" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="12.800000000000001"/>
+				<UserParam type="float" name="delta" value="0.014"/>
+				<UserParam type="float" name="mass" value="1754.829999999999927"/>
+				<UserParam type="float" name="E-Value" value="0.0027"/>
+				<UserParam type="float" name="hyperscore" value="20.0"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="8.5"/>
+				<UserParam type="int" name="y_ions" value="7"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="20.0"/>
+				<UserParam type="float" name="q-value_score" value="0.00187969924812"/>
+				<UserParam type="string" name="search_engine_sequence" value="IKS(Phospho)EFLANMSHELR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="27.660142000000001"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="1.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="1.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="516.264282226562955" RT="2164.464060000000245" spectrum_reference="controllerType=0 controllerNumber=1 scan=11789" >
+			<PeptideHit score="10.281624000000001" sequence="IGGKIFM(Oxidation)LS(Phospho)S(Phospho)ELR" charge="3" aa_before="K" aa_after="G" start="34" end="46" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="11.800000000000001"/>
+				<UserParam type="float" name="delta" value="0.0084"/>
+				<UserParam type="float" name="mass" value="1546.769890000000032"/>
+				<UserParam type="float" name="E-Value" value="11.0"/>
+				<UserParam type="float" name="hyperscore" value="12.699999999999999"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.6"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.699999999999999"/>
+				<UserParam type="float" name="q-value_score" value="0.030215827338129"/>
+				<UserParam type="string" name="search_engine_sequence" value="IGGKIFM(Oxidation)LS(Phospho)S(Phospho)ELR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="10.281624000000001"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="0.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="800.416259765625" RT="2628.248399999999947" spectrum_reference="controllerType=0 controllerNumber=1 scan=14953" >
+			<PeptideHit score="9.992711" sequence="ALGIAGQMHGAT(Phospho)LLDAQQRVLR" charge="3" aa_before="K" aa_after="P" start="69" end="90" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="10.5"/>
+				<UserParam type="float" name="delta" value="-0.0035"/>
+				<UserParam type="float" name="mass" value="2399.237720000000081"/>
+				<UserParam type="float" name="E-Value" value="1.5"/>
+				<UserParam type="float" name="hyperscore" value="13.300000000000001"/>
+				<UserParam type="float" name="b_score" value="10.199999999999999"/>
+				<UserParam type="int" name="b_ions" value="4"/>
+				<UserParam type="float" name="y_score" value="0.0"/>
+				<UserParam type="int" name="y_ions" value="0"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="13.300000000000001"/>
+				<UserParam type="float" name="q-value_score" value="0.015128593040847"/>
+				<UserParam type="string" name="search_engine_sequence" value="ALGIAGQMH(Phospho)GAT(Phospho)LLDAQQRVLR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="9.992711"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="0.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="0.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Luciphor_delta_score" higher_score_better="true" significance_threshold="0.0" MZ="569.625366210937955" RT="2634.137520000000222" spectrum_reference="controllerType=0 controllerNumber=1 scan=14986" >
+			<PeptideHit score="5.57841" sequence="LMVIGNPHYNS(Phospho)ILR" charge="3" aa_before="K" aa_after="C" start="560" end="573" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="nextscore" value="11.4"/>
+				<UserParam type="float" name="delta" value="0.017"/>
+				<UserParam type="float" name="mass" value="1706.845000000000027"/>
+				<UserParam type="float" name="E-Value" value="5.7"/>
+				<UserParam type="float" name="hyperscore" value="12.6"/>
+				<UserParam type="float" name="b_score" value="0.0"/>
+				<UserParam type="int" name="b_ions" value="0"/>
+				<UserParam type="float" name="y_score" value="9.5"/>
+				<UserParam type="int" name="y_ions" value="3"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="12.6"/>
+				<UserParam type="float" name="q-value_score" value="0.034090909090909"/>
+				<UserParam type="string" name="search_engine_sequence" value="LMVIGNPHYNS(Phospho)ILR"/>
+				<UserParam type="float" name="Luciphor_pep_score" value="11.617768"/>
+				<UserParam type="float" name="Luciphor_global_flr" value="1.0"/>
+				<UserParam type="float" name="Luciphor_local_flr" value="1.0"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

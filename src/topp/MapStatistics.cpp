@@ -41,6 +41,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
 

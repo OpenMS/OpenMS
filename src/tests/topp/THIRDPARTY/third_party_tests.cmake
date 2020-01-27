@@ -98,6 +98,10 @@ OPENMS_FINDBINARY(SPECTRAST_BINARY "spectrast" "SpectraST")
 OPENMS_FINDBINARY(THERMORAWFILEPARSER_BINARY "ThermoRawFileParser.exe" "ThermoRawFileParser")
 
 #------------------------------------------------------------------------------
+# LuciPhor2
+OPENMS_FINDBINARY(LUCIPHOR_BINARY "luciphor2.jar" "LuciPHOr2")
+
+#------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   if (NOT APPLE OR (CMAKE_SYSTEM_VERSION VERSION_LESS 10.15)) ## macOS Catalina does not support 32-bit apps anymore.
@@ -128,10 +132,6 @@ if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   add_test("TOPP_MyriMatchAdapter_1" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
   add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_MyriMatchAdapter_1_out" PROPERTIES DEPENDS "TOPP_MyriMatchAdapter_1")
-
-  # test charge check
-  add_test("TOPP_MyriMatchAdapter_2" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
-  set_tests_properties("TOPP_MyriMatchAdapter_2" PROPERTIES WILL_FAIL 1) # has invalid charge range
 endif()
 
 #------------------------------------------------------------------------------
@@ -154,17 +154,17 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
-  add_test("TOPP_CometAdapter_1" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CometAdapter_1_out1.tmp -pin_out CometAdapter_1_out2.tmp.csv -comet_executable "${COMET_BINARY}")
+  add_test("TOPP_CometAdapter_1" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CometAdapter_1_out1.tmp -pin_out CometAdapter_1_out2.tmp.tsv -comet_executable "${COMET_BINARY}")
   add_test("TOPP_CometAdapter_1_out1" ${DIFF} -in1 CometAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_CometAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_1")
-  ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the csv style pin file, whitelisting the first id column
+  ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the tsv style pin file, whitelisting the first id column
   add_test("TOPP_CometAdapter_2_prepare" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.mzML -out CometAdapter_2_prepared.mzML -force_TPP_compatibility)
-  add_test("TOPP_CometAdapter_2" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.fasta -in CometAdapter_2_prepared.mzML -out CometAdapter_2_out1.tmp -pin_out CometAdapter_2_out2.tmp.csv -comet_executable "${COMET_BINARY}" -precursor_mass_tolerance 3 -precursor_error_units Da -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini)
+  add_test("TOPP_CometAdapter_2" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.fasta -in CometAdapter_2_prepared.mzML -out CometAdapter_2_out1.tmp -pin_out CometAdapter_2_out2.tmp.tsv -comet_executable "${COMET_BINARY}" -precursor_mass_tolerance 3 -precursor_error_units Da -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini)
   add_test("TOPP_CometAdapter_2_out1" ${DIFF} -in1 CometAdapter_2_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_CometAdapter_2" PROPERTIES DEPENDS "TOPP_CometAdapter_2_prepare")
   set_tests_properties("TOPP_CometAdapter_2_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_2")
-  ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the csv style pin file, whitelisting the first id column
-  add_test("TOPP_CometAdapter_3" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.mzML -out CometAdapter_3_out1.tmp -pin_out CometAdapter_3_out2.tmp.csv -comet_executable "${COMET_BINARY}")
+  ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the tsv style pin file, whitelisting the first id column
+  add_test("TOPP_CometAdapter_3" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.mzML -out CometAdapter_3_out1.tmp -pin_out CometAdapter_3_out2.tmp.tsv -comet_executable "${COMET_BINARY}")
   add_test("TOPP_CometAdapter_3_out1" ${DIFF} -in1 CometAdapter_3_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_CometAdapter_3_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_3")
 endif()
@@ -354,5 +354,11 @@ if (NOT (${SPECTRAST_BINARY} STREQUAL "SPECTRAST_BINARY-NOTFOUND") AND FALSE)
   add_test("TOPP_SpectrastSearchAdapter_1_out" ${DIFF} -in1 SpectrastAdapter_1_out1.tmp.pep.xml -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pep.xml -whitelist "msms_pipeline_analysis date" "?xml-stylesheet" "summary base_name")
   set_tests_properties("TOPP_SpectrastSearchAdapter_1" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_0_prepare")
   set_tests_properties("TOPP_SpectrastSearchAdapter_1_out" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_1")
+endif()
+
+if (NOT (${LUCIPHOR_BINARY} STREQUAL "LUCIPHOR_BINARY-NOTFOUND"))
+  add_test("TOPP_LuciphorAdapter_1" ${TOPP_BIN_PATH}/LuciphorAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/LuciphorAdapter_1_input.mzML  -java_memory 1024 -id ${DATA_DIR_TOPP}/THIRDPARTY/LuciphorAdapter_1_input.idXML -out LuciphorAdapter_1_output.tmp  -executable "${LUCIPHOR_BINARY}" -min_num_psms_model 1)
+  add_test("TOPP_LuciphorAdapter_1_out1" ${DIFF} -in1 LuciphorAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/LuciphorAdapter_1_output.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  set_tests_properties("TOPP_LuciphorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_LuciphorAdapter_1")
 endif()
 

@@ -996,7 +996,7 @@ namespace OpenMS
     std::cout << "Abort reasons during feature construction:" << std::endl;
     for (std::map<String, UInt>::const_iterator it = aborts_.begin(); it != aborts_.end(); ++it)
     {
-      std::cout << "- " << it->first << ": " << it->second << std::endl;
+      std::cout << "- " << it->first << ": " << it->second << " times" << std::endl;
     }
     if (debug_)
     {

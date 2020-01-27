@@ -465,7 +465,7 @@ protected:
           in_trainset_name = svmfile_name + "_samples";
           writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
         }
-        inputFileReadable_(in_trainset_name.c_str(), "in_oligo_trainset");
+        inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
         training_samples.load(in_trainset_name);
         svm.setTrainingSample(training_samples);

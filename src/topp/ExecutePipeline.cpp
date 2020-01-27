@@ -42,6 +42,8 @@
 #include <QApplication>
 #include <QtCore/QDir>
 
+#include <iostream>
+
 using namespace OpenMS;
 using namespace std;
 

@@ -37,6 +37,7 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #ifdef _OPENMP
   #include <omp.h>

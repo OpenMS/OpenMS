@@ -407,12 +407,8 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
 
-  static const double arr1[] = {
-    100, 100, 100, 100,
-    100, 100, 100
-  };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = {
+  std::vector<double> intensity(6, 100);
+  std::vector<double> mz {
     // four of the naked b/y ions
     // as well as one of the modified b and y ions ion each
     350.17164, // b
@@ -422,7 +418,6 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
     646.33133, // y
     809.39466 + 79.9657 // y + P
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
   data1->data = mz;
   data2->data = intensity;

@@ -44,7 +44,6 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"

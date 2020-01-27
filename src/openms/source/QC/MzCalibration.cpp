@@ -140,7 +140,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__,
                                          __LINE__,
                                          OPENMS_PRETTY_FUNCTION,
-                                         "The matching spectrum of the mzML is not a MS2 Spectrum.");
+                                         "The matching spectrum of the mzML is not an MS2 Spectrum.");
       }
 
       // set meta values

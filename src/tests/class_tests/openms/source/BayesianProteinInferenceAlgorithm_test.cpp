@@ -68,8 +68,8 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           bpia.inferPosteriorProbabilities(prots,peps);
           TEST_EQUAL(peps.size(), 9)
           TEST_EQUAL(peps[0].getHits()[0].getScore(), 0.6)
-          TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.61689)
-          TEST_REAL_SIMILAR(prots[0].getHits()[1].getScore(), 0.643485)
+          TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.624641)
+          TEST_REAL_SIMILAR(prots[0].getHits()[1].getScore(), 0.648346)
         }
     END_SECTION
 
@@ -184,6 +184,66 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
           TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.9117111)
           TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.879245)
           TEST_REAL_SIMILAR(prots[0].getHits()[1].getScore(), 0.708133)
+        }
+    END_SECTION
+
+    START_SECTION(BayesianProteinInferenceAlgorithm test2 super-easy)
+        {
+          vector<ProteinIdentification> prots;
+          vector<PeptideIdentification> peps;
+          IdXMLFile idf;
+          idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_2_test.idXML"),prots,peps);
+          BayesianProteinInferenceAlgorithm bpia;
+          Param p = bpia.getParameters();
+          p.setValue("model_parameters:pep_emission", 0.7);
+          p.setValue("model_parameters:prot_prior", 0.5);
+          p.setValue("model_parameters:pep_spurious_emission", 0.0);
+          p.setValue("model_parameters:pep_prior", 0.5);
+          p.setValue("loopy_belief_propagation:dampening_lambda", 0.0);
+          p.setValue("loopy_belief_propagation:p_norm_inference", 1.);
+          //p.setValue("model_parameters:regularize","true");
+          bpia.setParameters(p);
+          bpia.inferPosteriorProbabilities(prots,peps);
+          TEST_EQUAL(peps.size(), 3)
+          TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.843211)
+          TEST_REAL_SIMILAR(peps[1].getHits()[0].getScore(), 0.944383)
+          TEST_REAL_SIMILAR(peps[2].getHits()[0].getScore(), 0.701081)
+          std::cout << prots[0].getHits()[0].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.883060)
+          std::cout << prots[0].getHits()[1].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[1].getScore(), 0.519786)
+          std::cout << prots[0].getHits()[2].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[2].getScore(), 0.775994)
+        }
+    END_SECTION
+
+    START_SECTION(BayesianProteinInferenceAlgorithm test2 mini-loop)
+        {
+          vector<ProteinIdentification> prots;
+          vector<PeptideIdentification> peps;
+          IdXMLFile idf;
+          idf.load(OPENMS_GET_TEST_DATA_PATH("BayesianProteinInference_3_test.idXML"),prots,peps);
+          BayesianProteinInferenceAlgorithm bpia;
+          Param p = bpia.getParameters();
+          p.setValue("model_parameters:pep_emission", 0.7);
+          p.setValue("model_parameters:prot_prior", 0.5);
+          p.setValue("model_parameters:pep_spurious_emission", 0.0);
+          p.setValue("model_parameters:pep_prior", 0.5);
+          p.setValue("loopy_belief_propagation:dampening_lambda", 0.0);
+          p.setValue("loopy_belief_propagation:p_norm_inference", 1.);
+          //p.setValue("model_parameters:regularize","true");
+          bpia.setParameters(p);
+          bpia.inferPosteriorProbabilities(prots,peps);
+          TEST_EQUAL(peps.size(), 3)
+          TEST_REAL_SIMILAR(peps[0].getHits()[0].getScore(), 0.934571)
+          TEST_REAL_SIMILAR(peps[1].getHits()[0].getScore(), 0.944383)
+          TEST_REAL_SIMILAR(peps[2].getHits()[0].getScore(), 0.701081)
+          std::cout << prots[0].getHits()[0].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[0].getScore(), 0.675421)
+          std::cout << prots[0].getHits()[1].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[1].getScore(), 0.675421)
+          std::cout << prots[0].getHits()[2].getAccession() << std::endl;
+          TEST_REAL_SIMILAR(prots[0].getHits()[2].getScore(), 0.775994)
         }
     END_SECTION
 

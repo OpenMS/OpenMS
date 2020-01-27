@@ -257,7 +257,7 @@ namespace OpenMS
         //Add MetaInfo, when modifications has it (Andreas)
       }
 
-      writeUserParam_("UserParam", os, search_param, 4);
+      writeUserParam_("UserParam", os, search_param, 3);
 
       os << "\t\t</SearchParameters>\n";
 

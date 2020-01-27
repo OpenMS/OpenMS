@@ -124,7 +124,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    // and configure to add isotope patterns
    TheoreticalSpectrumGenerator spec_generator;
    Param param = spec_generator.getParameters();
-   param.setValue("add_isotopes", "true");
+   param.setValue("isotope_model", "coarse");
    param.setValue("max_isotope", 3);
    param.setValue("add_a_ions", "false");
    param.setValue("add_b_ions", "false");
@@ -147,7 +147,7 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
 		   false, 
 		   true);
    // create theoretical spectrum without isotopic peaks for comparison to the deisotoped one
-   param.setValue("add_isotopes", "false");  // disable additional isotopes
+   param.setValue("isotope_model", "none");  // disable additional isotopes
    spec_generator.setParameters(param);
    MSSpectrum theo1_noiso;
    spec_generator.getSpectrum(theo1_noiso, peptide1, 1, 2); // charge 1..2
