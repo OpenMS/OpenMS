@@ -321,9 +321,9 @@ protected:
       {
         ofstream precursor_out(precursor_out_file.c_str());
         for (Size i = 0; i != errors.size(); ++i)
-	{
-	  precursor_out << errors[i] << "\n";
-	}
+        {
+          precursor_out << errors[i] << "\n";
+        }
         precursor_out.close();
       }
 
@@ -383,7 +383,7 @@ protected:
           }
           fit_out << "\tfrequency\n";
 
-	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
           {
             fit_out << it->getX() << "\t" << it->getY() << "\n";
           }
@@ -420,9 +420,9 @@ protected:
       {
         ofstream fragment_out(fragment_out_file.c_str());
         for (Size i = 0; i != errors.size(); ++i)
-	{
-	  fragment_out << errors[i] << "\n";
-	}
+        {
+          fragment_out << errors[i] << "\n";
+        }
         fragment_out.close();
       }
       // fill histogram with the collected values
@@ -483,7 +483,7 @@ protected:
           }
           fit_out << "\tfrequency\n";
 
-	  for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
+	        for (vector<DPosition<2> >::const_iterator it = values.begin(); it != values.end(); ++it)
           {
             fit_out << it->getX() << "\t" << it->getY() << "\n";
           }
