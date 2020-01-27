@@ -298,7 +298,7 @@ protected:
     //-------------------------------------------------------------
 
     String precursor_out_file(getStringOption_("out_precursor"));
-    if (precursor_out_file != "" || getStringOption_("out_precursor_fit")!="")
+    if (precursor_out_file != "" || getStringOption_("out_precursor_fit") != "")
     {
       vector<double> errors;
       
@@ -317,9 +317,11 @@ protected:
           min_diff = diff;
         }
       }
-      if (precursor_out_file != ""){
+      if (precursor_out_file != "")
+      {
         ofstream precursor_out(precursor_out_file.c_str());
-        for (Size i = 0; i != errors.size(); ++i){
+        for (Size i = 0; i != errors.size(); ++i)
+	{
 	  precursor_out << errors[i] << "\n";
 	}
         precursor_out.close();
@@ -396,7 +398,7 @@ protected:
     }
 
     String fragment_out_file(getStringOption_("out_fragment"));
-    if (fragment_out_file != "" || getStringOption_("out_fragment_fit")!="")
+    if (fragment_out_file != "" || getStringOption_("out_fragment_fit") != "")
     {
       vector<double> errors;
       double min_diff(numeric_limits<double>::max()), max_diff(numeric_limits<double>::min());
@@ -414,9 +416,11 @@ protected:
           min_diff = diff;
         }
       }
-      if (fragment_out_file != ""){
+      if (fragment_out_file != "")
+      {
         ofstream fragment_out(fragment_out_file.c_str());
-        for (Size i = 0; i != errors.size(); ++i){
+        for (Size i = 0; i != errors.size(); ++i)
+	{
 	  fragment_out << errors[i] << "\n";
 	}
         fragment_out.close();
