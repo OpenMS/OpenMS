@@ -80,7 +80,7 @@ export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries
 export OS_PREFIX_PATH=/usr
-timeout 60m ctest -V -S tools/travis/cibuild.cmake
+timeout 60m ctest -V -S tools/travis/cibuild.cmake > /dev/null
 
 if [ $? -ne 0 ]; then
     echo "Killed build prematurely to store whatever was already built in the cache. Please restart the travis job."
