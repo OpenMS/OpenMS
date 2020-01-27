@@ -70,7 +70,7 @@ START_SECTION((void preCheck(Param &param) const ))
   ITRAQLabeler i;
   Param p;
   p.setValue("RawTandemSignal:status", "MS^E");
-  TEST_EXCEPTION(Exception::InvalidParameter&, i.preCheck(p));
+  TEST_EXCEPTION(Exception::InvalidParameter, i.preCheck(p));
 
   p.setValue("RawTandemSignal:status", "precursor");
   i.preCheck(p); // should work

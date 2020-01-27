@@ -405,36 +405,6 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static void filterHitsBySignificance(vector<IdentificationType>& ids, double threshold_fraction = 1.0)))
-{
-  vector<PeptideIdentification> peptides = global_peptides;
-  vector<PeptideHit>& peptide_hits = peptides[0].getHits();
-  TEST_EQUAL(peptide_hits.size(), 11);
-
-  IDFilter::filterHitsBySignificance(peptides, 1.0);
-  TEST_EQUAL(peptide_hits.size(), 5);
-  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
-                    "FINFGVNVEVLSRFQTK");
-  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
-                    "MSLLSNMISIVKVGYNAR");
-  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
-                    "THPYGHAIVAGIERYPSK");
-  TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
-                    "LHASGITVTEIPVTATNFK");
-  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
-                    "MRSLGYVAVISAVATDTDK");
-
-  IDFilter::filterHitsBySignificance(peptides, 1.3);
-  TEST_EQUAL(peptides[0].getScoreType() , "Mascot")
-  TEST_EQUAL(peptide_hits.size(), 0);
-}
-END_SECTION
-
 START_SECTION((template <class IdentificationType> static void keepNBestHits(vector<IdentificationType>& ids, Size n)))
 {
   vector<PeptideIdentification> peptides = global_peptides;
@@ -938,49 +908,6 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
   experiment[3].setPeptideIdentifications(ids);
 
   IDFilter::filterHitsByScore(experiment, 31.8621, 0);
-  PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
-  TEST_EQUAL(identification.getScoreType(), "Mascot");
-
-  vector<PeptideHit>& peptide_hits = identification.getHits();
-  TEST_EQUAL(peptide_hits.size(), 5);
-  TEST_EQUAL(peptide_hits[0].getSequence().toString(),
-                    "FINFGVNVEVLSRFQTK");
-  TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getRank(), 1);
-  TEST_EQUAL(peptide_hits[1].getSequence().toString(),
-                    "MSLLSNMISIVKVGYNAR");
-  TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getRank(), 1);
-  TEST_EQUAL(peptide_hits[2].getSequence().toString(),
-                    "THPYGHAIVAGIERYPSK");
-  TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getRank(), 2);
-  TEST_EQUAL(peptide_hits[3].getSequence().toString(),
-                    "LHASGITVTEIPVTATNFK");
-  TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[3].getRank(), 3);
-  TEST_EQUAL(peptide_hits[4].getSequence().toString(),
-                    "MRSLGYVAVISAVATDTDK");
-  TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[4].getRank(), 4);
-}
-END_SECTION
-
-START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
-{
-  PeakMap experiment;
-  vector<PeptideIdentification> ids(1, global_peptides[0]);
-
-  ids[0].assignRanks();
-
-  for (Size i = 0; i < 5; ++i)
-  {
-    experiment.addSpectrum(MSSpectrum());
-  }
-  experiment[3].setMSLevel(2);
-  experiment[3].setPeptideIdentifications(ids);
-
-  IDFilter::filterHitsBySignificance(experiment, 1.0, 1.0);
   PeptideIdentification& identification = experiment[3].getPeptideIdentifications()[0];
   TEST_EQUAL(identification.getScoreType(), "Mascot");
 

@@ -3,7 +3,6 @@ from Types cimport *
 from DataValue cimport *
 from Feature cimport *
 from UniqueIdInterface cimport *
-from ProteinIdentification cimport *
 from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":

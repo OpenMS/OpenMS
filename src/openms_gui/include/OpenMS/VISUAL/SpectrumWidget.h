@@ -84,11 +84,11 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    static constexpr char RT_AXIS_TITLE[] = "Time [s]";
-    static constexpr char MZ_AXIS_TITLE[] = "m/z"; // has no unit
-    static constexpr char INTENSITY_AXIS_TITLE[] = "Intensity";
-    static constexpr char IM_MS_AXIS_TITLE[] = "Ion Mobility [ms]";
-    static constexpr char IM_ONEKZERO_AXIS_TITLE[] = "Ion Mobility [1/K0]";
+    static const char RT_AXIS_TITLE[];
+    static const char MZ_AXIS_TITLE[];
+    static const char INTENSITY_AXIS_TITLE[];
+    static const char IM_MS_AXIS_TITLE[];
+    static const char IM_ONEKZERO_AXIS_TITLE[];
 
     /** @name Type definitions */
     //@{

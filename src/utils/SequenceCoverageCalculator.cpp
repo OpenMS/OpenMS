@@ -32,6 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -268,7 +269,8 @@ protected:
     }
     else
     {
-      ret = outputTo_(OPENMS_LOG_INFO);
+      // directly use Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info);
     }
 
     return ret;

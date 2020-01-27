@@ -191,13 +191,13 @@ START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
   SimTypes::FeatureMapSimVector fm_vec;
 
   fm_vec.push_back(fm1);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, labeler.setUpHook(fm_vec),"We currently support only 2- or 3-channel ICPL")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec),"We currently support only 2- or 3-channel ICPL")
   fm_vec.push_back(fm2);
   labeler.setUpHook(fm_vec);
   fm_vec.push_back(fm3);
   labeler.setUpHook(fm_vec);
   fm_vec.push_back(fm4);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument&, labeler.setUpHook(fm_vec),"We currently support only 2- or 3-channel ICPL")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec),"We currently support only 2- or 3-channel ICPL")
 }
 END_SECTION
 

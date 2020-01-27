@@ -64,7 +64,7 @@ namespace OpenMS
 
 public:
 
-    /* @brief Summary statistics before/after applying the transformation.
+    /** @brief Summary statistics before/after applying the transformation.
               For deviations before/after transformation, the percentiles 
               100, 99, 95, 90, 75, 50, 25 are returned.
      */ 

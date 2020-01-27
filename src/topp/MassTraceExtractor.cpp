@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -243,10 +244,16 @@ protected:
     if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
-      StringList ms_runs;
-      ms_peakmap.getPrimaryMSRunPath(ms_runs);
-      consensus_map.setPrimaryMSRunPath(ms_runs);
-
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        consensus_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }
+      else
+      {
+        consensus_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      }
+      
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;
@@ -288,9 +295,17 @@ protected:
 
       std::vector<double> stats_sd;
       FeatureMap ms_feat_map;
-      StringList ms_runs;
-      ms_peakmap.getPrimaryMSRunPath(ms_runs);
-      ms_feat_map.setPrimaryMSRunPath(ms_runs);
+
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        ms_feat_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }
+      else
+      {
+        ms_feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      }
+
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;

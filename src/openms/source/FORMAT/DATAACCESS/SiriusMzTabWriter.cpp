@@ -33,13 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <boost/regex.hpp>
-
-#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,10 +48,10 @@ int SiriusMzTabWriter::extract_scan_index(const String &path)
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
-                             const String & original_input_mzml,
-                             const Size & top_n_hits,
-                             MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
+                             const String& original_input_mzml,
+                             const Size& top_n_hits,
+                             MzTab& result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
@@ -111,7 +110,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
+        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id{};
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);

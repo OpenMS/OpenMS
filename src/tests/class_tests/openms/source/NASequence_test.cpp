@@ -385,7 +385,7 @@ START_SECTION((NASequence getPrefix(Size length) const))
   TEST_EQUAL(seq3.getPrefix(3),seq4);
   TEST_NOT_EQUAL(seq.getPrefix(3),seq2);
   TEST_NOT_EQUAL(seq.getPrefix(3),seq4);
-  TEST_EXCEPTION(Exception::IndexOverflow&, seq.getPrefix(10));
+  TEST_EXCEPTION(Exception::IndexOverflow, seq.getPrefix(10));
 }
 END_SECTION
 
@@ -399,7 +399,7 @@ START_SECTION((NASequence getSuffix(Size length) const))
   TEST_EQUAL(seq3.getSuffix(3),seq4);
   TEST_NOT_EQUAL(seq.getSuffix(3),seq2);
   TEST_NOT_EQUAL(seq.getSuffix(3),seq4);
-  TEST_EXCEPTION(Exception::IndexOverflow&, seq.getSuffix(10));
+  TEST_EXCEPTION(Exception::IndexOverflow, seq.getSuffix(10));
 }
 END_SECTION
 

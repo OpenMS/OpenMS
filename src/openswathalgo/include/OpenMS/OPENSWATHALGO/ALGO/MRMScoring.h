@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest$
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -45,7 +45,6 @@
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 #include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
 #include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
-//#include "OpenMS/OPENSWATHALGO/ALGO/DIAHelpers.h"
 
 namespace OpenSwath
 {
@@ -114,6 +113,9 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
+    void initializeXCorrMatrix(const std::vector< std::vector< double > >& data);
+
+    /// Initialize the scoring object and building the cross-correlation matrix
     void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
 
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
@@ -125,13 +127,26 @@ public:
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
     void initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
+    /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
+    void initializeXCorrPrecursorContrastMatrix(const std::vector< std::vector< double > >& data_precursor, const std::vector< std::vector< double > >& data_fragments);
+
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes and transitions
     void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
-    /// calculate the cross-correlation score
+    /*
+       @brief Calculate the cross-correlation coelution score
+
+       The score is a distance where zero indicates perfect coelution.
+    */
     double calcXcorrCoelutionScore();
 
-    /// calculate the weighted cross-correlation score
+    /*
+       @brief Calculate the weighted cross-correlation coelution score
+
+       The score is a distance where zero indicates perfect coelution. The
+       score is weighted by the transition intensities, non-perfect coelution
+       in low-intensity transitions should thus become less important.
+    */
     double calcXcorrCoelutionWeightedScore(const std::vector<double>& normalized_library_intensity);
 
     /// calculate the cross-correlation contrast score
@@ -143,16 +158,32 @@ public:
     /// calculate the precursor cross-correlation contrast score
     double calcXcorrPrecursorCoelutionScore();
 
-    /// calculate the precursor cross-correlation contrast score against the transitions
+    /*
+       @brief Calculate the precursor cross-correlation contrast score against the transitions
+
+       The score is a distance where zero indicates perfect coelution.
+    */
     double calcXcorrPrecursorContrastCoelutionScore();
 
     /// calculate the precursor cross-correlation coelution score including the transitions
     double calcXcorrPrecursorCombinedCoelutionScore();
 
-    /// calculate the cross-correlation shape score
+    /*
+       @brief Calculate the cross-correlation shape score
+
+       The score is a correlation measure where 1 indicates perfect correlation
+       and 0 means no correlation.
+    */
     double calcXcorrShapeScore();
 
-    /// calculate the weighted cross-correlation shape score
+    /*
+       @brief Calculate the weighted cross-correlation shape score
+
+       The score is a correlation measure where 1 indicates perfect correlation
+       and 0 means no correlation. The score is weighted by the transition
+       intensities, non-perfect coelution in low-intensity transitions should
+       thus become less important.
+    */
     double calcXcorrShapeWeightedScore(const std::vector<double>& normalized_library_intensity);
 
     /// calculate the cross-correlation contrast shape score

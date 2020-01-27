@@ -73,6 +73,9 @@ public:
         double a;
         /// scale parameter b
         double b;
+
+        double eval(double x) const;
+        double log_eval_no_normalize(double x) const ;
       };
 
       /// Default constructor
@@ -91,6 +94,17 @@ public:
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
       GumbelDistributionFitResult fit(std::vector<DPosition<2> > & points);
+
+      /**
+          @brief Fits a gumbel distribution to the given data x values. Fills a
+          weighted histogram first and generates y values.
+
+          @param x Input x values
+          @param w Input weights
+
+          @exception Exception::UnableToFit is thrown if fitting cannot be performed
+      */
+      GumbelDistributionFitResult fitWeighted(const std::vector<double> & x, const std::vector<double> & w);
 
 protected:
 

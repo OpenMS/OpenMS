@@ -86,9 +86,9 @@ START_SECTION((template < typename FeatureMapType > void load(const String &file
 
   
 
-  TEST_EXCEPTION(Exception::ParseError&, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2.peplist"), fm));
+  TEST_EXCEPTION(Exception::ParseError, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2.peplist"), fm));
   
-  TEST_EXCEPTION(Exception::FileNotFound&, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2_doesnotexist.peplist"), fm));
+  TEST_EXCEPTION(Exception::FileNotFound, f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_2_doesnotexist.peplist"), fm));
 }
 END_SECTION
 
@@ -96,7 +96,7 @@ START_SECTION((template < typename SpectrumType > void store(const String &filen
 {
   SpecArrayFile f;
   MSSpectrum spec;
-  TEST_EXCEPTION(Exception::NotImplemented&, f.store("bla", spec))
+  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION
 

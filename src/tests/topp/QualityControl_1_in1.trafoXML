@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Transformation name="b_spline">
+		<Param  type="float" name="wavelength" value="0.0"/>
+		<Param  type="int" name="num_nodes" value="5"/>
+		<Param  type="string" name="extrapolate" value="linear"/>
+		<Param  type="int" name="boundary_condition" value="2"/>
+		<Pairs count="16">
+			<Pair from="1388.80627441406" to="1377.47473144531" note="AAEIDYTHK"/>
+			<Pair from="1350.10131835938" to="1341.62658691406" note="AHGDLSENAEYHAAK"/>
+			<Pair from="1364.97442626953" to="1353.99035644531" note="ARAEDAMDEASGR"/>
+			<Pair from="1324.72766113281" to="1347.32495117188" note="DAEAEAYAR"/>
+			<Pair from="1309.26330566406" to="1329.74035644531" note="DPGLTEQGHAEAK"/>
+			<Pair from="1383.74768066406" to="1373.31652832031" note="EALQGEHEAHAEAVAR"/>
+			<Pair from="1382.96179199219" to="1369.1826171875" note="GLHNEGSQTLQAR"/>
+			<Pair from="1376.99664306641" to="1368.24099731445" note="LHHLVDDK"/>
+			<Pair from="1342.81787109375" to="1323.96966552735" note="LNADSTVASK"/>
+			<Pair from="1315.55700683594" to="1308.21807861328" note="MIAEAM(Oxidation)QK"/>
+			<Pair from="1359.97857666015" to="1354.28881835938" note="TC(Carbamidomethyl)HAHPTMSETVR"/>
+			<Pair from="1347.58782958985" to="1330.52059936524" note="TLHSDEGAHFDK"/>
+			<Pair from="1374.17578125" to="1370.5337524414" note="TVAVHSTADADAM(Oxidation)HVR"/>
+			<Pair from="1350.49987792969" to="1349.32946777344" note="VEEHEEGQSAM(Oxidation)LTR"/>
+			<Pair from="1356.16522216797" to="1348.1960144043" note="VGEAAASGELRK"/>
+			<Pair from="1351.60009765625" to="1346.95053100586" note="YHLGASSDR"/>
+		</Pairs>
+	</Transformation>
+</TrafoXML>

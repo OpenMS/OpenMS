@@ -1,13 +1,13 @@
 
 -- General information --
 
-File name: /home/ehrlich/workspace/openms/OpenMS/source/TEST/TOPP/FileInfo_7_input.consensusXML
+File name: /media/sachsenb/BACKUP/OpenMS/src/tests/topp/FileInfo_7_input.consensusXML
 File type: consensusXML
 
 Number of consensus features:
-  of size 2: 5
-  total:     5
-
+  of size 2: 5	 (features: 10 )	 with at least one ID: 0	 (features: 0 )
+  total consensus features:    5  with at least one ID: 0
+  total features:              10  with at least one ID:  0
 Ranges:
   retention time: 10.00 .. 15.00
   mass-to-charge: 530.00 .. 566.00

@@ -76,7 +76,7 @@ START_SECTION((Param parse(const StringList &setting)))
   StringList settings2;
   settings2.push_back("DEBUG");
 
-  TEST_EXCEPTION(Exception::ParseError&, LogConfigHandler::getInstance().parse(settings2));
+  TEST_EXCEPTION(Exception::ParseError, LogConfigHandler::getInstance().parse(settings2));
 }
 END_SECTION
 

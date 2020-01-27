@@ -157,6 +157,28 @@ protected:
       /// Convenience method to remove the [] from OpenMS internal file uri representation
       String trimOpenMSfileURI(const String file) const;
 
+      /// Abstraction of PeptideHit loop for most PeptideHits
+      void writePeptideHit(const PeptideHit& hit,
+                                std::vector<PeptideIdentification>::const_iterator& it,
+                                std::map<String, String>& pep_ids,
+                                String cv_ns, std::set<String>& sen_set,
+                                std::map<String, String>& sen_ids,
+                                std::map<String, std::vector<String> >& pep_evis,
+                                std::map<String, double>& pp_identifier_2_thresh,
+                                String& sidres);
+
+      /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
+      void writeXLMSPeptideHit(const PeptideHit& hit,
+                                std::vector<PeptideIdentification>::const_iterator& it,
+                                String ppxl_linkid, std::map<String, String>& pep_ids,
+                                String cv_ns, std::set<String>& sen_set,
+                                std::map<String, String>& sen_ids,
+                                std::map<String, std::vector<String> >& pep_evis,
+                                std::map<String, double>& pp_identifier_2_thresh,
+                                double ppxl_crosslink_mass,
+                                std::map<String, String>& ppxl_specref_2_element,
+                                String& sid, bool alpha_peptide);
+
 private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
@@ -174,4 +196,3 @@ private:
     };
   } // namespace Internal
 } // namespace OpenMS
-

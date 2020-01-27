@@ -35,7 +35,7 @@
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
-				<UserParam type="int" name="xl_pos" value="5"/>
+				<UserParam type="int" name="xl_pos1" value="5"/>
 				<UserParam type="int" name="spectrum_index" value="3"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -91,7 +91,7 @@
 				<UserParam type="float" name="xl_mass" value="138.068079600000004"/>
 				<UserParam type="int" name="xl_pos2" value="3"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
-				<UserParam type="int" name="xl_pos" value="0"/>
+				<UserParam type="int" name="xl_pos1" value="0"/>
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -144,7 +144,7 @@
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9435"/>
 				<UserParam type="int" name="xl_pos2" value="3"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
-				<UserParam type="int" name="xl_pos" value="0"/>
+				<UserParam type="int" name="xl_pos1" value="0"/>
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
@@ -197,7 +197,7 @@
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
 				<UserParam type="string" name="xl_pos2" value="-"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
-				<UserParam type="int" name="xl_pos" value="12"/>
+				<UserParam type="int" name="xl_pos1" value="12"/>
 				<UserParam type="int" name="spectrum_index" value="113"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>

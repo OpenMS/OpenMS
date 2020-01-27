@@ -40,6 +40,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -246,6 +248,7 @@ protected:
       std::vector<MassTrace> splitted_mtraces;
       epd_param.remove("enabled"); // artificially added above
       epd_param.insert("", common_param);
+      epd_param.remove("noise_threshold_int");
       ElutionPeakDetection epdet;
       epdet.setParameters(epd_param);
       // fill mass traces with smoothed data as well .. bad design..
@@ -300,7 +303,7 @@ protected:
 
     if (trace_count != m_traces_final.size())
     {
-      if (ffm_param.getValue("remove_single_traces").toBool() == false)
+      if (!ffm_param.getValue("remove_single_traces").toBool())
       { 
         OPENMS_LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
         return UNEXPECTED_RESULT;
@@ -342,7 +345,7 @@ protected:
     }
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
-    if (feat_map.size() > 0)
+    if (!feat_map.empty())
     {
       set<IonSource::Polarity> pols;
       for (Size i = 0; i < ms_peakmap.size(); ++i)
@@ -366,9 +369,15 @@ protected:
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // annotate "spectra_data" metavalue
-    StringList ms_runs;
-    ms_peakmap.getPrimaryMSRunPath(ms_runs);
-    feat_map.setPrimaryMSRunPath(ms_runs);
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      feat_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+    }    
 
     FeatureXMLFile feature_xml_file;
     feature_xml_file.setLogType(log_type_);

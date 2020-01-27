@@ -132,7 +132,7 @@ START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input
   TEST_REAL_SIMILAR(foundat, 3055.16);
 
   // there is no ion mobility, so this should not work
-  TEST_EXCEPTION(Exception::IllegalArgument&, extractor.extractChromatograms(expptr, out_exp, coordinates, extract_window, false, 1, "tophat"))
+  TEST_EXCEPTION(Exception::IllegalArgument, extractor.extractChromatograms(expptr, out_exp, coordinates, extract_window, false, 1, "tophat"))
 }
 END_SECTION
 

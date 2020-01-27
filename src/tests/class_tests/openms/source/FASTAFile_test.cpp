@@ -92,7 +92,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
   vector<FASTAFile::FASTAEntry> data;
   FASTAFile file;
 
-  TEST_EXCEPTION(Exception::FileNotFound&, file.load("FASTAFile_test_this_file_does_not_exist",data))
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("FASTAFile_test_this_file_does_not_exist",data))
 
   file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
   vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator = data.begin();
@@ -160,7 +160,7 @@ START_SECTION((void store(const String& filename, const std::vector< FASTAEntry 
   FASTAFile file;
 
   file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
-  TEST_EXCEPTION(Exception::UnableToCreateFile&, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt",data))
+  TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt",data))
 
   file.store(tmp_filename,data);
   file.load(tmp_filename,data2);

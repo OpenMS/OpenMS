@@ -134,7 +134,7 @@ START_SECTION(void store(const String &filename, const ProteinIdentification &pr
   ProtXMLFile f;
   ProteinIdentification proteins;
   PeptideIdentification peptides;
-  TEST_EXCEPTION(Exception::NotImplemented&, f.store("notimplemented.protXML", proteins, peptides ))
+  TEST_EXCEPTION(Exception::NotImplemented, f.store("notimplemented.protXML", proteins, peptides ))
 }
 END_SECTION
 

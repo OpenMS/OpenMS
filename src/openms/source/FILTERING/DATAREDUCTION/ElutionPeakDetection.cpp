@@ -53,7 +53,6 @@ namespace OpenMS
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    // defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     // NOTE: the algorithm will only act upon the "fixed" value, if you would
     // like to use the "auto" setting, you will have to call filterByPeakWidth
@@ -64,7 +63,7 @@ namespace OpenMS
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
     this->setLogType(CMD);

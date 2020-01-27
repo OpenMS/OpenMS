@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file://FeatureFinderSuperHirn_input_2.mzML]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderSuperHirn" version="version_string" />
 		<processingAction name="Peak picking" />
@@ -12,30 +13,30 @@
 	</dataProcessing>
 	<featureList count="3">
 		<feature id="f_4835329514588776807">
-			<position dim="0">656.242270060013</position>
-			<position dim="1">339.852700625299</position>
-			<intensity>1.59647e+07</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<position dim="0">656.242270060012743</position>
+			<position dim="1">339.852700625299292</position>
+			<intensity>1.596473e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
 			<charge>3</charge>
 		</feature>
 		<feature id="f_17749660155506638460">
-			<position dim="0">669.161198238273</position>
-			<position dim="1">354.709037746653</position>
-			<intensity>1.09585e+07</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<position dim="0">669.161198238273073</position>
+			<position dim="1">354.709037746652712</position>
+			<intensity>1.095848e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
 			<charge>2</charge>
 		</feature>
 		<feature id="f_7804704400743266335">
-			<position dim="0">661.763254660587</position>
-			<position dim="1">366.532276665986</position>
-			<intensity>1.45708e+07</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<position dim="0">661.76325466058745</position>
+			<position dim="1">366.532276665985989</position>
+			<intensity>1.457075e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
 			<charge>3</charge>
 		</feature>
 	</featureList>

@@ -112,6 +112,17 @@ START_SECTION((ConvexHull2D& operator=(const ConvexHull2D& rhs)))
 	TEST_EQUAL(tmp2.getHullPoints().size(),3)
 END_SECTION
 
+START_SECTION((ConvexHull2D(const ConvexHull2D&& source)))
+{
+#ifndef OPENMS_COMPILER_MSVC
+  // Ensure that ConvexHull2D has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  // Note that MSVS does not support noexcept move constructors for STL
+  // constructs such as std::map.
+  TEST_EQUAL(noexcept(ConvexHull2D(std::declval<ConvexHull2D&&>())), true)
+#endif
+}
+END_SECTION
 
 START_SECTION((void addPoints(const PointArrayType &points)))
 	ConvexHull2D tmp;
@@ -145,7 +156,7 @@ START_SECTION((bool encloses(const PointType& point) const))
 	ConvexHull2D tmp;
 	// setting hull points alone does not allow to query encloses()
 	tmp.setHullPoints(vec2);
-	TEST_EXCEPTION(Exception::NotImplemented&, tmp.encloses(DPosition<2>(1.0,1.0)))
+	TEST_EXCEPTION(Exception::NotImplemented, tmp.encloses(DPosition<2>(1.0,1.0)))
 
 	tmp.addPoints(vec);
 	tmp.addPoints(vec2);

@@ -102,8 +102,8 @@ protected:
     /// produces mass decompositions using the given mass
     void getDecompositions_(std::vector<MassDecomposition> & decomps, double mass, bool no_caching = false);
 
-    /// permuts the String s adds the prefix and stores the results in permutations
-    void permute_(String prefix, String s, std::set<String> & permutations);
+    /// permutes the String s adds the prefix and stores the results in permutations
+    static void permute_(const String& prefix, String s, std::set<String> & permutations);
 
     Size countMissedCleavagesTryptic_(const String & peptide) const;
 
@@ -113,11 +113,11 @@ protected:
     /// fills the spectrum with b,y ions, multiple charged variants; if prefix and suffix weights are given, the sequence is treated as tag
     void getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix = 0.0, double suffix = 0.0);
 
+    /// fills the spectrum with c and z type ions
+    void getETDSpectrum_(PeakSpectrum & spec, const String &sequence, Size /* charge */, double prefix = 0.0, double suffix = 0.0);
+
     /// initializes the score distribution pre-calculated for the use in spectrum generation
     void initIsotopeDistributions_();
-
-    /// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
-    double estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge);
 
     /// keep for each window of size windowsize in the m/z range of the spectrum exactly no_peaks
     void windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks);
@@ -137,15 +137,12 @@ protected:
     /// mapping of the actual residue to the internal representing character
     Map<const Residue *, char> residue_to_name_;
 
-    ///
-    Map<Size, std::vector<double> > isotope_distributions_;
-
     /// masses of the amino acids
     Map<char, double> aa_to_weight_;
 
     MassDecompositionAlgorithm mass_decomp_algorithm_;
 
-    double min_aa_weight_;
+    double min_aa_weight_{};
 
     ZhangSimilarityScore zhang_;
 
@@ -175,6 +172,10 @@ protected:
 
     Map<String, std::set<String> > permute_cache_;
 
+  private:
+    ///
+    Map<Size, std::vector<double> > isotope_distributions_;
+
 public:
 
     /** @brief Simple class to store permutations and a score
@@ -199,15 +200,8 @@ public:
       {
       }
 
-      Permut(const Permut & rhs) :
-        permut_(rhs.permut_),
-        score_(rhs.score_)
-      {
-      }
-
-      virtual ~Permut()
-      {
-      }
+      Permut(const Permut & rhs) = default;
+      virtual ~Permut() = default;
 
       Permut & operator=(const Permut & rhs)
       {

@@ -55,6 +55,7 @@ namespace OpenMS
 
     PeptideIdentification instances are grouped by sequence of the respective best-scoring PeptideHit and retention time data is collected (PeptideIdentification::getRT()).
     ID groups with the same sequence in different maps represent points of correspondence between the maps and form the basis of the alignment.
+    Only the best PSM per spectrum is considered as the correct identification.
 
     Each map is aligned to a reference retention time scale.
     This time scale can either come from a reference file (@p reference parameter) or be computed as a consensus of the input maps (median retention times over all maps of the ID groups).
@@ -83,6 +84,7 @@ public:
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
+      use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
       SeqToList rt_data;
       bool sorted = getRetentionTimes_(data, rt_data);
       computeMedians_(rt_data, reference_, sorted);
@@ -158,6 +160,18 @@ protected:
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;
 
+    /// Use feature RT instead of RT from best peptide ID in the feature.
+    bool use_feature_rt_;
+
+    /// Minimum score to reach for a peptide to be considered
+    double min_score_;
+
+    /// Actually use the above defined score_cutoff? Needed since it is hard to define a non-cutting score for a user.
+    bool score_cutoff_;
+
+    /// Score better?
+    bool (*better_) (double,double) = [](double, double) {return true;};
+
     /**
       @brief Compute the median retention time for each peptide sequence
 
@@ -197,6 +211,8 @@ protected:
       The following global flags (mutually exclusive) influence the processing:\n
       Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
       Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
+      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
+      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
 
       @param features Input features for RT data
       @param rt_data Lists of RT values for diff. peptide sequences (output)
@@ -206,11 +222,26 @@ protected:
     template <typename MapType>
     bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
     {
-      bool use_feature_rt = param_.getValue("use_feature_rt").toBool();
+      if (!score_cutoff_)
+      {
+        better_ = [](double, double)
+        {return true;};
+      }
+      else if (features[0].getPeptideIdentifications()[0].isHigherScoreBetter())
+      {
+        better_ = [](double a, double b)
+        { return a >= b; };
+      }
+      else
+      {
+        better_ = [](double a, double b)
+        { return a <= b; };
+      }
+
       for (typename MapType::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
-        if (use_feature_rt)
+        if (use_feature_rt_)
         {
           // find the peptide ID closest in RT to the feature centroid:
           String sequence;
@@ -228,8 +259,11 @@ protected:
               if (current_distance < rt_distance)
               {
                 pep_it->sort();
-                sequence = pep_it->getHits()[0].getSequence().toString();
-                rt_distance = current_distance;
+                if (better_(pep_it->getHits()[0].getScore(), min_score_))
+                {
+                  sequence = pep_it->getHits()[0].getSequence().toString();
+                  rt_distance = current_distance;
+                }
               }
             }
           }
@@ -242,7 +276,7 @@ protected:
         }
       }
 
-      if (!use_feature_rt &&
+      if (!use_feature_rt_ &&
           param_.getValue("use_unassigned_peptides").toBool())
       {
         getRetentionTimes_(features.getUnassignedPeptideIdentifications(),

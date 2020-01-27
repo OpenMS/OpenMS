@@ -118,11 +118,11 @@ START_SECTION(SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::ve
   {
     std::vector<int> indices;
     indices.push_back(1);
-    TEST_EXCEPTION(Exception::IllegalArgument&, new SpectrumAccessSqMass(*ptr, indices))
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
 
     std::vector<int> indices2;
     indices2.push_back(50);
-    TEST_EXCEPTION(Exception::IllegalArgument&, new SpectrumAccessSqMass(*ptr, indices))
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
   }
 }
 END_SECTION

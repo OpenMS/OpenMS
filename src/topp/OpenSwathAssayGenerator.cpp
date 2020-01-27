@@ -84,8 +84,10 @@ using namespace OpenMS;
   step, the transitions will be filtered to improve sensitivity for detection
   of peptides.
 
-  Optionally, theoretical identification transitions can be generated when
-  the TraML will be used for IPF scoring in OpenSWATH.
+  Optionally, theoretical identification transitions can be generated when the
+  TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
+  "MRMAssay" for more information on the algorithm. This is recommended if
+  post-translational modifications are scored with OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
@@ -243,7 +245,7 @@ protected:
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
-        ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+        ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
         OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else

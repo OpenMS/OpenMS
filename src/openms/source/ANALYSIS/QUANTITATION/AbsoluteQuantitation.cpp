@@ -309,7 +309,7 @@ namespace OpenMS
 
     // initialize all other variables
     Feature empty_feature;
-    size_t IS_component_it, IS_component_group_it;
+    size_t IS_component_it(0), IS_component_group_it(0);
 
     // // iterate through the unknowns
     // for (size_t i = 0; i < unknowns.size(); i++)

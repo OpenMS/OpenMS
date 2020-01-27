@@ -489,7 +489,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
       MRMTransitionGroupType transition_group;
       setup_transition_group2(transition_group);
       transition_group.getTransitionsMuteable()[0].setDetectingTransition(false);
-      TEST_EXCEPTION(Exception::IllegalArgument&, trgroup_picker.pickTransitionGroup(transition_group))
+      TEST_EXCEPTION(Exception::IllegalArgument, trgroup_picker.pickTransitionGroup(transition_group))
       TEST_EQUAL(transition_group.getFeatures().size(), 0)
     }
 

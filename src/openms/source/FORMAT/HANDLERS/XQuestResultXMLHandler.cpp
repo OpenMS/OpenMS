@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
@@ -81,7 +82,7 @@ namespace OpenMS
       // Initialize the one and only protein identification
       this->prot_ids_->clear();
       ProteinIdentification prot_id;
-      prot_id.setSearchEngine("OpenXQuest");
+      prot_id.setSearchEngine("xQuest");
       prot_id.setSearchEngineVersion(VersionInfo::getVersion());
       prot_id.setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
       this->prot_ids_->push_back(prot_id);
@@ -564,7 +565,7 @@ namespace OpenMS
           if (mods.size() > 0)
           {
             bool mod_set = false;
-            for (String mod : mods)
+            for (const String& mod : mods)
             {
               if (mod.hasSubstring(this->cross_linker_name_))
               {
@@ -592,26 +593,25 @@ namespace OpenMS
         UInt charge = this->attributeAsInt_(attributes, "charge");
         peptide_hit_alpha.setCharge(charge);
 
-        peptide_hit_alpha.setMetaValue("spectrum_reference", spectrum_index_light_);
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrum_index_light_);
         peptide_hit_alpha.setMetaValue("spectrum_index", spectrum_index_light_);
         peptide_hit_alpha.setMetaValue("spectrum_input_file", spectrum_input_file_);
 
         String specIDs;
         if (spectrum_index_light_ != spectrum_index_heavy_)
         {
-          peptide_hit_alpha.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
           specIDs = String(spectrum_index_light_) + "," + String(spectrum_index_heavy_);
 
-          peptide_hit_alpha.setMetaValue("spec_heavy_RT", this->rt_heavy_);
-          peptide_hit_alpha.setMetaValue("spec_heavy_MZ", this->mz_heavy_);
-          peptide_hit_alpha.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
           peptide_hit_alpha.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
         }
         else
         {
           specIDs = String(spectrum_index_light_);
         }
-        peptide_identification.setMetaValue("spectrum_reference", specIDs);
+        peptide_identification.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, specIDs);
 
         // Set xl_chain meta value for alpha
         peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
@@ -619,7 +619,7 @@ namespace OpenMS
         // Set Attributes of Peptide Identification
         peptide_identification.setMZ(this->mz_light_);
         peptide_identification.setRT(this->rt_light_);
-        peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
+        peptide_identification.setScoreType("OpenPepXL:score"); // Needed, since hard-coded in MzIdentMLHandler
 
         String prot1_string = this->attributeAsString_(attributes, "prot1");
 
@@ -642,50 +642,55 @@ namespace OpenMS
         }
         peptide_hit_alpha.setScore(score);
 
-        peptide_hit_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
 
         // Get common attributes of Peptide Identification
-        this->peptide_id_meta_values_["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
-        this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = xlinkermass;
-        this->peptide_id_meta_values_["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
-        this->peptide_id_meta_values_["OpenXQuest:score"] = DataValue(score);
-        this->peptide_id_meta_values_["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
+        this->peptide_id_meta_values_["OpenPepXL:id"] = DataValue(this->attributeAsString_(attributes, "id"));
+        this->peptide_id_meta_values_["OpenPepXL:xlinkermass"] = xlinkermass;
+        this->peptide_id_meta_values_[Constants::UserParam::OPENPEPXL_XL_RANK] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
+        this->peptide_id_meta_values_["OpenPepXL:score"] = DataValue(score);
+        this->peptide_id_meta_values_["OpenPepXL:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
         // get scores (which might be optional)
         String wTIC, TIC, intsum, match_odds, fdr;
         if (this->optionalAttributeAsString_(wTIC, attributes, "wTIC") && !wTIC.empty())
         {
-          this->peptide_id_meta_values_["OpenXQuest:wTIC"] = DataValue(wTIC.toDouble());
+          this->peptide_id_meta_values_["OpenPepXL:wTIC"] = DataValue(wTIC.toDouble());
         }
         if (this->optionalAttributeAsString_(TIC, attributes, "TIC") && !TIC.empty())
         {
-          this->peptide_id_meta_values_["OpenXQuest:percTIC"] = DataValue(TIC.toDouble());
+          this->peptide_id_meta_values_["OpenPepXL:percTIC"] = DataValue(TIC.toDouble());
         }
 
         if (this->optionalAttributeAsString_(intsum, attributes, "intsum") && !intsum.empty())
         {
-          this->peptide_id_meta_values_["OpenXQuest:intsum"] = DataValue(intsum.toDouble());
+          this->peptide_id_meta_values_["OpenPepXL:intsum"] = DataValue(intsum.toDouble());
         }
         if (this->optionalAttributeAsString_(match_odds, attributes, "match_odds") && !match_odds.empty())
         {
-          this->peptide_id_meta_values_["OpenXQuest:match-odds"] = DataValue(match_odds.toDouble());
+          this->peptide_id_meta_values_["OpenPepXL:match-odds"] = DataValue(match_odds.toDouble());
         }
         if (this->optionalAttributeAsString_(fdr, attributes, "fdr") && !fdr.empty())
         {
-          this->peptide_id_meta_values_["OpenXQuest:fdr"] = DataValue(fdr.toDouble());
+          this->peptide_id_meta_values_["XFDR:FDR"] = DataValue(fdr.toDouble());
         }
 
         String xprophet_f;
         if (this->optionalAttributeAsString_(xprophet_f, attributes, "xprophet_f") && !xprophet_f.empty())
         {
-          peptide_identification.setMetaValue("OpenXQuest:xprophet_f", xprophet_f.toInt());
+          peptide_hit_alpha.setMetaValue("XFDR:used_for_FDR", xprophet_f.toInt());
+        }
+        String fdr_type;
+        if (this->optionalAttributeAsString_(xprophet_f, attributes, "fdr_type") && !fdr_type.empty())
+        {
+          peptide_hit_alpha.setMetaValue("XFDR:fdr_type", fdr_type);
         }
 
-        assert(this->peptide_id_meta_values_["OpenXQuest:id"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_["xl_rank"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_["OpenXQuest:score"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenPepXL:id"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenPepXL:xlinkermass"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_[Constants::UserParam::OPENPEPXL_XL_RANK] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenPepXL:score"] != DataValue::EMPTY);
+        assert(this->peptide_id_meta_values_["OpenPepXL:structure"] != DataValue::EMPTY);
 
         this->addMetaValues_(peptide_hit_alpha);
 
@@ -701,7 +706,8 @@ namespace OpenMS
 
         peptide_hit_alpha.setMetaValue("prot1", DataValue(prot1_string));
         peptide_hit_alpha.setMetaValue("prot2", DataValue("-"));
-        peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue("-"));
+        peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
 
         // Set peptide Evidences for Alpha (need one for each accession in the prot1_string)
         this->setPeptideEvidence_(prot1_string, peptide_hit_alpha);
@@ -719,7 +725,7 @@ namespace OpenMS
 
           peptide_hit_beta.setScore(score);
 
-          peptide_hit_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
 
           String seq2 = String(this->attributeAsString_(attributes, "seq2"));
           if (!this->is_openpepxl_)
@@ -727,40 +733,62 @@ namespace OpenMS
             seq2 = seq2.substitute("X", "M(Oxidation)");
           }
           peptide_hit_beta.setSequence(AASequence::fromString(seq2));
-          peptide_hit_alpha.setMetaValue("beta_sequence", seq2);
-          peptide_hit_beta.setMetaValue("beta_sequence", seq2);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, seq2);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, seq2);
 
           peptide_hit_beta.setCharge(charge);
 
-          peptide_hit_beta.setMetaValue("spectrum_reference", spectrum_index_light_);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrum_index_light_);
 
           if (spectrum_index_light_ != spectrum_index_heavy_)
           {
-            peptide_hit_beta.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
-
-            peptide_hit_beta.setMetaValue("spec_heavy_RT", this->rt_heavy_);
-            peptide_hit_beta.setMetaValue("spec_heavy_MZ", this->mz_heavy_);
-            peptide_hit_beta.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, this->rt_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, this->mz_heavy_);
+            peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrum_index_heavy_);
             peptide_hit_beta.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
           }
 
           this->addMetaValues_(peptide_hit_beta);
-          peptide_hit_alpha.setMetaValue("xl_type", DataValue("cross-link"));
-          peptide_hit_beta.setMetaValue("xl_type", DataValue("cross-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("cross-link"));
 
           // Set xl positions, depends on xl_type
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
-          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
-          peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.first - 1));
-          peptide_hit_beta.setMetaValue("xl_pos2", DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+
+          String term_spec_alpha("ANYWHERE"), term_spec_beta("ANYWHERE");
+          StringList aarequired1 = search_params.getMetaValue("cross_link:residue1");
+          StringList aarequired2 = search_params.getMetaValue("cross_link:residue2");
+
+          // StringListUtils::searchSuffix(aarequired1, seq1[positions.first-1])
+          if (positions.first == 1 && StringListUtils::searchSuffix(aarequired1, seq1[0]) == aarequired1.end())
+          {
+            term_spec_alpha = "N_TERM";
+          }
+          if (positions.second == 1 && StringListUtils::searchSuffix(aarequired2, seq2[0]) == aarequired2.end())
+          {
+            term_spec_beta = "N_TERM";
+          }
+          if (positions.first == SignedSize(seq1.size()) && StringListUtils::searchSuffix(aarequired1, seq1[positions.first-1]) == aarequired1.end())
+          {
+            term_spec_alpha = "C_TERM";
+          }
+          if (positions.second == SignedSize(seq2.size()) && StringListUtils::searchSuffix(aarequired2, seq2[positions.second-1]) == aarequired2.end())
+          {
+            term_spec_beta = "C_TERM";
+          }
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, term_spec_alpha);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, term_spec_beta);
 
           // Protein
           String prot2_string = this->attributeAsString_(attributes, "prot2");
 
           // Decide if decoy for beta
           target_decoy = DataValue(prot2_string.hasSubstring(this->decoy_string_) ? "decoy" : "target");
-          peptide_hit_beta.setMetaValue("target_decoy", target_decoy);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::TARGET_DECOY, target_decoy);
 
           //  Set xl_chain meta value for beta
           peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
@@ -776,10 +804,11 @@ namespace OpenMS
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
 
           peptide_hit_alpha.setMetaValue("prot2", DataValue(prot2_string));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
           peptide_hit_beta.setMetaValue("prot1", DataValue(prot1_string));
-          peptide_hit_beta.setMetaValue("prot2", DataValue(prot2_string));
-          peptide_hit_beta.setMetaValue("xl_mass", xlinkermass);
-          peptide_hit_beta.setMetaValue("xl_mod", this->cross_linker_name_);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS, DataValue(prot2_string));
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
+          peptide_hit_beta.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, this->cross_linker_name_);
 
           // Set Peptide Evidences for Beta
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
@@ -794,15 +823,15 @@ namespace OpenMS
         else if (xlink_type_string == "intralink")
         {
           // xl type
-          peptide_hit_alpha.setMetaValue("xl_type", DataValue("loop-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("loop-link"));
 
           // Set xl positions, depends on xl_type
           this->getLinkPosition_(attributes, positions);
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
-          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
-          peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
-          peptide_hit_alpha.setMetaValue("xl_mod", this->cross_linker_name_);
-          peptide_hit_alpha.setMetaValue("beta_sequence", "-");
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(positions.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS, xlinkermass);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, this->cross_linker_name_);
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         }
         else if (xlink_type_string == "monolink")
         {
@@ -810,13 +839,13 @@ namespace OpenMS
           // this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
 
           // xl_type
-          peptide_hit_alpha.setMetaValue("xl_type", DataValue("mono-link"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, DataValue("mono-link"));
 
           std::pair< SignedSize, SignedSize > xlink_pos;
           this->getLinkPosition_(attributes, xlink_pos);
-          peptide_hit_alpha.setMetaValue("xl_pos", DataValue(xlink_pos.first - 1));
-          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue("-"));
-          peptide_hit_alpha.setMetaValue("beta_sequence", "-");
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, DataValue(xlink_pos.first - 1));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, DataValue("-"));
+          peptide_hit_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
         }
         else
         {
@@ -827,7 +856,7 @@ namespace OpenMS
         // Finalize this record
         peptide_hits.push_back(peptide_hit_alpha);
 
-        if (peptide_hit_beta.metaValueExists("xl_pos"))
+        if (peptide_hit_beta.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS1))
         {
           peptide_hits.push_back(peptide_hit_beta);
         }
@@ -971,254 +1000,260 @@ namespace OpenMS
         {
           continue;
         }
-
-        double precursor_mz = current_pep_id.getMZ();
-        int precursor_charge = pep_hits[0].getCharge();
-        double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
-
-        bool new_spectrum(false);
-        new_spectrum = (pep_hits[0].getMetaValue("spectrum_reference") != current_spectrum_light) ||
-            (pep_hits[0].metaValueExists("spectrum_reference_heavy") && pep_hits[0].getMetaValue("spectrum_reference_heavy") != current_spectrum_heavy);
-
-        if (new_spectrum)
+        for (PeptideHit ph : pep_hits)
         {
-          if (current_spectrum_light.size() > 0)
+          // TODO write the specrum_search entry for this ph
+
+          double precursor_mz = current_pep_id.getMZ();
+          int precursor_charge = ph.getCharge();
+          double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
+
+          bool new_spectrum(false);
+          new_spectrum = (ph.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE) != current_spectrum_light) ||
+              (ph.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF) != current_spectrum_heavy);
+
+          if (new_spectrum)
           {
-            os << "</spectrum_search>" << std::endl;
+            if (current_spectrum_light.size() > 0)
+            {
+              os << "</spectrum_search>" << std::endl;
+            }
+            current_spectrum_light = ph.getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+            current_spectrum_heavy = "";
+            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF))
+            {
+              current_spectrum_heavy = ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF);
+            }
+
+            vector<String> input_split_dir;
+            vector<String> input_split;
+            String base_name;
+            if (!input_filename.empty())
+            {
+              input_filename.split(String("/"), input_split_dir);
+              input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
+              base_name = input_split[0];
+            }
+            else if (ph.metaValueExists("spectrum_input_file"))
+            {
+              base_name = ph.getMetaValue("spectrum_input_file");
+            }
+
+            Size scan_index_light = ph.getMetaValue("spectrum_index");
+            Size scan_index_heavy = scan_index_light;
+            if (ph.metaValueExists("spectrum_index_heavy"))
+            {
+              scan_index_heavy = ph.getMetaValue("spectrum_index_heavy");
+            }
+            String spectrum_light_name = base_name + ".light." + scan_index_light;
+            String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+
+            String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+
+            String rt_scans = String(current_pep_id.getRT()) + ":";
+            String mz_scans = String(precursor_mz) + ":";
+            String scantype = "light_heavy";
+
+            if (scan_index_light == scan_index_heavy)
+            {
+              scantype = "light";
+              rt_scans += String(current_pep_id.getRT());
+              mz_scans += String(precursor_mz);
+            }
+            else
+            {
+              rt_scans += ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT).toString();
+              mz_scans += ph.getMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ).toString();
+            }
+
+
+            os << "<spectrum_search spectrum=\"" << spectrum_name << "\" mz_precursor=\"" << precursor_mz << "\" scantype=\"" << scantype << "\" charge_precursor=\"" << precursor_charge
+                << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans
+                << "\" scan_index_light=\"" << scan_index_light << "\" scan_index_heavy=\"" << scan_index_heavy
+                << "\" >" << std::endl;
+
+            // TODO values missing, most of them probably unimportant:
+            // mean_ionintensity = mean ion intensity of each MS2 spectrum
+            // ionintensity_stdev = ion inetnsity spectrum_index_heavy
+            // addedMass = ???
+            // iontag_ncandidates = number of candidates extracted per ion tag
+            // apriori_pmatch_common, apriori_pmatch_xlink = a priori probs from match-odds probability
+            // ncommonions = number of common ions
+            // nxlinkions = number of xlinked ions
+
           }
-          current_spectrum_light = pep_hits[0].getMetaValue("spectrum_reference");
-          current_spectrum_heavy = "";
-          if (pep_hits[0].metaValueExists("spectrum_reference_heavy"))
+          // one of "cross-link", "mono-link" or "loop-link"
+          String xltype_OPXL = ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
+          String xltype = "monolink";
+
+
+          String structure = ph.getSequence().toUnmodifiedString();
+          String letter_first = structure.substr( Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)), 1);
+
+          double weight = ph.getSequence().getMonoWeight();
+          int alpha_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)) + 1;
+          int beta_pos = 0;
+
+          String topology = String("a") + alpha_pos;
+          String id("");
+          String seq_beta("");
+
+          if (xltype_OPXL == "cross-link")
           {
-            current_spectrum_heavy = pep_hits[0].getMetaValue("spectrum_reference_heavy");
+            xltype = "xlink";
+            beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
+            AASequence beta_aaseq = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE));
+            structure += "-" + beta_aaseq.toUnmodifiedString();
+            topology += String("-b") + beta_pos;
+            weight += beta_aaseq.getMonoWeight() + double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
+            id = structure + "-" + topology;
+            seq_beta = ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE);
+          }
+          else if (xltype_OPXL == "loop-link")
+          {
+            xltype = "intralink";
+            beta_pos = Int(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)) + 1;
+            topology += String("-b") + beta_pos;
+            String letter_second = structure.substr(beta_pos-1, 1);
+            id = structure + String("-") + letter_first + alpha_pos + String("-") + letter_second + beta_pos;
+            weight += cross_link_mass_light;
+          }
+          else // mono-link
+          {
+            if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD).toString().hasPrefix("unknown"))
+            {
+              weight += double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS));
+            }
+            id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS)));
           }
 
-          vector<String> input_split_dir;
-          vector<String> input_split;
-          String base_name;
-          if (!input_filename.empty())
+          // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
+          // use the formula, if the MetaValue is unavailable
+          double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
+          double error = precursor_mz - theo_mz;
+          double rel_error = 0;
+          if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
           {
-            input_filename.split(String("/"), input_split_dir);
-            input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
-            base_name = input_split[0];
-          }
-          else if (pep_hits[0].metaValueExists("spectrum_input_file"))
-          {
-            base_name = pep_hits[0].getMetaValue("spectrum_input_file");
-          }
-
-          Size scan_index_light = pep_hits[0].getMetaValue("spectrum_index");
-          Size scan_index_heavy = scan_index_light;
-          if (pep_hits[0].metaValueExists("spectrum_index_heavy"))
-          {
-            scan_index_heavy = pep_hits[0].getMetaValue("spectrum_index_heavy");
-          }
-          String spectrum_light_name = base_name + ".light." + scan_index_light;
-          String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-
-          String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
-
-          String rt_scans = String(current_pep_id.getRT()) + ":";
-          String mz_scans = String(precursor_mz) + ":";
-          String scantype = "light_heavy";
-
-          if (scan_index_light == scan_index_heavy)
-          {
-            scantype = "light";
-            rt_scans += String(current_pep_id.getRT());
-            mz_scans += String(precursor_mz);
+            rel_error = double(ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
           }
           else
           {
-            rt_scans += pep_hits[0].getMetaValue("spec_heavy_RT").toString();
-            mz_scans += pep_hits[0].getMetaValue("spec_heavy_MZ").toString();
+            rel_error = (error / theo_mz) / 1e-6;
           }
 
-
-          os << "<spectrum_search spectrum=\"" << spectrum_name << "\" mz_precursor=\"" << precursor_mz << "\" scantype=\"" << scantype << "\" charge_precursor=\"" << precursor_charge
-              << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans
-              << "\" scan_index_light=\"" << scan_index_light << "\" scan_index_heavy=\"" << scan_index_heavy
-              << "\" >" << std::endl;
-
-          // TODO values missing, most of them probably unimportant:
-          // mean_ionintensity = mean ion intensity of each MS2 spectrum
-          // ionintensity_stdev = ion inetnsity spectrum_index_heavy
-          // addedMass = ???
-          // iontag_ncandidates = number of candidates extracted per ion tag
-          // apriori_pmatch_common, apriori_pmatch_xlink = a priori probs from match-odds probability
-          // ncommonions = number of common ions
-          // nxlinkions = number of xlinked ions
-
-        }
-        // one of "cross-link", "mono-link" or "loop-link"
-        String xltype_OPXL = pep_hits[0].getMetaValue("xl_type");
-        String xltype = "monolink";
-
-
-        String structure = pep_hits[0].getSequence().toUnmodifiedString();
-        String letter_first = structure.substr( Int(pep_hits[0].getMetaValue("xl_pos")), 1);
-
-        double weight = pep_hits[0].getSequence().getMonoWeight();
-        int alpha_pos = Int(pep_hits[0].getMetaValue("xl_pos")) + 1;
-        int beta_pos = 0;
-
-        String topology = String("a") + alpha_pos;
-        String id("");
-        String seq_beta("");
-
-        if (xltype_OPXL == "cross-link")
-        {
-          xltype = "xlink";
-          beta_pos = Int(pep_hits[1].getMetaValue("xl_pos2")) + 1;
-          structure += "-" + pep_hits[1].getSequence().toUnmodifiedString();
-          topology += String("-b") + beta_pos;
-          weight += pep_hits[1].getSequence().getMonoWeight() + double(pep_hits[0].getMetaValue("xl_mass"));
-          id = structure + "-" + topology;
-          seq_beta = pep_hits[1].getSequence().toString();
-        }
-        else if (xltype_OPXL == "loop-link")
-        {
-          xltype = "intralink";
-          beta_pos = Int(pep_hits[0].getMetaValue("xl_pos2")) + 1;
-          topology += String("-b") + beta_pos;
-          String letter_second = structure.substr(beta_pos-1, 1);
-          id = structure + String("-") + letter_first + alpha_pos + String("-") + letter_second + beta_pos;
-          weight += cross_link_mass_light;
-        }
-        else // mono-link
-        {
-          if (pep_hits[0].getMetaValue("xl_mod").toString().hasPrefix("unknown"))
+          // Protein accessions
+          String prot_alpha = ph.getPeptideEvidences()[0].getProteinAccession();
+          if (ph.getPeptideEvidences().size() > 1)
           {
-            weight += double(pep_hits[0].getMetaValue("xl_mass"));
-          }
-          id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(pep_hits[0].getMetaValue("xl_mass")));
-        }
-
-        // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
-        // use the formula, if the MetaValue is unavailable
-        double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
-        double error = precursor_mz - theo_mz;
-        double rel_error = 0;
-        if (pep_hits[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
-        {
-          rel_error = double(pep_hits[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
-        }
-        else
-        {
-          rel_error = (error / theo_mz) / 1e-6;
-        }
-
-        // Protein accessions
-        String prot_alpha = pep_hits[0].getPeptideEvidences()[0].getProteinAccession();
-        if (pep_hits[0].getPeptideEvidences().size() > 1)
-        {
-          for (Size i = 1; i < pep_hits[0].getPeptideEvidences().size(); ++i)
-          {
-            prot_alpha = prot_alpha + "," + pep_hits[0].getPeptideEvidences()[i].getProteinAccession();
-          }
-        }
-
-        String prot_beta = "";
-        if (pep_hits.size() > 1)
-        {
-          prot_beta = pep_hits[1].getPeptideEvidences()[0].getProteinAccession();
-          if (pep_hits[1].getPeptideEvidences().size() > 1)
-          {
-            for (Size i = 1; i < pep_hits[1].getPeptideEvidences().size(); ++i)
+            for (Size i = 1; i < ph.getPeptideEvidences().size(); ++i)
             {
-              prot_alpha = prot_alpha + "," + pep_hits[1].getPeptideEvidences()[i].getProteinAccession();
+              prot_alpha = prot_alpha + "," + ph.getPeptideEvidences()[i].getProteinAccession();
             }
           }
+
+          String prot_beta = "";
+          if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) && ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS) != "-")
+          {
+            prot_beta = ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_ACCESSIONS);
+          }
+
+          String xlinkposition = String(alpha_pos);
+          if (beta_pos > 0)
+          {
+            xlinkposition += "," + String(beta_pos);
+          }
+
+          os << "<search_hit search_hit_rank=\"" << ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK).toString() << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << ph.getSequence().toString() << "\" seq2=\"" << seq_beta
+                << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << xlinkposition
+                << "\" Mr=\"" << weight << "\" mz=\"" << theo_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS).toString()
+                << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error << "\" error_rel=\"" << rel_error
+                << "\" xlinkions_matched=\"" << (Int(ph.getMetaValue("matched_xlink_alpha")) + Int(ph.getMetaValue("matched_xlink_beta"))) << "\" backboneions_matched=\"" << (Int(ph.getMetaValue("matched_linear_alpha")) + Int(ph.getMetaValue("matched_linear_beta")))
+                << "\" xcorrx=\"" << ph.getMetaValue("OpenPepXL:xcorr xlink").toString() << "\" xcorrb=\"" << ph.getMetaValue("OpenPepXL:xcorr common").toString() << "\" match_odds=\"" << ph.getMetaValue("OpenPepXL:match-odds").toString() << "\" prescore=\"" << ph.getMetaValue("OpenPepXL:prescore").toString()
+                << "\" num_of_matched_ions_alpha=\"" << (Int(ph.getMetaValue("matched_linear_alpha")) + Int(ph.getMetaValue("matched_xlink_alpha")))
+                << "\" num_of_matched_ions_beta=\"" << (Int(ph.getMetaValue("matched_xlink_beta")) + Int(ph.getMetaValue("matched_linear_beta")))
+                << "\" num_of_matched_common_ions_alpha=\"" << ph.getMetaValue("matched_linear_alpha").toString() << "\" num_of_matched_common_ions_beta=\"" << ph.getMetaValue("matched_linear_beta").toString()
+                << "\" num_of_matched_xlink_ions_alpha=\"" << ph.getMetaValue("matched_xlink_alpha").toString() << "\" num_of_matched_xlink_ions_beta=\"" << ph.getMetaValue("matched_xlink_beta").toString()
+                << "\" TIC=\"" << ph.getMetaValue("OpenPepXL:TIC").toString() << "\" wTIC=\"" << ph.getMetaValue("OpenPepXL:wTIC").toString() << "\" intsum=\"" << ph.getMetaValue("OpenPepXL:intsum").toString();
+
+          if (ph.metaValueExists("XFDR:used_for_FDR"))
+          {
+            os << "\" xprophet_f=\"" << ph.getMetaValue("XFDR:used_for_FDR");
+          }
+          if (ph.metaValueExists("XFDR:fdr_type"))
+          {
+            os << "\" fdr_type=\"" << ph.getMetaValue("XFDR:fdr_type");
+          }
+          if (ph.metaValueExists(Constants::UserParam::XFDR_FDR))
+          {
+            os << "\" fdr=\"" << ph.getMetaValue(Constants::UserParam::XFDR_FDR);
+          }
+
+          // remove MetaValues, that were already used and written out with a different key.
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE);
+          if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_POS2))
+          {
+            ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2);
+          }
+          ph.removeMetaValue("matched_xlink_alpha");
+          ph.removeMetaValue("matched_linear_alpha");
+          ph.removeMetaValue("matched_xlink_beta");
+          ph.removeMetaValue("matched_linear_beta");
+          ph.removeMetaValue("OpenPepXL:xcorr xlink");
+          ph.removeMetaValue("OpenPepXL:xcorr common");
+          ph.removeMetaValue("OpenPepXL:match-odds");
+          ph.removeMetaValue("OpenPepXL:prescore");
+          ph.removeMetaValue("OpenPepXL:TIC");
+          ph.removeMetaValue("OpenPepXL:wTIC");
+          ph.removeMetaValue("OpenPepXL:intsum");
+          ph.removeMetaValue("spectrum_reference");
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF);
+          ph.removeMetaValue("spectrum_index");
+          ph.removeMetaValue("spectrum_index_heavy");
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT);
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ);
+          ph.removeMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
+          ph.removeMetaValue(Constants::UserParam::XFDR_FDR);
+
+          // also remove MetaValues, that we do not need in xquestXML
+          ph.removeMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD);
+          // ph.removeMetaValue("xl_chain");
+
+          // these metaValues can be present, e.g. if the data came from loading a xquest.xml file
+          // since they are already generated by other methods, they should not be duplicated in the output
+          ph.removeMetaValue("prot1");
+          ph.removeMetaValue("prot2");
+          ph.removeMetaValue("OpenPepXL:id");
+          ph.removeMetaValue("OpenPepXL:percTIC");
+          ph.removeMetaValue("OpenPepXL:score");
+          ph.removeMetaValue("OpenPepXL:structure");
+          ph.removeMetaValue("OpenPepXL:xlinkermass");
+
+          // automate writing out any additional MetaValues
+          std::vector<String> keys;
+          ph.getKeys(keys);
+
+          for (const String& key : keys)
+          {
+            os << "\" " << key << "=\"" << ph.getMetaValue(key).toString();
+          }
+          // score, end of the line and closing tag for this hit
+          os << "\" annotated_spec=\"" << "" << "\" score=\"" << ph.getScore() << "\" >\n</search_hit>" << std::endl;
+
+          // TODO values missing, most of them probably unimportant:
+          // weighted_matchodds_mean = a weighted version of match-odds?
+          // weighted_matchodds_sum
+          // match_error_mean = is this per peak error?
+          // match_error_stdev = is this per peak error?
+          // prescore_alpha, prescore_beta
+          // match_odds_alphacommon, match_odds_betacommon, match_odds_alphaxlink, match_odds_betaxlink
+          // xcorrall = xcorr for the whole combined theo spectrum?
+          // TIC_alpha, TIC_beta
+          // apriori_match_probs
+          // apriori_match_probs_log
         }
-
-        String xlinkposition = String(alpha_pos);
-        if (beta_pos > 0)
-        {
-          xlinkposition += "," + String(beta_pos);
-        }
-
-        os << "<search_hit search_hit_rank=\"" << pep_hits[0].getMetaValue("xl_rank").toString() << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << pep_hits[0].getSequence().toString() << "\" seq2=\"" << seq_beta
-              << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << xlinkposition
-              << "\" Mr=\"" << weight << "\" mz=\"" << theo_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << pep_hits[0].getMetaValue("xl_mass").toString()
-              << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error << "\" error_rel=\"" << rel_error
-              << "\" xlinkions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_beta"))) << "\" backboneions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_linear_alpha")) + Int(pep_hits[0].getMetaValue("matched_linear_beta")))
-              << "\" xcorrx=\"" << pep_hits[0].getMetaValue("OpenXQuest:xcorr xlink").toString() << "\" xcorrb=\"" << pep_hits[0].getMetaValue("OpenXQuest:xcorr common").toString() << "\" match_odds=\"" << pep_hits[0].getMetaValue("OpenXQuest:match-odds").toString() << "\" prescore=\"" << pep_hits[0].getMetaValue("OpenXQuest:prescore").toString()
-              << "\" num_of_matched_ions_alpha=\"" << (Int(pep_hits[0].getMetaValue("matched_linear_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_alpha")))
-              << "\" num_of_matched_ions_beta=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_beta")) + Int(pep_hits[0].getMetaValue("matched_linear_beta")))
-              << "\" num_of_matched_common_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_linear_alpha").toString() << "\" num_of_matched_common_ions_beta=\"" << pep_hits[0].getMetaValue("matched_linear_beta").toString()
-              << "\" num_of_matched_xlink_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_xlink_alpha").toString() << "\" num_of_matched_xlink_ions_beta=\"" << pep_hits[0].getMetaValue("matched_xlink_beta").toString()
-              << "\" TIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:TIC").toString() << "\" wTIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:wTIC").toString() << "\" intsum=\"" << pep_hits[0].getMetaValue("OpenXQuest:intsum").toString();
-
-        if (pep_hits[0].metaValueExists("OpenXQuest:fdr"))
-        {
-          os << "\" fdr=\"" << pep_hits[0].getMetaValue("OpenXQuest:fdr");
-        }
-        // remove MetaValues, that were already used and written out with a different key.
-        pep_hits[0].removeMetaValue("xl_mass");
-        pep_hits[0].removeMetaValue("xl_rank");
-        pep_hits[0].removeMetaValue("xl_pos");
-        pep_hits[0].removeMetaValue("xl_type");
-        pep_hits[0].removeMetaValue("xl_term_spec");
-        if (pep_hits[0].metaValueExists("xl_pos2"))
-        {
-          pep_hits[0].removeMetaValue("xl_pos2");
-        }
-        pep_hits[0].removeMetaValue("matched_xlink_alpha");
-        pep_hits[0].removeMetaValue("matched_linear_alpha");
-        pep_hits[0].removeMetaValue("matched_xlink_beta");
-        pep_hits[0].removeMetaValue("matched_linear_beta");
-        pep_hits[0].removeMetaValue("OpenXQuest:xcorr xlink");
-        pep_hits[0].removeMetaValue("OpenXQuest:xcorr common");
-        pep_hits[0].removeMetaValue("OpenXQuest:match-odds");
-        pep_hits[0].removeMetaValue("OpenXQuest:prescore");
-        pep_hits[0].removeMetaValue("OpenXQuest:TIC");
-        pep_hits[0].removeMetaValue("OpenXQuest:wTIC");
-        pep_hits[0].removeMetaValue("OpenXQuest:intsum");
-        pep_hits[0].removeMetaValue("spectrum_reference");
-        pep_hits[0].removeMetaValue("spectrum_reference_heavy");
-        pep_hits[0].removeMetaValue("spectrum_index");
-        pep_hits[0].removeMetaValue("spectrum_index_heavy");
-        pep_hits[0].removeMetaValue("spec_heavy_RT");
-        pep_hits[0].removeMetaValue("spec_heavy_MZ");
-        pep_hits[0].removeMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
-        pep_hits[0].removeMetaValue("OpenXQuest:fdr");
-
-        // also remove MetaValues, that we do not need in xquestXML
-        pep_hits[0].removeMetaValue("xl_mod");
-        pep_hits[0].removeMetaValue("xl_chain");
-
-        // these metaValues can be present, e.g. if the data came from loading a xquest.xml file
-        // since they are already generated by other methods, they should not be duplicated in the output
-        pep_hits[0].removeMetaValue("prot1");
-        pep_hits[0].removeMetaValue("prot2");
-        pep_hits[0].removeMetaValue("OpenXQuest:id");
-        pep_hits[0].removeMetaValue("OpenXQuest:percTIC");
-        pep_hits[0].removeMetaValue("OpenXQuest:score");
-        pep_hits[0].removeMetaValue("OpenXQuest:structure");
-        pep_hits[0].removeMetaValue("OpenXQuest:xlinkermass");
-
-        // automate writing out any additional MetaValues
-        std::vector<String> keys;
-        pep_hits[0].getKeys(keys);
-
-        for (String key : keys)
-        {
-          os << "\" " << key << "=\"" << pep_hits[0].getMetaValue(key).toString();
-        }
-        // score, end of the line and closing tag for this hit
-        os << "\" annotated_spec=\"" << "" << "\" score=\"" << pep_hits[0].getScore() << "\" >\n</search_hit>" << std::endl;
-
-        // TODO values missing, most of them probably unimportant:
-        // weighted_matchodds_mean = a weighted version of match-odds?
-        // weighted_matchodds_sum
-        // match_error_mean = is this per peak error?
-        // match_error_stdev = is this per peak error?
-        // prescore_alpha, prescore_beta
-        // match_odds_alphacommon, match_odds_betacommon, match_odds_alphaxlink, match_odds_betaxlink
-        // xcorrall = xcorr for the whole combined theo spectrum?
-        // TIC_alpha, TIC_beta
-        // apriori_match_probs
-        // apriori_match_probs_log
       }
       os << "</spectrum_search>" << std::endl;
       os << "</xquest_results>" << std::endl;

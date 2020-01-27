@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <iosfwd>
@@ -459,6 +458,17 @@ protected:
       @param remove_prefix indicates if the prefix is removed before adding entries to the new Param
     */
     Param copy(const String& prefix, bool remove_prefix = false) const;
+
+    /**
+      @brief Returns a new Param object containing all entries in the given subset.
+
+      @param subset The subset of Param nodes that should be copied out of the object
+             here. Includes values etc. Does not check any compatibility. Just matches the names.
+      @note Only matches entries and nodes at the root=top level and copies over whole subtrees if matched.
+            This function is mainly used for copying subsection parameters that were not registered as
+            as an actual subsection e.g. for backwards compatibility of param names.
+    */
+    Param copySubset(const Param& subset) const;
 
     /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param

@@ -75,7 +75,7 @@ namespace OpenMS
     /// Assignment operator
     CVTermListInterface & operator=(const CVTermListInterface & rhs);
     /// Move assignment operator
-    CVTermListInterface& operator=(CVTermListInterface&&);
+    CVTermListInterface& operator=(CVTermListInterface&&) noexcept;
     //@}
 
     /// equality operator

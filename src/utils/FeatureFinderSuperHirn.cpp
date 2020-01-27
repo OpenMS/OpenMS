@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -153,8 +155,18 @@ protected:
       output[i].ensureUniqueId();
     }
     StringList ms_runs;
-    input.getPrimaryMSRunPath(ms_runs);
-    output.setPrimaryMSRunPath(ms_runs);
+
+    // annotate "spectra_data" metavalue
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, input);
+    }    
+
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

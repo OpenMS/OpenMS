@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-#include <cstdint>
-#include <QDir>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <QDir>
+#include <cstdint>
 
 using namespace OpenMS;
 using namespace std;
@@ -434,16 +434,16 @@ namespace OpenMS
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;
-    bool use_unassigend_ms2 = false;
-    bool no_feautre_information = false;
+    bool use_unassigned_ms2 = false;
+    bool no_feature_information = false;
 
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
     // feature information was provided and unassigend ms2 should be used (feature only parameter)
-    if (!unassigned_ms2.empty() && !feature_only) use_unassigend_ms2 = true;
+    if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
-    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feautre_information = true;
+    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
@@ -611,7 +611,7 @@ namespace OpenMS
     }
 
     // if not mappend information available (e.g. empty featurexml or only a few features)
-    if (use_unassigend_ms2)
+    if (use_unassigned_ms2)
     {
       // no feature information was provided
       bool writecompound = true;
@@ -643,7 +643,7 @@ namespace OpenMS
                    v_cmpinfo);
     }
 
-    if (no_feautre_information)
+    if (no_feature_information)
     {
       // no feature information was provided
       bool writecompound = true;

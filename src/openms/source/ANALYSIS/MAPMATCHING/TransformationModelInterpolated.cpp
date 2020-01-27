@@ -204,6 +204,128 @@ private:
     }
   }
 
+  void TransformationModelInterpolated::preprocessDataPoints_(const std::vector<std::pair<double,double>>& data)
+  {
+    // need monotonically increasing x values (can't have the same value twice):
+    std::map<double, std::vector<double> > mapping;
+    for (std::vector<std::pair<double,double>>::const_iterator it = data.begin();
+         it != data.end();
+         ++it)
+    {
+      mapping[it->first].push_back(it->second);
+    }
+    x_.resize(mapping.size());
+    y_.resize(mapping.size());
+    size_t i = 0;
+    for (std::map<double, std::vector<double> >::const_iterator it = mapping.begin();
+         it != mapping.end();
+         ++it, ++i)
+    {
+      x_[i] = it->first;
+      // use average y value:
+      y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+    }
+
+    // ensure that we have enough points for an interpolation
+    if (x_.size() < 3)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Cubic spline model needs at least 3 data points (with unique x values)");
+    }
+  }
+
+  TransformationModelInterpolated::TransformationModelInterpolated(const std::vector<std::pair<double,double>>& data, const Param& params, bool preprocess = true)
+  {
+    params_ = params;
+    Param defaults;
+    getDefaultParameters(defaults);
+    params_.setDefaults(defaults);
+
+    // convert incoming data to x_ and y_
+    if (preprocess)
+    {
+      preprocessDataPoints_(data);
+    }
+    else
+    {
+      x_.resize(data.size());
+      y_.resize(data.size());
+      for (const std::pair<double,double>& pair : data)
+      {
+        x_.push_back(pair.first);
+        y_.push_back(pair.second);
+      }
+    }
+
+
+    // choose the actual interpolation type
+    const String interpolation_type = params_.getValue("interpolation_type");
+    if (interpolation_type == "linear")
+    {
+      interp_ = new LinearInterpolator();
+    }
+    else if (interpolation_type == "cspline")
+    {
+      interp_ = new Spline2dInterpolator();
+    }
+    else if (interpolation_type == "akima")
+    {
+      interp_ = new AkimaInterpolator();
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "unknown/unsupported interpolation type '" + interpolation_type + "'");
+    }
+
+    // assign data
+    interp_->init(x_, y_);
+
+    // linear model for extrapolation:
+    const String extrapolation_type = params_.getValue("extrapolation_type");
+    if (extrapolation_type == "global-linear")
+    {
+      std::vector<TransformationModel::DataPoint> bloated_data{};
+      bloated_data.resize(x_.size());
+      //uff... well here we go.. adding an empty string
+      for (Size s = 0; s < x_.size(); ++s)
+      {
+        bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
+      }
+      lm_front_ = new TransformationModelLinear(bloated_data, Param());
+      lm_back_ = new TransformationModelLinear(bloated_data, Param());
+    }
+    else if (extrapolation_type == "two-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_.front(), y_.front());
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else if (extrapolation_type == "four-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_[0], y_[0]);
+      lm_data[1] = std::make_pair(x_[1], y_[1]);
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+
+      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else
+    {
+      if (interp_)
+      {
+        delete interp_;
+      }
+
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+    }
+  }
+
   TransformationModelInterpolated::TransformationModelInterpolated(const TransformationModel::DataPoints& data, const Param& params)
   {
     params_ = params;

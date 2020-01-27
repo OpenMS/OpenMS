@@ -161,11 +161,11 @@ public:
       {
       }
 
-      RetentionTime(const RetentionTime & rhs) = default;
-      RetentionTime(RetentionTime && rhs) noexcept = default;
+      RetentionTime(const RetentionTime &) = default;
+      RetentionTime(RetentionTime &&) noexcept = default;
       virtual ~RetentionTime() = default;
-      RetentionTime & operator=(const RetentionTime & rhs) & = default;
-      RetentionTime & operator=(RetentionTime && rhs) & = default;
+      RetentionTime & operator=(const RetentionTime &) & = default;
+      RetentionTime & operator=(RetentionTime &&) & = default;
 
       bool operator==(const RetentionTime & rhs) const
       {
@@ -223,10 +223,10 @@ public:
       {
       }
 
-      PeptideCompound(const PeptideCompound & rhs) = default;
-      PeptideCompound(PeptideCompound && rhs) noexcept = default;
-      PeptideCompound & operator=(const PeptideCompound & rhs) & = default;
-      PeptideCompound & operator=(PeptideCompound && rhs) & = default;
+      PeptideCompound(const PeptideCompound &) = default;
+      PeptideCompound(PeptideCompound &&) noexcept = default;
+      PeptideCompound & operator=(const PeptideCompound &) & = default;
+      PeptideCompound & operator=(PeptideCompound &&) & = default;
 
       bool operator==(const PeptideCompound & rhs) const
       {
@@ -340,10 +340,10 @@ public:
       {
       }
 
-      Compound(const Compound & rhs) = default;
-      Compound(Compound && rhs) noexcept = default;
-      Compound & operator=(const Compound & rhs) & = default;
-      Compound & operator=(Compound && rhs) & = default;
+      Compound(const Compound &) = default;
+      Compound(Compound &&) noexcept = default;
+      Compound & operator=(const Compound &) & = default;
+      Compound & operator=(Compound &&) & = default;
 
       bool operator==(const Compound & rhs) const
       {
@@ -394,10 +394,10 @@ public:
       {
       }
 
-      Peptide(const Peptide & rhs) = default;
-      Peptide(Peptide && rhs) noexcept = default;
-      Peptide & operator=(const Peptide & rhs) & = default;
-      Peptide & operator=(Peptide && rhs) & = default;
+      Peptide(const Peptide &) = default;
+      Peptide(Peptide &&) noexcept = default;
+      Peptide & operator=(const Peptide &) & = default;
+      Peptide & operator=(Peptide &&) & = default;
 
       bool operator==(const Peptide & rhs) const
       {

@@ -32,13 +32,15 @@ cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":
         MetaInfoRegistry metaRegistry() nogil except +
 
         # Cython has a problem with inheritance of overloaded methods, so we
-        # can only declare one of the two methods here (most people will want
+        # can only declare one of the methods here (most people will want
         # to use the String-based methods).
         #
         void getKeys(libcpp_vector[String] & keys)
         #void getKeys(libcpp_vector[unsigned int] & keys)
         DataValue getMetaValue(String) nogil except +
+        #DataValue getMetaValue(String, DataValue) nogil except +
         #DataValue getMetaValue(unsigned int) nogil except +
+        #DataValue getMetaValue(unsigned int, DataValue) nogil except +
         void setMetaValue(String, DataValue) nogil except +
         #void setMetaValue(unsigned int, DataValue) nogil except +
         bool metaValueExists(String) nogil except +

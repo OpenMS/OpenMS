@@ -87,15 +87,15 @@
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
 	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" >
-		<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14">
-			<UserParam type="float" name="OMSSA_score" value="0.017342932170054"/>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" >
+		<PeptideHit score="0" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L">
+			<UserParam type="float" name="OMSSA_score" value="3.85390695500564e-05"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
 		<UserParam type="string" name="FFId_category" value="internal"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.327209472656" RT="1918.60864257812" >
-		<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14">
+		<PeptideHit score="0.0344827586206897" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14">
 			<UserParam type="float" name="OMSSA_score" value="0.032659959040807"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
@@ -5294,207 +5294,265 @@
 			<UserParam type="float" name="raw_intensity" value="1.1834744e07"/>
 		</feature>
 		<feature id="f_12388384985798314387">
-			<position dim="0">1788.67974852081943</position>
-			<position dim="1">722.324660331071073</position>
-			<intensity>3.725218e07</intensity>
+			<position dim="0">1696.521615404302793</position>
+			<position dim="1">613.30659575872096</position>
+			<intensity>5.309618e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>4.882743</overallquality>
+			<overallquality>3.208145</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
-				<pt x="1763.343505859375" y="722.274660331071118" />
-				<pt x="1829.824462890625" y="722.274660331071118" />
-				<pt x="1829.824462890625" y="722.374660331071027" />
-				<pt x="1763.343505859375" y="722.374660331071027" />
+				<pt x="1675.191650390625" y="613.256595758721005" />
+				<pt x="1789.6451416015625" y="613.256595758721005" />
+				<pt x="1789.6451416015625" y="613.356595758720914" />
+				<pt x="1675.191650390625" y="613.356595758720914" />
 			</convexhull>
 			<convexhull nr="1">
-				<pt x="1763.343505859375" y="722.776337749971162" />
-				<pt x="1829.824462890625" y="722.776337749971162" />
-				<pt x="1829.824462890625" y="722.876337749971071" />
-				<pt x="1763.343505859375" y="722.876337749971071" />
+				<pt x="1675.191650390625" y="613.758273177621049" />
+				<pt x="1789.6451416015625" y="613.758273177621049" />
+				<pt x="1789.6451416015625" y="613.858273177620959" />
+				<pt x="1675.191650390625" y="613.858273177620959" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_12388384985798314387_17078574238716611972">
-					<position dim="0">1788.67974852081943</position>
-					<position dim="1">722.324660331071073</position>
-					<intensity>1.359138e07</intensity>
+				<feature id="f_12388384985798314387_15721057298497490036">
+					<position dim="0">1696.521615404302793</position>
+					<position dim="1">613.30659575872096</position>
+					<intensity>3.093639e05</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
 					<overallquality>0.0</overallquality>
 					<charge>0</charge>
 					<convexhull nr="0">
-						<pt x="1763.343505859380002" y="1436.065673828124773" />
-						<pt x="1764.539428710940001" y="1529.93017578125" />
-						<pt x="1766.209350585940001" y="3307.008056640625" />
-						<pt x="1767.45556640625" y="1779.4400634765625" />
-						<pt x="1768.78759765625" y="3653.932373046875" />
-						<pt x="1770.087768554690001" y="4459.30517578125" />
-						<pt x="1771.37548828125" y="1216.3692626953125" />
-						<pt x="1772.724853515619998" y="2260.372314453125" />
-						<pt x="1775.101196289059999" y="1875.201904296875" />
-						<pt x="1776.7529296875" y="3841.736572265625" />
-						<pt x="1778.414672851559999" y="25259.7421875" />
-						<pt x="1779.782348632809999" y="94450.6328125" />
-						<pt x="1781.036254882809999" y="2.6845403125e05" />
-						<pt x="1782.708740234380002" y="7.36848771484375e05" />
-						<pt x="1784.005859375" y="1.274342734130859e06" />
-						<pt x="1785.664306640619998" y="2.096339649902344e06" />
-						<pt x="1788.009033203119998" y="2.373589499511719e06" />
-						<pt x="1789.645141601559999" y="2.002565836914063e06" />
-						<pt x="1791.299072265619998" y="1.429888220214844e06" />
-						<pt x="1792.966552734380002" y="9.7902961328125e05" />
-						<pt x="1794.189575195309999" y="7.114854926757812e05" />
-						<pt x="1796.901123046880002" y="3.8793775e05" />
-						<pt x="1799.292846679690001" y="2.61644703125e05" />
-						<pt x="1802.061157226559999" y="1.67558234375e05" />
-						<pt x="1802.939331054690001" y="1.52338671875e05" />
-						<pt x="1805.2861328125" y="1.10812921875e05" />
-						<pt x="1806.532104492190001" y="1.0158409375e05" />
-						<pt x="1807.845825195309999" y="77855.765625" />
-						<pt x="1809.5546875" y="62262.09375" />
-						<pt x="1811.232055664059999" y="44782.2421875" />
-						<pt x="1812.843139648440001" y="37811.44921875" />
-						<pt x="1814.093139648440001" y="41084.5703125" />
-						<pt x="1816.153930664059999" y="25090.451171875" />
-						<pt x="1817.874633789059999" y="23029.0625" />
-						<pt x="1819.56494140625" y="19784.75" />
-						<pt x="1821.21337890625" y="17179.380859375" />
-						<pt x="1823.140380859380002" y="11269.9404296875" />
-						<pt x="1825.08544921875" y="10149.87109375" />
-						<pt x="1827.03564453125" y="10383.4560546875" />
-						<pt x="1828.629028320309999" y="6091.03515625" />
-						<pt x="1829.824462890619998" y="5116.2822265625" />
+						<pt x="1676.961547851559999" y="0.0" />
+						<pt x="1678.553100585940001" y="0.0" />
+						<pt x="1680.167358398440001" y="0.0" />
+						<pt x="1681.753295898440001" y="0.0" />
+						<pt x="1684.453979492190001" y="2527.89306640625" />
+						<pt x="1685.810302734380002" y="4345.83251953125" />
+						<pt x="1687.5263671875" y="8423.515625" />
+						<pt x="1689.21337890625" y="11733.5234375" />
+						<pt x="1690.766479492190001" y="14782.7763671875" />
+						<pt x="1692.418579101559999" y="14478.6513671875" />
+						<pt x="1693.713623046880002" y="14824.609375" />
+						<pt x="1695.461303710940001" y="20382.298828125" />
+						<pt x="1697.084106445309999" y="17000.767578125" />
+						<pt x="1698.99609375" y="11308.9423828125" />
+						<pt x="1701.0732421875" y="10391.5966796875" />
+						<pt x="1702.7529296875" y="9972.4189453125" />
+						<pt x="1704.38671875" y="7291.27099609375" />
+						<pt x="1706.123168945309999" y="9249.96484375" />
+						<pt x="1707.672241210940001" y="8082.26904296875" />
+						<pt x="1709.35302734375" y="5694.28759765625" />
+						<pt x="1710.626098632809999" y="5438.787109375" />
+						<pt x="1712.339233398440001" y="4491.607421875" />
+						<pt x="1714.346435546880002" y="4353.23193359375" />
+						<pt x="1716.005249023440001" y="4534.859375" />
+						<pt x="1717.3720703125" y="4164.1318359375" />
+						<pt x="1718.703369140619998" y="4835.5546875" />
+						<pt x="1720.428100585940001" y="4890.26708984375" />
+						<pt x="1722.074096679690001" y="2990.019287109375" />
+						<pt x="1723.666870117190001" y="3325.887939453125" />
+						<pt x="1724.881225585940001" y="4824.759765625" />
+						<pt x="1726.58349609375" y="3535.4267578125" />
+						<pt x="1728.119750976559999" y="3204.603515625" />
+						<pt x="1729.416748046880002" y="3593.275146484375455" />
+						<pt x="1731.05224609375" y="3084.356689453125" />
+						<pt x="1732.3154296875" y="3775.739990234375" />
+						<pt x="1734.104370117190001" y="2783.450927734374545" />
+						<pt x="1735.693115234380002" y="3354.08251953125" />
+						<pt x="1737.052612304690001" y="3485.585449218750455" />
+						<pt x="1738.2958984375" y="2834.58349609375" />
+						<pt x="1740.135620117190001" y="1840.2559814453125" />
+						<pt x="1742.165405273440001" y="2351.5048828125" />
+						<pt x="1744.559326171880002" y="4292.4853515625" />
+						<pt x="1746.171142578119998" y="2546.65283203125" />
+						<pt x="1747.403442382809999" y="3355.857177734375455" />
+						<pt x="1749.729858398440001" y="2766.19677734375" />
+						<pt x="1751.631225585940001" y="0.0" />
+						<pt x="1753.181640625" y="2869.287597656249545" />
+						<pt x="1754.70849609375" y="2335.275146484375" />
+						<pt x="1756.636352539059999" y="4069.6474609375" />
+						<pt x="1758.224731445309999" y="2095.4921875" />
+						<pt x="1759.815307617190001" y="2158.900390625" />
+						<pt x="1761.756103515619998" y="2834.163330078125" />
+						<pt x="1763.343505859380002" y="2999.051513671875455" />
+						<pt x="1764.539428710940001" y="3109.86962890625" />
+						<pt x="1766.209350585940001" y="1595.7318115234375" />
+						<pt x="1767.45556640625" y="0.0" />
+						<pt x="1768.78759765625" y="2243.084228515625" />
+						<pt x="1770.087768554690001" y="2538.8408203125" />
+						<pt x="1771.37548828125" y="1397.06884765625" />
+						<pt x="1772.724853515619998" y="1746.876953124999773" />
+						<pt x="1775.101196289059999" y="2591.273681640625" />
+						<pt x="1776.7529296875" y="1806.21337890625" />
+						<pt x="1778.414672851559999" y="1783.9974365234375" />
+						<pt x="1779.782348632809999" y="2229.784423828125" />
+						<pt x="1781.036254882809999" y="3859.645751953125" />
+						<pt x="1782.708740234380002" y="2026.402587890625" />
+						<pt x="1784.005859375" y="1929.549072265625" />
+						<pt x="1785.664306640619998" y="0.0" />
+						<pt x="1788.009033203119998" y="0.0" />
+						<pt x="1789.645141601559999" y="0.0" />
 					</convexhull>
-					<UserParam type="float" name="MZ" value="722.324660331071073"/>
-					<UserParam type="float" name="peak_apex_position" value="1788.009033203119998"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i1"/>
-					<UserParam type="float" name="peak_apex_int" value="2.373589499511719e06"/>
-					<UserParam type="float" name="total_xic" value="1.38984924309082e07"/>
-					<UserParam type="float" name="width_at_50" value="10.2578125"/>
-					<UserParam type="float" name="logSN" value="5.030298422131577"/>
+					<UserParam type="float" name="MZ" value="613.30659575872096"/>
+					<UserParam type="float" name="peak_apex_position" value="1695.461303710940001"/>
+					<UserParam type="string" name="native_id" value="YIC[47.021464]D[10.0]NQDTISSK/2_i1"/>
+					<UserParam type="float" name="peak_apex_int" value="20382.298828125"/>
+					<UserParam type="float" name="total_xic" value="3.886880718383789e05"/>
+					<UserParam type="float" name="width_at_50" value="15.2265625"/>
+					<UserParam type="float" name="logSN" value="4.54535506396258"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.579648077487946"/>
+					<UserParam type="float" name="isotope_probability" value="0.588535189628601"/>
 				</feature>
-				<feature id="f_12388384985798314387_5106727040801878879">
-					<position dim="0">1788.67974852081943</position>
-					<position dim="1">722.826337749971117</position>
-					<intensity>9.946543e06</intensity>
+				<feature id="f_12388384985798314387_2608380305220684729">
+					<position dim="0">1696.521615404302793</position>
+					<position dim="1">613.808273177621004</position>
+					<intensity>34965.734375</intensity>
 					<quality dim="0">0.0</quality>
 					<quality dim="1">0.0</quality>
 					<overallquality>0.0</overallquality>
 					<charge>0</charge>
 					<convexhull nr="0">
+						<pt x="1676.961547851559999" y="0.0" />
+						<pt x="1678.553100585940001" y="0.0" />
+						<pt x="1680.167358398440001" y="0.0" />
+						<pt x="1681.753295898440001" y="0.0" />
+						<pt x="1684.453979492190001" y="0.0" />
+						<pt x="1685.810302734380002" y="1700.810546874999773" />
+						<pt x="1687.5263671875" y="0.0" />
+						<pt x="1689.21337890625" y="1875.77001953125" />
+						<pt x="1690.766479492190001" y="2186.046630859375" />
+						<pt x="1692.418579101559999" y="2602.989990234375455" />
+						<pt x="1693.713623046880002" y="2955.455322265625" />
+						<pt x="1695.461303710940001" y="2648.616943359375" />
+						<pt x="1697.084106445309999" y="2098.68115234375" />
+						<pt x="1698.99609375" y="2375.345703125" />
+						<pt x="1701.0732421875" y="2708.513427734375" />
+						<pt x="1702.7529296875" y="0.0" />
+						<pt x="1704.38671875" y="1084.25244140625" />
+						<pt x="1706.123168945309999" y="0.0" />
+						<pt x="1707.672241210940001" y="1412.256103515625" />
+						<pt x="1709.35302734375" y="0.0" />
+						<pt x="1710.626098632809999" y="1431.64697265625" />
+						<pt x="1712.339233398440001" y="1244.8101806640625" />
+						<pt x="1714.346435546880002" y="1385.314453125" />
+						<pt x="1716.005249023440001" y="1148.2325439453125" />
+						<pt x="1717.3720703125" y="0.0" />
+						<pt x="1718.703369140619998" y="1171.310791015625" />
+						<pt x="1720.428100585940001" y="0.0" />
+						<pt x="1722.074096679690001" y="0.0" />
+						<pt x="1723.666870117190001" y="0.0" />
+						<pt x="1724.881225585940001" y="867.73406982421875" />
+						<pt x="1726.58349609375" y="1248.7379150390625" />
+						<pt x="1728.119750976559999" y="0.0" />
+						<pt x="1729.416748046880002" y="0.0" />
+						<pt x="1731.05224609375" y="0.0" />
+						<pt x="1732.3154296875" y="0.0" />
+						<pt x="1734.104370117190001" y="0.0" />
+						<pt x="1735.693115234380002" y="0.0" />
+						<pt x="1737.052612304690001" y="1243.5606689453125" />
+						<pt x="1738.2958984375" y="0.0" />
+						<pt x="1740.135620117190001" y="0.0" />
+						<pt x="1742.165405273440001" y="0.0" />
+						<pt x="1744.559326171880002" y="0.0" />
+						<pt x="1746.171142578119998" y="0.0" />
+						<pt x="1747.403442382809999" y="0.0" />
+						<pt x="1749.729858398440001" y="0.0" />
+						<pt x="1751.631225585940001" y="0.0" />
+						<pt x="1753.181640625" y="0.0" />
+						<pt x="1754.70849609375" y="0.0" />
+						<pt x="1756.636352539059999" y="0.0" />
+						<pt x="1758.224731445309999" y="0.0" />
+						<pt x="1759.815307617190001" y="0.0" />
+						<pt x="1761.756103515619998" y="0.0" />
 						<pt x="1763.343505859380002" y="0.0" />
 						<pt x="1764.539428710940001" y="0.0" />
 						<pt x="1766.209350585940001" y="0.0" />
-						<pt x="1767.45556640625" y="2214.917724609375" />
-						<pt x="1768.78759765625" y="2222.47412109375" />
-						<pt x="1770.087768554690001" y="1540.015380859375" />
-						<pt x="1771.37548828125" y="1666.607055664062727" />
+						<pt x="1767.45556640625" y="0.0" />
+						<pt x="1768.78759765625" y="0.0" />
+						<pt x="1770.087768554690001" y="0.0" />
+						<pt x="1771.37548828125" y="0.0" />
 						<pt x="1772.724853515619998" y="0.0" />
-						<pt x="1775.101196289059999" y="1303.60400390625" />
-						<pt x="1776.7529296875" y="3102.941162109375" />
-						<pt x="1778.414672851559999" y="18237.68359375" />
-						<pt x="1779.782348632809999" y="63861.390625" />
-						<pt x="1781.036254882809999" y="2.11395796875e05" />
-						<pt x="1782.708740234380002" y="5.534281198730469e05" />
-						<pt x="1784.005859375" y="9.728562500000001e05" />
-						<pt x="1785.664306640619998" y="1.526304130859375e06" />
-						<pt x="1788.009033203119998" y="1.749065444580078e06" />
-						<pt x="1789.645141601559999" y="1.488536588867188e06" />
-						<pt x="1791.299072265619998" y="1.027874625e06" />
-						<pt x="1792.966552734380002" y="6.977356820068359e05" />
-						<pt x="1794.189575195309999" y="5.20382275390625e05" />
-						<pt x="1796.901123046880002" y="2.86876e05" />
-						<pt x="1799.292846679690001" y="1.84026484375e05" />
-						<pt x="1802.061157226559999" y="1.2632375e05" />
-						<pt x="1802.939331054690001" y="1.064333359375e05" />
-						<pt x="1805.2861328125" y="76188.3359375" />
-						<pt x="1806.532104492190001" y="68813.421875" />
-						<pt x="1807.845825195309999" y="56677.40234375" />
-						<pt x="1809.5546875" y="34864.96875" />
-						<pt x="1811.232055664059999" y="34795.4375" />
-						<pt x="1812.843139648440001" y="25476.580078125" />
-						<pt x="1814.093139648440001" y="23655.111328125" />
-						<pt x="1816.153930664059999" y="13415.705078125" />
-						<pt x="1817.874633789059999" y="15484.1484375" />
-						<pt x="1819.56494140625" y="11059.8671875" />
-						<pt x="1821.21337890625" y="11182.40234375" />
-						<pt x="1823.140380859380002" y="7154.548828125" />
-						<pt x="1825.08544921875" y="6570.65673828125" />
-						<pt x="1827.03564453125" y="7484.63671875" />
-						<pt x="1828.629028320309999" y="5016.92236328125" />
-						<pt x="1829.824462890619998" y="3314.273193359375" />
+						<pt x="1775.101196289059999" y="0.0" />
+						<pt x="1776.7529296875" y="0.0" />
+						<pt x="1778.414672851559999" y="1575.6484375" />
+						<pt x="1779.782348632809999" y="0.0" />
+						<pt x="1781.036254882809999" y="0.0" />
+						<pt x="1782.708740234380002" y="0.0" />
+						<pt x="1784.005859375" y="0.0" />
+						<pt x="1785.664306640619998" y="0.0" />
+						<pt x="1788.009033203119998" y="0.0" />
+						<pt x="1789.645141601559999" y="0.0" />
 					</convexhull>
-					<UserParam type="float" name="MZ" value="722.826337749971117"/>
-					<UserParam type="float" name="peak_apex_position" value="1788.009033203119998"/>
-					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i2"/>
-					<UserParam type="float" name="peak_apex_int" value="1.749065444580078e06"/>
-					<UserParam type="float" name="total_xic" value="1.020859085241699e07"/>
-					<UserParam type="float" name="width_at_50" value="10.2578125"/>
-					<UserParam type="float" name="logSN" value="5.031981761880007"/>
+					<UserParam type="float" name="MZ" value="613.808273177621004"/>
+					<UserParam type="float" name="peak_apex_position" value="1693.713623046880002"/>
+					<UserParam type="string" name="native_id" value="YIC[47.021464]D[10.0]NQDTISSK/2_i2"/>
+					<UserParam type="float" name="peak_apex_int" value="2955.455322265625"/>
+					<UserParam type="float" name="total_xic" value="36008.51495361328125"/>
+					<UserParam type="float" name="width_at_50" value="95.328369140619998"/>
+					<UserParam type="float" name="logSN" value="4.278197582269866"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
-					<UserParam type="float" name="isotope_probability" value="0.420351922512054"/>
+					<UserParam type="float" name="isotope_probability" value="0.411464840173721"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" >
-				<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14">
-					<UserParam type="float" name="OMSSA_score" value="3.85390695500564e-05"/>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" >
+				<PeptideHit score="0.0344827586206897" sequence="YIC[47.021464]D[10.0]NQDTISSK" charge="2" aa_before="K" aa_after="L">
+					<UserParam type="float" name="OMSSA_score" value="0.017342932170054"/>
 					<UserParam type="string" name="target_decoy" value="target"/>
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
-			<UserParam type="float" name="total_xic" value="2.410708328332519e07"/>
-			<UserParam type="string" name="PeptideRef" value="YIC(Carbamidomethyl)DNQDTISSK/2"/>
-			<UserParam type="float" name="leftWidth" value="1763.343505859375"/>
-			<UserParam type="float" name="rightWidth" value="1829.824462890625"/>
-			<UserParam type="float" name="peak_apices_sum" value="4.122654944091797e06"/>
-			<UserParam type="floatList" name="masserror_ppm" value="[722.324660331071073, 0.415541377916946, 722.826337749971117, -0.475209425098717]"/>
+			<UserParam type="float" name="total_xic" value="4.246965867919922e05"/>
+			<UserParam type="string" name="PeptideRef" value="YIC[47.021464]D[10.0]NQDTISSK/2"/>
+			<UserParam type="float" name="leftWidth" value="1675.191650390625"/>
+			<UserParam type="float" name="rightWidth" value="1789.6451416015625"/>
+			<UserParam type="float" name="peak_apices_sum" value="23337.754150390625"/>
+			<UserParam type="floatList" name="masserror_ppm" value="[]"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.0"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.999930643615412"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999898605328074"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.926508064873514"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.893218486235624"/>
 			<UserParam type="float" name="var_library_corr" value="1.0"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0022232979099"/>
-			<UserParam type="float" name="var_library_sangle" value="0.004339525105082"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0022232979099"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.002265305226725"/>
-			<UserParam type="float" name="var_library_dotprod" value="0.999997465949969"/>
-			<UserParam type="float" name="var_intensity_score" value="0.976390288421209"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.309917568900298"/>
+			<UserParam type="float" name="var_library_sangle" value="0.497597408861928"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.309917568900298"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.407551402615396"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.931575655645972"/>
+			<UserParam type="float" name="var_intensity_score" value="0.810766316962763"/>
 			<UserParam type="float" name="nr_peaks" value="2.0"/>
-			<UserParam type="float" name="sn_ratio" value="153.107524061801371"/>
-			<UserParam type="float" name="var_log_sn_score" value="5.031140446209839"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.998875975608826"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="7.847738125888187"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.989854474345057"/>
-			<UserParam type="float" name="var_isotope_overlap_score" value="0.422575235366821"/>
-			<UserParam type="float" name="var_massdev_score" value="0.445375401507832"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="0.440622956262344"/>
-			<UserParam type="float" name="var_bseries_score" value="0.0"/>
+			<UserParam type="float" name="sn_ratio" value="83.15210797549851"/>
+			<UserParam type="float" name="var_log_sn_score" value="4.42067155679683"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.884280145168305"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.279174661185043"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="-0.036378800702636"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.0"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0"/>
+			<UserParam type="float" name="var_bseries_score" value="1.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.727520293765687"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.835037532323736"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.882743484442472"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.23851689113564"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.82859699488381"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.208144892007533"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
-			<UserParam type="float" name="PrecursorMZ" value="722.324660331071073"/>
+			<UserParam type="float" name="PrecursorMZ" value="613.30659575872096"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0.0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0.0"/>
 			<UserParam type="int" name="n_total_ids" value="3"/>
 			<UserParam type="int" name="n_matching_ids" value="1"/>
 			<UserParam type="string" name="feature_class" value="positive"/>
-			<UserParam type="float" name="model_height" value="4.039033056262551e06"/>
-			<UserParam type="float" name="model_FWHM" value="8.664472968168131"/>
-			<UserParam type="float" name="model_center" value="1788.007729236177511"/>
-			<UserParam type="float" name="model_lower" value="1778.809071835433315"/>
-			<UserParam type="float" name="model_upper" value="1797.206386636921707"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="3.679462960297658"/>
-			<UserParam type="float" name="model_error" value="0.324527026329693"/>
-			<UserParam type="float" name="model_area" value="3.725218315474166e07"/>
-			<UserParam type="string" name="model_status" value="0 (valid)"/>
-			<UserParam type="float" name="raw_intensity" value="2.3537924e07"/>
+			<UserParam type="float" name="model_height" value="25585.265952723555529"/>
+			<UserParam type="float" name="model_FWHM" value="150.036229038236002"/>
+			<UserParam type="float" name="model_center" value="1629.564852068042683"/>
+			<UserParam type="float" name="model_lower" value="1470.278548828053999"/>
+			<UserParam type="float" name="model_upper" value="1788.851155308031366"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="63.714521295995439"/>
+			<UserParam type="float" name="model_error" value="0.525451573747916"/>
+			<UserParam type="float" name="model_area" value="4.086187084922404e06"/>
+			<UserParam type="string" name="model_status" value="2 (center out of bounds)"/>
+			<UserParam type="float" name="raw_intensity" value="3.443296875e05"/>
 		</feature>
-		<feature id="f_2608380305220684729">
+		<feature id="f_8984402899352117479">
 			<position dim="0">2336.464356981365199</position>
 			<position dim="1">464.250362519470968</position>
 			<intensity>2.355746e08</intensity>
@@ -5515,7 +5573,7 @@
 				<pt x="2307.17138671875" y="464.802039938370967" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_2608380305220684729_11422463686885200558">
+				<feature id="f_8984402899352117479_1621338151966755474">
 					<position dim="0">2336.464356981365199</position>
 					<position dim="1">464.250362519470968</position>
 					<intensity>8.306482e07</intensity>
@@ -5599,7 +5657,7 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.655742049217224"/>
 				</feature>
-				<feature id="f_2608380305220684729_7344192187426184761">
+				<feature id="f_8984402899352117479_25974125700937907">
 					<position dim="0">2336.464356981365199</position>
 					<position dim="1">464.752039938370956</position>
 					<intensity>4.381629e07</intensity>
@@ -5727,15 +5785,15 @@
 			<UserParam type="float" name="var_log_sn_score" value="4.1743885218779"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985789656639099"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.250285081911517"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.990655143077891"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.990655143060722"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.345333427190781"/>
 			<UserParam type="float" name="var_massdev_score" value="1.193334516675435"/>
 			<UserParam type="float" name="var_massdev_score_weighted" value="1.036255774072122"/>
 			<UserParam type="float" name="var_bseries_score" value="0.0"/>
 			<UserParam type="float" name="var_yseries_score" value="0.0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.761987349176976"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.862442882477309"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.319210450249679"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.761987342920332"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.862442892233981"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.319210450238925"/>
 			<UserParam type="int" name="missedCleavages" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="464.250362519470968"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0.0"/>
@@ -5744,14 +5802,14 @@
 			<UserParam type="int" name="n_total_ids" value="3"/>
 			<UserParam type="int" name="n_matching_ids" value="3"/>
 			<UserParam type="string" name="feature_class" value="positive"/>
-			<UserParam type="float" name="model_height" value="4.748375022252214e06"/>
-			<UserParam type="float" name="model_FWHM" value="46.607004665217168"/>
-			<UserParam type="float" name="model_center" value="2346.718261933562189"/>
-			<UserParam type="float" name="model_lower" value="2297.237829601985595"/>
-			<UserParam type="float" name="model_upper" value="2396.198694265138784"/>
-			<UserParam type="float" name="model_Gauss_sigma" value="19.792172932630589"/>
-			<UserParam type="float" name="model_error" value="0.589993606472901"/>
-			<UserParam type="float" name="model_area" value="2.355745527852571e08"/>
+			<UserParam type="float" name="model_height" value="4.748375022251961e06"/>
+			<UserParam type="float" name="model_FWHM" value="46.607004665226242"/>
+			<UserParam type="float" name="model_center" value="2346.718261933563554"/>
+			<UserParam type="float" name="model_lower" value="2297.23782960197741"/>
+			<UserParam type="float" name="model_upper" value="2396.198694265149697"/>
+			<UserParam type="float" name="model_Gauss_sigma" value="19.792172932634443"/>
+			<UserParam type="float" name="model_error" value="0.589993606472483"/>
+			<UserParam type="float" name="model_area" value="2.355745527852905e08"/>
 			<UserParam type="string" name="model_status" value="0 (valid)"/>
 			<UserParam type="float" name="raw_intensity" value="1.2688112e08"/>
 		</feature>

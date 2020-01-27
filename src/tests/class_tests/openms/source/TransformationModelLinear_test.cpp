@@ -67,7 +67,7 @@ data.push_back(point);
 
 START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
 {
-  TEST_EXCEPTION(Exception::IllegalArgument&, TransformationModelLinear lm(empty, Param())); // need data
+  TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelLinear lm(empty, Param())); // need data
   ptr = new TransformationModelLinear(data, Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
 }

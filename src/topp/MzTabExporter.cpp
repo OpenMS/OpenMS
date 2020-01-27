@@ -117,9 +117,9 @@ protected:
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("mzTab"));
-      registerFlag_("first_run_inference_only", "(idXML/mzid only): Does the first IdentificationRun in the file "
-                                                "only represent inference results? Read peptide information only "
-                                                "from second to last runs.");
+      registerFlag_("first_run_inference_only", "Does the first IdentificationRun in the file "
+                                                "only represent (protein) inference results? If so, read peptide information only "
+                                                "from second to last runs.", true);
       registerStringList_("opt_columns", "<mods>", {"subfeatures"}, "Add optional columns which are not part of the mzTab standard.", false);
       setValidStrings_("opt_columns", {"subfeatures"});
     }
@@ -128,10 +128,10 @@ protected:
     {
       // parameter handling
       String in = getStringOption_("in");
-      FileTypes::Type in_type = FileHandler().getType(in);
+      FileTypes::Type in_type = FileHandler::getType(in);
 
       String out = getStringOption_("out");
-      
+
       StringList optional_columns = getStringList_("opt_columns");
       bool export_subfeatures = ListUtils::contains(optional_columns, "subfeatures");
 
@@ -205,7 +205,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true, true, export_subfeatures);
+        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, getFlag_("first_run_inference_only"), true, true, export_subfeatures);
       }
 
       MzTabFile().store(out, mztab);

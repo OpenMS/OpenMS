@@ -99,6 +99,10 @@ represented in the simpler idXML format.
 
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
+We use the following heuristic: if peptideprophet_analyzed is set, we take the scores from the idXML as is and assume
+the PeptideHits contain all necessary information. If peptideprophet is not set, we only provide ProteinProphet-compatible
+results with probability-based scores (i.e. Percolator with PEP score or scores from IDPosteriorErrorProbability). All
+secondary or non-probability main scores will be written as "search_scores" only.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 

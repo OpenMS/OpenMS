@@ -145,6 +145,8 @@
   #define IF_MASTERTHREAD
 #endif
 
+#cmakedefine MT_ENABLE_NESTED_OPENMP 1
+
 #cmakedefine WITH_CRAWDAD 1
 
 // NOTE: This is a temporary hack. The aim is that OpenMS should not care

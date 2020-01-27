@@ -207,7 +207,7 @@ protected:
         // associate mzML file with map i in consensusXML
         if (ms_runs.size() > 1 || ms_runs.empty())
         {
-          OPENMS_LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
+          OPENMS_LOG_WARN << "Exactly one MS run should be associated with a FeatureMap. "
             << ms_runs.size() 
             << " provided." << endl;
         }
@@ -282,6 +282,9 @@ protected:
     }
     else
     {
+      //TODO isn't it better to have this option/functionality in the FeatureGroupingAlgorithm class?
+      // Otherwise everyone has to remember e.g. to annotate the old map_index etc.
+      bool keep_subelements = getFlag_("keep_subelements");
       vector<ConsensusMap> maps(ins.size());
       ConsensusXMLFile f;
       for (Size i = 0; i < ins.size(); ++i)
@@ -292,12 +295,29 @@ protected:
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+        if (keep_subelements)
+        {
+          std::function<void(PeptideIdentification &)> saveOldMapIndex =
+            [](PeptideIdentification &p)
+            {
+              if (p.metaValueExists("map_index"))
+              {
+                p.setMetaValue("old_map_index", p.getMetaValue("map_index"));
+              }
+              else
+              {
+                OPENMS_LOG_WARN << "Warning: map_index not found in PeptideID. The tool will not be able to assign a"
+                                   "consistent one. Check the settings of previous tools." << std::endl;
+              }
+            };
+          maps[i].applyFunctionOnPeptideIDs(saveOldMapIndex, true);
+        }
       }
       // group
       algorithm->group(maps, out_map);
 
       // set file descriptions:
-      bool keep_subelements = getFlag_("keep_subelements");
+
       if (!keep_subelements)
       {
         for (Size i = 0; i < ins.size(); ++i)

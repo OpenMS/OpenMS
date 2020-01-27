@@ -57,7 +57,7 @@ START_SECTION((~GzipIfstream()))
 END_SECTION
 
 START_SECTION(GzipIfstream(const char * filename))
-	TEST_EXCEPTION(Exception::FileNotFound&, GzipIfstream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound, GzipIfstream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
 	GzipIfstream gzip(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	
@@ -73,7 +73,7 @@ END_SECTION
 
 START_SECTION(void open(const char *filename))
 	GzipIfstream gzip;
-	TEST_EXCEPTION(Exception::FileNotFound&, gzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
+	TEST_EXCEPTION(Exception::FileNotFound, gzip.open(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	
 	gzip.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	
@@ -113,11 +113,11 @@ START_SECTION(size_t read(char *s, size_t n))
 	gzip2.close();
 	TEST_EQUAL(gzip2.isOpen(), false)
 	TEST_EQUAL(gzip2.streamEnd(),true)
-	TEST_EXCEPTION(Exception::IllegalArgument&, gzip2.read(buffer,10))
+	TEST_EXCEPTION(Exception::IllegalArgument, gzip2.read(buffer,10))
 	gzip2.close();			
 	TEST_EQUAL(gzip2.isOpen(), false)
 	TEST_EQUAL(gzip2.streamEnd(),true)
-	TEST_EXCEPTION(Exception::IllegalArgument&, gzip2.read(buffer,10))
+	TEST_EXCEPTION(Exception::IllegalArgument, gzip2.read(buffer,10))
 	gzip2.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
 	
 		TEST_EQUAL(5, gzip2.read(buffer, 5))

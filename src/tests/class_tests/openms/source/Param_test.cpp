@@ -38,10 +38,12 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -655,9 +657,9 @@ END_SECTION
 
 START_SECTION((const DataValue& getValue(const String &key) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getValue(""))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getValue("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getValue("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getValue("key:value"))
 END_SECTION
 
 START_SECTION((const String& getSectionDescription(const String& key) const))
@@ -669,16 +671,16 @@ END_SECTION
 
 START_SECTION((const String& getDescription(const String &key) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getDescription(""))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getDescription("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getDescription("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getDescription("key:value"))
 END_SECTION
 
 START_SECTION((const ParamEntry& getEntry(const String &key) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getEntry(""))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getEntry("key"))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getEntry("key:value"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry(""))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getEntry("key:value"))
 END_SECTION
 
 START_SECTION((void setValue(const String &key, const DataValue& value, const String &description="", const StringList &tags=StringList())))
@@ -708,7 +710,7 @@ END_SECTION
 
 START_SECTION((StringList getTags(const String& key) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.getTags("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.getTags("key"))
 
 	p.setValue("key","value");
 	TEST_EQUAL(p.getTags("key").size(),0)
@@ -716,10 +718,10 @@ END_SECTION
 
 START_SECTION((void addTag(const String& key, const String& tag)))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.addTag("key","bla"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTag("key","bla"))
 	StringList error_list;
 	error_list.push_back("a,b");
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.addTags("key",error_list))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",error_list))
 
 	p.setValue("key","value");
 	TEST_EQUAL(p.getTags("key").size(),0)
@@ -733,7 +735,7 @@ END_SECTION
 
 START_SECTION((bool hasTag(const String& key, const String& tag) const))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.hasTag("key","bla"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.hasTag("key","bla"))
 
 	p.setValue("key","value");
 	TEST_EQUAL(p.hasTag("key","advanced"),false)
@@ -748,10 +750,10 @@ END_SECTION
 
 START_SECTION((void addTags(const String& key, const StringList& tags)))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.addTags("key",StringList()))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",StringList()))
 	StringList error_list;
 	error_list.push_back("a,b");
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.addTags("key",error_list))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.addTags("key",error_list))
 
 	p.setValue("key","value");
 	TEST_EQUAL(p.hasTag("key","advanced"),false)
@@ -763,7 +765,7 @@ END_SECTION
 
 START_SECTION((void clearTags(const String& key)))
 	Param p;
-	TEST_EXCEPTION(Exception::ElementNotFound&, p.clearTags("key"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p.clearTags("key"))
 	p.setValue("key","value");
 	p.addTag("key","advanced");
 	TEST_EQUAL(p.getTags("key").size(),1)
@@ -908,24 +910,24 @@ START_SECTION((void insert(const String& prefix, const Param &param)))
 	TEST_REAL_SIMILAR(float(p2.getValue("n2:d")), 17.8)
 END_SECTION
 
-Param p;
-p.setValue("test:float",17.4f,"floatdesc");
-p.setValue("test:string","test,test,test","stringdesc");
-p.setValue("test:int",17,"intdesc");
-p.setValue("test2:float",17.5f);
-p.setValue("test2:string","test2");
-p.setValue("test2:int",18);
-p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", ListUtils::create<String>("a,b,c"));
+Param p_src;
+p_src.setValue("test:float",17.4f,"floatdesc");
+p_src.setValue("test:string","test,test,test","stringdesc");
+p_src.setValue("test:int",17,"intdesc");
+p_src.setValue("test2:float",17.5f);
+p_src.setValue("test2:string","test2");
+p_src.setValue("test2:int",18);
+p_src.setSectionDescription("test","sectiondesc");
+p_src.addTags("test:float", {"a", "b", "c"});
 
 START_SECTION((Param(const Param& rhs)))
-	Param p2(p);
+	Param p2(p_src);
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("test:float"), "floatdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p.getDescription("test:string"), "stringdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:string"), "stringdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p.getDescription("test:int"), "intdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:int"), "intdesc")
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
 	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
@@ -939,11 +941,11 @@ END_SECTION
 
 START_SECTION((Param& operator = (const Param& rhs)))
 	Param p2;
-	p2=p;
+	p2=p_src;
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("test:float"), "floatdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p.getDescription("test:string"), "stringdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:string"), "stringdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
@@ -960,10 +962,10 @@ END_SECTION
 START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const))
 	Param p2;
 
-	p2 = p.copy("notthere:");
+	p2 = p_src.copy("notthere:");
 	TEST_EQUAL((p2==Param()),true)
 
-	p2 = p.copy("test:");
+	p2 = p_src.copy("test:");
 
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
@@ -971,15 +973,15 @@ START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const)
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
-	TEST_EXCEPTION(Exception::ElementNotFound&, p2.getValue("test2:float"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test2:float"))
 
-	p2 = p.copy("test:",true);
+	p2 = p_src.copy("test:",true);
 	TEST_REAL_SIMILAR(float(p2.getValue("float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("string"), "test,test,test")
 	TEST_STRING_EQUAL(p2.getDescription("string"), "stringdesc")
 
-	p2 = p.copy("test");
+	p2 = p_src.copy("test");
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
@@ -997,7 +999,7 @@ END_SECTION
 
 START_SECTION((void remove(const String& key)))
 
-	Param p2(p);
+	Param p2(p_src);
 	p2.setValue("test:string2","test,test");
 
 	TEST_EQUAL(p2.size(),7)
@@ -1024,7 +1026,7 @@ START_SECTION((void remove(const String& key)))
 	TEST_EQUAL(p2.size(),3)
 
   // test deletion of nodes (when using a trailing ':')
-  p2 = p;
+  p2 = p_src;
 	p2.setValue("test:string2","an entry");
   p2.setValue("test:string2:e1","subnode with entries");
   p2.setValue("test:string2:sn2","subsubnode with entries");
@@ -1054,10 +1056,10 @@ START_SECTION((void remove(const String& key)))
 END_SECTION
 
 START_SECTION((void removeAll(const String& prefix)))
-	Param p2(p);
+	Param p2(p_src);
 
 	p2.removeAll("test:float");
-	TEST_EXCEPTION(Exception::ElementNotFound&, p2.getValue("test:float"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:float"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
@@ -1066,8 +1068,8 @@ START_SECTION((void removeAll(const String& prefix)))
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 
 	p2.removeAll("test:");
-	TEST_EXCEPTION(Exception::ElementNotFound&, p2.getValue("test:string"))
-	TEST_EXCEPTION(Exception::ElementNotFound&, p2.getValue("test:int"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:string"))
+	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:int"))
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
 	TEST_EQUAL(Int(p2.getValue("test2:int")), 18)
@@ -1080,16 +1082,16 @@ END_SECTION
 
 
 START_SECTION((bool operator == (const Param& rhs) const))
-	Param p2(p);
-	TEST_EQUAL(p==p2, true)
+	Param p2(p_src);
+	TEST_EQUAL(p_src==p2, true)
 	p2.setValue("test:float",17.5f);
-	TEST_EQUAL(p==p2, false)
-	p2 = p;
+	TEST_EQUAL(p_src==p2, false)
+	p2 = p_src;
 	p2.setValue("test:float3",17.4f);
-	TEST_EQUAL(p==p2, false)
-	p2 = p;
+	TEST_EQUAL(p_src==p2, false)
+	p2 = p_src;
 	p2.removeAll("test:float");
-	TEST_EQUAL(p==p2, false)
+	TEST_EQUAL(p_src==p2, false)
 
 	//it should be independent of entry order
 	Param p3,p4;
@@ -1540,9 +1542,9 @@ START_SECTION((void setValidStrings(const String &key, const std::vector< String
 
   d.setValidStrings("ok",strings);
   TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
-  TEST_EXCEPTION(Exception::ElementNotFound&, d.setValidStrings("dummy",strings))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setValidStrings("dummy",strings))
   strings.push_back("sdf,sdfd");
-  TEST_EXCEPTION(Exception::InvalidParameter&, d.setValidStrings("ok",strings))
+  TEST_EXCEPTION(Exception::InvalidParameter, d.setValidStrings("ok",strings))
 END_SECTION
 
 START_SECTION((void setMinInt(const String &key, Int min)))
@@ -1552,7 +1554,7 @@ START_SECTION((void setMinInt(const String &key, Int min)))
 
   d.setMinInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").min_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound&, d.setMinInt("dummy",4))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
 END_SECTION
 
 START_SECTION((void setMaxInt(const String &key, Int max)))
@@ -1562,7 +1564,7 @@ START_SECTION((void setMaxInt(const String &key, Int max)))
 
   d.setMaxInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").max_int,4);
-  TEST_EXCEPTION(Exception::ElementNotFound&, d.setMaxInt("dummy",4))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
 END_SECTION
 
 START_SECTION((void setMinFloat(const String &key, double min)))
@@ -1572,7 +1574,7 @@ START_SECTION((void setMinFloat(const String &key, double min)))
 
   d.setMinFloat("ok",4.0);
   TEST_REAL_SIMILAR(d.getEntry("ok").min_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound&, d.setMinFloat("dummy",4.5))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
 END_SECTION
 
 START_SECTION((void setMaxFloat(const String &key, double max)))
@@ -1582,17 +1584,17 @@ START_SECTION((void setMaxFloat(const String &key, double max)))
 
   d.setMaxFloat("ok",4.0);
   TEST_REAL_SIMILAR(d.getEntry("ok").max_float,4.0);
-  TEST_EXCEPTION(Exception::ElementNotFound&, d.setMaxFloat("dummy",4.5))
+  TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
 END_SECTION
 
 // warnings for unknown parameters
 // keep outside the scope of a single test to avoid destruction, leaving
-// Log_warn in an undefined state
+// OpenMS_Log_warn in an undefined state
 ostringstream os;
 // checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
 // listener here to check the output
-Log_warn.remove(cout);
-Log_warn.insert(os);
+OpenMS_Log_warn.remove(cout);
+OpenMS_Log_warn.insert(os);
 
 START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
     Param p,d;
@@ -1635,7 +1637,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("stringv","a");
     p.checkDefaults("Param_test",d,"");
     p.setValue("stringv","d");
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     //check int restrictions
     d.setValue("intv",4,"desc");
@@ -1646,7 +1648,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("intv",700);
     p.checkDefaults("Param_test",d,"");
     p.setValue("intv",-5);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     d.setValue("intv2",4,"desc");
     d.setMaxInt("intv2",4);
@@ -1656,7 +1658,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("intv2",-700);
     p.checkDefaults("Param_test",d,"");
     p.setValue("intv2",5);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     //check double restrictions
     d.setValue("doublev",4.0,"desc");
@@ -1669,7 +1671,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("doublev",7.0);
     p.checkDefaults("Param_test",d,"");
     p.setValue("doublev",-4.1);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     d.setValue("doublev2",4.0,"desc");
     d.setMaxFloat("doublev2",4.0);
@@ -1679,7 +1681,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("doublev2",-700.0);
     p.checkDefaults("Param_test",d,"");
     p.setValue("doublev2",4.1);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
     //check list restrictions
     vector<String> s_rest1;
@@ -1692,19 +1694,19 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
     p.setValue("stringlist",ListUtils::create<String>("a,c"));
     p.checkDefaults("Param_test",d,"");
     p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 
     //wrong type
     p.clear();
     p.setValue("doublev",4);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
     p.clear();
     p.setValue("intv","bla");
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
     p.clear();
     p.setValue("stringv",4.5);
-    TEST_EXCEPTION(Exception::InvalidParameter&,p.checkDefaults("Param_test",d,""))
+    TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 END_SECTION
 
 START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))

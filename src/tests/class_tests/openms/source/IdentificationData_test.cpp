@@ -221,7 +221,7 @@ START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& pa
 {
   IdentificationData::ParentMolecule protein("");
   // can't register a parent molecule without accession:
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerParentMolecule(protein));
   TEST_EQUAL(data.getParentMolecules().empty(), true);
 
@@ -275,7 +275,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
 {
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString(""));
   // can't register a peptide without a sequence:
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedPeptide(peptide));
   TEST_EQUAL(data.getIdentifiedPeptides().empty(), true);
 
@@ -299,7 +299,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
 
   // registering a peptide with RNA reference doesn't work:
   peptide.parent_matches[rna_ref];
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedPeptide(peptide));
 }
 END_SECTION
@@ -315,7 +315,7 @@ START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo&
 {
   IdentificationData::IdentifiedOligo oligo(NASequence::fromString(""));
   // can't register an oligo without a sequence:
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedOligo(oligo));
   TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
 
@@ -338,7 +338,7 @@ START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo&
 
   // registering an oligo with protein reference doesn't work:
   oligo.parent_matches[protein_ref];
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedOligo(oligo));
 }
 END_SECTION
@@ -354,7 +354,7 @@ START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const Identified
 {
   IdentificationData::IdentifiedCompound compound("");
   // can't register a compound without identifier:
-  TEST_EXCEPTION(Exception::IllegalArgument&,
+  TEST_EXCEPTION(Exception::IllegalArgument,
                  data.registerIdentifiedCompound(compound));
   TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
 

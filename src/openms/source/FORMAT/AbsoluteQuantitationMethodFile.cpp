@@ -113,7 +113,7 @@ namespace OpenMS
     );
     aqm.setTransformationModel(headers.count("transformation_model") ? tl[headers.at("transformation_model")] : "");
     Param tm_params;
-    for (const std::pair<String, Size>& h : headers)
+    for (const std::pair<const String, Size>& h : headers)
     {
       const String& header = h.first;
       const Size& i = h.second;
@@ -136,7 +136,7 @@ namespace OpenMS
     StringList split_headers;
     headers.split(',', split_headers);
     StringList tm_params_names; // transformation model params
-    if (aqm_list.size())
+    if (!aqm_list.empty())
     {
       const Param tm_params = aqm_list[0].getTransformationModelParams();
       for (const Param::ParamEntry& param : tm_params)

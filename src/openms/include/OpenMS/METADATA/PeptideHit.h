@@ -81,10 +81,10 @@ public:
    */
   struct PeakAnnotation
   {
-    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
-    int charge;
-    double mz;
-    double intensity;
+    String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    int charge = 0;
+    double mz = -1.;
+    double intensity = 0.;
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
@@ -229,11 +229,16 @@ public:
     //@{
     /// Default constructor
     PeptideHit();
-    /// Values constructor
+    /// Values constructor that copies sequence
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
+    /// Values constructor that moves sequence R-value
+    PeptideHit(double score,
+               UInt rank,
+               Int charge,
+               AASequence&& sequence);
     /// Copy constructor
     PeptideHit(const PeptideHit& source);
     /// Move constructor

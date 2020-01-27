@@ -50,6 +50,7 @@
 			<ProteinHit id="PH_1" accession="sp|Q12774|ARHG5_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
 			<UserParam type="string" name="percolator" value="PercolatorAdapter"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="514.2804560319" RT="721.4" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >

@@ -491,6 +491,8 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
         all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+        //TODO maybe add all the files in file origin that were searched with this SE. then we can do a lookup later
+        // for every PepID based on its file_origin, with which SEs and settings it was identified.
         
         OPENMS_LOG_DEBUG << "Done with next Parameters." << endl;
         all_protein_ids.front().setSearchParameters(all_sp);
@@ -766,6 +768,8 @@ namespace OpenMS
     }
         
     // TODO: this is code redundancy to PercolatorAdapter
+    // TODO: in case of merged idXML files from fractions and/or replicates make sure that you also consider the file origin
+    //  this is usually stored in the map_index MetaValue of a PeptideIdentification (PSM) object.
     String PercolatorFeatureSetHelper::getScanMergeKey_(vector<PeptideIdentification>::iterator it, vector<PeptideIdentification>::iterator start)
     {
       // MSGF+ uses this field, is empty if not specified

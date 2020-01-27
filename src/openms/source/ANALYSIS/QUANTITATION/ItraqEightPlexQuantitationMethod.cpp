@@ -65,7 +65,8 @@ namespace OpenMS
   {
   }
 
-  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other)
+  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other):
+  IsobaricQuantitationMethod(other)
   {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -148,7 +149,7 @@ namespace OpenMS
     }
   }
 
-  const String& ItraqEightPlexQuantitationMethod::getName() const
+  const String& ItraqEightPlexQuantitationMethod::getMethodName() const
   {
     return ItraqEightPlexQuantitationMethod::name_;
   }

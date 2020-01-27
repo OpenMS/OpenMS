@@ -71,6 +71,14 @@ START_SECTION((UniqueIdInterface(const UniqueIdInterface &rhs)))
 }
 END_SECTION
 
+START_SECTION((UniqueIdInterface(UniqueIdInterface &&rhs)))
+{
+  // Ensure that UniqueIdInterface has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(UniqueIdInterface(std::declval<UniqueIdInterface&&>())), true)
+}
+END_SECTION
+
 START_SECTION((UniqueIdInterface& operator=(UniqueIdInterface const &rhs)))
 {
   UniqueIdInterface uii1;

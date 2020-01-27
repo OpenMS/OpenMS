@@ -81,7 +81,7 @@ START_SECTION((const Ribonucleotide& getRibonucleotide(const String& code)))
   const Ribonucleotide * ribo = ptr->getRibonucleotide("Am");
   TEST_STRING_EQUAL(ribo->getCode(), "Am");
   TEST_STRING_EQUAL(ribo->getName(), "2'-O-methyladenosine");
-  TEST_EXCEPTION(Exception::ElementNotFound&,
+  TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotide("bla"));
 }
 END_SECTION
@@ -90,7 +90,7 @@ START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const String& seq))
 {
   const Ribonucleotide* ribo = ptr->getRibonucleotidePrefix("m1AmCGU");
   TEST_STRING_EQUAL(ribo->getCode(), "m1Am");
-  TEST_EXCEPTION(Exception::ElementNotFound&,
+  TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotidePrefix("blam1A"));
 }
 END_SECTION

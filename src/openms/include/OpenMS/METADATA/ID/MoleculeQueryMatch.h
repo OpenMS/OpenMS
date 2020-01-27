@@ -72,18 +72,18 @@ namespace OpenMS
 
       explicit MoleculeQueryMatch(
         IdentifiedMoleculeRef identified_molecule_ref,
-        DataQueryRef data_query_ref, Int charge = 0,
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps(),
-        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
-        ScoredProcessingResult(steps_and_scores),
-        identified_molecule_ref(identified_molecule_ref),
-        data_query_ref(data_query_ref), charge(charge),
-        peak_annotations(peak_annotations)
+        DataQueryRef data_query_ref, Int m_charge = 0,
+        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
+        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()
+      )
+        : ScoredProcessingResult(steps_and_scores),
+          identified_molecule_ref(identified_molecule_ref),
+          data_query_ref(data_query_ref), charge(m_charge),
+          peak_annotations(peak_annotations)
       {
       }
 
-      MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
+      MoleculeQueryMatch(const MoleculeQueryMatch&) = default;
 
       MoleculeType getMoleculeType() const
       {

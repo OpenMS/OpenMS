@@ -72,49 +72,6 @@ START_TEST(DIAHelpers, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BOOST_AUTO_TEST_CASE(testIntegrateWindows_test)
-{
-	OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
-	OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
-
-	mass->data.push_back(100.);
-	mass->data.push_back(101.);
-	mass->data.push_back(102.);
-	mass->data.push_back(103.);
-	mass->data.push_back(104.);
-	mass->data.push_back(105.);
-	mass->data.push_back(106.);
-
-	OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-	intensity->data.push_back(1.);
-
-	spec->setMZArray( mass);
-	spec->setIntensityArray( intensity);
-	double mz, intens;
-	OpenSwath::integrateWindow(spec, 101., 103., mz, intens);
-	std::cout << "mz : " << mz << " int : " << intens << std::endl;
-	std::vector<double> windows, intInt, intMz;
-	windows.push_back(101.);
-	windows.push_back(103.);
-	windows.push_back(105.);
-	OpenSwath::integrateWindows(spec, windows, 2, intInt, intMz);
-
-	std::cout << "print Int" << std::endl;
-	std::copy(intInt.begin(), intInt.end(),
-			std::ostream_iterator<double>(std::cout, " "));
-	std::cout << std::endl << "print mz" << intMz.size() << std::endl;
-	std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
-	std::copy(intMz.begin(), intMz.end(),
-			std::ostream_iterator<double>(std::cout, " "));
-}
-END_SECTION
-
 BOOST_AUTO_TEST_CASE(testDotProdScore)
 {
 	double arr1[] = { 100., 200., 4., 30., 20. };

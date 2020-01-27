@@ -11,9 +11,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         OpenSwathScoring() nogil except +
         OpenSwathScoring(OpenSwathScoring) nogil except + # wrap-ignore
 
-        void initialize(double rt_normalization_factor_,
-          int add_up_spectra_, double spacing_for_spectra_resampling_,
-          OpenSwath_Scores_Usage & su_) nogil except +
+        void initialize(double rt_normalization_factor,
+                        int add_up_spectra,
+                        double spacing_for_spectra_resampling,
+                        double drift_extra,
+                        OpenSwath_Scores_Usage su,
+                        libcpp_string spectrum_addition_method) nogil except +
 
         # void calculateChromatographicScores(
         #       OpenSwath::IMRMFeature* imrmfeature,
@@ -52,16 +55,16 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_elution_model_score_
         bool use_intensity_score_
         bool use_total_xic_score_
+        bool use_total_mi_score_
         bool use_nr_peaks_score_
         bool use_sn_score_
+        bool use_mi_score_
         bool use_dia_scores_
+        bool use_sonar_scores
         bool use_ms1_correlation
         bool use_ms1_fullscan
-        bool use_sonar_scores
-        bool use_uis_scores
-        bool use_total_mi_score_
-        bool use_mi_score_
         bool use_ms1_mi
+        bool use_uis_scores
 
     cdef cppclass OpenSwath_Scores:
 
@@ -83,11 +86,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double library_rootmeansquare
         double library_sangle
         double norm_rt_score
+
         double isotope_correlation
         double isotope_overlap
         double massdev_score
         double xcorr_coelution_score
         double xcorr_shape_score
+
         double yseries_score
         double bseries_score
         double log_sn_score
@@ -97,10 +102,24 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double weighted_massdev_score
        
         double ms1_xcorr_coelution_score
+        double ms1_xcorr_coelution_contrast_score
+        double ms1_xcorr_coelution_combined_score
         double ms1_xcorr_shape_score
+        double ms1_xcorr_shape_contrast_score
+        double ms1_xcorr_shape_combined_score
         double ms1_ppm_score
         double ms1_isotope_correlation
         double ms1_isotope_overlap
+        double ms1_mi_score
+        double ms1_mi_contrast_score
+        double ms1_mi_combined_score
+
+        double sonar_sn 
+        double sonar_diff
+        double sonar_trend
+        double sonar_rsq
+        double sonar_shape
+        double sonar_lag
 
         double library_manhattan
         double library_dotprod
@@ -108,6 +127,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double total_xic
         double nr_peaks
         double sn_ratio
+        double mi_score 
+        double weighted_mi_score
 
         double rt_difference
         double normalized_experimental_rt

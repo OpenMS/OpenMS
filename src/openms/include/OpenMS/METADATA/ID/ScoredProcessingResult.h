@@ -190,7 +190,7 @@ namespace OpenMS
       {
       }
 
-      ScoredProcessingResult(const ScoredProcessingResult& other) = default;
+      ScoredProcessingResult(const ScoredProcessingResult&) = default;
     };
 
   }

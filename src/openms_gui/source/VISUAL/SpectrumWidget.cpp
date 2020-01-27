@@ -50,11 +50,11 @@ namespace OpenMS
 {
   using namespace Math;
 
-  constexpr char SpectrumWidget::RT_AXIS_TITLE[];
-  constexpr char SpectrumWidget::MZ_AXIS_TITLE[];
-  constexpr char SpectrumWidget::INTENSITY_AXIS_TITLE[];
-  constexpr char SpectrumWidget::IM_MS_AXIS_TITLE[];
-  constexpr char SpectrumWidget::IM_ONEKZERO_AXIS_TITLE[];
+  const char SpectrumWidget::RT_AXIS_TITLE[] = "Time [s]";
+  const char SpectrumWidget::MZ_AXIS_TITLE[] = "m/z";
+  const char SpectrumWidget::INTENSITY_AXIS_TITLE[] = "Intensity";
+  const char SpectrumWidget::IM_MS_AXIS_TITLE[] = "Ion Mobility [ms]";
+  const char SpectrumWidget::IM_ONEKZERO_AXIS_TITLE[] = "Ion Mobility [1/K0]";
 
   SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),

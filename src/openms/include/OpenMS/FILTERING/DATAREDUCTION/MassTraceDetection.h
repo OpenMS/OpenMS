@@ -43,87 +43,87 @@
 namespace OpenMS
 {
 
-  /**
-    @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
+    /**
+      @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
-    Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
-    list of potential chromatographic apex positions. Only peaks that are above
-    the noise threshold (user-defined) are analyzed and only peaks that are n
-    times above this minimal threshold are considered as apices. This saves
-    computational resources and decreases the noise in the resulting output.
-    
-    Starting with these, mass traces are extended in- and decreasingly in
-    retention time. During this extension phase, the centroid m/z is computed
-    on-line as an intensity-weighted mean of peaks.
-    
-    The extension phase ends when either the frequency of gathered peaks drops
-    below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
-    or when the number of missed scans exceeds a threshold
-    (trace_termination_outliers, see @ref MassTraceDetection parameters).
+      Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
+      list of potential chromatographic apex positions. Only peaks that are above
+      the noise threshold (user-defined) are analyzed and only peaks that are n
+      times above this minimal threshold are considered as apices. This saves
+      computational resources and decreases the noise in the resulting output.
 
-    Finally, only mass traces that pass a filter (a certain minimal and maximal
-    length as well as having the minimal sample rate criterion fulfilled) get
-    added to the result.
+      Starting with these, mass traces are extended in- and decreasingly in
+      retention time. During this extension phase, the centroid m/z is computed
+      on-line as an intensity-weighted mean of peaks.
 
-    @htmlinclude OpenMS_MassTraceDetection.parameters
+      The extension phase ends when either the frequency of gathered peaks drops
+      below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
+      or when the number of missed scans exceeds a threshold
+      (trace_termination_outliers, see @ref MassTraceDetection parameters).
 
-    @ingroup Quantitation
-  */
-  class OPENMS_DLLAPI MassTraceDetection :
-    public DefaultParamHandler,
-    public ProgressLogger
-  {
-public:
-    /// Default constructor
-    MassTraceDetection();
+      Finally, only mass traces that pass a filter (a certain minimal and maximal
+      length as well as having the minimal sample rate criterion fulfilled) get
+      added to the result.
 
-    /// Default destructor
-    ~MassTraceDetection() override;
+      @htmlinclude OpenMS_MassTraceDetection.parameters
 
-    /** @name Helper methods
+      @ingroup Quantitation
     */
+    class OPENMS_DLLAPI MassTraceDetection :
+            public DefaultParamHandler,
+            public ProgressLogger
+    {
+    public:
+        /// Default constructor
+        MassTraceDetection();
 
-    /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-    void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
+        /// Default destructor
+        ~MassTraceDetection() override;
 
-    /** @name Main computation methods
-    */
+        /** @name Helper methods
+        */
 
-    /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
-    void run(const PeakMap &, std::vector<MassTrace> &);
+        /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
+        void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
 
-    /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
-    void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
+        /** @name Main computation methods
+        */
 
-    /** @name Private methods and members 
-    */
-protected:
-    void updateMembers_() override;
+        /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
+        void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
 
-private:
+        /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
+        void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
-    typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
+        /** @name Private methods and members
+        */
+    protected:
+        void updateMembers_() override;
 
-    /// The internal run method
-    void run_(const MapIdxSortedByInt& chrom_apices,
-              const Size peak_count, 
-              const PeakMap & work_exp,
-              const std::vector<Size>& spec_offsets,
-              std::vector<MassTrace> & found_masstraces);
+    private:
 
-    // parameter stuff
-    double mass_error_ppm_;
-    double noise_threshold_int_;
-    double chrom_peak_snr_;
-    MassTrace::MT_QUANTMETHOD quant_method_;
+        typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
 
-    String trace_termination_criterion_;
-    Size trace_termination_outliers_;
-    double min_sample_rate_;
-    double min_trace_length_;
-    double max_trace_length_;
+        /// The internal run method
+        void run_(const MapIdxSortedByInt& chrom_apices,
+                  const Size peak_count,
+                  const PeakMap & work_exp,
+                  const std::vector<Size>& spec_offsets,
+                  std::vector<MassTrace> & found_masstraces,
+                  const Size max_traces = 0);
 
-    bool reestimate_mt_sd_;
-  };
+        // parameter stuff
+        double mass_error_ppm_;
+        double noise_threshold_int_;
+        double chrom_peak_snr_;
+        MassTrace::MT_QUANTMETHOD quant_method_;
+
+        String trace_termination_criterion_;
+        Size trace_termination_outliers_;
+        double min_sample_rate_;
+        double min_trace_length_;
+        double max_trace_length_;
+
+        bool reestimate_mt_sd_;
+    };
 }
-

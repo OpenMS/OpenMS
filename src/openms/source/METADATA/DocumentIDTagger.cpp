@@ -124,7 +124,7 @@ namespace OpenMS
     {
       flock.lock();
     }
-    catch (exception /*e*/)
+    catch (exception& /*e*/)
     {
       return false;
     }

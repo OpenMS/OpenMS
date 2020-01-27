@@ -137,7 +137,7 @@ START_SECTION((virtual void setSeeds(const FeatureMap& seeds)))
   FFA ffa;
 	FeatureMap seeds;
 	seeds.resize(4);
-	TEST_EXCEPTION(Exception::IllegalArgument&,ffa.setSeeds(seeds))
+	TEST_EXCEPTION(Exception::IllegalArgument,ffa.setSeeds(seeds))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

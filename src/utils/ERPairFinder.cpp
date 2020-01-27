@@ -444,15 +444,13 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
     if (feature_out != "")
     {
-      all_features.setPrimaryMSRunPath(ms_runs);
+      all_features.setPrimaryMSRunPath({in}, exp);
       FeatureXMLFile().store(feature_out, all_features);
     }
     writeDebug_("Writing output", 1);
-    results_map.setPrimaryMSRunPath(ms_runs);
+    results_map.setPrimaryMSRunPath({in}, exp);
     ConsensusXMLFile().store(out, results_map);
 
     return EXECUTION_OK;

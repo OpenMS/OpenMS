@@ -616,7 +616,7 @@ protected:
       {
         const XMLCh * val = a.getValue(name);
         if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
-        return String(sm_.convert(val)).toDouble();
+        return sm_.convert(val).toDouble();
       }
 
       /// Converts an attribute to a DoubleList
@@ -641,17 +641,13 @@ protected:
       }
 
       /// Assigns the attribute content to the String @a value if the attribute is present
-      inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const XMLCh * name) const
+      inline bool optionalAttributeAsString_(String& value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val != nullptr)
         {
-          String tmp2 = sm_.convert(val);
-          if (tmp2 != "")
-          {
-            value = tmp2;
-            return true;
-          }
+          value = sm_.convert(val);
+          return !value.empty();
         }
         return false;
       }
@@ -686,7 +682,7 @@ protected:
         const XMLCh * val = a.getValue(name);
         if (val != nullptr)
         {
-          value = String(sm_.convert(val)).toDouble();
+          value = sm_.convert(val).toDouble();
           return true;
         }
         return false;
@@ -746,14 +742,13 @@ private:
       /// Not implemented
       XMLHandler();
 
-      inline String expectList_(const String& str) const
+      inline const String& expectList_(const String& str) const
       {
-        String tmp(str);
-        if (!(tmp.hasPrefix('[') && tmp.hasSuffix(']')))
+        if (!(str.hasPrefix('[') && str.hasSuffix(']')))
         {
           fatalError(LOAD, String("List argument is not a string representation of a list!"));
         }
-        return tmp;
+        return str;
       }
 
     };

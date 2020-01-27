@@ -125,9 +125,9 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 	ProteinIdentification protein_identification;
 
 	// test exceptions
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification, 2.0))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.load("", peptide_identifications, protein_identification, -1.0))
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, -1.0))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.load(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), peptide_identifications, protein_identification, 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 
 	peptide_identifications.clear();
@@ -199,10 +199,10 @@ END_SECTION
 START_SECTION(void generateTrieDB(const std::String& source_database_filename, const std::String& database_filename, const std::String& index_filename, bool append = false, const std::String species = ""))
 	// test exceptions
 	// test file not found for input file
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.generateTrieDB("a", "", ""), "the file 'a' could not be found")
 
 	// test unable to create file
-	TEST_EXCEPTION(Exception::UnableToCreateFile&, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""))
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.generateTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), ""))
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -231,18 +231,18 @@ START_SECTION(void compressTrieDB(const String& database_filename, const String&
 	remove("InspectOutfile_test2.trie");
 	remove("InspectOutfile_test2.index");
 	// test for equal filenames
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), ""), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.trie"," in: Same filename can not be used for original and second database!"))
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.index"," in: Same filename can not be used for original and second database!"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), ""), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.trie"," in: Same filename can not be used for original and second database!"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, "", OPENMS_GET_TEST_DATA_PATH("Inspect_test.index")), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test.index"," in: Same filename can not be used for original and second database!"))
 
 	// test file not found for input files (using empty filenames)
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'a' could not be found")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB("a", "", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), "b", wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index"), "the file 'b' could not be found")
 
 	// test for unable to create file
-	TEST_EXCEPTION(Exception::UnableToCreateFile&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true))
+	TEST_EXCEPTION(Exception::UnableToCreateFile, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_test.index"), wanted_records, OPENMS_GET_TEST_DATA_PATH("Inspect_unreadable_unwriteable.txt"), "", true))
 
 	// test for parse error
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true),OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "Inspect_empty_file.txt"," in: index file is too short!"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.compressTrieDB(OPENMS_GET_TEST_DATA_PATH("Inspect_test.trie"), OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), wanted_records, "InspectOutfile_test.trie", "InspectOutfile_test.index", true),OPENMS_GET_TEST_DATA_PATH_MESSAGE("", "Inspect_empty_file.txt"," in: index file is too short!"))
 
 	remove("InspectOutfile_test.trie");
 	remove("InspectOutfile_test.index");
@@ -284,7 +284,7 @@ START_SECTION(std::vector< Size > getSequences(const String& database_filename, 
 	vector< String > sequences, found_sequences;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.getSequences("a", rn_position_map, found_sequences), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", rn_position_map, found_sequences), "the file 'a' could not be found")
 
 	found_sequences.clear();
 
@@ -363,7 +363,7 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 
 	// test exceptions
 	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","InspectOutfile_test_1.mzXML"," in: Not enought scans in file! (4 available, should be at least 10)"))
 
 	files_and_peptide_identification_with_scan_number.clear();
 	ids.clear();
@@ -393,8 +393,8 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	String ac_label, sequence_start_label, sequence_end_label, comment_label, species_label;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test1.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test1.fasta"," in: database has unknown file format (neither trie nor FASTA nor swissprot)"))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getLabels("a", ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), "the file 'a' could not be found")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test1.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label), OPENMS_GET_TEST_DATA_PATH_MESSAGE("","Inspect_test1.fasta"," in: database has unknown file format (neither trie nor FASTA nor swissprot)"))
 
 	// test the actual program
 	file.getLabels(OPENMS_GET_TEST_DATA_PATH("Inspect_test.fasta"), ac_label, sequence_start_label, sequence_end_label, comment_label, species_label);
@@ -408,9 +408,9 @@ END_SECTION
 START_SECTION(vector< Size > getWantedRecords(const String& result_filename, double p_value_threshold))
 
 	// test exceptions
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.getWantedRecords("", 2.0))
-	TEST_EXCEPTION(Exception::IllegalArgument&, file.getWantedRecords("", -1.0))
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound&, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))
+	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", -1.0))
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getWantedRecords("a", 0.01), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileEmpty, file.getWantedRecords(OPENMS_GET_TEST_DATA_PATH("Inspect_empty_file.txt"), 0.01), OPENMS_GET_TEST_DATA_PATH_MESSAGE("the file '","Inspect_empty_file.txt","' is empty"))
 
 
@@ -498,7 +498,7 @@ START_SECTION(void readOutHeader(const String& filename, const String& header_li
 	Size number_of_columns;
 
 	// test exceptions
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError&, file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns), "dummy_testfile in: at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader("dummy_testfile", header_line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns), "dummy_testfile in: at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!")
 
 	// test the actual program
 	header_line = "#SpectrumFile	Scan#	Annotation	Protein	Charge	MQScore	Length	TotalPRMScore	MedianPRMScore	FractionY	FractionB	Intensity	NTT	p-value	F-Score	DeltaScore	DeltaScoreOther	RecordNumber	DBFilePos	SpecFilePos";

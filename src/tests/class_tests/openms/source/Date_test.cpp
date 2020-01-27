@@ -90,11 +90,11 @@ START_SECTION((void set(UInt month, UInt day, UInt year) ))
   TEST_EQUAL(y,1977);
   
   //exceptions
-  TEST_EXCEPTION(Exception::ParseError&,date.set(0,12,1977));
-  TEST_EXCEPTION(Exception::ParseError&,date.set(12,0,1977));
-  TEST_EXCEPTION(Exception::ParseError&,date.set(1,32,1977));
-  TEST_EXCEPTION(Exception::ParseError&,date.set(13,1,1977));
-	TEST_EXCEPTION(Exception::ParseError&,date.set(02,29,2100));
+  TEST_EXCEPTION(Exception::ParseError,date.set(0,12,1977));
+  TEST_EXCEPTION(Exception::ParseError,date.set(12,0,1977));
+  TEST_EXCEPTION(Exception::ParseError,date.set(1,32,1977));
+  TEST_EXCEPTION(Exception::ParseError,date.set(13,1,1977));
+	TEST_EXCEPTION(Exception::ParseError,date.set(02,29,2100));
 END_SECTION
 
 START_SECTION((Date& operator= (const Date& source)))
@@ -144,12 +144,12 @@ START_SECTION((void set(const String& date) ))
   TEST_EQUAL(y,1688);
 
 	//exceptions
-  TEST_EXCEPTION(Exception::ParseError&,date.set("bla"));
-  TEST_EXCEPTION(Exception::ParseError&,date.set("01.01.01.2005"));
-  TEST_EXCEPTION(Exception::ParseError&,date.set("f1.01.1977"));
-  TEST_EXCEPTION(Exception::ParseError&,date.set("01.1x.1977"));
-  TEST_EXCEPTION(Exception::ParseError&,date.set("01.12.i135"));
-  TEST_EXCEPTION(Exception::ParseError&,date.set("1135-64-3"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("bla"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("01.01.01.2005"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("f1.01.1977"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("01.1x.1977"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("01.12.i135"));
+  TEST_EXCEPTION(Exception::ParseError,date.set("1135-64-3"));
 END_SECTION
 
 START_SECTION((String get() const))

@@ -82,7 +82,7 @@ public:
     ~MRMIonSeries();
     //@}
 
-    typedef boost::unordered_map<String, double> IonSeries;
+    typedef boost::unordered_map<String, double> IonSeries; ///< An MRM ion series which maps: "ion_type" -> "fragment m/z"
 
     /**
       @brief Selects ion from IonSeries according to annotation string

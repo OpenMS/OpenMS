@@ -118,13 +118,13 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerInputFile_("database", "<file>", "", "FASTA file", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "comet.exe",
-      "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false); //required as first line in the param file
+      "comet.exe", // this is the name on ALL platforms currently...
+      "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
+    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -132,7 +132,7 @@ protected:
 
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
-    setValidFormats_("pin_out", ListUtils::create<String>("csv"));
+    setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
@@ -615,6 +615,9 @@ protected:
     PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications);
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
+
+    //Whatever the pepXML says, overwrite origin as the input mzML
+    protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

@@ -135,8 +135,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerInputFile_("fido_executable", "<path>", "Fido", "Path to the Fido executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("fidocp_executable", "<path>", "FidoChooseParameters", "Path to the FidoChooseParameters executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("fido_executable", "<path>", "Fido", "The Fido executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
+    registerInputFile_("fidocp_executable", "<path>", "FidoChooseParameters", "The FidoChooseParameters executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
@@ -190,7 +190,7 @@ protected:
         score_type.chop(6);
       }
       score_type.toLower().remove(' ').remove('_').remove('-');
-      if (score_type == "posteriorerrorprobability")
+      if (score_type == "posteriorerrorprobability" || score_type == "pep")
       {
         if (!warned_once)
         {
@@ -485,7 +485,7 @@ protected:
       OPENMS_LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
                << endl;
       PeptideProteinResolution graph = PeptideProteinResolution();
-      graph.buildGraph(protein, peptides);
+      graph.buildGraph(protein, peptides, true);
       graph.resolveGraph(protein, peptides);
     }
     return true;
@@ -507,15 +507,6 @@ protected:
     bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
                           (prob_spurious == 0.0)); // use FidoChooseParameters?
 
-    if (fido_executable.empty()) // expect executables in PATH
-    {
-      fido_executable = "Fido";
-    }
-
-    if (fidocp_executable.empty()) // expect executables in PATH
-    {
-      fidocp_executable = "FidoChooseParameters";
-    }
     String executable = choose_params ? fidocp_executable : fido_executable;
 
     // input data:
@@ -612,6 +603,10 @@ protected:
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
                                 greedy_flag, counter);
+        if (fido_success)
+        {
+          prot_it->setInferenceEngine("Fido");
+        }
       }
     }
     else // merge multiple protein ID runs
@@ -619,6 +614,7 @@ protected:
       ProteinIdentification all_proteins; // one ID run to merge all hits
       // set search engine to Fido since they might disagree for different runs:
       all_proteins.setSearchEngine("Fido");
+      all_proteins.setInferenceEngine("Fido");
 
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");

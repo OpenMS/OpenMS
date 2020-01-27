@@ -163,7 +163,7 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
   TEST_EQUAL(meta3.precursor_charge, 2);
   TEST_EQUAL(meta3.native_id, "spectrum=1");
 
-  TEST_EXCEPTION(Exception::ElementNotFound&, lookup.getSpectrumMetaData("rt=5.0,mz=1000.0", meta3));
+  TEST_EXCEPTION(Exception::ElementNotFound, lookup.getSpectrumMetaData("rt=5.0,mz=1000.0", meta3));
 }
 END_SECTION
 
@@ -201,7 +201,7 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   String filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
-  TEST_EXCEPTION(Exception::FileNotFound&, SpectrumMetaDataLookup::addMissingSpectrumReferences(
+  TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(
     peptides, filename, false, false));
   // no lookup, no spectrum_references
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666");

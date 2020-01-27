@@ -532,29 +532,16 @@ namespace OpenMS
         it_last_MS2 = ms_exp_data.end();
         continue;
       }
-      else if (it->getMSLevel() == 2)
-      { // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
-        it_last_MS2 = it;
-        if (it_last_MS2->getPrecursors().empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
-        }
-      }
+
       if (it->getMSLevel() != quant_ms_level) continue;
       if ((*it).empty()) continue; // skip empty spectra
-      if (!(selected_activation_ == "" || isValidActivation(*it))) continue;
+      if (!(selected_activation_.empty() || isValidActivation(*it))) continue;
 
       // find following ms1 scan (needed for purity computation)
       if (!pState.followUpValid(it->getRT()))
       {
         // advance iterator
         pState.advanceFollowUp(it->getRT());
-      }
-
-      // check if precursor is available
-      if (it->getPrecursors().empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
       }
 
       // check precursor constraints
@@ -581,11 +568,28 @@ namespace OpenMS
         OPENMS_LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
       }
 
-      // store RT&MZ of MS1 parent ion as centroid of ConsensusFeature
-      if (it_last_MS2 == ms_exp_data.end())
-      { // this only happens if an MS3 spec does not have a preceding MS2
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      if (it->getMSLevel() == 3)
+      {
+        // we cannot save just the last MS2 but need to compare to the precursor info stored in the (potential MS3 spectrum)
+        it_last_MS2 = ms_exp_data.getPrecursorSpectrum(it);
+
+        if (it_last_MS2 == ms_exp_data.end())
+        { // this only happens if an MS3 spec does not have a preceding MS2
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+        }
       }
+      else
+      {
+        it_last_MS2 = it;
+      }
+
+      // check if MS1 precursor info is available
+      if (it_last_MS2->getPrecursors().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
+      }
+
+      // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
       ConsensusFeature cf;
       cf.setUniqueId();
       cf.setRT(it_last_MS2->getRT());
@@ -734,7 +738,7 @@ namespace OpenMS
     {
       ConsensusMap::ColumnHeader channel_as_map;
       // label is the channel + description provided in the Params
-      channel_as_map.label = quant_method_->getName() + "_" + cl_it->name;
+      channel_as_map.label = quant_method_->getMethodName() + "_" + cl_it->name;
 
       // TODO(aiche): number of features need to be set later
       channel_as_map.size = consensus_map.size();

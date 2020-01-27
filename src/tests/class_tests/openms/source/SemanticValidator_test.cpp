@@ -95,7 +95,7 @@ START_SECTION((bool validate(const String &filename, StringList &errors, StringL
 	//----------------------------------------------------------------------------------------
 	//test exceptions
 	SemanticValidator sv(mapping, cv);
-	TEST_EXCEPTION(Exception::FileNotFound&, sv.validate("/does/not/exist", errors, warnings));
+	TEST_EXCEPTION(Exception::FileNotFound, sv.validate("/does/not/exist", errors, warnings));
 
 	//----------------------------------------------------------------------------------------
 	//test of valid file

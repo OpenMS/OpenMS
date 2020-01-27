@@ -3,7 +3,7 @@
   <NODE name="Enzymes">
     <NODE name="Trypsin">
       <ITEM name="Name" value="Trypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[KR])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KRX])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Trypsin cleaves following a K or R residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -15,7 +15,7 @@
     </NODE>
     <NODE name="Arg-C">
       <ITEM name="Name" value="Arg-C" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=R)(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[RX])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Arg-C cleaves following R residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -32,7 +32,7 @@
     </NODE>
     <NODE name="Arg-C/P">
       <ITEM name="Name" value="Arg-C/P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=R)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[RX])" type="string" />
       <ITEM name="RegExDescription" value="Arg-C/P cleaves after R residues." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -41,8 +41,8 @@
     </NODE>
     <NODE name="Asp-N">
       <ITEM name="Name" value="Asp-N" type="string" />
-      <ITEM name="RegEx" value="(?=[BD])" type="string" />
-      <ITEM name="RegExDescription" value="Asp-N cleaves before B or D." type="string" />
+      <ITEM name="RegEx" value="(?=[DBX])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N cleaves before D(or B)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001304" type="string" />
@@ -56,8 +56,8 @@
     </NODE>
     <NODE name="Asp-N/B">
       <ITEM name="Name" value="Asp-N/B" type="string" />
-      <ITEM name="RegEx" value="(?=[D])" type="string" />
-      <ITEM name="RegExDescription" value="Asp-N/B cleaves before D." type="string" />
+      <ITEM name="RegEx" value="(?=[DX])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N/B cleaves before D(while B is ignored)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[X]|[D]" type="string" />
@@ -65,8 +65,8 @@
     </NODE>
     <NODE name="Asp-N_ambic">
       <ITEM name="Name" value="Asp-N_ambic" type="string" />
-      <ITEM name="RegEx" value="(?=[DE])" type="string" />
-      <ITEM name="RegExDescription" value="Asp-N Ammonium bicarbonate cleaves before D or E." type="string" />
+      <ITEM name="RegEx" value="(?=[DBEZX])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N Ammonium bicarbonate cleaves before D(or B) or E(or Z)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001305" type="string" />
@@ -75,8 +75,8 @@
     </NODE>
     <NODE name="Chymotrypsin">
       <ITEM name="Name" value="Chymotrypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FLWY])(?!P)" type="string" />
-      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue unless the next residue is P." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FYWLJX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L(or J) residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001306" type="string" />
@@ -87,8 +87,8 @@
     </NODE>
     <NODE name="Chymotrypsin/P">
       <ITEM name="Name" value="Chymotrypsin/P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FLWY])" type="string" />
-      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FYWLJX])" type="string" />
+      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L(or J) residue." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[FYWL]|[X]" type="string" />
@@ -96,7 +96,7 @@
     </NODE>
     <NODE name="CNBr">
       <ITEM name="Name" value="CNBr" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=M)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[MX])" type="string" />
       <ITEM name="RegExDescription" value="CNBr cleaves following M." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -107,8 +107,8 @@
     </NODE>
     <NODE name="Formic_acid">
       <ITEM name="Name" value="Formic_acid" type="string" />
-      <ITEM name="RegEx" value="((?&lt;=D))|((?=D))" type="string" />
-      <ITEM name="RegExDescription" value="Formic_acid cuts after D and next residue is D." type="string" />
+      <ITEM name="RegEx" value="((?&lt;=[DBX]))|((?=[DBX]))" type="string" />
+      <ITEM name="RegExDescription" value="Formic_acid cuts after D(or B) and next residue is D (or B)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001308" type="string" />
@@ -117,7 +117,7 @@
     </NODE>
     <NODE name="Lys-C">
       <ITEM name="Name" value="Lys-C" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=K)(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KX])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Lys-C cuts after K if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -132,8 +132,8 @@
     </NODE>
     <NODE name="Lys-N">
       <ITEM name="Name" value="Lys-N" type="string" />
-      <ITEM name="RegEx" value="(?=K)" type="string" />
-      <ITEM name="RegExDescription" value="Lys-N cuts before K" type="string" />
+      <ITEM name="RegEx" value="(?=[KX])" type="string" />
+      <ITEM name="RegExDescription" value="Lys-N cuts before K." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="" type="string" />
@@ -147,7 +147,7 @@
     </NODE>
     <NODE name="Lys-C/P">
       <ITEM name="Name" value="Lys-C/P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=K)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KX])" type="string" />
       <ITEM name="RegExDescription" value="Lys-C/P cuts after K." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -158,8 +158,8 @@
     </NODE>
     <NODE name="PepsinA">
       <ITEM name="Name" value="PepsinA" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FL])" type="string" />
-      <ITEM name="RegExDescription" value="PepsinA cuts after F or L." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FLJX])" type="string" />
+      <ITEM name="RegExDescription" value="PepsinA cuts after F or L(or J)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001311" type="string" />
@@ -169,8 +169,8 @@
     </NODE>
     <NODE name="TrypChymo">
       <ITEM name="Name" value="TrypChymo" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[KRFLWY])(?!P)" type="string" />
-      <ITEM name="RegExDescription" value="TrypChymo cuts after F, Y, W, L, K or R if not followed by P." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FYWLJKRX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="TrypChymo cuts after F, Y, W, L(or J), K or R if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001312" type="string" />
@@ -179,7 +179,7 @@
     </NODE>
     <NODE name="Trypsin/P">
       <ITEM name="Name" value="Trypsin/P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[KR])" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KRX])" type="string" />
       <ITEM name="RegExDescription" value="Trypsin/P cuts after K or R." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -192,8 +192,8 @@
     </NODE>
     <NODE name="V8-DE">
       <ITEM name="Name" value="V8-DE" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[BDEZ])(?!P)" type="string" />
-      <ITEM name="RegExDescription" value="V8-DE cuts after B, D, E or Z if not followed by P." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[DBEZX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="V8-DE cuts after D(or B) or E(or Z) if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001314" type="string" />
@@ -201,8 +201,8 @@
     </NODE>
     <NODE name="V8-E">
       <ITEM name="Name" value="V8-E" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[EZ])(?!P)" type="string" />
-      <ITEM name="RegExDescription" value="V8-E cuts after E or Z if not followed by P." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[EZX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="V8-E cuts after E(or Z) if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001315" type="string" />
@@ -210,8 +210,8 @@
     </NODE>
     <NODE name="leukocyte elastase">
       <ITEM name="Name" value="leukocyte elastase" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[AILV])(?!P)" type="string" />
-      <ITEM name="RegExDescription" value="leukocyte elastase cuts after A, L, I or V if not followed by P." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[ALIJVX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="leukocyte elastase cuts after A or L or I(or J) or V if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001915" type="string" />
@@ -220,7 +220,7 @@
     </NODE>
     <NODE name="proline endopeptidase">
       <ITEM name="Name" value="proline endopeptidase" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[HKR]P)(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[HKRX][PX])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="proline endopeptidase cuts after HP, KP or RP if not followed by P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -228,8 +228,8 @@
     </NODE>    
     <NODE name="glutamyl endopeptidase">
       <ITEM name="Name" value="glutamyl endopeptidase" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[DE])" type="string" />
-      <ITEM name="RegExDescription" value="glutamyl endopeptidase cuts after D or E." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[DBEZX])" type="string" />
+      <ITEM name="RegExDescription" value="glutamyl endopeptidase cuts after D(or B) or E(or Z)." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001917" type="string" />
@@ -245,8 +245,8 @@
     </NODE>
     <NODE name="alphaLP">
       <ITEM name="Name" value="Alpha-lytic protease" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[TASV])" type="string" />
-      <ITEM name="RegExDescription" value="Alpha-lytic protease (aLP) cuts after T, A, S, and V." type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[TASVX])" type="string" />
+      <ITEM name="RegExDescription" value="Alpha-lytic protease (aLP) cuts after T, A, S, or V." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[ASTV]|[X]" type="string" />
@@ -254,7 +254,7 @@
     </NODE>
     <NODE name="2-iodobenzoate">
       <ITEM name="Name" value="2-iodobenzoate" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=W)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[WX])" type="string" />
       <ITEM name="RegExDescription" value="2-iodobenzoate cuts after W." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -268,7 +268,8 @@
     </NODE>
     <NODE name="staphylococcal protease/D">
       <ITEM name="Name" value="staphylococcal protease/D" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=E)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[EZX])" type="string" />
+      <ITEM name="RegExDescription" value="staphylococcal protease/D cuts after E(or Z)." type="string" />
       <ITEM name="CruxID" value="staph-protease" type="string" />
       <NODE name="Synonyms">
         <ITEM name="Glu-C/D" value="Glu-C/D" type="string" />
@@ -277,12 +278,14 @@
     </NODE>
     <NODE name="proline-endopeptidase/HKR">
       <ITEM name="Name" value="proline-endopeptidase/HKR" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[PX])" type="string" />
+      <ITEM name="RegExDescription" value="proline-endopeptidase/HKR cuts after P." type="string" />
       <ITEM name="CruxID" value="proline-endopeptidase" type="string" />
     </NODE>
     <NODE name="Glu-C+P">
       <ITEM name="Name" value="Glu-C+P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[DE])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[DBEZX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Glu-C+P cuts after D(or B) or E(or Z) unless followed by P." type="string" />
       <ITEM name="CruxID" value="glu-c" type="string" />
       <NODE name="Synonyms">
         <ITEM name="Glu-C+P" value="Glu-C+P" type="string" />
@@ -291,23 +294,27 @@
     </NODE>
     <NODE name="PepsinA + P">
       <ITEM name="Name" value="PepsinA + P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[FL])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FLJX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="PepsinA + P cuts after F or L(or J) unless followed by P." type="string" />
       <ITEM name="CruxID" value="pepsin-a" type="string" />
     </NODE>
     <NODE name="cyanogen-bromide">
       <ITEM name="Name" value="cyanogen-bromide" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=M)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[MX])" type="string" />
+      <ITEM name="RegExDescription" value="cyanogen-bromide cuts after M." type="string" />
       <ITEM name="CruxID" value="cyanogen-bromide" type="string" />
     </NODE>
     <NODE name="Clostripain/P">
       <ITEM name="Name" value="Clostripain/P" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=R)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[RX])" type="string" />
+      <ITEM name="RegExDescription" value="Clostripain/P cuts after R." type="string" />
       <ITEM name="CruxID" value="clostripain" type="string" />
     </NODE>
     <NODE name="elastase-trypsin-chymotrypsin">
       <ITEM name="Name" value="elastase-trypsin-chymotrypsin" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[ALIVKRWFYX])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="elastase-trypsin-chymotrypsin cuts after A,L,I(or J),V,K,R,W,F,Y unless followed by P." type="string" />
       <ITEM name="CruxID" value="elastase-trypsin-chymotrypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[ALIVKRWFY])(?!P)" type="string" />
     </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />

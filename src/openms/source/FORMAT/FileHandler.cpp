@@ -83,6 +83,8 @@ namespace OpenMS
     if (basename.hasSuffix(".xquest.xml"))
       return FileTypes::XQUESTXML;
 
+    if (basename.hasSuffix(".spec.xml"))
+      return FileTypes::SPECXML;
     try
     {
       tmp = basename.suffix('.');
@@ -632,8 +634,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     default:
       return false;
-
-      break;
     }
 
     if (rewrite_source_file)

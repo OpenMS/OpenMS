@@ -192,7 +192,7 @@ invalid_isotopeProbabilities[0].push_back(0.0);
     ptr2 = new IsoSpecThresholdGeneratorWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
                                        fructose_isotopeProbabilities, 0.5, false);
     TEST_NOT_EQUAL(ptr2, nullPointer)
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecThresholdGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
   END_SECTION
 
   START_SECTION((IsoSpecThresholdGeneratorWrapper::~IsoSpecThresholdGeneratorWrapper()))
@@ -266,7 +266,7 @@ END_SECTION
                                     fructose_isotopeProbabilities, 0.5, false);
     TEST_NOT_EQUAL(ptr2, nullPointer);
 
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
+    TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecTotalProbGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts,
                                                           invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
 
   END_SECTION
@@ -339,7 +339,7 @@ END_SECTION
                                     fructose_isotopeProbabilities);
     TEST_NOT_EQUAL(ptr2, nullPointer);
 
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
+    TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecOrderedGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts,
                                                           invalid_isotopeMasses, invalid_isotopeProbabilities));
 
   END_SECTION
@@ -409,7 +409,7 @@ END_SECTION
     ptr2 = new IsoSpecThresholdWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
                                        fructose_isotopeProbabilities, 0.5, false);
     TEST_NOT_EQUAL(ptr2, nullPointer)
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
+    TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecThresholdWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
   END_SECTION
 
   START_SECTION((IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper()))
@@ -490,7 +490,7 @@ END_SECTION
                                     fructose_isotopeProbabilities, 0.5, false);
     TEST_NOT_EQUAL(ptr2, nullPointer);
 
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
+    TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecTotalProbWrapper(invalid_isotopeNumbers, invalid_atomCounts,
                                                           invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
 
   END_SECTION

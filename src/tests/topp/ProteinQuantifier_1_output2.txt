@@ -1,8 +1,8 @@
 # Peptide abundances computed from file '/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/ProteinQuantifier_input.featureXML'
 # Parameters (relevant only): (none)
-"peptide"	"protein"	"n_proteins"	"charge"	"abundance"
-"AAAAA"	"Protein0"	1	0	3333
-"CCCCC"	"Protein0"	1	0	7777
-"DDDDD"	"Protein0"	1	0	5555
-"GGGGG"	"Protein0/Protein1"	2	0	7777
-"HHHHH"	"Protein1"	1	0	8888
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance"	"fraction"
+"AAAAA"	"Protein0"	1	0	3333	"all"
+"CCCCC"	"Protein0"	1	0	7777	"all"
+"DDDDD"	"Protein0"	1	0	5555	"all"
+"GGGGG"	"Protein0/Protein1"	2	0	7777	"all"
+"HHHHH"	"Protein1"	1	0	8888	"all"

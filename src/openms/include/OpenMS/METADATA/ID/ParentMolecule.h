@@ -75,7 +75,7 @@ namespace OpenMS
       {
       }
 
-      ParentMolecule(const ParentMolecule& other) = default;
+      ParentMolecule(const ParentMolecule&) = default;
 
       ParentMolecule& operator+=(const ParentMolecule& other)
       {

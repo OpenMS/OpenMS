@@ -423,7 +423,7 @@ START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matche
   mod_set.setModifications("Gln->pyro-Glu (N-term Q)", "Glu->pyro-Glu (N-term E),Oxidation (M)");
   multimap<double, ModificationDefinition> matches;
   // nothing to consider:
-  TEST_EXCEPTION(Exception::IllegalArgument&, mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, false, false, true, 0.1));
+  TEST_EXCEPTION(Exception::IllegalArgument, mod_set.findMatches(matches, -18, "E", ResidueModification::N_TERM, false, false, true, 0.1));
   // wrong term. spec.:
   mod_set.findMatches(matches, -18, "E", ResidueModification::ANYWHERE, true, true, true, 0.1);
   TEST_EQUAL(matches.empty(), true);

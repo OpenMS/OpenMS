@@ -165,5 +165,13 @@ namespace OpenMS
       return (boost::math::pdf(ndf, x) * int0 );
     }
 
+    double GaussFitter::GaussFitResult::log_eval_no_normalize(const double x) const
+    {
+      //TODO we could cache log sigma but then we would need to make the members private and update log sigma whenever
+      // sigma is reset
+      //TODO for likelihood maximization also the halflogtwopi constant could be removed
+      return -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0);
+    }
+
   }   //namespace Math
 } // namespace OpenMS

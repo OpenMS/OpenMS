@@ -387,7 +387,7 @@ protected:
         }
 
       }
-      catch (Exception::UnableToFit)
+      catch (Exception::UnableToFit&)
       {
         writeLog_("Unable to fit a Gaussian distribution to the precursor mass errors");
       }
@@ -486,7 +486,7 @@ protected:
           gpl_out.close();
         }
       }
-      catch (Exception::UnableToFit)
+      catch (Exception::UnableToFit&)
       {
         writeLog_("Unable to fit a Gaussian distribution to the fragment mass errors");
       }

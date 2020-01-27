@@ -207,4 +207,11 @@ MaRaCluster:
   https://github.com/statisticalbiotechnology/maracluster
   - License
   http://www.apache.org/licenses/LICENSE-2.0.html
-  
+
+---------------------   CMake Modules:  ------------------------
+
+GetGitRevisionDescription and findCppCheck:
+  - URL and source code:
+  https://github.com/rpavlik/cmake-modules
+  - License
+  http://www.boost.org/LICENSE_1_0.txt

@@ -69,7 +69,7 @@ END_SECTION
 
 START_SECTION(bool isValid(const String &filename,  std::ostream& os = std::cerr) )
 	XMLFile f("","");
-	TEST_EXCEPTION(Exception::NotImplemented&, f.isValid("", std::cerr))
+	TEST_EXCEPTION(Exception::NotImplemented, f.isValid("", std::cerr))
 END_SECTION
 
 START_SECTION(const String& getVersion() const)

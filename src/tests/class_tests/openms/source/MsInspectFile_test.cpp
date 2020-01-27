@@ -92,7 +92,7 @@ START_SECTION((template < typename SpectrumType > void store(const String &filen
 {
   MsInspectFile f;
   MSSpectrum spec;
-  TEST_EXCEPTION(Exception::NotImplemented&, f.store("bla", spec))
+  TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION
 

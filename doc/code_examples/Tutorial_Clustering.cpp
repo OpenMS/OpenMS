@@ -63,9 +63,11 @@ Int main()
   vector<double> data; // must be filled
 
   srand(333);
-  for (int i = 0; i < 12; ++i)
+  Size nr = 12;
+  data.resize(nr);
+  for (Size i = 0; i < nr; ++i)
   {
-    data.push_back((double)rand() / RAND_MAX);
+    data[i] = (double)rand() / RAND_MAX;
   }
 
   LowLevelComparator llc;

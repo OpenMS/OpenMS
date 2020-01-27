@@ -106,13 +106,13 @@ AhoCorasickAmbiguous::PeptideDB pep_db;
 
 START_SECTION(static void initPattern(const PeptideDB& pep_db, const int aaa_max, const int mm_max, FuzzyACPattern& pattern))
   setDB(ListUtils::create<String>("withB", ','), pep_db); // ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION(Exception::InvalidValue&, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) // "The value 'WITHB' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) // "The value 'WITHB' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withJ", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION(Exception::InvalidValue&, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHJ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHJ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withZ", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION(Exception::InvalidValue&, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHZ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHZ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withX", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION(Exception::InvalidValue&, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHX' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHX' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
 
   setDB(ListUtils::create<String>("acd,adc,cad,cda,dac,dca", ','), pep_db);
   AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern);

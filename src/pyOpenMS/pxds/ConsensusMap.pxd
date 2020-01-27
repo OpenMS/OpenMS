@@ -98,6 +98,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
         libcpp_vector[ConsensusFeature].iterator begin(

@@ -43,7 +43,6 @@
 //#define DEBUG
 
 using namespace std;
-using namespace boost::math;
 
 namespace OpenMS
 {

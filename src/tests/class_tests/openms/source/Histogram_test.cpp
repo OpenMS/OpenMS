@@ -109,13 +109,13 @@ START_SECTION((ValueType operator [] (Size index) const))
 	TEST_REAL_SIMILAR(d[2],0.0);
 	TEST_REAL_SIMILAR(d[3],0.0);
 	TEST_REAL_SIMILAR(d[4],0.0);
-	TEST_EXCEPTION(Exception::IndexOverflow&, d[5])
+	TEST_EXCEPTION(Exception::IndexOverflow, d[5])
 END_SECTION
 
 START_SECTION((Size inc(BinSizeType val, ValueType increment=1)))
 	Size bin_index = 123456;
-	TEST_EXCEPTION(Exception::OutOfRange&, d.inc(3.9f, 250.3f))
-	TEST_EXCEPTION(Exception::OutOfRange&, d.inc(14.1f, 250.3f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(3.9f, 250.3f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.inc(14.1f, 250.3f))
 		
 	bin_index = d.inc(4.0f, 1.0);
 	TEST_EQUAL(bin_index,0);
@@ -176,7 +176,7 @@ START_SECTION((ConstIterator end() const))
 END_SECTION
 
 START_SECTION((ValueType binValue(BinSizeType val) const))
-	TEST_EXCEPTION(Exception::OutOfRange&, d.binValue(3.9f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(3.9f))
 	TEST_REAL_SIMILAR(d.binValue(4.0f),2.0);
 	TEST_REAL_SIMILAR(d.binValue(5.9f),2.0);
 	TEST_REAL_SIMILAR(d.binValue(6.0f),0.0);
@@ -187,7 +187,7 @@ START_SECTION((ValueType binValue(BinSizeType val) const))
 	TEST_REAL_SIMILAR(d.binValue(11.9f),0.0);
 	TEST_REAL_SIMILAR(d.binValue(12.0f),6.0);
 	TEST_REAL_SIMILAR(d.binValue(14.0f),6.0);
-	TEST_EXCEPTION(Exception::OutOfRange&, d.binValue(14.1f))
+	TEST_EXCEPTION(Exception::OutOfRange, d.binValue(14.1f))
 END_SECTION
 	
 START_SECTION((void reset(BinSizeType min, BinSizeType max, BinSizeType bin_size)))
@@ -242,7 +242,7 @@ START_SECTION((BinSizeType centerOfBin(Size bin_index) const))
 	TEST_REAL_SIMILAR(dist.centerOfBin(2),2.5);
 	TEST_REAL_SIMILAR(dist.centerOfBin(3),3.5);
 	TEST_REAL_SIMILAR(dist.centerOfBin(4),4.5);
-	TEST_EXCEPTION(Exception::IndexOverflow&, dist.centerOfBin(5))
+	TEST_EXCEPTION(Exception::IndexOverflow, dist.centerOfBin(5))
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -185,10 +185,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+1") != var_mods.end(), true)
 
   // wrong "experiment_name" produces an exception:
-  TEST_EXCEPTION(Exception::ParseError&, file.load(filename, proteins, peptides, "abcxyz"));
+  TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
 
   // throw an exception if the pepXML file does not exist:
-  TEST_EXCEPTION(Exception::FileNotFound&, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
 }
 END_SECTION
 
@@ -285,10 +285,10 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   TEST_REAL_SIMILAR(a.sub_scores.find("nrs")->second, 10.2137);
 
   // wrong "experiment_name" produces an exception:
-  TEST_EXCEPTION(Exception::ParseError&, file.load(filename, proteins, peptides, "abcxyz"));
+  TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
 
   // throw an exception if the pepXML file does not exist:
-  TEST_EXCEPTION(Exception::FileNotFound&, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
 }
 END_SECTION
 

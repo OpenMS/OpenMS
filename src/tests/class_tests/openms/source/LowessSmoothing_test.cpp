@@ -98,7 +98,7 @@ TOLERANCE_ABSOLUTE(0.07);
 START_SECTION(void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&))
 {
     y.push_back(-1.0);
-    TEST_EXCEPTION(Exception::InvalidValue&, lowsmooth.smoothData(x, y, out));
+    TEST_EXCEPTION(Exception::InvalidValue, lowsmooth.smoothData(x, y, out));
     y.pop_back();
     out.clear();
 
