@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -360,7 +360,7 @@ public:
   {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
-    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
+    const std::vector<std::string> affixes{ "decoy", "dec", "reverse", "rev", "reversed", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random" };
 
     // map decoys to counts of occurrences as prefix/suffix
     DecoyStringToAffixCount decoy_count;

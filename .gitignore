@@ -26,4 +26,6 @@ openms-build
 *.swp
 cmake-build-debug
 cmake-build-release
+cmake-build-*
+*.code-workspace
 .vs
