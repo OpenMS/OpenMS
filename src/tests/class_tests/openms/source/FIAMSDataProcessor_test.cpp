@@ -78,29 +78,41 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-// START_SECTION([EXTRA]AdductInfo)
-// {
-//   EmpiricalFormula ef_empty;
-//   // make sure an empty formula has no weight (we rely on that in AdductInfo's getMZ() and getNeutralMass()
-//   TEST_EQUAL(ef_empty.getMonoWeight(), 0)
+FIAMSDataProcessor fia_processor;
 
-//   // now we test if converting from neutral mass to m/z and back recovers the input value using different adducts
-//   {
-//   // testing M;-2  // intrinsic doubly negative charge
-//     AdductInfo ai("TEST_INTRINSIC", ef_empty, -2, 1);
-//     double neutral_mass=1000; // some mass...
-//     double mz = ai.getMZ(neutral_mass);
-//     double neutral_mass_recon = ai.getNeutralMass(mz);
-//     TEST_REAL_SIMILAR(neutral_mass, neutral_mass_recon);
-//   }
-//   { // testing M+Na+H;+2
-//     EmpiricalFormula simpleAdduct("HNa");
-//     AdductInfo ai("TEST_WITHADDUCT", simpleAdduct, 2, 1);
-//     double neutral_mass=1000; // some mass...
-//     double mz = ai.getMZ(neutral_mass);
-//     double neutral_mass_recon = ai.getNeutralMass(mz);
-//     TEST_REAL_SIMILAR(neutral_mass, neutral_mass_recon);
-//   }
+START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds)))
+{
+    
+    PeakMap input;
+    Peak1D p;
+    std::vector<float> mzs {50, 50, 50, 50};
+    std::vector<float> rts {10, 20, 30, 40};
+    for (Size i = 0; i < rts.size(); ++i) {
+        MSSpectrum s;
+        for (Size j = 0; j < 3; ++j) {
+            p.setIntensity(100); p.setMZ(100);
+            s.push_back(p);
+        }
+        s.setRT(rts[i]);
+        input.addSpectrum(s);
+    }
+    
+    vector<MSSpectrum> output1;
+    fia_processor.cutForTime(input, output1, 0);
+    TEST_EQUAL(output1.size(), 0);
+    vector<MSSpectrum> output2;
+    fia_processor.cutForTime(input, output2, 25);
+    TEST_EQUAL(output2.size(), 2);
+    vector<MSSpectrum> output3;
+    fia_processor.cutForTime(input, output3, 100);
+    TEST_EQUAL(output3.size(), 4);
+    PeakMap empty_input;
+    vector<MSSpectrum> output4;
+    fia_processor.cutForTime(empty_input, output4, 100);
+    TEST_EQUAL(output4.size(), 0);
+
+}
+END_SECTION
 
 // }
 // END_SECTION

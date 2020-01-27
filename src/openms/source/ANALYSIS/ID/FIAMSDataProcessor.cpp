@@ -47,28 +47,30 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 using namespace OpenMS;
+using namespace std;
 
 
-  /// default constructor
-  FIAMSDataProcessor::FIAMSDataProcessor()
-  {
-    std::cout << "test now" << std::endl;
-  }
+/// default constructor
+FIAMSDataProcessor::FIAMSDataProcessor() {
+  cout << "test now" << endl;
+}
 
-  /// default destructor
-  FIAMSDataProcessor::~FIAMSDataProcessor()
-  {
-  }
+/// default destructor
+FIAMSDataProcessor::~FIAMSDataProcessor() {
+}
 
-  /// copy constructor
-  FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source)
-  {
-  }
+/// copy constructor
+FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) {
+}
 
-  /// assignment operator
-  FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs)
-  {
-    if (this == &rhs) return *this;
-    return *this;
-  }
+/// assignment operator
+FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs) {
+  if (this == &rhs) return *this;
+  return *this;
+}
 
+void FIAMSDataProcessor::cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds) {
+    for (auto s : experiment.getSpectra()) {
+        if (s.getRT() < n_seconds) output.push_back(s);
+    }
+}

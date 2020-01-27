@@ -47,6 +47,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+using namespace std;
 
 namespace OpenMS
 {
@@ -67,22 +68,20 @@ public:
     /// Assignment
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
-//     /// Process the given file
-//     void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
+    // /// Process the given file
+    // void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
 
-// protected:
+    // /// Apply sliding bin smoothing
+    // void applySlidingBin_(const MSSpectrum & input, MSSpectrum & output);
 
-//     /// Apply sliding bin smoothing
-//     void applySlidingBin_(const MSSpectrum & input, MSSpectrum & output);
+    /// Cut the spectra for time
+    void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds);
 
-//     /// Cut the spectra for time
-//     void cutForTime_(const MSSpectrum & input, MSSpectrum & output);
+    // /// Estimate noise for each peak
+    // void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
 
-//     /// Estimate noise for each peak
-//     void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
-
-//     /// Perform accurate mass search
-//     void massSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
+    // /// Perform accurate mass search
+    // void runAccurateMassSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
   };
 
 } // namespace OpenMS
