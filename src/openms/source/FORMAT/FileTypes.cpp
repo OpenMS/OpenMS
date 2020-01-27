@@ -139,9 +139,11 @@ namespace OpenMS
     targetMap[FileTypes::SPLIB] = "splib";
     targetMap[FileTypes::NOVOR] = "novor";
     targetMap[FileTypes::PARAMXML] = "paramXML";
+    targetMap[FileTypes::SPECXML] = "spec.xml";
     targetMap[FileTypes::XQUESTXML] = "xquest.xml";
     targetMap[FileTypes::JSON] = "json";
     targetMap[FileTypes::RAW] = "raw";
+    targetMap[FileTypes::EXE] = "exe";
 
     return targetMap;
   }

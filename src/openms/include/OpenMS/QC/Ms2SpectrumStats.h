@@ -37,50 +37,50 @@
 #include <OpenMS/QC/QCBase.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 
 namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
-  class MSSpectrum;
   class PeptideIdentification;
   class TransformationDescription;
 
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    TopNoverRT creates empty PeptideIdentifications (with no sequence) for all unidentified MS2 scans
-    specifying the RT and the metaValues "ScanEventNumber" and "identified"
-    and returns them as in a vector.
+    Ms2SpectrumStats collects data from MS2 scans and stores the result into PeptideIdentifications, 
+    which already exist in the FeatureMap, or are newly created as empty PeptideIdentifications (with no sequence).
 
-    "ScanEventNumber": consecutive number of each MS2 scan after the MS1 scan
+    The following meta-values are computed:
+    "ScanEventNumber": consecutive number of each MS2 scan after the preceding MS1 scan
     "identified": All PeptideIdentifications of the FeatureMap are marked with '+' and all unidentified MS2-Spectra with '-'.
+    "ion_injection_time": from MS2 spectrum
+    "activation_method": from MS2 spectrum
+    "total_ion_count": summed intensity from MS2 spectrum
+    "base_peak_intensity": highest intensity from MS2 spectrum
 
-    Additional metavalues are added for each PeptideIdentification:
     "FWHM": RT peak width for all assigned PIs (if provided)
-    "ion_injection_time": from MS2 spectrum (if provided)
-    "activation_method": from MS2 spectrum (if provided)
-    "total_ion_count": summed intensity from MS2 spectrum (if provided)
-    "base_peak_intensity": highest intensity from MS2 spectrum (if provided)
 
     **/
-  class OPENMS_DLLAPI TopNoverRT : public QCBase
+  class OPENMS_DLLAPI Ms2SpectrumStats : public QCBase
   {
   public:
     struct ScanEvent
     {
-      ScanEvent(const UInt32 sen, const bool ms2_present)
-        : scan_event_number(sen), ms2_presence(ms2_present) {}
+      ScanEvent(UInt32 sem, bool ms2)
+        : scan_event_number(sem), ms2_presence(ms2) 
+      {}
       UInt32 scan_event_number;
       bool ms2_presence;
     };
 
     /// Constructor
-    TopNoverRT() = default;
+    Ms2SpectrumStats() = default;
 
     /// Destructor
-    virtual ~TopNoverRT() = default;
+    virtual ~Ms2SpectrumStats() = default;
 
     /**
       @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
@@ -101,7 +101,7 @@ namespace OpenMS
 
   private:
     /// name of the metric
-    const String name_ = "TopNoverRT";
+    const String name_ = "Ms2SpectrumStats";
     
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
     std::vector<ScanEvent> ms2_included_{};
@@ -115,8 +115,7 @@ namespace OpenMS
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
     std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
 
-    /// calculate highest intensity (base peak intensity) and summed intensities (total ion count)
-    /// writes result into given variables
-    static void getBPIandCIC_(const MSSpectrum& spec, Peak1D::IntensityType& bpi, Peak1D::IntensityType& tic); //TODO move functionality to MSSpectrum
+    /// calculate highest intensity (base peak intensity)
+    static MSSpectrum::PeakType::IntensityType getBPI_(const MSSpectrum& spec);
   };
 }

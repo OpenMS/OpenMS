@@ -110,8 +110,10 @@ namespace OpenMS
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
       NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
+      SPECXML,            ///< xQuest XML file format for matched spectra for spectra visualization in the xQuest results manager (.spec.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
       RAW,                ///< Thermo Raw File (.raw)
+      EXE,                ///< Executable (.exe)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

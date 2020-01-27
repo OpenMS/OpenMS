@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 

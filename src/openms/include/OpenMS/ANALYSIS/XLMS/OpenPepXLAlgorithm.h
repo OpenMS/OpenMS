@@ -122,7 +122,8 @@ public:
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      INCOMPATIBLE_INPUT_DATA
     };
 
     /// Default constructor

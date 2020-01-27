@@ -83,7 +83,12 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setIdentifier(String id_) nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
-        void getPrimaryMSRunPath(StringList& toFill) nogil except +
+        void addPrimaryMSRunPath(StringList& s) nogil except +
+        void getPrimaryMSRunPath(StringList& output) nogil except +
+
+        void setPrimaryMSRunPath(StringList& s, bool raw) nogil except +
+        void addPrimaryMSRunPath(StringList& s, bool raw) nogil except +
+        void getPrimaryMSRunPath(StringList& output, bool raw) nogil except +
 
         # This causes as problem with circular dependencies when trying to use
         # ExperimentalSettings in MSExperiment

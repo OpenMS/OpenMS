@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;

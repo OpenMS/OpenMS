@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "OpenMS/QC/QCBase.h"
+#include <OpenMS/QC/QCBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -47,9 +47,9 @@ namespace OpenMS
   public:
     enum class ToleranceUnit
     {
+      AUTO,
       PPM,
       DA,
-      AUTO,
       SIZE_OF_TOLERANCEUNIT
     };
     /// strings corresponding to enum ToleranceUnit
