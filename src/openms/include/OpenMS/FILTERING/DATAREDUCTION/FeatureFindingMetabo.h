@@ -330,7 +330,7 @@ e conditions are fulfilled. Mainly the
     bool use_smoothed_intensities_;
     
     bool use_mz_scoring_C13_;
-    bool use_mz_scoring_by_element_range;
+    bool use_mz_scoring_by_element_range_;
     bool report_convex_hulls_;
     bool report_chromatograms_;
 
