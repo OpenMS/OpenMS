@@ -868,7 +868,6 @@ namespace OpenMS
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms)
   {
 
-    Param ffm_param = FeatureFindingMetabo::getParameters();
     if (use_mz_scoring_by_element_range_ && isotope_filtering_model_ != "none")
     {
       OPENMS_LOG_WARN << "Isotope filtering is not supported, when using the mz scoring by elements.\n"
