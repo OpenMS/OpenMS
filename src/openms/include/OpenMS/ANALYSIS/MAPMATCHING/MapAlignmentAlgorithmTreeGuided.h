@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer:  Julia Thueringer$
 // $Authors: Julia Thueringer $
 // --------------------------------------------------------------------------
 
@@ -38,13 +38,8 @@
 // included dependencies
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
-#include <boost/assign/std/vector.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/container/vector/vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include "TransformationDescription.h"
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include "MapAlignmentAlgorithmIdentification.h"
 
 namespace OpenMS
@@ -102,15 +97,10 @@ public:
      * @param maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      * @param map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
      * @param trafo_order Vector to store indices of maps in order of alignment.
-     * @param model_params
-     * @param model_type
     */
-    static void treeGuidedAlignment_(const std::vector <BinaryTreeNode> &tree,
-                              std::vector <FeatureMap> feature_maps_transformed,
-                              std::vector <std::vector<double>> &maps_ranges,
-                              FeatureMap &map_transformed, std::vector <Size> &trafo_order,
-                              const Param &model_params, const String &model_type,
-                              MapAlignmentAlgorithmIdentification &algo_ident);
+    void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, std::vector<FeatureMap> feature_maps_transformed,
+                              std::vector<std::vector<double>> &maps_ranges, FeatureMap &map_transformed,
+                              std::vector<Size> &trafo_order);
 
     /**
      * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
@@ -119,11 +109,9 @@ public:
      * @param map_transformed FeatureMap that contains all features of combined maps with original and transformed RTs in order of alignment.
      * @param transformations Vector to store transformation descriptions for each map. (output)
      * @param trafo_order Vector that contains the indices of aligned maps in order of alignment.
-     * @param model_params
-     * @param model_type
     */
-    static void computeTrafosByOriginalRT_(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
-                                           std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order, const Param& model_params, const String& model_type);
+    void computeTrafosByOriginalRT_(std::vector<FeatureMap> &feature_maps, FeatureMap &map_transformed,
+            std::vector<TransformationDescription> &transformations, const std::vector<Size> &trafo_order);
 
     /**
      * @brief Apply transformations on input maps.
@@ -133,16 +121,31 @@ public:
     */
     static void computeTransformedFeatureMaps_(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations);
 
+    /**
+     * @brief Check that parameter values are valid
+     *
+     * Currently nothing is checked.
+    */
+    void updateMembers_() override;
+
 protected:
     /// Type to store retention times given for individual peptide sequence
     typedef std::map<String, DoubleList> SeqAndRTList;
+
+    /// Type of transformation model - only b_spline
+    String model_type_;
+
+    /// Default params of transformation models linear, b_spline, lowess and interpolated
+    Param model_param_;
+
+    /// Instantiation of alignment algorithm
+    MapAlignmentAlgorithmIdentification align_algorithm_;
 
     /**
      * @brief Similarity functor that provides similarity calculations with the ()-operator for protected type SeqAndRTList that stores retention times given for individual peptide sequences of a feature map
 
       Using pearson correlation, calculate the retention time similarity of two maps from their intersection of the peptide identifications.
       Small intersections are penalized by multiplication with the quotient of intersection to union.
-      To get distance instead of pearson similarity calculate 1 - similarity-value.
     */
     class PeptideIdentificationsPearsonDistance_;
 
