@@ -119,7 +119,9 @@ START_SECTION((mergeAlongTime(
     vector<MSSpectrum> output_cut;
     fia_processor.cutForTime(input, output_cut, 100);
     MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
-    TEST_EQUAL(output.size(), 0);
+    TEST_EQUAL(output.size() > 0, true);
+    TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
+    TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
 }
 END_SECTION
 

@@ -116,4 +116,3 @@ MSSpectrum FIAMSDataProcessor::mergeAlongTime(
     output.sortByPosition();
     return output;
 }
-
