@@ -173,6 +173,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+    registerStringOption_("output_directory", "<directory>", "", "Output directory for MaRaCluster original consensus output", false);
+
 
     //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
@@ -284,7 +286,8 @@ protected:
 
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
- 
+
+    String maracluster_output_directory = getStringOption_("output_directory");   
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
 
@@ -365,6 +368,21 @@ protected:
     Map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
+
+    //if specified keep original output in designated directory
+    if (!maracluster_output_directory.empty())
+    {
+      bool copy_status = File::copyDirRecursively(temp_directory_body.toQString(), maracluster_output_directory.toQString());
+
+      if (copy_status)
+      { 
+        OPENMS_LOG_INFO << "MaRaCluster original output was successfully copied to " << maracluster_output_directory << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "MaRaCluster original output could not be copied to " << maracluster_output_directory << ". Please run MaRaClusterAdapter with debug >= 2." << std::endl;
+      }
+    }
 
     //output idXML containing scannumber and cluster id annotation
     if (!out.empty())

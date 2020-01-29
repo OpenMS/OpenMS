@@ -193,4 +193,35 @@ START_TEST(IDMergerAlgorithm, "$Id$")
     }
     END_SECTION
 
+    START_SECTION(check search setting consistency)
+        {
+          IdXMLFile f;
+          vector<ProteinIdentification> pr1;
+          vector<PeptideIdentification> pe1;
+          f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest1.idXML"),pr1,pe1);
+
+          vector<ProteinIdentification> pr2;
+          vector<PeptideIdentification> pe2;
+          f.load(OPENMS_GET_TEST_DATA_PATH("newIDMergerTest2.idXML"),pr2,pe2);
+          // fail with different db filename
+          pr2[0].getSearchParameters().db = "baz";
+
+          IDMergerAlgorithm ima("mymerge");
+          ima.insertRuns(std::move(pr1), std::move(pe1));
+          TEST_EXCEPTION(Exception::MissingInformation,ima.insertRuns(pr2, pe2))
+
+          // check windows path with correct filename
+          String fn = "C:\\foo\\s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta";
+          pr2[0].getSearchParameters().db = fn;
+
+          ima.insertRuns(std::move(pr2), std::move(pe2));
+
+          ProteinIdentification prres;
+          vector<PeptideIdentification> peres;
+          ima.returnResultsAndClear(prres,peres);
+
+          TEST_EQUAL(prres.getHits().size(),6)
+        }
+    END_SECTION
+
 END_TEST

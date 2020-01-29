@@ -320,33 +320,44 @@ set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Never use RPATH. We have other means on every platform.
+# Never use RPATH by default. We have other means on every platform.
 # E.g. not yet compatible with our fix_mac_dependencies script.
-SET(CMAKE_MACOSX_RPATH FALSE)
+if(NOT DEFINED CMAKE_MACOSX_RPATH)
+  SET(CMAKE_MACOSX_RPATH FALSE)
+endif()
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
-SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
-
-if(UNIX AND NOT APPLE)
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-if (ENABLE_PREPARE_KNIME_PACKAGE)
-  ## Since we rely on copying instead of "installing" for KNIME packaging
-  ## we need to do it during building already.
-  ## In this case, make sure that QT is in a system path if you want to test it locally.
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-else()
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+if(NOT DEFINED CMAKE_INSTALL_NAME_DIR)
+  SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 endif()
 
-# the RPATH to be used when installing
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+if(UNIX AND NOT APPLE)
+	# use, i.e. don't skip the full RPATH for the build tree
+	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
+	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	endif()
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	# when building, don't use the install RPATH already
+	# (but later on when installing)
+	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
+		if (ENABLE_PREPARE_KNIME_PACKAGE)
+			## Since we rely on copying instead of "installing" for KNIME packaging
+			## we need to do it during building already.
+			## In this case, make sure that QT is in a system path if you want to test it locally.
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+		else()
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+		endif()
+  endif()
+	# the RPATH to be used when installing
+	if(NOT DEFINED CMAKE_INSTALL_RPATH)
+		SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+	endif()
+
+	# don't add the automatically determined parts of the RPATH
+	# which point to directories outside the build tree to the install RPATH
+	if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

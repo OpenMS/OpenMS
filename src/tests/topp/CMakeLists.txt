@@ -258,8 +258,8 @@ add_test("TOPP_FeatureFinderMetabo_4" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test
 add_test("TOPP_FeatureFinderMetabo_4_out" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_output.featureXML)
 add_test("TOPP_FeatureFinderMetabo_4_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_4_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_chrom_output.mzML)
 set_tests_properties("TOPP_FeatureFinderMetabo_4_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_4")
-add_test("TOPP_FeatureFinderMetabo_5" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out ${DATA_DIR_TOPP}/FeatureFinderMetabo_5.tmp -algorithm:mtd:quant_method max_height)
-add_test("TOPP_FeatureFinderMetabo_5_out" ${DIFF} -whitelist "id=" -in1 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5_output.featureXML)
+add_test("TOPP_FeatureFinderMetabo_5" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_5.tmp -algorithm:mtd:quant_method max_height)
+add_test("TOPP_FeatureFinderMetabo_5_out" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_5_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_5")
 
 
@@ -449,8 +449,12 @@ add_test("TOPP_FileConverter_25_out" ${DIFF} -in1 FileConverter_25.tmp -in2 ${DA
 set_tests_properties("TOPP_FileConverter_25_out" PROPERTIES DEPENDS "TOPP_FileConverter_25")
 # Purpose: test mzXML conversion with MaxQuant compatibility options (should add a scan index, Thermo manufacturer and other things)
 add_test("TOPP_FileConverter_26" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_26.tmp -force_MaxQuant_compatibility -out_type mzXML)
-add_test("TOPP_FileConverter_26_out" ${DIFF} -in1 FileConverter_26.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26_output.mzML )
+add_test("TOPP_FileConverter_26_out" ${DIFF} -in1 FileConverter_26.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26_output.mzXML )
 set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileConverter_26")
+#  .. and self conversion should not loose anything
+add_test("TOPP_FileConverter_26-2" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_26_output.mzXML -out FileConverter_26-2.tmp -force_MaxQuant_compatibility -out_type mzXML)
+add_test("TOPP_FileConverter_26-2_out" ${DIFF} -in1 FileConverter_26-2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26-2_output.mzXML )
+set_tests_properties("TOPP_FileConverter_26-2_out" PROPERTIES DEPENDS "TOPP_FileConverter_26-2")
 # Purpose: test conversion of targeted MS1 (e.g. GC-MS data) to chromatograms
 add_test("TOPP_FileConverter_27" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_27_input.mzML -out FileConverter_27.tmp -out_type mzML  -convert_to_chromatograms)
 add_test("TOPP_FileConverter_27_out" ${DIFF} -in1 FileConverter_27.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_27_output.mzML -whitelist "location=" "<offset")
@@ -803,6 +807,11 @@ add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${D
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
+
+#------------------------------------------------------------------------------
+# IDMassAccuracy tests
+add_test("TOPP_IDMassAccuracy_1" ${TOPP_BIN_PATH}/IDMassAccuracy -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -number_of_bins 10 -out_fragment IDMassAccuracy_1_out_fragment.tsv -out_fragment_fit IDMassAccuracy_1_out_fragment_fit.tsv -out_precursor IDMassAccuracy_1_out_precursor.tsv -out_precursor_fit IDMassAccuracy_1_out_precursor_fit.tsv)
+# Currently just testing if the tool runs
 
 #------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
@@ -1329,13 +1338,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_MRMMapper_test_2_out_1" PROPERTIES DEPENDS "TOPP_MRMMapper_test_2")
 
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_output.short.csv.tmp -short_format -test)
-  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.short.csv -in2 OpenSwathFeatureXMLToTSV_output.short.csv.tmp)
+  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" ${DIFF} -in1 OpenSwathFeatureXMLToTSV_output.short.csv.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.short.csv)
   set_tests_properties("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFeatureXMLToTSV_test_1")
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_2" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_output.long.csv.tmp -test)
-  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.long.csv -in2 OpenSwathFeatureXMLToTSV_output.long.csv.tmp)
+  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_2_out1" ${DIFF} -in1 OpenSwathFeatureXMLToTSV_output.long.csv.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.long.csv)
   set_tests_properties("TOPP_OpenSwathFeatureXMLToTSV_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFeatureXMLToTSV_test_2")
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_3" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_3_output.short.csv.tmp -short_format -best_scoring_peptide main_var_xx_lda_prelim_score -test)
-  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_3_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_3_output.short.csv -in2 OpenSwathFeatureXMLToTSV_3_output.short.csv.tmp)
+  add_test("TOPP_OpenSwathFeatureXMLToTSV_test_3_out1" ${DIFF} -in1 OpenSwathFeatureXMLToTSV_3_output.short.csv.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_3_output.short.csv)
   set_tests_properties("TOPP_OpenSwathFeatureXMLToTSV_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFeatureXMLToTSV_test_3")
 
   add_test("TOPP_OpenSwathChromatogramExtractor_test_1" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.TraML -out OpenSwathChromatogramExtractor_output.mzML.tmp -test)

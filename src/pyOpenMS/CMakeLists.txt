@@ -62,21 +62,26 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support requires that the correct Python version is matched to the correct MSVS version:
+# See https://wiki.python.org/moin/WindowsCompilers
+# Windows support requires that the correct Python version is matched to the
+# correct MSVS version:
 # * Python 2.[67] needs to be compiled with MSVS 2008
 # * Python 3.[34] needs to be compiled with MSVS 2010
-# * Python 3.[56] needs to be compiled with MSVS 2015
+# * Python 3.[5678] needs to be compiled with MSVS 2015
 if(WIN32)
-    if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+    if(SKIP_WIN_COMPILERCHECK)
+        message(STATUS "Skipping MS Visual C++ compiler check (not recommended)")
+    elseif(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" OR ${PY_VERSION} STREQUAL "3.8" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[5678] extensions")
+        message(STATUS "To skip this check, please configure with -DSKIP_WIN_COMPILERCHECK=On")
         message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 

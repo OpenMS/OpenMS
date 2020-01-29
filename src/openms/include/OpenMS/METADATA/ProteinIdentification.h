@@ -252,9 +252,17 @@ public:
 
       bool operator!=(const SearchParameters& rhs) const;
 
+      /// returns the charge range from the search engine settings as a pair of ints
       std::pair<int,int> getChargeRange() const;
-      int getChargeValue_(String& charge_str) const;
 
+      /// Tests if these search engine settings are mergeable with @param sp
+      /// depending on the given @param experiment_type.
+      /// Modifications are compared as sets. Databases based on filename.
+      /// "labeled_MS1" experiments additionally allow different modifications.
+      bool mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const;
+
+      private:
+      int getChargeValue_(String& charge_str) const;
     };
 
     /** @name Constructors, destructors, assignment operator <br> */
@@ -393,19 +401,30 @@ public:
        @param raw Store paths to the raw files (or equivalent) rather than mzMLs
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
+
     /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
     void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
     void addPrimaryMSRunPath(const String& s, bool raw = false);
     void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+
     /**
        Get the file paths to the primary MS runs
 
        @param raw Get raw files (or equivalent) instead of mzMLs
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
-    /// if this object has inference data
+
+    /// Checks if this object has inference data. Looks for "InferenceEngine" metavalue.
+    /// If not, falls back to old behaviour of reading the search engine name.
     bool hasInferenceData() const;
+
+    /// Checks if the search engine name matches an inference engine known to OpenMS.
     bool hasInferenceEngineAsSearchEngine() const;
+
+    /// Checks if the peptide IDs of this IDRun are mergeable with another @param id_run
+    /// given an @param experiment_type .
+    /// Checks search engine and search engine settings.
+    bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
     //@}
 
 protected:
