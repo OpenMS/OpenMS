@@ -51,12 +51,27 @@ using namespace std;
 
 
 /// default constructor
-FIAMSDataProcessor::FIAMSDataProcessor(float resolution, float min_mz, float max_mz, float bin_step)
+FIAMSDataProcessor::FIAMSDataProcessor(
+  float resolution, 
+  String polarity, 
+  String db_mapping, 
+  String db_struct, 
+  String positive_adducts, 
+  String negative_adducts, 
+  float min_mz, 
+  float max_mz, 
+  float bin_step
+  )
     : 
     resolution_(resolution),
+    polarity_(polarity),
     min_mz_(min_mz),
     max_mz_(max_mz),
     bin_step_(bin_step),
+    db_mapping_(db_mapping),
+    db_struct_(db_struct),
+    positive_adducts_(positive_adducts),
+    negative_adducts_(negative_adducts),
     mzs_(),
     bin_sizes_()
   {
@@ -74,9 +89,14 @@ FIAMSDataProcessor::~FIAMSDataProcessor() {
 /// copy constructor
 FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
   resolution_(source.resolution_),
+  polarity_(source.polarity_),
   min_mz_(source.min_mz_),
   max_mz_(source.max_mz_),
   bin_step_(source.bin_step_),
+  db_mapping_(source.db_mapping_),
+  db_struct_(source.db_struct_),
+  positive_adducts_(source.positive_adducts_),
+  negative_adducts_(source.negative_adducts_),
   mzs_(source.mzs_),
   bin_sizes_(source.bin_sizes_)
   {
@@ -86,9 +106,14 @@ FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
 FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs) {
   if (this == &rhs) return *this;
   resolution_ = rhs.resolution_;
+  polarity_ = rhs.polarity_;
   min_mz_ = rhs.min_mz_;
   max_mz_ = rhs.max_mz_;
   bin_step_ = rhs.bin_step_;
+  db_mapping_ = rhs.db_mapping_;
+  db_struct_ = rhs.db_struct_;
+  positive_adducts_ = rhs.positive_adducts_;
+  negative_adducts_ = rhs.negative_adducts_;
   mzs_ = rhs.mzs_;
   bin_sizes_ = rhs.bin_sizes_;
   return *this;
@@ -115,4 +140,100 @@ MSSpectrum FIAMSDataProcessor::mergeAlongTime(
     }
     output.sortByPosition();
     return output;
+}
+
+FeatureMap FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
+  MSSpectrum spectrum(input);
+
+  SavitzkyGolayFilter filter;
+  filter.filter(spectrum);
+
+  MorphologicalFilter morph_filter;
+  morph_filter.filter(spectrum);
+
+  PeakPickerHiRes picker;
+
+  MSSpectrum picked;
+  picker.pick(spectrum, picked);
+
+  FeatureMap output;
+  for (auto it = picked.begin(); it != picked.end(); ++it) {
+      Feature f;
+      f.setIntensity(it->getIntensity());
+      f.setMZ(it->getMZ());
+      output.push_back(f);
+      output[0].setMetaValue("scan_polarity", polarity_);
+  }
+  return output;
+}
+
+void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output) {
+  Param ams_param;
+  ams_param.setValue("ionization_mode", "auto");
+  ams_param.setValue("mass_error_value", 1e+06 / (resolution_*2));
+  ams_param.setValue("db:mapping", ListUtils::create<String>(db_mapping_));
+  ams_param.setValue("db:struct", ListUtils::create<String>(db_struct_));
+  ams_param.setValue("positive_adducts", positive_adducts_);
+  ams_param.setValue("negative_adducts", negative_adducts_);
+
+  AccurateMassSearchEngine ams;
+  ams.setParameters(ams_param);
+  ams.init();
+
+  ams.run(input, output);
+}
+
+/// Get resolution
+const float FIAMSDataProcessor::getResolution() {
+  return resolution_;
+}
+
+/// Get polarity
+const String FIAMSDataProcessor::getPolarity() {
+  return polarity_;
+}
+
+/// Get minimum mass-to-charge
+const float FIAMSDataProcessor::getMinMZ(){
+  return min_mz_;
+}
+
+/// Get maximum mass-to-charge
+const float FIAMSDataProcessor::getMaxMZ(){
+  return max_mz_;
+}
+
+/// Get the sliding bin step
+const float FIAMSDataProcessor::getBinStep(){
+  return bin_step_;
+}
+
+/// Get the path to the db:mapping for passing to AccurateMassSearch
+const String FIAMSDataProcessor::getDBMapping(){
+  return db_mapping_;
+}
+
+/// Get the path to the db:struct for passing to AccurateMassSearch
+const String FIAMSDataProcessor::getDBStruct(){
+  return db_struct_;
+}
+
+/// Get the path to the positive adducts for passing to AccurateMassSearch
+const String FIAMSDataProcessor::getPositiveAdducts(){
+  return positive_adducts_;
+}
+
+/// Get the path to the negative adducts for passing to AccurateMassSearch
+const String FIAMSDataProcessor::getNegativeAdducts(){
+  return negative_adducts_;
+}
+
+/// Get mass-to-charge ratios to base the sliding window upon
+const std::vector<float> FIAMSDataProcessor::getMZs(){
+  return mzs_;
+}
+
+/// Get the sliding bin sizes
+const std::vector<float> FIAMSDataProcessor::getBinSizes(){
+  return bin_sizes_;
 }

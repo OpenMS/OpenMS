@@ -58,7 +58,18 @@ namespace OpenMS
   {
 public:
     /// Default constructor
-    FIAMSDataProcessor(float resolution, float min_mz=50, float max_mz=1500, float bin_step=20);
+    FIAMSDataProcessor(
+      float resolution, 
+      String polarity, 
+      String db_mapping, 
+      String db_struct, 
+      String positive_adducts, 
+      String negative_adducts, 
+      float min_mz=50, 
+      float max_mz=1500, 
+      float bin_step=20
+    );
+
     /// Default desctructor
     ~FIAMSDataProcessor();
 
@@ -69,7 +80,7 @@ public:
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
     // /// Process the given file
-    // void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
+    // void run(std::string & filename, std::string & polarity, double resolution, double n_seconds);
 
     /// Cut the spectra for time
     void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds);
@@ -77,14 +88,20 @@ public:
     /// Merge spectra from different retention times into one
     MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
 
+    /// Pick peaks from merged spectrum and return as featureMap with the corresponding polarity
+    FeatureMap extractPeaks(const MSSpectrum & input);
+
     // /// Estimate noise for each peak
     // void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
 
-    // /// Perform accurate mass search
-    // void runAccurateMassSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
+    /// Perform accurate mass search
+    void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
 
     /// Get resolution
     const float getResolution();
+
+    /// Get resolution
+    const String getPolarity();
 
     /// Get minimum mass-to-charge
     const float getMinMZ();
@@ -95,6 +112,18 @@ public:
     /// Get the sliding bin step
     const float getBinStep();
 
+    /// Get the path to the db:mapping for passing to AccurateMassSearch
+    const String getDBMapping();
+
+    /// Get the path to the db:struct for passing to AccurateMassSearch
+    const String getDBStruct();
+
+    /// Get the path to the positive adducts for passing to AccurateMassSearch
+    const String getPositiveAdducts();
+
+    /// Get the path to the negative adducts for passing to AccurateMassSearch
+    const String getNegativeAdducts();
+
     /// Get mass-to-charge ratios to base the sliding window upon
     const std::vector<float> getMZs();
 
@@ -103,9 +132,14 @@ public:
 
 private:
     float resolution_;
+    String polarity_;
     float min_mz_;
     float max_mz_;
     float bin_step_;
+    String db_mapping_;
+    String db_struct_;
+    String positive_adducts_;
+    String negative_adducts_;
     std::vector<float> mzs_; 
     std::vector<float> bin_sizes_;
   };

@@ -67,8 +67,13 @@ FIAMSDataProcessor* ptr = nullptr;
 FIAMSDataProcessor* null_ptr = nullptr;
 START_SECTION(FIAMSDataProcessor())
 {
-    ptr = new FIAMSDataProcessor(120000.0);
-    TEST_NOT_EQUAL(ptr, null_ptr)
+    ptr = new FIAMSDataProcessor(120000.0, "positive", "", "", "", "", 1, 2, 3);
+    TEST_NOT_EQUAL(ptr, null_ptr);
+    TEST_EQUAL(ptr->getResolution(), 120000.0);
+    TEST_EQUAL(ptr->getPolarity(), "positive");
+    TEST_EQUAL(ptr->getMinMZ(), 1);
+    TEST_EQUAL(ptr->getMaxMZ(), 2);
+    TEST_EQUAL(ptr->getBinStep(), 3);
 }
 END_SECTION
 
@@ -78,7 +83,14 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-FIAMSDataProcessor fia_processor(120000.0);
+FIAMSDataProcessor fia_processor(
+    120000.0, 
+    "positive",
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_db_mapping.tsv")),
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_db_struct.tsv")),
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv")),
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv"))
+);
 PeakMap input;
 Peak1D p;
 std::vector<float> ints {100, 120, 130, 140, 150, 100, 60, 50, 30};
@@ -112,9 +124,7 @@ START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectru
 }
 END_SECTION
 
-START_SECTION((mergeAlongTime(
-  const std::vector<OpenMS::MSSpectrum> & input, 
-  )))
+START_SECTION((test_stages))
 {
     vector<MSSpectrum> output_cut;
     fia_processor.cutForTime(input, output_cut, 100);
@@ -122,6 +132,12 @@ START_SECTION((mergeAlongTime(
     TEST_EQUAL(output.size() > 0, true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
     TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
+    FeatureMap output_feature = fia_processor.extractPeaks(output);
+    for (auto it = output_feature.begin(); it != output_feature.end(); ++it) {
+        TEST_EQUAL(it->getIntensity() > 50, true);
+    }
+    MzTab mztab_output;
+    fia_processor.runAccurateMassSearch(output_feature, mztab_output);
 }
 END_SECTION
 
