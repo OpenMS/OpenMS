@@ -61,9 +61,9 @@ except ImportError as e:
 
 # Try breathe parser
 try:
-    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+    from breathe.parser.doxygen.compound import parse as doxygen_parse
 except ImportError:
-    print ("importing breathe.parser.doxygen.compound failed, try new API")
+    print ("importing breathe.parser.doxygen.compound failed, trying new API")
     from breathe.parser.compound import parse as doxygen_parse
 
 
