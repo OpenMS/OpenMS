@@ -183,6 +183,31 @@ void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab
   ams.run(input, output);
 }
 
+void run(
+  const std::string & filename, 
+  const std::string & dir_input, 
+  const std::string & dir_output, 
+  float n_seconds,
+  OpenMS::MzTab & output) 
+{
+  Filenames filenames;
+  filenames.mzML_i = dir_input + filename + ".mzML";
+
+  RawDataHandler rawDataHandler;
+  LoadRawData loadRawData;
+  loadRawData.process(rawDataHandler, {}, filenames);
+  
+  OpenMS::MSExperiment experiment = rawDataHandler.getExperiment();
+  vector<MSSpectrum> output_cut;
+  cutForTime(input, output_cut, n_seconds);
+  MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
+  FeatureMap output_feature = fia_processor.extractPeaks(output);
+  MzTab mztab_output;
+  fia_processor.runAccurateMassSearch(output_feature, mztab_output);
+  OpenMS::MzTabFile mztab_outfile;
+  mztab_outfile.store(dir_output + filename + "_" + String(n_seconds) + ".mzTab", mztab_output);
+}
+
 /// Get resolution
 const float FIAMSDataProcessor::getResolution() {
   return resolution_;

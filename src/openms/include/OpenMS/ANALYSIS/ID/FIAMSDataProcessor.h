@@ -79,11 +79,11 @@ public:
     /// Assignment
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
-    // /// Process the given file
-    // void run(std::string & filename, std::string & polarity, double resolution, double n_seconds);
+    /// Process the given file
+    void run(const std::string & filename, double n_seconds, OpenMS::MzTab & output);
 
     /// Cut the spectra for time
-    void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds);
+    void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds=6000);
 
     /// Merge spectra from different retention times into one
     MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
