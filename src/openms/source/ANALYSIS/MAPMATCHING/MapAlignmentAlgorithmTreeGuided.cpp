@@ -182,6 +182,7 @@ namespace OpenMS
   {
     Size last_trafo = 0;  // to get final transformation order from map_sets
     vector<TransformationDescription> transformations_align;  // temporary for aligner output
+    vector<FeatureMap> to_align;
 
     // helper to memorize rt transformation order
     vector<vector<Size>> map_sets(feature_maps_transformed.size());
@@ -198,7 +199,6 @@ namespace OpenMS
       // ----------------
       // prepare alignment
       // ----------------
-      vector<FeatureMap> to_align;
       //  determine the map with larger RT range for 10/90 percentile (->reference)
       double left_range = maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.9] - maps_ranges[node.left_child][maps_ranges[node.left_child].size()*0.1];
       double right_range = maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.9] - maps_ranges[node.right_child][maps_ranges[node.right_child].size()*0.1];
@@ -213,6 +213,7 @@ namespace OpenMS
         ref = node.right_child;
         to_transform = node.left_child;
       }
+
       vector<double> tmp;
       std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
 
@@ -233,6 +234,7 @@ namespace OpenMS
       // combine aligned maps, store in both, because tree always calls smaller number
       // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform]
       // or use pointer
+
       feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
       feature_maps_transformed[ref].updateRanges();
       feature_maps_transformed[to_transform] = feature_maps_transformed[ref];

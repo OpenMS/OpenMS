@@ -121,18 +121,14 @@ public:
     */
     static void computeTransformedFeatureMaps_(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations);
 
-    /**
-     * @brief Check that parameter values are valid
-     *
-     * Currently nothing is checked.
-    */
-    void updateMembers_() override;
-
 protected:
-    /// Type to store retention times given for individual peptide sequence
+    /// Type to store feature retention times given for individual peptide sequence
     typedef std::map<String, DoubleList> SeqAndRTList;
 
-    /// Type of transformation model - only b_spline
+    // Update defaults model_type_, model_param_ and align_algorithm_
+    void updateMembers_() override;
+
+    /// Type of transformation model
     String model_type_;
 
     /// Default params of transformation models linear, b_spline, lowess and interpolated
