@@ -261,7 +261,7 @@ private:
   {
 public:
     /// Default constructor
-    AccurateMassSearchEngine();
+    AccurateMassSearchEngine();  
 
     /// Default destructor
     ~AccurateMassSearchEngine() override;

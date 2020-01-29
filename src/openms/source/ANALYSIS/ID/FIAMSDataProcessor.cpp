@@ -51,8 +51,20 @@ using namespace std;
 
 
 /// default constructor
-FIAMSDataProcessor::FIAMSDataProcessor() {
-  cout << "test now" << endl;
+FIAMSDataProcessor::FIAMSDataProcessor(float resolution, float min_mz, float max_mz, float bin_step)
+    : 
+    resolution_(resolution),
+    min_mz_(min_mz),
+    max_mz_(max_mz),
+    bin_step_(bin_step),
+    mzs_(),
+    bin_sizes_()
+  {
+  size_t n_bins = static_cast<int> (max_mz_ - min_mz_) / bin_step_;
+  for (size_t i = 0; i < n_bins; i++) {
+      mzs_.push_back(i*bin_step_);
+      bin_sizes_.push_back(mzs_[i] / (resolution_*4.0));
+  }
 }
 
 /// default destructor
@@ -60,12 +72,25 @@ FIAMSDataProcessor::~FIAMSDataProcessor() {
 }
 
 /// copy constructor
-FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) {
-}
+FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
+  resolution_(source.resolution_),
+  min_mz_(source.min_mz_),
+  max_mz_(source.max_mz_),
+  bin_step_(source.bin_step_),
+  mzs_(source.mzs_),
+  bin_sizes_(source.bin_sizes_)
+  {
+  }
 
 /// assignment operator
 FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs) {
   if (this == &rhs) return *this;
+  resolution_ = rhs.resolution_;
+  min_mz_ = rhs.min_mz_;
+  max_mz_ = rhs.max_mz_;
+  bin_step_ = rhs.bin_step_;
+  mzs_ = rhs.mzs_;
+  bin_sizes_ = rhs.bin_sizes_;
   return *this;
 }
 
@@ -74,3 +99,21 @@ void FIAMSDataProcessor::cutForTime(const MSExperiment & experiment, vector<MSSp
         if (s.getRT() < n_seconds) output.push_back(s);
     }
 }
+
+MSSpectrum FIAMSDataProcessor::mergeAlongTime(
+  const std::vector<MSSpectrum> & input
+  ) {
+    MSSpectrum output;
+    for (size_t i = 1; i < mzs_.size() - 1; i++) {
+        OpenMS::MSSpectrum full_spectrum = OpenMS::SpectrumAddition::addUpSpectra(
+            input, bin_sizes_[i], false
+        );
+        for (auto it = full_spectrum.begin(); it != full_spectrum.end(); ++it) {
+            if (it->getMZ() > mzs_[i+1]) break;
+            if (it->getMZ() >= mzs_[i]) output.push_back(*it);
+        }
+    }
+    output.sortByPosition();
+    return output;
+}
+

@@ -54,11 +54,11 @@ namespace OpenMS
   /**
     description
   */
-  class OPENMS_DLLAPI FIAMSDataProcessor
+  class OPENMS_DLLAPI FIAMSDataProcessor 
   {
 public:
     /// Default constructor
-    FIAMSDataProcessor();
+    FIAMSDataProcessor(float resolution, float min_mz=50, float max_mz=1500, float bin_step=20);
     /// Default desctructor
     ~FIAMSDataProcessor();
 
@@ -71,17 +71,43 @@ public:
     // /// Process the given file
     // void process(std::string & filename, std::string & polarity, double resolution, double n_seconds);
 
-    // /// Apply sliding bin smoothing
-    // void applySlidingBin_(const MSSpectrum & input, MSSpectrum & output);
-
     /// Cut the spectra for time
     void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds);
+
+    /// Merge spectra from different retention times into one
+    MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
 
     // /// Estimate noise for each peak
     // void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
 
     // /// Perform accurate mass search
     // void runAccurateMassSearch_(const MSSpectrum & input, std::string & polarity, OpenMS::MzTab & output);
+
+    /// Get resolution
+    const float getResolution();
+
+    /// Get minimum mass-to-charge
+    const float getMinMZ();
+
+    /// Get maximum mass-to-charge
+    const float getMaxMZ();
+
+    /// Get the sliding bin step
+    const float getBinStep();
+
+    /// Get mass-to-charge ratios to base the sliding window upon
+    const std::vector<float> getMZs();
+
+    /// Get the sliding bin sizes
+    const std::vector<float> getBinSizes();
+
+private:
+    float resolution_;
+    float min_mz_;
+    float max_mz_;
+    float bin_step_;
+    std::vector<float> mzs_; 
+    std::vector<float> bin_sizes_;
   };
 
 } // namespace OpenMS

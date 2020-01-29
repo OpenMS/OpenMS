@@ -67,7 +67,7 @@ FIAMSDataProcessor* ptr = nullptr;
 FIAMSDataProcessor* null_ptr = nullptr;
 START_SECTION(FIAMSDataProcessor())
 {
-    ptr = new FIAMSDataProcessor();
+    ptr = new FIAMSDataProcessor(120000.0);
     TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
@@ -78,25 +78,23 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-FIAMSDataProcessor fia_processor;
+FIAMSDataProcessor fia_processor(120000.0);
+PeakMap input;
+Peak1D p;
+std::vector<float> ints {100, 120, 130, 140, 150, 100, 60, 50, 30};
+std::vector<float> rts {10, 20, 30, 40};
+for (Size i = 0; i < rts.size(); ++i) {
+    MSSpectrum s;
+    for (Size j = 0; j < ints.size(); ++j) {
+        p.setIntensity(ints[j]); p.setMZ(100 + j*2);
+        s.push_back(p);
+    }
+    s.setRT(rts[i]);
+    input.addSpectrum(s);
+}
 
 START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds)))
 {
-    
-    PeakMap input;
-    Peak1D p;
-    std::vector<float> mzs {50, 50, 50, 50};
-    std::vector<float> rts {10, 20, 30, 40};
-    for (Size i = 0; i < rts.size(); ++i) {
-        MSSpectrum s;
-        for (Size j = 0; j < 3; ++j) {
-            p.setIntensity(100); p.setMZ(100);
-            s.push_back(p);
-        }
-        s.setRT(rts[i]);
-        input.addSpectrum(s);
-    }
-    
     vector<MSSpectrum> output1;
     fia_processor.cutForTime(input, output1, 0);
     TEST_EQUAL(output1.size(), 0);
@@ -114,8 +112,16 @@ START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectru
 }
 END_SECTION
 
-// }
-// END_SECTION
+START_SECTION((mergeAlongTime(
+  const std::vector<OpenMS::MSSpectrum> & input, 
+  )))
+{
+    vector<MSSpectrum> output_cut;
+    fia_processor.cutForTime(input, output_cut, 100);
+    MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
+    TEST_EQUAL(output.size(), 0);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

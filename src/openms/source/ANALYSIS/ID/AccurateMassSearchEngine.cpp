@@ -44,7 +44,7 @@
 
 #include <numeric>
 
-namespace OpenMS
+namespace OpenMS  
 {
 
   AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
