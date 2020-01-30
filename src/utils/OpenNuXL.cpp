@@ -3816,6 +3816,7 @@ static void scoreXLIons_(
     bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
     bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
     bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
+
     // autotune (only works if non-XL peptides present)
     if (autotune)
     {
