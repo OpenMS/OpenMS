@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Chris Bielow $
@@ -46,23 +46,32 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace OpenMS;
 using namespace std;
 
 
 /// default constructor
 FIAMSDataProcessor::FIAMSDataProcessor(
+  String filename, 
+  String dir_input, 
+  String dir_output, 
   float resolution, 
   String polarity, 
   String db_mapping, 
   String db_struct, 
   String positive_adducts, 
   String negative_adducts, 
+  bool store_progress,
   float min_mz, 
   float max_mz, 
   float bin_step
   )
     : 
+    filename_(filename),
+    dir_input_(dir_input),
+    dir_output_(dir_output),
     resolution_(resolution),
     polarity_(polarity),
     min_mz_(min_mz),
@@ -72,6 +81,7 @@ FIAMSDataProcessor::FIAMSDataProcessor(
     db_struct_(db_struct),
     positive_adducts_(positive_adducts),
     negative_adducts_(negative_adducts),
+    store_progress_(store_progress),
     mzs_(),
     bin_sizes_()
   {
@@ -80,6 +90,7 @@ FIAMSDataProcessor::FIAMSDataProcessor(
       mzs_.push_back(i*bin_step_);
       bin_sizes_.push_back(mzs_[i] / (resolution_*4.0));
   }
+  loadExperiment_();
 }
 
 /// default destructor
@@ -88,6 +99,9 @@ FIAMSDataProcessor::~FIAMSDataProcessor() {
 
 /// copy constructor
 FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
+  filename_(source.filename_),
+  dir_input_(source.dir_input_),
+  dir_output_(source.dir_output_),
   resolution_(source.resolution_),
   polarity_(source.polarity_),
   min_mz_(source.min_mz_),
@@ -98,6 +112,7 @@ FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
   positive_adducts_(source.positive_adducts_),
   negative_adducts_(source.negative_adducts_),
   mzs_(source.mzs_),
+  store_progress_(source.store_progress_),
   bin_sizes_(source.bin_sizes_)
   {
   }
@@ -105,6 +120,9 @@ FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
 /// assignment operator
 FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs) {
   if (this == &rhs) return *this;
+  filename_ = rhs.filename_;
+  dir_input_ = rhs.dir_input_;
+  dir_output_ = rhs.dir_output_;
   resolution_ = rhs.resolution_;
   polarity_ = rhs.polarity_;
   min_mz_ = rhs.min_mz_;
@@ -114,6 +132,7 @@ FIAMSDataProcessor& FIAMSDataProcessor::operator=(const FIAMSDataProcessor& rhs)
   db_struct_ = rhs.db_struct_;
   positive_adducts_ = rhs.positive_adducts_;
   negative_adducts_ = rhs.negative_adducts_;
+  store_progress_ = rhs.store_progress_;
   mzs_ = rhs.mzs_;
   bin_sizes_ = rhs.bin_sizes_;
   return *this;
@@ -183,29 +202,39 @@ void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab
   ams.run(input, output);
 }
 
-void run(
-  const std::string & filename, 
-  const std::string & dir_input, 
-  const std::string & dir_output, 
+void FIAMSDataProcessor::run(
   float n_seconds,
-  OpenMS::MzTab & output) 
-{
-  Filenames filenames;
-  filenames.mzML_i = dir_input + filename + ".mzML";
-
-  RawDataHandler rawDataHandler;
-  LoadRawData loadRawData;
-  loadRawData.process(rawDataHandler, {}, filenames);
-  
-  OpenMS::MSExperiment experiment = rawDataHandler.getExperiment();
+  OpenMS::MzTab & output
+  ) {
   vector<MSSpectrum> output_cut;
-  cutForTime(input, output_cut, n_seconds);
-  MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
-  FeatureMap output_feature = fia_processor.extractPeaks(output);
+  cutForTime(experiment_, output_cut, n_seconds);
+  MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
+  FeatureMap picked_features = extractPeaks(merged_spectrum);
   MzTab mztab_output;
-  fia_processor.runAccurateMassSearch(output_feature, mztab_output);
+  runAccurateMassSearch(picked_features, mztab_output);
   OpenMS::MzTabFile mztab_outfile;
-  mztab_outfile.store(dir_output + filename + "_" + String(n_seconds) + ".mzTab", mztab_output);
+  
+  mztab_outfile.store(dir_output_ + filename_ + "_" + String(n_seconds) + ".mzTab", mztab_output);
+}
+
+void FIAMSDataProcessor::loadExperiment_() {
+  MzMLFile mzml;
+  mzml.load(dir_input_ + filename_ + ".mzML", experiment_);
+}
+
+/// Get filename
+const String FIAMSDataProcessor::getFilename() {
+  return filename_;
+}
+
+/// Get input directory
+const String FIAMSDataProcessor::getInputDir() {
+  return dir_input_;
+}
+
+/// Get output directory
+const String FIAMSDataProcessor::getOutputDir() {
+  return dir_output_;
 }
 
 /// Get resolution

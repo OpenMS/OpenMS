@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
 // $Authors: Erhan Kenar, Chris Bielow $
@@ -51,7 +51,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
 
@@ -67,7 +67,21 @@ FIAMSDataProcessor* ptr = nullptr;
 FIAMSDataProcessor* null_ptr = nullptr;
 START_SECTION(FIAMSDataProcessor())
 {
-    ptr = new FIAMSDataProcessor(120000.0, "positive", "", "", "", "", 1, 2, 3);
+    ptr = new FIAMSDataProcessor(
+        "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2",
+        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/")),
+        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")),
+        120000.0, 
+        "positive", 
+        "", 
+        "", 
+        "", 
+        "", 
+        false,
+        1, 
+        2, 
+        3
+    );
     TEST_NOT_EQUAL(ptr, null_ptr);
     TEST_EQUAL(ptr->getResolution(), 120000.0);
     TEST_EQUAL(ptr->getPolarity(), "positive");
@@ -84,6 +98,9 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 END_SECTION
 
 FIAMSDataProcessor fia_processor(
+    "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2",
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/")),
+    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")),
     120000.0, 
     "positive",
     String(OPENMS_GET_TEST_DATA_PATH("FIAMS_db_mapping.tsv")),

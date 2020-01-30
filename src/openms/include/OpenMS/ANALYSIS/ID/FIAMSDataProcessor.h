@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Hendrik Weisser, Chris Bielow $
@@ -47,6 +47,8 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -59,12 +61,16 @@ namespace OpenMS
 public:
     /// Default constructor
     FIAMSDataProcessor(
+      String filename, 
+      String dir_input, 
+      String dir_output, 
       float resolution, 
       String polarity, 
       String db_mapping, 
       String db_struct, 
       String positive_adducts, 
       String negative_adducts, 
+      bool store_progress=true,
       float min_mz=50, 
       float max_mz=1500, 
       float bin_step=20
@@ -80,7 +86,7 @@ public:
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
     /// Process the given file
-    void run(const std::string & filename, double n_seconds, OpenMS::MzTab & output);
+    void run(float n_seconds, OpenMS::MzTab & output);
 
     /// Cut the spectra for time
     void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds=6000);
@@ -96,6 +102,15 @@ public:
 
     /// Perform accurate mass search
     void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
+
+    /// Get filename
+    const String getFilename();
+
+    /// Get input directory
+    const String getInputDir();
+
+    /// Get output directory
+    const String getOutputDir();
 
     /// Get resolution
     const float getResolution();
@@ -131,6 +146,11 @@ public:
     const std::vector<float> getBinSizes();
 
 private:
+    void loadExperiment_();
+
+    String filename_;
+    String dir_input_;
+    String dir_output_;
     float resolution_;
     String polarity_;
     float min_mz_;
@@ -140,8 +160,10 @@ private:
     String db_struct_;
     String positive_adducts_;
     String negative_adducts_;
+    bool store_progress_;
     std::vector<float> mzs_; 
     std::vector<float> bin_sizes_;
+    MSExperiment experiment_;
   };
 
 } // namespace OpenMS
