@@ -95,7 +95,9 @@ public:
     MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
 
     /// Pick peaks from merged spectrum and return as featureMap with the corresponding polarity
-    FeatureMap extractPeaks(const MSSpectrum & input);
+    MSSpectrum extractPeaks(const MSSpectrum & input);
+
+    FeatureMap convertToFeatureMap(const MSSpectrum & input);
 
     // /// Estimate noise for each peak
     // void trackNoise_(const MSSpectrum & input, MSSpectrum & output);

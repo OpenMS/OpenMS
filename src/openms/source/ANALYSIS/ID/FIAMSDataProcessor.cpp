@@ -158,16 +158,10 @@ MSSpectrum FIAMSDataProcessor::mergeAlongTime(
         }
     }
     output.sortByPosition();
-    if (store_progress_) {
-        MzMLFile mzml;
-        MSExperiment exp;
-        exp.addSpectrum(output);
-        mzml.store(dir_output_ + filename_ + "_merged.mzML", exp);
-    }
     return output;
 }
 
-FeatureMap FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
+MSSpectrum FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
   MSSpectrum spectrum(input);
 
   SavitzkyGolayFilter filter;
@@ -181,15 +175,12 @@ FeatureMap FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
   MSSpectrum picked;
   picker.pick(spectrum, picked);
 
-  if (store_progress_) {
-      MzMLFile mzml;
-      MSExperiment exp;
-      exp.addSpectrum(picked);
-      mzml.store(dir_output_ + filename_ + "_picked.mzML", exp);
-  }
+  return picked;
+}
 
+FeatureMap FIAMSDataProcessor::convertToFeatureMap(const MSSpectrum & input) {
   FeatureMap output;
-  for (auto it = picked.begin(); it != picked.end(); ++it) {
+  for (auto it = input.begin(); it != input.end(); ++it) {
       Feature f;
       f.setIntensity(it->getIntensity());
       f.setMZ(it->getMZ());
@@ -197,6 +188,7 @@ FeatureMap FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
       output[0].setMetaValue("scan_polarity", polarity_);
   }
   return output;
+
 }
 
 void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output) {
@@ -222,10 +214,23 @@ void FIAMSDataProcessor::run(
   vector<MSSpectrum> output_cut;
   cutForTime(experiment_, output_cut, n_seconds);
   MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
-  FeatureMap picked_features = extractPeaks(merged_spectrum);
+  MSSpectrum picked_spectrum = extractPeaks(merged_spectrum);
+  String postfix = String(static_cast<int>(n_seconds));
+  if (store_progress_) {
+    MzMLFile mzml;
+
+    MSExperiment exp_merged;
+    exp_merged.addSpectrum(merged_spectrum);
+    mzml.store(dir_output_ + filename_ + "_merged_" + postfix + ".mzML", exp_merged);
+
+    MSExperiment exp_picked;
+    exp_picked.addSpectrum(picked_spectrum);
+    mzml.store(dir_output_ + filename_ + "_picked_" + postfix + ".mzML", exp_picked);
+  }
+  FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
   runAccurateMassSearch(picked_features, output);
   OpenMS::MzTabFile mztab_outfile;
-  mztab_outfile.store(dir_output_ + filename_ + "_" + String(n_seconds) + ".mzTab", output);
+  mztab_outfile.store(dir_output_ + filename_ + "_" + postfix + ".mzTab", output);
 }
 
 void FIAMSDataProcessor::loadExperiment_() {

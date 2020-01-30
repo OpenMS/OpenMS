@@ -149,7 +149,8 @@ START_SECTION((test_stages))
     TEST_EQUAL(output.size() > 0, true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
     TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
-    FeatureMap output_feature = fia_processor.extractPeaks(output);
+    MSSpectrum picked = fia_processor.extractPeaks(output);
+    FeatureMap output_feature = fia_processor.convertToFeatureMap(picked);
     for (auto it = output_feature.begin(); it != output_feature.end(); ++it) {
         TEST_EQUAL(it->getIntensity() > 50, true);
     }
@@ -162,8 +163,15 @@ START_SECTION((test_run))
 {
     MzTab mztab_output_30;
     fia_processor.run(30, mztab_output_30);
+    String filename_30 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_merged_30.mzML";
+    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
     MzTab mztab_output_0;
+    String filename_0 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_picked_0.mzML";
+    String filename_mztab = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_0.mzTab";
     fia_processor.run(0, mztab_output_0);
+    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_0))), true);
+    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_mztab))), true);
+    
 }
 END_SECTION
 
