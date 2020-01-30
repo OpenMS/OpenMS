@@ -271,6 +271,7 @@ protected:
     registerDoubleOption_("testFDR", "<value>", 0.01, "False discovery rate threshold for evaluating best cross validation result and the reported end result.", !is_required, is_advanced_option);
     registerDoubleOption_("trainFDR", "<value>", 0.01, "False discovery rate threshold to define positive examples in training. Set to testFDR if 0.", !is_required, is_advanced_option);
     registerIntOption_("maxiter", "<number>", 10, "Maximal number of iterations", !is_required, is_advanced_option);
+    registerIntOption_("nested-xval-bins", "<number>", 1, "Number of nested cross-validation bins in the 3 splits.", !is_required, is_advanced_option);
     registerFlag_("quick-validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
     registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
     registerInputFile_("init-weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
@@ -1022,7 +1023,9 @@ protected:
       if (getFlag_("post-processing-tdc")) arguments << "-Y";
       if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       if (getFlag_("static")) arguments << "--static";
-      
+      Int nested_xval_bins = getIntOption_("nested-xval-bins");
+      if (nested_xval_bins > 1) arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
+ 
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
       String default_search_direction = getStringOption_("default-direction");
