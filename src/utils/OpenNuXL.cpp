@@ -554,7 +554,7 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "impute_decoy_medians"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores"}); 
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune"}); 
   }
 
 
@@ -566,6 +566,7 @@ protected:
       || tlss_total_MIC < 0.01); 
   }
 
+
   static bool badPartialLossScore(float tlss_Morph, float plss_Morph, float plss_MIC, float plss_im_MIC, float plss_pc_MIC, float marker_ions_score)
   {
     if (plss_Morph + tlss_Morph < 5.03) return true; // less than 5 peaks? 3% TIC
@@ -575,6 +576,21 @@ protected:
     // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
     return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03); 
   }
+
+
+/*
+  // less strict filtering
+  static bool badPartialLossScore(float tlss_Morph, float plss_Morph, float plss_MIC, float plss_im_MIC, float plss_pc_MIC, float marker_ions_score)
+  {
+    if (plss_Morph + tlss_Morph < 3.0) return true; // less than 3 matched peaks?
+
+    // no signal in NA specific peaks?
+    if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score == 0.0) return true;
+
+    // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
+    return false; 
+  }
+*/
 
   /*
      @param N number of theoretical peaks
@@ -1050,7 +1066,7 @@ protected:
     {
       for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
       {
-        for (Size i = 0; i < partial_loss_template_z1_y_ions.size(); ++i)
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
@@ -1669,7 +1685,7 @@ static void scoreXLIons_(
       }
     }
 
-    // mass shift to residue + adduct (including no adduct)
+    // mass shift to residue + adduct (including no adduct, see below)
     map<double, map<const Residue*, double> > aa_plus_adduct_mass;
     auto residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -1691,17 +1707,21 @@ static void scoreXLIons_(
     if (debug_level_ > 0)
     {
       // output ambigious masses
-      cout << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
-      cout << "Total\tResidue\tAdduct" << endl;
+      ofstream of;
+      of.open(getStringOption_("in") + ".ambigious_masses.csv");
+      of << "Ambigious residues (+adduct) masses that exactly match to other masses." << endl;
+      of << "Total\tResidue\tAdduct" << endl;
       for (auto& m : aa_plus_adduct_mass)
       {
         double mass = m.first;
-        if (m.second.size() == 1) continue; // more than one residue / adduct registered for that mass
+        if (m.second.size() == 1) continue; 
+        // more than one residue / adduct registered for that mass
         for (auto& a : m.second)
         {
-          cout << mass << "\t" << a.first->getOneLetterCode() << "\t+\t" << a.second << endl;
+          of << mass << "\t" << a.first->getOneLetterCode() << "\t" << a.second << "\n";
         }
-      } 
+      }
+      of.close(); 
     }
 
     map<double, size_t> adduct_mass_count;
@@ -1932,7 +1952,6 @@ static void scoreXLIons_(
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
 
-    BinnedSpectrum peak_density(MSSpectrum(), 0.05, false, 0, 0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -1953,21 +1972,8 @@ static void scoreXLIons_(
                                          annotate_charge,
                                          false, // no iso peak count annotation
                                          false); // no isotope model
-      BinnedSpectrum bs(spec, 0.05, false, 0, 0);
-      bs.getBins().coeffs().cwiseMax(1);
-#pragma omp critical (peak_density_access)
-{
-      peak_density.getBins() += bs.getBins();
-}
     }
 
-    ofstream dist_file;
-    dist_file.open(getStringOption_("in") + ".csv");
-    for (double mz = 0; mz < 2500.0; mz+=0.05)
-    {
-      dist_file << peak_density.getBinIntensity(mz) << "\n";
-    }
-    dist_file.close();
 
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
@@ -1988,9 +1994,9 @@ static void scoreXLIons_(
 
     NLargest nlargest_filter = NLargest(400);
 
-#ifdef _OPENMP
+    BinnedSpectrum peak_density(MSSpectrum(), 0.05, false, 0, 0);
+
 #pragma omp parallel for
-#endif
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       MSSpectrum & spec = exp[exp_index];
@@ -2051,6 +2057,12 @@ static void scoreXLIons_(
           cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
 
+      BinnedSpectrum bs(spec, 0.05, false, 0, 0);
+      bs.getBins().coeffs().cwiseMax(1);
+
+#pragma omp critical (peak_density_access)
+      peak_density.getBins() += bs.getBins();
+
       // calculate TIC and store in float data array
       double TIC = std::accumulate(spec.begin(), spec.end(), 0.0, 
         [&](double a, const Peak1D& b) { return a + b.getIntensity(); });
@@ -2060,6 +2072,14 @@ static void scoreXLIons_(
       spec.getFloatDataArrays()[0].setName("TIC");
     }
 
+    ofstream dist_file;
+    dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
+    dist_file << "m/z\tfragments" << "\n";
+    for (double mz = 0; mz < 2500.0; mz+=0.05)
+    {
+      dist_file << mz << "\t" << peak_density.getBinIntensity(mz) << "\n";
+    }
+    dist_file.close();
     MzMLFile().store("debug_filtering.mzML", exp); 
   }
 
@@ -3791,7 +3811,13 @@ static void scoreXLIons_(
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool generate_decoys = getFlag_("RNPxl:decoys");
 
+    StringList filter = getStringList_("filter");
+    bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
+    bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
+    bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
+    bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
     // autotune (only works if non-XL peptides present)
+    if (autotune)
     {
       SimpleSearchEngineAlgorithm sse;
       vector<ProteinIdentification> prot_ids;
@@ -3919,11 +3945,6 @@ static void scoreXLIons_(
     Int max_nucleotide_length = getIntOption_("RNPxl:length");
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
-
-    StringList filter = getStringList_("filter");
-    bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();
-    bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
-    bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
 
     // generate mapping from empirical formula to mass and empirical formula to (one or more) precursor adducts
     RNPxlModificationMassesResult mm;
@@ -5324,6 +5345,8 @@ variable_modifications  -0.0944707
                        << "-train-best-positive" 
                        << "-score_type" << "svm"
                        << "-post-processing-tdc"
+//                       << "-nested-xval-bins" << "3"
+                       //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
                        << "-weights" << weights_out.toQString();
 #if DEBUG_OpenNuXL
         process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
