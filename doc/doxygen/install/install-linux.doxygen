@@ -187,8 +187,7 @@
       \code
           cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
           cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
-          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
-          cmake -DBUILD_TYPE=HDF5 ../OpenMS/contrib          
+          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib       
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,
