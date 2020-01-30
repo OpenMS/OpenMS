@@ -132,7 +132,7 @@
       </pre></td>
   </tr>
   <tr>
-      <td><B>Ubuntu/Debian <br/>(= 19.04)</B></td>
+      <td><B>Ubuntu/Debian <br/>(= 19.10)</B></td>
       <td><pre>
     # include the ubuntu universe repository and update
     sudo add-apt-repository universe
