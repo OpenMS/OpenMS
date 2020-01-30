@@ -156,7 +156,7 @@ START_SECTION((test_stages))
     }
     MzTab mztab_output;
     fia_processor.runAccurateMassSearch(output_feature, mztab_output);
-}
+} 
 END_SECTION
 
 START_SECTION((test_run))

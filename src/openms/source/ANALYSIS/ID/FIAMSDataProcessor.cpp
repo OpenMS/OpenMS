@@ -207,6 +207,30 @@ void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab
   ams.run(input, output);
 }
 
+MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum & input) {
+  SignalToNoiseEstimatorMedianRapid sne(50);
+  MSSpectrum output;
+  if (input.size() == 0) {
+    return output;
+  }
+  std::vector<double> mzs, intensities;
+  for (auto it = input.begin(); it != input.end(); ++it)
+  {
+      mzs.push_back(it->getMZ());
+      intensities.push_back(it->getIntensity());
+  }
+  SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mzs, intensities);
+  
+  for (auto it = input.begin(); it != input.end(); ++it)
+  {
+      Peak1D peak;
+      peak.setMZ(it->getMZ());
+      peak.setIntensity(e.get_noise_value(it->getMZ()));
+      output.push_back(peak);
+  }
+  return output;
+}
+
 void FIAMSDataProcessor::run(
   float n_seconds,
   OpenMS::MzTab & output
@@ -217,17 +241,12 @@ void FIAMSDataProcessor::run(
   MSSpectrum picked_spectrum = extractPeaks(merged_spectrum);
   String postfix = String(static_cast<int>(n_seconds));
   if (store_progress_) {
-    MzMLFile mzml;
-
-    MSExperiment exp_merged;
-    exp_merged.addSpectrum(merged_spectrum);
-    mzml.store(dir_output_ + filename_ + "_merged_" + postfix + ".mzML", exp_merged);
-
-    MSExperiment exp_picked;
-    exp_picked.addSpectrum(picked_spectrum);
-    mzml.store(dir_output_ + filename_ + "_picked_" + postfix + ".mzML", exp_picked);
+    storeSpectrum_(merged_spectrum, dir_output_ + filename_ + "_merged_" + postfix + ".mzML");
+    storeSpectrum_(picked_spectrum, dir_output_ + filename_ + "_picked_" + postfix + ".mzML");
   }
   FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
+  MSSpectrum signal_to_noise = trackNoise(picked_spectrum);
+  storeSpectrum_(signal_to_noise, dir_output_ + filename_ + "_signal_to_noise_" + postfix + ".mzML");
   runAccurateMassSearch(picked_features, output);
   OpenMS::MzTabFile mztab_outfile;
   mztab_outfile.store(dir_output_ + filename_ + "_" + postfix + ".mzTab", output);
@@ -236,6 +255,13 @@ void FIAMSDataProcessor::run(
 void FIAMSDataProcessor::loadExperiment_() {
   MzMLFile mzml;
   mzml.load(dir_input_ + filename_ + ".mzML", experiment_);
+}
+
+void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum & input, String filename) {
+    MzMLFile mzml;
+    MSExperiment exp;
+    exp.addSpectrum(input);
+    mzml.store(filename, exp);
 }
 
 /// Get filename

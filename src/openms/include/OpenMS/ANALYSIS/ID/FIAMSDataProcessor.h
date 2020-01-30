@@ -97,10 +97,11 @@ public:
     /// Pick peaks from merged spectrum and return as featureMap with the corresponding polarity
     MSSpectrum extractPeaks(const MSSpectrum & input);
 
+    /// Convert a spectrum to a feature map with the corresponding polarity
     FeatureMap convertToFeatureMap(const MSSpectrum & input);
 
-    // /// Estimate noise for each peak
-    // void trackNoise_(const MSSpectrum & input, MSSpectrum & output);
+    /// Estimate noise for each peak
+    MSSpectrum trackNoise(const MSSpectrum & input);
 
     /// Perform accurate mass search
     void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
@@ -149,6 +150,7 @@ public:
 
 private:
     void loadExperiment_();
+    void storeSpectrum_(const MSSpectrum & input, String filename);
 
     String filename_;
     String dir_input_;
