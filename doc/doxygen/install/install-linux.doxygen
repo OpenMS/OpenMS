@@ -107,6 +107,8 @@
     <td><B>Ubuntu/Debian <br/>(16.04)</B></td>
     <td><pre>
     # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
@@ -119,6 +121,8 @@
       <td><B>Ubuntu/Debian <br/>(>= 17.04)</B></td>
       <td><pre>
     # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
@@ -131,6 +135,8 @@
       <td><B>Ubuntu/Debian <br/>(= 19.04)</B></td>
       <td><pre>
     # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update    
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.67-dev \
