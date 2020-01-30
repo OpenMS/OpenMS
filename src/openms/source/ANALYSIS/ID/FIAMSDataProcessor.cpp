@@ -158,6 +158,12 @@ MSSpectrum FIAMSDataProcessor::mergeAlongTime(
         }
     }
     output.sortByPosition();
+    if (store_progress_) {
+        MzMLFile mzml;
+        MSExperiment exp;
+        exp.addSpectrum(output);
+        mzml.store(dir_output_ + filename_ + "_merged.mzML", exp);
+    }
     return output;
 }
 
@@ -174,6 +180,13 @@ FeatureMap FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
 
   MSSpectrum picked;
   picker.pick(spectrum, picked);
+
+  if (store_progress_) {
+      MzMLFile mzml;
+      MSExperiment exp;
+      exp.addSpectrum(picked);
+      mzml.store(dir_output_ + filename_ + "_picked.mzML", exp);
+  }
 
   FeatureMap output;
   for (auto it = picked.begin(); it != picked.end(); ++it) {
@@ -210,11 +223,9 @@ void FIAMSDataProcessor::run(
   cutForTime(experiment_, output_cut, n_seconds);
   MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
   FeatureMap picked_features = extractPeaks(merged_spectrum);
-  MzTab mztab_output;
-  runAccurateMassSearch(picked_features, mztab_output);
+  runAccurateMassSearch(picked_features, output);
   OpenMS::MzTabFile mztab_outfile;
-  
-  mztab_outfile.store(dir_output_ + filename_ + "_" + String(n_seconds) + ".mzTab", mztab_output);
+  mztab_outfile.store(dir_output_ + filename_ + "_" + String(n_seconds) + ".mzTab", output);
 }
 
 void FIAMSDataProcessor::loadExperiment_() {

@@ -103,8 +103,8 @@ FIAMSDataProcessor fia_processor(
     String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")),
     120000.0, 
     "positive",
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_db_mapping.tsv")),
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_db_struct.tsv")),
+    String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")),
+    String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")),
     String(OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv")),
     String(OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv"))
 );
@@ -155,6 +155,15 @@ START_SECTION((test_stages))
     }
     MzTab mztab_output;
     fia_processor.runAccurateMassSearch(output_feature, mztab_output);
+}
+END_SECTION
+
+START_SECTION((test_run))
+{
+    MzTab mztab_output_30;
+    fia_processor.run(30, mztab_output_30);
+    MzTab mztab_output_0;
+    fia_processor.run(0, mztab_output_0);
 }
 END_SECTION
 
