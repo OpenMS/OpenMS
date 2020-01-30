@@ -20,10 +20,12 @@ OpenMS.includes
 .DS_Store
 src/.DS_Store
 src/openms/.DS_Store
+src/openms/OpenMS_autogen
 .vscode
 contrib-build
 openms-build
 *.swp
 cmake-build-debug
 cmake-build-release
+
 
