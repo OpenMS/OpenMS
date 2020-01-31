@@ -131,7 +131,6 @@ START_SECTION((void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree
   {
     TEST_EQUAL(map_transformed[i].metaValueExists("original_RT"), true);
   }
-
 }
 END_SECTION
 

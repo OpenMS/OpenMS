@@ -116,7 +116,6 @@ public:
   }
 
 private:
-
   template <typename MapType>
   void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file)
   {
