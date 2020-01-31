@@ -170,5 +170,35 @@ private:
     MSExperiment experiment_;
   };
 
+/*
+
+*/
+class OPENMS_DLLAPI FIAMSScheduler 
+  {
+public:
+    /// Default constructor
+    FIAMSScheduler(
+      String filename
+    );
+
+    /// Default desctructor
+    ~FIAMSScheduler();
+
+    /// Copy constructor
+    FIAMSScheduler(const FIAMSScheduler& cp);
+
+    /// Assignment
+    FIAMSScheduler& operator=(const FIAMSScheduler& fdp);
+
+    /// Process the given file
+    void run();
+
+private:
+    void loadSamples_();
+
+    String filename_;
+    vector<map<String, String>> samples_;
+  };
+
 } // namespace OpenMS
 

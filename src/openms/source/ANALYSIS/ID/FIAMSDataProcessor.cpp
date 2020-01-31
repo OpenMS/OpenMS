@@ -47,6 +47,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -332,4 +333,48 @@ const std::vector<float> FIAMSDataProcessor::getMZs(){
 /// Get the sliding bin sizes
 const std::vector<float> FIAMSDataProcessor::getBinSizes(){
   return bin_sizes_;
+}
+
+/// default constructor
+FIAMSScheduler::FIAMSScheduler(
+  String filename
+)
+  : 
+  filename_(filename),
+  samples_()
+{
+loadSamples_();
+}
+
+/// default destructor
+FIAMSScheduler::~FIAMSScheduler() {}
+
+/// copy constructor
+FIAMSScheduler::FIAMSScheduler(const FIAMSDataProcessor& source) :
+  filename_(source.filename_),
+  samples_(source.samples_)
+  {}
+
+/// assignment operator
+FIAMSScheduler& FIAMSScheduler::operator=(const FIAMSScheduler& rhs) {
+  if (this == &rhs) return *this;
+  filename_ = rhs.filename_;
+  samples_ = rhs.samples_;
+  return *this;
+}
+
+
+void FIAMSScheduler::loadSamples_() {
+  CsvFile::load(filename_, ',');
+  StringList headers;
+  csv_file.getRow(0, headers);
+  StringList row;
+  for (Size i = 1; i < csv_file.rowCount(); ++i) {
+    csv_file.getRow(i, row);
+    map<String, String> mapping;
+    for (Size j = 0; j < headers.size(); ++j) {
+      mapping[headers[j]] = row[j];
+    }
+    samples_.push_back(mapping);
+  }
 }

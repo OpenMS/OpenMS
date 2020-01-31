@@ -175,6 +175,24 @@ START_SECTION((test_run))
 }
 END_SECTION
 
+FIAMSScheduler* ptr = nullptr;
+FIAMSScheduler* null_ptr = nullptr;
+START_SECTION(FIAMSScheduler())
+{
+    ptr = new FIAMSScheduler(
+        "/home/svegal/FIA_MS_data/input/params.csv",
+    );
+    TEST_NOT_EQUAL(ptr, null_ptr);
+}
+END_SECTION
+
+START_SECTION(virtual ~FIAMSScheduler())
+{
+    delete ptr;
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
