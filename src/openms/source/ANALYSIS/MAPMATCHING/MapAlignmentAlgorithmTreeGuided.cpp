@@ -57,10 +57,10 @@ namespace OpenMS
   {
     defaults_.insert("model:", TOPPMapAlignerBase::getModelDefaults("b_spline"));
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");
-    defaults_.setValidStrings("model_type", ListUtils::create<String>("linear,b_spline,lowess,interpolated"));
+    defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());
-    defaults_.setValue("align_algorithm:use_feature_rt", "true");
-
+    defaults_.setValue("align_algorithm:use_feature_rt", "true", "Because only aligning feature maps with this algorithm, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.#br#Precludes &apos;use_unassigned_peptides&apos;.");
+    defaults_.setValidStrings("align_algorithm:use_feature_rt", {"true"});
     defaultsToParam_();
   }
 
@@ -121,7 +121,7 @@ namespace OpenMS
       {
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
-
+      // Small intersections are penalized by multiplication with the quotient of intersection to union.
       return pearson_val * intercept_size / union_size;
     }
   }; // end of PeptideIdentificationsPearsonDifference
@@ -232,9 +232,6 @@ namespace OpenMS
               transformations_align[0], true);
 
       // combine aligned maps, store in both, because tree always calls smaller number
-      // also possible: feature_maps_transformed[smallerNumber] = ..[ref]+..[to_transform]
-      // or use pointer
-
       feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
       feature_maps_transformed[ref].updateRanges();
       feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
