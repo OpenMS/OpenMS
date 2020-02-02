@@ -178,7 +178,8 @@ class OPENMS_DLLAPI FIAMSScheduler
 public:
     /// Default constructor
     FIAMSScheduler(
-      String filename
+      String filename,
+      String base_dir = "/"
     );
 
     /// Default desctructor
@@ -194,11 +195,13 @@ public:
     void run();
 
     const vector<map<String, String>> getSamples();
+    const String getBaseDir();
 
 private:
     void loadSamples_();
 
     String filename_;
+    String base_dir_;
     vector<map<String, String>> samples_;
   };
 

@@ -50,6 +50,9 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 
 #include <boost/algorithm/string.hpp>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -244,20 +247,20 @@ void FIAMSDataProcessor::run(
   MSSpectrum picked_spectrum = extractPeaks(merged_spectrum);
   String postfix = String(static_cast<int>(n_seconds));
   if (store_progress_) {
-    storeSpectrum_(merged_spectrum, dir_output_ + filename_ + "_merged_" + postfix + ".mzML");
-    storeSpectrum_(picked_spectrum, dir_output_ + filename_ + "_picked_" + postfix + ".mzML");
+    storeSpectrum_(merged_spectrum, dir_output_ + "/" + filename_ + "_merged_" + postfix + ".mzML");
+    storeSpectrum_(picked_spectrum, dir_output_ + "/" + filename_ + "_picked_" + postfix + ".mzML");
   }
   FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
   MSSpectrum signal_to_noise = trackNoise(picked_spectrum);
-  storeSpectrum_(signal_to_noise, dir_output_ + filename_ + "_signal_to_noise_" + postfix + ".mzML");
+  storeSpectrum_(signal_to_noise, dir_output_ + "/" + filename_ + "_signal_to_noise_" + postfix + ".mzML");
   runAccurateMassSearch(picked_features, output);
   OpenMS::MzTabFile mztab_outfile;
-  mztab_outfile.store(dir_output_ + filename_ + "_" + postfix + ".mzTab", output);
+  mztab_outfile.store(dir_output_ + "/" + filename_ + "_" + postfix + ".mzTab", output);
 }
 
 void FIAMSDataProcessor::loadExperiment_() {
   MzMLFile mzml;
-  mzml.load(dir_input_ + filename_ + ".mzML", experiment_);
+  mzml.load(dir_input_ + "/" + filename_ + ".mzML", experiment_);
 }
 
 void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum & input, String filename) {
@@ -339,10 +342,12 @@ const std::vector<float> FIAMSDataProcessor::getBinSizes(){
 
 /// default constructor
 FIAMSScheduler::FIAMSScheduler(
-  String filename
+  String filename,
+  String base_dir
 )
   : 
   filename_(filename),
+  base_dir_(base_dir),
   samples_()
 {
 loadSamples_();
@@ -354,6 +359,7 @@ FIAMSScheduler::~FIAMSScheduler() {}
 /// copy constructor
 FIAMSScheduler::FIAMSScheduler(const FIAMSScheduler& source) :
   filename_(source.filename_),
+  base_dir_(source.base_dir_),
   samples_(source.samples_)
   {}
 
@@ -361,6 +367,7 @@ FIAMSScheduler::FIAMSScheduler(const FIAMSScheduler& source) :
 FIAMSScheduler& FIAMSScheduler::operator=(const FIAMSScheduler& rhs) {
   if (this == &rhs) return *this;
   filename_ = rhs.filename_;
+  base_dir_ = rhs.base_dir_;
   samples_ = rhs.samples_;
   return *this;
 }
@@ -381,17 +388,18 @@ void FIAMSScheduler::loadSamples_() {
 }
 
 void FIAMSScheduler::run() {
+  #pragma omp parallel for
   for (size_t i = 0; i < samples_.size(); ++i) {
     FIAMSDataProcessor fia_processor(
         samples_[i].at("filename"),
-        samples_[i].at("dir_input"),
-        samples_[i].at("dir_output"),
+        base_dir_ + samples_[i].at("dir_input"),
+        base_dir_ + samples_[i].at("dir_output"),
         stof(samples_[i].at("resolution")),
         samples_[i].at("charge"),
-        samples_[i].at("db_mapping"),
-        samples_[i].at("db_struct"),
-        samples_[i].at("positive_adducts"),
-        samples_[i].at("negative_adducts")
+        base_dir_ + samples_[i].at("db_mapping"),
+        base_dir_ + samples_[i].at("db_struct"),
+        base_dir_ + samples_[i].at("positive_adducts"),
+        base_dir_ + samples_[i].at("negative_adducts")
     );
 
     String time = samples_[i].at("time");
@@ -408,4 +416,8 @@ void FIAMSScheduler::run() {
 
 const vector<map<String, String>> FIAMSScheduler::getSamples() {
   return samples_;
+}
+
+const String FIAMSScheduler::getBaseDir() {
+  return base_dir_;
 }
