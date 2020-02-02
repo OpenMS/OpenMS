@@ -49,6 +49,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 
+#include <boost/algorithm/string.hpp>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -350,7 +352,7 @@ loadSamples_();
 FIAMSScheduler::~FIAMSScheduler() {}
 
 /// copy constructor
-FIAMSScheduler::FIAMSScheduler(const FIAMSDataProcessor& source) :
+FIAMSScheduler::FIAMSScheduler(const FIAMSScheduler& source) :
   filename_(source.filename_),
   samples_(source.samples_)
   {}
@@ -363,9 +365,8 @@ FIAMSScheduler& FIAMSScheduler::operator=(const FIAMSScheduler& rhs) {
   return *this;
 }
 
-
 void FIAMSScheduler::loadSamples_() {
-  CsvFile::load(filename_, ',');
+  CsvFile csv_file(filename_, ',');
   StringList headers;
   csv_file.getRow(0, headers);
   StringList row;
@@ -377,4 +378,34 @@ void FIAMSScheduler::loadSamples_() {
     }
     samples_.push_back(mapping);
   }
+}
+
+void FIAMSScheduler::run() {
+  for (size_t i = 0; i < samples_.size(); ++i) {
+    FIAMSDataProcessor fia_processor(
+        samples_[i].at("filename"),
+        samples_[i].at("dir_input"),
+        samples_[i].at("dir_output"),
+        stof(samples_[i].at("resolution")),
+        samples_[i].at("charge"),
+        samples_[i].at("db_mapping"),
+        samples_[i].at("db_struct"),
+        samples_[i].at("positive_adducts"),
+        samples_[i].at("negative_adducts")
+    );
+
+    String time = samples_[i].at("time");
+    vector<String> times;
+    boost::split(times, time, boost::is_any_of(";"));
+    for (size_t j = 0; j < times.size(); ++j) {
+      cout << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << endl;
+      MzTab mztab_output;
+      fia_processor.run(stof(times[j]), mztab_output);
+      cout << "Finished " << samples_[i].at("filename") << " for " << times[j] << " seconds" << endl;
+    }
+  }
+}
+
+const vector<map<String, String>> FIAMSScheduler::getSamples() {
+  return samples_;
 }

@@ -193,6 +193,8 @@ public:
     /// Process the given file
     void run();
 
+    const vector<map<String, String>> getSamples();
+
 private:
     void loadSamples_();
 

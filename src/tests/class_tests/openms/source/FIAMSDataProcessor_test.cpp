@@ -175,23 +175,33 @@ START_SECTION((test_run))
 }
 END_SECTION
 
-FIAMSScheduler* ptr = nullptr;
-FIAMSScheduler* null_ptr = nullptr;
+FIAMSScheduler* ptr_1 = nullptr;
+FIAMSScheduler* null_ptr_2 = nullptr;
 START_SECTION(FIAMSScheduler())
 {
-    ptr = new FIAMSScheduler(
-        "/home/svegal/FIA_MS_data/input/params.csv",
+    ptr_1 = new FIAMSScheduler(
+        "/home/svegal/FIA_MS_data/input/params.csv"
     );
-    TEST_NOT_EQUAL(ptr, null_ptr);
+    TEST_NOT_EQUAL(ptr_1, null_ptr_2);
 }
 END_SECTION
 
 START_SECTION(virtual ~FIAMSScheduler())
 {
-    delete ptr;
+    delete ptr_1;
 }
 END_SECTION
 
+START_SECTION(FIAMSScheduler)
+{
+    FIAMSScheduler fia_scheduler(
+        "/home/svegal/FIA_MS_data/input/params.csv"
+    );
+    const vector<map<String, String>> samples = fia_scheduler.getSamples();
+    TEST_EQUAL(samples[0].at("time"), "30;60;90;180");
+    fia_scheduler.run();
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
