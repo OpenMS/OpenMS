@@ -59,8 +59,8 @@ namespace OpenMS
     defaults_.setValue("model_type", "b_spline", "Options to control the modeling of retention time transformations from data");
     defaults_.setValidStrings("model_type", {"linear","b_spline","lowess","interpolated"});
     defaults_.insert("align_algorithm:", MapAlignmentAlgorithmIdentification().getDefaults());
-    defaults_.setValue("align_algorithm:use_feature_rt", "true", "Because only aligning feature maps with this algorithm, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.#br#Precludes &apos;use_unassigned_peptides&apos;.");
-    defaults_.setValidStrings("align_algorithm:use_feature_rt", {"true"});
+    defaults_.setValue("align_algorithm:use_feature_rt", "true", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
+    //defaults_.setValidStrings("align_algorithm:use_feature_rt", {"true","false"});
     defaultsToParam_();
   }
 
@@ -117,10 +117,7 @@ namespace OpenMS
       float pearson_val;
       pearson_val = static_cast<float>(Math::pearsonCorrelationCoefficient(intercept_rts1.begin(), intercept_rts1.end(),
                                                                      intercept_rts2.begin(), intercept_rts2.end()));
-      if (pearson_val > 1)
-      {
-        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
+
       // Small intersections are penalized by multiplication with the quotient of intersection to union.
       return pearson_val * intercept_size / union_size;
     }
@@ -147,11 +144,11 @@ namespace OpenMS
   {
     for (Size i = 0; i < feature_maps.size(); ++i)
     {
-      for (auto feature_it = feature_maps[i].begin(); feature_maps[i].end() != feature_it; ++feature_it)
+      for (const BaseFeature& bf : feature_maps[i])
       {
-        if (!feature_it->getPeptideIdentifications().empty())
+        if (!bf.getPeptideIdentifications().empty())
         {
-          addPeptideSequences_(feature_it->getPeptideIdentifications(), maps_seq_and_rt[i], maps_ranges[i], feature_it->getRT());
+          addPeptideSequences_(bf.getPeptideIdentifications(), maps_seq_and_rt[i], maps_ranges[i], bf.getRT());
         }
       }
       sort(maps_ranges[i].begin(), maps_ranges[i].end());
@@ -160,8 +157,8 @@ namespace OpenMS
 
 
   // Extract RTs given for individual features of each map, calculate distances for each pair of maps and cluster hierarchical using average linkage.
-  void MapAlignmentAlgorithmTreeGuided::buildTree_(std::vector<FeatureMap> &feature_maps, std::vector<BinaryTreeNode> &tree,
-          std::vector<std::vector<double>> &maps_ranges)
+  void MapAlignmentAlgorithmTreeGuided::buildTree(std::vector<FeatureMap> &feature_maps, std::vector<BinaryTreeNode> &tree,
+                                                  std::vector<std::vector<double>> &maps_ranges)
   {
     vector<SeqAndRTList> maps_seq_and_rt(feature_maps.size());
     extractSeqAndRt_(feature_maps, maps_seq_and_rt, maps_ranges);
@@ -174,11 +171,11 @@ namespace OpenMS
   }
 
   // Align feature maps tree guided using align() of MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
-  void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree,
-                                                             std::vector<FeatureMap> feature_maps_transformed,
-                                                             std::vector<std::vector<double>> &maps_ranges,
-                                                             FeatureMap &map_transformed,
-                                                             std::vector<Size> &trafo_order)
+  void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree,
+                                                            std::vector<FeatureMap> feature_maps_transformed,
+                                                            std::vector<std::vector<double>> &maps_ranges,
+                                                            FeatureMap &map_transformed,
+                                                            std::vector<Size> &trafo_order)
   {
     Size last_trafo = 0;  // to get final transformation order from map_sets
     vector<TransformationDescription> transformations_align;  // temporary for aligner output
@@ -249,10 +246,10 @@ namespace OpenMS
   }
 
   // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
-  void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT_(std::vector<FeatureMap> &feature_maps,
-                                                                   FeatureMap &map_transformed,
-                                                                   std::vector<TransformationDescription> &transformations,
-                                                                   const std::vector<Size> &trafo_order)
+  void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap> &feature_maps,
+                                                                  FeatureMap &map_transformed,
+                                                                  std::vector<TransformationDescription> &transformations,
+                                                                  const std::vector<Size> &trafo_order)
   {
     FeatureMap::const_iterator fit = map_transformed.begin();
     TransformationDescription::DataPoints trafo_data_tmp;
@@ -280,7 +277,7 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps_(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations)
+  void MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(vector<FeatureMap>& feature_maps, const vector<TransformationDescription>& transformations)
   {
     for (Size i = 0; i < feature_maps.size(); ++i)
     {

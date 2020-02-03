@@ -212,7 +212,7 @@ private:
     MapAlignmentAlgorithmTreeGuided algoTree;
     Param algo_params = getParam_().copy("algorithm:", true);
     algoTree.setParameters(algo_params);
-    OpenMS::MapAlignmentAlgorithmTreeGuided::buildTree_(feature_maps, tree, maps_ranges);
+    OpenMS::MapAlignmentAlgorithmTreeGuided::buildTree(feature_maps, tree, maps_ranges);
 
     // print tree
     ClusterAnalyzer ca;
@@ -222,14 +222,14 @@ private:
     vector<Size> trafo_order;
     FeatureMap map_transformed;
     // alignment uses copy of feature_maps, returning result within map_transformed (to keep original data)
-    algoTree.treeGuidedAlignment_(tree, feature_maps, maps_ranges, map_transformed, trafo_order);
+    algoTree.treeGuidedAlignment(tree, feature_maps, maps_ranges, map_transformed, trafo_order);
 
     //-------------------------------------------------------------
     // generating output
     //-------------------------------------------------------------
     vector<TransformationDescription> transformations(in_files_size); // for trafo_out
-    algoTree.computeTrafosByOriginalRT_(feature_maps, map_transformed, transformations, trafo_order);
-    OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps_(feature_maps, transformations);
+    algoTree.computeTrafosByOriginalRT(feature_maps, map_transformed, transformations, trafo_order);
+    OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(feature_maps, transformations);
 
     //-------------------------------------------------------------
     // writing output

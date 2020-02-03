@@ -81,14 +81,14 @@ vector<Size> trafo_order;
 
 vector<TransformationDescription> trafos(3);
 
-START_SECTION((static void buildTree_(std::vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, std::vector<std::vector<double>>& maps_ranges)))
+START_SECTION((static void buildTree(std::vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree, std::vector<std::vector<double>>& maps_ranges)))
 {
   // test of protected nested class PeptideIdentificationsPearsonDistance_ that functions as comparator for ClusterHierarchical with AverageLinkage:
   // input map in0 and in2 are nearly identical with in2 having larger RT range, in1 has largest rt range and differs in identifications
   vector<BinaryTreeNode> test_tree;
   test_tree.emplace_back(0, 2, 1.84834e-04);
   test_tree.emplace_back(0, 1, 0.505752);
-  OpenMS::MapAlignmentAlgorithmTreeGuided::buildTree_(maps, result_tree, maps_ranges);
+  OpenMS::MapAlignmentAlgorithmTreeGuided::buildTree(maps, result_tree, maps_ranges);
 
   TEST_EQUAL(result_tree.size(), test_tree.size());
   for (Size i = 0; i < result_tree.size(); ++i)
@@ -106,10 +106,10 @@ START_SECTION((static void buildTree_(std::vector<FeatureMap>& feature_maps, std
 }
 END_SECTION
 
-START_SECTION((void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree, std::vector<FeatureMap> feature_maps_transformed,
+START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree, std::vector<FeatureMap> feature_maps_transformed,
         std::vector<std::vector<double>> &maps_ranges, FeatureMap &map_transformed, std::vector<Size> &trafo_order)))
 {
-  aligner.treeGuidedAlignment_(result_tree, maps, maps_ranges, map_transformed, trafo_order);
+  aligner.treeGuidedAlignment(result_tree, maps, maps_ranges, map_transformed, trafo_order);
 
   TEST_EQUAL(map_transformed.size(), 15); // contains 3*5 feature from input maps
   // map_transformed contains all input map feature in order of trafo_order
@@ -134,10 +134,10 @@ START_SECTION((void treeGuidedAlignment_(const std::vector<BinaryTreeNode> &tree
 }
 END_SECTION
 
-START_SECTION((void computeTrafosByOriginalRT_(std::vector<FeatureMap> &feature_maps, FeatureMap &map_transformed,
+START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap> &feature_maps, FeatureMap &map_transformed,
         std::vector<TransformationDescription> &transformations, const std::vector<Size> &trafo_order)))
 {
-  aligner.computeTrafosByOriginalRT_(maps, map_transformed, trafos, trafo_order);
+  aligner.computeTrafosByOriginalRT(maps, map_transformed, trafos, trafo_order);
 
   TEST_EQUAL(trafos.size(), 3);
 
@@ -154,9 +154,9 @@ START_SECTION((void computeTrafosByOriginalRT_(std::vector<FeatureMap> &feature_
 }
 END_SECTION
 
-START_SECTION((static void computeTransformedFeatureMaps_(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations)))
+START_SECTION((static void computeTransformedFeatureMaps(std::vector<FeatureMap>& feature_maps, const std::vector<TransformationDescription>& transformations)))
 {
-  OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps_(maps, trafos);
+  OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(maps, trafos);
 
   // check storing of original RTs:
   for (auto & map : maps)
