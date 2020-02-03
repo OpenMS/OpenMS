@@ -98,9 +98,9 @@ public:
      * @param map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
      * @param trafo_order Vector to store indices of maps in order of alignment.
     */
-    void treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree, std::vector<FeatureMap> feature_maps_transformed,
-                             std::vector<std::vector<double>> &maps_ranges, FeatureMap &map_transformed,
-                             std::vector<Size> &trafo_order);
+    void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap> feature_maps_transformed,
+                             std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed,
+                             std::vector<Size>& trafo_order);
 
     /**
      * @brief Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
@@ -110,8 +110,8 @@ public:
      * @param transformations Vector to store transformation descriptions for each map. (output)
      * @param trafo_order Vector that contains the indices of aligned maps in order of alignment.
     */
-    void computeTrafosByOriginalRT(std::vector<FeatureMap> &feature_maps, FeatureMap &map_transformed,
-                                   std::vector<TransformationDescription> &transformations, const std::vector<Size> &trafo_order);
+    void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
+                                   std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order);
 
     /**
      * @brief Apply transformations on input maps.
@@ -152,16 +152,16 @@ protected:
      * @param peptides Vector of peptide identifications to extract sequences.
      * @param peptide_rts Map to store a list of feature RTs for each peptide sequence as key.
      * @param map_range Vector in which all feature RTs are stored for given peptide identifications.
-     * @param feature_rt Retention time value of the feature to which the peptide identifications to be analysed belong.
+     * @param feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
      */
-    static void addPeptideSequences_(const std::vector<PeptideIdentification> &peptides, SeqAndRTList &peptide_rts,
-            std::vector<double> &map_range, double feature_rt);
+    static void addPeptideSequences_(const std::vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts,
+            std::vector<double>& map_range, double feature_rt);
 
     /**
      * @brief For each input map, extract peptide identifications (sequences) of existing features with associated feature RT.
      *
      * @param feature_maps Vector of original maps containing peptide identifications.
-     * @param maps_seq_and_rt Vector of maps to store feature retention times given for individual peptide sequences for each feature map.
+     * @param maps_seq_and_rt Vector of maps to store feature RTs given for individual peptide sequences for each feature map.
      * @param maps_ranges Vector to store all feature RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      */
     static void extractSeqAndRt_(const std::vector<FeatureMap>& feature_maps, std::vector<SeqAndRTList>& maps_seq_and_rt,

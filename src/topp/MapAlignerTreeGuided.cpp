@@ -130,7 +130,7 @@ private:
     progresslogger.endProgress();
   }
 
-  void storeFeatureXMLs_(vector<FeatureMap> &feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file)
+  void storeFeatureXMLs_(vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);

@@ -106,8 +106,8 @@ START_SECTION((static void buildTree(std::vector<FeatureMap>& feature_maps, std:
 }
 END_SECTION
 
-START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree, std::vector<FeatureMap> feature_maps_transformed,
-        std::vector<std::vector<double>> &maps_ranges, FeatureMap &map_transformed, std::vector<Size> &trafo_order)))
+START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree, std::vector<FeatureMap> feature_maps_transformed,
+        std::vector<std::vector<double>>& maps_ranges, FeatureMap& map_transformed, std::vector<Size>& trafo_order)))
 {
   aligner.treeGuidedAlignment(result_tree, maps, maps_ranges, map_transformed, trafo_order);
 
@@ -134,8 +134,8 @@ START_SECTION((void treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree,
 }
 END_SECTION
 
-START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap> &feature_maps, FeatureMap &map_transformed,
-        std::vector<TransformationDescription> &transformations, const std::vector<Size> &trafo_order)))
+START_SECTION((void computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps, FeatureMap& map_transformed,
+        std::vector<TransformationDescription>& transformations, const std::vector<Size>& trafo_order)))
 {
   aligner.computeTrafosByOriginalRT(maps, map_transformed, trafos, trafo_order);
 
@@ -159,7 +159,7 @@ START_SECTION((static void computeTransformedFeatureMaps(std::vector<FeatureMap>
   OpenMS::MapAlignmentAlgorithmTreeGuided::computeTransformedFeatureMaps(maps, trafos);
 
   // check storing of original RTs:
-  for (auto & map : maps)
+  for (auto& map : maps)
   {
     for (auto feat_it = map.begin(); feat_it < map.end(); ++feat_it)
     {

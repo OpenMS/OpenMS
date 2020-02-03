@@ -83,6 +83,12 @@ namespace OpenMS
   public:
     float operator()(SeqAndRTList& map_first, SeqAndRTList& map_second) const
     {
+      // if both input maps have no peptide identifications with hits (sequence) they are not similar
+      if (map_first.size()+map_second.size() == 0)
+      {
+        return 0.0;
+      }
+
       // create vectors for both maps containing RTs of identical peptide sequences and
       // get union and intercept amount of peptides
       auto pep1_it = map_first.begin();
@@ -124,10 +130,10 @@ namespace OpenMS
   }; // end of PeptideIdentificationsPearsonDifference
 
   // For given peptide identifications extract sequences and store with associated feature RT.
-  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const std::vector<PeptideIdentification> &peptides,
-          SeqAndRTList &peptide_rts, std::vector<double> &map_range, double feature_rt)
+  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const std::vector<PeptideIdentification>& peptides,
+          SeqAndRTList& peptide_rts, std::vector<double>& map_range, double feature_rt)
   {
-    for (const auto & peptide : peptides)
+    for (const auto& peptide : peptides)
     {
       if (!peptide.getHits().empty())
       {
@@ -157,8 +163,8 @@ namespace OpenMS
 
 
   // Extract RTs given for individual features of each map, calculate distances for each pair of maps and cluster hierarchical using average linkage.
-  void MapAlignmentAlgorithmTreeGuided::buildTree(std::vector<FeatureMap> &feature_maps, std::vector<BinaryTreeNode> &tree,
-                                                  std::vector<std::vector<double>> &maps_ranges)
+  void MapAlignmentAlgorithmTreeGuided::buildTree(std::vector<FeatureMap>& feature_maps, std::vector<BinaryTreeNode>& tree,
+                                                  std::vector<std::vector<double>>& maps_ranges)
   {
     vector<SeqAndRTList> maps_seq_and_rt(feature_maps.size());
     extractSeqAndRt_(feature_maps, maps_seq_and_rt, maps_ranges);
@@ -171,11 +177,11 @@ namespace OpenMS
   }
 
   // Align feature maps tree guided using align() of MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
-  void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment(const std::vector<BinaryTreeNode> &tree,
+  void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree,
                                                             std::vector<FeatureMap> feature_maps_transformed,
-                                                            std::vector<std::vector<double>> &maps_ranges,
-                                                            FeatureMap &map_transformed,
-                                                            std::vector<Size> &trafo_order)
+                                                            std::vector<std::vector<double>>& maps_ranges,
+                                                            FeatureMap& map_transformed,
+                                                            std::vector<Size>& trafo_order)
   {
     Size last_trafo = 0;  // to get final transformation order from map_sets
     vector<TransformationDescription> transformations_align;  // temporary for aligner output
@@ -246,14 +252,14 @@ namespace OpenMS
   }
 
   // Extract original RT ("original_RT" MetaInfo) and transformed RT for each feature to compute RT transformations.
-  void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap> &feature_maps,
-                                                                  FeatureMap &map_transformed,
-                                                                  std::vector<TransformationDescription> &transformations,
-                                                                  const std::vector<Size> &trafo_order)
+  void MapAlignmentAlgorithmTreeGuided::computeTrafosByOriginalRT(std::vector<FeatureMap>& feature_maps,
+                                                                  FeatureMap& map_transformed,
+                                                                  std::vector<TransformationDescription>& transformations,
+                                                                  const std::vector<Size>& trafo_order)
   {
     FeatureMap::const_iterator fit = map_transformed.begin();
     TransformationDescription::DataPoints trafo_data_tmp;
-    for (auto & map_idx : trafo_order)
+    for (auto& map_idx : trafo_order)
     {
       for (Size i = 0; i < feature_maps[map_idx].size(); ++i)
       {
