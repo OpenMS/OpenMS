@@ -955,7 +955,7 @@ namespace OpenMS
     tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
 
     String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
-    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
+    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, false, false, false, layer_caption.toQString(), layer_caption.toQString());
 
     // get layer index of new layer
     Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
