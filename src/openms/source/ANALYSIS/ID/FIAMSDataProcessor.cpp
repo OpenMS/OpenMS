@@ -194,7 +194,6 @@ FeatureMap FIAMSDataProcessor::convertToFeatureMap(const MSSpectrum & input) {
       output[0].setMetaValue("scan_polarity", polarity_);
   }
   return output;
-
 }
 
 void FIAMSDataProcessor::runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output) {

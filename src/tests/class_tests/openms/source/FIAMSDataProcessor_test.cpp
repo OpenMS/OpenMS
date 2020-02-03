@@ -137,7 +137,6 @@ START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectru
     vector<MSSpectrum> output4;
     fia_processor.cutForTime(empty_input, output4, 100);
     TEST_EQUAL(output4.size(), 0);
-
 }
 END_SECTION
 
@@ -171,7 +170,6 @@ START_SECTION((test_run))
     fia_processor.run(0, mztab_output_0);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_0))), true);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_mztab))), true);
-    
 }
 END_SECTION
 
