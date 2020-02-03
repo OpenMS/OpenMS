@@ -117,7 +117,7 @@ macro(add_mac_app_bundle _name)
 			## Note: Signing identity has to be unique, and present in any of the keychains in search list
 			## which needs to be unlocked. Play around with keychain argument otherwise.
                    install(CODE "
-execute_process(COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+execute_process(COMMAND codesign --deep --force --options runtime --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
 message('\${sign_out}')" COMPONENT BApplications)
 
                    install(CODE "
