@@ -1,6 +1,6 @@
 tasks:
   - init: mkdir -p build && cd build && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
-  - prebuild: mkdir -p build && cd build && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
+  - prebuild: make -j16
 image:
   file: .gitpod.Dockerfile
 github:
@@ -10,7 +10,7 @@ github:
     # enable for all branches in this repo (defaults to false)
     branches: false
     # enable for pull requests coming from this repo (defaults to true)
-    pullRequests: false
+    pullRequests: true
     # enable for pull requests coming from forks (defaults to false)
     pullRequestsFromForks: false
     # add a check to pull requests (defaults to true)
@@ -21,3 +21,6 @@ github:
     addBadge: false
     # add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: false
+vscode:
+  extensions:
+    - ms-vscode.cpptools@0.26.2:Pq/tmf2WN3SanVzB4xZc1g==
