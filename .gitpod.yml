@@ -1,6 +1,6 @@
 tasks:
-  - init: mkdir -p build && cd build && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
-  - prebuild: make -j16
+  - init: mkdir -p build && pushd build && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && popd
+  - prebuild: mkdir -p build && pushd build && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && make -j16 && popd 
 image:
   file: .gitpod.Dockerfile
 github:
