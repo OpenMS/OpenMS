@@ -1,0 +1,4 @@
+tasks:
+  - init: mkdir build && cd build && cmake .
+image:
+  file: .gitpod.Dockerfile
