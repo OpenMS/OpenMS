@@ -1,4 +1,4 @@
-FROM openms/contrib
+FROM openms/contrib:latest
                     
 #USER gitpod
 
