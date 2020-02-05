@@ -553,7 +553,7 @@ protected:
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   
-    registerStringList_("filter", "<list>", {"filter_pc_mass_error", "impute_decoy_medians"}, "Filtering steps applied to results.", false, true);
+    registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune"}, "Filtering steps applied to results.", false, true);
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune"}); 
   }
 
@@ -1025,6 +1025,7 @@ protected:
         for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
         {
           for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+
           {
             const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
               + (z-1) * Constants::PROTON_MASS_U) / z;
@@ -1066,7 +1067,7 @@ protected:
     {
       for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
       {
-        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
         {
           const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass 
             + (z-1) * Constants::PROTON_MASS_U) / z;
@@ -3860,18 +3861,21 @@ static void scoreXLIons_(
           }
           if (ph.metaValueExists("precursor_error_ppm"))
           {
-            precursor_error_ppm.push_back(fabs((double)ph.getMetaValue("precursor_error_ppm")));
+            precursor_error_ppm.push_back((double)ph.getMetaValue("precursor_error_ppm"));
           }
         }
-        sort(median_fragment_error_ppm.begin(), median_fragment_error_ppm.end());        
+        sort(median_fragment_error_ppm.begin(), median_fragment_error_ppm.end());
         sort(precursor_error_ppm.begin(), precursor_error_ppm.end());
 
         // use 68-percentile as in identipy
         double new_fragment_mass_tolerance = 4.0 * median_fragment_error_ppm[median_fragment_error_ppm.size() * 0.68];
         fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
-        double new_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
+        double left_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.005];
+        double median_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.5];
+        double right_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
+
         cout << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
-        cout << "Estimated max precursor mass tolerance (ppm): " << new_precursor_mass_tolerance << endl;
+        cout << "Estimated precursor mass tolerance (ppm): " << left_precursor_mass_tolerance << "\t" << median_precursor_mass_tolerance << "\t" << right_precursor_mass_tolerance << endl;
       }
       else
       {
@@ -5345,6 +5349,7 @@ variable_modifications  -0.0944707
                        << "-percolator_executable" << percolator_executable.toQString()
                        << "-train-best-positive" 
                        << "-score_type" << "svm"
+                       << "-unitnorm"
                        << "-post-processing-tdc"
 //                       << "-nested-xval-bins" << "3"
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
