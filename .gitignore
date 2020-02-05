@@ -20,8 +20,6 @@ OpenMS.includes
 .DS_Store
 src/.DS_Store
 src/openms/.DS_Store
-src/openms/OpenMS_autogen
-src/tests/class_tests/openms/data/FIAMS_output
 .vscode
 contrib-build
 openms-build

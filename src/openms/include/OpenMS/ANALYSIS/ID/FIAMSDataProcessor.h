@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Hendrik Weisser, Chris Bielow $
+// $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
  
 #pragma once
@@ -49,35 +49,20 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-using namespace std;
-
 namespace OpenMS
 {
   /**
     description
   */
-  class OPENMS_DLLAPI FIAMSDataProcessor 
+  class OPENMS_DLLAPI FIAMSDataProcessor  :
+    public DefaultParamHandler
   {
 public:
-    /// Default constructor
-    FIAMSDataProcessor(
-      String filename, 
-      String dir_input, 
-      String dir_output, 
-      float resolution, 
-      String polarity, 
-      String db_mapping, 
-      String db_struct, 
-      String positive_adducts, 
-      String negative_adducts, 
-      bool store_progress=true,
-      float min_mz=50, 
-      float max_mz=1500, 
-      float bin_step=20
-    );
+    /// Constructor
+    FIAMSDataProcessor();
 
     /// Default desctructor
-    ~FIAMSDataProcessor();
+    ~FIAMSDataProcessor() = default;
 
     /// Copy constructor
     FIAMSDataProcessor(const FIAMSDataProcessor& cp);
@@ -86,10 +71,10 @@ public:
     FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
 
     /// Process the given file
-    void run(float n_seconds, OpenMS::MzTab & output);
+    void run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output);
 
     /// Cut the spectra for time
-    void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds=6000);
+    void cutForTime(const MSExperiment & experiment, std::vector<MSSpectrum> & output, const float & n_seconds=6000);
 
     /// Merge spectra from different retention times into one
     MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
@@ -106,68 +91,20 @@ public:
     /// Perform accurate mass search
     void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
 
-    /// Get filename
-    const String getFilename();
-
-    /// Get input directory
-    const String getInputDir();
-
-    /// Get output directory
-    const String getOutputDir();
-
-    /// Get resolution
-    const float getResolution();
-
-    /// Get resolution
-    const String getPolarity();
-
-    /// Get minimum mass-to-charge
-    const float getMinMZ();
-
-    /// Get maximum mass-to-charge
-    const float getMaxMZ();
-
-    /// Get the sliding bin step
-    const float getBinStep();
-
-    /// Get the path to the db:mapping for passing to AccurateMassSearch
-    const String getDBMapping();
-
-    /// Get the path to the db:struct for passing to AccurateMassSearch
-    const String getDBStruct();
-
-    /// Get the path to the positive adducts for passing to AccurateMassSearch
-    const String getPositiveAdducts();
-
-    /// Get the path to the negative adducts for passing to AccurateMassSearch
-    const String getNegativeAdducts();
-
     /// Get mass-to-charge ratios to base the sliding window upon
     const std::vector<float> getMZs();
 
     /// Get the sliding bin sizes
     const std::vector<float> getBinSizes();
 
+protected:
+    void updateMembers_() override;
+
 private:
-    void loadExperiment_();
     void storeSpectrum_(const MSSpectrum & input, String filename);
 
-    String filename_;
-    String dir_input_;
-    String dir_output_;
-    float resolution_;
-    String polarity_;
-    float min_mz_;
-    float max_mz_;
-    float bin_step_;
-    String db_mapping_;
-    String db_struct_;
-    String positive_adducts_;
-    String negative_adducts_;
-    bool store_progress_;
     std::vector<float> mzs_; 
     std::vector<float> bin_sizes_;
-    MSExperiment experiment_;
   };
 
 /*
@@ -183,10 +120,10 @@ public:
     );
 
     /// Default desctructor
-    ~FIAMSScheduler();
+    ~FIAMSScheduler() = default;
 
     /// Copy constructor
-    FIAMSScheduler(const FIAMSScheduler& cp);
+    FIAMSScheduler(const FIAMSScheduler& cp) = default;
 
     /// Assignment
     FIAMSScheduler& operator=(const FIAMSScheduler& fdp);
@@ -194,15 +131,16 @@ public:
     /// Process the given file
     void run();
 
-    const vector<map<String, String>> getSamples();
+    const std::vector<std::map<String, String>> getSamples();
     const String getBaseDir();
 
 private:
+    void loadExperiment_(const String & dir_input, const String & filename, MSExperiment output);
     void loadSamples_();
 
     String filename_;
     String base_dir_;
-    vector<map<String, String>> samples_;
+    std::vector<std::map<String, String>> samples_;
   };
 
 } // namespace OpenMS

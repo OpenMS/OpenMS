@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar, Chris Bielow $
+// $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -67,27 +67,8 @@ FIAMSDataProcessor* ptr = nullptr;
 FIAMSDataProcessor* null_ptr = nullptr;
 START_SECTION(FIAMSDataProcessor())
 {
-    ptr = new FIAMSDataProcessor(
-        "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2",
-        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/")),
-        String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")),
-        120000.0, 
-        "positive", 
-        "", 
-        "", 
-        "", 
-        "", 
-        false,
-        1, 
-        2, 
-        3
-    );
+    ptr = new FIAMSDataProcessor();
     TEST_NOT_EQUAL(ptr, null_ptr);
-    TEST_EQUAL(ptr->getResolution(), 120000.0);
-    TEST_EQUAL(ptr->getPolarity(), "positive");
-    TEST_EQUAL(ptr->getMinMZ(), 1);
-    TEST_EQUAL(ptr->getMaxMZ(), 2);
-    TEST_EQUAL(ptr->getBinStep(), 3);
 }
 END_SECTION
 
@@ -97,26 +78,35 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-FIAMSDataProcessor fia_processor(
-    "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2",
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input/")),
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")),
-    120000.0, 
-    "positive",
-    String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")),
-    String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")),
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv")),
-    String(OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv"))
-);
+String filename = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2";
+
+FIAMSDataProcessor fia_processor;
+Param p;
+p.setValue("filename", filename);
+p.setValue("dir_output", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")));
+p.setValue("resolution", 120000.0);
+p.setValue("polarity", "negative");
+p.setValue("max_mz", 1500);
+p.setValue("bin_step", 20);
+p.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
+p.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
+p.setValue("positive_adducts", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts.tsv")));
+p.setValue("negative_adducts", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv")));
+fia_processor.setParameters(p);
+
+MSExperiment exp;
+MzMLFile mzml;
+mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
+
 PeakMap input;
-Peak1D p;
+Peak1D peak;
 std::vector<float> ints {100, 120, 130, 140, 150, 100, 60, 50, 30};
 std::vector<float> rts {10, 20, 30, 40};
 for (Size i = 0; i < rts.size(); ++i) {
     MSSpectrum s;
     for (Size j = 0; j < ints.size(); ++j) {
-        p.setIntensity(ints[j]); p.setMZ(100 + j*2);
-        s.push_back(p);
+        peak.setIntensity(ints[j]); peak.setMZ(100 + j*2);
+        s.push_back(peak);
     }
     s.setRT(rts[i]);
     input.addSpectrum(s);
@@ -142,7 +132,7 @@ END_SECTION
 
 START_SECTION((test_stages))
 {
-    vector<MSSpectrum> output_cut;
+    std::vector<MSSpectrum> output_cut;
     fia_processor.cutForTime(input, output_cut, 100);
     MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
     TEST_EQUAL(output.size() > 0, true);
@@ -161,13 +151,13 @@ END_SECTION
 START_SECTION((test_run))
 {
     MzTab mztab_output_30;
-    fia_processor.run(30, mztab_output_30);
+    fia_processor.run(exp, 30, mztab_output_30);
     String filename_30 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_merged_30.mzML";
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
     MzTab mztab_output_0;
     String filename_0 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_picked_0.mzML";
     String filename_mztab = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_0.mzTab";
-    fia_processor.run(0, mztab_output_0);
+    fia_processor.run(exp, 0, mztab_output_0);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_0))), true);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_mztab))), true);
 }
