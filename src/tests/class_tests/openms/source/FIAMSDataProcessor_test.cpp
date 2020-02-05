@@ -115,17 +115,17 @@ for (Size i = 0; i < rts.size(); ++i) {
 START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds)))
 {
     vector<MSSpectrum> output1;
-    fia_processor.cutForTime(input, output1, 0);
+    fia_processor.cutForTime(input, 0, output1);
     TEST_EQUAL(output1.size(), 0);
     vector<MSSpectrum> output2;
-    fia_processor.cutForTime(input, output2, 25);
+    fia_processor.cutForTime(input, 25, output2);
     TEST_EQUAL(output2.size(), 2);
     vector<MSSpectrum> output3;
-    fia_processor.cutForTime(input, output3, 100);
+    fia_processor.cutForTime(input, 100, output3);
     TEST_EQUAL(output3.size(), 4);
     PeakMap empty_input;
     vector<MSSpectrum> output4;
-    fia_processor.cutForTime(empty_input, output4, 100);
+    fia_processor.cutForTime(empty_input, 100, output4);
     TEST_EQUAL(output4.size(), 0);
 }
 END_SECTION
@@ -133,7 +133,7 @@ END_SECTION
 START_SECTION((test_stages))
 {
     std::vector<MSSpectrum> output_cut;
-    fia_processor.cutForTime(input, output_cut, 100);
+    fia_processor.cutForTime(input, 100, output_cut);
     MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
     TEST_EQUAL(output.size() > 0, true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);

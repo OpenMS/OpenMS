@@ -42,7 +42,6 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
@@ -61,7 +60,6 @@ namespace OpenMS {
       mzs_(),
       bin_sizes_(),
       sgfilter_(),
-      morph_filter_(),
       picker_()
     {
     defaults_.setValue("filename", "fiams", "The filename to use for naming the output files");
@@ -112,7 +110,6 @@ namespace OpenMS {
     mzs_ = rhs.mzs_;
     bin_sizes_ = rhs.bin_sizes_;
     sgfilter_ = rhs.sgfilter_;
-    morph_filter_ = rhs.morph_filter_;
     picker_ = rhs.picker_;
     return *this;
   }
@@ -136,7 +133,7 @@ namespace OpenMS {
     sgfilter_.setParameters(p);
   }
 
-  void FIAMSDataProcessor::cutForTime(const MSExperiment & experiment, std::vector<MSSpectrum> & output, const float & n_seconds) {
+  void FIAMSDataProcessor::cutForTime(const MSExperiment & experiment, const float & n_seconds, std::vector<MSSpectrum> & output) {
       for (const auto & s : experiment.getSpectra()) {
           if (s.getRT() < n_seconds) output.push_back(s);
       }
@@ -161,9 +158,7 @@ namespace OpenMS {
 
   MSSpectrum FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
     MSSpectrum spectrum(input);
-
     sgfilter_.filter(spectrum);
-    morph_filter_.filter(spectrum);
 
     MSSpectrum picked;
     picker_.pick(spectrum, picked);
@@ -228,7 +223,7 @@ namespace OpenMS {
 
   void FIAMSDataProcessor::run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output) {
     std::vector<MSSpectrum> output_cut;
-    cutForTime(experiment, output_cut, n_seconds);
+    cutForTime(experiment, n_seconds, output_cut);
     MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
     MSSpectrum picked_spectrum = extractPeaks(merged_spectrum);
     String postfix = String(static_cast<int>(n_seconds));

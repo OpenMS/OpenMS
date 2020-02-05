@@ -79,16 +79,12 @@ namespace OpenMS {
     }
   }
 
-  void FIAMSScheduler::loadExperiment_(const String & dir_input, const String & filename, MSExperiment output) {
-    MzMLFile mzml;
-    mzml.load(dir_input + "/" + filename + ".mzML", output);
-  }
-
   void FIAMSScheduler::run() {
     #pragma omp parallel for
     for (size_t i = 0; i < samples_.size(); ++i) {
       MSExperiment exp;
-      loadExperiment_(base_dir_ + samples_[i].at("dir_input"), samples_[i].at("filename"), exp);
+      MzMLFile mzml;
+      mzml.load(base_dir_ + samples_[i].at("dir_input") + "/" + samples_[i].at("filename") + ".mzML", exp);
 
       FIAMSDataProcessor fia_processor;
       Param p;
