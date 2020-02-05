@@ -36,7 +36,6 @@
 
 namespace OpenMS
 {
-
   // constructor
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(MSExperiment &m, Parameter &p): map(m), param(p)
   {
@@ -63,8 +62,6 @@ namespace OpenMS
     return (int) (m * 0.999497 + .5);
   }
 
-
-
   std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int &specCntr, int &qspecCntr,
                                          int &massCntr, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
@@ -78,6 +75,7 @@ namespace OpenMS
     std::vector<double> prevMinBinLogMassMap;
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
     std::map<UInt,std::map<double, int>> peakIsotopeMap; // mslevel, mz -> isotope
+    std::map<UInt,std::map<double, double>> peakIntensityMap; // mslevel, mz -> peakgroup intensity
 
     auto prevChargeRanges = new int[param.maxMSLevel];
     auto prevMaxMasses = new double[param.maxMSLevel];
@@ -119,15 +117,16 @@ namespace OpenMS
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
         auto &subPeakIsotopeMap = peakIsotopeMap[precursorMsLevel];
-
+        auto &subPeakIntensityMap = peakIntensityMap[precursorMsLevel];
         int mc = -1;
+        double pint = 0;
         double mm = -1;
 
         for(auto &pre : it->getPrecursors()){
           auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
           auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
 
-          for(auto iter = subPeakChargeMap.begin(); iter != subPeakChargeMap.end(); ++iter)
+          for(auto iter = subPeakIntensityMap.begin(); iter != subPeakIntensityMap.end(); ++iter)
           {
             auto& mz = iter->first;
             if(mz < startMz){
@@ -136,9 +135,10 @@ namespace OpenMS
             if(mz > endMz){
               break;
             }
-            int pc = subPeakChargeMap[mz];
-            if(mc<pc){
-              mc = pc;
+            double cint = subPeakIntensityMap[mz];
+            if(pint<cint){
+              pint = cint;
+              mc = subPeakChargeMap[mz];
               mm = mc * mz;
             }
           }
@@ -170,6 +170,10 @@ namespace OpenMS
             }
           }
 
+          if(param.precursorIsotopes.size() > avg.getLeftIndex(mm)){
+            param.precursorIsotopes.clear();
+          }
+
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
           prevMaxMasses[msLevel-1] =  param.currentMaxMass;
           prevIsotopes[msLevel-1] = param.precursorIsotopes;
@@ -195,32 +199,32 @@ namespace OpenMS
       }
 
       auto subPeakChargeMap = std::map<double, int>();
+      auto subPeakIsotopeMap = std::map<double, int>();
+      auto subPeakIntensityMap = std::map<double, double>();
+
       for (auto& pg : peakGroups)
       {
         for(auto& p : pg.peaks){
           int mc = p.charge;
-          if (subPeakChargeMap.find(p.mz) != subPeakChargeMap.end()){
-            int pc = subPeakChargeMap[p.mz];
-            mc = mc > pc? mc : pc;
+          int iso = p.isotopeIndex;
+
+          if (subPeakIntensityMap.find(p.mz) != subPeakIntensityMap.end()){
+            double pint = subPeakIntensityMap[p.mz];
+            if(pint < pg.intensity){
+              subPeakIntensityMap[p.mz] = pg.intensity;
+              subPeakChargeMap[p.mz] = mc;
+              subPeakIsotopeMap[p.mz] = iso;
+            }
+          }else{
+            subPeakChargeMap[p.mz] = mc;
+            subPeakIsotopeMap[p.mz] = iso;
+            subPeakIntensityMap[p.mz] = pg.intensity;
           }
-          subPeakChargeMap[p.mz] = mc;
         }
       }
       peakChargeMap[msLevel] = subPeakChargeMap;
-
-      auto subPeakIsotopeMap = std::map<double, int>();
-      for (auto& pg : peakGroups)
-      {
-        for(auto& p : pg.peaks){
-          int iso = p.isotopeIndex;
-          if (subPeakIsotopeMap.find(p.mz) != subPeakIsotopeMap.end()){
-            int piso = subPeakIsotopeMap[p.mz];
-            iso = iso > piso? iso : piso;
-          }
-          subPeakIsotopeMap[p.mz] = iso;
-        }
-      }
       peakIsotopeMap[msLevel] = subPeakIsotopeMap;
+      peakIntensityMap[msLevel] = subPeakIntensityMap;
 
       qspecCntr++;
 

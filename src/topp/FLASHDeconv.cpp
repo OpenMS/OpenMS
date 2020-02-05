@@ -200,7 +200,7 @@ protected:
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.001 * maxIso.getMostAbundant().getIntensity());
+    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
     param.maxIsotopeCount = (int) maxIso.size() - 1;
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
     return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 20, generator);

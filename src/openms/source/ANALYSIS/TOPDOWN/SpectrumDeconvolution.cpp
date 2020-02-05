@@ -657,7 +657,7 @@ namespace OpenMS
                 {
                   break;
                 }
-              }
+              }//115814 88,29
             }
 
 
@@ -843,7 +843,7 @@ namespace OpenMS
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = observedMz - mz;
           int i = (int) round(di / isof);
-          //std::cout<<di<<" "<<i<<std::endl;
+
           if (i > (int) rightIndex)
           {
             //if (i - pi > 1){
@@ -1025,7 +1025,7 @@ namespace OpenMS
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
     //if (msLevel == 1) //TODO
     {
-      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= 30)//(Size) param.numOverlappedScans)TODO
+      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= 100)//(Size) param.numOverlappedScans)TODO
       {
         prevMassBinVector.erase(prevMassBinVector.begin());
         prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
