@@ -27,21 +27,23 @@ namespace OpenMS
     ~PeakGroupScoring();
 
 
-    static double getChargeFitScore(double *perChargeIntensity, int range, int minCharge);
+    static double getChargeFitScore(double *perChargeIntensity, int range);
 
     static double getIsotopeCosineAndDetermineIsotopeIndex(double mass,
+                                                           unsigned int &msLevel,
+                                                           Parameter& param,
                                                            double *perIsotopeIntensities,
                                                            int perIsotopeIntensitiesSize,
                                                            int &offset,
                                                            FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
     std::vector<PeakGroup> &scoreAndFilterPeakGroups(unsigned int &msLevel,
+        //  FLASHDeconvHelperStructs::Parameter& param,
                                                      FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
     std::vector<PeakGroup> &peakGroups;
     Parameter &param;
-
 
     void removeOverlappingPeakGroups(double tol);
 

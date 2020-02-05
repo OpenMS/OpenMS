@@ -154,7 +154,7 @@ namespace OpenMS
       }
 
       double chargeScore = PeakGroupScoring::getChargeFitScore(perChargeIntensity,
-                                                               param.minCharge + param.chargeRange + 1, 0);
+                                                               param.minCharge + param.chargeRange + 1);
       if (chargeScore < param.minChargeCosine) //
       {
         continue;
@@ -162,7 +162,10 @@ namespace OpenMS
 
       int offset = 0;
       double mass = mt.getCentroidMZ();
+      UInt msLevel = 1;
       double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
+                                                                                   msLevel,
+                                                                                   param,
                                                                                    perIsotopeIntensity,
                                                                                    param.maxIsotopeCount,
                                                                                    offset, averagines);
@@ -187,7 +190,7 @@ namespace OpenMS
         sumInt += p.getIntensity();
       }
 
-      auto massDelta = averagines.getAverageMassDelta(mass);
+      auto massDelta = averagines.getAverageMassDelta(averagines.get(mass));
 
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"

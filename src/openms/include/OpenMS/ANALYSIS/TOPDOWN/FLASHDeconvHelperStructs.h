@@ -55,51 +55,51 @@ namespace OpenMS
   {
     struct OPENMS_DLLAPI Parameter
     {
-        int minCharge;
-        double minMass;
-        double maxMass;
-        double currentMaxMass;
-        double tolerance;
-        String fileName;// up to here: ordinary user accessible parameters
+      int minCharge;
+      double minMass;
+      double maxMass;
+      double currentMaxMass;
+      double tolerance;
+      String fileName;// up to here: ordinary user accessible parameters
 
-        double intensityThreshold;// advanced parameters
-        double minIsotopeCosine;
-        double minChargeCosine;
+      double intensityThreshold;// advanced parameters
+      double minIsotopeCosine;
+      double minChargeCosine;
 
-        double tolerance2;
-        double minIsotopeCosineSpec2;
-        //double minChargeCosineSpec2;
+      double tolerance2;
+      double minIsotopeCosineSpec2;
+      //double minChargeCosineSpec2;
 
-        int minContinuousChargePeakCount2;
-        double minIsotopeCosineSpec;
-        double minChargeCosineSpec;
+      int minContinuousChargePeakCount2;
+      double minIsotopeCosineSpec;
+      double minChargeCosineSpec;
 
-        int minContinuousChargePeakCount;
-        int maxIsotopeCount;
-        int maxMassCount;
-        int currentMaxMassCount;
+      int minContinuousChargePeakCount;
+      int maxIsotopeCount;
+      int maxMassCount;
+      int currentMaxMassCount;
 
-        unsigned int maxMSLevel = 1;//maxMSL;
-        //double charg = 1eDistributionScoreThreshold;
-        double RTwindow;
-        double minRTSpan;
-        std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
-        int chargeRange;
-        int currentChargeRange;
-        double binWidth;
-        double binWidth2;
-        int minNumOverLappedScans = 2;
-        int numOverlappedScans = minNumOverLappedScans;
-        int threads = 1;
-        int writeSpecTsv = 0;
-        //int jitter = 0;
+      unsigned int maxMSLevel = 1;//maxMSL;
+      //double charg = 1eDistributionScoreThreshold;
+      double RTwindow;
+      double minRTSpan;
+      std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
+      int chargeRange;
+      int currentChargeRange;
+      double binWidth;
+      double binWidth2;
+      int minNumOverLappedScans = 2;
+      int numOverlappedScans = minNumOverLappedScans;
+      int threads = 1;
+      int writeSpecTsv = 0;
+      std::set<UInt> precursorIsotopes;
+      //int jitter = 0;
     };
 
     struct OPENMS_DLLAPI PrecalcularedAveragine
     {
       std::vector<IsotopeDistribution> isotopes;
-      std::vector<double> norms;
-      std::vector<double> averageMassDelta;
+      CoarseIsotopePatternGenerator* generator;
       std::vector<Size> leftIndices;
       std::vector<Size> rightIndices;
 
@@ -108,10 +108,14 @@ namespace OpenMS
 
       PrecalcularedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
       IsotopeDistribution get(double mass);
-      double getNorm(double mass);
-      Size getLeftIndex(double mass);
+      //double getNorm(double mass);
+      IsotopeDistribution get(double precursorMass, double mass, std::set<UInt> &precursors);
+      double getAverageMassDelta(IsotopeDistribution dist);
       Size getRightIndex(double mass);
-      double getAverageMassDelta(double mass);
+      Size getLeftIndex(double mass);
+      //double getNorm(double precursorMass, double mass, std::set<UInt> precursors);
+      //double getAverageMassDelta(double precursorMass, double mass, std::set<UInt> precursors);
+
 
     };
 
@@ -168,7 +172,7 @@ namespace OpenMS
 
       bool operator==(const PeakGroup &a) const;
 
-      void updateMassesAndIntensity(PrecalcularedAveragine &averagines, int offset = 0, int maxIsoIndex = 0);
+      void updateMassesAndIntensity(PrecalcularedAveragine &averagines, unsigned int &msLevel, Parameter& param, int offset = 0, int maxIsoIndex = 0);
     };
 
     static double getLogMz(double mz);

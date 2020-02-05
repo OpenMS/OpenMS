@@ -77,12 +77,18 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinMap;
     std::vector<double> prevMinBinLogMassMap;
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+    std::map<UInt,std::map<double, int>> peakIsotopeMap; // mslevel, mz -> isotope
+
     auto prevChargeRanges = new int[param.maxMSLevel];
     auto prevMaxMasses = new double[param.maxMSLevel];
+    auto prevIsotopes = new std::set<UInt>[param.maxMSLevel];
 
     std::fill_n(prevChargeRanges, param.maxMSLevel, param.chargeRange);
     std::fill_n(prevMaxMasses, param.maxMSLevel, param.maxMass);
-
+    for(auto i=0;i<param.maxMSLevel;i++)
+    {
+      prevIsotopes[i] = std::set<UInt>();
+    }
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       auto msLevel =  it->getMSLevel();
@@ -101,7 +107,6 @@ namespace OpenMS
       specCntr++;
 
       auto sd = SpectrumDeconvolution(*it, param);
-
       auto precursorMsLevel = msLevel - 1;
 
       // to find precursor peaks with assigned charges..
@@ -113,8 +118,11 @@ namespace OpenMS
 
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
+        auto &subPeakIsotopeMap = peakIsotopeMap[precursorMsLevel];
+
         int mc = -1;
         double mm = -1;
+
         for(auto &pre : it->getPrecursors()){
           auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
           auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
@@ -138,16 +146,41 @@ namespace OpenMS
         if(mc > 0){
           param.currentChargeRange = mc  - param.minCharge; //
           param.currentMaxMass = mm + 1 ; // isotopie margin
+          param.precursorIsotopes = std::set<UInt>();
+
+          for(auto &pre : it->getPrecursors()){
+            auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
+            auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
+
+            for(auto iter = subPeakIsotopeMap.begin(); iter != subPeakIsotopeMap.end(); ++iter)
+            {
+              auto& mz = iter->first;
+              if(mz < startMz){
+                continue;
+              }
+              if(mz > endMz){
+                break;
+              }
+              int pc = subPeakChargeMap[mz];
+              if(pc != mc){
+                continue;
+              }
+              UInt iso = (UInt)subPeakIsotopeMap[mz];
+              param.precursorIsotopes.insert(iso);
+            }
+          }
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
           prevMaxMasses[msLevel-1] =  param.currentMaxMass;
+          prevIsotopes[msLevel-1] = param.precursorIsotopes;
+
         }else{
           param.currentChargeRange =  prevChargeRanges[msLevel - 1];
           param.currentMaxMass = prevMaxMasses[msLevel - 1];
+          param.precursorIsotopes = prevIsotopes[msLevel-1];
         }
         //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
-        param.currentMaxMassCount = -1;//(int)(param.currentMaxMass/110*1.5);
-
+        param.currentMaxMassCount = param.maxMassCount;
       }
 
       if(sd.empty()){
@@ -175,6 +208,20 @@ namespace OpenMS
       }
       peakChargeMap[msLevel] = subPeakChargeMap;
 
+      auto subPeakIsotopeMap = std::map<double, int>();
+      for (auto& pg : peakGroups)
+      {
+        for(auto& p : pg.peaks){
+          int iso = p.isotopeIndex;
+          if (subPeakIsotopeMap.find(p.mz) != subPeakIsotopeMap.end()){
+            int piso = subPeakIsotopeMap[p.mz];
+            iso = iso > piso? iso : piso;
+          }
+          subPeakIsotopeMap[p.mz] = iso;
+        }
+      }
+      peakIsotopeMap[msLevel] = subPeakIsotopeMap;
+
       qspecCntr++;
 
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
@@ -192,13 +239,12 @@ namespace OpenMS
     //allPeakGroups.shrink_to_fit();
     delete[] prevChargeRanges;
     delete[] prevMaxMasses;
-
+    delete[] prevIsotopes;
     return allPeakGroups; //
   }
 
   void FLASHDeconvAlgorithm::printProgress(float progress)
   {
-    //return; //
     int barWidth = 70;
     std::cout << "[";
     int pos = (int) (barWidth * progress);

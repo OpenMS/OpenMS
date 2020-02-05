@@ -40,7 +40,7 @@ namespace OpenMS
   FLASHDeconvHelperStructs::PrecalcularedAveragine::PrecalcularedAveragine(double m,
                                                                            double M,
                                                                            double delta,
-                                                                           CoarseIsotopePatternGenerator *generator)
+                                                                           CoarseIsotopePatternGenerator *gen)
       :
       massInterval(delta), minMass(m)
   {
@@ -57,22 +57,24 @@ namespace OpenMS
       {
         break;
       }
+
+      //estimateForFragmentFromPeptideWeight //
+      generator = gen;
       auto iso = generator->estimateFromPeptideWeight(a);
       //iso.trimIntensities()
 
       //std::cout<< a << " "<<iso[10].getMZ() - iso[9].getMZ()<<std::endl;
 
-      auto factor = .01;
+      auto factor = .001;
       iso.trimRight(factor * iso.getMostAbundant().getIntensity());
 
-      double norm = .0;
+      // double norm = .0;
       // double mean = .0;
       Size mostAbundantIndex = 0;
       double mostAbundantInt = 0;
 
       for (Size k = 0; k < iso.size(); k++)
       {
-        norm += iso[k].getIntensity() * iso[k].getIntensity();
         if (mostAbundantInt >= iso[k].getIntensity())
         {
           continue;
@@ -82,36 +84,13 @@ namespace OpenMS
       }
 
       Size leftIndex = mostAbundantIndex;
-      for (Size k = 0; k <= mostAbundantIndex; k++)
-      {
-        if (iso[k].getIntensity() > mostAbundantInt * factor)
-        {
-          break;
-        }
-        norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        leftIndex--;
-        iso[k].setIntensity(0);
-      }
-
       Size rightIndex = iso.size() - 1 - mostAbundantIndex;
-      for (Size k = iso.size() - 1; k >= mostAbundantIndex; k--)
-      {
-        if (iso[k].getIntensity() > mostAbundantInt * factor)
-        {
-          break;
-        }
-        norm -= iso[k].getIntensity() * iso[k].getIntensity();
-        rightIndex--;
-        iso[k].setIntensity(0);
-      }
 
       //iso.averageMass()
       //iso[0].getMZ()
 
       rightIndices.push_back(rightIndex);
       leftIndices.push_back(leftIndex);
-      averageMassDelta.push_back(iso.averageMass()-iso[0].getMZ());
-      norms.push_back(norm);
       isotopes.push_back(iso);
 
       //std::cout<< a << " " << mostAbundantIndex <<" " << endIndex << std::endl;
@@ -126,11 +105,15 @@ namespace OpenMS
     return isotopes[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getNorm(double mass)
+  IsotopeDistribution FLASHDeconvHelperStructs::PrecalcularedAveragine::get(double precursorMass, double mass, std::set<UInt>& precursors)
   {
-    Size i = (Size) (.5 + (mass - minMass) / massInterval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return norms[i];
+    //return get(mass);
+    if(precursors.size() == 0 || precursorMass <= mass){
+      return get(mass);
+    }
+    auto id_fragment = get(mass);
+    auto id_comp_fragment = get(precursorMass - mass);
+    return generator->calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursors, mass);
   }
 
   Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getLeftIndex(double mass)
@@ -140,11 +123,9 @@ namespace OpenMS
     return leftIndices[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getAverageMassDelta(double mass)
+  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getAverageMassDelta(IsotopeDistribution dist)
   {
-    Size i = (Size) (.5 + (mass - minMass) / massInterval);
-    i = i >= isotopes.size() ? isotopes.size() - 1 : i;
-    return averageMassDelta[i];
+    return dist.averageMass() - dist[0].getMZ();
   }
 
   Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getRightIndex(double mass)
@@ -222,7 +203,7 @@ namespace OpenMS
   bool FLASHDeconvHelperStructs::PeakGroup::operator<(const FLASHDeconvHelperStructs::PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
-      return  this->monoisotopicMass < a.monoisotopicMass;
+    return  this->monoisotopicMass < a.monoisotopicMass;
     //}
     //return this->spec->getRT() < a.spec->getRT();
   }
@@ -230,7 +211,7 @@ namespace OpenMS
   bool FLASHDeconvHelperStructs::PeakGroup::operator>(const FLASHDeconvHelperStructs::PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
-      return  this->monoisotopicMass > a.monoisotopicMass;
+    return  this->monoisotopicMass > a.monoisotopicMass;
     //}
     //return this->spec->getRT() > a.spec->getRT();
   }
@@ -238,11 +219,13 @@ namespace OpenMS
   bool FLASHDeconvHelperStructs::PeakGroup::operator==(const PeakGroup &a) const
   {
     return// this->spec->getRT() == a.spec->getRT() &&
-    this->monoisotopicMass == a.monoisotopicMass
-           && this->intensity == a.intensity;
+        this->monoisotopicMass == a.monoisotopicMass
+        && this->intensity == a.intensity;
   }
 
   void FLASHDeconvHelperStructs::PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalcularedAveragine &averagines,
+                                                                     unsigned int &msLevel,
+                                                                     Parameter& param,
                                                                      int offset,
                                                                      int maxIsoIndex)
   {
@@ -268,14 +251,16 @@ namespace OpenMS
     intensity = .0;
     //double nominator = .0;
     //double denominator = .0;
+    //auto masses = std::vector<double>();
     double maxIntensityForMonoIsotopeMass = -1;
     for (auto &p : peaks)
     {
       double pi = p.intensity;
       intensity += pi;
-     // auto w = std::sqrt(pi);
-     // denominator += w;
+      // auto w = std::sqrt(pi);
+      // denominator += w;
       // nominator += w * (p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
+      //masses.push_back(p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
 
       if (maxIntensityForMonoIsotopeMass > pi)
       {
@@ -287,11 +272,17 @@ namespace OpenMS
       // avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
 
     }
-
+    //sort(masses.begin(), masses.end());
+    //monoisotopicMass = masses[masses.size()/2];
     //monoisotopicMass = nominator / denominator;
-    auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
-    avgMass = monoisotopicMass + massDelta;
-
+    if(maxIsoIndex>0)
+    {
+      auto dist = msLevel == 1 ?
+                  averagines.get(monoisotopicMass) :
+                  averagines.get(param.currentMaxMass, monoisotopicMass, param.precursorIsotopes);
+      auto massDelta = averagines.getAverageMassDelta(dist);
+      avgMass = monoisotopicMass + massDelta;
+    }
   }
 
   double FLASHDeconvHelperStructs::getLogMz(double mz)

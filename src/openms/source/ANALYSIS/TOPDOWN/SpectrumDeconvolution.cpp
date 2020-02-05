@@ -299,10 +299,10 @@ namespace OpenMS
                 auto charge = j + param.minCharge;
                 auto mz = exp(getBinValue(mzBinIndex, 100, param.binWidth2));
 
-                auto waterLossMz = log(mz - 18.01528 / charge); // 17.031
-                auto nh3LossMz = log(mz - 17.031 / charge);
-                auto waterAddMz = log(mz + 18.01528 / charge); // 17.031
-                auto nh3AddMz = log(mz + 17.031 / charge);
+                auto waterLossMz = log(mz - 18.010565 / charge); // 17.031
+                auto nh3LossMz = log(mz - 17.026549 / charge);
+                auto waterAddMz = log(mz + 18.010565 / charge); // 17.031
+                auto nh3AddMz = log(mz + 17.026549 / charge);
 
                 auto waterLossBin = getBinNumber(waterLossMz, 100, param.binWidth2);
                 auto nh3LossBin = getBinNumber(nh3LossMz, 100, param.binWidth2);
@@ -834,7 +834,7 @@ namespace OpenMS
         }
         const double mz = logMzPeaks[maxPeakIndex].mz;
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
-        double mzDelta = tol * 2 * mz;
+        double mzDelta = tol * mz;
 
         int pi = 0;
         for (int peakIndex = maxPeakIndex; peakIndex < logMzPeakSize; peakIndex++)
@@ -873,9 +873,7 @@ namespace OpenMS
             //lastPeakIndex = peakIndex;
             // nextMassBinIndex = nextMassBinIndex < bin? bin : nextMassBinIndex; // take max
           }
-
           pi = i;
-
         }
 
         pi = 0;

@@ -200,10 +200,10 @@ protected:
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+    maxIso.trimRight(0.001 * maxIso.getMostAbundant().getIntensity());
     param.maxIsotopeCount = (int) maxIso.size() - 1;
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 25, generator);
+    return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 20, generator);
   }
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -216,6 +216,7 @@ protected:
 
     auto param = setParameter();
     auto avgine = calculateAveragines(param);
+
     int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
     int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
@@ -507,10 +508,10 @@ protected:
       if(false)
       {
         auto monoMassSet = set<int>();
-        mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/CA_745_ETDReagentTarget_1e+06_.mzML", map);
-        fsm.open(outfilePath + "xtract.m", fstream::out);
+        mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/myo_707_ETDReagentTarget_1e+06_.mzML", map);
+        fsm.open(outfilePath + "/xtract5.m", fstream::out);
 
-        fsm << "\nxm=[";
+        fsm << "\nxmmy=[";
         for (auto it = map.begin(); it != map.end(); ++it)
         {
           for (auto p : *it)
