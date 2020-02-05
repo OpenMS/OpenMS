@@ -38,6 +38,8 @@
 
 #include <sqlite3.h>
 
+#include <cstring> // for strcmp
+
 namespace OpenMS
 {
 
@@ -60,15 +62,18 @@ namespace OpenMS
   {
     bool found = false;
 
-    sqlite3_stmt * xcntstmt;
-    SqliteConnector::executePreparedStatement(db, &xcntstmt, "PRAGMA table_info(" + tablename + ")");
+    sqlite3_stmt* xcntstmt;
+    prepareStatement(db, &xcntstmt, "PRAGMA table_info(" + tablename + ")");
 
     // Go through all columns and check whether the required column exists
     sqlite3_step(xcntstmt);
-    while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
+    while (sqlite3_column_type(xcntstmt, 0) != SQLITE_NULL)
     {
-      String name = String(reinterpret_cast<const char*>(sqlite3_column_text( xcntstmt, 1 )));
-      if (colname == name) {found = true;}
+      if (strcmp(colname.c_str(), reinterpret_cast<const char*>(sqlite3_column_text(xcntstmt, 1))) == 0)
+      {
+        found = true;
+        break;
+      }
       sqlite3_step(xcntstmt);
     }
     sqlite3_finalize(xcntstmt);
@@ -78,28 +83,20 @@ namespace OpenMS
 
   bool SqliteConnector::tableExists(sqlite3 *db, const String& tablename)
   {
-    bool found = false;
-    int res = -1;
+    sqlite3_stmt* stmt;
+    prepareStatement(db, &stmt, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='" + tablename + "';");
 
-    sqlite3_stmt * xcntstmt;
-    SqliteConnector::executePreparedStatement(db, &xcntstmt, "select count(type) from sqlite_master where type='table' and name='" + tablename + "';");
-
-    // Go through all columns and check whether the required column exists
-    sqlite3_step(xcntstmt);
-    while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
-    {
-      Internal::SqliteHelper::extractValue<int>(&res, xcntstmt, 0);
-      if (res == 1) {found = true;}
-      sqlite3_step(xcntstmt);
-    }
-    sqlite3_finalize(xcntstmt);
+    sqlite3_step(stmt);
+    // if we get a row back, the table exists:
+    bool found = (sqlite3_column_type(stmt, 0) != SQLITE_NULL);
+    sqlite3_finalize(stmt);
 
     return found;
   }
 
   void SqliteConnector::executeStatement(sqlite3 *db, const std::stringstream& statement)
   {
-    SqliteConnector::executeStatement(db, statement.str());
+    executeStatement(db, statement.str());
   }
 
   void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
@@ -108,7 +105,7 @@ namespace OpenMS
     int rc = sqlite3_exec(db, statement.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
     if (rc != SQLITE_OK)
     {
-      String error (zErrMsg);
+      String error(zErrMsg);
       std::cerr << "Error message after sqlite3_exec" << std::endl;
       std::cerr << "Prepared statement " << statement << std::endl;
       sqlite3_free(zErrMsg);
@@ -116,9 +113,9 @@ namespace OpenMS
     }
   }
 
-  void SqliteConnector::executePreparedStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
+  void SqliteConnector::prepareStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
   {
-    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), (int)prepare_statement.size(), stmt, nullptr);
     if (rc != SQLITE_OK)
     {
       std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
@@ -131,19 +128,20 @@ namespace OpenMS
   {
     int rc;
     sqlite3_stmt *stmt = nullptr;
-    SqliteConnector::executePreparedStatement(db, &stmt, prepare_statement);
+    prepareStatement(db, &stmt, prepare_statement);
     for (Size k = 0; k < data.size(); k++)
     {
       // Fifth argument is a destructor for the blob.
       // SQLITE_STATIC because the statement is finalized
       // before the buffer is freed:
-      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
+      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), (int)data[k].size(), SQLITE_STATIC);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
         std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        // TODO this is a mem-leak (missing sqlite3_finalize())
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      } 
+      }
     }
 
     rc = sqlite3_step(stmt);
@@ -151,6 +149,7 @@ namespace OpenMS
     {
       std::cerr << "SQL error after sqlite3_step" << std::endl;
       std::cerr << "Prepared statement " << prepare_statement << std::endl;
+      // TODO this is a mem-leak (missing sqlite3_finalize())
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
     }
 
@@ -163,47 +162,56 @@ namespace OpenMS
     namespace SqliteHelper
     {
 
-      template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = sqlite3_column_double( stmt, pos);
+          *dst = sqlite3_column_double(stmt, pos);
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = sqlite3_column_int( stmt, pos);
+          *dst = sqlite3_column_int(stmt, pos);
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+          *dst = String(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
+          return true;
         }
+        return false;
       }
 
-      template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+      template <> bool extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+          *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, pos)));
+          return true;
         }
+        return false;
       }
 
       /// Special case: store integer in a string data value
-      void extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
+      bool extractValueIntStr(String* dst, sqlite3_stmt* stmt, int pos)
       {
         if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
         {
-          *dst = sqlite3_column_int( stmt, pos);
+          *dst = sqlite3_column_int(stmt, pos);
+          return true;
         }
+        return false;
       }
-
 
     }
   }

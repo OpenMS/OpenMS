@@ -50,17 +50,23 @@ using namespace OpenMS;
 
 Peak2D* d10_ptr = nullptr;
 Peak2D* d10_nullPointer = nullptr;
+
 START_SECTION((Peak2D()))
-	d10_ptr = new Peak2D;
+{
+  d10_ptr = new Peak2D;
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)
+}
 END_SECTION
 
 START_SECTION((~Peak2D()))
-	delete d10_ptr;
+{
+  delete d10_ptr;
+}
 END_SECTION
 
 
 START_SECTION((Peak2D(const Peak2D &p)))
+{
   Peak2D::PositionType pos;
   pos[0] = 21.21;
   pos[1] = 22.22;
@@ -78,14 +84,44 @@ START_SECTION((Peak2D(const Peak2D &p)))
 
   TEST_REAL_SIMILAR(pos2[0], 21.21)
   TEST_REAL_SIMILAR(pos2[1], 22.22)
+}
+END_SECTION
+
+START_SECTION((Peak2D(Peak2D &&rhs)))
+{
+  // Ensure that Peak2D has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(Peak2D(std::declval<Peak2D&&>())), true)
+
+  Peak2D::PositionType pos;
+  pos[0] = 21.21;
+  pos[1] = 22.22;
+  Peak2D p;
+  p.setIntensity(123.456f);
+  p.setPosition(pos);
+  Peak2D::PositionType pos2;
+  Peak2D::IntensityType i2;
+
+  Peak2D orig = p;
+  Peak2D copy_of_p(std::move(p));
+
+  i2 = copy_of_p.getIntensity();
+  pos2 = copy_of_p.getPosition();
+  TEST_REAL_SIMILAR(i2, 123.456)
+
+  TEST_REAL_SIMILAR(pos2[0], 21.21)
+  TEST_REAL_SIMILAR(pos2[1], 22.22)
+}
 END_SECTION
 
 START_SECTION((explicit Peak2D(const PositionType& pos, const IntensityType in)))
+{
   Peak2D p(Peak2D::PositionType(21.21, 22.22), 123.456f);
   Peak2D copy_of_p(p);
   TEST_REAL_SIMILAR(copy_of_p.getIntensity(), 123.456)
   TEST_REAL_SIMILAR(copy_of_p.getPosition()[0], 21.21)
   TEST_REAL_SIMILAR(copy_of_p.getPosition()[1], 22.22)
+}
 END_SECTION
 
 START_SECTION((Peak2D& operator=(const Peak2D &rhs)))

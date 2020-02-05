@@ -66,6 +66,7 @@ public:
     enum MT_QUANTMETHOD {
       MT_QUANT_AREA = 0,  ///< quantify by area
       MT_QUANT_MEDIAN,    ///< quantify by median of intensities
+      MT_QUANT_HEIGHT,    ///< quantify by peak height
       SIZE_OF_MT_QUANTMETHOD
     };
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];

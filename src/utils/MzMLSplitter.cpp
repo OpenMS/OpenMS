@@ -34,10 +34,12 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QFile>
 #include <iomanip>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

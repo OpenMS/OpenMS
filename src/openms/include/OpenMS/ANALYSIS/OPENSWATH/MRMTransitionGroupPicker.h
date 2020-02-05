@@ -135,8 +135,8 @@ public:
         MSChromatogram picked_chrom, smoothed_chrom;
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
-        picked_chroms.push_back(picked_chrom);
-        smoothed_chroms.push_back(smoothed_chrom);
+        picked_chroms.push_back(std::move(picked_chrom));
+        smoothed_chroms.push_back(std::move(smoothed_chrom));
       }
 
       // Pick precursor chromatograms
@@ -177,15 +177,17 @@ public:
 
         // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-        if (mrm_feature.getIntensity() > 0)
+        double total_xic = 0;
+        double intensity = mrm_feature.getIntensity();
+        if (intensity > 0)
         {
-          features.push_back(mrm_feature);
+          total_xic = mrm_feature.getMetaValue("total_xic");
+          features.push_back(std::move(mrm_feature));
         }
 
         cnt++;
         if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
-        if (mrm_feature.getIntensity() > 0 && 
-            mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
+        if (intensity > 0 && intensity / total_xic < stop_after_intensity_ratio_)
         {
           break;
         }
@@ -254,43 +256,9 @@ public:
       }
       else
       {
-        // Pick the peak with the closest apex to the consensus apex for each chromatogram.
-        // Use the closest peak for the current peak. Note that we will only set the closest peak
-        // per chromatogram to zero, so if there are two peaks for some transitions, we will get
-        // to them later. If there is no peak, then we transfer transition boundaries from "master" peak.
-        for (Size k = 0; k < picked_chroms.size(); k++)
-        {
-          double peak_apex_dist_min = std::numeric_limits<double>::max();
-          int min_dist = -1;
-          for (Size i = 0; i < picked_chroms[k].size(); i++)
-          {
-            PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
-                picked_chroms[k],
-                picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
-                picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
-            if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
-            { // update best candidate
-              peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
-              min_dist = (int)i;
-            }
-          }
-            
-          // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
-          double l = best_left;
-          double r = best_right;
-          if (min_dist >= 0)
-          {
-            l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
-            r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
-            picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
-          }
-            
-          left_edges.push_back(l);
-          right_edges.push_back(r);
-          // ensure we remember the overall maxima / minima
-          if (l < min_left) {min_left = l;}
-          if (r > max_right) {max_right = r;}
-        }
+        pickApex(picked_chroms, best_left, best_right, peak_apex,
+                 min_left, max_right, left_edges, right_edges);
+
       } // end !use_consensus_
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0); // ensure that we set at least one peak to zero
 
@@ -328,6 +296,106 @@ public:
       // have a different number of picked chromatograms than total transitions
       // as not all are detecting transitions).
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0; double total_mi = 0;
+      pickFragmentChromatograms(transition_group, picked_chroms, mrmFeature, smoothed_chroms,
+                                best_left, best_right, use_consensus_,
+                                total_intensity, total_xic, total_mi, total_peak_apices,
+                                master_peak_container, left_edges, right_edges,
+                                chr_idx, peak_idx);
+
+      // Also pick the precursor chromatogram(s); note total_xic is not
+      // extracted here, only for fragment traces
+      pickPrecursorChromatograms(transition_group,
+                                picked_chroms, mrmFeature, smoothed_chroms,
+                                best_left, best_right, use_consensus_,
+                                total_intensity, master_peak_container, left_edges, right_edges,
+                                chr_idx, peak_idx);
+
+      mrmFeature.setRT(peak_apex);
+      mrmFeature.setIntensity(total_intensity);
+      mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
+      mrmFeature.setMetaValue("leftWidth", best_left);
+      mrmFeature.setMetaValue("rightWidth", best_right);
+      mrmFeature.setMetaValue("total_xic", total_xic);
+      if (compute_total_mi_)
+      {
+        mrmFeature.setMetaValue("total_mi", total_mi);
+      }
+      mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
+
+      mrmFeature.ensureUniqueId();
+      return mrmFeature;
+    }
+
+    /** 
+     
+      @brief Apex-based peak picking
+
+      Pick the peak with the closest apex to the consensus apex for each
+      chromatogram.  Use the closest peak for the current peak. 
+      
+      Note that we will only set the closest peak per chromatogram to zero, so
+      if there are two peaks for some transitions, we will have to get to them
+      later.  If there is no peak, then we transfer transition boundaries from
+      "master" peak.
+    */
+    template <typename SpectrumT>
+    void pickApex(std::vector<SpectrumT>& picked_chroms,
+                  const double best_left, const double best_right, const double peak_apex,
+                  double &min_left, double &max_right, 
+                  std::vector< double > & left_edges, std::vector< double > & right_edges)
+    {
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        double peak_apex_dist_min = std::numeric_limits<double>::max();
+        int min_dist = -1;
+        for (Size i = 0; i < picked_chroms[k].size(); i++)
+        {
+          PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
+              picked_chroms[k],
+              picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
+              picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
+          if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+          { // update best candidate
+            peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
+            min_dist = (int)i;
+          }
+        }
+
+        // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
+        double l = best_left;
+        double r = best_right;
+        if (min_dist >= 0)
+        {
+          l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
+          r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
+          picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
+        }
+
+        left_edges.push_back(l);
+        right_edges.push_back(r);
+        // ensure we remember the overall maxima / minima
+        if (l < min_left) {min_left = l;}
+        if (r > max_right) {max_right = r;}
+      }
+    }
+
+    template <typename SpectrumT, typename TransitionT>
+    void pickFragmentChromatograms(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                                    const std::vector<SpectrumT>& picked_chroms,
+                                    MRMFeature& mrmFeature,
+                                    const std::vector<SpectrumT>& smoothed_chroms,
+                                    const double best_left, const double best_right,
+                                    const bool use_consensus_,
+                                    double & total_intensity,
+                                    double & total_xic,
+                                    double & total_mi,
+                                    double & total_peak_apices,
+                                    const SpectrumT & master_peak_container,
+                                    const std::vector< double > & left_edges,
+                                    const std::vector< double > & right_edges,
+                                    const int chr_idx,
+                                    const int peak_idx)
+    {
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
 
@@ -510,9 +578,22 @@ public:
 
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
+    }
 
-      // Also pick the precursor chromatogram(s); note total_xic is not
-      // extracted here, only for fragment traces
+    template <typename SpectrumT, typename TransitionT>
+    void pickPrecursorChromatograms(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                                    const std::vector<SpectrumT>& picked_chroms,
+                                    MRMFeature& mrmFeature,
+                                    const std::vector<SpectrumT>& smoothed_chroms,
+                                    const double best_left, const double best_right,
+                                    const bool use_consensus_,
+                                    double & total_intensity,
+                                    const SpectrumT & master_peak_container,
+                                    const std::vector< double > & left_edges,
+                                    const std::vector< double > & right_edges,
+                                    const int chr_idx,
+                                    const int peak_idx)
+    {
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
@@ -616,21 +697,6 @@ public:
 
         mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
       }
-
-      mrmFeature.setRT(peak_apex);
-      mrmFeature.setIntensity(total_intensity);
-      mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
-      mrmFeature.setMetaValue("leftWidth", best_left);
-      mrmFeature.setMetaValue("rightWidth", best_right);
-      mrmFeature.setMetaValue("total_xic", total_xic);
-      if (compute_total_mi_)
-      {
-        mrmFeature.setMetaValue("total_mi", total_mi);
-      }
-      mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
-
-      mrmFeature.ensureUniqueId();
-      return mrmFeature;
     }
 
     // maybe private, but we have tests
@@ -650,15 +716,12 @@ public:
     void remove_overlapping_features(std::vector<SpectrumT>& picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
-      //std::cout << "Removing features for peak  between " << best_left << " " << best_right << std::endl;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i] << " " <<
-            //  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }
@@ -676,8 +739,6 @@ public:
           if ((left > best_left && left < best_right)
              || (right > best_left && right < best_right))
           {
-            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i] << " " <<
-            //  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }

@@ -34,10 +34,8 @@
 
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -45,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
@@ -56,10 +55,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

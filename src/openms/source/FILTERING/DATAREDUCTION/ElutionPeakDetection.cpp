@@ -63,7 +63,7 @@ namespace OpenMS
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
     this->setLogType(CMD);

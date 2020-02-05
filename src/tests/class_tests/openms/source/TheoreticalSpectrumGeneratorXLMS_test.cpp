@@ -324,7 +324,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 3);
 
-  double result[] = {428.87870, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 642.81441, 661.67042, 661.99842, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
+  double result[] = {442.55421, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 661.67042, 661.99842, 663.32768, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
@@ -591,7 +591,30 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
 
-  double result[] = {324.46775, 447.53482, 462.53119, 476.54550, 486.19799, 495.55399, 514.56115, 525.56830, 557.25947, 557.58748, 563.26299, 670.79860, 693.29315, 714.31461, 742.82736, 771.33809, 787.84882};
+  // Example calculation for Residue-Linked Peptide (full peptide with one y/a fragmented residue cross-linked to it)
+  // cross-link (with linker mass 150 Da):
+  //  IFSQVGK
+  //     |
+  // TESTPEP
+
+  // left over ion:
+  //    yQa
+  //     |
+  // TESTPEP
+
+  // alpha (M+2H)2+ = 389.72656
+  // beta (M+2H)2+ = 380.67165
+  // linker 2+ = 75
+  //  = 845.39821 - 1 (remove 2/2 to reduce charges from +4 to +2)
+  //  precursor mz with charge 2+ = 844.39821
+
+  // IFS b3(2+) without charge protons = 173.59957
+  // VGK x3(2+) without charge protons = 164.09466
+
+  // 844.39821 - 173.59957 - 164.09466 =~ 506.70398 (with lazy proton masses)
+  // corresponds to 6th ion: 506.71126
+
+  double result[] = {338.14327, 447.53482, 462.53119, 476.54550, 495.55399, 506.71126, 514.56115, 525.56830, 557.25947, 557.58748, 563.26299, 670.79860, 693.29315, 714.31461, 742.82736, 771.33809, 787.84882};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])

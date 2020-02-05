@@ -34,8 +34,9 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
 #include <set>
@@ -45,6 +46,7 @@ namespace OpenMS
 
   class MassExplainer;
   class FeatureMap;
+  class ChargePair;
 
   class OPENMS_DLLAPI ILPDCWrapper
   {

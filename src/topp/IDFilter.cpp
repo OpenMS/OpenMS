@@ -695,15 +695,15 @@ protected:
 
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"
-             << n_prot_ids << " protein identification(s) with "
-             << n_prot_hits << " protein hit(s),\n"
-             << n_pep_ids << " peptide identification(s) with "
-             << n_pep_hits << " peptides hit(s).\n"
+             << n_prot_ids << " identification runs with "
+             << n_prot_hits << " proteins,\n"
+             << n_pep_ids << " spectra identified with "
+             << n_pep_hits << " spectrum matches.\n"
              << "After filtering:\n"
-             << proteins.size() << " protein identification(s) with "
-             << IDFilter::countHits(proteins) << " protein hit(s),\n"
-             << peptides.size() << " peptide identification(s) with "
-             << IDFilter::countHits(peptides) << " peptides hit(s)." << endl;
+             << proteins.size() << " identification runs with "
+             << IDFilter::countHits(proteins) << " proteins,\n"
+             << peptides.size() << " spectra identified with "
+             << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
     IdXMLFile().store(outputfile_name, proteins, peptides);
 

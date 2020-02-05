@@ -1,5 +1,4 @@
 from Types cimport *
-from SpectrumSettings cimport *
 from Peak1D cimport *
 from String cimport *
 from Software cimport *
@@ -31,10 +30,25 @@ cdef extern from "<OpenMS/METADATA/DataProcessing.h>" namespace "OpenMS::DataPro
 
     cdef enum ProcessingAction:
 
-        DATA_PROCESSING, CHARGE_DECONVOLUTION, DEISOTOPING, SMOOTHING,
-        CHARGE_CALCULATION, PRECURSOR_RECALCULATION, BASELINE_REDUCTION,
-        PEAK_PICKING, ALIGNMENT, CALIBRATION, NORMALIZATION, FILTERING,
-        QUANTITATION, FEATURE_GROUPING, IDENTIFICATION_MAPPING,
-        FORMAT_CONVERSION, CONVERSION_MZDATA, CONVERSION_MZML,
-        CONVERSION_MZXML, CONVERSION_DTA, SIZE_OF_PROCESSINGACTION
+        DATA_PROCESSING,                # General data processing (if no other term applies)
+        CHARGE_DECONVOLUTION,           # Charge deconvolution
+        DEISOTOPING,                    # Deisotoping
+        SMOOTHING,                      # Smoothing of the signal to reduce noise
+        CHARGE_CALCULATION,             # Determination of the peak charge
+        PRECURSOR_RECALCULATION,        # Recalculation of precursor m/z
+        BASELINE_REDUCTION,             # Baseline reduction
+        PEAK_PICKING,                   # Peak picking (conversion from raw to peak data)
+        ALIGNMENT,                      # Retention time alignment of different maps
+        CALIBRATION,                    # Calibration of m/z positions
+        NORMALIZATION,                  # Normalization of intensity values
+        FILTERING,                      # Data filtering or extraction
+        QUANTITATION,                   # Quantitation
+        FEATURE_GROUPING,               # %Feature grouping
+        IDENTIFICATION_MAPPING,         # %Identification mapping
+        FORMAT_CONVERSION,              # General file format conversion (if no other term applies)
+        CONVERSION_MZDATA,              # Conversion to mzData format
+        CONVERSION_MZML,                # Conversion to mzML format
+        CONVERSION_MZXML,               # Conversion to mzXML format
+        CONVERSION_DTA,                 # Conversion to DTA format
+        SIZE_OF_PROCESSINGACTION
 

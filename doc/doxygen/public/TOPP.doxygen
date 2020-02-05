@@ -162,6 +162,7 @@
   - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
 
   <b>Misc</b>
+  - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.

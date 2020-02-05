@@ -61,6 +61,14 @@ ExperimentalDesign fourplex_fractionated_design = ExperimentalDesignFile::load(
   OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2.tsv")
   , false);
 
+ExperimentalDesign labelfree_unfractionated_single_table_design = ExperimentalDesignFile::load(
+  OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1_single_table.tsv")
+  , false);
+
+ExperimentalDesign fourplex_fractionated_single_table_design = ExperimentalDesignFile::load(
+  OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_single_table.tsv")
+  , false);
+
 START_SECTION(ExperimentalDesign())
 {
   ptr = new ExperimentalDesign();
@@ -112,150 +120,259 @@ END_SECTION
 
 START_SECTION((std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const ))
 {
-  std::map<unsigned int, std::vector<String> > f2ms = labelfree_unfractionated_design.getFractionToMSFilesMapping();
-  // unfractionated data so only one fraction
-  TEST_EQUAL(f2ms.size(), 1);
-  // we have unfactionated data so fraction 1 mapps to all 12 files
-  TEST_EQUAL(f2ms[1].size(), 12);
+  const auto lf = labelfree_unfractionated_design.getFractionToMSFilesMapping();
+  const auto lfst = labelfree_unfractionated_single_table_design.getFractionToMSFilesMapping();
+  // test both two table as well as single table design
+  for (const auto& f2ms : { lf, lfst})
+  { 
+    // unfractionated data so only one fraction
+    TEST_EQUAL(f2ms.size(), 1);
+    // we have unfactionated data so fraction 1 mapps to all 12 files
+    TEST_EQUAL(f2ms.at(1).size(), 12);
+  }
 
-  f2ms = fourplex_fractionated_design.getFractionToMSFilesMapping();
-  // tripple fractionated data
-  TEST_EQUAL(f2ms.size(), 3);
-  // three fractions, 24 files, fraction 1..3 map to 8 files each
-  TEST_EQUAL(f2ms[1].size(), 8);
-  TEST_EQUAL(f2ms[2].size(), 8);
-  TEST_EQUAL(f2ms[3].size(), 8);
+  const auto fplex = fourplex_fractionated_design.getFractionToMSFilesMapping();
+  const auto fplexst = fourplex_fractionated_single_table_design.getFractionToMSFilesMapping();
+  // test both two table as well as single table design
+  for (const auto& f2ms : { fplex, fplexst})
+  { 
+    // tripple fractionated data
+    TEST_EQUAL(f2ms.size(), 3);
+    // three fractions, 24 files, fraction 1..3 map to 8 files each
+    TEST_EQUAL(f2ms.at(1).size(), 8);
+    TEST_EQUAL(f2ms.at(2).size(), 8);
+    TEST_EQUAL(f2ms.at(3).size(), 8);
+  }
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
+  const auto lf = labelfree_unfractionated_design.getPathLabelToSampleMapping(true);
+  const auto lfst = labelfree_unfractionated_single_table_design.getPathLabelToSampleMapping(true);
+  const auto fplex = fourplex_fractionated_design.getPathLabelToSampleMapping(true);
+  const auto fplexst = fourplex_fractionated_single_table_design.getPathLabelToSampleMapping(true);
+
   // 12 quant. values from label-free, unfractionated files map to 12 samples
-  std::map< std::pair< String, unsigned >, unsigned > pl2s = labelfree_unfractionated_design.getPathLabelToSampleMapping(true);
-  TEST_EQUAL(pl2s.size(), 12);
+  for (const auto& pl2s : { lf, lfst})
+  {
+    TEST_EQUAL(pl2s.size(), 12);
+  } 
 
   // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
-  pl2s = fourplex_fractionated_design.getPathLabelToSampleMapping(true);
-  TEST_EQUAL(pl2s.size(), 24);
-  for (const auto& i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
+  for (const auto& pl2s : { fplex, fplexst})
+  {
+    TEST_EQUAL(pl2s.size(), 24);
+    for (const auto& i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
+  } 
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
+  const auto lf = labelfree_unfractionated_design.getPathLabelToFractionMapping(true);
+  const auto lfst = labelfree_unfractionated_single_table_design.getPathLabelToFractionMapping(true);
+  const auto fplex = fourplex_fractionated_design.getPathLabelToFractionMapping(true);
+  const auto fplexst = fourplex_fractionated_single_table_design.getPathLabelToFractionMapping(true);
+
   // 12 quant. values from label-free, unfractionated files map to fraction 1 each
-  std::map< std::pair< String, unsigned >, unsigned > pl2f = labelfree_unfractionated_design.getPathLabelToFractionMapping(true);
-  TEST_EQUAL(pl2f.size(), 12);
-  for (const auto& i : pl2f) { TEST_EQUAL(i.second, 1); }
+  for (const auto& pl2f : { lf, lfst})
+  {
+    TEST_EQUAL(pl2f.size(), 12);
+    for (const auto& i : pl2f) { TEST_EQUAL(i.second, 1); }
+  }
 
   // 24 quant. values map to fractions 1..3
-  pl2f = fourplex_fractionated_design.getPathLabelToFractionMapping(true);
-  TEST_EQUAL(pl2f.size(), 24);
-  for (const auto& i : pl2f) { TEST_EQUAL((i.second >=1 && i.second <=3), true)}
+  for (const auto& pl2f : { fplex, fplexst})
+  {
+    TEST_EQUAL(pl2f.size(), 24);
+    for (const auto& i : pl2f) { TEST_EQUAL((i.second >=1 && i.second <=3), true)}
+  }
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const ))
 {
-  // 12 quant. values from label-free, unfractionated files map to different fraction groups
-  std::map< std::pair< String, unsigned >, unsigned > pl2fg = labelfree_unfractionated_design.getPathLabelToFractionGroupMapping(true);
-  TEST_EQUAL(pl2fg.size(), 12);
-  int count = 1;
-  for (const auto& i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
+  const auto lf = labelfree_unfractionated_design.getPathLabelToFractionGroupMapping(true);
+  const auto lfst = labelfree_unfractionated_single_table_design.getPathLabelToFractionGroupMapping(true);
+  const auto fplex = fourplex_fractionated_design.getPathLabelToFractionGroupMapping(true);
+  const auto fplexst = fourplex_fractionated_single_table_design.getPathLabelToFractionGroupMapping(true);
 
-  pl2fg = fourplex_fractionated_design.getPathLabelToFractionGroupMapping(true);
-  TEST_EQUAL(pl2fg.size(), 24);
-  for (const auto& i : pl2fg) 
+  // 12 quant. values from label-free, unfractionated files map to different fraction groups
+  for (const auto& pl2fg : { lf, lfst})
   {
-    // extract fraction group from file name
-    int file(1); 
-    if (i.first.first.hasSubstring("TR2")) { file = 2; }
-    TEST_EQUAL(i.second, file); 
+    TEST_EQUAL(pl2fg.size(), 12);
+    int count = 1;
+    for (const auto& i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
+  }
+
+  for (const auto& pl2fg : { fplex, fplexst})
+  {
+    TEST_EQUAL(pl2fg.size(), 24);
+    for (const auto& i : pl2fg) 
+    {
+      // extract fraction group from file name
+      int file(1); 
+      if (i.first.first.hasSubstring("TR2")) { file = 2; }
+      TEST_EQUAL(i.second, file); 
+    }
   }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfSamples() const ))
 {
-  unsigned ns = labelfree_unfractionated_design.getNumberOfSamples();
-  TEST_EQUAL(ns, 12);
+  const auto lf = labelfree_unfractionated_design.getNumberOfSamples();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfSamples();
+  const auto fplex = fourplex_fractionated_design.getNumberOfSamples();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfSamples();
 
-  ns = fourplex_fractionated_design.getNumberOfSamples();
-  TEST_EQUAL(ns, 8);
+  for (const auto& ns : { lf, lfst})
+  {
+    TEST_EQUAL(ns, 12);
+  }
+
+  for (const auto& ns : { fplex, fplexst})
+  {
+    TEST_EQUAL(ns, 8);
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractions() const ))
 {
-  unsigned nf = labelfree_unfractionated_design.getNumberOfFractions();
-  TEST_EQUAL(nf, 1);
+  const auto lf = labelfree_unfractionated_design.getNumberOfFractions();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfFractions();
+  const auto fplex = fourplex_fractionated_design.getNumberOfFractions();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfFractions();
 
-  nf = fourplex_fractionated_design.getNumberOfFractions();
-  TEST_EQUAL(nf, 3);
+  for (const auto& ns : { lf, lfst})
+  {
+    TEST_EQUAL(ns, 1);
+  }
+
+  for (const auto& ns : { fplex, fplexst})
+  {
+    TEST_EQUAL(ns, 3);
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfLabels() const ))
 {
-  unsigned nl = labelfree_unfractionated_design.getNumberOfLabels();
-  TEST_EQUAL(nl, 1);
+  const auto lf = labelfree_unfractionated_design.getNumberOfLabels();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfLabels();
+  const auto fplex = fourplex_fractionated_design.getNumberOfLabels();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfLabels();
 
-  nl = fourplex_fractionated_design.getNumberOfLabels();
-  TEST_EQUAL(nl, 4);
+  for (const auto& ns : { lf, lfst})
+  {
+    TEST_EQUAL(ns, 1);
+  }
+
+  for (const auto& ns : { fplex, fplexst})
+  {
+    TEST_EQUAL(ns, 4);
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfMSFiles() const ))
 {
-  unsigned nms = labelfree_unfractionated_design.getNumberOfMSFiles();
-  TEST_EQUAL(nms, 12);
+  const auto lf = labelfree_unfractionated_design.getNumberOfMSFiles();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfMSFiles();
+  const auto fplex = fourplex_fractionated_design.getNumberOfMSFiles();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfMSFiles();
 
-  nms = fourplex_fractionated_design.getNumberOfMSFiles();
-  TEST_EQUAL(nms, 6);
+  for (const auto& ns : { lf, lfst})
+  {
+    TEST_EQUAL(ns, 12);
+  }
+
+  for (const auto& ns : { fplex, fplexst})
+  {
+    TEST_EQUAL(ns, 6);
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractionGroups() const ))
 {
-  unsigned nfg = labelfree_unfractionated_design.getNumberOfFractionGroups(); 
-  TEST_EQUAL(nfg, 12);
+  const auto lf = labelfree_unfractionated_design.getNumberOfFractionGroups();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfFractionGroups();
+  const auto fplex = fourplex_fractionated_design.getNumberOfFractionGroups();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfFractionGroups();
 
-  nfg = fourplex_fractionated_design.getNumberOfFractionGroups();
-  TEST_EQUAL(nfg, 2);
+  for (const auto& ns : { lf, lfst})
+  {
+    TEST_EQUAL(ns, 12);
+  }
+
+  for (const auto& ns : { fplex, fplexst})
+  {
+    TEST_EQUAL(ns, 2);
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
 {
-  unsigned s = labelfree_unfractionated_design.getSample(1, 1); 
-  TEST_EQUAL(s, 1);
-  s = labelfree_unfractionated_design.getSample(12, 1);
-  TEST_EQUAL(s, 12);
+  const auto lf11 = labelfree_unfractionated_design.getSample(1, 1);
+  const auto lfst11 = labelfree_unfractionated_single_table_design.getSample(1, 1);
+  const auto fplex11 = fourplex_fractionated_design.getSample(1, 1);
+  const auto fplexst11 = fourplex_fractionated_single_table_design.getSample(1, 1);
 
-  s = fourplex_fractionated_design.getSample(1, 1);
-  TEST_EQUAL(s, 1);
-  s = fourplex_fractionated_design.getSample(2, 4);
-  TEST_EQUAL(s, 8);
+  for (const auto& s : { lf11, lfst11})
+  {
+    TEST_EQUAL(s, 1);
+  }
+  for (const auto& s : { fplex11, fplexst11})
+  {
+    TEST_EQUAL(s, 1);
+  }
+
+  const auto lf12_1 = labelfree_unfractionated_design.getSample(12, 1);
+  const auto lfst12_1 = labelfree_unfractionated_single_table_design.getSample(12, 1);
+  for (const auto& s : { lf12_1, lfst12_1})
+  {
+    TEST_EQUAL(s, 12);
+  }
+
+  const auto fplex24 = fourplex_fractionated_design.getSample(2, 4);
+  const auto fplexst24 = fourplex_fractionated_single_table_design.getSample(2, 4);
+  for (const auto& s : { fplex24, fplexst24})
+  {
+    TEST_EQUAL(s, 8);
+  }
 }
 END_SECTION
 
 START_SECTION((bool isFractionated() const ))
 {
-  bool b = labelfree_unfractionated_design.isFractionated(); 
-  TEST_EQUAL(b, false);
+  bool lf = labelfree_unfractionated_design.isFractionated();
+  bool lfst = labelfree_unfractionated_single_table_design.isFractionated();
+  bool fplex = fourplex_fractionated_design.isFractionated();
+  bool fplexst = fourplex_fractionated_single_table_design.isFractionated();
 
-  b = fourplex_fractionated_design.isFractionated(); 
-  TEST_EQUAL(b, true);
+  TEST_EQUAL(lf, false);
+  TEST_EQUAL(lfst, false);
+
+  TEST_EQUAL(fplex, true);
+  TEST_EQUAL(fplexst, true);
 }
 END_SECTION
 
 START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 {
-  bool b = labelfree_unfractionated_design.sameNrOfMSFilesPerFraction(); 
-  TEST_EQUAL(b, true);
+  bool lf = labelfree_unfractionated_design.sameNrOfMSFilesPerFraction();
+  bool lfst = labelfree_unfractionated_single_table_design.sameNrOfMSFilesPerFraction();
+  bool fplex = fourplex_fractionated_design.sameNrOfMSFilesPerFraction();
+  bool fplexst = fourplex_fractionated_single_table_design.sameNrOfMSFilesPerFraction();
 
-  b = fourplex_fractionated_design.sameNrOfMSFilesPerFraction(); 
-  TEST_EQUAL(b, true);
+  TEST_EQUAL(lf, true);
+  TEST_EQUAL(lfst, true);
+  TEST_EQUAL(fplex, true);
+  TEST_EQUAL(fplexst, true);
 }
 END_SECTION
 

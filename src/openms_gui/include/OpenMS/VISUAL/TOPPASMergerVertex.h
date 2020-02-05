@@ -63,15 +63,15 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASMergerVertex();
+    TOPPASMergerVertex() = default;
     /// Constructor
     TOPPASMergerVertex(bool round_based);
     /// Copy constructor
-    TOPPASMergerVertex(const TOPPASMergerVertex& rhs);
+    TOPPASMergerVertex(const TOPPASMergerVertex& rhs) = default;
     /// Destructor
-    ~TOPPASMergerVertex() override;
+    ~TOPPASMergerVertex() override = default;
     /// Assignment operator
-    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs);
+    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs) = default;
     /// returns "MergerVertex"
     String getName() const override;
     /// check if upstream nodes are finished and call downstream nodes
@@ -82,8 +82,6 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
     QRectF boundingRect() const override;
-    // documented in base class
-    QPainterPath shape() const override;
     // documented in base class
     void markUnreachable() override;
 
@@ -96,14 +94,7 @@ signals:
 protected:
 
     /// Stores whether this merger is merging round based or merging all inputs into one list
-    bool round_based_mode_;
-
-    ///@name reimplemented Qt events
-    //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
-    //@}
-
-
+    bool round_based_mode_{true};
   };
 }
 

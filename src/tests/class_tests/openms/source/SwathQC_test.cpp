@@ -85,16 +85,15 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML
 OpenSwath::SpectrumAccessPtr sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
 std::vector< OpenSwath::SwathMap > swath_maps(1);
-swath_maps.back().sptr = sptr; 
+swath_maps.back().sptr = sptr;
 swath_maps.back().ms1 = true;
 
 START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector<SwathMap>& swath_maps, const size_t nr_samples, const double mz_tol)))
 {
   auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
-  SwathQC::ChargeDistribution cde = { {1,13}, {2,2}, {5,1}, {8,1}, {10,2}};
+  SwathQC::ChargeDistribution cde = { {1,17}, {2,4}, {5,1}, {6,2}, {8,2}, {9,1}, {10,5} };
   TEST_EQUAL(cd.size(), cde.size());
   TEST_EQUAL(cd == cde, true)
-
 }
 END_SECTION
 
@@ -155,7 +154,7 @@ START_SECTION((static void storeJSON(const OpenMS::String& filename)))
   {
     if (s.getMSLevel()==1) f(s);
   }
-  
+
   // getChargeDistribution(swath_maps, 10, 0.04);
   String tmp_json = File::getTemporaryFile();
   qc.storeJSON(tmp_json);
@@ -165,23 +164,31 @@ START_SECTION((static void storeJSON(const OpenMS::String& filename)))
   "ChargeDistributionMS1": [
     [
       1,
-      13
+      17
     ],
     [
       2,
-      2
+      4
     ],
     [
       5,
       1
     ],
     [
+      6,
+      2
+    ],
+    [
       8,
+      2
+    ],
+    [
+      9,
       1
     ],
     [
       10,
-      2
+      5
     ]
   ]
 })");
@@ -195,4 +202,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

@@ -101,7 +101,7 @@ namespace OpenMS
     /**
     @brief Extract scan_index from filepath
     */
-    static int extract_scan_index(const String & path);
+    static int extract_scan_index(const String& path);
  
     /**
     @brief Conversion of sirius output to mzTab

@@ -143,6 +143,39 @@ START_SECTION(IsotopeDistribution convolve_(const CoarseIsotopePatternGenerator&
 }
 END_SECTION
 
+START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const ))
+{
+  EmpiricalFormula ef ("C6H12O6");
+
+  {
+    CoarseIsotopePatternGenerator gen(3);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923456)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 182.0701)
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
+  }
+
+  // TODO: is that a good idea?
+  ef.setCharge(2);
+  {
+    CoarseIsotopePatternGenerator gen(3);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    // TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getMZ(), 182.077943)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923456)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 184.0846529)
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
+  }
+}
+END_SECTION
+
 START_SECTION(CoarseIsotopePatternGenerator& convolvePow_(Size factor))
 {
   // IsotopeDistribution iso = EmpiricalFormula("C60H97N15O19").getIsotopeDistribution(CoarseIsotopePatternGenerator());

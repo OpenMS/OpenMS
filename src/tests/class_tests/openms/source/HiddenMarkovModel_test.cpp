@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <iostream>
+#include <sstream>
 
 #include <OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>

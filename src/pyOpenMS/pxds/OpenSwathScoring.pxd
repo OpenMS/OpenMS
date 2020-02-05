@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         void initialize(double rt_normalization_factor,
                         int add_up_spectra,
                         double spacing_for_spectra_resampling,
+                        double drift_extra,
                         OpenSwath_Scores_Usage su,
                         libcpp_string spectrum_addition_method) nogil except +
 

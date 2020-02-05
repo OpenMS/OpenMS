@@ -32,14 +32,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
 using namespace OpenMS;
 using namespace std;

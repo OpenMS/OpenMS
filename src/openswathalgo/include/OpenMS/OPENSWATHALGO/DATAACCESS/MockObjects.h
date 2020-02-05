@@ -40,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <map>
 #include <vector>
+#include <string>
 
 namespace OpenSwath
 {

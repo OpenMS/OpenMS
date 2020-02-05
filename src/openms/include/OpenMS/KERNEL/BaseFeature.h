@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
@@ -86,7 +87,13 @@ public:
     BaseFeature();
 
     /// Copy constructor
-    BaseFeature(const BaseFeature& feature);
+    BaseFeature(const BaseFeature& feature) = default;
+
+    /// Move constructor
+    BaseFeature(BaseFeature&& feature) = default;
+
+    /// Copy constructor with a new map_index
+    BaseFeature(const BaseFeature& rhs, UInt64 map_index);
 
     /// Constructor from raw data point
     explicit BaseFeature(const Peak2D& point);
@@ -143,7 +150,10 @@ public:
     void setCharge(const ChargeType& ch);
 
     /// Assignment operator
-    BaseFeature& operator=(const BaseFeature& rhs);
+    BaseFeature& operator=(const BaseFeature& rhs) = default;
+
+    /// Move Assignment operator
+    BaseFeature& operator=(BaseFeature&& rhs) & = default;
 
     /// Equality operator
     bool operator==(const BaseFeature& rhs) const;

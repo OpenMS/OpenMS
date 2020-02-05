@@ -32,6 +32,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

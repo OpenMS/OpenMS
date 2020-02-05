@@ -62,9 +62,10 @@ namespace OpenMS
     typedef OpenSwath::LightTransition TransitionType;
 
     double rt_normalization_factor_;
+    double spacing_for_spectra_resampling_;
     int add_up_spectra_;
     std::string spectra_addition_method_;
-    double spacing_for_spectra_resampling_;
+    double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -83,12 +84,14 @@ namespace OpenMS
      * @param add_up_spectra How many spectra to add up (default 1)
      * @param spacing_for_spectra_resampling Spacing factor for spectra addition
      * @param su Which scores to actually compute
+     * @param spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
      *
     */
     void initialize(double rt_normalization_factor,
                     int add_up_spectra,
                     double spacing_for_spectra_resampling,
-                    const OpenSwath_Scores_Usage& su,
+                    const double drift_extra,
+                    const OpenSwath_Scores_Usage & su,
                     const std::string& spectrum_addition_method);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
@@ -185,8 +188,9 @@ namespace OpenMS
                             const CompoundType& compound,
                             OpenSwath_Scores& scores,
                             std::vector<double>& mzerror_ppm,
-                            double drift_lower,
-                            double drift_upper);
+                            const double drift_lower,
+                            const double drift_upper,
+                            const double drift_target);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -249,7 +253,7 @@ namespace OpenMS
      * isolation windows) around the given retention time and return an
      * "averaged" spectrum which may contain less noise.
      *
-     * @param[in] swath_map The map containing the spectra
+     * @param[in] swath_maps The map(s) containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
      * @param drift_lower Drift time lower extraction boundary
@@ -293,7 +297,7 @@ namespace OpenMS
      * around the given retention time and return an "averaged" spectrum which
      * may contain less noise.
      *
-     * @param[in] swath_maps The maps containing the spectra
+     * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
      * @param drift_lower Drift time lower extraction boundary

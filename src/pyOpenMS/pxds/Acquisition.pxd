@@ -15,3 +15,4 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
         String getIdentifier() nogil except +
         void setIdentifier(const String &identifier) nogil except +
 
+

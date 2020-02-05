@@ -91,11 +91,18 @@ START_TEST(MissedCleavages, "$Id$")
   //construct features with peptideIdentifications
   Feature feat_empty_pi;
   feat_empty_pi.setPeptideIdentifications(pep_ids_empty);
+  feat_empty_pi.setMetaValue("FWHM", 32.21);
+
   Feature feat;
   feat.setPeptideIdentifications(pep_ids);
+  feat.setMetaValue("FWHM", 32.21);
+
   Feature feat_empty;
+  feat_empty.setMetaValue("FWHM", 32.21);
+
   Feature feat_3;
   feat_3.setPeptideIdentifications(pep_ids_3);
+  feat_3.setMetaValue("FWHM", 32.21);
 
   //FeatureMap
   FeatureMap feature_map;

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 #include <OpenMS/SYSTEM/StopWatch.h>

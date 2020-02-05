@@ -53,7 +53,8 @@ namespace OpenMS
 
       The transition lists can be either comma- or tab-separated plain
       text files (CSV or TSV format).  Modifications should be provided in
-      UniMod format<sup>1</sup>, but can also be provided in TPP format. See also TransitionPQPFile.
+      UniMod format<sup>1</sup>, but can also be provided in TPP format. 
+      For another file format that stores transitions, see also TransitionPQPFile.
 
       The following columns are required:
 
@@ -84,7 +85,7 @@ namespace OpenMS
           <tr> <td BGCOLOR="#EBEBEB">Decoy</td> <td>1: decoy, 0: target; synomys: decoy, IsDecoy </td> <td> determines whether the transition is a decoy transition or not</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">PeptideGroupLabel</td> <td>free text </td> <td> designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">DetectingTransition</td> <td> 0 or 1; synonyms: detecting_transition</td> <td>1: use transition to detect peak group, 0: don't use transition for detection</td> </tr>
-          <tr> <td BGCOLOR="#EBEBEB">IdentifyingTransition</td> <td> 0 or 1; synonyms: identifying_transition</td> <td>1: use transition for peptidoform inference using IPF, 0: don't use transition for identification</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">IdentifyingTransition</td> <td> 0 or 1; synonyms: identifying_transition</td> <td>1: use transition for peptidoform inference in the <a href="http://openswath.org/en/latest/docs/ipf.html">IPF Workflow</a>, 0: don't use transition for identification</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">QuantifyingTransition</td> <td> 0 or 1; synonyms: quantifying_transition</td> <td>1: use transition to quantify peak group, 0: don't use transition for quantification</td> </tr>
         </table>
 
@@ -107,7 +108,7 @@ namespace OpenMS
   Fields indicated with * are strictly required to create a TraML file. Fields
   indicated with ** are recommended, but only required for a specific
   application (such as using the transition list for an analysis tool such as
-  OpenSwath) or in a specific context (proteomics or metabolomics).
+  \ref UTILS_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
 
 <p>
 Remarks:
@@ -190,7 +191,7 @@ protected:
       /// (metabolic) compound name field is empty, it is a peptide.)
       bool isPeptide() const
       {
-        return CompoundName.empty();
+        return CompoundName.empty() || CompoundName == "NA";
       }
     };
 

@@ -39,7 +39,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
-
 namespace OpenMS
 {
   class AASequence;
@@ -126,9 +125,11 @@ namespace OpenMS
     bool add_losses_;
     bool add_metainfo_;
     bool add_isotopes_;
+    int isotope_model_;
     bool add_precursor_peaks_;
     bool add_all_precursor_charges_ ;
     bool add_abundant_immonium_ions_;
+    bool sort_by_position_;
     double a_intensity_;
     double b_intensity_;
     double c_intensity_;
@@ -138,6 +139,7 @@ namespace OpenMS
 
     Int max_isotope_;
     double rel_loss_intensity_;
+    double max_isotope_probability_;
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
