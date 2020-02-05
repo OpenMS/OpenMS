@@ -42,8 +42,9 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <map>
+#include <string>
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;

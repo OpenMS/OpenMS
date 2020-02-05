@@ -36,12 +36,12 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <cstdlib>
 #include <vector>

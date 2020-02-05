@@ -8,6 +8,7 @@ OpenMS
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
 [![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/index.html)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
 
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 

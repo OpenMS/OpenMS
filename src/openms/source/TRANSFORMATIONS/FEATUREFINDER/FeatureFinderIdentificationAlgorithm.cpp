@@ -350,7 +350,12 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Creating assay library..." << endl;
     PeptideRefRTMap ref_rt_map;
     createAssayLibrary_(peptide_map_, ref_rt_map);
-    // TraMLFile().store("debug.traml", library_);
+
+    if (debug_level_ >= 666)
+    {
+      cout << "Writing debug.traml file." << endl; 
+      TraMLFile().store("debug.traml", library_);
+    }
 
     //-------------------------------------------------------------
     // run feature detection
@@ -358,18 +363,20 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
     ChromatogramExtractor extractor;
     // extractor.setLogType(ProgressLogger::NONE);
-    vector<OpenSwath::ChromatogramPtr> chrom_temp;
-    vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-    extractor.prepare_coordinates(chrom_temp, coords, library_,
-                                  numeric_limits<double>::quiet_NaN(), false);
+    {
+      vector<OpenSwath::ChromatogramPtr> chrom_temp;
+      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
+      extractor.prepare_coordinates(chrom_temp, coords, library_,
+          numeric_limits<double>::quiet_NaN(), false);
 
-    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-    OpenSwath::SpectrumAccessPtr spec_temp =
-      SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-    extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                   mz_window_ppm_, "tophat");
-    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
-                                  chrom_data_.getChromatograms(), false);
+      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+      OpenSwath::SpectrumAccessPtr spec_temp =
+        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+          mz_window_ppm_, "tophat");
+      extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+          chrom_data_.getChromatograms(), false);
+    }
 
     OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
               << " chromatogram(s)." << endl;
@@ -627,6 +634,7 @@ namespace OpenMS
       {
         current_accessions.insert("not_available");
       }
+
       peptide.protein_refs = vector<String>(current_accessions.begin(),
                                             current_accessions.end());
 
@@ -753,14 +761,13 @@ namespace OpenMS
           }
         }
       }
-
-      // add proteins to library:
-      for (String const &acc : protein_accessions)
-      {
-        TargetedExperiment::Protein protein;
-        protein.id = acc;
-        library_.addProtein(protein);
-      }
+    }
+    // add proteins to library:
+    for (String const &acc : protein_accessions)
+    {
+      TargetedExperiment::Protein protein;
+      protein.id = acc;
+      library_.addProtein(protein);
     }
   }
 
@@ -1147,6 +1154,7 @@ namespace OpenMS
     if (peptide.getHits().empty()) return;
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
+    if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();

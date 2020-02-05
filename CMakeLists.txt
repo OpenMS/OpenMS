@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project("OpenMS_host")
 
 # required for cmake < 3.13 if ccache is used
@@ -42,17 +42,6 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
-# Set C++ version
-SET(CMAKE_CXX_STANDARD 11)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # require at least gcc 4.9 due to bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-    message(FATAL_ERROR "GCC version must be at least 4.9!")
-  endif()
-endif()
 
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -291,11 +280,11 @@ is_valid_package(${PACKAGE_TYPE})
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
-    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
-    ## CPack has a special variable for it.
+    ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()
@@ -331,33 +320,44 @@ set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Never use RPATH. We have other means on every platform.
+# Never use RPATH by default. We have other means on every platform.
 # E.g. not yet compatible with our fix_mac_dependencies script.
-SET(CMAKE_MACOSX_RPATH FALSE)
+if(NOT DEFINED CMAKE_MACOSX_RPATH)
+  SET(CMAKE_MACOSX_RPATH FALSE)
+endif()
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
-SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
-
-if(UNIX AND NOT APPLE)
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-if (ENABLE_PREPARE_KNIME_PACKAGE)
-  ## Since we rely on copying instead of "installing" for KNIME packaging
-  ## we need to do it during building already.
-  ## In this case, make sure that QT is in a system path if you want to test it locally.
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-else()
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+if(NOT DEFINED CMAKE_INSTALL_NAME_DIR)
+  SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 endif()
 
-# the RPATH to be used when installing
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+if(UNIX AND NOT APPLE)
+	# use, i.e. don't skip the full RPATH for the build tree
+	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
+	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	endif()
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	# when building, don't use the install RPATH already
+	# (but later on when installing)
+	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
+		if (ENABLE_PREPARE_KNIME_PACKAGE)
+			## Since we rely on copying instead of "installing" for KNIME packaging
+			## we need to do it during building already.
+			## In this case, make sure that QT is in a system path if you want to test it locally.
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+		else()
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+		endif()
+  endif()
+	# the RPATH to be used when installing
+	if(NOT DEFINED CMAKE_INSTALL_RPATH)
+		SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+	endif()
+
+	# don't add the automatically determined parts of the RPATH
+	# which point to directories outside the build tree to the install RPATH
+	if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

@@ -55,15 +55,18 @@ OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
   return map;
 }
 
-void addTransitions( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & transition_group)
+OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & transition_group)
 {
+  OpenSwath::LightTargetedExperiment exp;
   {
     String native_id = "tr2";
     TransitionType tr;
     tr.product_mz = 500.00;
     tr.precursor_mz = 412;
+    tr.peptide_ref = "pep1";
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
+    exp.transitions.push_back(tr);
   }
 
   {
@@ -71,8 +74,10 @@ void addTransitions( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & t
     TransitionType tr;
     tr.product_mz = 600.00;
     tr.precursor_mz = 412;
+    tr.peptide_ref = "pep1";
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
+    exp.transitions.push_back(tr);
   }
 
   {
@@ -80,8 +85,10 @@ void addTransitions( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & t
     TransitionType tr;
     tr.product_mz = 700.00;
     tr.precursor_mz = 412;
+    tr.peptide_ref = "pep1";
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
+    exp.transitions.push_back(tr);
   }
 
   {
@@ -89,10 +96,17 @@ void addTransitions( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & t
     TransitionType tr;
     tr.product_mz = 800.00;
     tr.precursor_mz = 412;
+    tr.peptide_ref = "pep1";
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
+    exp.transitions.push_back(tr);
   }
 
+  OpenSwath::LightCompound cmp;
+  cmp.id = "pep1";
+  cmp.drift_time = 11;
+  exp.compounds.push_back(cmp);
+  return exp;
 }
 
 START_TEST(SwathMapMassCorrection, "$Id$")
@@ -122,11 +136,11 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   feature.setRT(3120);
   OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
   transition_group.addFeature(feature);
-  addTransitions(transition_group);
+  OpenSwath::LightTargetedExperiment targ_exp = addTransitions(transition_group);
 
   // Add one group to the map
-  TransitionGroupMapPtrType transition_group_map; 
-  transition_group_map["group1"] = &transition_group; 
+  std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> transition_group_map;
+  transition_group_map["group1"] = &transition_group;
 
   // Create a mock spectrum fitting to the transition group
   boost::shared_ptr<PeakMap > exp(new PeakMap);
@@ -158,17 +172,28 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   map.center = 412.5;
   map.ms1 = false;
 
+  SwathMapMassCorrection mc;
+
   // should work with empty maps
   std::vector< OpenSwath::SwathMap > empty_swath_maps;
-  SwathMapMassCorrection::correctMZ(transition_group_map, empty_swath_maps, "none");
-  SwathMapMassCorrection::correctMZ(transition_group_map, empty_swath_maps, "unweighted_regression");
+  mc.correctMZ(transition_group_map, empty_swath_maps, targ_exp);
+
+  auto p = mc.getDefaults();
+  p.setValue("mz_correction_function", "unweighted_regression");
+  mc.setParameters(p);
+  mc.correctMZ(transition_group_map, empty_swath_maps, targ_exp);
 
   std::vector<double> data;
 
   {
+      auto p = mc.getDefaults();
+      p.setValue("mz_correction_function", "none");
+      p.setValue("mz_extraction_window", 1.0);
+      mc.setParameters(p);
+
       std::vector< OpenSwath::SwathMap > swath_maps;
       swath_maps.push_back(map);
-      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "none", 1.0);
+      mc.correctMZ(transition_group_map, swath_maps, targ_exp);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       TEST_REAL_SIMILAR(data[0], 500.02)
       TEST_REAL_SIMILAR(data[1], 600.00)
@@ -177,9 +202,14 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
+      auto p = mc.getDefaults();
+      p.setValue("mz_correction_function", "unweighted_regression");
+      p.setValue("mz_extraction_window", 0.05);
+      mc.setParameters(p);
+
       std::vector< OpenSwath::SwathMap > swath_maps;
       swath_maps.push_back(map);
-      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "unweighted_regression", 0.05);
+      mc.correctMZ(transition_group_map, swath_maps, targ_exp);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       TEST_REAL_SIMILAR(data[0], -0.00428216 + 0.999986 * 500.02) // 500.00857204075
       TEST_REAL_SIMILAR(data[1], -0.00428216 + 0.999986 * 600.00) // 599.987143224553
@@ -188,9 +218,14 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
+      auto p = mc.getDefaults();
+      p.setValue("mz_correction_function", "unweighted_regression");
+      p.setValue("mz_extraction_window", 1.0);
+      mc.setParameters(p);
+
       std::vector< OpenSwath::SwathMap > swath_maps;
       swath_maps.push_back(map);
-      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "unweighted_regression", 1.0);
+      mc.correctMZ(transition_group_map, swath_maps, targ_exp);
       data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
       TEST_REAL_SIMILAR(data[0], -0.0219795 + 1.00003 * 500.02) // 500.01300527988
       TEST_REAL_SIMILAR(data[1], -0.0219795 + 1.00003 * 600.00) // 599.99600151022
@@ -199,20 +234,30 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
-      std::vector< OpenSwath::SwathMap > swath_maps;
-      swath_maps.push_back(map);
-      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "weighted_regression", 1.0);
-      data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
-      TEST_REAL_SIMILAR(data[0], -0.0315101 + 1.00005 * 500.02) // 500.01539273402
-      TEST_REAL_SIMILAR(data[1], -0.0315101 + 1.00005 * 600.00) // 600.00077200650
-      TEST_REAL_SIMILAR(data[2], -0.0315101 + 1.00005 * 699.97) // 699.97615074094
-      TEST_REAL_SIMILAR(data[3], -0.0315101 + 1.00005 * 800.02) // 800.03153377967
+    auto p = mc.getDefaults();
+    p.setValue("mz_correction_function", "unweighted_regression");
+    p.setValue("mz_extraction_window", 1.0);
+    mc.setParameters(p);
+
+    std::vector< OpenSwath::SwathMap > swath_maps;
+    swath_maps.push_back(map);
+    mc.correctMZ(transition_group_map, swath_maps, targ_exp);
+    data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
+    TEST_REAL_SIMILAR(data[0], -0.0315101 + 1.00005 * 500.02) // 500.01539273402
+    TEST_REAL_SIMILAR(data[1], -0.0315101 + 1.00005 * 600.00) // 600.00077200650
+    TEST_REAL_SIMILAR(data[2], -0.0315101 + 1.00005 * 699.97) // 699.97615074094
+    TEST_REAL_SIMILAR(data[3], -0.0315101 + 1.00005 * 800.02) // 800.03153377967
   }
 
   {
+    auto p = mc.getDefaults();
+    p.setValue("mz_correction_function", "quadratic_regression");
+    p.setValue("mz_extraction_window", 1.0);
+    mc.setParameters(p);
+
     std::vector< OpenSwath::SwathMap > swath_maps;
     swath_maps.push_back(map);
-    SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "quadratic_regression", 1.0);
+    mc.correctMZ(transition_group_map, swath_maps, targ_exp);
     data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
     TEST_REAL_SIMILAR(data[0], -0.7395987927448004 + 1.002305255194642 * 500.02 -1.750157412772069e-06 * 500.02 * 500.02) // 499.995500552639
     TEST_REAL_SIMILAR(data[1], -0.7395987927448004 + 1.002305255194642 * 600.00 -1.750157412772069e-06 * 600.00 * 600.00) // 600.013497655443
@@ -221,9 +266,14 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
+    auto p = mc.getDefaults();
+    p.setValue("mz_correction_function", "weighted_quadratic_regression");
+    p.setValue("mz_extraction_window", 1.0);
+    mc.setParameters(p);
+
     std::vector< OpenSwath::SwathMap > swath_maps;
     swath_maps.push_back(map);
-    SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "weighted_quadratic_regression", 1.0);
+    mc.correctMZ(transition_group_map, swath_maps, targ_exp);
     data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
     TEST_REAL_SIMILAR(data[0], -0.8323316718451679 + 1.002596944948891 * 500.02 -1.967834556637627e-06 * 500.02 * 500.02) // 499.994194744862
     TEST_REAL_SIMILAR(data[1], -0.8323316718451679 + 1.002596944948891 * 600.00 -1.967834556637627e-06 * 600.00 * 600.00) // 600.0174148571
@@ -232,9 +282,14 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
+    auto p = mc.getDefaults();
+    p.setValue("mz_correction_function", "quadratic_regression_delta_ppm");
+    p.setValue("mz_extraction_window", 1.0);
+    mc.setParameters(p);
+
     std::vector< OpenSwath::SwathMap > swath_maps;
     swath_maps.push_back(map);
-    SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "quadratic_regression_delta_ppm", 1.0);
+    mc.correctMZ(transition_group_map, swath_maps, targ_exp);
     data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
     TEST_REAL_SIMILAR(data[0], 499.997160932778)
     TEST_REAL_SIMILAR(data[1], 600.010219722383)
@@ -243,9 +298,14 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   }
 
   {
+    auto p = mc.getDefaults();
+    p.setValue("mz_correction_function", "weighted_quadratic_regression_delta_ppm");
+    p.setValue("mz_extraction_window", 1.0);
+    mc.setParameters(p);
+
     std::vector< OpenSwath::SwathMap > swath_maps;
     swath_maps.push_back(map);
-    SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, "weighted_quadratic_regression_delta_ppm", 1.0);
+    mc.correctMZ(transition_group_map, swath_maps, targ_exp);
     data = swath_maps[0].sptr->getSpectrumById(0)->getMZArray()->data;
     TEST_REAL_SIMILAR(data[0], 499.996336995751)
     TEST_REAL_SIMILAR(data[1], 600.013185628794)

@@ -49,6 +49,22 @@ namespace OpenSwath
     return xcorr_matrix_;
   }
 
+  void MRMScoring::initializeXCorrMatrix(const std::vector< std::vector< double > >& data)
+  {
+    xcorr_matrix_.resize(data.size());
+    for (std::size_t i = 0; i < data.size(); i++)
+    {
+      xcorr_matrix_[i].resize(data.size());
+      for (std::size_t j = i; j < data.size(); j++)
+      {
+        // compute normalized cross correlation
+        std::vector< double > tmp1(data[i]);
+        std::vector< double > tmp2(data[j]);
+        xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(tmp1, tmp2, boost::numeric_cast<int>(data[i].size()), 1);
+      }
+    }
+  }
+
   const MRMScoring::XCorrMatrixType& MRMScoring::getXCorrContrastMatrix() const
   {
     return xcorr_contrast_matrix_;
@@ -152,6 +168,25 @@ namespace OpenSwath
         fj->getIntensity(intensityj);
         // compute normalized cross correlation
         xcorr_precursor_contrast_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
+      }
+    }
+  }
+
+  void MRMScoring::initializeXCorrPrecursorContrastMatrix(const std::vector< std::vector< double > >& data_precursor, const std::vector< std::vector< double > >& data_fragments)
+  {
+    xcorr_precursor_contrast_matrix_.resize(data_precursor.size());
+    for (std::size_t i = 0; i < data_precursor.size(); i++)
+    { 
+      xcorr_precursor_contrast_matrix_[i].resize(data_fragments.size());
+      for (std::size_t j = 0; j < data_fragments.size(); j++)
+      {
+        // compute normalized cross correlation
+        std::vector< double > tmp1(data_precursor[i]);
+        std::vector< double > tmp2(data_fragments[j]);
+        xcorr_precursor_contrast_matrix_[i][j] = Scoring::normalizedCrossCorrelation(tmp1, tmp2, boost::numeric_cast<int>(tmp1.size()), 1);
+#ifdef MRMSCORING_TESTING
+        std::cout << " fill xcorr_precursor_contrast_matrix_ "<< tmp1.size() << " / " << tmp2.size() << " : " << xcorr_precursor_contrast_matrix_[i][j].data.size() << std::endl;
+#endif
       }
     }
   }

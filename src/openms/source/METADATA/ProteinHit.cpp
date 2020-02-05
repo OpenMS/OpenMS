@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
   const double ProteinHit::COVERAGE_UNKNOWN = -1;
-  
+
   // default constructor
   ProteinHit::ProteinHit() :
     MetaInfoInterface(),
@@ -64,14 +64,14 @@ namespace OpenMS
   }
 
   // assignment operator for MetaInfoInterface
-  ProteinHit & ProteinHit::operator=(const MetaInfoInterface & source)
+  ProteinHit& ProteinHit::operator=(const MetaInfoInterface& source)
   {
     MetaInfoInterface::operator=(source);
     return *this;
   }
 
   // equality operator
-  bool ProteinHit::operator==(const ProteinHit & rhs) const
+  bool ProteinHit::operator==(const ProteinHit& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && score_ == rhs.score_
@@ -83,14 +83,13 @@ namespace OpenMS
   }
 
   // inequality operator
-  bool ProteinHit::operator!=(const ProteinHit & rhs) const
+  bool ProteinHit::operator!=(const ProteinHit& rhs) const
   {
     return !operator==(rhs);
   }
 
-  //TODO WHAAAAAT why float???
   // returns the score of the protein hit
-  float ProteinHit::getScore() const
+  double ProteinHit::getScore() const
   {
     return score_;
   }
@@ -102,13 +101,13 @@ namespace OpenMS
   }
 
   // returns the protein sequence
-  const String & ProteinHit::getSequence() const
+  const String& ProteinHit::getSequence() const
   {
     return sequence_;
   }
 
   // returns the accession of the protein
-  const String & ProteinHit::getAccession() const
+  const String& ProteinHit::getAccession() const
   {
     return accession_;
   }
@@ -138,20 +137,20 @@ namespace OpenMS
   }
 
   // sets the protein sequence
-  void ProteinHit::setSequence(const String & sequence)
+  void ProteinHit::setSequence(const String& sequence)
   {
     sequence_ = sequence;
     sequence_.trim();
   }
 
   // sets the description of the protein
-  void ProteinHit::setDescription(const String & description)
+  void ProteinHit::setDescription(const String& description)
   {
     setMetaValue("Description", description);
   }
 
   // sets the accession of the protein
-  void ProteinHit::setAccession(const String & accession)
+  void ProteinHit::setAccession(const String& accession)
   {
     accession_ = accession;
     accession_.trim();
@@ -163,12 +162,12 @@ namespace OpenMS
     coverage_ = coverage;
   }
 
-  const set<pair<Size, ResidueModification> >& ProteinHit::getModifications() const
+  const set<pair<Size, ResidueModification>>& ProteinHit::getModifications() const
   {
     return modifications_;
   }
 
-  void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification> >& mods)
+  void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification>>& mods)
   {
     modifications_ = mods;
   }

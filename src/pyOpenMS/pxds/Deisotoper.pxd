@@ -20,5 +20,12 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>" namespace "Open
                 bool make_single_charged,
                 bool annotate_charge,
                 bool annotate_iso_peak_count,
-                bool use_averagine,
+                bool use_decreasing_model,
+                unsigned int start_intensity_check,
                 bool add_up_intensity) nogil except + # wrap-attach:Deisotoper
+       
+    
+        void deisotopeAndSingleCharge(MSSpectrum & spectra,
+                double fragment_tolerance, 
+                bool fragment_unit_ppm) nogil except +  # wrap-attach:Deisotoper wrap-as:deisotopeAndSingleChargeDefault
+

@@ -44,6 +44,7 @@
 #include <QFileInfo>
 
 //~ #include <QIODevice>
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <map>

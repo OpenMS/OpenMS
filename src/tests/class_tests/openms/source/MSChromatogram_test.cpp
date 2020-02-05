@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 ///////////////////////////
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 

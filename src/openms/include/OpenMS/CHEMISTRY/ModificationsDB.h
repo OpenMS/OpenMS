@@ -66,19 +66,19 @@ namespace OpenMS
       to search engines, e.g. Mascot.
 
       In some scenarios, it might be useful to define different modification
-      databases. This can be done by providing a path when initializing
-      ModificationsDB.
+      databases. This can be done by providing a path through
+      initializeModificationsDB(), however it is important that this is done
+      *before* the first call to getInstance().
   */
   class OPENMS_DLLAPI ModificationsDB
   {
 public:
 
     /// Returns a pointer to the modifications DB (singleton)
-    inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
-    {
-      static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
-      return db_;
-    }
+    static ModificationsDB* getInstance();
+
+    /// Initializes the modification DB with non-default modification files (can only be done once)
+    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();

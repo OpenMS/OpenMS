@@ -32,6 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::S
 
         SimplePeak(SimplePeak) nogil except +
         SimplePeak() nogil except +
+        SimplePeak(double mz, int charge) nogil except +
 
         double mz
         int charge

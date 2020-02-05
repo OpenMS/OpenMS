@@ -41,6 +41,8 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <ostream>
+
 namespace OpenMS
 {
   namespace Internal
@@ -87,16 +89,16 @@ public:
 protected:
 
       /// Progress logger
-      const ProgressLogger & logger_;
+      const ProgressLogger& logger_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
 
       String tag_;
 
-      TargetedExperiment * exp_;
+      TargetedExperiment* exp_;
 
-      const TargetedExperiment * cexp_;
+      const TargetedExperiment* cexp_;
 
       TargetedExperiment::Publication actual_publication_;
 
