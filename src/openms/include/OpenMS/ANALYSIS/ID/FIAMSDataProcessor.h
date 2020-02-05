@@ -33,19 +33,9 @@
 // --------------------------------------------------------------------------
  
 #pragma once
-
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
-#include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
-#include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS

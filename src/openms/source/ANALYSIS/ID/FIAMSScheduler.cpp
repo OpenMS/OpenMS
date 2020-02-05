@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 
 #include <boost/algorithm/string.hpp>
 #ifdef _OPENMP
