@@ -59,7 +59,10 @@ namespace OpenMS {
   FIAMSDataProcessor::FIAMSDataProcessor() :
       DefaultParamHandler("FIAMSDataProcessor"),
       mzs_(),
-      bin_sizes_()
+      bin_sizes_(),
+      sgfilter_(),
+      morph_filter_(),
+      picker_()
     {
     defaults_.setValue("filename", "fiams", "The filename to use for naming the output files");
     defaults_.setValue("dir_output", "", "The path to the directory where the output files will be placed");
@@ -87,6 +90,9 @@ namespace OpenMS {
                                                                                   "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("store_progress", "true", "If the intermediate files should be stored in the output directory");
+    
+    defaults_.setValue("sgf:frame_length", 11, "SavitzkyGolayFilter parameter. The number of subsequent data points used for smoothing");
+    defaults_.setValue("sgf:polynomial_order", 4, "SavitzkyGolayFilter parameter. Order or the polynomial that is fitted");
     defaultsToParam_();
   }
 
@@ -94,7 +100,9 @@ namespace OpenMS {
   FIAMSDataProcessor::FIAMSDataProcessor(const FIAMSDataProcessor& source) :
     DefaultParamHandler(source),
     mzs_(source.mzs_),
-    bin_sizes_(source.bin_sizes_)
+    bin_sizes_(source.bin_sizes_),
+    sgfilter_(source.sgfilter_),
+    picker_(source.picker_)
   {
   }
 
@@ -103,6 +111,9 @@ namespace OpenMS {
     if (this == &rhs) return *this;
     mzs_ = rhs.mzs_;
     bin_sizes_ = rhs.bin_sizes_;
+    sgfilter_ = rhs.sgfilter_;
+    morph_filter_ = rhs.morph_filter_;
+    picker_ = rhs.picker_;
     return *this;
   }
 
@@ -113,10 +124,16 @@ namespace OpenMS {
     size_t n_bins = static_cast<int> (max_mz_ / bin_step_);
     mzs_.clear();
     bin_sizes_.clear();
+    mzs_.reserve(n_bins);
+    bin_sizes_.reserve(n_bins);
     for (size_t i = 0; i < n_bins; i++) {
         mzs_.push_back((i+1)*bin_step_);
         bin_sizes_.push_back(mzs_[i] / (resolution_*4.0));
     }
+    Param p;
+    p.setValue("frame_length", param_.getValue("sgf:frame_length"));
+    p.setValue("polynomial_order", param_.getValue("sgf:polynomial_order"));
+    sgfilter_.setParameters(p);
   }
 
   void FIAMSDataProcessor::cutForTime(const MSExperiment & experiment, std::vector<MSSpectrum> & output, const float & n_seconds) {
@@ -145,16 +162,11 @@ namespace OpenMS {
   MSSpectrum FIAMSDataProcessor::extractPeaks(const MSSpectrum & input) {
     MSSpectrum spectrum(input);
 
-    SavitzkyGolayFilter filter;
-    filter.filter(spectrum);
-
-    MorphologicalFilter morph_filter;
-    morph_filter.filter(spectrum);
-
-    PeakPickerHiRes picker;
+    sgfilter_.filter(spectrum);
+    morph_filter_.filter(spectrum);
 
     MSSpectrum picked;
-    picker.pick(spectrum, picked);
+    picker_.pick(spectrum, picked);
 
     return picked;
   }
@@ -195,6 +207,8 @@ namespace OpenMS {
       return output;
     }
     std::vector<double> mzs, intensities;
+    mzs.reserve(input.size());
+    intensities.reserve(input.size());
     for (auto it = input.begin(); it != input.end(); ++it)
     {
         mzs.push_back(it->getMZ());
@@ -247,85 +261,5 @@ namespace OpenMS {
   /// Get the sliding bin sizes
   const std::vector<float> FIAMSDataProcessor::getBinSizes(){
     return bin_sizes_;
-  }
-
-  /// default constructor
-  FIAMSScheduler::FIAMSScheduler(
-    String filename,
-    String base_dir
-  )
-    : 
-    filename_(filename),
-    base_dir_(base_dir),
-    samples_()
-  {
-  loadSamples_();
-  }
-
-  /// assignment operator
-  FIAMSScheduler& FIAMSScheduler::operator=(const FIAMSScheduler& rhs) {
-    if (this == &rhs) return *this;
-    filename_ = rhs.filename_;
-    base_dir_ = rhs.base_dir_;
-    samples_ = rhs.samples_;
-    return *this;
-  }
-
-  void FIAMSScheduler::loadSamples_() {
-    CsvFile csv_file(filename_, ',');
-    StringList headers;
-    csv_file.getRow(0, headers);
-    StringList row;
-    for (Size i = 1; i < csv_file.rowCount(); ++i) {
-      csv_file.getRow(i, row);
-      std::map<String, String> mapping;
-      for (Size j = 0; j < headers.size(); ++j) {
-        mapping[headers[j]] = row[j];
-      }
-      samples_.push_back(mapping);
-    }
-  }
-
-  void FIAMSScheduler::loadExperiment_(const String & dir_input, const String & filename, MSExperiment output) {
-    MzMLFile mzml;
-    mzml.load(dir_input + "/" + filename + ".mzML", output);
-  }
-
-  void FIAMSScheduler::run() {
-    #pragma omp parallel for
-    for (size_t i = 0; i < samples_.size(); ++i) {
-      MSExperiment exp;
-      loadExperiment_(base_dir_ + samples_[i].at("dir_input"), samples_[i].at("filename"), exp);
-
-      FIAMSDataProcessor fia_processor;
-      Param p;
-      p.setValue("filename", samples_[i].at("filename"));
-      p.setValue("dir_output", base_dir_ + samples_[i].at("dir_output"));
-      p.setValue("resolution", std::stof(samples_[i].at("resolution")));
-      p.setValue("polarity", samples_[i].at("charge"));
-      p.setValue("db:mapping", ListUtils::create<String>(base_dir_ + samples_[i].at("db_mapping")));
-      p.setValue("db:struct", ListUtils::create<String>(base_dir_ + samples_[i].at("db_struct")));
-      p.setValue("positive_adducts", base_dir_ + samples_[i].at("positive_adducts"));
-      p.setValue("negative_adducts", base_dir_ + samples_[i].at("negative_adducts"));
-      fia_processor.setParameters(p);
-
-      String time = samples_[i].at("time");
-      std::vector<String> times;
-      boost::split(times, time, boost::is_any_of(";"));
-      for (size_t j = 0; j < times.size(); ++j) {
-        std::cout << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
-        MzTab mztab_output;
-        fia_processor.run(exp, std::stof(times[j]), mztab_output);
-        std::cout << "Finished " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
-      }
-    }
-  }
-
-  const std::vector<std::map<String, String>> FIAMSScheduler::getSamples() {
-    return samples_;
-  }
-
-  const String FIAMSScheduler::getBaseDir() {
-    return base_dir_;
   }
 }

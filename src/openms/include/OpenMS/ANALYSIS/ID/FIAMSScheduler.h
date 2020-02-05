@@ -51,63 +51,40 @@
 
 namespace OpenMS
 {
-  /**
-    description
-  */
-  class OPENMS_DLLAPI FIAMSDataProcessor  :
-    public DefaultParamHandler
+/*
+
+*/
+class OPENMS_DLLAPI FIAMSScheduler 
   {
 public:
-    /// Constructor
-    FIAMSDataProcessor();
+    /// Default constructor
+    FIAMSScheduler(
+      String filename,
+      String base_dir = "/"
+    );
 
     /// Default desctructor
-    ~FIAMSDataProcessor() = default;
+    ~FIAMSScheduler() = default;
 
     /// Copy constructor
-    FIAMSDataProcessor(const FIAMSDataProcessor& cp);
+    FIAMSScheduler(const FIAMSScheduler& cp) = default;
 
     /// Assignment
-    FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
+    FIAMSScheduler& operator=(const FIAMSScheduler& fdp);
 
     /// Process the given file
-    void run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output);
+    void run();
 
-    /// Cut the spectra for time
-    void cutForTime(const MSExperiment & experiment, std::vector<MSSpectrum> & output, const float & n_seconds=6000);
-
-    /// Merge spectra from different retention times into one
-    MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
-
-    /// Pick peaks from merged spectrum and return as featureMap with the corresponding polarity
-    MSSpectrum extractPeaks(const MSSpectrum & input);
-
-    /// Convert a spectrum to a feature map with the corresponding polarity
-    FeatureMap convertToFeatureMap(const MSSpectrum & input);
-
-    /// Estimate noise for each peak
-    MSSpectrum trackNoise(const MSSpectrum & input);
-
-    /// Perform accurate mass search
-    void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
-
-    /// Get mass-to-charge ratios to base the sliding window upon
-    const std::vector<float> getMZs();
-
-    /// Get the sliding bin sizes
-    const std::vector<float> getBinSizes();
-
-protected:
-    void updateMembers_() override;
+    const std::vector<std::map<String, String>> getSamples();
+    const String getBaseDir();
 
 private:
-    void storeSpectrum_(const MSSpectrum & input, String filename);
+    void loadExperiment_(const String & dir_input, const String & filename, MSExperiment output);
+    void loadSamples_();
 
-    std::vector<float> mzs_; 
-    std::vector<float> bin_sizes_;
-    SavitzkyGolayFilter sgfilter_;
-    MorphologicalFilter morph_filter_;
-    PeakPickerHiRes picker_;
+    String filename_;
+    String base_dir_;
+    std::vector<std::map<String, String>> samples_;
   };
 } // namespace OpenMS
 
