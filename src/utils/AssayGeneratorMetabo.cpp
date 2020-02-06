@@ -159,8 +159,8 @@ protected:
     registerIntOption_("max_transitions", "<int>", 3, "Maximal number of transitions", false);
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
     registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
-    registerDoubleOption_("min_fragment_mz", "<num>", 50.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
-    registerDoubleOption_("max_fragment_mz", "<num>", 900, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
+    registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
+    registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
 
     registerTOPPSubsection_("deisotoping", "deisotoping");
     registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
