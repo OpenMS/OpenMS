@@ -80,7 +80,7 @@ public:
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    std::vector<PeakGroup> Deconvolution(int &specCntr, int &qspecCntr, int &massCntr, PrecalcularedAveragine &avg);
+    std::vector<PeakGroup> Deconvolution(int* specCntr, int* qspecCntr, int* massCntr, int& specIndex, int& massIndex, PrecalcularedAveragine &avg);
 
   protected:
     MSExperiment &map;

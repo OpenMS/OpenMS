@@ -8,7 +8,7 @@ namespace OpenMS
 {
 
   void MassFeatureTrace::findFeatures(std::vector<PeakGroup> &peakGroups,
-                                      int &maxSpecIndex,
+                                      int maxSpecIndex,
                                       int &featureCntr,
                                       std::fstream &fsf,
                                       PrecalcularedAveragine &averagines,

@@ -190,8 +190,23 @@ protected:
     auto param = setParameter();
     auto avgine = calculateAveragines(param);
 
-    int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
-    int total_specCntr = 0, total_qspecCntr = 0, total_massCntr = 0, total_featureCntr = 0;
+    auto specCntr = new int[param.maxMSLevel];
+    fill_n(specCntr,param.maxMSLevel, 0);
+    auto qspecCntr = new int[param.maxMSLevel];
+    fill_n(qspecCntr,param.maxMSLevel, 0);
+    auto massCntr = new int[param.maxMSLevel];
+    fill_n(massCntr,param.maxMSLevel, 0);
+    auto featureCntr = 0;
+
+    auto total_specCntr = new int[param.maxMSLevel];
+    fill_n(total_specCntr,param.maxMSLevel, 0);
+    auto total_qspecCntr = new int[param.maxMSLevel];
+    fill_n(total_qspecCntr,param.maxMSLevel, 0);
+    auto total_massCntr = new int[param.maxMSLevel];
+    fill_n(total_massCntr,param.maxMSLevel, 0);
+    auto total_featureCntr = 0;
+
+    int specIndex = 0, massIndex = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream fs, fsf, fsm;
 
@@ -248,7 +263,13 @@ protected:
     {
       if (isOutPathDir)
       {
-        specCntr = qspecCntr = massCntr = featureCntr = 0;
+        fill_n(specCntr,param.maxMSLevel, 0);
+        fill_n(qspecCntr,param.maxMSLevel, 0);
+        fill_n(massCntr,param.maxMSLevel, 0);
+
+        specIndex = 0;
+        featureCntr = 0;
+        massIndex = 0;
       }
       MSExperiment map;
       MzMLFile mzml;
@@ -327,14 +348,16 @@ protected:
       auto deconv_t_start = chrono::high_resolution_clock::now();
       //continue;
       auto fa = FLASHDeconvAlgorithm(map, param);
-      auto peakGroups = fa.Deconvolution(specCntr, qspecCntr, massCntr, avgine);
+      auto peakGroups = fa.Deconvolution(specCntr, qspecCntr, massCntr, specIndex, massIndex, avgine);
 
       auto deconv_t_end = chrono::high_resolution_clock::now();
       auto deconv_end = clock();
 
       //writeAnnotatedSpectra(peakGroups,map,fsm);//
+     // cout <<1 <<endl;
+      //cout <<qspecCntr[0] <<endl;
 
-      if (!peakGroups.empty() && specCntr > 0 && map.size() > 1)
+      if (!peakGroups.empty() && specCntr[0] > 0 && map.size() > 1)
       {
         Param common_param = getParam_().copy("algorithm:common:", true);
         writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
@@ -345,15 +368,23 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
 
-        MassFeatureTrace::findFeatures(peakGroups, qspecCntr, featureCntr, fsf, avgine, mtd_param, param); //
+        MassFeatureTrace::findFeatures(peakGroups, specIndex, featureCntr, fsf, avgine, mtd_param, param); //
       }
-
+      //cout <<2 <<endl;
+      //OPENMS_LOG_INFO << " Done" <<endl;
       //cout<< "after running" << endl;
 
       if (param.writeSpecTsv)
       {
-        OPENMS_LOG_INFO << endl << "writing per spec deconvolution results ...";
+        OPENMS_LOG_INFO << "writing per spec deconvolution results ...";
         OPENMS_LOG_INFO.flush();
+        for (auto &pg : peakGroups)
+        {
+            writePeakGroup(pg, param, fs);
+        }
+
+        OPENMS_LOG_INFO << "done" << endl;
+
         fsm << "monomasses=[";
 
         auto rtMassMap = std::map<double, vector<PeakGroup>>();
@@ -404,10 +435,9 @@ protected:
             monoMassSet.insert(intMass);
 
             fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " " << pg.chargeCosineScore << ";";
-            if (pg.spec->getMSLevel() > 1 && pg.monoisotopicMass > 2e4)
-            {
-              writePeakGroup(pg, param, fs);
-            }
+            //if (pg.spec->getMSLevel() > 1)
+            //{
+           // }
             //writePeakGroupMfile(pg, param, fsm);
           }
         }
@@ -415,16 +445,20 @@ protected:
 
         fsm << "];\n";
 
-        OPENMS_LOG_INFO << "done" << endl;
+
 
       }
 
       // cout<<4.5<<endl;
       if (isOutPathDir)
       {
-        OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
-                        << " MS1 spectra out of "
-                        << specCntr << endl;
+        for(int j=0;j<param.maxMSLevel;j++)
+        {
+          OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
+                          << " MS" << (j + 1) << " spectra out of "
+                          << specCntr[j] << endl;
+        }
+
         if (featureCntr > 0)
         {
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
@@ -442,24 +476,32 @@ protected:
         fsf.close();
 
         //fsm.close();
-        total_specCntr += specCntr;
-        total_qspecCntr += qspecCntr;
-        total_massCntr += massCntr;
+        for(int j=0;j<param.maxMSLevel;j++)
+        {
+          total_specCntr[j] += specCntr[j];
+          total_qspecCntr[j] += qspecCntr[j];
+          total_massCntr[j] += massCntr[j];
+        }
         total_featureCntr += featureCntr;
       }
       else
       {
-        OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr << " masses in " << qspecCntr
-                        << " MS1 spectra out of "
-                        << specCntr << endl;
+        for(int j=0;j<param.maxMSLevel;j++)
+        {
+          OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
+                          << " MS" << (j+1) << " spectra out of "
+                          << specCntr[j] << endl;
+        }
         if (featureCntr > 0)
         {
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
-
-        total_specCntr = specCntr;
-        total_qspecCntr = qspecCntr;
-        total_massCntr = massCntr;
+        for(int j=0;j<param.maxMSLevel;j++)
+        {
+          total_specCntr[j] = specCntr[j];
+          total_qspecCntr[j] = qspecCntr[j];
+          total_massCntr[j] = massCntr[j];
+        }
         total_featureCntr = featureCntr;
 
       }
@@ -477,39 +519,19 @@ protected:
       OPENMS_LOG_INFO << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
                       << " s (Wall)] --"
                       << endl;
+
+
+      auto sumCntr = 0;
+      for(int j=0;j<param.maxMSLevel;j++)
+      {
+        sumCntr += specCntr[j];
+      }
       OPENMS_LOG_INFO << "-- deconv per spectrum (except spec loading, feature finding) [took "
-                      << 1000.0 * elapsed_deconv_cpu_secs / specCntr
-                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs / specCntr << " ms (Wall)] --" << endl;
+                      << 1000.0 * elapsed_deconv_cpu_secs / sumCntr
+                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs / sumCntr << " ms (Wall)] --" << endl;
 
       total_elapsed_cpu_secs += elapsed_cpu_secs;
       total_elapsed_wall_secs += elapsed_wall_secs;
-
-      //TODO remove
-      if(false)
-      {
-        auto monoMassSet = set<int>();
-        mzml.load("/Users/kyowonjeong/Documents/A4B/Results/MS2/xtract/myo_707_ETDReagentTarget_1e+06_.mzML", map);
-        fsm.open(outfilePath + "/xtract5.m", fstream::out);
-
-        fsm << "\nxmmy=[";
-        for (auto it = map.begin(); it != map.end(); ++it)
-        {
-          for (auto p : *it)
-          {
-            auto intMass = round(p.getMZ());
-            if (monoMassSet.find(intMass) != monoMassSet.end())
-            {
-              continue;
-            }
-            monoMassSet.insert(intMass);
-
-            fsm << p.getMZ() << " " << p.getIntensity() << ";";
-          }
-          monoMassSet.clear();
-        }
-        fsm << "];\n";
-        fsm.close();
-      }
     }
 
 
@@ -524,12 +546,16 @@ protected:
                     << " s (Wall)] --"
                     << endl;
 
-    if (massCntr < total_massCntr)
+    if (massCntr[0] < total_massCntr[0])
     {
-      OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr << " masses in " << total_qspecCntr
-                      << " MS1 spectra out of "
-                      << total_specCntr << endl;
-      if (featureCntr > 0)
+      for(int j=0;j<param.maxMSLevel;j++)
+      {
+        OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in " << total_qspecCntr[j]
+                        << " MS" << (j+1) << " spectra out of "
+                        << total_specCntr[j] << endl;
+      }
+
+      if (total_featureCntr > 0)
       {
         OPENMS_LOG_INFO << "Mass tracer found " << total_featureCntr << " features" << endl;
       }
@@ -609,7 +635,6 @@ protected:
       }
       fs << "];\n";
 
-
       index++;
       //if (my_hash_map.find(non-existent key) == my_hash_map.end())
 
@@ -687,8 +712,13 @@ protected:
     }
     fs << fixed << setprecision(3);
     fs << "\t" << pg.isotopeCosineScore
-       << "\t" << pg.chargeCosineScore
-       << "\n";
+       << "\t";
+    if(pg.spec->getMSLevel() == 1){
+      fs<<pg.chargeCosineScore<<"\n";
+    }else{
+      fs<<"N/A\n";
+    }
+
 
     /*
     //cout<<1<<endl;

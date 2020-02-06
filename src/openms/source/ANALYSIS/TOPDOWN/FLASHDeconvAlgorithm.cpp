@@ -65,8 +65,9 @@ namespace OpenMS
 
 
 
-  std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int &specCntr, int &qspecCntr,
-                                                                                   int &massCntr, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+  std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int* specCntr, int* qspecCntr,
+                                                                                   int* massCntr, int& specIndex, int& massIndex,
+                                                                                   FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     //calculateAveragines(param);
     float prevProgress = .0;
@@ -108,7 +109,7 @@ namespace OpenMS
         prevProgress = progress;
       }
 
-      specCntr++;
+      specCntr[msLevel-1]++;
 
       auto sd = SpectrumDeconvolution(*it, param);
 
@@ -159,7 +160,7 @@ namespace OpenMS
           param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
         //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
-        param.currentMaxMassCount = -1;//(int)(param.currentMaxMass/110*1.5);
+        //param.currentMaxMassCount = (int)(param.currentMaxMass/110*2);
 
       }
 
@@ -190,20 +191,22 @@ namespace OpenMS
       }
       peakChargeMap[msLevel] = subPeakChargeMap;
       peakIntMap[msLevel] = subPeakIntMap;
-      qspecCntr++;
-
+      qspecCntr[msLevel-1]++;
+      specIndex++;
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
       for (auto &pg : peakGroups)
       {
-        massCntr++;
+        massCntr[msLevel-1]++;
+        massIndex++;
         pg.spec = &(*it);
-        pg.massIndex = massCntr;
-        pg.specIndex = qspecCntr;
+        pg.massIndex = massIndex;
+        pg.specIndex = specIndex;
         pg.massCntr = (int) peakGroups.size();
         allPeakGroups.push_back(pg);
       }
     }
     printProgress(1); //
+    std::cout<<std::endl;
     //allPeakGroups.shrink_to_fit();
     delete[] prevChargeRanges;
     delete[] prevMaxMasses;
