@@ -79,53 +79,42 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<input file>", "", "Input file");
+    registerInputFile_("in", "<input_file/input_dir>", "", "Input file or directory");
     //    setValidFormats_("in", ListUtils::create<String>("mzML"),);
-    registerOutputFile_("out", "<output file prefix/output dir>", "",
-                        "Output file prefix or output dir (if prefix, [file prefix].tsv will be generated. "
+    registerOutputFile_("out", "<output_file_prefix/output_dir>", "",
+                        "Output file prefix or output dir (if prefix, [prefix].tsv will be generated. "
                         "if dir, [dir]/[inputfile].tsv is generated per [inputfile])");
 
-    registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
-    registerIntOption_("minC", "<min charge>", 1, "minimum charge state", false, false);
-    registerIntOption_("maxC", "<max charge>", 100, "maximum charge state", false, false);
-    registerDoubleOption_("minM", "<min mass>", 50.0, "minimum mass (Da)", false, false);
-    registerDoubleOption_("maxM", "<max mass>", 100000.0, "maximum mass (Da)", false, false);
+    registerDoubleList_("tol", "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively", {10.0, 5.0}, "ppm tolerance for MS1, 2, ...", false);
 
-    registerDoubleOption_("minIC",
-                          "<cosine threshold 0 - 1>",
-                          .75,
-                          "cosine threshold between avg. and observed isotope pattern",
-                          false,
-                          false);
+    //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
+    registerIntOption_("minC", "<min_charge>", 1, "minimum charge state", false, false);
+    registerIntOption_("maxC", "<max_charge>", 100, "maximum charge state", false, false);
+    registerDoubleOption_("minM", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
+    registerDoubleOption_("maxM", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
+
+    registerDoubleList_("minIC", "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
+        {.75, .8},
+        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...", false, true);
+
     registerDoubleOption_("minCC",
-                          "<cosine threshold 0 - 1>",
+                          "<charge_cosine>",
                           .5,
-                          "cosine threshold between per-charge-intensity and fitted gaussian distribution",
-                          false,
-                          false);
-    registerDoubleOption_("minICS",
-                          "<cosine threshold 0 - 1>",
-                          .75,
-                          "cosine threshold between avg. and observed isotope pattern (spectrum level)",
-                          false,
-                          true);
-    registerDoubleOption_("minCCS",
-                          "<cosine threshold 0 - 1>",
-                          .5,
-                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level)",
+                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (applies only to MS1)",
                           false,
                           true);
 
 
-    registerIntOption_("minCP",
-                       "<min continuous charge peak count>",
-                       3,
-                       "minimum number of peaks of continuous charges per mass",
+    registerIntList_("minCP",
+                       "ms1_min_continuous_charge_peaks ms2_min_continuous_charge_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
+                     {3, 2},
+                       "minimum number of peaks of continuous charges",
                        false,
                        true);
-    registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
+
+    registerIntOption_("maxMC", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
-    registerDoubleOption_("minIT", "<min intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
+    registerDoubleOption_("minIT", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeSpecDeconv",
@@ -134,28 +123,17 @@ protected:
                        "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated",
                        false,
                        true);
+
     registerIntOption_("maxMSL", "", 2, "maximum MS-level (inclusive) for deconvolution", false, true);
 
     // parameters for MSn
-    registerDoubleOption_("tol2", "<MSn tolerance>", 10.0, "ppm tolerance for MSn (n>1)", false, false);
-    registerDoubleOption_("minICS2",
-                          "<MSn cosine threshold 0 - 1>",
-                          .8,
-                          "cosine threshold between avg. and observed isotope pattern (spectrum level) for MSn (n>1)",
-                          false,
-                          true);
+
 //    registerDoubleOption_("minCCS2",
 //                          "<MSn cosine threshold 0 - 1>",
 //                          0,
 //                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)",
 //                          false,
 //                          true);
-    registerIntOption_("minCP2",
-                       "<MSn min continuous charge peak count>",
-                       2,
-                       "minimum number of peaks of continuous charges per mass for MSn (n>1)",
-                       false,
-                       true);
 
     //registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
   }
@@ -167,18 +145,18 @@ protected:
     param.currentChargeRange = param.chargeRange = getIntOption_("maxC") - param.minCharge + 1;
     param.currentMaxMass = param.maxMass = getDoubleOption_("maxM");
     param.minMass = getDoubleOption_("minM");
-    param.tolerance = getDoubleOption_("tol") * 1e-6;
-    param.binWidth = .5 / param.tolerance;
+    param.tolerance = getDoubleList_("tol");
+
+    for(int j=0;j<param.tolerance.size();j++){
+      param.tolerance[j] *= 1e-6;
+      param.binWidth.push_back(.5 / param.tolerance[j]);
+    }
+
     param.intensityThreshold = getDoubleOption_("minIT");
-    param.minContinuousChargePeakCount = getIntOption_("minCP");
-    param.minIsotopeCosine = getDoubleOption_("minIC");
+    param.minContinuousChargePeakCount = getIntList_("minCP");
+    param.minIsotopeCosine = getDoubleList_("minIC");
     param.minChargeCosine = getDoubleOption_("minCC");
 
-    param.minIsotopeCosineSpec = getDoubleOption_("minICS");
-    param.minChargeCosineSpec = getDoubleOption_("minCCS");
-
-    //  param.maxIsotopeCosine = getDoubleOption_("minIC1");
-    //param.maxIsotopeCount = getIntOption_("maxIC");
     param.currentMaxMassCount = param.maxMassCount = getIntOption_("maxMC");
     //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RTwindow");
@@ -187,11 +165,6 @@ protected:
     param.writeSpecTsv = getIntOption_("writeSpecDeconv");
     //param.jitter = getIntOption_("jitter");
     param.maxMSLevel = getIntOption_("maxMSL");
-    param.tolerance2 = getDoubleOption_("tol2") * 1e-6;
-    param.binWidth2 = .5 / param.tolerance2;
-    param.minContinuousChargePeakCount2 = getIntOption_("minCP2");
-    param.minIsotopeCosineSpec2 = getDoubleOption_("minICS2");
-    //param.minChargeCosineSpec2 = getDoubleOption_("minCCS2");
 
     return param;
   }
@@ -293,30 +266,37 @@ protected:
 
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
-      int ms1Cntr = 0;
+      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
+      auto msCntr = new int[1+param.maxMSLevel];
+      fill_n(msCntr, 1+param.maxMSLevel,0);
+
       for (auto it = map.begin(); it != map.end(); ++it)
       {
-        //cout<<it->getMSLevel()<<endl;
-        if (it->getMSLevel() == 1)
-        {
-          ms1Cntr++;
-        }
         if (it->getMSLevel() > param.maxMSLevel)
         {
           continue;
         }
+        msCntr[it->getMSLevel()]++;
       }
 
-      double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-      double rtDelta = rtDuration / ms1Cntr;
-      if (param.RTwindow <= 0)
-      {
-        param.RTwindow = std::max(10.0, rtDuration * .01);
-      }
+      for(int j=1;j<=param.maxMSLevel;j++){
+        double rtDelta = rtDuration / msCntr[j];
 
-      param.numOverlappedScans = max(param.minNumOverLappedScans, (int) (.5 + param.RTwindow / rtDelta));
-      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << param.RTwindow
-                      << " sec)" << endl;
+        auto rw = param.RTwindow;
+        if (rw <= 0)
+        {
+          rw = std::max(10.0, rtDuration * .01);
+        }
+        //OPENMS_LOG_INFO << rtDuration << " " << rtDelta << " " << rw <<  endl;
+
+        auto count = max(param.minNumOverLappedScans, (UInt) (.5 + rw / rtDelta));
+        param.numOverlappedScans.push_back(count);
+        OPENMS_LOG_INFO <<  "# Overlapped MS" << j<< " scans:" << count << " (in RT " << rw
+                        << " sec)" << endl;
+
+      }
+      delete[] msCntr;
+
       if (isOutPathDir)
       {
         std::string outfileName(param.fileName);

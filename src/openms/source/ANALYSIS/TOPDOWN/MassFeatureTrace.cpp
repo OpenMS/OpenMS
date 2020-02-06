@@ -82,7 +82,7 @@ namespace OpenMS
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance[0] * 1e6, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
     mtd_param.setValue("reestimate_mt_sd", "false", "");
@@ -91,7 +91,7 @@ namespace OpenMS
 
     //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
     mtd_param.setValue("min_sample_rate", 0.01, "");
-    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
+    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans[0], "");
     mtd_param.setValue("min_trace_length", param.minRTSpan, "");
     //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);
@@ -162,14 +162,11 @@ namespace OpenMS
 
       int offset = 0;
       double mass = mt.getCentroidMZ();
-      UInt msLevel = 1;
       double isoScore = PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(mass,
-                                                                                   msLevel,
-                                                                                   param,
                                                                                    perIsotopeIntensity,
                                                                                    param.maxIsotopeCount,
                                                                                    offset, averagines);
-      if (isoScore < param.minIsotopeCosine)
+      if (isoScore < param.minIsotopeCosine[0])
       {
         continue;
       }
@@ -190,7 +187,7 @@ namespace OpenMS
         sumInt += p.getIntensity();
       }
 
-      auto massDelta = averagines.getAverageMassDelta(averagines.get(mass));
+      auto massDelta = averagines.getAverageMassDelta(mass);
 
       //auto mass = mt.getCentroidMZ();
       fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"

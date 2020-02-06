@@ -250,26 +250,13 @@ namespace OpenMS
   }
 
   double PeakGroupScoring::getIsotopeCosineAndDetermineIsotopeIndex(double mass,
-                                                                    unsigned int &msLevel,
-                                                                    Parameter& param,
                                                                     double *perIsotopeIntensities,
                                                                     int perIsotopeIntensitiesSize,
                                                                     int &offset,
                                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
-    auto iso = msLevel == 1? avg.get(mass) : avg.get(param.currentMaxMass, mass, param.precursorIsotopes);
-    //if(msLevel>1){
-    //for(auto j : param.precursorIsotopes){
-    //std::cout<<j<<" ";
-    //}
-    //  std::cout<<std::endl;
-
-    //}
-    auto isoNorm = .0;//avg.getNorm(mass);
-    for (int j = 0; j < iso.size(); ++j)
-    {
-      isoNorm += iso[j].getIntensity() * iso[j].getIntensity();
-    }
+    auto iso = avg.get(mass);
+    auto isoNorm = avg.getNorm(mass);
 
     int isoSize = (int) iso.size();
 
@@ -400,7 +387,6 @@ namespace OpenMS
   }
 
   std::vector<FLASHDeconvHelperStructs::PeakGroup> &PeakGroupScoring::scoreAndFilterPeakGroups(unsigned int &msLevel,
-      // FLASHDeconvHelperStructs::Parameter& param,
                                                                                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     std::vector<FLASHDeconvAlgorithm::PeakGroup> filteredPeakGroups;
@@ -417,7 +403,7 @@ namespace OpenMS
 
       for (auto &pg : peakGroups)
       {
-        pg.updateMassesAndIntensity(avg, msLevel, param);
+        pg.updateMassesAndIntensity(avg);
         intensities.push_back(pg.intensity);
       }
 
@@ -515,20 +501,31 @@ namespace OpenMS
               continue;
             }*/
 
+      int offset = 0;
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
+                                                                       perIsotopeIntensity,
+                                                                       param.maxIsotopeCount,
+                                                                       offset,
+                                                                       avg);
 
+      if (pg.peaks.empty() ||
+          (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
+      {
+        continue;
+      }
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
 
       if (msLevel == 1)
       {
         if (pg.peaks.empty() ||
-            pg.chargeCosineScore <= param.minChargeCosineSpec)
+            pg.chargeCosineScore <= param.minChargeCosine)
         {
           continue;
         }
 
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                                param.chargeRange,
-                                                               msLevel==1 ? param.minContinuousChargePeakCount:param.minContinuousChargePeakCount2);
+                                                               param.minContinuousChargePeakCount[msLevel -1]);
 
         if (!isChargeWellDistributed)
         {
@@ -544,22 +541,11 @@ namespace OpenMS
         }
       }
 
-      int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
-                                                                       msLevel,
-                                                                       param,
-                                                                       perIsotopeIntensity,
-                                                                       param.maxIsotopeCount,
-                                                                       offset,
-                                                                       avg);
 
-      if (pg.peaks.empty() ||
-          (pg.isotopeCosineScore <= (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
-      {
-        continue;
-      }
 
-      pg.updateMassesAndIntensity(avg, msLevel, param, offset, param.maxIsotopeCount);
+
+      pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
+
 
       if(false){
         perIsotopeIntensity = new double[param.maxIsotopeCount];
@@ -606,7 +592,7 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
     //filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
-    removeOverlappingPeakGroups(msLevel <= 1 ? param.tolerance : param.tolerance2);
+    removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
 
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
