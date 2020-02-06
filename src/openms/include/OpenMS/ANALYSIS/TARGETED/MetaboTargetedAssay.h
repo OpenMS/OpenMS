@@ -90,6 +90,8 @@ namespace OpenMS
     @param precursor_mz_distance: Max m/z distance of the precursor entries of two spectra to be merged
     @param cosine_sim_threshold: Cosine similarty threshold for the usage of SpectraMerger
     @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param min_fragment_mz: Minimum m/z a fragment ion has to have to be considered as a transition
+    @param max_fragment_mz: Maximum m/z a fragment ion has to have to be considered as a transition
     @param method_consensus_spectrum: Boolean to use consensus spectrum method
     @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
     @param file_counter: Count if multiple files are used.
@@ -102,6 +104,8 @@ namespace OpenMS
                                                                        const double& precursor_mz_distance,
                                                                        const double& cosine_sim_threshold,
                                                                        const double& transition_threshold,
+                                                                       const double& min_fragment_mz,
+                                                                       const double& max_fragment_mz,
                                                                        const bool& method_consensus_spectrum,
                                                                        const bool& exclude_ms2_precursor,
                                                                        const unsigned int& file_counter);
@@ -114,6 +118,8 @@ namespace OpenMS
 
     @param v_cmp_spec: Vector of CompoundInfo with associated fragment annotated MSspectrum
     @param transition_threshold: Intensity threshold for MS2 peak used in MetaboTargetedAssay
+    @param min_fragment_mz: Minimum m/z a fragment ion has to have to be considered as a transition
+    @param max_fragment_mz: Maximum m/z a fragment ion has to have to be considered as a transition
     @param use_exact_mass: Boolean if exact mass should be used as peak mass for annotated fragments
     @param exclude_ms2_precursor: Boolean to exclude MS2 precursor from MetaboTargetedAssay
     @param file_counter: Count if multiple files are used.
@@ -122,6 +128,8 @@ namespace OpenMS
 
     static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundSpectrumPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
+                                                                                         const double& min_fragment_mz,
+                                                                                         const double& max_fragment_mz,
                                                                                          const bool& use_exact_mass,
                                                                                          const bool& exclude_ms2_precursor,
                                                                                          const unsigned int& file_counter);
