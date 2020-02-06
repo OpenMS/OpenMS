@@ -207,24 +207,41 @@ namespace OpenMS {
     return output;
   }
 
-  void FIAMSDataProcessor::run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output) {
-    std::vector<MSSpectrum> output_cut;
-    cutForTime(experiment, n_seconds, output_cut);
-    MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
-    MSSpectrum picked_spectrum = extractPeaks(merged_spectrum);
+  bool FIAMSDataProcessor::run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output, const bool load_cached_spectrum) {
     String postfix = String(static_cast<int>(n_seconds));
     String dir_output_ = param_.getValue("dir_output");
     String filename_ = param_.getValue("filename");
-    if (param_.getValue("store_progress").toBool()) {
-      storeSpectrum_(merged_spectrum, dir_output_ + "/" + filename_ + "_merged_" + postfix + ".mzML");
-      storeSpectrum_(picked_spectrum, dir_output_ + "/" + filename_ + "_picked_" + postfix + ".mzML");
+    String filepath_picked = dir_output_ + "/" + filename_ + "_picked_" + postfix + ".mzML";
+    MSSpectrum picked_spectrum;
+    bool is_cached;
+    if (load_cached_spectrum && File::exists(filepath_picked)) {
+      std::cout << "Started loading cached picked spectrum " << filepath_picked << std::endl;
+      MSExperiment exp;
+      MzMLFile mzml;
+      mzml.load(filepath_picked, exp);
+      picked_spectrum = exp.getSpectra()[0];
+      std::cout << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
+      is_cached = true;
+    } else {
+      std::cout << "Started calculating picked spectrum " << filepath_picked << std::endl;
+      std::vector<MSSpectrum> output_cut;
+      cutForTime(experiment, n_seconds, output_cut);
+      MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
+      picked_spectrum = extractPeaks(merged_spectrum);
+      if (param_.getValue("store_progress").toBool()) {
+        storeSpectrum_(merged_spectrum, dir_output_ + "/" + filename_ + "_merged_" + postfix + ".mzML");
+        storeSpectrum_(picked_spectrum, filepath_picked);
+      }
+      std::cout << "Finished calculating picked spectrum " << filepath_picked << std::endl;
+      is_cached = false;
     }
-    FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
     MSSpectrum signal_to_noise = trackNoise(picked_spectrum);
+    FeatureMap picked_features = convertToFeatureMap(picked_spectrum);
     storeSpectrum_(signal_to_noise, dir_output_ + "/" + filename_ + "_signal_to_noise_" + postfix + ".mzML");
     runAccurateMassSearch(picked_features, output);
     OpenMS::MzTabFile mztab_outfile;
     mztab_outfile.store(dir_output_ + "/" + filename_ + "_" + postfix + ".mzTab", output);
+    return is_cached;
   }
 
   void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum & input, String filename) {

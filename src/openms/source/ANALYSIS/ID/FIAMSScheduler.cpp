@@ -44,11 +44,13 @@ namespace OpenMS {
   /// default constructor
   FIAMSScheduler::FIAMSScheduler(
     String filename,
-    String base_dir
+    String base_dir,
+    bool load_cached
   )
     : 
     filename_(filename),
     base_dir_(base_dir),
+    load_cached_(load_cached),
     samples_()
   {
   loadSamples_();
@@ -59,6 +61,7 @@ namespace OpenMS {
     if (this == &rhs) return *this;
     filename_ = rhs.filename_;
     base_dir_ = rhs.base_dir_;
+    load_cached_ = rhs.load_cached_;
     samples_ = rhs.samples_;
     return *this;
   }
@@ -103,7 +106,7 @@ namespace OpenMS {
       for (size_t j = 0; j < times.size(); ++j) {
         std::cout << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
         MzTab mztab_output;
-        fia_processor.run(exp, std::stof(times[j]), mztab_output);
+        fia_processor.run(exp, std::stof(times[j]), mztab_output, load_cached_);
         std::cout << "Finished " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
       }
     }

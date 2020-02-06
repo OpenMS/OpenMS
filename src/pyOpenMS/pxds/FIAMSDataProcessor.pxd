@@ -1,4 +1,5 @@
 from Types cimport *
+from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from SavitzkyGolayFilter cimport *
 from PeakPickerHiRes cimport *
@@ -16,7 +17,7 @@ cdef extern from "</home/svegal/OpenMS/src/openms/include/OpenMS/ANALYSIS/ID/FIA
         #  DefaultParamHandler
         FIAMSDataProcessor() nogil except +
         FIAMSDataProcessor(FIAMSDataProcessor) nogil except +
-        # NAMESPACE # void run(MSExperiment & experiment, float & n_seconds, OpenMS::MzTab & output) nogil except +
+        # NAMESPACE # bool run(MSExperiment & experiment, float & n_seconds, OpenMS::MzTab & output, bool load_cached_spectrum) nogil except +
         void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) nogil except +
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) nogil except +
         MSSpectrum extractPeaks(MSSpectrum & input_) nogil except +

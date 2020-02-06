@@ -87,9 +87,11 @@ public:
 
       @param experiment  Input MSExperiment
       @param n_seconds Input number of seconds
+      @param load_cached_spectrum Load the cached picked spectrum if exists
       @param output   [out] Output of the accurate mass search results
+      @return a boolean indicating if the picked spectrum was loaded from the cached file
     */
-    void run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output);
+    bool run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output, const bool load_cached_spectrum = true);
 
     /**
       @brief Cut the time axis of the experiment up to @n_seconds

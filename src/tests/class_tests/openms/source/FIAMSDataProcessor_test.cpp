@@ -135,15 +135,18 @@ START_SECTION((test_stages))
     }
     MzTab mztab_output;
     fia_processor.runAccurateMassSearch(output_feature, mztab_output);
-} 
+}
 END_SECTION
 
 START_SECTION((test_run))
 {
     MzTab mztab_output_30;
-    fia_processor.run(exp, 30, mztab_output_30);
+    bool is_cached_before = fia_processor.run(exp, 30, mztab_output_30);
+    TEST_EQUAL(is_cached_before, false);
     String filename_30 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_merged_30.mzML";
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
+    bool is_cached_after = fia_processor.run(exp, 30, mztab_output_30);
+    TEST_EQUAL(is_cached_after, true);
     MzTab mztab_output_0;
     String filename_0 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_picked_0.mzML";
     String filename_mztab = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_0.mzTab";

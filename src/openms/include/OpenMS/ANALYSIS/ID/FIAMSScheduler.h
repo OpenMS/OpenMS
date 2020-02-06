@@ -60,7 +60,8 @@ public:
     /// Default constructor
     FIAMSScheduler(
       String filename,
-      String base_dir = "/"
+      String base_dir = "/",
+      bool load_cached_ = true
     );
 
     /// Default desctructor
@@ -95,6 +96,7 @@ private:
 
     String filename_;
     String base_dir_;
+    bool load_cached_;
     std::vector<std::map<String, String>> samples_;
   };
 } // namespace OpenMS
