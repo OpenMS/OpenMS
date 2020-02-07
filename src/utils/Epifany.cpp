@@ -275,7 +275,7 @@ protected:
     }
 
     // Currently this is needed because otherwise there might be proteins with a previous score
-    // that get evaluated during FDR without a new posterior being set.
+    // that get evaluated during FDR without a new posterior being set. (since components of size 1 are skipped)
     // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
     IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
