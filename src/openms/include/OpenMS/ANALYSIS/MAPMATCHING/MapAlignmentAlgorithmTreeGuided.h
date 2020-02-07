@@ -32,37 +32,36 @@
 // $Authors: Julia Thueringer $
 // --------------------------------------------------------------------------
 
-// instead of guard
 #pragma once
 
-// included dependencies
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include "MapAlignmentAlgorithmIdentification.h"
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 namespace OpenMS
 {
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
-    ID groups with the same sequence in different maps represent points of correspondence between the maps. They are used to evaluate the distances between the maps for hierarchical clustering and form the basis for the alignment.
+    ID groups with the same sequence in different maps represent points of correspondence in RT between the maps. They are used to evaluate the distances between the maps for hierarchical clustering and form the basis for the alignment.
     Only the best PSM per spectrum is considered as the correct identification.
 
-    For each pair of maps, the distance is determined based on the intersection of the contained identifications and hierarchically clustered using average linkage.
+    For each pair of maps, the similarity is determined based on the intersection of the contained identifications using Pearson correlation. For small intersections, the Pearson value is reduced by multiplying the ratio of the intersection size to the union size: \f$\texttt{PearsonValue(map1}\cap \texttt{map2)}*\Bigl(\frac{\texttt{N(map1 }\cap\texttt{ map2})}{\texttt{N(map1 }\cup\texttt{ map2})}\Bigr)\f$
+    Using hierarchical clustering together with average linkage a binary tree is produced.
     Following the tree, the maps are aligned, resulting in a transformed feature map that contains both the original and the transformed retention times.
-    As long as there are at least two clusters, the alignment is done as follows:\n
+    As long as there are at least two clusters, the alignment is done as follows:
     Of every pair of clusters, the one with the larger 10/90 percentile retention time range is selected as reference for the align() method of @ref OpenMS::MapAlignmentAlgorithmIdentification.
-    align() maps the median retention time of each ID group in the second cluster to the reference retention time of this group.
+    align() aligns the median retention time of each ID group in the second cluster to the reference retention time of this group.
     Cubic spline smoothing is used to convert this mapping to a smooth function.
     Retention times in the second cluster are transformed to the reference scale by applying this function.
-    Additionally, the original retention times are stored in the meta information of each ID group.
+    Additionally, the original retention times are stored in the meta information of each feature.
     The reference is combined with the transformed cluster.
 
     The resulting map is used to extract transformation descriptions for each input map.
     For each map cubic spline smoothing is used to convert the mapping to a smooth function.
-    Retention times of each map are transformed applying corresponding function.
+    Retention times of each map are transformed by applying the smoothed function.
 
     @htmlinclude OpenMS_MapAlignmentAlgorithmTreeGuided.parameters
 
