@@ -159,6 +159,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
+    String outlier_handling = fit_algorithm.getValue("outlier_handling");
 
     //-------------------------------------------------------------
     // reading input
@@ -221,7 +222,10 @@ protected:
       }
 
       // fit to score vector
-      bool return_value = PEP_model.fit(score.second[0]);
+      //TODO choose outlier handling based on search engine? If not set by user?
+      //XTandem is prone to accumulation at min values/censoring
+      //OMSSA is prone to outliers
+      bool return_value = PEP_model.fit(score.second[0], outlier_handling);
 
       if (!return_value) 
       {
