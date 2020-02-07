@@ -169,7 +169,7 @@ protected:
     return param;
   }
 
-  FLASHDeconvHelperStructs::PrecalcularedAveragine calculateAveragines(Parameter &param)
+  static FLASHDeconvHelperStructs::PrecalcularedAveragine calculateAveragines(Parameter &param)
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);

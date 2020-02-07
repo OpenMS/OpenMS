@@ -269,6 +269,7 @@ namespace OpenMS
     //double nominator = .0;
     //double denominator = .0;
     auto masses = std::vector<double>();
+    masses.reserve(peaks.size());
     //double maxIntensityForMonoIsotopeMass = -1;
     for (auto &p : peaks)
     {
@@ -278,11 +279,6 @@ namespace OpenMS
       // denominator += w;
       // nominator += w * (p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
       masses.push_back(p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
-
-      //  if (maxIntensityForMonoIsotopeMass > pi)
-      {
-        //  continue;
-      }
       //maxIntensityForMonoIsotopeMass = pi;
       //monoisotopicMass = p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
       //  int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);

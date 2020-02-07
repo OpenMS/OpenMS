@@ -193,7 +193,7 @@ namespace OpenMS
                                                                                      unsigned int &msLevel)
   {
     int chargeRange = param.currentChargeRange;
-    int hChargeSize = (int) param.hCharges.size();
+    int hChargeSize = msLevel == 1 ? (int) param.hCharges.size() : 1;
     int minContinuousChargePeakCount = param.minContinuousChargePeakCount[msLevel-1];
 
     long binEnd = (long) massBins.size();
@@ -264,9 +264,9 @@ namespace OpenMS
 
           for (auto k = 0; k < hChargeSize; k++)
           {
-            if (msLevel > 1 && k > 0){
-              break;
-            }
+            //if (msLevel > 1 && k > 0){
+            //  break;
+           // }
 
             auto hmzBinIndex = massBinIndex - hBinOffsets[k][j];
             if (hmzBinIndex > 0 && hmzBinIndex < (long) mzBins.size() && mzBins[hmzBinIndex])
@@ -349,19 +349,18 @@ namespace OpenMS
       auto &s = massIntensitites[mindex];
       // auto msnr = s / (noise[0][mindex]);
       float maxNoise = .0;
-      for (auto k = 0; k < hChargeSize + 1; k++)
+      for (auto k = 0; k <= hChargeSize; k++)
       {
         maxNoise = std::max(maxNoise, noise[k][mindex]);
         // msnr = min(snr, msnr);
       }
-      //s -= maxNoise;
       s -= maxNoise;
       mindex = candidateMassBinsForThisSpectrum.find_next(mindex);
     }
 
     delete[] prevIntensities;
     delete[] prevCharges;
-    for (auto k = 0; k < hChargeSize + 1; k++)
+    for (auto k = 0; k <= hChargeSize; k++)
     {
       delete[] noise[k];
     }
@@ -843,13 +842,12 @@ namespace OpenMS
           const double observedMz = logMzPeaks[peakIndex].mz;
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = observedMz - mz;
-          int i = (int) round(di / isof);
+
+          int i = (int)(.5 + di / isof);
 
           if (i > (int) rightIndex)
           {
-            //if (i - pi > 1){
             break;
-            //}
           }
 
           if (i - pi > maxMissingIsotope)
@@ -883,7 +881,7 @@ namespace OpenMS
           const double observedMz = logMzPeaks[peakIndex].mz;
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = mz - observedMz;
-          int i = (int) round(di / isof);
+          int i = (int)(.5 + di / isof);
 
           if (i > (int) leftIndex)
           {
@@ -930,7 +928,7 @@ namespace OpenMS
         int minOff = 10000;
         for (auto &p : pg.peaks)
         {
-          p.isotopeIndex = (int) round((p.getUnchargedMass() - maxMass) / Constants::ISOTOPE_MASSDIFF_55K_U);
+          p.isotopeIndex = round((p.getUnchargedMass() - maxMass) / Constants::ISOTOPE_MASSDIFF_55K_U);
           if (abs(maxMass - p.getUnchargedMass() + Constants::ISOTOPE_MASSDIFF_55K_U * p.isotopeIndex) > isoDelta)
           {
             continue;

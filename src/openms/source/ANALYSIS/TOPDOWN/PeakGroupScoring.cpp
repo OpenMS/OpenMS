@@ -501,18 +501,7 @@ namespace OpenMS
               continue;
             }*/
 
-      int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
-                                                                       perIsotopeIntensity,
-                                                                       param.maxIsotopeCount,
-                                                                       offset,
-                                                                       avg);
 
-      if (pg.peaks.empty() ||
-          (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
-      {
-        continue;
-      }
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
 
       if (msLevel == 1)
@@ -541,7 +530,18 @@ namespace OpenMS
         }
       }
 
+      int offset = 0;
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
+                                                                       perIsotopeIntensity,
+                                                                       param.maxIsotopeCount,
+                                                                       offset,
+                                                                       avg);
 
+      if (pg.peaks.empty() ||
+          (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
+      {
+        continue;
+      }
 
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
