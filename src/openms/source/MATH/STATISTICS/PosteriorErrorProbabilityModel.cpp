@@ -807,6 +807,7 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const String& outlier_handling) const
     {
+      if (x_scores.empty()) return; //shouldnt happen, but be safe.
       if (outlier_handling != "none")
       {
         Size nr_outliers = 0;
