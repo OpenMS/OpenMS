@@ -70,8 +70,12 @@ namespace OpenMS
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
       defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
-      defaults_.setValue("outlier_handling","ignore", "What to do with outliers outside of 3*IQR from Q1/Q3.");
-      defaults_.setValidStrings("outlier_handling", {"ignore","set_to_closest_valid","none"});
+      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers:\n"
+                                                                   "- ignore_iqr_outliers: ignore outliers outside of 3*IQR from Q1/Q3 for fitting\n"
+                                                                   "- set_iqr_to_closest_valid: set IQR-based outliers to the last valid value for fitting\n"
+                                                                   "- ignore_extreme_percentiles: ignore everything outside 99th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
+                                                                   "- none: do nothing");
+      defaults_.setValidStrings("outlier_handling", {"ignore_iqr_outliers","set_iqr_to_closest_valid","ignore_extreme_percentiles","none"});
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -815,7 +819,7 @@ namespace OpenMS
         auto q1 = Math::quantile1st(x_scores.begin(),x_scores.end(), true);
         auto q3 = Math::quantile3rd(x_scores.begin(),x_scores.end(), true);
         double iqr = q3 - q1;
-        if (outlier_handling == "ignore")
+        if (outlier_handling == "ignore_iqr_outliers")
         {
           x_scores.erase(
               std::remove_if(x_scores.begin(),x_scores.end(),
@@ -824,7 +828,7 @@ namespace OpenMS
           );
           nr_outliers = before - x_scores.size();
         }
-        else //set_to_closest_valid
+        else if (outlier_handling == "set_iqr_to_closest_valid")
         {
           auto closest_lower = std::lower_bound(x_scores.begin(), x_scores.end(), q1 - 3 * iqr);
           auto closest_upper = --std::upper_bound(x_scores.begin(), x_scores.end(), q3 + 3 * iqr);
@@ -842,9 +846,22 @@ namespace OpenMS
             *it = *closest_upper;
           }
         }
+        else //"ignore_extreme_percentiles"
+        {
+          Size ninetyninth_idx = x_scores.size() * 99.9 / 100.;
+          double ninetyninth_value = x_scores[ninetyninth_idx];
+          Size first_idx = (x_scores.size() * 1. / 100.) + 1;
+          double first_value = x_scores[first_idx];
+          x_scores.erase(
+              std::remove_if(x_scores.begin(),x_scores.end(),
+                             [&first_value,&ninetyninth_value](double x){ return x <= first_value || x >= ninetyninth_value;}),
+              x_scores.end()
+          );
+          nr_outliers = before - x_scores.size();
+        }
 
         double outlier_percent = nr_outliers * 100. / before;
-        if (outlier_percent > 1)
+        if (outlier_percent > 2.1)
         {
           OPENMS_LOG_WARN << "Warning: " << outlier_percent << "% outliers detected and corrected. Please double check"
                                                                " the score distribution.\n";
