@@ -77,6 +77,8 @@ namespace OpenMS {
     
     defaults_.setValue("sgf:frame_length", 11, "SavitzkyGolayFilter parameter. The number of subsequent data points used for smoothing");
     defaults_.setValue("sgf:polynomial_order", 4, "SavitzkyGolayFilter parameter. Order or the polynomial that is fitted");
+    defaults_.setValue("sne:window", 10, "SignalToNoiseEstimatorMedianRapid parameter. Signal-to-noise estimation window (in mz)");
+    
     defaultsToParam_();
   }
 
@@ -182,7 +184,7 @@ namespace OpenMS {
   }
 
   MSSpectrum FIAMSDataProcessor::trackNoise(const MSSpectrum & input) {
-    SignalToNoiseEstimatorMedianRapid sne(50);
+    SignalToNoiseEstimatorMedianRapid sne(param_.getValue("sne:window"));
     MSSpectrum output;
     if (input.size() == 0) {
       return output;
@@ -215,15 +217,15 @@ namespace OpenMS {
     MSSpectrum picked_spectrum;
     bool is_cached;
     if (load_cached_spectrum && File::exists(filepath_picked)) {
-      std::cout << "Started loading cached picked spectrum " << filepath_picked << std::endl;
+      OPENMS_LOG_INFO << "Started loading cached picked spectrum " << filepath_picked << std::endl;
       MSExperiment exp;
       MzMLFile mzml;
       mzml.load(filepath_picked, exp);
       picked_spectrum = exp.getSpectra()[0];
-      std::cout << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
+      OPENMS_LOG_INFO << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
       is_cached = true;
     } else {
-      std::cout << "Started calculating picked spectrum " << filepath_picked << std::endl;
+      OPENMS_LOG_INFO << "Started calculating picked spectrum " << filepath_picked << std::endl;
       std::vector<MSSpectrum> output_cut;
       cutForTime(experiment, n_seconds, output_cut);
       MSSpectrum merged_spectrum = mergeAlongTime(output_cut);
@@ -232,7 +234,7 @@ namespace OpenMS {
         storeSpectrum_(merged_spectrum, dir_output_ + "/" + filename_ + "_merged_" + postfix + ".mzML");
         storeSpectrum_(picked_spectrum, filepath_picked);
       }
-      std::cout << "Finished calculating picked spectrum " << filepath_picked << std::endl;
+      OPENMS_LOG_INFO << "Finished calculating picked spectrum " << filepath_picked << std::endl;
       is_cached = false;
     }
     MSSpectrum signal_to_noise = trackNoise(picked_spectrum);

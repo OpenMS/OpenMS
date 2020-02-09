@@ -68,7 +68,7 @@ START_SECTION(virtual ~FIAMSDataProcessor())
 }
 END_SECTION
 
-String filename = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2";
+String filename = "SerumTest";
 
 FIAMSDataProcessor fia_processor;
 Param p;
@@ -88,10 +88,21 @@ MSExperiment exp;
 MzMLFile mzml;
 mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
 
+MSExperiment exp_merged;
+MzMLFile mzml_merged;
+mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
+MSSpectrum spec_merged = exp_merged.getSpectra()[0];
+
+MSExperiment exp_picked;
+MzMLFile mzml_picked;
+mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
+MSSpectrum spec_picked = exp_picked.getSpectra()[0];
+
 PeakMap input;
 Peak1D peak;
 std::vector<float> ints {100, 120, 130, 140, 150, 100, 60, 50, 30};
 std::vector<float> rts {10, 20, 30, 40};
+std::vector<MSSpectrum> spectra;
 for (Size i = 0; i < rts.size(); ++i) {
     MSSpectrum s;
     for (Size j = 0; j < ints.size(); ++j) {
@@ -100,7 +111,9 @@ for (Size i = 0; i < rts.size(); ++i) {
     }
     s.setRT(rts[i]);
     input.addSpectrum(s);
+    spectra.push_back(s);
 }
+MSSpectrum merged = fia_processor.mergeAlongTime(spectra);
 
 START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds)))
 {
@@ -120,39 +133,81 @@ START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectru
 }
 END_SECTION
 
-START_SECTION((test_stages))
+START_SECTION((mergeAlongTime))
 {
-    std::vector<MSSpectrum> output_cut;
-    fia_processor.cutForTime(input, 100, output_cut);
-    MSSpectrum output = fia_processor.mergeAlongTime(output_cut);
+    MSSpectrum output = fia_processor.mergeAlongTime(spectra);
     TEST_EQUAL(output.size() > 0, true);
     TEST_EQUAL(abs(output.MZBegin(100)->getIntensity() - 400.0) < 1, true);
     TEST_EQUAL(abs(output.MZBegin(102)->getIntensity() - 480.0) < 1, true);
-    MSSpectrum picked = fia_processor.extractPeaks(output);
-    FeatureMap output_feature = fia_processor.convertToFeatureMap(picked);
-    for (auto it = output_feature.begin(); it != output_feature.end(); ++it) {
-        TEST_EQUAL(it->getIntensity() > 50, true);
-    }
-    MzTab mztab_output;
-    fia_processor.runAccurateMassSearch(output_feature, mztab_output);
 }
 END_SECTION
 
-START_SECTION((test_run))
+START_SECTION((extractPeaks))
+{
+    MSSpectrum picked = fia_processor.extractPeaks(merged);
+    TEST_EQUAL(abs(picked.MZBegin(108)->getIntensity() - 133) < 1, true);
+    TEST_EQUAL(abs(picked.MZBegin(112)->getIntensity() - 66) < 1, true);
+}
+END_SECTION
+
+START_SECTION((convertToFeatureMap))
+{
+    MSSpectrum picked;
+    for (Size j = 0; j < 10; ++j) {
+        peak.setIntensity(50); peak.setMZ(100 + j*2);
+        picked.push_back(peak);
+    }
+    FeatureMap output_feature = fia_processor.convertToFeatureMap(picked);
+    for (auto it = output_feature.begin(); it != output_feature.end(); ++it) {
+        TEST_EQUAL(it->getIntensity() == 50, true);
+    }
+}
+END_SECTION
+
+START_SECTION((test_run_cached))
 {
     MzTab mztab_output_30;
     bool is_cached_before = fia_processor.run(exp, 30, mztab_output_30);
     TEST_EQUAL(is_cached_before, false);
-    String filename_30 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_merged_30.mzML";
+    String filename_30 = "SerumTest_merged_30.mzML";
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
     bool is_cached_after = fia_processor.run(exp, 30, mztab_output_30);
     TEST_EQUAL(is_cached_after, true);
+}
+END_SECTION
+
+START_SECTION((test_run_empty))
+{
     MzTab mztab_output_0;
-    String filename_0 = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_picked_0.mzML";
-    String filename_mztab = "20191113_metk_Serum_FS_150uLflow_Runtime5min_StdInjectSpeed_LowMass_NEG_2_0.mzTab";
+    String filename_0 = "SerumTest_picked_0.mzML";
+    String filename_mztab = "SerumTest_0.mzTab";
     fia_processor.run(exp, 0, mztab_output_0);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_0))), true);
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_mztab))), true);
+    TEST_EQUAL(mztab_output_0.getPSMSectionRows().size(), 0);
+}
+END_SECTION
+
+
+START_SECTION((test_run_full))
+{
+    vector<MSSpectrum> spec_vec;
+    fia_processor.cutForTime(exp, 1000, spec_vec);
+    MSSpectrum merged_result = fia_processor.mergeAlongTime(spec_vec);
+    vector<float> mzs {109.951239, 109.962281, 109.986031, 109.999156};
+    for (float mz : mzs) {
+        std::cout << merged_result.MZBegin(mz)->getIntensity() << std::endl;
+        TEST_REAL_SIMILAR(merged_result.MZBegin(mz)->getIntensity(), spec_merged.MZBegin(mz)->getIntensity());
+    }
+    MSSpectrum picked_result = fia_processor.extractPeaks(merged_result);
+    vector<float> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828, 109.999595};
+    for (float mz : mzs) {
+        std::cout << picked_result.MZBegin(mz)->getIntensity() << std::endl;
+        TEST_REAL_SIMILAR(picked_result.MZBegin(mz)->getIntensity(), spec_picked.MZBegin(mz)->getIntensity());
+    }
+    TEST_EQUAL(picked_result.size(), spec_picked.size());
+    MzTab mztab_output;
+    fia_processor.run(exp, 1000, mztab_output);
 }
 END_SECTION
 

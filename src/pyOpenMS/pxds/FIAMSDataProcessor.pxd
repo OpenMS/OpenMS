@@ -6,7 +6,7 @@ from PeakPickerHiRes cimport *
 from MzTab cimport *
 from MzMLFile cimport *
 
-cdef extern from "</home/svegal/OpenMS/src/openms/include/OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
 
     cdef cppclass FIAMSDataProcessor(DefaultParamHandler) :
         #

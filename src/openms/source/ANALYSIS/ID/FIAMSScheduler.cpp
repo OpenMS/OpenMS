@@ -104,10 +104,10 @@ namespace OpenMS {
       std::vector<String> times;
       boost::split(times, time, boost::is_any_of(";"));
       for (size_t j = 0; j < times.size(); ++j) {
-        std::cout << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
+        OPENMS_LOG_INFO << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
         MzTab mztab_output;
         fia_processor.run(exp, std::stof(times[j]), mztab_output, load_cached_);
-        std::cout << "Finished " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
+        OPENMS_LOG_INFO << "Finished " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
       }
     }
   }

@@ -4,7 +4,7 @@ from libcpp.map cimport map as libcpp_map
 from libcpp.vector cimport vector as libcpp_vector
 from CsvFile cimport *
 
-cdef extern from "</home/svegal/OpenMS/src/openms/include/OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
 
     cdef cppclass FIAMSScheduler "OpenMS::FIAMSScheduler":
         #
