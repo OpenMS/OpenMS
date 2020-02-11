@@ -1275,7 +1275,7 @@ protected:
     }
     else // if (bayesian)
     {
-      if (groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
+      if (!groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
       {
         throw OpenMS::Exception::InvalidParameter(
           __FILE__,
