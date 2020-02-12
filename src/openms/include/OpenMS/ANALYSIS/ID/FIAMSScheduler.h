@@ -101,4 +101,3 @@ private:
     std::vector<std::map<String, String>> samples_;
   };
 } // namespace OpenMS
-

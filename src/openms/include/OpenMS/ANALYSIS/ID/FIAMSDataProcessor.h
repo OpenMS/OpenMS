@@ -178,4 +178,3 @@ private:
     PeakPickerHiRes picker_;
   };
 } // namespace OpenMS
-

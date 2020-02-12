@@ -233,12 +233,12 @@ namespace OpenMS {
   }
 
   /// Get mass-to-charge ratios to base the sliding window upon
-  const std::vector<float>& FIAMSDataProcessor::getMZs(){
+  const std::vector<float>& FIAMSDataProcessor::getMZs() {
     return mzs_;
   }
 
   /// Get the sliding bin sizes
-  const std::vector<float>& FIAMSDataProcessor::getBinSizes(){
+  const std::vector<float>& FIAMSDataProcessor::getBinSizes() {
     return bin_sizes_;
   }
 }
