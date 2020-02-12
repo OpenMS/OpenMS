@@ -90,7 +90,40 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
 
   TOLERANCE_ABSOLUTE(0.001)
 
+  /**  From http://db.systemsbiology.net:8080/proteomicsToolkit/FragIonServlet.html
+     Fragment Ion Table, monoisotopic masses
+
+     Seq    #       A            B            C            X            Y            Z         # (+1) 
+
+     I     1     86.09647    114.09139    131.11793       -         778.44581    761.42036    7 
+     F     2    233.16488    261.15980    278.18635    691.34101    665.36174    648.33629    6 
+     S     3    320.19691    348.19183    365.21838    544.27260    518.29333    501.26788    5 
+     Q     4    448.25549    476.25040    493.27695    457.24057    431.26130    414.23585    4 
+     V     5    547.32390    575.31882    592.34537    329.18199    303.20273    286.17727    3 
+     G     6    604.34537    632.34028    649.36683    230.11358    204.13431    187.10886    2 
+     K     7    732.44033    760.43524       -         173.09211    147.11285    130.08740    1 
+
+  **/
   double result[] = {/*114.091,*/ 147.113, 204.135, 261.16, 303.203, 348.192, 431.262, 476.251, 518.294, 575.319, 632.341, 665.362};
+  std::vector<double> result_x = { 691.34101, 544.27260, 457.24057, 329.18199, 230.11358, 173.09211 };
+  std::vector<double> result_x_losses = {
+      691.34101 - 17.026549095700005, 
+      691.34101 - 18.01056506379996,
+      691.34101, 
+      544.27260 - 17.026549095700005,
+      544.27260 - 18.01056506379996,
+      544.27260,
+      457.24057 - 17.026549095700005,
+      457.24057,
+      329.18199 - 17.026549095700005,
+      329.18199,
+      230.11358 - 17.026549095700005,
+      230.11358,
+      173.09211 - 17.026549095700005,
+      173.09211 };
+  std::sort(result_x.begin(), result_x.end());
+  std::sort(result_x_losses.begin(), result_x_losses.end());
+
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
@@ -138,6 +171,12 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   std::sort(result_all,result_all+52-1);
   spec.clear(true);
 
+  std::vector<double> result_bx = {
+   116.03481,  263.10323,  360.15599,  473.24005,  544.27717,  658.32009,  715.34156,  844.38415, 1000.48526,
+   929.44815, 782.37973, 685.32697, 572.24291, 501.20579, 387.16287, 330.14140, 201.09881,
+  };
+  std::sort(result_bx.begin(),result_bx.end());
+
   param.setValue("add_first_prefix_ion", "true");
   param.setValue("add_a_ions", "true");
   param.setValue("add_b_ions", "true");
@@ -161,6 +200,63 @@ START_SECTION(void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, In
   {
     TEST_REAL_SIMILAR(generated[i], result_all[i])
   }
+
+  // test loss creation and annotation
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "false");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "true");
+  param.setValue("add_y_ions", "false");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_metainfo", "false");
+  param.setValue("add_losses", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spec, peptide, 1, 1);
+  TEST_EQUAL(spec.size(), 14)
+
+  generated.clear();
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    generated.push_back(spec[i].getPosition()[0]);
+  }
+  for (Size i = 0; i != generated.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(generated[i], result_x_losses[i])
+  }
+
+  // test loss creation and annotation
+  spec.clear(true);
+  param = ptr->getParameters();
+  param.setValue("add_first_prefix_ion", "true");
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "false");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "true");
+  param.setValue("add_y_ions", "false");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
+  ptr->setParameters(param);
+  ptr->getSpectrum(spec, peptide, 1, 1);
+  TEST_EQUAL(spec.size(), 14)
+
+  generated.clear();
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    generated.push_back(spec[i].getPosition()[0]);
+  }
+  for (Size i = 0; i != generated.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(generated[i], result_x_losses[i])
+  }
+
+  std::sort(generated.begin(),generated.end());
+  // std::vector<double> result_loss(result_all, 
 
   // test loss creation and annotation
   spec.clear(true);
@@ -359,12 +455,14 @@ END_SECTION
 
 START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative element frequencies))
 {
+  // this tests for the loss of CONH2 on Arginine, however it is not clear how
+  // this loss would occur in the first place.
   AASequence tmp_aa = AASequence::fromString("RDAGGPALKK");
   PeakSpectrum tmp;
   TheoreticalSpectrumGenerator t_gen;
   Param params;
 
-  params.setValue("add_isotopes", "true");
+  params.setValue("isotope_model", "coarse");
   params.setValue("add_losses", "true");
   params.setValue("add_first_prefix_ion", "true");
   params.setValue("add_a_ions", "true");
@@ -372,6 +470,43 @@ START_SECTION(([EXTRA] bugfix test where losses lead to formulae with negative e
 
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
   TEST_EQUAL(tmp.size(), 212)
+
+  tmp.clear(true);
+  params.setValue("isotope_model", "coarse");
+  params.setValue("add_losses", "true");
+  params.setValue("add_first_prefix_ion", "false");
+  params.setValue("add_a_ions", "true");
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  TEST_EQUAL(tmp_aa[0].hasNeutralLoss(), true)
+  TEST_EQUAL(tmp.size(), 198)
+
+  tmp_aa = AASequence::fromString("RDK");
+  tmp.clear(true);
+  params.setValue("isotope_model", "none");
+  params.setValue("add_losses", "true");
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_a_ions", "true");
+  params.setValue("add_b_ions", "false");
+  params.setValue("add_y_ions", "false");
+  params.setValue("add_metainfo", "true");
+  t_gen.setParameters(params);
+
+  TEST_EQUAL(tmp.size(), 0)
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  // TEST_EQUAL(tmp.size(), 8)
+
+  tmp.clear(true);
+  params.setValue("add_losses", "true");
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_a_ions", "true");
+  params.setValue("add_b_ions", "false");
+  params.setValue("add_y_ions", "false");
+  params.setValue("add_metainfo", "false");
+  t_gen.setParameters(params);
+
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  // TEST_EQUAL(tmp.size(), 8)
 }
 END_SECTION
 
@@ -408,7 +543,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   PeakSpectrum spec;
   TheoreticalSpectrumGenerator t_gen;
   Param params;
-  params.setValue("add_isotopes", "true");
+  params.setValue("isotope_model", "coarse");
   params.setValue("max_isotope", 2);
   params.setValue("add_b_ions", "false");
   t_gen.setParameters(params);
@@ -421,15 +556,111 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   double neutron_shift = Constants::C13C12_MASSDIFF_U;
 
   // 4 monoisotopic masses, 4 second peaks with added neutron mass / 2
-  double result[] = {78.54206, 107.05279, 185.10335, 263.15390, 78.54206+(neutron_shift/2), 107.05279+(neutron_shift/2), 185.10335+(neutron_shift/2), 263.15390+(neutron_shift/2)};
-  std::sort(result, result+8);
+  std::vector<double> result = {
+    78.54206,
+    107.05279,
+    185.10335,
+    263.15390,
+    
+    78.54206+(neutron_shift/2),
+    107.05279+(neutron_shift/2),
+    185.10335+(neutron_shift/2),
+    263.15390+(neutron_shift/2)
+  };
+
+  std::sort(result.begin(), result.end());
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
   }
 
+  spec.clear(true);
+  params.setValue("isotope_model", "fine");
+  params.setValue("max_isotope", 2);
+  params.setValue("add_b_ions", "false");
+  t_gen.setParameters(params);
+
+  // isotope cluster for y-ions
+  t_gen.getSpectrum(spec, tmp_aa, 2, 2);
+  TEST_EQUAL(spec.size(), 18)
+
+  result = {
+    78.54206,
+    107.05279,
+    185.10335,
+    263.15390,
+
+    // 405: POS: 78.54256367545 INT: 0.921514272689819
+    79.04108117545,
+    79.04424117545,
+    79.54469067545,
+    // 405: POS: 107.0532957233 INT: 0.89608770608902
+    107.5518132233,
+    107.5549732233,
+    108.0554227233,
+    // 405: POS: 185.1038514147 INT: 0.824628114700317
+    185.6023689147,
+    185.6055289147,
+    186.1059784147,
+    186.1072064147,
+    // 405: POS: 263.1544071061 INT: 0.758867204189301
+    263.6529246061,
+    263.6560846061,
+    264.1565341061,
+    264.1577621061
+  };
+  std::sort(result.begin(), result.end());
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+  }
+
+  spec.clear(true);
+  params.setValue("isotope_model", "fine");
+  params.setValue("max_isotope", 2);
+  params.setValue("max_isotope_probability", 0.20);
+  params.setValue("add_b_ions", "false");
+  t_gen.setParameters(params);
+
+  // isotope cluster for y-ions
+  t_gen.getSpectrum(spec, tmp_aa, 2, 2);
+  TEST_EQUAL(spec.size(), 8)
+
+  result = {
+    78.54206,
+    107.05279,
+    185.10335,
+    263.15390,
+
+    // 405: POS: 78.54256367545 INT: 0.921514272689819
+    // 405: POS: 107.0532957233 INT: 0.89608770608902
+    // 405: POS: 185.1038514147 INT: 0.824628114700317
+    // 405: POS: 263.1544071061 INT: 0.758867204189301
+    263.6529246061,
+    263.6560846061,
+    264.1565341061,
+    264.1577621061
+  };
+  std::sort(result.begin(), result.end());
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+  }
+
+  spec.clear(true);
+  params.setValue("isotope_model", "fine");
+  params.setValue("max_isotope", 2);
+  params.setValue("max_isotope_probability", 0.01);
+  params.setValue("add_b_ions", "false");
+  t_gen.setParameters(params);
+
+  // isotope cluster for y-ions
+  t_gen.getSpectrum(spec, tmp_aa, 2, 2);
+  // TEST_EQUAL(spec.size(), 34)
+
   // isotope cluster for losses
   spec.clear(true);
+  params.setValue("isotope_model", "coarse");
   params.setValue("add_losses", "true");
   params.setValue("add_b_ions", "false");
   t_gen.setParameters(params);
@@ -438,7 +669,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   double proton_shift = Constants::PROTON_MASS_U;
   // 10 monoisotopic peaks with charge=1, 10 second peaks, 20 with charge=2
-  double result_losses[] = { 156.07675, 213.09821, 325.18569, 327.17753, 352.17278, 369.19932, 481.28680, 483.27864, 508.27389, 525.30044,
+  std::vector<double> result_losses = { 156.07675, 213.09821, 325.18569, 327.17753, 352.17278, 369.19932, 481.28680, 483.27864, 508.27389, 525.30044,
 	   156.07675+neutron_shift, 213.09821+neutron_shift, 325.18569+neutron_shift, 327.17753+neutron_shift, 352.17278+neutron_shift, 369.19932+neutron_shift, 481.28680+neutron_shift, 483.27864+neutron_shift, 508.27389+neutron_shift, 525.30044+neutron_shift,
 	  (156.07675+proton_shift)/2, (213.09821+proton_shift)/2, (325.18569+proton_shift)/2, (327.17753+proton_shift)/2, (352.17278+proton_shift)/2, (369.19932+proton_shift)/2, (481.28680+proton_shift)/2, (483.27864+proton_shift)/2, (508.27389+proton_shift)/2, (525.30044+proton_shift)/2,
 	  (156.07675+proton_shift)/2+(neutron_shift/2), (213.09821+proton_shift)/2+(neutron_shift/2), (325.18569+proton_shift)/2+(neutron_shift/2), (327.17753+proton_shift)/2+(neutron_shift/2), (352.17278+proton_shift)/2+(neutron_shift/2),
@@ -448,16 +679,53 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     cerr <<  result_losses[i] << endl;
   }
 
-  std::sort(result_losses, result_losses+40);
+  std::sort(result_losses.begin(), result_losses.end());
   for (Size i = 0; i != spec.size(); ++i)
   {
     cerr << spec[i].getPosition()[0] << "\t" <<  result_losses[i] << endl;
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_losses[i])
   }
+  result_losses = { 0.927642, 0.0723581}; // check intensity
+  for (Size i = 0; i != 2; ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getIntensity(), result_losses[i])
+  }
 
-  // isotope cluster for precurser peaks with losses
+  // last two entries:
+  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 525.30044)
+  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 526.304)
+
+  spec.clear(true);
+  params.setValue("isotope_model", "fine");
+  params.setValue("max_isotope_probability", 0.05);
+  params.setValue("add_losses", "true");
+  params.setValue("add_b_ions", "false");
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(spec, tmp_aa, 1, 2);
+  TEST_EQUAL(spec.size(), 98)
+
+  result_losses = { 78.5426, 79.0411, 79.0442, 79.5447};
+  for (Size i = 0; i != 4; ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getMZ(), result_losses[i])
+  }
+  result_losses = { 0.921514, 0.0102111, 0.0598011, 0.00378741}; // check intensity
+  for (Size i = 0; i != 4; ++i)
+  {
+    TEST_REAL_SIMILAR(spec[i].getIntensity(), result_losses[i])
+  }
+
+  // last entries
+  TEST_REAL_SIMILAR( spec[ spec.size() -5 ].getMZ(), 525.301)
+  TEST_REAL_SIMILAR( spec[ spec.size() -4 ].getMZ(), 526.298)
+  TEST_REAL_SIMILAR( spec[ spec.size() -3 ].getMZ(), 526.304)
+  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 527.305)
+  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 527.308)
+
+  // isotope cluster for precursor peaks with losses
   spec.clear(true);
   params.setValue("add_precursor_peaks", "true");
+  params.setValue("isotope_model", "coarse");
   params.setValue("add_b_ions", "false");
   params.setValue("add_y_ions", "false");
 
@@ -465,17 +733,118 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
   TEST_EQUAL(spec.size(), 6)
 
-  // 3 monoisitopic peaks, 3 second peaks
-  double result_precursors[] = {(578.32698+proton_shift)/2, (579.31100+proton_shift)/2, (596.33755+proton_shift)/2,
-                                                  (578.32698+proton_shift)/2+(neutron_shift/2), (579.31100+proton_shift)/2+(neutron_shift/2), (596.33755+proton_shift)/2+(neutron_shift/2)};
+  // 3 monoisotopic peaks, 3 second peaks
+  double result_precursors[] = {
+    (578.32698+proton_shift)/2, 
+      (579.31100+proton_shift)/2, 
+        (596.33755+proton_shift)/2,
+
+    (578.32698+proton_shift)/2+(neutron_shift/2), 
+      (579.31100+proton_shift)/2+(neutron_shift/2), 
+        (596.33755+proton_shift)/2+(neutron_shift/2)};
+
   std::sort(result_precursors, result_precursors+6);
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result_precursors[i])
   }
+
+  spec.clear(true);
+  params.setValue("add_precursor_peaks", "true");
+  params.setValue("isotope_model", "fine");
+  params.setValue("add_b_ions", "false");
+  params.setValue("add_y_ions", "false");
+
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(spec, tmp_aa, 2, 2);
+  TEST_EQUAL(spec.size(), 16)
+
+  TEST_REAL_SIMILAR(spec[0].getMZ(), (578.32698+proton_shift)/2 )
+  TEST_REAL_SIMILAR(spec[1].getMZ(), (579.31100+proton_shift)/2 )
+  TEST_REAL_SIMILAR(spec[11].getMZ(), (596.33755+proton_shift)/2 )
 }
 END_SECTION
 
+START_SECTION(([EXTRA] test SpectrumAnnotator ))
+{
+  // use same params as SpectrumAnnotator
+  AASequence tmp_aa = AASequence::fromString("IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK");
+  PeakSpectrum tmp;
+  TheoreticalSpectrumGenerator t_gen;
+  Param tgp;
+  tgp.setValue("add_metainfo", "true");
+  tgp.setValue("add_losses", "true");
+  tgp.setValue("add_precursor_peaks", "true");
+  tgp.setValue("add_abundant_immonium_ions", "true");
+  tgp.setValue("add_first_prefix_ion", "true");
+  tgp.setValue("add_y_ions", "true");
+  tgp.setValue("add_b_ions", "true");
+  tgp.setValue("add_a_ions", "true");
+  tgp.setValue("add_x_ions", "true");
+  t_gen.setParameters(tgp);
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  TEST_EQUAL(tmp.size(), 465)
+
+  tmp.clear(true);
+  tgp.setValue("add_metainfo", "true");
+  tgp.setValue("add_losses", "true");
+  tgp.setValue("add_precursor_peaks", "false");
+  tgp.setValue("add_abundant_immonium_ions", "false");
+  tgp.setValue("add_first_prefix_ion", "false");
+  tgp.setValue("add_y_ions", "false");
+  tgp.setValue("add_b_ions", "false");
+  tgp.setValue("add_a_ions", "true");
+  tgp.setValue("add_x_ions", "false");
+  t_gen.setParameters(tgp);
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  TEST_EQUAL(tmp.size(), 121)
+
+  // for (Size k = 0; k < tmp.size(); k++)
+  // {
+  //   std::cout << tmp[k] << " -- " << tmp.getStringDataArrays()[0][k] << std::endl;
+  // }
+
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test first prefix loss))
+{
+  AASequence tmp_aa = AASequence::fromString("RDAGGPALKK");
+  PeakSpectrum tmp;
+  TheoreticalSpectrumGenerator t_gen;
+  Param params;
+
+  params.setValue("isotope_model", "none");
+  params.setValue("add_losses", "true");
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_a_ions", "true");
+  params.setValue("add_metainfo", "true");
+  t_gen.setParameters(params);
+
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  TEST_EQUAL(tmp.size(), 107)
+
+  auto anno = tmp.getStringDataArrays()[0];
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") != anno.end(), true)
+
+  // test without prefix ion (but still requires correct losses elsewhere)
+  tmp.clear(true);
+  params.setValue("add_first_prefix_ion", "false");
+  t_gen.setParameters(params);
+  t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
+  TEST_EQUAL(tmp_aa[0].hasNeutralLoss(), true)
+  TEST_EQUAL(tmp.size(), 99) // missing a1 and b1 ions as well as their losses -H3N1+ C1H2N2+ -C1H2N1O1+
+
+  anno = tmp.getStringDataArrays()[0];
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

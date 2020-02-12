@@ -235,6 +235,37 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 }
 END_SECTION
 
+START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const ))
+{
+  EmpiricalFormula ef ("C6H12O6");
+
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
+  }
+
+  ef.setCharge(2);
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
+  }
+}
+END_SECTION
+
 START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
 {
   {

@@ -294,13 +294,11 @@ protected:
               }
               else // just write the title as metainfo to the spectrum
               {
-                std::vector<String> split;
-                line.split('=', split);
-                if (split.size() == 2)
+                Size firstEqual = line.find('=', 4);
+                if (firstEqual != std::string::npos)
                 {
-                  if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                  spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
                 }
-                // TODO concatenate the other parts if the title contains additional '=' chars
               }
             }
           }

@@ -995,7 +995,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Info: reasons for not finalizing a feature during its construction:\n";
     for (const auto& reason : aborts_)
     {
-      OPENMS_LOG_INFO << " - " << reason.first << ": " << reason.second << '\n';
+      OPENMS_LOG_INFO << " - " << reason.first << ": " << reason.second << " times\n";
     }
 
     OPENMS_LOG_INFO << "\n" << features_->size() << " features found." << std::endl;

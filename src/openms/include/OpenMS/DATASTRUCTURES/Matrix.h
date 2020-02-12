@@ -363,6 +363,11 @@ public:
       }
     }
 
+    const Base& asVector()
+    {
+      return *this;
+    }
+
 protected:
 
     ///@name Data members

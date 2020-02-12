@@ -32,11 +32,9 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
-#include <include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
-
 
 using namespace std;
 namespace OpenMS
@@ -236,7 +234,7 @@ namespace OpenMS
         else
         {
           //check consistency and add origins
-          checkRunSettings_(*it, newProtIDs[newrunid], experiment_type);
+          it->peptideIDsMergeable(newProtIDs[newrunid], experiment_type);
           StringList toFill; it->getPrimaryMSRunPath(toFill); // new ones
           newProtIDs[newrunid].addPrimaryMSRunPath(toFill); //add to previous
         }
@@ -359,140 +357,20 @@ namespace OpenMS
   //TODO refactor the next two functions
   bool ConsensusMapMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const
   {
-    const String& engine = ref.getSearchEngine();
-    const String& version = ref.getSearchEngineVersion();
-    ProteinIdentification::SearchParameters params = ref.getSearchParameters();
-    set<String> fixed_mods(params.fixed_modifications.begin(), params.fixed_modifications.end());
-    set<String> var_mods(params.variable_modifications.begin(), params.variable_modifications.end());
-    bool ok = false;
-    unsigned runID = 0;
+    bool ok = true;
     for (const auto& idRun : protRuns)
     {
-      ok = true;
-      if (idRun.getSearchEngine() != engine || idRun.getSearchEngineVersion() != version)
-      {
-        ok = false;
-       OPENMS_LOG_WARN << "Search engine " + idRun.getSearchEngine() + "from IDRun " + String(runID) + " does not match "
-                                                                                                 "with the others. You probably do not want to merge the results with this tool.";
-        break;
-      }
-      const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
-      if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
-          params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-          params.db != sp.db ||
-          params.db_version != sp.db_version ||
-          params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
-          params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
-          params.charges != sp.charges ||
-          params.digestion_enzyme != sp.digestion_enzyme ||
-          params.taxonomy != sp.taxonomy)
-      {
-        ok = false;
-       OPENMS_LOG_WARN << "Searchengine settings from IDRun " + String(runID) + " does not match with the others."
-                                                                          " You probably do not want to merge the results with this tool if they differ significantly.";
-        break;
-      }
-
-      set<String> curr_fixed_mods(sp.fixed_modifications.begin(), sp.fixed_modifications.end());
-      set<String> curr_var_mods(sp.variable_modifications.begin(), sp.variable_modifications.end());
-      if (fixed_mods != curr_fixed_mods ||
-          var_mods != curr_var_mods)
-      {
-        if (experiment_type != "labeled_MS1")
-        {
-          ok = false;
-         OPENMS_LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
-                                                                                 " Since the experiment is not annotated as MS1-labeled you probably do not want to merge the results with this tool.";
-          break;
-        }
-        else
-        {
-          //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
-          //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
-          //TODO actually you would probably need an experimental design here, because
-          //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
-         OPENMS_LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
-                                                                                 " Although it seems to be an MS1-labeled experiment, check carefully that only non-labelling mods differ.";
-        }
-      }
+      // collect warnings and throw at the end if at least one failed
+      ok = ok && ref.peptideIDsMergeable(idRun, experiment_type);
     }
     if (!ok /*&& TODO and no force flag*/)
     {
-      throw Exception::BaseException(__FILE__,
+      throw Exception::MissingInformation(__FILE__,
                                      __LINE__,
                                      OPENMS_PRETTY_FUNCTION,
-                                     "InvalidData",
                                      "Search settings are not matching across IdentificationRuns. "
                                      "See warnings. Aborting..");
     }
-    return ok;
-  }
-
-  bool ConsensusMapMergerAlgorithm::checkRunSettings_(const ProteinIdentification& idRun, const ProteinIdentification& ref, const String& experiment_type) const
-  {
-    const String& warn = " You probably do not want to merge the results with this tool."
-                         " For merging searches with different engines/settings please use ConsensusID or PercolatorAdapter"
-                         " to create a comparable score.";
-    const String& engine = ref.getSearchEngine();
-    const String& version = ref.getSearchEngineVersion();
-    ProteinIdentification::SearchParameters params = ref.getSearchParameters();
-    set<String> fixed_mods(params.fixed_modifications.begin(), params.fixed_modifications.end());
-    set<String> var_mods(params.variable_modifications.begin(), params.variable_modifications.end());
-    bool ok = true;
-
-    if (idRun.getSearchEngine() != engine || idRun.getSearchEngineVersion() != version)
-    {
-      ok = false;
-     OPENMS_LOG_WARN << "Search engine " + idRun.getSearchEngine() + "from IDRun " + idRun.getIdentifier()
-      + " does not match with the others." + warn;
-    }
-    const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
-    if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
-        params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-        params.db != sp.db ||
-        params.db_version != sp.db_version ||
-        params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
-        params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
-        params.charges != sp.charges ||
-        params.digestion_enzyme != sp.digestion_enzyme ||
-        params.taxonomy != sp.taxonomy)
-    {
-      ok = false;
-     OPENMS_LOG_WARN << "Searchengine settings from IDRun " + idRun.getIdentifier() + " does not match with the others." + warn;
-    }
-
-    set<String> curr_fixed_mods(sp.fixed_modifications.begin(), sp.fixed_modifications.end());
-    set<String> curr_var_mods(sp.variable_modifications.begin(), sp.variable_modifications.end());
-    if (fixed_mods != curr_fixed_mods ||
-        var_mods != curr_var_mods)
-    {
-      if (experiment_type != "labeled_MS1")
-      {
-        ok = false;
-       OPENMS_LOG_WARN << "Used modification settings from IDRun " + idRun.getIdentifier() + " does not match with the others." + warn;
-      }
-      else
-      {
-        //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
-        //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
-        //TODO actually you would probably need an experimental design here, because
-        //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
-        //Or just ignore labelling mods during the check
-       OPENMS_LOG_WARN << "Used modification settings from IDRun " + idRun.getIdentifier() + " does not match with the others."
-        " Although it seems to be an MS1-labeled experiment, check carefully that only non-labelling mods differ.";
-      }
-    }
-
-    if (!ok /*&& TODO and no force flag*/)
-    {
-      throw Exception::BaseException(__FILE__,
-                                     __LINE__,
-                                     OPENMS_PRETTY_FUNCTION,
-                                     "InvalidData",
-                                     "Search settings are not matching across IdentificationRuns. "
-                                     "See warnings. Aborting..");
-    }
-    // TODO else merge as far as possible (mainly mods I guess)
     return ok;
   }
 } // namespace OpenMS
