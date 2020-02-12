@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Svetlana Kutuzova, Douglas McCloskey $
 // $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
  
@@ -36,6 +36,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS
@@ -62,20 +63,20 @@ public:
     /// Constructor
     FIAMSDataProcessor();
 
-    /// Default desctructor
+    /// Default destructor
     ~FIAMSDataProcessor() = default;
 
     /// Copy constructor
-    FIAMSDataProcessor(const FIAMSDataProcessor& cp);
+    FIAMSDataProcessor(const FIAMSDataProcessor& cp) = default;
 
     /// Assignment
-    FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp);
+    FIAMSDataProcessor& operator=(const FIAMSDataProcessor& fdp) = default;
 
     /**
       @brief Run the full analysis for the experiment for the given time interval
 
       The workflow steps are:
-      - the time axis of the experiment is cut to n_seconds
+      - the time axis of the experiment is cut to the interval from 0 to n_seconds
       - the spectra are summed into one along the time axis with the bin size determined by mz and instrument resolution
       - data is smoothed by applying the Savitzky-Golay filter
       - peaks are picked
@@ -91,27 +92,28 @@ public:
       @param output   [out] Output of the accurate mass search results
       @return a boolean indicating if the picked spectrum was loaded from the cached file
     */
-    bool run(const MSExperiment & experiment, const float & n_seconds, OpenMS::MzTab & output, const bool load_cached_spectrum = true);
+    bool run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum = true);
 
     /**
-      @brief Cut the time axis of the experiment up to @n_seconds
+      @brief Cut the time axis of the experiment from 0 to @n_seconds
 
       @param experiment  Input MSExperiment
       @param n_seconds Input number of seconds
       @param output   [out] Spectra with retention time less than @n_seconds
     */
-    void cutForTime(const MSExperiment & experiment, const float & n_seconds, std::vector<MSSpectrum> & output);
+    void cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output);
 
     /**
       @brief Sum the spectra with different retention times into one.
 
       The bin size for summing the intensities is defined as mz / (resolution*4) 
-      for all the mzs taken with the @bin_step defined in the parameters
+      for all the mzs taken with the @bin_step defined in the parameters.
+      Uses `SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
 
       @param input  Input vector of spectra
       @return a spectrum
     */
-    MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum> & input);
+    MSSpectrum mergeAlongTime(const std::vector<OpenMS::MSSpectrum>& input);
 
     /**
       @brief Pick peaks from the summed spectrum
@@ -119,41 +121,47 @@ public:
       @param input  Input vector of spectra
       @return a spectrum with picked peaks
     */
-    MSSpectrum extractPeaks(const MSSpectrum & input);
+    MSSpectrum extractPeaks(const MSSpectrum& input);
 
     /**
       @brief Convert a spectrum to a feature map with the corresponding polarity
 
+      Applies `SavitzkyGolayFilter` and `PeakPickerHiRes`
+
       @param input  Input a picked spectrum
       @return a feature map with the peaks converted to features and polarity from the parameters
     */
-    FeatureMap convertToFeatureMap(const MSSpectrum & input);
+    FeatureMap convertToFeatureMap(const MSSpectrum& input);
 
     /**
       @brief Estimate noise for each peak
 
+      Uses `SignalToNoiseEstimatorMedianRapid`
+
       @param input  Input a picked spectrum
       @return a spectrum object storing logSN information
     */
-    MSSpectrum trackNoise(const MSSpectrum & input);
+    MSSpectrum trackNoise(const MSSpectrum& input);
 
     /**
       @brief Perform accurate mass search
 
+      Uses `AccurateMassSearchEngine`
+
       @param input  Input a feature map
       @param output  [out] mzTab file with the accurate mass search results
     */
-    void runAccurateMassSearch(FeatureMap & input, OpenMS::MzTab & output);
+    void runAccurateMassSearch(FeatureMap& input, OpenMS::MzTab& output);
 
     /**
       @brief Get mass-to-charge ratios to base the summing the spectra along the time axis upon
     */
-    const std::vector<float> getMZs();
+    const std::vector<float>& getMZs();
 
     /**
       @brief Get the sliding bin sizes for summing the spectra along the time axis
     */
-    const std::vector<float> getBinSizes();
+    const std::vector<float>& getBinSizes();
 
 protected:
     void updateMembers_() override;
@@ -162,7 +170,7 @@ private:
     /**
       @brief Store the spectrum to the given filepath
     */
-    void storeSpectrum_(const MSSpectrum & input, String filename);
+    void storeSpectrum_(const MSSpectrum& input, String filename);
 
     std::vector<float> mzs_; 
     std::vector<float> bin_sizes_;

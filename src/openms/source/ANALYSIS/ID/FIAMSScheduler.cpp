@@ -28,14 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Svetlana Kutuzova, Douglas McCloskey $
 // $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSScheduler.h>
 
-#include <boost/algorithm/string.hpp>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -54,16 +53,6 @@ namespace OpenMS {
     samples_()
   {
   loadSamples_();
-  }
-
-  /// assignment operator
-  FIAMSScheduler& FIAMSScheduler::operator=(const FIAMSScheduler& rhs) {
-    if (this == &rhs) return *this;
-    filename_ = rhs.filename_;
-    base_dir_ = rhs.base_dir_;
-    load_cached_ = rhs.load_cached_;
-    samples_ = rhs.samples_;
-    return *this;
   }
 
   void FIAMSScheduler::loadSamples_() {
@@ -102,8 +91,8 @@ namespace OpenMS {
 
       String time = samples_[i].at("time");
       std::vector<String> times;
-      boost::split(times, time, boost::is_any_of(";"));
-      for (size_t j = 0; j < times.size(); ++j) {
+      time.split(";", times);
+      for (Size j = 0; j < times.size(); ++j) {
         OPENMS_LOG_INFO << "Started " << samples_[i].at("filename") << " for " << times[j] << " seconds" << std::endl;
         MzTab mztab_output;
         fia_processor.run(exp, std::stof(times[j]), mztab_output, load_cached_);
@@ -112,11 +101,11 @@ namespace OpenMS {
     }
   }
 
-  const std::vector<std::map<String, String>> FIAMSScheduler::getSamples() {
+  const std::vector<std::map<String, String>>& FIAMSScheduler::getSamples() {
     return samples_;
   }
 
-  const String FIAMSScheduler::getBaseDir() {
+  const String& FIAMSScheduler::getBaseDir() {
     return base_dir_;
   }
 }

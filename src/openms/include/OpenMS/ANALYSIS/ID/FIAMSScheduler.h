@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Svetlana Kutuzova, Douglas McCloskey $
 // $Authors: Svetlana Kutuzova, Douglas McCloskey $
 // --------------------------------------------------------------------------
  
@@ -39,6 +39,7 @@
 
 namespace OpenMS
 {
+class MzMLFile;
 /*
     @brief Scheduler for FIA-MS data batches. Works with FIAMSDataProcessor.
 
@@ -71,7 +72,7 @@ public:
     FIAMSScheduler(const FIAMSScheduler& cp) = default;
 
     /// Assignment
-    FIAMSScheduler& operator=(const FIAMSScheduler& fdp);
+    FIAMSScheduler& operator=(const FIAMSScheduler& fdp) = default;
 
     /**
       @brief Run the FIA-MS data analysis for the batch defined in the @filename_
@@ -81,12 +82,12 @@ public:
     /**
       @brief Get the batch
     */
-    const std::vector<std::map<String, String>> getSamples();
+    const std::vector<std::map<String, String>>& getSamples();
 
     /**
       @brief Get the base directory for the relevant paths from the csv file
     */
-    const String getBaseDir();
+    const String& getBaseDir();
 
 private:
     /**
