@@ -5,6 +5,7 @@ from SavitzkyGolayFilter cimport *
 from PeakPickerHiRes cimport *
 from MzTab cimport *
 from MzMLFile cimport *
+from FeatureMapping cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
 

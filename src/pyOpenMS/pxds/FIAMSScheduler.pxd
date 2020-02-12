@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp cimport bool
 from libcpp.map cimport map as libcpp_map
 from libcpp.vector cimport vector as libcpp_vector
-from CsvFile cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
 
