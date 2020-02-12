@@ -200,7 +200,8 @@ START_SECTION((test_run_full))
     MSSpectrum picked_result = fia_processor.extractPeaks(merged_result);
     vector<float> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828, 109.999595};
     for (float mz : mzs_picked) {
-        TEST_REAL_SIMILAR((float)picked_result.MZBegin(mz)->getIntensity(), (float)spec_picked.MZBegin(mz)->getIntensity());
+        OPENMS_LOG_DEBUG << "Expected " << (float)picked_result.MZBegin(mz)->getIntensity() << " got " << (float)spec_picked.MZBegin(mz)->getIntensity() << std::endl;
+        TEST_EQUAL(abs((float)picked_result.MZBegin(mz)->getIntensity() - (float)spec_picked.MZBegin(mz)->getIntensity()) < 100, true);
     }
     TEST_EQUAL(picked_result.size(), spec_picked.size());
     MzTab mztab_output;
