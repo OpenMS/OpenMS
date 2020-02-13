@@ -119,6 +119,8 @@ protected:
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
+      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);
+                             
 
       // Isotope label type
       registerFlag_(param_labeled_reference_peptides,

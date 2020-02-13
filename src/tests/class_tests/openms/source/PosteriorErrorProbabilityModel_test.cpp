@@ -113,7 +113,7 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 	param.setValue("number_of_bins", 10);
 	param.setValue("incorrectly_assigned","Gauss");
 	ptr->setParameters(param);
-	ptr->fit(rand_score_vector, probabilities);
+	ptr->fit(rand_score_vector, probabilities, "none");
 	
 	Size i(0),j(1);
 	TOLERANCE_ABSOLUTE(0.5)
@@ -174,7 +174,7 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 	param.setValue("incorrectly_assigned","Gumbel");
 
 	ptr->setParameters(param);
-	ptr->fit(score_vector, probabilities);
+	ptr->fit(score_vector, probabilities, "none");
 	
 	Size i(0),j(1);
 	TOLERANCE_ABSOLUTE(0.5)
@@ -297,7 +297,7 @@ END_SECTION
           param.setValue("number_of_bins", 10);
           param.setValue("incorrectly_assigned","Gumbel");
           ptr->setParameters(param);
-          ptr->fitGumbelGauss(rand_score_vector);
+          ptr->fitGumbelGauss(rand_score_vector, "none");
           double smallest = ptr->getSmallestScore();
 
           TOLERANCE_ABSOLUTE(0.5)
