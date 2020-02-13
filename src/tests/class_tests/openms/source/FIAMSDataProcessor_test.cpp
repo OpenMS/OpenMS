@@ -193,13 +193,13 @@ START_SECTION((test_run_full))
     vector<MSSpectrum> spec_vec;
     fia_processor.cutForTime(exp, 1000, spec_vec);
     MSSpectrum merged_result = fia_processor.mergeAlongTime(spec_vec);
-    vector<float> mzs {109.951239, 109.962281, 109.986031, 109.999156};
-    for (float mz : mzs) {
+    vector<double> mzs {109.951239, 109.962281, 109.986031, 109.999156};
+    for (double mz : mzs) {
         TEST_REAL_SIMILAR(merged_result.MZBegin(mz)->getIntensity(), spec_merged.MZBegin(mz)->getIntensity());
     }
     MSSpectrum picked_result = fia_processor.extractPeaks(merged_result);
-    vector<float> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828};
-    for (float mz : mzs_picked) {
+    vector<double> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828};
+    for (double mz : mzs_picked) {
         TEST_EQUAL(picked_result.MZBegin(mz)->getIntensity(), spec_picked.MZBegin(mz)->getIntensity());
     }
     TEST_EQUAL(picked_result.size(), spec_picked.size());

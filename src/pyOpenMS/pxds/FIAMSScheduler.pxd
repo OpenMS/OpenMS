@@ -15,6 +15,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSScheduler.h>" namespace "OpenMS":
         FIAMSScheduler(FIAMSScheduler) nogil except +
         FIAMSScheduler(String filename, String base_dir, bool load_cached_) nogil except +
         void run() nogil except +
-        libcpp_vector[ libcpp_map[ String, String ] ] getSamples() nogil except +
+        # libcpp_vector[ libcpp_map[ String, String ] ] getSamples() nogil except +
         String getBaseDir() nogil except +
 
