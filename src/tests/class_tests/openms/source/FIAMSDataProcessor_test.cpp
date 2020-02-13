@@ -167,7 +167,7 @@ END_SECTION
 START_SECTION((test_run_cached))
 {
     MzTab mztab_output_30;
-    bool is_cached_before = fia_processor.run(exp, 30, mztab_output_30);
+    fia_processor.run(exp, 30, mztab_output_30);
     String filename_30 = "SerumTest_merged_30.mzML";
     TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
     bool is_cached_after = fia_processor.run(exp, 30, mztab_output_30);
@@ -198,10 +198,9 @@ START_SECTION((test_run_full))
         TEST_REAL_SIMILAR(merged_result.MZBegin(mz)->getIntensity(), spec_merged.MZBegin(mz)->getIntensity());
     }
     MSSpectrum picked_result = fia_processor.extractPeaks(merged_result);
-    vector<float> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828, 109.999595};
+    vector<float> mzs_picked {109.951246, 109.957552, 109.959885, 109.961982, 109.982828};
     for (float mz : mzs_picked) {
-        OPENMS_LOG_DEBUG << "Expected " << (float)picked_result.MZBegin(mz)->getIntensity() << " got " << (float)spec_picked.MZBegin(mz)->getIntensity() << std::endl;
-        TEST_EQUAL(abs((float)picked_result.MZBegin(mz)->getIntensity() - (float)spec_picked.MZBegin(mz)->getIntensity()) < 100, true);
+        TEST_EQUAL(picked_result.MZBegin(mz)->getIntensity(), spec_picked.MZBegin(mz)->getIntensity());
     }
     TEST_EQUAL(picked_result.size(), spec_picked.size());
     MzTab mztab_output;
