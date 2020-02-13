@@ -504,6 +504,7 @@ set(analysis_executables_list
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
+  MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test
