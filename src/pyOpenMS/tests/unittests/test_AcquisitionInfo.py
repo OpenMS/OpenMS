@@ -28,7 +28,7 @@ class TestAcquisitionInfo(unittest.TestCase):
 		self.assertEqual(exp[0].getAcquisitionInfo()[0].getMetaValue('key'), 420)  # should be 420
 
 		acin = pyopenms.Acquisition()
-		acin.setMetaValue('key#, 42)
+		acin.setMetaValue('key', 42)
 		self.assertEqual(acin.getMetaValue('key'), 42)  # is 42
 		self.assertEqual(acin.isMetaEmpty(), False)  # is False
 
