@@ -24,9 +24,11 @@ class TestAcquisitionInfo(unittest.TestCase):
 		exp[0].getAcquisitionInfo().size()  # is 1
 		self.assertEqual(exp[0].getAcquisitionInfo()[0].isMetaEmpty(), True)  # is True
 
-		tmp = exp.getSpectra()
-		tmp[0].getAcquisitionInfo()[0].setMetaValue('key', 420)
-		exp.setSpectra(tmp)
+		spectra = exp.getSpectra()
+		aqi = spectra[0].getAcquisitionInfo()
+		aqi[0].setMetaValue('key', 420)
+		spectra[0].setAquisitionInfo(aqi)
+		exp.setSpectra(spectra)
 		self.assertEqual(exp[0].getAcquisitionInfo()[0].getMetaValue('key'), 420)  # should be 420
 
 		acin = pyopenms.Acquisition()
