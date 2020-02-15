@@ -134,7 +134,7 @@ public:
     /// numeric types should be converted to String first to make use
     /// of StringConversion
     template<typename T>
-    SVOutStream& operator<<(const typename std::enable_if<std::is_arithmetic<T>::value, T>::type value)
+    typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value, SVOutStream&>::type operator<<(const T& value)
     {
       if (!newline_) static_cast<std::ostream&>(*this) << sep_;
       else newline_ = false;
@@ -144,7 +144,7 @@ public:
 
     /// Generic stream output operator (for non-character-based types)
     template<typename T>
-    SVOutStream& operator<<(const T& value)
+    typename std::enable_if<!std::is_arithmetic<typename std::remove_reference<T>::type>::value, SVOutStream&>::type operator<<(const T& value)
     {
       if (!newline_)
         static_cast<std::ostream &>(*this) << sep_;
