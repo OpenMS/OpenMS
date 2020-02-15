@@ -27,7 +27,7 @@ class TestAcquisitionInfo(unittest.TestCase):
 		spectra = exp.getSpectra()
 		aqi = spectra[0].getAcquisitionInfo()
 		aqi[0].setMetaValue('key', 420)
-		spectra[0].setAquisitionInfo(aqi)
+		spectra[0].setAcquisitionInfo(aqi)
 		exp.setSpectra(spectra)
 		self.assertEqual(exp[0].getAcquisitionInfo()[0].getMetaValue('key'), 420)  # should be 420
 
