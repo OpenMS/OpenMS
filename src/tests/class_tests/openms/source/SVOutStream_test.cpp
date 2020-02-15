@@ -74,7 +74,9 @@ START_SECTION((template <typename T> SVOutStream& operator<<(const T& value)))
   out << 456 << endl;
   // different cases for Unix/Windows:
   TEST_EQUAL((strstr.str() == "123,3.14,-1.23e+45\n456\n") ||
-             (strstr.str() == "123,3.14,-1.23e+045\n456\n"), true);
+             (strstr.str() == "123,3.14,-1.23e+045\n456\n") ||
+             (strstr.str() == "123,3.14,-1.23e45\n456\n"), true)
+  std::cout << strstr.str() << std::endl;
 }
 {
   stringstream strstr;
@@ -83,6 +85,7 @@ START_SECTION((template <typename T> SVOutStream& operator<<(const T& value)))
   out << 456 << nl;
   // different cases for Unix/Windows:
   TEST_EQUAL((strstr.str() == "123_/_3.14_/_-1.23e+45\n456\n") ||
+                 (strstr.str() == "123_/_3.14_/_-1.23e45\n456\n") ||
              (strstr.str() == "123_/_3.14_/_-1.23e+045\n456\n"), true);
 }
 END_SECTION

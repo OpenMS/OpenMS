@@ -215,6 +215,15 @@ START_SECTION((String(float f, bool full_precision = true)))
   TEST_EQUAL(s2, "17.012")
 END_SECTION
 
+START_SECTION((String(float f)))
+  float f = 50254.199219;
+  double d = f;
+  String s(f);
+  TEST_EQUAL(s,"50254.199219")
+  String s2(d);
+  TEST_EQUAL(s2, "50254.19921875")
+END_SECTION
+
 START_SECTION((String(double d, bool full_precision = true)))
   String s(double(17.012345));
   TEST_EQUAL(s,"17.012345")

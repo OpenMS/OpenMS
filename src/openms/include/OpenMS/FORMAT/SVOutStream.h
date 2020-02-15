@@ -131,15 +131,28 @@ public:
     */
     SVOutStream& operator<<(enum Newline);
 
-    /// Generic stream output operator (for non-character-based types)
-    template <typename T>
-    SVOutStream& operator<<(const T& value)
+    /// numeric types should be converted to String first to make use
+    /// of StringConversion
+    template<typename T>
+    SVOutStream& operator<<(const typename std::enable_if<std::is_arithmetic<T>::value, T>::type value)
     {
       if (!newline_) static_cast<std::ostream&>(*this) << sep_;
       else newline_ = false;
-      static_cast<std::ostream&>(*this) << value;
+      static_cast<std::ostream&>(*this) << String(value);
       return *this;
-    }
+    };
+
+    /// Generic stream output operator (for non-character-based types)
+    template<typename T>
+    SVOutStream& operator<<(const T& value)
+    {
+      if (!newline_)
+        static_cast<std::ostream &>(*this) << sep_;
+      else
+        newline_ = false;
+      static_cast<std::ostream &>(*this) << value;
+      return *this;
+    };
 
     /// Unformatted output (no quoting: useful for comments, but use only on a line of its own!)
     SVOutStream& write(const String& str);   // write unmodified string
