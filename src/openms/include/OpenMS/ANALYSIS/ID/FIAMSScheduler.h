@@ -58,6 +58,8 @@ class MzMLFile;
 class OPENMS_DLLAPI FIAMSScheduler 
   {
 public:
+    FIAMSScheduler() = default;
+
     /// Default constructor
     FIAMSScheduler(
       String filename,
