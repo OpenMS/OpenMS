@@ -1,6 +1,6 @@
 qrc_resources.cxx
 DartConfiguration.tcl
-/*.cmake
+/**/*.cmake
 Testing
 CMakeCache.txt
 CMakeFiles
