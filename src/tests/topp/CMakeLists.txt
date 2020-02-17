@@ -809,6 +809,11 @@ set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRT
 
 
 #------------------------------------------------------------------------------
+# IDMassAccuracy tests
+add_test("TOPP_IDMassAccuracy_1" ${TOPP_BIN_PATH}/IDMassAccuracy -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -number_of_bins 10 -out_fragment IDMassAccuracy_1_out_fragment.tsv -out_fragment_fit IDMassAccuracy_1_out_fragment_fit.tsv -out_precursor IDMassAccuracy_1_out_precursor.tsv -out_precursor_fit IDMassAccuracy_1_out_precursor_fit.tsv)
+# Currently just testing if the tool runs
+
+#------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
 add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp)
 add_test("TOPP_IsobaricAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
@@ -1125,6 +1130,24 @@ add_test("TOPP_MapAlignerSpectrum_1_out2" ${DIFF} -whitelist ${INDEX_WHITELIST} 
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out2" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
 add_test("TOPP_MapAlignerSpectrum_1_out3" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerSpectrum_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output3.mzML )
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out3" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
+
+#------------------------------------------------------------------------------
+# MapAlignerTreeGuided tests:
+add_test("TOPP_MapAlignerTreeGuided_1" ${TOPP_BIN_PATH}/MapAlignerTreeGuided -test -ini ${DATA_DIR_TOPP}/MapAlignerTreeGuided_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input3.featureXML -out MapAlignerTreeGuided_1_output1.tmp MapAlignerTreeGuided_1_output2.tmp MapAlignerTreeGuided_1_output3.tmp)
+add_test("TOPP_MapAlignerTreeGuided_1_out1" ${DIFF} -in1 MapAlignerTreeGuided_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1")
+add_test("TOPP_MapAlignerTreeGuided_1_out2" ${DIFF} -in1 MapAlignerTreeGuided_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out2" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1")
+add_test("TOPP_MapAlignerTreeGuided_1_out3" ${DIFF} -in1 MapAlignerTreeGuided_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output3.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out3" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1")
+# trafoXML output:
+add_test("TOPP_MapAlignerTreeGuided_2" ${TOPP_BIN_PATH}/MapAlignerTreeGuided -test -ini ${DATA_DIR_TOPP}/MapAlignerTreeGuided_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input3.featureXML -trafo_out MapAlignerTreeGuided_2_output1.tmp MapAlignerTreeGuided_2_output2.tmp MapAlignerTreeGuided_2_output3.tmp)
+add_test("TOPP_MapAlignerTreeGuided_2_out1" ${DIFF} -in1 MapAlignerTreeGuided_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output1.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out1" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2")
+add_test("TOPP_MapAlignerTreeGuided_2_out2" ${DIFF} -in1 MapAlignerTreeGuided_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output2.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out2" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2")
+add_test("TOPP_MapAlignerTreeGuided_2_out3" ${DIFF} -in1 MapAlignerTreeGuided_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output3.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out3" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2")
 
 #------------------------------------------------------------------------------
 # MapRTTransformer tests

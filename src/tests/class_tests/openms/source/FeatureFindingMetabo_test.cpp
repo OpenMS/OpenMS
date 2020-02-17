@@ -119,6 +119,14 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
     FeatureXMLFile().store(tmp_file, test_fm);
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);
 
+    //todo the new isotope m/z scoring should produce similar results, but still has to be tested.
+    p.setValue("report_convex_hulls", "true");
+    p.setValue("mz_scoring_by_elements", "true");
+    test_ffm.setParameters(p);
+    test_ffm.run(splitted_mt, test_fm, chromatograms);
+    TEST_EQUAL(test_fm.size(), 80);
+    // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
+
 }
 END_SECTION
 

@@ -352,7 +352,7 @@ const String TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass = 
 const String TOPPSpectraSTSearchAdapter::param_use_all_charge_states = "use_all_charge_states";
 const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
-const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
+const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,tsv,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
 
 // the actual main function needed to create an executable
