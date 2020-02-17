@@ -325,14 +325,14 @@ protected:
     // store chromatograms
     if (!out_chrom.empty())
     {
-        if (feat_chromatograms.size() == feat_map.size())
+      if (feat_chromatograms.size() == feat_map.size())
         {
           MSExperiment out_exp;
             for (Size i = 0; i < feat_chromatograms.size(); ++i)
             {
                 for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
                 {
-                    out_exp.addChromatogram(feat_chromatograms[i][j]);
+                  out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
           MzMLFile().store(out_chrom, out_exp);
