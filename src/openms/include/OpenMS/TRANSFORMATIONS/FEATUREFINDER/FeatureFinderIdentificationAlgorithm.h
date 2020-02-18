@@ -278,10 +278,8 @@ protected:
     using diff_t = std::ptrdiff_t;
 
     /* Total item number and batch_size size. */
-    const diff_t total
-        { distance(range_from,range_to) };
-    const diff_t num
-        {total / batch_size };
+    const diff_t total {distance(range_from,range_to)};
+    const diff_t num {total / batch_size};
 
     vector<pair<It,It>> chunks(num);
 
