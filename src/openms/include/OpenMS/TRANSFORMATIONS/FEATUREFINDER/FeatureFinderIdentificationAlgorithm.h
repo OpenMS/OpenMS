@@ -278,15 +278,15 @@ protected:
     using diff_t = std::ptrdiff_t;
 
     /* Total item number and batch_size size. */
-    const diff_t total {distance(range_from,range_to)};
+    const diff_t total {distance(range_from, range_to)};
     const diff_t num {total / batch_size};
 
     vector<pair<It,It>> chunks(num);
 
-    It batch_end {range_from };
+    It batch_end {range_from};
 
-    /* Use the 'generate' algorithm to create portions. */
-    std::generate(begin(chunks),end(chunks),[&batch_end,batch_size]()
+    /* Use the 'generate' algorithm to create batches. */
+    std::generate(begin(chunks), end(chunks), [&batch_end, batch_size]()
     {
       It batch_start {batch_end };
 
@@ -306,7 +306,7 @@ protected:
 
     return chunks;
   }
-  };
+};
 
 } // namespace OpenMS
 
