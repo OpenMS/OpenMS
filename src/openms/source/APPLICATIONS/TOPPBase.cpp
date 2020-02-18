@@ -1330,7 +1330,6 @@ namespace OpenMS
 
       case ParameterInformation::OUTPUT_FILE:
       {
-        outputFileWritable_(param_value, param_name);
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
