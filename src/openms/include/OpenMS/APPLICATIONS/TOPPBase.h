@@ -408,7 +408,7 @@ protected:
     /**
       @name Parameter handling
 
-      Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerDoubleOption_,
+      Use the methods registerStringOption_, registerInputFile_, registerOutputFile_, registerOutputPrefix_, registerDoubleOption_,
       registerIntOption_ and registerFlag_ in order to register parameters in registerOptionsAndFlags_.
 
       To access the values of registered parameters in the main_ method use methods
@@ -513,6 +513,21 @@ protected:
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
     */
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
+
+    /**
+      @brief Registers an output file prefix.
+
+      Output files behave like string options,
+      when the option is accessed in the TOPP tool.
+
+      @param name Name of the option in the command line and the INI file
+      @param argument Argument description text for the help output
+      @param default_value Default argument
+      @param description Description of the parameter. Indentation of newline is done automatically.
+      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+    */
+    void registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
       @brief Sets the formats for a input/output file option or for all members of an input/output file lists
