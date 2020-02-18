@@ -357,22 +357,25 @@ namespace OpenMS
         SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
     auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
 
-
     PeptideRefRTMap ref_rt_map;
+    if (debug_level_ >= 666)
+    {
+      // Warning: this step is pretty inefficient, since it does the whole library generation twice
+      // Really use for debug only
+      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map);
+      cout << "Writing debug.traml file." << endl;
+      TraMLFile().store("debug.traml", library_);
+      ref_rt_map.clear();
+    }
+
     for (auto& chunk : chunks)
     {
 
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
 
-      /*if (debug_level_ >= 666)
-      {
-        cout << "Writing debug.traml file." << endl;
-        TraMLFile().store("debug.traml", library_);
-      }*/
-
-        //-------------------------------------------------------------
-        // run feature detection
-        //-------------------------------------------------------------
+      //-------------------------------------------------------------
+      // run feature detection
+      //-------------------------------------------------------------
       OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
@@ -405,10 +408,10 @@ namespace OpenMS
       chrom_data_.clear(true);
       library_.clear(true);
     }
+
     ms_data_.reset(); // not needed anymore, free up the memory
     // complete feature annotation:
     annotateFeatures_(features, ref_rt_map);
-
 
     // sort everything:
     sort(features.getUnassignedPeptideIdentifications().begin(),
