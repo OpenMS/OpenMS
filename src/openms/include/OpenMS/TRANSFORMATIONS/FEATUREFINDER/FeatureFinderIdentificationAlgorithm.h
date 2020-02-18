@@ -264,9 +264,11 @@ protected:
 
   void calculateFDR_(FeatureMap& features);
 
+  /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
+  /// Last batch might be smaller.
   template <typename It>
   std::vector<std::pair<It,It>>
-  chunk_(It range_from, It range_to, const std::ptrdiff_t portion)
+  chunk_(It range_from, It range_to, const std::ptrdiff_t batch_size)
   {
     /* Aliases, to make the rest of the code more readable. */
     using std::vector;
@@ -275,26 +277,26 @@ protected:
     using std::distance;
     using diff_t = std::ptrdiff_t;
 
-    /* Total item number and portion size. */
+    /* Total item number and batch_size size. */
     const diff_t total
         { distance(range_from,range_to) };
     const diff_t num
-        { total / portion };
+        {total / batch_size };
 
     vector<pair<It,It>> chunks(num);
 
-    It portion_end { range_from };
+    It batch_end {range_from };
 
     /* Use the 'generate' algorithm to create portions. */
-    std::generate(begin(chunks),end(chunks),[&portion_end,portion]()
+    std::generate(begin(chunks),end(chunks),[&batch_end,batch_size]()
     {
-      It portion_start { portion_end };
+      It batch_start {batch_end };
 
-      std::advance(portion_end, portion);
-      return make_pair(portion_start,portion_end);
+      std::advance(batch_end, batch_size);
+      return make_pair(batch_start, batch_end);
     });
 
-    /* The last portion's end must always be 'range_to'. */
+    /* The last batch_size's end must always be 'range_to'. */
     if (chunks.empty())
     {
       chunks.emplace_back(range_from, range_to);
