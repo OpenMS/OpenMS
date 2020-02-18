@@ -994,7 +994,7 @@ protected:
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick_validation")) arguments << "-x";
       if (getFlag_("post_processing_tdc")) arguments << "-Y";
-      if (getFlag_("train_best_positive")) arguments << "--train_best_positive";
+      if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init_weights");
