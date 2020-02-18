@@ -72,8 +72,8 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("debug", 0);
 
-    defaults_.setValue("extract:batch_size", 1000, "Nr of peptides for which chromatograms are extracted at the same time."
-                       " Affects memory consumption positively but runtime negatively.");
+    defaults_.setValue("extract:batch_size", 1000, "Nr of peptides used in each batch of chromatogram extraction."
+                         " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
