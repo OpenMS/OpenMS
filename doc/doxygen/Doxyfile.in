@@ -346,8 +346,8 @@ EXTENSION_MAPPING      =
 # mix doxygen, HTML, and XML commands with Markdown formatting. Disable only in
 # case of backward compatibilities issues.
 # The default value is: YES.
-
-MARKDOWN_SUPPORT       = YES
+## --> this still needs some work from our side, since indentation of doxygen snippets must be carefully checked
+MARKDOWN_SUPPORT       = NO
 
 # When the TOC_INCLUDE_HEADINGS tag is set to a non-zero value, all headings up
 # to that level are automatically included in the table of contents, even if

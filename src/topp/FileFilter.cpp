@@ -63,69 +63,68 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FileFilter FileFilter
+@page TOPP_FileFilter FileFilter
 
-    @brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
+@brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
 <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
-        </tr>
+<table>
+    <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
+    </tr>
 
-    </table>
+</table>
 </center>
-    With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
-    and to write all data that lies within the given ranges to an output file.
+With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
+and to write all data that lies within the given ranges to an output file.
 
-    Depending on the input file type, additional specific operations are possible:
-    - mzML
-        - extract spectra of a certain MS level
-        - filter by signal-to-noise estimation
-        - filter by scan mode of the spectra
-        - filter by scan polarity of the spectra
-    - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
-    - featureXML
-        - filter by feature charge
-        - filter by feature size (number of subordinate features)
-        - filter by overall feature quality
-    - consensusXML
-        - filter by size (number of elements in consensus features)
-        - filter by consensus feature charge
-        - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
-    - featureXML / consensusXML:
-    - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
-        - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
-        - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
-        - remove features with annotations
-        - remove features without annotations
-        - remove unassigned peptide identifications
-        - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
-        - remove features with id clashes (different sequences mapped to one feature)
+Depending on the input file type, additional specific operations are possible:
+- mzML
+    - extract spectra of a certain MS level
+    - filter by signal-to-noise estimation
+    - filter by scan mode of the spectra
+    - filter by scan polarity of the spectra
+- remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
+- featureXML
+    - filter by feature charge
+    - filter by feature size (number of subordinate features)
+    - filter by overall feature quality
+- consensusXML
+    - filter by size (number of elements in consensus features)
+    - filter by consensus feature charge
+    - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
+- featureXML / consensusXML:
+- remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
+    - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
+    - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
+    - remove features with annotations
+    - remove features without annotations
+    - remove unassigned peptide identifications
+    - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
+    - remove features with id clashes (different sequences mapped to one feature)
 
-    The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
-    MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
-    @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
+@note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FileFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FileFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileFilter.html
 
-    For the parameters of the S/N algorithm section see the class documentation there: @n
-        @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+For the parameters of the S/N algorithm section see the class documentation there: @n
+    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
-    @todo add tests for selecting modes (port remove modes) (Andreas)
 */
 
 // We do not want this class to show up in the docu:

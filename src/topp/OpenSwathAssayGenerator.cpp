@@ -69,7 +69,7 @@ using namespace OpenMS;
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator  </td>
           </tr>
       </table>
@@ -100,6 +100,7 @@ using namespace OpenMS;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
 class TOPPOpenSwathAssayGenerator :
   public TOPPBase
 {

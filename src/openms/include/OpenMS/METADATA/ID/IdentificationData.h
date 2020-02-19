@@ -486,7 +486,7 @@ namespace OpenMS
                              MoleculeType expected_type) const;
 
     /**
-      @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding processing steps to elements in a @em boost::multi_index_container structure
 
       The validity of the processing step reference cannot be checked here!
     */
@@ -507,7 +507,7 @@ namespace OpenMS
     };
 
     /**
-      @brief Helper functor for adding scores to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding scores to elements in a @em boost::multi_index_container structure
 
       The validity of the score type reference cannot be checked here!
     */
@@ -537,7 +537,7 @@ namespace OpenMS
     };
 
     /**
-      @brief Helper functor for removing invalid parent matches from elements in a @t boost::multi_index_container structure
+      @brief Helper functor for removing invalid parent matches from elements in a @em boost::multi_index_container structure
 
       Used during filtering, to update parent matches after parents have been removed.
     */

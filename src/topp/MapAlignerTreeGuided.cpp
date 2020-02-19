@@ -50,10 +50,20 @@ using namespace std;
 
 @brief Corrects retention time distortions between maps, using information from peptides identified in different maps.
 
-
-potential predecessor tools                                              | -> MapAlignerTreeGuided -> | potential successor tools
------------------------------------------------------------------------- | -------------------------- | -------------------------
-@ref TOPP_IDMapper @n (or any other source of FDR-filtered featureXMLs)  | ^                          | @ref TOPP_FeatureLinkerUnlabeledKD or @n @ref TOPP_FeatureLinkerUnlabeledQT 
+<CENTER>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+            <td VALIGN= "middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerTreeGuided \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper @n (or any other source of FDR-filtered
+featureXMLs) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeledKD or @n @ref TOPP_FeatureLinkerUnlabeledQT </td>
+        </tr>
+    </table>
+</CENTER>
 
 
 This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and

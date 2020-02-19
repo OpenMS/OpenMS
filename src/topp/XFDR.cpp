@@ -42,9 +42,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
-// #include <string>
-// #include <cmath>
-
 #include <cassert>
 
 using namespace OpenMS;
@@ -55,7 +52,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XFDR XFDR
+    @page UTILS_XFDR XFDR
 
     @brief Calculates false discovery rate estimates on crosslink identifications.
 
@@ -72,21 +69,21 @@ using namespace std;
                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
             </tr>
             <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenPepXL </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenPepXLLF </td>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-            </tr>
-            <tr>
             </tr>
         </table>
     </center>
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_XFDR.cli
+    @verbinclude UTILS_XFDR.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_XFDR.html
+    @htmlinclude UTILS_XFDR.html
 */
 
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPXFDR final :
 public TOPPBase
@@ -318,3 +315,5 @@ int main(int argc, const char ** argv)
   TOPPXFDR tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond

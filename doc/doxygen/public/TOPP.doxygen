@@ -123,7 +123,7 @@
   - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
-  - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
+  - @subpage UTILS_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
   <b>Protein/Peptide Processing</b>

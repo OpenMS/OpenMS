@@ -53,7 +53,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenPepXLLF OpenPepXLLF
+  @page UTILS_OpenPepXLLF OpenPepXLLF
 
   @brief Search for cross-linked peptide pairs in tandem MS spectra
 
@@ -121,6 +121,9 @@ using namespace OpenMS;
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_OpenPepXLLF.html
 */
+
+/// @cond TOPPCLASSES
+
 
 class TOPPOpenPepXLLF :
   public TOPPBase
@@ -295,3 +298,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

@@ -51,7 +51,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenPepXL OpenPepXL
+  @page UTILS_OpenPepXL OpenPepXL
 
   @brief Search for peptide pairs linked with a labeled cross-linker
 
@@ -127,6 +127,8 @@ using namespace OpenMS;
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_OpenPepXL.html
 */
+
+/// @cond TOPPCLASSES
 
 class TOPPOpenPepXL :
   public TOPPBase
@@ -301,3 +303,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

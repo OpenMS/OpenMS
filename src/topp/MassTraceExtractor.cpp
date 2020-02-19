@@ -55,7 +55,7 @@ using namespace std;
 /**
         @page TOPP_MassTraceExtractor MassTraceExtractor
 
-        @brief MassTraceExtractor extracts mass traces from a @ref MSExperiment map and stores them into a @ref FeatureXMLFile.
+        @brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
 
         <CENTER>
         <table>
@@ -77,7 +77,7 @@ using namespace std;
 
 
         This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
-        a @ref FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+        a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
         be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
         the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
         For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
