@@ -452,11 +452,11 @@ protected:
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerStringOption_("use_ms1_traces", "<name>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
-    setValidStrings_("use_ms1_traces", ListUtils::create<String>("true,false"));
+    registerStringOption_("enable_ms1", "<name>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
+    setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("enable_uis_scoring", "<name>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
-    setValidStrings_("enable_uis_scoring", ListUtils::create<String>("true,false"));
+    registerStringOption_("enable_ipf", "<name>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
+    setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -527,7 +527,7 @@ protected:
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 250, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 1000, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
     setMinInt_("batchSize", 0);
     registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
 
@@ -687,8 +687,8 @@ protected:
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    bool use_ms1_traces = getStringOption_("use_ms1_traces") == "true";
-    bool enable_uis_scoring = getStringOption_("enable_uis_scoring") == "true";
+    bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
+    bool enable_uis_scoring = getStringOption_("enable_ipf") == "true";
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
