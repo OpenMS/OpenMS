@@ -155,7 +155,7 @@ namespace OpenMS
   }
 
   template <typename Label>
-  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createProteinFactor(Label id, double prior, int nrMissingPeps = 0) {
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createProteinFactor(Label id, double prior, int nrMissingPeps) {
     if (nrMissingPeps > 0)
     {
       double powFactor = std::pow(1.0 - alpha_, -nrMissingPeps);
