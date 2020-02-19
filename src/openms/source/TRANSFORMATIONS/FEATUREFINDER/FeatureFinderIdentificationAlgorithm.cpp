@@ -354,6 +354,7 @@ namespace OpenMS
       cout << "Writing debug.traml file." << endl;
       TraMLFile().store("debug.traml", library_);
       ref_rt_map.clear();
+      library_.clear(true);
     }
 
     for (auto& chunk : chunks)
