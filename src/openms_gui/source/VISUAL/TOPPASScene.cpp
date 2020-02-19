@@ -83,6 +83,7 @@ namespace OpenMS
     out_dir_(File::getUserDirectory().toQString()),
     changed_(false),
     running_(false),
+    error_occured_(false),
     user_specified_out_dir_(false),
     clipboard_(nullptr),
     dry_run_(true),
@@ -621,7 +622,6 @@ namespace OpenMS
 
   void TOPPASScene::runPipeline()
   {
-
     error_occured_ = false;
     resume_source_ = nullptr; // we are not resuming, so reset the resume node
 

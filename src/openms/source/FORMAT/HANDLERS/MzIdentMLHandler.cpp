@@ -1329,11 +1329,11 @@ namespace OpenMS
             }
             if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart()) + "\"";
+              e += " start=\"" + String(pe->getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
-              e += " start=\"" + String(hit.getMetaValue("start")) + "\"";
+              e += " start=\"" + String( int(hit.getMetaValue("start")) + 1) + "\"";
             }
             else
             {
@@ -1341,11 +1341,11 @@ namespace OpenMS
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd()) + "\"";
+              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
-              e += " end=\"" + String(hit.getMetaValue("end")) + "\"";
+              e += " end=\"" + String( int(hit.getMetaValue("end")) + 1) + "\"";
             }
             else
             {
@@ -1871,11 +1871,11 @@ namespace OpenMS
             }
             if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart()) + "\"";
+              e += " start=\"" + String(pe->getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
-              e += " start=\"" + String(hit.getMetaValue("start")) + "\"";
+              e += " start=\"" + String( int(hit.getMetaValue("start")) + 1) + "\"";
             }
             else
             {
@@ -1883,11 +1883,11 @@ namespace OpenMS
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd()) + "\"";
+              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
-              e += " end=\"" + String(hit.getMetaValue("end")) + "\"";
+              e += " end=\"" + String( int(hit.getMetaValue("end")) + 1) + "\"";
             }
             else
             {
@@ -1944,7 +1944,7 @@ namespace OpenMS
             }
             if (start[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
-              e += " start=\"" + start[ev] + "\"";
+              e += " start=\"" + String(start[ev].toInt() + 1) + "\"";
             }
             else
             {
@@ -1952,7 +1952,7 @@ namespace OpenMS
             }
             if (end[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
-              e += " end=\"" + end[ev] + "\"";
+              e += " end=\"" + String(end[ev].toInt() + 1) + "\"";
             }
             else
             {

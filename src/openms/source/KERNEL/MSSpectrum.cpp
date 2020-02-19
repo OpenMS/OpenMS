@@ -166,10 +166,11 @@ namespace OpenMS
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
-    ContainerType::shrink_to_fit(); 
 
     if (clear_meta_data)
     {
+      ContainerType::shrink_to_fit();
+
       clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;

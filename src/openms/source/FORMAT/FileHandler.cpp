@@ -83,6 +83,8 @@ namespace OpenMS
     if (basename.hasSuffix(".xquest.xml"))
       return FileTypes::XQUESTXML;
 
+    if (basename.hasSuffix(".spec.xml"))
+      return FileTypes::SPECXML;
     try
     {
       tmp = basename.suffix('.');

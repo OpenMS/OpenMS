@@ -1,6 +1,8 @@
 Help us to make OpenMS better and become part of the OpenMS open-source community.
 
 This document is displayed because you either opened an issue or you want to provide your code as a pull request for inclusion into OpenMS. Please take a look at the appropriate section below to find some details on how we handle this process.
+When interacting with other developers, users or anyone else from our community, please adhere to
+[our CODE OF CONDUCT](https://github.com/OpenMS/OpenMS/blob/develop/CODE_OF_CONDUCT.md)
 
 # Reporting an Issue:
 
