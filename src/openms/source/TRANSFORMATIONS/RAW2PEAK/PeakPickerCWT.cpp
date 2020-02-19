@@ -38,6 +38,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM

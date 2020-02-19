@@ -279,6 +279,7 @@ namespace OpenMS
       }
     }
 
+    // TODO: move
     if (detecting_transitions.size() == transition_group.getTransitions().size())
     {
       transition_group_detection = transition_group;
@@ -958,7 +959,7 @@ namespace OpenMS
     }
 
     // store all data manipulation performed on the features of the transition group
-    transition_group = transition_group_detection;
+    transition_group = std::move(transition_group_detection);
   }
 
   void MRMFeatureFinderScoring::prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge)

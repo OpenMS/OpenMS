@@ -1,6 +1,6 @@
 format-version: 1.2
-data-version: 4.1.28
-date: 16:07:2019 09:35
+data-version: 4.1.32
+date: 19:11:2019 13:36
 saved-by: Gerhard Mayer
 auto-generated-by: OBO-Edit 2.3.1
 import: http://ontologies.berkeleybop.org/pato.obo
@@ -18198,8 +18198,8 @@ is_a: MS:1000547 ! object attribute
 
 [Term]
 id: MS:1002810
-name: adduct ion mass
-def: "Mass of an adduct formation specified by the given value." [DOI:10.1016/S1044-0305(99)00089-6, http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator]
+name: adduct ion mass X m/z
+def: "Theoretical m/z of the X component in the adduct M+X or M-X. This term was formerly called 'adduct ion mass', but it is not really a mass. It corresponds to the column mislabeled as 'Mass' at https://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator." [DOI:10.1016/S1044-0305(99)00089-6, http://fiehnlab.ucdavis.edu/staff/kind/Metabolomics/MS-Adduct-Calculator]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1002809 ! adduct ion attribute
 
@@ -19647,6 +19647,39 @@ id: MS:1003027
 name: named element in mzML
 def: "A named element that is an attribute in a mzML file." [PSI:PI]
 is_a: MS:1003025 ! named element
+
+[Term]
+id: MS:1003028
+name: Orbitrap Exploris 480
+def: "Thermo Scientific Orbitrap Exploris 480 Quadrupole Orbitrap MS." [PSI:PI]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1003029
+name: Orbitrap Eclipse
+def: "Thermo Scientific Orbitrap Eclipse mass spectrometer with Tribrid architecture consisting of quadrupole mass filter, linear ion trap and Orbitrap mass analyzers." [PSI:PI]
+is_a: MS:1000494 ! Thermo Scientific instrument model
+
+[Term]
+id: MS:1003030
+name: Mascot:MinNumSigUniqueSeqs
+def: "Minimum number of significant unique sequences required in a protein hit. The setting is only relevant if the protein grouping strategy is 'family clustering'." [PSI:PI]
+xref: value-type:xsd\:nonNegativeInteger "The allowed value-type for this CV term."
+is_a: MS:1002095 ! Mascot input parameter
+
+[Term]
+id: MS:1003031
+name: CPTAC accession number
+def: "Main identifier of a CPTAC dataset." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1000878 ! external reference identifier
+
+[Term]
+id: MS:1003032
+name: compound identification confidence code in MS-DIAL
+def: "The confidence code to describe the confidence of annotated compounds as defined by the MS-DIAL program." [PMID:25938372, http://prime.psc.riken.jp/Metabolomics_Software/MS-DIAL]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+is_a: MS:1002895 ! small molecule identification attribute
 
 [Term]
 id: PEFF:0000001

@@ -393,70 +393,70 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQg==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="comment" type="xsd:string" value="bla|comment|bla"/>
 						<userParam name="Comment" type="xsd:string" value="Area of the peak"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Full width at half max"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Left width"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Right width"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Peak charge"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Signal to noise ratio"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Correlation value"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
+					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
 						<userParam name="Comment" type="xsd:string" value="Peak shape"/>
-						<binary>AADIQg==</binary>
+						<binary>AAAAAAAAWUA=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -535,53 +535,53 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAMhC</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -615,53 +615,53 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -740,53 +740,53 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAMhC</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="16" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAMhC</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAAFlA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -820,53 +820,53 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="area" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="charge" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="signalToNoise" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="28" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADIQgAASEMAAJZDAABIQwAAyEI=</binary>
+						<binary>AAAAAAAAWUAAAAAAAABpQAAAAAAAwHJAAAAAAAAAaUAAAAAAAABZQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -876,12 +876,12 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="spectrum=10">22227</offset>
-		<offset idRef="spectrum=11">27880</offset>
-		<offset idRef="spectrum=12">35628</offset>
-		<offset idRef="spectrum=13">40660</offset>
-		<offset idRef="spectrum=14">48419</offset>
+		<offset idRef="spectrum=11">27920</offset>
+		<offset idRef="spectrum=12">35796</offset>
+		<offset idRef="spectrum=13">41052</offset>
+		<offset idRef="spectrum=14">48939</offset>
 	</index>
 </indexList>
-<indexListOffset>53481</indexListOffset>
+<indexListOffset>54225</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

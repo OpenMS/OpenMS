@@ -585,7 +585,7 @@ private:
         addData_(spectrum, item);
         for (StringList::const_iterator itm = store_metadata_names.begin(); itm != store_metadata_names.end(); ++itm)
         {
-          float val = std::numeric_limits<float>::quiet_NaN();
+          double val = std::numeric_limits<double>::quiet_NaN();
           if (item->metaValueExists(*itm)) val = item->getMetaValue(*itm);
           spectrum->getFloatDataArrays()[itm - store_metadata_names.begin()].push_back(val);
         }
