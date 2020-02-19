@@ -472,8 +472,8 @@ protected:
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
-    registerDoubleOption_("report:peptideFDR", "<num>", 0.0, "Maximum q-value of non-cross-linked peptides. (0 = disabled)", false, true);
-    registerDoubleOption_("report:xlFDR", "<num>", 0.0, "Maximum q-value of cross-linked peptides. (0 = disabled)", false, true);
+    registerDoubleOption_("report:peptideFDR", "<num>", 0.0, "Maximum q-value of non-cross-linked peptides. (0 = disabled).", false, true);
+    registerDoubleList_("report:xlFDR", "<num>", { 0.0 }, "Maximum q-value of cross-linked peptides. (0 = disabled). If multiple values are provided, multiple output files will be created.", false, true);
 
     registerInputFile_("percolator_executable", "<executable>", 
  // choose the default value according to the platform where it will be executed
@@ -553,8 +553,8 @@ protected:
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   
-    registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune"}); 
+    registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter"}); 
   }
 
 
@@ -3817,8 +3817,10 @@ static void scoreXLIons_(
     bool impute_decoy_medians = find(filter.begin(), filter.end(), "impute_decoy_medians") != filter.end();
     bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
     bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
+    bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
 
     // autotune (only works if non-XL peptides present)
+    set<String> skip_peptide_spectrum;
     if (autotune)
     {
       SimpleSearchEngineAlgorithm sse;
@@ -3829,10 +3831,17 @@ static void scoreXLIons_(
       p.setValue("precursor:mass_tolerance_unit", getStringOption_("precursor:mass_tolerance_unit"));
       p.setValue("fragment:mass_tolerance", fragment_mass_tolerance);
       p.setValue("fragment:mass_tolerance_unit", getStringOption_("fragment:mass_tolerance_unit"));
-      p.setValue("modifications:fixed", getStringList_("modifications:fixed"));
-      p.setValue("modifications:variable", getStringList_("modifications:variable"));
-      p.setValue("modifications:variable_max_per_peptide", getIntOption_("modifications:variable_max_per_peptide"));
-      p.setValue("precursor:isotopes", IntList{0});
+      StringList var_mods = getStringList_("modifications:variable");
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (S)") != var_mods.end()) { var_mods.push_back("Phospho (S)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (T)") != var_mods.end()) { var_mods.push_back("Phospho (T)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (Y)") != var_mods.end()) { var_mods.push_back("Phospho (Y)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Oxidation (M)") != var_mods.end()) { var_mods.push_back("Oxidation (M)"); }
+      StringList fixed_mods = getStringList_("modifications:fixed");
+      p.setValue("modifications:fixed", fixed_mods);
+      p.setValue("modifications:variable", var_mods);
+      p.setValue("modifications:variable_max_per_peptide", 2);
+      p.setValue("peptide:missed_cleavages", 2);
+      p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
       p.setValue("annotate:PSM", StringList{"median_fragment_error_ppm", "precursor_error_ppm"});
@@ -3847,6 +3856,16 @@ static void scoreXLIons_(
       IDFilter::filterHitsByScore(pep_ids, 0.01); // 1% PSM-FDR
       IDFilter::removeEmptyIdentifications(pep_ids);
       cout << "Peptide identifications left: " << pep_ids.size() << endl;
+
+      // ID-filter part for linear peptides
+      if (idfilter)
+      {
+        for (const auto& pi : pep_ids)
+        {
+          skip_peptide_spectrum.insert((String)pi.getMetaValue("spectrum_reference")); // get native id
+        }
+      }
+
       if (pep_ids.size() > 100)
       {
         vector<double> median_fragment_error_ppm;
@@ -3882,13 +3901,13 @@ static void scoreXLIons_(
          OPENMS_LOG_INFO << "autotune: too few non-cross-linked peptides found. Will keep parameters as-is." << endl;
       }
     }
-    
-
+   
+    OPENMS_LOG_INFO << "IDFilter excludes " << skip_peptide_spectrum.size() << " spectra." << endl;
+ 
     String out_idxml = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
 
     fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
-
 
     // true positives: assumed gaussian distribution of mass error
     // with sigma^2 = precursor_mass_tolerance
@@ -3928,7 +3947,7 @@ static void scoreXLIons_(
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
     double peptide_FDR = getDoubleOption_("report:peptideFDR");
-    double XL_FDR = getDoubleOption_("report:xlFDR");
+    DoubleList XL_FDR = getDoubleList_("report:xlFDR");
 
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
@@ -4410,6 +4429,9 @@ static void scoreXLIons_(
                   {
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
+/////////////////////////////////////////////////////////////////////////// basically an ID-filter reimplementation
+                    if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
+//////////////////////////////////////////
 #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                     // require at least one mass tag
                     if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
@@ -4476,9 +4498,6 @@ static void scoreXLIons_(
                       plss_pc_MIC(0),
                       plss_im_MIC(0);
 
-                    std::fill(b_ions.begin(), b_ions.end(), 0);
-                    std::fill(y_ions.begin(), y_ions.end(), 0);
-
                     scoreXLIons_(partial_loss_modification,
                                  iip,
                                  exp_spectrum,
@@ -4517,7 +4536,6 @@ static void scoreXLIons_(
 
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
-
 /*
 /////////////////////////////////////////////////////////////////////////////// test recalculate hyperscore on merged XL/non-XL ladders
                     size_t y_ion_count = std::count_if(y_ions.begin(), y_ions.end(), [](double d) { return d > 1e-6; });
@@ -4526,7 +4544,8 @@ static void scoreXLIons_(
                     dot_product = std::accumulate(intensity_linear.begin(), intensity_linear.end(), dot_product);
                     const double yFact = logfactorial_(y_ion_count);
                     const double bFact = logfactorial_(b_ion_count);
-                    hyperScore = log1p(dot_product) + yFact + bFact;
+                    partial_loss_sub_score = log1p(dot_product) + yFact + bFact;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 */
                     ah.total_loss_score = hyperScore;
                     ah.MIC = tlss_MIC;
@@ -4606,6 +4625,14 @@ static void scoreXLIons_(
               for (auto & l = low_it; l != up_it; ++l)
               {
                 const Size & scan_index = l->second.first;
+                auto mod_combinations_it = mm.mod_combinations.begin();
+                std::advance(mod_combinations_it, rna_mod_index);
+                const String& precursor_rna_adduct = *mod_combinations_it->second.begin();
+                MSSpectrum& exp_spectrum = spectra[scan_index];
+
+                if (precursor_rna_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
+
+
 #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                  // require at least one mass tag
                  if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
@@ -5315,24 +5342,31 @@ variable_modifications  -0.0944707
       {
          IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
       }
- 
-      if (XL_FDR > 0.0 && XL_FDR < 1.0)
       {
-        IDFilter::filterHitsByScore(xl_pi, XL_FDR);
-      }
-      String out2(out_idxml);
-      out2.substitute(".idXML", "_");
-      {
-        vector<ProteinIdentification> tmp_prots = protein_ids;
-        IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
-        IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
-      }
-      {
+        String out2(out_idxml);
+        out2.substitute(".idXML", "_");
         vector<ProteinIdentification> tmp_prots = protein_ids;
         IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
         IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
       }
 
+      std::replace(XL_FDR.begin(), XL_FDR.end(), 0.0, 1.0);
+      sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
+      for (double xlFDR : XL_FDR)
+      { 
+        if (xlFDR > 0.0 && xlFDR < 1.0)
+        {
+          IDFilter::filterHitsByScore(xl_pi, xlFDR);
+        }
+        {
+          String out2(out_idxml);
+          out2.substitute(".idXML", "_");
+          vector<ProteinIdentification> tmp_prots = protein_ids;
+          IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+          IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+        }
+      }
+     
       String percolator_executable = getStringOption_("percolator_executable");
       bool sufficient_PSMs_for_score_recalibration = (xl_pi.size() + pep_pi.size()) > 1000;
       if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
@@ -5422,22 +5456,30 @@ variable_modifications  -0.0944707
           {
             IDFilter::filterHitsByScore(pep_pi, peptide_FDR); 
           }
- 
-          if (XL_FDR > 0.0 && XL_FDR < 1.0)
           {
-            IDFilter::filterHitsByScore(xl_pi, XL_FDR);
-          }
-          String out2(out_idxml);
-          out2.substitute(".idXML", "_perc_");
-          {
-            vector<ProteinIdentification> tmp_prots = protein_ids;
-            IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
-            IdXMLFile().store(out2 + String::number(XL_FDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
-          }
-          {
+            String out2(out_idxml);
+            out2.substitute(".idXML", "_perc_");
             vector<ProteinIdentification> tmp_prots = protein_ids;
             IDFilter::removeUnreferencedProteins(tmp_prots, pep_pi);
             IdXMLFile().store(out2 + String::number(peptide_FDR, 4) + "_peptides.idXML", tmp_prots, pep_pi);
+          }
+ 
+          std::replace(XL_FDR.begin(), XL_FDR.end(), 0.0, 1.0); // treat disabled filtering as 100% FDR
+          sort(XL_FDR.begin(), XL_FDR.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
+          for (double xlFDR : XL_FDR)
+          {
+ 
+            if (xlFDR > 0.0 && xlFDR < 1.0)
+            {
+              IDFilter::filterHitsByScore(xl_pi, xlFDR);
+            }
+            {
+              String out2(out_idxml);
+              out2.substitute(".idXML", "_perc_");
+              vector<ProteinIdentification> tmp_prots = protein_ids;
+              IDFilter::removeUnreferencedProteins(tmp_prots, xl_pi);
+              IdXMLFile().store(out2 + String::number(xlFDR, 4) + "_XLs.idXML", tmp_prots, xl_pi);
+            }
           }
         }
       }
