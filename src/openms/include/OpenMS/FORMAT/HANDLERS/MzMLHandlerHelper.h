@@ -45,7 +45,8 @@ namespace OpenMS
   namespace Internal
   {
 
-    /**@brief Helper for mzML file format
+    /**
+     * @brief Helper for mzML file format
      *
      * This class provides common structures and re-useable helper functions
      * for parsing the mzML format. These are mainly used by MzMLHandler and MzMLSpectrumDecoder.
@@ -59,9 +60,10 @@ namespace OpenMS
 
     public:
 
-      /**@brief Representation for binary data in mzML
+      /**
+       * @brief Representation for binary data in mzML
        *
-       * Represents data in the <binaryDataArray> tag
+       * Represents data in the `<binaryDataArray>` tag
        *
        **/
       struct BinaryData

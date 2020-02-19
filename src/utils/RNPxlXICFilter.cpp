@@ -301,3 +301,5 @@ int main(int argc, const char** argv)
   TOPPRNPxlXICFilter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

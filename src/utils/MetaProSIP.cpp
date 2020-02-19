@@ -3637,3 +3637,5 @@ int main(int argc, const char** argv)
   TOPPMetaProSIP tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

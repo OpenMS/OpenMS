@@ -206,7 +206,7 @@
                    <ul>
                    <li>Number of PeptideIdentifications</li>
                    <li>Number of MS2 spectra</li>
-                   <li>Ratio of #pepID/#MS2</li>
+                   <li>Ratio of \#pepID/\#MS2</li>
                    </ul>
               </TD>
         </TR>

@@ -3092,3 +3092,5 @@ int main(int argc, const char** argv)
   RNPxlSearch tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

@@ -86,15 +86,15 @@
 			<LI><B>A TOPP tool crashes when loading a certain input file. Other files work properly.</B><BR>
 				If an XML input file is used, please check if the file is valid.
 
-				For most XML data formats, this can be done using the @em FileInfo tool:
-				@code
+				For most XML data formats, this can be done using the @ref TOPP_FileInfo tool:
+				@code{.sh}
  FileInfo -v -in <file>
-				@endcode
+@endcode
 
 				You can also check for corrupt data in peak files:
-				@code
+				@code{.sh}
  FileInfo -c -in <file>
-				@endcode
+@endcode
 
 		</UL>
 */

@@ -165,9 +165,9 @@ public:
     return data_fg_[pos];
   }
 
-  /** @brief Retrieve a FASTA entry at global position @pos (must not be behind the currently active chunk, but can be smaller)
+  /** @brief Retrieve a FASTA entry at global position @p pos (must not be behind the currently active chunk, but can be smaller)
 
-    This query is fast, if @pos hits the currently active chunk, and slow (read from disk) for
+    This query is fast, if @p pos contains the currently active chunk, and slow (read from disk) for
     earlier entries. Can be used before reaching the end of the file,
     since it will reset the file position after its done reading (if reading from disk is required), but
     must not be used for entries beyond the active chunk (unseen data).

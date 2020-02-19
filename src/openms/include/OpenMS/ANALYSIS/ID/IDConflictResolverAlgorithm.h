@@ -42,19 +42,18 @@
 // Doxygen docu
 //-------------------------------------------------------------
 
-/**
-    @page TOPP_IDConflictResolver IDConflictResolver
 
-    @brief Resolves ambiguous annotations of features with peptide identifications.
-
-    The peptide identifications are filtered so that only one identification
-    with a single hit (with the best score) is associated to each feature. (If
-    two IDs have the same best score, either one of them may be selected.)
-*/
 
 namespace OpenMS
 {
 
+/**
+    @brief Resolves ambiguous annotations of features with peptide identifications.
+
+    The peptide identifications are filtered so that only one identification
+    with a single hit (with the best score) is associated to each feature.
+    (If two IDs have the same best score, either one of them may be selected.)
+*/
 class OPENMS_DLLAPI IDConflictResolverAlgorithm
 {
 public:

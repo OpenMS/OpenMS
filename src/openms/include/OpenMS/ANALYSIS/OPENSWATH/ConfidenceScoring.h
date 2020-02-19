@@ -76,7 +76,7 @@ namespace OpenMS
       BimapType;
 
       /// Binomial GLM
-      struct
+      struct GLM_
       {
         double intercept;
         double rt_coef;
@@ -91,7 +91,7 @@ namespace OpenMS
       } glm_;
 
       /// Helper for RT normalization (range 0-100)
-      struct
+      struct RTNorm_
       {
         double min_rt;
         double max_rt;

@@ -46,61 +46,51 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MapAlignerTreeGuided MapAlignerTreeGuided
+@page TOPP_MapAlignerTreeGuided MapAlignerTreeGuided
 
-  @brief Corrects retention time distortions between maps, using information from peptides identified in different maps.
+@brief Corrects retention time distortions between maps, using information from peptides identified in different maps.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN= "middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerTreeGuided \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper @n (or any other source of FDR-filtered featureXMLs) </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FeatureLinkerUnlabeledKD or @n @ref TOPP_FeatureLinkerUnlabeledQT </td>
-        </tr>
-    </table>
-</CENTER>
 
-    This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and
-    distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g.
-    before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with
-    peptide identifications obtained in a different run.
+potential predecessor tools                                              | -> MapAlignerTreeGuided -> | potential successor tools
+------------------------------------------------------------------------ | -------------------------- | -------------------------
+@ref TOPP_IDMapper @n (or any other source of FDR-filtered featureXMLs)  | ^                          | @ref TOPP_FeatureLinkerUnlabeledKD or @n @ref TOPP_FeatureLinkerUnlabeledQT 
 
-    All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to
-    this data - compute transformations that map all runs to a common retention time scale. They can apply the transformations
-    right away and return output files with aligned time scales (parameter @p out), and/or return descriptions of the
-    transformations in trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to
-    arbitrary files with the @ref TOPP_MapRTTransformer tool.
 
-    The map alignment tools differ in how they obtain retention time data for the modeling of transformations, and
-    consequently what types of data they can be applied to. The alignment algorithm implemented here is based on peptide
-    identifications and applicable to annotated featureXML files. It finds peptide sequences that each pair of input files
-    have in common, uses them as points of correspondence between the inputs and to evaluate the distances between the
-    maps for hierarchical clustering. Tree based, the alignment of each cluster pair is performed with the method align() of the
-    @ref OpenMS::MapAlignmentAlgorithmIdentification. For more details and algorithm-specific parameters (set in the INI file)
-    see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmTreeGuided "algorithm documentation".
+This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and
+distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g.
+before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with
+peptide identifications obtained in a different run.
 
-    @see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
+All map alignment tools (MapAligner...) collect retention time data from the input files and - by fitting a model to
+this data - compute transformations that map all runs to a common retention time scale. They can apply the transformations
+right away and return output files with aligned time scales (parameter @p out), and/or return descriptions of the
+transformations in trafoXML format (parameter @p trafo_out). Transformations stored as trafoXML can be applied to
+arbitrary files with the @ref TOPP_MapRTTransformer tool.
 
-		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
+The map alignment tools differ in how they obtain retention time data for the modeling of transformations, and
+consequently what types of data they can be applied to. The alignment algorithm implemented here is based on peptide
+identifications and applicable to annotated featureXML files. It finds peptide sequences that each pair of input files
+have in common, uses them as points of correspondence between the inputs and to evaluate the distances between the
+maps for hierarchical clustering. Tree based, the alignment of each cluster pair is performed with the method align() of the
+@ref OpenMS::MapAlignmentAlgorithmIdentification. For more details and algorithm-specific parameters (set in the INI file)
+see "Detailed Description" in the @ref OpenMS::MapAlignmentAlgorithmTreeGuided "algorithm documentation".
 
-    Also note that convex hulls are removed for alignment and are therefore missing in the output files.
+@see @ref TOPP_MapAlignerIdentification @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
-    Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested with the "b_spline" model. The different available models are:
-    - @ref OpenMS::TransformationModelLinear "linear": Linear model.
-    - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
-    - @ref OpenMS::TransformationModelLowess "lowess": Local regression (non-linear).
-    - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
 
-    <B>The command line parameters of this tool are:</B> @n
-    @verbinclude TOPP_MapAlignerTreeGuided.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MapAlignerTreeGuided.html
+Also note that convex hulls are removed for alignment and are therefore missing in the output files.
+
+Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested with the "b_spline" model. The different available models are:
+- @ref OpenMS::TransformationModelLinear "linear": Linear model.
+- @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
+- @ref OpenMS::TransformationModelLowess "lowess": Local regression (non-linear).
+- @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+
+<B>The command line parameters of this tool are:</B> @n
+@verbinclude TOPP_MapAlignerTreeGuided.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MapAlignerTreeGuided.html
 */
 
 // We do not want this class to show up in the docu:

@@ -49,8 +49,6 @@ namespace OpenMS
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenPepXL OpenPepXL
-
   @brief Search for peptide pairs linked with a labeled cross-linker
 
   This tool performs a search for cross-links in the given mass spectra.

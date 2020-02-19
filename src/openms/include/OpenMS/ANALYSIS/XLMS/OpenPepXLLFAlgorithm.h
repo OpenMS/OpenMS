@@ -49,8 +49,6 @@ namespace OpenMS
   //-------------------------------------------------------------
 
   /**
-    @page TOPP_OpenPepXLLF OpenPepXLLF
-
     @brief Search for cross-linked peptide pairs in tandem MS spectra
 
     This tool performs a search for cross-links in the given mass spectra.
