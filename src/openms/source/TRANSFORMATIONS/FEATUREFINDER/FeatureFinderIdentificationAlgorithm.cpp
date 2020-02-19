@@ -1003,9 +1003,9 @@ namespace OpenMS
       if (rt_internal.empty() && rt_external.empty())
       {
         OPENMS_LOG_DEBUG << "PeptideRefs in RTMap:" << endl;
-        for (auto rtm : ref_rt_map)
+        for (const auto& rtm : ref_rt_map)
         {
-         OPENMS_LOG_DEBUG << rtm.first << endl;
+          OPENMS_LOG_DEBUG << rtm.first << endl;
         }
 
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + String(peptide_ref) + "' stored as '" + String(feat_it->getMetaValue("PeptideRef")) + "'.");
