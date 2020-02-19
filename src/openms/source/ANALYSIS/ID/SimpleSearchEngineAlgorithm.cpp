@@ -266,12 +266,13 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     {
       if (!annotated_hits[scan_index].empty())
       {
+        const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
+        pi.setMetaValue("spectrum_reference", spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
-        const MSSpectrum& spec = exp[scan_index];
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
