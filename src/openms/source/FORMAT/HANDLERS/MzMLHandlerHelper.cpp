@@ -307,7 +307,6 @@ namespace OpenMS
                                                        const String& name,
                                                        const String& unit_accession)
   {
-
     bool is_default_array = (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595");
 
     // store unit accession for non-default arrays
