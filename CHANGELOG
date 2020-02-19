@@ -32,6 +32,8 @@ General:
 - JSON support (see PR #3786)
 - speed improvements (loading/storing files, handling peptide sequences)
 - support for VS2019 and GCC 9.1 (see PR #4211)
+- support for outlier removal in IDPosteriorErrorProbability
+- reduced memory footprint of FeatureFinderIdentification through batch processing
 
 New Tools:
 - Epifany -- Runs a Bayesian protein inference (UTIL)
@@ -41,6 +43,7 @@ New Tools:
 - ProteomicsLFQ -- A standard proteomics LFQ pipeline (TOPP) (experimental)
 - QualityControl -- Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get (TOPP)
 - RNAMassCalculator -- Calculates masses and mass-to-charge ratios of RNA sequences (UTIL)
+- MapAlignerTreeGuided -- Aligns maps through hierarchical clustering based on distances computed between shared IDs.
 
 Deprecated and removed Tools:
 
