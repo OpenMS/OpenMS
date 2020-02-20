@@ -52,7 +52,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_XFDR XFDR
+    @page TOPP_XFDR XFDR
 
     @brief Calculates false discovery rate estimates on crosslink identifications.
 
@@ -69,17 +69,17 @@ using namespace std;
                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
             </tr>
             <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenPepXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenPepXLLF </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
             </tr>
         </table>
     </center>
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_XFDR.cli
+    @verbinclude TOPP_XFDR.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_XFDR.html
+    @htmlinclude TOPP_XFDR.html
 */
 
 // We do not want this class to show up in the docu:
@@ -91,7 +91,7 @@ public TOPPBase
 public:
 
   TOPPXFDR() :
-    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", false)
+    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", true)
   {
   }
 

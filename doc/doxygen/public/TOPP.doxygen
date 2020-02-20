@@ -162,6 +162,11 @@
   - @subpage TOPP_RTModel - Trains a model for the retention time prediction of peptides from a training set.
   - @subpage TOPP_RTPredict - Predicts retention times for peptides using a model trained by RTModel.
 
+  <b>Cross-linking</b>
+  - @subpage TOPP_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
+  - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
+  - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
+
   <b>Misc</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.

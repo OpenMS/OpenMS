@@ -53,7 +53,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenPepXLLF OpenPepXLLF
+  @page TOPP_OpenPepXLLF OpenPepXLLF
 
   @brief Search for cross-linked peptide pairs in tandem MS spectra
 
@@ -117,9 +117,9 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXLLF.cli
+  @verbinclude TOPP_OpenPepXLLF.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXLLF.html
+  @htmlinclude TOPP_OpenPepXLLF.html
 */
 
 /// @cond TOPPCLASSES
@@ -130,7 +130,7 @@ class TOPPOpenPepXLLF :
 {
 public:
   TOPPOpenPepXLLF() :
-    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
+    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", true)
   {
   }
 

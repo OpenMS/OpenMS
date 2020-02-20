@@ -51,7 +51,7 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenPepXL OpenPepXL
+  @page TOPP_OpenPepXL OpenPepXL
 
   @brief Search for peptide pairs linked with a labeled cross-linker
 
@@ -123,9 +123,9 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXL.cli
+  @verbinclude TOPP_OpenPepXL.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXL.html
+  @htmlinclude TOPP_OpenPepXL.html
 */
 
 /// @cond TOPPCLASSES
@@ -135,7 +135,7 @@ class TOPPOpenPepXL :
 {
 public:
   TOPPOpenPepXL() :
-    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
+    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", true)
   {
   }
 
