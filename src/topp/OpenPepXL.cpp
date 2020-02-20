@@ -123,17 +123,19 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXL.cli
+  @verbinclude TOPP_OpenPepXL.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXL.html
+  @htmlinclude TOPP_OpenPepXL.html
 */
+
+/// @cond TOPPCLASSES
 
 class TOPPOpenPepXL :
   public TOPPBase
 {
 public:
   TOPPOpenPepXL() :
-    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", false)
+    TOPPBase("OpenPepXL", "Tool for protein-protein cross-linking identification using labeled linkers.", true)
   {
   }
 
@@ -301,3 +303,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond
