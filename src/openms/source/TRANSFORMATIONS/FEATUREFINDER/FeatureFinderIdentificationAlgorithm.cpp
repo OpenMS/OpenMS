@@ -313,21 +313,9 @@ namespace OpenMS
 
         const String pseudo_mod_name = String(100000 + seeds_added);
 
-        // Check if pseudo mod is already there.
-        // Multiple runs of the algorithm might have already registered it
-        if (!ModificationsDB::getInstance()->has("[" + pseudo_mod_name + "]"))
-        {
-          ResidueModification * new_mod = new ResidueModification();
-          new_mod->setFullId("[" + pseudo_mod_name + "]"); // setting FullId but not Id makes it a user-defined mod
-          new_mod->setTermSpecificity(ResidueModification::ANYWHERE);
-          new_mod->setUniModRecordId(100000 + seeds_added); // required for TargetedExperimentHelper
-          new_mod->setOrigin('X');
-          ModificationsDB::getInstance()->addModification(new_mod);
-        }
-
-        AASequence some_seq = AASequence::fromString("XXX");
-        some_seq.setModification(1, "[" + pseudo_mod_name + "]");
+        AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
         seed_hit.setSequence(some_seq);
+        OPENMS_LOG_DEBUG << "adding seed: " << some_seq.toString() << " to peptide map." << endl;
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
         peptides.back().setHits(seed_hits);
@@ -338,7 +326,7 @@ namespace OpenMS
         ++seeds_added;
       }
     }
-   OPENMS_LOG_INFO << "Seeds added: " << seeds_added << endl;
+    OPENMS_LOG_INFO << "Seeds added: " << seeds_added << endl;
 
 
     n_internal_peps_ = peptide_map_.size();
@@ -366,6 +354,7 @@ namespace OpenMS
       cout << "Writing debug.traml file." << endl;
       TraMLFile().store("debug.traml", library_);
       ref_rt_map.clear();
+      library_.clear(true);
     }
 
     for (auto& chunk : chunks)
@@ -1013,7 +1002,13 @@ namespace OpenMS
 
       if (rt_internal.empty() && rt_external.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty.");
+        OPENMS_LOG_DEBUG << "PeptideRefs in RTMap:" << endl;
+        for (const auto& rtm : ref_rt_map)
+        {
+          OPENMS_LOG_DEBUG << rtm.first << endl;
+        }
+
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + String(peptide_ref) + "' stored as '" + String(feat_it->getMetaValue("PeptideRef")) + "'.");
       }
 
       if (!rt_internal.empty()) // validate based on internal IDs
