@@ -216,6 +216,7 @@ namespace OpenMS
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
     util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
+    util_map["MetFragAdapter"] = Internal::ToolDescription("MetFragAdapter", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", util_category);

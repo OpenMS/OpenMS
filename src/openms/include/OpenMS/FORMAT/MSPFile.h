@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -90,6 +91,13 @@ public:
         @throw UnableToCreateFile is thrown if the given file could not be created
     */
     void store(const String & filename, const PeakMap & exp) const;
+
+    /**
+    @brief Stores a map in a MSPFile file.
+
+    @throw UnableToCreateFile is thrown if the given file could not be created
+    */
+    void store(const String & filename, const std::vector<MetaboTargetedAssay> & mtas) const;
 
 protected:
 

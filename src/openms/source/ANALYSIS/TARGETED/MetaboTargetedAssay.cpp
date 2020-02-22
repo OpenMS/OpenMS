@@ -51,7 +51,7 @@ namespace OpenMS
     return (a.getIntensity() < b.getIntensity());
   }
 
-  // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
+  // method to extract potential transitions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                                     const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,
@@ -167,7 +167,6 @@ namespace OpenMS
 
         native_id = spectrum.getNativeID();
 
-
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
         {
@@ -176,18 +175,18 @@ namespace OpenMS
           highest_precursor_int_spectrum = spectrum;
           highest_precursor_charge = precursor_charge;
         }
-          transition_spectrum = highest_precursor_int_spectrum;
+        transition_spectrum = highest_precursor_int_spectrum;
       }
 
       // check if more than one MS/MS spectrum is available to use the consensus method
       // the MS/MS spectrum of the highest intensity precursor is used as reference and compared
       // to the other MS/MS spectrum of a specific feature.
       // if the cosine similarity is over the manually set threshold these are merged via SpectraMerger
-      if (method_consensus_spectrum &&index.size()>= 2)
+      if (method_consensus_spectrum && index.size() >= 2)
       {
         // transform to binned spectra
-        vector <BinnedSpectrum> binned;
-        vector <MSSpectrum> similar_spectra;
+        vector<BinnedSpectrum> binned;
+        vector<MSSpectrum> similar_spectra;
         MSExperiment exp;
         const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum,
                                                 BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
@@ -195,10 +194,10 @@ namespace OpenMS
                                                 1,
                                                 BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-        // calculation of contrast angle (cosine simiarity)
-        for (auto index_it = index.begin(); index_it != index.end(); ++index_it)
+        // calculation of contrast angle (cosine similarity)
+        for (const auto& i : index)
         {
-          const MSSpectrum &spectrum = spectra[*index_it];
+          const MSSpectrum &spectrum = spectra[i];
 
           const BinnedSpectrum binned_spectrum(spectrum,
                                                BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
@@ -215,35 +214,43 @@ namespace OpenMS
           }
         }
 
-        // at least 2 spectra with high consine similarity necessary
+        // at least 2 spectra with high cosine similarity necessary
         // fallback to highest precursor intensity spectrum (see above)
-        if (similar_spectra.size()> 1)
+        if (similar_spectra.size() >= 2)
         {
           // calculate consensus spectrum
           exp.sortSpectra();
 
           SpectraMerger merger;
           Param p;
-          p.insert("",SpectraMerger().getDefaults());
+          p.insert("", SpectraMerger().getDefaults());
           p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
           p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
           merger.setParameters(p);
 
           // all MS spectra should have the same precursor
+          // TODO wouldn't it be better then to check for same precursor and use a
+          //  simpler merging method?
           merger.mergeSpectraPrecursors(exp);
 
           // check if all precursors have been merged if not use highest intensity precursor
-          if (exp.getSpectra().size()< 2)
+          if (!exp.getSpectra().empty())
           {
             transition_spectrum = exp.getSpectra()[0];
+          }
+          else
+          {
+            throw Exception::MissingInformation(__FILE__,
+                                                __LINE__,
+                                                OPENMS_PRETTY_FUNCTION,
+                                                "No spectra left after merging.");
           }
         }
       }
 
       // transition calculations
       // calculate max intensity peak and threshold
-      float max_int = 0.0;
-      float min_int = std::numeric_limits<float>::max();
+      float max_int, min_int;
 
       // sort intensity in MS2 spectrum to extract transitions
       transition_spectrum.sortByIntensity(true);
@@ -297,13 +304,13 @@ namespace OpenMS
 
       int transition_counter = 0;
       // here ms2 spectra information is used
-      for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      for (const auto& peak : transition_spectrum)
       {
         ReactionMonitoringTransition rmt;
         rmt.clearMetaInfo();
 
-        float current_int = spec_it->getIntensity();
-        double current_mz = spec_it->getMZ();
+        float current_int = peak.getIntensity();
+        double current_mz = peak.getMZ();
 
         // write row for each transition
         // current int has to be higher than transition threshold and should not be smaller than threshold noise

@@ -32,25 +32,21 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/JavaInfo.h>
 #include <QDir>
 #include <algorithm>
 #include <map>
@@ -103,9 +99,129 @@ public:
 
 protected:
 
+  String tmp_dir_ = "";
+  String java_executable_ = "";
+  String metfrag_executable_ = "";
+  int java_memory_ = 3500;
+
+  map<String, int> adduct_str_to_ionmode_ =
+      {
+        {"[M+H]1+" , 1 },
+        {"[M+NH4]1+" , 18 },
+        {"[M+Na]1+" , 23 },
+        {"[M+K]1+" , 39 },
+        {"[M+CH3OH+H]1+" , 33 },
+        {"[M+ACN+H]1+" , 42 },
+        {"[M+ACN+Na]1+" , 64 },
+        {"[M+2ACN+H]1+" , 83 },
+        {"[M-H]1-" , -1 },
+        {"[M+Cl]1-" , 35 },
+        {"[M+HCOO]1-" , 45 },
+        {"[M+CH3COO]1-" , 59 },
+        {"", 0}
+      };
+
+  bool runMetFrag_(const MetaboTargetedAssay& mta, double prec_tol, const String& db = "PubChem")
+  {
+    double prec_mz = mta.potential_rmts[0].getPrecursorMZ();
+
+    stringstream str;
+    for (const auto& rmt : mta.potential_rmts)
+    {
+      str << rmt.getProductMZ() << "_" << rmt.getLibraryIntensity() << ";";
+    }
+    String peaklist = str.str();
+
+    QStringList process_params; // the actual process is Java, not MS-GF+!
+    QString java_mem = "-Xmx" + QString::number(java_memory_) + "m";
+
+    process_params << java_mem
+                   << "-jar" << metfrag_executable_.toQString()
+                   << "MetFragPeakListReader=de.ipbhalle.metfraglib.peaklistreader.FilteredStringTandemMassPeakListReader"
+                   << "PeakListString=" + peaklist.toQString()
+                   << "MetFragDatabaseType=" + db.toQString()
+                   << "IonizedPrecursorMass=" + QString::number(prec_mz)
+                   << "DatabaseSearchRelativeMassDeviation=" + QString::number(prec_tol)
+                   << "FragmentPeakMatchAbsoluteMassDeviation=0.001"
+                   << "FragmentPeakMatchRelativeMassDeviation=5"
+                   << "PrecursorIonMode=" + QString::number(adduct_str_to_ionmode_[mta.compound_adduct])
+                   // TODO where to get charge from? adduct? parse pos/neg mode somewhere?
+                   << "IsPositiveIonMode=TRUE"
+                   // TODO allow more scores
+                   << "MetFragScoreTypes=FragmenterScore"
+                   << "MetFragScoreWeights=1.0"
+                   // TODO check if can be streamed
+                   << "MetFragCandidateWriter=CSV"
+                   // TODO check if unique
+                   << "SampleName=" + mta.compound_name.toQString()
+                   << "ResultsPath=" + tmp_dir_.toQString()
+                   // TODO parameterize both
+                   << "MaximumTreeDepth=1"
+                   << "MetFragPreProcessingCandidateFilter=UnconnectedCompoundFilter";
+    //TODO check more params like NumberThreads
+
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable_.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
+    {
+      return false;
+    }
+    return true;
+  }
+
+  void preprocessing_(const String& featureinfo,
+                       const MSExperiment& spectra,
+                       std::vector<FeatureMap>& v_fp,
+                       KDTreeFeatureMaps& fp_map_kd,
+                       FeatureMapping::FeatureToMs2Indices& feature_mapping)
+  {
+    // if fileparameter is given and should be not empty
+    if (!featureinfo.empty())
+    {
+      if (File::exists(featureinfo) && !File::empty(featureinfo))
+      {
+        // read featureXML
+        FeatureXMLFile fxml;
+        FeatureMap feature_map;
+        fxml.load(featureinfo, feature_map);
+
+        unsigned int num_masstrace_filter = getIntOption_("min_num_masstraces");
+        double precursor_mz_tol = getDoubleOption_("precursor_recalibration_window");
+        double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+        bool ppm_prec = getStringOption_("precursor_recalibration_window_unit") == "ppm";
+
+
+        // filter feature by number of masstraces
+        auto map_it = remove_if(feature_map.begin(), feature_map.end(),
+                                [&num_masstrace_filter](const Feature &feat) -> bool
+                                {
+                                  unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                  return n_masstraces < num_masstrace_filter;
+                                });
+        feature_map.erase(map_it, feature_map.end());
+
+        v_fp.push_back(feature_map);
+        fp_map_kd.addMaps(v_fp);
+
+        // mapping of MS2 spectra to features
+        feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
+                                                                  fp_map_kd,
+                                                                  precursor_mz_tol,
+                                                                  precursor_rt_tol,
+                                                                  ppm_prec);
+      }
+      else
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__,
+                                           __LINE__,
+                                           __FUNCTION__,
+                                           "Error: FeatureXML was empty, please provide a valid file.");
+      }
+    }
+  }
+
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>", "", "SIRIUS executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "", "Metfrag jar", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -125,6 +241,13 @@ protected:
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
     registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
+    registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
+    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+    registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
+    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
+    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
+    registerIntOption_("min_num_masstraces", "<num>", 1, "min num mt", false);
+
 
     registerTOPPSubsection_("deisotoping", "deisotoping");
     registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
@@ -142,9 +265,10 @@ protected:
     registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
     registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
-    // sirius 
-    registerFullParam_(SiriusAdapterAlgorithm().getDefaults());
-    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);  
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for MetFrag workspace", false);
+
   }
 
   ExitCodes main_(int, const char **) override
@@ -152,25 +276,37 @@ protected:
     //-------------------------------------------------------------
     // Parsing parameters
     //-------------------------------------------------------------
+    tmp_dir_ = makeAutoRemoveTempDirectory_();
+    java_memory_ = getIntOption_("java_memory");
+    java_executable_ = getStringOption_("java_executable");
+    metfrag_executable_ = getStringOption_("executable");
+
+    if (!getFlag_("force"))
+    {
+      if (!JavaInfo::canRun(java_executable_))
+      {
+        writeLog_("Fatal error: Java is needed to run MS-GF+!");
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+    }
+    else
+    {
+      writeLog_("The installation of Java was not checked.");
+    }
 
     // param AssayGeneratorMetabo
     StringList in = getStringList_("in");
     StringList id = getStringList_("in_id");
     String out = getStringOption_("out");
-    String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
-    bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
-    bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
-    bool use_exact_mass = getFlag_("use_exact_mass");
+    bool method_consensus_spectrum = method == "consensus_spectrum";
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
-    int min_transitions = getIntOption_("min_transitions");
-    int max_transitions = getIntOption_("max_transitions");
 
     double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
     String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
-    bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
+    bool ppm_recal = pre_recal_win_unit == "ppm";
 
     double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
 
@@ -182,7 +318,7 @@ protected:
     bool use_deisotoper = getFlag_("deisotoping:use_deisotoper");
     double fragment_tolerance = getDoubleOption_("deisotoping:fragment_tolerance");
     String fragment_unit = getStringOption_("deisotoping:fragment_unit");
-    bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
+    bool fragment_unit_ppm = fragment_unit == "ppm";
     int min_charge = getIntOption_("deisotoping:min_charge");
     int max_charge = getIntOption_("deisotoping:max_charge");
     unsigned int min_isopeaks = getIntOption_("deisotoping:min_isopeaks");
@@ -190,18 +326,6 @@ protected:
     bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
     bool annotate_charge = getFlag_("deisotoping:annotate_charge");
 
-    // param SiriusAdapterAlgorithm
-    String executable = getStringOption_("executable");
-    Param combined; 
-    SiriusAdapterAlgorithm sirius_algo;
-    Param preprocessing = getParam_().copy("preprocessing", false);
-    Param sirius = getParam_().copy("sirius", false);
-    combined.insert("", preprocessing);
-    combined.insert("", sirius);
-    sirius_algo.setParameters(combined);
-    
-    // SIRIUS workspace (currently needed for fragmentation trees)
-    String sirius_workspace_directory = getStringOption_("out_workspace_directory");
 
     //-------------------------------------------------------------
     // input and check
@@ -217,7 +341,7 @@ protected:
     vector<MetaboTargetedAssay> v_mta;
 
     // iterate over all the files
-    for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
+    for (Size file_counter = 0; file_counter < in.size(); file_counter++)
     {
       // load mzML
       MzMLFile mzml;
@@ -305,14 +429,13 @@ protected:
       vector<FeatureMap> v_fp; // copy FeatureMap via push_back
       KDTreeFeatureMaps fp_map_kd; // reference to *basefeature in vector<FeatureMap>
       FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
-      SiriusAdapterAlgorithm::preprocessingSirius(id[file_counter],
-                                                  spectra,
-                                                  v_fp,
-                                                  fp_map_kd,
-                                                  sirius_algo,
-                                                  feature_mapping);
+      preprocessing_(id[file_counter],
+                     spectra,
+                     v_fp,
+                     fp_map_kd,
+                     feature_mapping);
     
-      // filter known_unkowns based on description (UNKNOWN) (AMS)
+      // filter known_unknowns based on description (UNKNOWN) (AMS)
       Map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
       Map<const BaseFeature*, std::vector<size_t>> known_features;
       if (!use_known_unknowns)
@@ -337,247 +460,89 @@ protected:
       }
 
       vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
-      if (use_fragment_annotation && executable.empty())
+
+      if (use_deisotoper)
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "SIRIUS executable was not found.");
-      }
-      else if (use_fragment_annotation && !executable.empty())
-      {
-        // make temporary files
-        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
-  
-        // write msfile and store the compound information in CompoundInfo Object
-        vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
-        bool feature_only = (sirius_algo.getFeatureOnly() == "true") ? true : false;
-        bool no_mt_info = (sirius_algo.getNoMasstraceInfoIsotopePattern() == "true") ? true : false;
-        int isotope_pattern_iterations = sirius_algo.getIsotopePatternIterations();
-        SiriusMSFile::store(spectra,
-                            sirius_tmp.getTmpMsFile(),
-                            feature_mapping,
-                            feature_only,
-                            isotope_pattern_iterations,
-                            no_mt_info,
-                            v_cmpinfo);
-
-        SiriusAdapterAlgorithm::checkFeatureSpectraNumber(id[file_counter],
-                                                          feature_mapping,
-                                                          spectra,
-                                                          sirius_algo);
-  
-        // calls SIRIUS and returns vector of paths to sirius folder structure
-        std::vector<String> subdirs;
-        String out_csifingerid;
-        subdirs = SiriusAdapterAlgorithm::callSiriusQProcess(sirius_tmp.getTmpMsFile(),
-                                                             sirius_tmp.getTmpOutDir(),
-                                                             executable,
-                                                             out_csifingerid,
-                                                             sirius_algo);
-  
-        // sort vector path list
-        std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
-        OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
-  
-        // get Sirius FragmentAnnotion from subdirs
-        vector<MSSpectrum> annotated_spectra;
-        for (const auto& subdir : subdirs)
-        {
-          MSSpectrum annotated_spectrum;
-          SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
-                                                                           annotated_spectrum, 
-                                                                           use_exact_mass);
-          annotated_spectra.push_back(std::move(annotated_spectrum));
-        }
-
-
-        // should the sirius workspace be retained
-        if (!sirius_workspace_directory.empty())
-        {
-          // convert path to absolute path
-          QDir sw_dir(sirius_workspace_directory.toQString());
-          sirius_workspace_directory = String(sw_dir.absolutePath());
-
-          // move tmp folder to new location
-          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
-          if (copy_status)
-          {
-            OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
-          }
-          else
-          {
-            OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
-          }
-        }
-       
-        // pair compoundInfo and fragment annotation msspectrum (using the mid)
-        for (const auto& cmp : v_cmpinfo)
-        {
-          for (const auto& spec_fa : annotated_spectra)
-          {
-            // mid is saved in Name of the spectrum
-            if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](const String &str){ return str == spec_fa.getName();}))
-            {
-              MetaboTargetedAssay::CompoundSpectrumPair csp;
-              csp.compoundspectrumpair = std::make_pair(cmp,spec_fa);
-              v_cmp_spec.push_back(std::move(csp));
-            }
-          }
-        }
-      }
-      else // use heuristic
-      {
-        if (use_deisotoper)
-        {
-          bool make_single_charged = false;
-          for (auto& peakmap_it : spectra)
-          {
-            MSSpectrum& spectrum = peakmap_it;
-            if (spectrum.getMSLevel() == 1) 
-            {
-              continue;
-            }
-            else 
-            {
-              Deisotoper::deisotopeAndSingleCharge(spectrum,
-                                                  fragment_tolerance,
-                                                  fragment_unit_ppm,
-                                                  min_charge,
-                                                  max_charge,
-                                                  keep_only_deisotoped,
-                                                  min_isopeaks,
-                                                  max_isopeaks,
-                                                  make_single_charged,
-                                                  annotate_charge);
-            }
-          }
-        }
-
-        // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+        bool make_single_charged = false;
         for (auto& peakmap_it : spectra)
         {
           MSSpectrum& spectrum = peakmap_it;
-          if (spectrum.getMSLevel() == 1) 
+          if (spectrum.getMSLevel() == 1)
           {
             continue;
           }
-          else 
+          else
           {
-            // if peak mz higher than precursor mz set intensity to zero
-            double prec_mz = spectrum.getPrecursors()[0].getMZ();
-            double mass_diff = Math::ppmToMass(10.0, prec_mz);
-            for (auto& spec : spectrum)
-            {
-              if (spec.getMZ() > prec_mz + mass_diff)
-              {
-                spec.setIntensity(0);
-              }
-            }
-            spectrum.erase(remove_if(spectrum.begin(),
-                                     spectrum.end(),
-                                     InIntensityRange<PeakMap::PeakType>(1,
-                                                                         numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                         true)), spectrum.end());
+            Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                                fragment_tolerance,
+                                                fragment_unit_ppm,
+                                                min_charge,
+                                                max_charge,
+                                                keep_only_deisotoped,
+                                                min_isopeaks,
+                                                max_isopeaks,
+                                                make_single_charged,
+                                                annotate_charge);
           }
+        }
+      }
+
+      // remove peaks from MS2 which are at a higher mz than the precursor + 10 ppm
+      for (auto& peakmap_it : spectra)
+      {
+        MSSpectrum& spectrum = peakmap_it;
+        if (spectrum.getMSLevel() == 1)
+        {
+          continue;
+        }
+        else
+        {
+          // if peak mz higher than precursor mz set intensity to zero
+          double prec_mz = spectrum.getPrecursors()[0].getMZ();
+          double mass_diff = Math::ppmToMass(10.0, prec_mz);
+          for (auto& spec : spectrum)
+          {
+            if (spec.getMZ() > prec_mz + mass_diff)
+            {
+              spec.setIntensity(0);
+            }
+          }
+          spectrum.erase(remove_if(spectrum.begin(),
+                                   spectrum.end(),
+                                   InIntensityRange<PeakMap::PeakType>(1,
+                                                                       numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                       true)), spectrum.end());
         }
       }
 
       // potential transitions of one file
       vector<MetaboTargetedAssay> tmp_mta;
-      if (use_fragment_annotation)
-      {
-        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
-                                                                                    transition_threshold,
-                                                                                    use_exact_mass,
-                                                                                    exclude_ms2_precursor,
-                                                                                    file_counter);
-      }
-      else // use heuristics
-      {
-        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
-                                                                  feature_mapping,
-                                                                  precursor_rt_tol,
-                                                                  precursor_mz_distance,
-                                                                  cosine_sim_threshold,
-                                                                  transition_threshold,
-                                                                  method_consensus_spectrum,
-                                                                  exclude_ms2_precursor,
-                                                                  file_counter);
-      }
+      tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
+                                                                feature_mapping,
+                                                                precursor_rt_tol,
+                                                                precursor_mz_distance,
+                                                                cosine_sim_threshold,
+                                                                transition_threshold,
+                                                                method_consensus_spectrum,
+                                                                exclude_ms2_precursor,
+                                                                file_counter);
       
       // append potential transitions of one file to vector of all files
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
       
     } // end iteration over all files
-
-    // use first rank based on precursor intensity
-    std::map< std::pair <String,String>, MetaboTargetedAssay > map_mta;
-    for (const auto& it : v_mta)
-    {
-      pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
-
-      // check if value in map with key k does not exists and fill with current pair
-      if (map_mta.count(pair_mta) == 0)
-      {
-        map_mta[pair_mta] = it;
-      }
-      else
-      {
-        // check which on has the higher intensity precursor and if replace the current value
-        double map_precursor_int = map_mta.at(pair_mta).precursor_int;
-        double current_precursor_int = it.precursor_int;
-        if (map_precursor_int < current_precursor_int)
-        {
-          map_mta[pair_mta] = it;
-        }
-      }
-    }
-
-    // merge possible transitions
-    vector<TargetedExperiment::Compound> v_cmp;
-    vector<ReactionMonitoringTransition> v_rmt_all;
-    for (const auto& it : map_mta)
-    {
-      v_cmp.push_back(it.second.potential_cmp);
-      v_rmt_all.insert(v_rmt_all.end(), it.second.potential_rmts.begin(), it.second.potential_rmts.end());
-    }
-
-    // convert possible transitions to TargetedExperiment
-    TargetedExperiment t_exp;
-    t_exp.setCompounds(v_cmp);
-    t_exp.setTransitions(v_rmt_all);
-
-    // use MRMAssay methods for filtering
-    MRMAssay assay;
-
-    // filter: min/max transitions
-    assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
+    //TODO we probably only need one file
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+    //MSPFile m;
+    //m.store(out, v_mta);
 
-    String extension = out.substr(out.find_last_of(".")+1);
-
-    if (extension == "tsv")
+    for (const auto& mta : v_mta)
     {
-      // validate and write
-      OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
-    }
-    else if (extension == "traML")
-    {
-      // validate
-      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
-      // write traML
-      TraMLFile traml_out;
-      traml_out.store(out, t_exp);
-    }
-    else if (extension == "pqp")
-    {
-      //validate 
-      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
-      // write pqp
-      TransitionPQPFile pqp_out;
-      pqp_out.convertTargetedExperimentToPQP(out.c_str(), t_exp);
+      //runMetFrag_(mta, precursor_mz_distance);
+      runMetFrag_(mta, 0.1);
     }
 
     return EXECUTION_OK;
@@ -586,7 +551,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TOPPAssayGeneratorMetabo tool;
+  TOPPMetFragAdapter tool;
   return tool.main(argc, argv);
 }
 /// @endcond

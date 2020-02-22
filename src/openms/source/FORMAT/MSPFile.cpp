@@ -457,4 +457,41 @@ namespace OpenMS
     }
   }
 
+  void MSPFile::store(const String & filename, const vector<MetaboTargetedAssay> & mtas) const
+  {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MSP) + "'");
+    }
+
+    if (!File::writable(filename))
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+
+    ofstream out(filename.c_str());
+
+    Size count = 0;
+    // for compound and transition in exp. write out an msp spectrum with adduct information
+    for (const auto& mta : mtas)
+    {
+      if (mta.potential_rmts.empty()) OPENMS_LOG_WARN << "Warning: compound with empty transitions\n";
+
+      out << "NAME: " << mta.potential_rmts[0].getNativeID() << "_" << count << "\n";
+      out << "AlignmentID: " << count++;
+      out << "RETENTIONTIME: " << mta.potential_rmts[0].getRetentionTime().getRT() << "\n"; //TODO check if seconds etc
+      out << "PRECURSORMZ: " << mta.potential_rmts[0].getPrecursorMZ() << "\n";
+      out << "METABOLITENAME: " << (mta.compound_name.empty() ? "UNKNOWN" : mta.compound_name) << "\n";
+      out << "ADDUCTIONNAME: " << mta.compound_adduct << "\n"; // TODO check that it is of the form [M+H]+
+      out << "NumPeaks: " << mta.potential_rmts.size() << "\n";
+
+      for (const auto& rmt : mta.potential_rmts)
+      {
+        out << rmt.getProductMZ() << "\t" << rmt.getLibraryIntensity() << "\n";
+      }
+      out << "\n";
+    }
+  }
+
 } // namespace OpenMS

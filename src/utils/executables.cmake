@@ -31,6 +31,7 @@ MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
+MetFragAdapter
 MRMPairFinder
 MSFraggerAdapter
 MSSimulator

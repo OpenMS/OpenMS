@@ -196,7 +196,7 @@ namespace OpenMS
       {
         if (File::exists(featureinfo) && !File::empty(featureinfo))
         {
-          // read featureXML          
+          // read featureXML
           FeatureXMLFile fxml;
           FeatureMap feature_map;
           fxml.load(featureinfo, feature_map);
