@@ -300,7 +300,7 @@ namespace OpenMS
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
       float threshold_transition = max_int * (transition_threshold / 100);
-      float threshold_noise = min_int * 1.1;
+      float threshold_noise = 0; //min_int * 1.1;
 
       int transition_counter = 0;
       // here ms2 spectra information is used
@@ -316,7 +316,7 @@ namespace OpenMS
         // current int has to be higher than transition threshold and should not be smaller than threshold noise
         if (current_int > threshold_transition && current_int > threshold_noise)
         {
-          float rel_int = current_int / max_int;
+          float rel_int = current_int;// / max_int;
 
           rmt.setPrecursorMZ(highest_precursor_mz);
           rmt.setProductMZ(current_mz);

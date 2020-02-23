@@ -128,7 +128,7 @@ protected:
     stringstream str;
     for (const auto& rmt : mta.potential_rmts)
     {
-      str << rmt.getProductMZ() << "_" << rmt.getLibraryIntensity() << ";";
+      str << String(rmt.getProductMZ()) << "_" << String(rmt.getLibraryIntensity()) << ";";
     }
     String peaklist = str.str();
 
@@ -140,7 +140,7 @@ protected:
                    << "MetFragPeakListReader=de.ipbhalle.metfraglib.peaklistreader.FilteredStringTandemMassPeakListReader"
                    << "PeakListString=" + peaklist.toQString()
                    << "MetFragDatabaseType=" + db.toQString()
-                   << "IonizedPrecursorMass=" + QString::number(prec_mz)
+                   << "IonizedPrecursorMass=" + String(prec_mz).toQString()
                    << "DatabaseSearchRelativeMassDeviation=" + QString::number(prec_tol)
                    << "FragmentPeakMatchAbsoluteMassDeviation=0.001"
                    << "FragmentPeakMatchRelativeMassDeviation=5"
@@ -244,8 +244,8 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
     registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
-    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
-    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
+    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.90, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
+    registerDoubleOption_("transition_threshold", "<num>", 0, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
     registerIntOption_("min_num_masstraces", "<num>", 1, "min num mt", false);
 
 
@@ -542,7 +542,7 @@ protected:
     for (const auto& mta : v_mta)
     {
       //runMetFrag_(mta, precursor_mz_distance);
-      runMetFrag_(mta, 0.1);
+      runMetFrag_(mta, 5);
     }
 
     return EXECUTION_OK;
