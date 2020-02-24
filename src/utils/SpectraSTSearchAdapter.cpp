@@ -75,7 +75,6 @@ class TOPPSpectraSTSearchAdapter :
   // Define parameter name
   static const String param_executable;
   static const String param_spectra_files;
-  static const String param_spectra_files_formats;
   static const String param_library_file;
   static const String param_sequence_database_file;
   static const String param_sequence_database_type;
@@ -107,7 +106,7 @@ protected:
 
       // register spectra input files
       registerInputFileList_(TOPPSpectraSTSearchAdapter::param_spectra_files, "<SearchFileName1> [ <SearchFileName2> ... <SearchFileNameN> ]", empty, "File names(s) of spectra to be searched.", true, false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_spectra_files, ListUtils::create<String>(TOPPSpectraSTSearchAdapter::param_spectra_files_formats), false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_spectra_files, ListUtils::create<String>(TOPPSpectraSTSearchAdapter::param_input_file_formats), false);
 
       // register Output files
       registerOutputFileList_(TOPPSpectraSTSearchAdapter::param_output_files, "<OutputFile1> [ <OutputFileName2> ... <OutputFileNameN> ]", empty, "Output files. Make sure to specify one output file for each input file", true, false);
@@ -341,7 +340,6 @@ protected:
 // Definition of static members
 const String TOPPSpectraSTSearchAdapter::param_executable = "executable";
 const String TOPPSpectraSTSearchAdapter::param_spectra_files = "spectra_files";
-const String TOPPSpectraSTSearchAdapter::param_spectra_files_formats = "mzML,mzXML,mzData,dta,msp";
 const String TOPPSpectraSTSearchAdapter::param_library_file = "library_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_file = "sequence_database_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_type = "sequence_database_type";
