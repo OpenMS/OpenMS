@@ -836,10 +836,22 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz;
 
+        double maxSNRminMz = mz;
+        double maxSNRmaxMz = mz;
+
+        double maxSNR = .0;
+
+        double maxSNRsp = .0;
+        double maxSNRnp = .0;
+
+        double sp = 0;
+        double np = 0;
+
         int pi = 0;
         for (int peakIndex = maxPeakIndex; peakIndex < logMzPeakSize; peakIndex++)
         {
           const double observedMz = logMzPeaks[peakIndex].mz;
+          const double intensity = logMzPeaks[peakIndex].intensity;
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = observedMz - mz;
 
@@ -855,9 +867,20 @@ namespace OpenMS
             break;
           }
 
-          if (abs(di - i * isof) >= mzDelta)
+          if (abs(di - i * isof) >= mzDelta) // noise
           {
+            np += intensity*intensity;
             continue;
+          }
+
+          sp += intensity*intensity;
+
+          double snr = sp/(np+1);
+          if(maxSNR < snr){
+            maxSNR = snr;
+            maxSNRsp = sp;
+            maxSNRnp = np;
+            maxSNRmaxMz = observedMz;
           }
 
           //  std::cout<< i << " + "<< peakIndex<< " " << (observedMz - mz) * charge << std::endl;
@@ -875,10 +898,14 @@ namespace OpenMS
           pi = i;
         }
 
+        sp = maxSNRsp;
+        np = maxSNRnp;
         pi = 0;
         for (int peakIndex = maxPeakIndex - 1; peakIndex >= 0; peakIndex--)
         {
           const double observedMz = logMzPeaks[peakIndex].mz;
+          const double intensity = logMzPeaks[peakIndex].intensity;
+
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = mz - observedMz;
           int i = (int)(.5 + di / isof);
@@ -895,8 +922,20 @@ namespace OpenMS
 
           if (abs(di - i * isof) >= mzDelta)
           {
+            np += intensity*intensity;
             continue;
           }
+
+          sp += intensity*intensity;
+
+          double snr = sp/(np+1);
+          if(maxSNR < snr){
+            maxSNR = snr;
+            //maxSNRsp = sp;
+            //maxSNRnp = np;
+            maxSNRminMz = observedMz;
+          }
+
           const auto bin = peakBinNumbers[peakIndex] + binOffset;
 
           if (bin < massBinSize)
@@ -907,6 +946,14 @@ namespace OpenMS
 
           pi = i;
         }
+
+        if(pg.maxSNR < maxSNR){
+          pg.maxSNR = maxSNR;
+          pg.maxSNRcharge = charge;
+          pg.maxSNRmaxMz = maxSNRmaxMz;
+          pg.maxSNRminMz = maxSNRminMz;
+        }
+        //maxSNRcharge
       }
 
 

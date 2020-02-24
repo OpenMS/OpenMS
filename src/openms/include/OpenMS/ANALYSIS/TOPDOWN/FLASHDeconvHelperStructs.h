@@ -147,6 +147,9 @@ namespace OpenMS
 
       int massIndex, specIndex, massCntr;
       int maxCharge, minCharge;
+      int maxSNRcharge = 0;
+      double maxSNR = 0;
+      double maxSNRmaxMz, maxSNRminMz;
 
       MSSpectrum *spec;
 

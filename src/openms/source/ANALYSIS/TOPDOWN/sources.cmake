@@ -7,6 +7,7 @@ MassFeatureTrace.cpp
 		PeakGroupScoring.cpp
 SpectrumDeconvolution.cpp
 FLASHDeconvAlgorithm.cpp
+FLASHDeconvRealTimeAlgorithm.cpp
 FLASHDeconvHelperStructs.cpp
 )
 

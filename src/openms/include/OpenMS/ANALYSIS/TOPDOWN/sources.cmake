@@ -7,6 +7,7 @@ MassFeatureTrace.h
 		PeakGroupScoring.h
 SpectrumDeconvolution.h
 FLASHDeconvAlgorithm.h
+FLASHDeconvRealTimeAlgorithm.h
 FLASHDeconvHelperStructs.h
 )
 
