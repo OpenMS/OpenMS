@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,6 +72,9 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("debug", 0);
 
+    defaults_.setValue("extract:batch_size", 1000, "Nr of peptides used in each batch of chromatogram extraction."
+                         " Smaller values decrease memory usage but increase runtime.");
+    defaults_.setMinInt("extract:batch_size", 1);
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
     defaults_.setValue("extract:n_isotopes", 2, "Number of isotopes to include in each peptide assay.");
@@ -279,8 +282,8 @@ namespace OpenMS
       bool peptide_already_exists = false;
       for (const auto & peptide : peptides)
       {
-        double seed_RT = static_cast<double>(f_it->getRT());
-        double seed_MZ = static_cast<double>(f_it->getMZ());
+        double seed_RT = f_it->getRT();
+        double seed_MZ = f_it->getMZ();
 	double seed_charge = f_it->getCharge();
         double peptide_RT = peptide.getRT();
         double peptide_MZ = peptide.getMZ();
@@ -347,50 +350,66 @@ namespace OpenMS
     }
     n_external_peps_ = peptide_map_.size() - n_internal_peps_;
 
-    OPENMS_LOG_INFO << "Creating assay library..." << endl;
-    PeptideRefRTMap ref_rt_map;
-    createAssayLibrary_(peptide_map_, ref_rt_map);
 
+    OPENMS_LOG_INFO << "Creating assay library..." << endl;
+    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+    OpenSwath::SpectrumAccessPtr spec_temp =
+        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+    auto chunks = chunk_(peptide_map_.begin(), peptide_map_.end(), batch_size_);
+
+    PeptideRefRTMap ref_rt_map;
     if (debug_level_ >= 666)
     {
-      cout << "Writing debug.traml file." << endl; 
+      // Warning: this step is pretty inefficient, since it does the whole library generation twice
+      // Really use for debug only
+      createAssayLibrary_(peptide_map_.begin(), peptide_map_.end(), ref_rt_map);
+      cout << "Writing debug.traml file." << endl;
       TraMLFile().store("debug.traml", library_);
+      ref_rt_map.clear();
     }
 
-    //-------------------------------------------------------------
-    // run feature detection
-    //-------------------------------------------------------------
-    OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
-    ChromatogramExtractor extractor;
-    // extractor.setLogType(ProgressLogger::NONE);
+    for (auto& chunk : chunks)
     {
-      vector<OpenSwath::ChromatogramPtr> chrom_temp;
-      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-      extractor.prepare_coordinates(chrom_temp, coords, library_,
-          numeric_limits<double>::quiet_NaN(), false);
 
-      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-      OpenSwath::SpectrumAccessPtr spec_temp =
-        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-          mz_window_ppm_, "tophat");
-      extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
-          chrom_data_.getChromatograms(), false);
+      createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
+
+      //-------------------------------------------------------------
+      // run feature detection
+      //-------------------------------------------------------------
+      OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
+      ChromatogramExtractor extractor;
+      // extractor.setLogType(ProgressLogger::NONE);
+      {
+
+        vector<OpenSwath::ChromatogramPtr> chrom_temp;
+        vector<ChromatogramExtractor::ExtractionCoordinates> coords;
+        // take entries in library_ and put to chrom_temp and coords
+        extractor.prepare_coordinates(chrom_temp, coords, library_,
+                                      numeric_limits<double>::quiet_NaN(), false);
+
+
+        extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                       mz_window_ppm_, "tophat");
+        extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+                                      chrom_data_.getChromatograms(), false);
+      }
+
+      OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+                       << " chromatogram(s)." << endl;
+
+      OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
+      // suppress status output from OpenSWATH, unless in debug mode:
+      if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
+      feat_finder_.pickExperiment(chrom_data_, features, library_,
+                                  TransformationDescription(), ms_data_);
+      if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
+      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
+                      << endl;
+      chrom_data_.clear(true);
+      library_.clear(true);
     }
 
-    OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
-              << " chromatogram(s)." << endl;
-
-    OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    // suppress status output from OpenSWATH, unless in debug mode:
-    if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
-    feat_finder_.pickExperiment(chrom_data_, features, library_,
-                                TransformationDescription(), ms_data_);
-    if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
-    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-             << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
-
     // complete feature annotation:
     annotateFeatures_(features, ref_rt_map);
 
@@ -597,12 +616,12 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(PeptideMap& peptide_map, PeptideRefRTMap& ref_rt_map)
+  void FeatureFinderIdentificationAlgorithm::createAssayLibrary_(const PeptideMap::iterator& begin, const PeptideMap::iterator& end, PeptideRefRTMap& ref_rt_map)
   {
     std::set<String> protein_accessions;
 
-    for (PeptideMap::iterator pm_it = peptide_map.begin();
-         pm_it != peptide_map.end(); ++pm_it)
+    for (auto pm_it = begin;
+         pm_it != end; ++pm_it)
     {
       TargetedExperiment::Peptide peptide;
 
@@ -772,22 +791,22 @@ namespace OpenMS
   }
 
   void FeatureFinderIdentificationAlgorithm::getRTRegions_(
-    ChargeMap& peptide_data, 
+    ChargeMap& peptide_data,
     std::vector<RTRegion>& rt_regions) const
   {
     // use RTs from all charge states here to get a more complete picture:
     std::vector<double> rts;
-    for (ChargeMap::iterator cm_it = peptide_data.begin();
+    for (auto cm_it = peptide_data.begin();
          cm_it != peptide_data.end(); ++cm_it)
     {
       // "internal" IDs:
-      for (RTMap::iterator rt_it = cm_it->second.first.begin();
+      for (auto rt_it = cm_it->second.first.begin();
            rt_it != cm_it->second.first.end(); ++rt_it)
       {
         rts.push_back(rt_it->first);
       }
       // "external" IDs:
-      for (RTMap::iterator rt_it = cm_it->second.second.begin();
+      for (auto rt_it = cm_it->second.second.begin();
            rt_it != cm_it->second.second.end(); ++rt_it)
       {
         rts.push_back(rt_it->first);
@@ -796,7 +815,7 @@ namespace OpenMS
     sort(rts.begin(), rts.end());
     double rt_tolerance = rt_window_ / 2.0;
 
-    for (vector<double>::iterator rt_it = rts.begin(); rt_it != rts.end();
+    for (auto rt_it = rts.begin(); rt_it != rts.end();
          ++rt_it)
     {
       // create a new region?
@@ -812,13 +831,13 @@ namespace OpenMS
     }
 
     // sort the peptide IDs into the regions:
-    for (ChargeMap::iterator cm_it = peptide_data.begin();
+    for (auto cm_it = peptide_data.begin();
          cm_it != peptide_data.end(); ++cm_it)
     {
       // regions are sorted by RT, as are IDs, so just iterate linearly:
-      std::vector<RTRegion>::iterator reg_it = rt_regions.begin();
+      auto reg_it = rt_regions.begin();
       // "internal" IDs:
-      for (RTMap::iterator rt_it = cm_it->second.first.begin();
+      for (auto rt_it = cm_it->second.first.begin();
            rt_it != cm_it->second.first.end(); ++rt_it)
       {
         while (rt_it->first > reg_it->end) ++reg_it;
@@ -826,7 +845,7 @@ namespace OpenMS
       }
       reg_it = rt_regions.begin(); // reset to start
       // "external" IDs:
-      for (RTMap::iterator rt_it = cm_it->second.second.begin();
+      for (auto rt_it = cm_it->second.second.begin();
            rt_it != cm_it->second.second.end(); ++rt_it)
       {
         while (rt_it->first > reg_it->end) ++reg_it;
@@ -1176,6 +1195,7 @@ namespace OpenMS
     min_peak_width_ = param_.getValue("detect:min_peak_width");
     signal_to_noise_ = param_.getValue("detect:signal_to_noise");
 
+    batch_size_ = param_.getValue("extract:batch_size");
     rt_quantile_ = param_.getValue("extract:rt_quantile");
     rt_window_ = param_.getValue("extract:rt_window");
     mz_window_ = param_.getValue("extract:mz_window");

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,6 +119,8 @@ protected:
       // advanced option to overwrite MS file annotations in consensusXML
       registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
+      setValidFormats_(param_reannotate_filenames, ListUtils::create<String>("mzML"), true);
+                             
 
       // Isotope label type
       registerFlag_(param_labeled_reference_peptides,
