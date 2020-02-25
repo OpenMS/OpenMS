@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,13 +149,19 @@ protected:
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
-    setMaxFloat_("proteinFDR", 1.0);    
+    setMaxFloat_("proteinFDR", 1.0);
+
+    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
+                          " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
+    setMinFloat_("psmFDR", 0.0);
+    setMaxFloat_("psmFDR", 1.0);
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
       "Infer proteins:\n" 
       "aggregation  = aggregates all peptide scores across a protein (by calculating the maximum) \n"
-      "bayesian     = computes a posterior probability for every protein based on a Bayesian network",
+      "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
+      "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
       false, true);
     setValidStrings_("protein_inference", ListUtils::create<String>("aggregation,bayesian"));
 
@@ -1269,7 +1275,7 @@ protected:
     }
     else // if (bayesian)
     {
-      if (groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
+      if (!groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
       {
         throw OpenMS::Exception::InvalidParameter(
           __FILE__,
@@ -1278,10 +1284,9 @@ protected:
           "Inference = Bayes currently automatically groups proteins and does not allow for"
           " strictly_unique_peptides during quantification.");
       }
-      //should be okay if we filter the hits here. protein quantifier
-      //uses the annotations in the consensusXML anyway
-      IDFilter::keepBestPerPeptide(inferred_peptide_ids, true, true, 1);
-      IDFilter::removeEmptyIdentifications(inferred_peptide_ids);
+      // Important Note: BayesianProteinInference by default keeps only the best
+      // PSM per peptide!
+      // TODO maybe allow otherwise!
       BayesianProteinInferenceAlgorithm bayes;
       //bayesian inference automatically annotates groups
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
@@ -1306,6 +1311,11 @@ protected:
       PeptideProteinResolution ppr{};
       ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
       ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
+      // TODO maybe move the removal as an option into the PPResolution class
+      // TODO add an option to calculate FDR including those "second best protein hits"?
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
       if (debug_level_ >= 666)
       {
         IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1315,22 +1325,48 @@ protected:
     //-------------------------------------------------------------
     // Protein (and additional peptide?) FDR
     //-------------------------------------------------------------
-    const double maxFDR = getDoubleOption_("proteinFDR");
+    const double max_fdr = getDoubleOption_("proteinFDR");
+    // Note: actually, when Bayesian inference was performed, only one (best) PSM
+    // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
+    const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
-    //fdr.applyBasic(inferred_peptide_ids); TODO: what if we do both?
     fdr.applyBasic(inferred_protein_ids[0]);
+    if (max_psm_fdr < 1.)
+    {
+      fdr.applyBasic(inferred_peptide_ids);
+    }
 
     if (debug_level_ >= 666)
     {
+      // This is needed because we throw out decoy proteins during FDR
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+
       IdXMLFile().store("debug_mergedIDsGreedyResolvedFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     // FDR filtering
-    //IDFilter::filterHitsByScore(inferred_peptide_ids, maxFDR); // probably not required but shouldn't hurt
-    IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
-    IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    //IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+    if (max_psm_fdr < 1.)
+    {
+      IDFilter::filterHitsByScore(inferred_peptide_ids, max_psm_fdr);
+    }
+    if (max_fdr < 1.)
+    {
+      IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+    }
+    if (max_psm_fdr < 1.)
+    {
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids,
+                                           inferred_peptide_ids);
+    }
+    if (max_fdr < 1. || max_psm_fdr < 1.)
+    {
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+    }
 
     if (inferred_protein_ids[0].getHits().empty())
     {
@@ -1358,12 +1394,6 @@ protected:
         IdXMLFile().store("debug_mergedIDsFDRFilteredStrictlyUniqueResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
       }
     }
-
-    // filter decoy proteins, update groups so decoy proteins are also removed there, and remove PSMs that mapped to them.
-    //TODO shouldnt be needed since FDR calculation by default filters decoys
-    IDFilter::removeDecoyHits(inferred_protein_ids);
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-    IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
 
     // compute coverage (sequence was annotated during PeptideIndexing)
     inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);

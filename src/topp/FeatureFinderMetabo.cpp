@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -325,14 +325,14 @@ protected:
     // store chromatograms
     if (!out_chrom.empty())
     {
-        if (feat_chromatograms.size() == feat_map.size())
+      if (feat_chromatograms.size() == feat_map.size())
         {
           MSExperiment out_exp;
             for (Size i = 0; i < feat_chromatograms.size(); ++i)
             {
                 for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
                 {
-                    out_exp.addChromatogram(feat_chromatograms[i][j]);
+                  out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
           MzMLFile().store(out_chrom, out_exp);

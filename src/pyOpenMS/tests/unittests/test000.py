@@ -1722,8 +1722,8 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
     scores = [float(i) for i in range(10)]
-    model.fit(scores)
-    model.fit(scores, scores)
+    model.fit(scores, "none")
+    model.fit(scores, scores, "none")
 
     model.fillLogDensities(scores, scores, scores)
 

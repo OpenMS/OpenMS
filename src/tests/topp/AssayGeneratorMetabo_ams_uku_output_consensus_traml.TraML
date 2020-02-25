@@ -217,6 +217,28 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>
+    <Transition id="11_1_Fluopicolide_0" compoundRef="11_Fluopicolide_0">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.972477955692966" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="144.959636504415" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.078345648944378"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="NA"/>
+    </Transition>
+    <Transition id="11_2_Fluopicolide_0" compoundRef="11_Fluopicolide_0">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="382.972477955692966" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="193.997014592663" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.051698412746191"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="annotation" type="xsd:string" value="NA"/>
+    </Transition>
     <Transition id="1_0_Myclobutanil_0" compoundRef="1_Myclobutanil_0">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="289.124028104405397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -338,39 +360,6 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>
-    <Transition id="4_3_UNKNOWN_4_0" compoundRef="4_UNKNOWN_4_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="313.039105768504328" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="295.030764387377" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.366250663995743"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="4_4_UNKNOWN_4_0" compoundRef="4_UNKNOWN_4_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="313.039105768504328" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="158.975323377537" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.310906141996384"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="4_5_UNKNOWN_4_0" compoundRef="4_UNKNOWN_4_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="313.039105768504328" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="230.96090223402" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.21975040435791"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
     <Transition id="5_0_Guthion_0" compoundRef="5_Guthion_0">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -401,39 +390,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="124.98206987935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.586608111858368"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="5_3_Guthion_0" compoundRef="5_Guthion_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104.049320764675" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.41323384642601"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="5_4_Guthion_0" compoundRef="5_Guthion_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="105.033125946638" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.331870347261429"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="5_5_Guthion_0" compoundRef="5_Guthion_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="318.013460543863289" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="51.0231372539237" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.115054503083229"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>
@@ -481,17 +437,6 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>
-    <Transition id="7_3_Guthion_0" compoundRef="7_Guthion_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="339.995783079980754" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="105.032731936693" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.237670004367828"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
     <Transition id="8_0_UNKNOWN_8_0" compoundRef="8_UNKNOWN_8_0">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="349.169296376204954" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -525,28 +470,6 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>
-    <Transition id="8_3_UNKNOWN_8_0" compoundRef="8_UNKNOWN_8_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="349.169296376204954" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="304.112289160302" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.164323478937149"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="8_4_UNKNOWN_8_0" compoundRef="8_UNKNOWN_8_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="349.169296376204954" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="276.081990706357" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.118558175861835"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
     <Transition id="9_0_UNKNOWN_9_0" compoundRef="9_UNKNOWN_9_0">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="363.071778928521724" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -577,39 +500,6 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="104.047502330176" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.202977001667023"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="9_3_UNKNOWN_9_0" compoundRef="9_UNKNOWN_9_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="363.071778928521724" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="105.032936494768" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.202977001667023"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="9_4_UNKNOWN_9_0" compoundRef="9_UNKNOWN_9_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="363.071778928521724" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="105.04551573425" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.15769898891449"/>
-      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
-      <userParam name="annotation" type="xsd:string" value="NA"/>
-    </Transition>
-    <Transition id="9_5_UNKNOWN_9_0" compoundRef="9_UNKNOWN_9_0">
-      <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="363.071778928521724" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Precursor>
-      <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="160.052657174434" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
-      </Product>
-      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="0.101488500833511"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="NA"/>
     </Transition>

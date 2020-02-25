@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,7 +132,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double> & search_engine_scores);
+      bool fit(std::vector<double> & search_engine_scores, const String& outlier_handling);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
@@ -142,7 +142,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
-      bool fitGumbelGauss(std::vector<double>& search_engine_scores);
+      bool fitGumbelGauss(std::vector<double>& search_engine_scores, const String& outlier_handling);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilities into the given vector (the second one).
@@ -151,7 +151,7 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vectors are sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double> & search_engine_scores, std::vector<double> & probabilities);
+      bool fit(std::vector<double> & search_engine_scores, std::vector<double> & probabilities, const String& outlier_handling);
 
       ///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
       void fillDensities(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
@@ -252,6 +252,9 @@ public:
       void tryGnuplot(const String& gp_file);
 
 private:
+      /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
+      void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;
+
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
       static double transformScore_(const String & engine, const PeptideHit & hit);
 
