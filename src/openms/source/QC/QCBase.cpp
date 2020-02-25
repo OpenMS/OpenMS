@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Swenja Wagner, Patricia Scheil $
+// $Authors: Chris Bielow, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/QCBase.h>

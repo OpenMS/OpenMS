@@ -42,14 +42,12 @@ namespace OpenMS
 {
   void PeptideMass::compute(FeatureMap& features)
   {
-
-    // add experimental mass to PeptideHit (a bit unrelated)
-    QCBase::iterateFeatureMap(features, [](PeptideIdentification& pi)
+    features.applyFunctionOnPeptideIDs([](PeptideIdentification& pi)
     {
       if (pi.getHits().empty()) return;
       auto& hit = pi.getHits()[0];
       hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-    });
+    }, true);
   }
 
   const String& PeptideMass::getName() const

@@ -115,6 +115,13 @@ public:
     using privvec::push_back;
     using privvec::emplace_back;
 
+    enum class SplitMeta
+    {
+      DISCARD,                 ///< do not copy any meta values
+      COPY_ALL,               ///< copy all meta values to all feature maps
+      COPY_FIRST              ///< copy all meta values to first feature map
+    };
+    
     /// Description of the columns in a consensus map
     struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface

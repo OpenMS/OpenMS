@@ -219,7 +219,7 @@ protected:
     for (Size i = 0; i < cmap.size(); ++i)
     {
       fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
-      // connect CF with its peptides (they might get separated later...)
+      // connect CF (stored in PEP section) with its peptides (stored in PSM section) ... they might get separated later by IDConflictResolverAlgorithm
       cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
     }
@@ -319,12 +319,12 @@ protected:
         qc_rt_alignment.compute(*fmap, trafo_descr);
       }
 
-      if (isRunnable_(&qc_fwhm, status))
+      if (qc_fwhm.isRunnable(status))
       {
         qc_fwhm.compute(*fmap);
       }
 
-      if (isRunnable_(&qc_pepmass, status))
+      if (qc_pepmass.isRunnable(status))
       {
         qc_pepmass.compute(*fmap);
       }
@@ -377,7 +377,7 @@ protected:
       // copy MetaValues of assigned PepIDs
       for (Feature& feature : *fmap)
       {
-        copyPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+        addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
       }
     }
     // mztab writer requires single PIs per CF
@@ -470,7 +470,7 @@ private:
   }
 
 
-  void copyPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
+  void addPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
     const multimap<String, PeptideIdentification*>& customID_to_pepID,
     const map<String, StringList>& fidentifier_to_msrunpath) const
   {

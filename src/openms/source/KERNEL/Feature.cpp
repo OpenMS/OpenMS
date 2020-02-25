@@ -48,6 +48,12 @@ namespace OpenMS
     std::fill(qualities_, qualities_ + 2, QualityType(0.0));
   }
 
+  Feature::Feature(const BaseFeature& base) :
+    BaseFeature(base)
+  {
+    std::fill(qualities_, qualities_ + 2, QualityType(0.0));
+  }
+
   Feature::Feature(const Feature& feature) :
     BaseFeature(feature),
     convex_hulls_(feature.convex_hulls_),

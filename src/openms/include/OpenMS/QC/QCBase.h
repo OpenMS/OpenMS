@@ -29,14 +29,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Authors: Chris Bielow, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <iostream>
+
+#include <ostream>
 #include <map>
 
 namespace OpenMS
