@@ -180,7 +180,7 @@ protected:
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
 
     //Output
-    registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
