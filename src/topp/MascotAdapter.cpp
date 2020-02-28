@@ -237,7 +237,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
     registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write idXML");
-    setValidFormats_("out", ListUtils::create<String>("mgf"));
+    setValidFormats_("mascot_out", ListUtils::create<String>("mgf"));
     registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
