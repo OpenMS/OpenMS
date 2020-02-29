@@ -232,12 +232,12 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
                                            "Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
+    setValidFormats_("out", ListUtils::create<String>("mzData", "mascotXML"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'mascot_in' Mascot generic format is written.");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML", "mgf"));
     registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
     registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write idXML");
-    setValidFormats_("mascot_out", ListUtils::create<String>("mgf"));
     registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
