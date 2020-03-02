@@ -75,12 +75,12 @@ namespace OpenMS
     allPeakGroups.reserve(200000);
     //to overlap previous mass bins.
 
-    std::unordered_map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
-    std::unordered_map<UInt, std::vector<double>> prevMinBinLogMassMap;
+    std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
+    std::map<UInt, std::vector<double>> prevMinBinLogMassMap;
 
-    std::unordered_map<UInt,std::unordered_map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
-    std::unordered_map<UInt,std::unordered_map<double, double>> peakIntMap; // mslevel, mz -> intensity
-    //std::map<UInt,std::map<double, double>> peakMassMap; // mslevel, mz -> mass
+    std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+    std::map<UInt,std::map<double, double>> peakIntMap; // mslevel, mz -> intensity
+    std::map<UInt,std::map<double, double>> peakMassMap; // mslevel, mz -> mass
 
     param.currentMaxMSLevel = 0;
     //if(param.currentMaxMSLevel == 0){
@@ -99,9 +99,9 @@ namespace OpenMS
       prevMinBinLogMassMap[j] = std::vector<double>();
       prevMinBinLogMassMap[j].reserve(param.numOverlappedScans[j-1] * 10 );
 
-      peakChargeMap[j] = std::unordered_map<double, int>();
-      peakIntMap[j] = std::unordered_map<double, double>();
-     // peakMassMap[j] = std::map<double, double>();
+      peakChargeMap[j] = std::map<double, int>();
+      peakIntMap[j] = std::map<double, double>();
+      peakMassMap[j] = std::map<double, double>();
     }
 
     auto prevChargeRanges = new int[param.currentMaxMSLevel];
@@ -109,8 +109,6 @@ namespace OpenMS
 
     std::fill_n(prevChargeRanges, param.currentMaxMSLevel, param.chargeRange);
     std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
-
-
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -143,11 +141,11 @@ namespace OpenMS
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
         auto &subPeakIntMap = peakIntMap[precursorMsLevel];
-       // auto &subPeakMassMap = peakMassMap[precursorMsLevel];
+        auto &subPeakMassMap = peakMassMap[precursorMsLevel];
         int mc = -1;
         double pint = 0;
         double mm = -1;
-       // auto tmz = 0.0;
+        // auto tmz = 0.0;
         for(auto &pre : it->getPrecursors()){
           auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
           auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
@@ -165,14 +163,15 @@ namespace OpenMS
             auto &cint = subPeakIntMap[mz];
             if(pint < cint){
               cint = pint;
-              mc = iter->second;
-              mm = mc * mz;
+              mc = subPeakChargeMap[mz];
+              mm = subPeakMassMap[mz];//mc * mz;
             }
           }
         }
         if(mc > 0){
           param.currentChargeRange = mc  - param.minCharge; //
           param.currentMaxMass = mm + 100; // isotopie margin
+          // std::cout<< mm << " "<< tmz << " "<< it->getRT() <<  std::endl;
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
           prevMaxMasses[msLevel-1] =  param.currentMaxMass;
@@ -180,7 +179,9 @@ namespace OpenMS
           param.currentChargeRange =  prevChargeRanges[msLevel - 1];
           param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
+        //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
         //param.currentMaxMassCount = (int)(param.currentMaxMass/110*2);
+
       }
 
       if(sd.empty()){
@@ -195,16 +196,16 @@ namespace OpenMS
 
       if (msLevel < param.currentMaxMSLevel)
       {
-        auto &subPeakChargeMap = peakChargeMap[msLevel];//std::map<double, int>();
-        auto &subPeakIntMap = peakIntMap[msLevel];
-        //auto &subPeakMassMap = peakMassMap[msLevel] ;
-
+        auto& subPeakChargeMap = peakChargeMap[msLevel];//std::map<double, int>();
+        auto& subPeakIntMap = peakIntMap[msLevel];//std::map<double, double>();
+        auto& subPeakMassMap = peakMassMap[msLevel];//std::map<double, double>();
         subPeakChargeMap.clear();
         subPeakIntMap.clear();
-        // subPeakMassMap.clear();
+        subPeakMassMap.clear();
 
         for (auto &pg : peakGroups)
         {
+          //std::cout<< pg.monoisotopicMass <<" "<< it->getRT() <<  std::endl;
           for (auto &p : pg.peaks)
           {
             int mc = p.charge;
@@ -212,19 +213,16 @@ namespace OpenMS
             {
               int pc = subPeakChargeMap[p.mz];
               mc = mc > pc ? mc : pc;
-              subPeakChargeMap[p.mz] = mc;
-              continue;
             }
             subPeakChargeMap[p.mz] = mc;
             subPeakIntMap[p.mz] = p.intensity;
-            //subPeakMassMap[p.mz] = pg.monoisotopicMass;
+            subPeakMassMap[p.mz] = pg.monoisotopicMass;
           }
         }
+        //peakChargeMap[msLevel] = subPeakChargeMap;
+        //peakIntMap[msLevel] = subPeakIntMap;
+        //peakMassMap[msLevel] = subPeakMassMap;
       }
-
-      //peakChargeMap[msLevel] = subPeakChargeMap;
-      //peakIntMap[msLevel] = subPeakIntMap;
-      //peakMassMap[msLevel] = subPeakMassMap;
       qspecCntr[msLevel-1]++;
       specIndex++;
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());

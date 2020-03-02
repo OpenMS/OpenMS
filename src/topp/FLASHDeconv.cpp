@@ -111,7 +111,6 @@ protected:
                           false,
                           true);
 
-
     registerIntList_("minCP",
                      "ms1_min_continuous_charge_peaks ms2_min_continuous_charge_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
                      {3, 2},
@@ -444,7 +443,7 @@ protected:
 
             monoMassSet.insert(intMass);
 
-            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " "
+            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.maxSNR << " "
                 << pg.chargeCosineScore << ";";
             //if (pg.spec->getMSLevel() > 1)
             //{
