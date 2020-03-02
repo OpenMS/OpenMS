@@ -232,10 +232,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
                                            "Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
-    setValidFormats_("out", ListUtils::create<String>("mzData", "mascotXML"));
+    setValidFormats_("in", {"mzData", "mascotXML"});
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'mascot_in' Mascot generic format is written.");
-    setValidFormats_("out", ListUtils::create<String>("idXML", "mgf"));
+    setValidFormats_("out", {"idXML", "mgf"});
     registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -357,7 +357,7 @@ protected:
     mascot_in = out_type == FileTypes::MGF;
     if (mascot_out && mascot_in)
     {
-      writeLog_("When the input file is a mascotXML, only idXML can be written! Please change the output type.");
+      writeLog_("When the input file is a mascotXML, only idXML can be written. When the input is mzData, only MGF is written. Please change the output type accordingly.");
       return ILLEGAL_PARAMETERS;
     }
     
