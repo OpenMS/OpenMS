@@ -122,7 +122,7 @@ protected:
     registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
     // input, output and parameter file 
     registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     // enzyme
