@@ -393,8 +393,6 @@ namespace OpenMS
     filteredPeakGroups.reserve(peakGroups.size());
     double threshold = .0;
 
-    // std::cout<<" "<<peakGroups.size();
-
     Size mc = (Size) param.maxMassCount;
     if (mc > 0)
     {
@@ -546,6 +544,67 @@ namespace OpenMS
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
 
+      //// TODO test codes..
+      auto iso = avg.get(pg.monoisotopicMass);
+      auto isoNorm = avg.getNorm(pg.monoisotopicMass);
+      int isoSize = (int) iso.size();
+
+      double maxSNR = 0;
+      for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
+        auto j = charge - param.minCharge;
+        auto perIsotopeIntensities = new double[param.maxIsotopeCount];
+        std::fill_n(perIsotopeIntensities,param.maxIsotopeCount,.0);
+
+        int minIsotopeIndex = param.maxIsotopeCount;
+        int maxIsotopeIndex = 0;
+
+        double minMz = pg.monoisotopicMass * 2;
+        double maxMz = 0;
+
+        for(auto& p:pg.peaks){
+          if(p.charge != charge){
+            continue;
+          }
+          //sp += p.intensity * p.intensity;
+          perIsotopeIntensities[p.isotopeIndex] += p.intensity;
+          minIsotopeIndex = minIsotopeIndex < p.isotopeIndex ? minIsotopeIndex : p.isotopeIndex;
+          maxIsotopeIndex = maxIsotopeIndex < p.isotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
+
+          minMz = minMz < p.mz ? minMz : p.mz;
+          maxMz = maxMz > p.mz ? maxMz : p.mz;
+        }
+        if(maxMz <= 0){
+          continue;
+        }
+
+        double sp = .0;
+        for (int k = minIsotopeIndex; k <=maxIsotopeIndex ; ++k)
+        {
+          sp += perIsotopeIntensities[k] * perIsotopeIntensities[k];
+        }
+
+        auto cos = PeakGroupScoring::getCosine(perIsotopeIntensities,
+                                               minIsotopeIndex,
+                                               maxIsotopeIndex,
+                                               iso,
+                                               isoSize,
+                                               isoNorm,
+                                               0);
+
+        double cos2 = cos * cos;
+        double snr = cos2 * sp / ((1- cos2) * sp + pg.perChargeNoisePower[j] + 1);
+        //std::cout<< sp << " " << cos << " " << pg.perChargeNoisePower[j] << " " << snr << std::endl;
+        if(snr > maxSNR){
+          maxSNR = snr;
+          pg.maxSNR = snr;
+          pg.maxSNRcharge = charge;
+          pg.maxSNRminMz = minMz;
+          pg.maxSNRmaxMz = maxMz;
+        }
+
+        delete[] perIsotopeIntensities;
+      }
+      delete[] pg.perChargeNoisePower;
 
       if(false){
         perIsotopeIntensity = new double[param.maxIsotopeCount];

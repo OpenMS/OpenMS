@@ -71,7 +71,9 @@ namespace OpenMS
       int maxMassCount;
       int currentMaxMassCount;
 
-      unsigned int maxMSLevel = 1;//maxMSL;
+      unsigned int maxMSLevel = 0;//maxMSL;
+      unsigned int currentMaxMSLevel = 0;//maxMSL;
+
       //double charg = 1eDistributionScoreThreshold;
       double RTwindow;
       double minRTSpan;
@@ -148,6 +150,7 @@ namespace OpenMS
       int massIndex, specIndex, massCntr;
       int maxCharge, minCharge;
       int maxSNRcharge = 0;
+      double* perChargeNoisePower;
       double maxSNR = 0;
       double maxSNRmaxMz, maxSNRminMz;
 

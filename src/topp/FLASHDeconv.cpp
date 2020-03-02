@@ -85,7 +85,11 @@ protected:
                         "Output file prefix or output dir (if prefix, [prefix].tsv will be generated. "
                         "if dir, [dir]/[inputfile].tsv is generated per [inputfile])");
 
-    registerDoubleList_("tol", "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively", {10.0, 5.0}, "ppm tolerance for MS1, 2, ...", false);
+    registerDoubleList_("tol",
+                        "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively",
+                        {10.0, 5.0},
+                        "ppm tolerance for MS1, 2, ...",
+                        false);
 
     //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minC", "<min_charge>", 1, "minimum charge state", false, false);
@@ -93,9 +97,12 @@ protected:
     registerDoubleOption_("minM", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
-    registerDoubleList_("minIC", "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
-        {.75, .8},
-        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...", false, true);
+    registerDoubleList_("minIC",
+                        "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
+                        {.75, .8},
+                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...",
+                        false,
+                        true);
 
     registerDoubleOption_("minCC",
                           "<charge_cosine>",
@@ -106,11 +113,11 @@ protected:
 
 
     registerIntList_("minCP",
-                       "ms1_min_continuous_charge_peaks ms2_min_continuous_charge_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
+                     "ms1_min_continuous_charge_peaks ms2_min_continuous_charge_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
                      {3, 2},
-                       "minimum number of peaks of continuous charges",
-                       false,
-                       true);
+                     "minimum number of peaks of continuous charges",
+                     false,
+                     true);
 
     registerIntOption_("maxMC", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
@@ -128,12 +135,12 @@ protected:
 
     // parameters for MSn
 
-//    registerDoubleOption_("minCCS2",
-//                          "<MSn cosine threshold 0 - 1>",
-//                          0,
-//                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)",
-//                          false,
-//                          true);
+    //    registerDoubleOption_("minCCS2",
+    //                          "<MSn cosine threshold 0 - 1>",
+    //                          0,
+    //                          "cosine threshold between per-charge-intensity and fitted gaussian distribution (spectrum level) for MSn (n>1)",
+    //                          false,
+    //                          true);
 
     //registerIntOption_("jitter", "<1:true 0:false>", 0, "jitter universal pattern to generate decoy features (output file will end with *Decoy.tsv)", false, true);
   }
@@ -147,7 +154,8 @@ protected:
     param.minMass = getDoubleOption_("minM");
     param.tolerance = getDoubleList_("tol");
 
-    for(int j=0;j<param.tolerance.size();j++){
+    for (int j = 0; j < param.tolerance.size(); j++)
+    {
       param.tolerance[j] *= 1e-6;
       param.binWidth.push_back(.5 / param.tolerance[j]);
     }
@@ -178,6 +186,7 @@ protected:
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
     return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 20, generator);
   }
+
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -191,19 +200,19 @@ protected:
     auto avgine = calculateAveragines(param);
 
     auto specCntr = new int[param.maxMSLevel];
-    fill_n(specCntr,param.maxMSLevel, 0);
+    fill_n(specCntr, param.maxMSLevel, 0);
     auto qspecCntr = new int[param.maxMSLevel];
-    fill_n(qspecCntr,param.maxMSLevel, 0);
+    fill_n(qspecCntr, param.maxMSLevel, 0);
     auto massCntr = new int[param.maxMSLevel];
-    fill_n(massCntr,param.maxMSLevel, 0);
+    fill_n(massCntr, param.maxMSLevel, 0);
     auto featureCntr = 0;
 
     auto total_specCntr = new int[param.maxMSLevel];
-    fill_n(total_specCntr,param.maxMSLevel, 0);
+    fill_n(total_specCntr, param.maxMSLevel, 0);
     auto total_qspecCntr = new int[param.maxMSLevel];
-    fill_n(total_qspecCntr,param.maxMSLevel, 0);
+    fill_n(total_qspecCntr, param.maxMSLevel, 0);
     auto total_massCntr = new int[param.maxMSLevel];
-    fill_n(total_massCntr,param.maxMSLevel, 0);
+    fill_n(total_massCntr, param.maxMSLevel, 0);
     auto total_featureCntr = 0;
 
     int specIndex = 0, massIndex = 0;
@@ -263,9 +272,9 @@ protected:
     {
       if (isOutPathDir)
       {
-        fill_n(specCntr,param.maxMSLevel, 0);
-        fill_n(qspecCntr,param.maxMSLevel, 0);
-        fill_n(massCntr,param.maxMSLevel, 0);
+        fill_n(specCntr, param.maxMSLevel, 0);
+        fill_n(qspecCntr, param.maxMSLevel, 0);
+        fill_n(massCntr, param.maxMSLevel, 0);
 
         specIndex = 0;
         featureCntr = 0;
@@ -288,8 +297,8 @@ protected:
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-      auto msCntr = new int[1+param.maxMSLevel];
-      fill_n(msCntr, 1+param.maxMSLevel,0);
+      auto msCntr = new int[1 + param.maxMSLevel];
+      fill_n(msCntr, 1 + param.maxMSLevel, 0);
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
@@ -300,7 +309,8 @@ protected:
         msCntr[it->getMSLevel()]++;
       }
 
-      for(int j=1;j<=param.maxMSLevel;j++){
+      for (int j = 1; j <= param.maxMSLevel; j++)
+      {
         double rtDelta = rtDuration / msCntr[j];
 
         auto rw = param.RTwindow;
@@ -312,7 +322,7 @@ protected:
 
         auto count = max(param.minNumOverLappedScans, (UInt) (.5 + rw / rtDelta));
         param.numOverlappedScans.push_back(count);
-        OPENMS_LOG_INFO <<  "# Overlapped MS" << j<< " scans:" << count << " (in RT " << rw
+        OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << rw
                         << " sec)" << endl;
 
       }
@@ -354,7 +364,7 @@ protected:
       auto deconv_end = clock();
 
       //writeAnnotatedSpectra(peakGroups,map,fsm);//
-     // cout <<1 <<endl;
+      // cout <<1 <<endl;
       //cout <<qspecCntr[0] <<endl;
 
       if (!peakGroups.empty() && specCntr[0] > 0 && map.size() > 1)
@@ -380,7 +390,7 @@ protected:
         OPENMS_LOG_INFO.flush();
         for (auto &pg : peakGroups)
         {
-            writePeakGroup(pg, param, fs);
+          writePeakGroup(pg, param, fs);
         }
 
         OPENMS_LOG_INFO << "done" << endl;
@@ -417,7 +427,7 @@ protected:
           {
             ints.push_back(pg.intensity);
           }
-          sort(ints.begin(),ints.end());
+          sort(ints.begin(), ints.end());
           auto intmap = std::map<double, int>();
           for (int j = 0; j < ints.size(); ++j)
           {
@@ -434,10 +444,11 @@ protected:
 
             monoMassSet.insert(intMass);
 
-            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " " << pg.chargeCosineScore << ";";
+            fsm << pg.monoisotopicMass << " " << pg.isotopeCosineScore << " " << pg.intensity << " "
+                << pg.chargeCosineScore << ";";
             //if (pg.spec->getMSLevel() > 1)
             //{
-           // }
+            // }
             //writePeakGroupMfile(pg, param, fsm);
           }
         }
@@ -446,13 +457,12 @@ protected:
         fsm << "];\n";
 
 
-
       }
 
       // cout<<4.5<<endl;
       if (isOutPathDir)
       {
-        for(int j=0;j<param.maxMSLevel;j++)
+        for (int j = 0; j < param.maxMSLevel; j++)
         {
           OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
                           << " MS" << (j + 1) << " spectra out of "
@@ -476,7 +486,7 @@ protected:
         fsf.close();
 
         //fsm.close();
-        for(int j=0;j<param.maxMSLevel;j++)
+        for (int j = 0; j < param.maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
           total_qspecCntr[j] += qspecCntr[j];
@@ -486,17 +496,17 @@ protected:
       }
       else
       {
-        for(int j=0;j<param.maxMSLevel;j++)
+        for (int j = 0; j < param.maxMSLevel; j++)
         {
           OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
-                          << " MS" << (j+1) << " spectra out of "
+                          << " MS" << (j + 1) << " spectra out of "
                           << specCntr[j] << endl;
         }
         if (featureCntr > 0)
         {
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
-        for(int j=0;j<param.maxMSLevel;j++)
+        for (int j = 0; j < param.maxMSLevel; j++)
         {
           total_specCntr[j] = specCntr[j];
           total_qspecCntr[j] = qspecCntr[j];
@@ -522,7 +532,7 @@ protected:
 
 
       auto sumCntr = 0;
-      for(int j=0;j<param.maxMSLevel;j++)
+      for (int j = 0; j < param.maxMSLevel; j++)
       {
         sumCntr += specCntr[j];
       }
@@ -548,10 +558,10 @@ protected:
 
     if (massCntr[0] < total_massCntr[0])
     {
-      for(int j=0;j<param.maxMSLevel;j++)
+      for (int j = 0; j < param.maxMSLevel; j++)
       {
         OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in " << total_qspecCntr[j]
-                        << " MS" << (j+1) << " spectra out of "
+                        << " MS" << (j + 1) << " spectra out of "
                         << total_specCntr[j] << endl;
       }
 
@@ -577,13 +587,13 @@ protected:
     return EXECUTION_OK;
   }
 
-  static void writeAnnotatedSpectra(vector <PeakGroup> &pgs,
+  static void writeAnnotatedSpectra(vector<PeakGroup> &pgs,
                                     MSExperiment &map,
                                     fstream &fs)//, fstream &fsm, fstream &fsp)
   {
 
-    boost::unordered_map<double, vector < PeakGroup>>
-    pgmap;
+    boost::unordered_map<double, vector<PeakGroup>>
+        pgmap;
 
     for (auto &pg : pgs)
     {
@@ -674,6 +684,7 @@ protected:
        << std::to_string(pg.spec->getRT())
        << "\t" << pg.peaks.size() << "\t";
 
+    fs << pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz <<  "\t";
     fs << fixed << setprecision(2);
     for (auto &p : pg.peaks)
     {
@@ -713,10 +724,13 @@ protected:
     fs << fixed << setprecision(3);
     fs << "\t" << pg.isotopeCosineScore
        << "\t";
-    if(pg.spec->getMSLevel() == 1){
-      fs<<pg.chargeCosineScore<<"\n";
-    }else{
-      fs<<"N/A\n";
+    if (pg.spec->getMSLevel() == 1)
+    {
+      fs << pg.chargeCosineScore << "\n";
+    }
+    else
+    {
+      fs << "N/A\n";
     }
 
 
@@ -845,20 +859,20 @@ protected:
     fs
         << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
            "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-           "RetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+           "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+           "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
            "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
     if (!featureOut)
     {
       return;
     }
+    //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
+
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
            "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
            "\tPeakGroupMasses\tPeakGroupRTs\n";
-
-    return;
   }
-
 
 };
 

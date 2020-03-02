@@ -266,28 +266,37 @@ namespace OpenMS
     }
 
     intensity = .0;
-    //double nominator = .0;
+    double nominator = .0;
     //double denominator = .0;
-    auto masses = std::vector<double>();
-    masses.reserve(peaks.size());
+    //auto masses = std::set<double>();
+    //double median = 0.0;
+    //double average = 0.0;
+
+   // masses.reserve(peaks.size());
     //double maxIntensityForMonoIsotopeMass = -1;
     for (auto &p : peaks)
     {
       double pi = p.intensity;
       intensity += pi;
       // auto w = std::sqrt(pi);
-      // denominator += w;
-      // nominator += w * (p.getMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
-      masses.push_back(p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
+    //   denominator += pi;
+       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
+      //auto mass = (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
+      //if (average <=0){
+      //  average = median = mass;
+     // }
+     // average += ( mass - average ) * 0.1f; // rough running average magnitude.
+     // median += copysign( average * 0.01, mass - median );// Jeff McClintock running median
+
       //maxIntensityForMonoIsotopeMass = pi;
       //monoisotopicMass = p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
       //  int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);
       // avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
 
     }
-    sort(masses.begin(), masses.end());
-    monoisotopicMass = masses[masses.size()/2];
-    //monoisotopicMass = nominator / denominator;
+    //sort(masses.begin(), masses.end());
+    //monoisotopicMass = median;// masses[masses.size()/2];
+    monoisotopicMass = nominator / intensity;
     auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
     avgMass = monoisotopicMass + massDelta;
 

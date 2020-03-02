@@ -189,12 +189,12 @@ namespace OpenMS
 
   boost::dynamic_bitset<> SpectrumDeconvolution::getCandidateMassBinsForThisSpectrum(float *massIntensitites,
                                                                                      float *mzIntensities,
-                                                                                     double& mzMinValue,
+                                                                                     double &mzMinValue,
                                                                                      unsigned int &msLevel)
   {
     int chargeRange = param.currentChargeRange;
     int hChargeSize = msLevel == 1 ? (int) param.hCharges.size() : 1;
-    int minContinuousChargePeakCount = param.minContinuousChargePeakCount[msLevel-1];
+    int minContinuousChargePeakCount = param.minContinuousChargePeakCount[msLevel - 1];
 
     long binEnd = (long) massBins.size();
     auto candidateMassBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
@@ -243,8 +243,8 @@ namespace OpenMS
 
         float id = maxInt / minInt;
         bool out = prevCharges[massBinIndex] - j != 1;
-       // auto lowChargePeak = prevCharges[massBinIndex] > chargeRange && j + param.minCharge <= 10;//
-       // if (lowChargePeak) out = false; //
+        // auto lowChargePeak = prevCharges[massBinIndex] > chargeRange && j + param.minCharge <= 10;//
+        // if (lowChargePeak) out = false; //
 
         if (prevCharges[massBinIndex] < chargeRange && out && id < factor)
         {
@@ -266,7 +266,7 @@ namespace OpenMS
           {
             //if (msLevel > 1 && k > 0){
             //  break;
-           // }
+            // }
 
             auto hmzBinIndex = massBinIndex - hBinOffsets[k][j];
             if (hmzBinIndex > 0 && hmzBinIndex < (long) mzBins.size() && mzBins[hmzBinIndex])
@@ -461,14 +461,17 @@ namespace OpenMS
                                                unsigned int &msLevel
   )
   {
-    auto binWidth = param.binWidth[msLevel-1];
+    auto binWidth = param.binWidth[msLevel - 1];
     long binThresholdMinMass = (long) getBinNumber(log(param.minMass), massBinMinValue, binWidth);
     long binThresholdMaxMass = (long) std::min(massBins.size(),
                                                1 + getBinNumber(log(param.currentMaxMass),
                                                                 massBinMinValue,
                                                                 binWidth));
     //auto y = 1;
-    auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities, mzIntensities, mzBinMinValue, msLevel);
+    auto candidateMassBins = getCandidateMassBinsForThisSpectrum(massIntensities,
+                                                                 mzIntensities,
+                                                                 mzBinMinValue,
+                                                                 msLevel);
 
     //if(msLevel>1)
     //  pringMasses(candidateMassBins, massBinMinValue,  binWidth);
@@ -726,8 +729,8 @@ namespace OpenMS
   )
   {
     auto maxMissingIsotope = 2;
-    double binWidth =param.binWidth[msLevel-1];
-    double tol = param.tolerance[msLevel-1];
+    double binWidth = param.binWidth[msLevel - 1];
+    double tol = param.tolerance[msLevel - 1];
     int minCharge = param.minCharge;
     int chargeRange = param.currentChargeRange;
     auto mzBinSize = mzBins.size();
@@ -779,7 +782,6 @@ namespace OpenMS
           }
         }
 
-
         if (massIntensities[b1] == 0 && massIntensities[b2] == 0) //
         {
           massBinIndex = massBins.find_next(massBinIndex);
@@ -792,6 +794,7 @@ namespace OpenMS
 
       Size rightIndex = avg.getRightIndex(mass);
       Size leftIndex = avg.getLeftIndex(mass);
+      auto perChargeNoisePower = new double[chargeRange];
 
       for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
@@ -832,22 +835,16 @@ namespace OpenMS
         {
           continue;
         }
+
         const double mz = logMzPeaks[maxPeakIndex].mz;
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz;
 
-        double maxSNRminMz = mz;
-        double maxSNRmaxMz = mz;
-
-        double maxSNR = .0;
-
-        double maxSNRsp = .0;
-        double maxSNRnp = .0;
-
-        double sp = 0;
-        double np = 0;
+        double &np = perChargeNoisePower[j];
+        np = 0;
 
         int pi = 0;
+        // int peakcntr = 0;
         for (int peakIndex = maxPeakIndex; peakIndex < logMzPeakSize; peakIndex++)
         {
           const double observedMz = logMzPeaks[peakIndex].mz;
@@ -855,7 +852,7 @@ namespace OpenMS
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = observedMz - mz;
 
-          int i = (int)(.5 + di / isof);
+          int i = (int) (.5 + di / isof);
 
           if (i > (int) rightIndex)
           {
@@ -869,38 +866,34 @@ namespace OpenMS
 
           if (abs(di - i * isof) >= mzDelta) // noise
           {
-            np += intensity*intensity;
-            continue;
-          }
-
-          sp += intensity*intensity;
-
-          double snr = sp/(np+1);
-          if(maxSNR < snr){
-            maxSNR = snr;
-            maxSNRsp = sp;
-            maxSNRnp = np;
-            maxSNRmaxMz = observedMz;
-          }
-
-          //  std::cout<< i << " + "<< peakIndex<< " " << (observedMz - mz) * charge << std::endl;
-          const auto bin = peakBinNumbers[peakIndex] + binOffset;
-
-          if (bin < massBinSize)
+            np += intensity * intensity;
+            //peakcntr++;
+          }else
           {
-            LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
-            pg.peaks.push_back(p);
-            //massBins[bin] = false;
-            //isoOff = std::min(isoOff, p.isotopeIndex);
-            //lastPeakIndex = peakIndex;
-            // nextMassBinIndex = nextMassBinIndex < bin? bin : nextMassBinIndex; // take max
+
+            // peakcntr++;
+            //  std::cout<< i << " + "<< peakIndex<< " " << (observedMz - mz) * charge << std::endl;
+            const auto bin = peakBinNumbers[peakIndex] + binOffset;
+
+            if (bin < massBinSize)
+            {
+              LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
+              pg.peaks.push_back(p);
+              //massBins[bin] = false;
+              //isoOff = std::min(isoOff, p.isotopeIndex);
+              //lastPeakIndex = peakIndex;
+              // nextMassBinIndex = nextMassBinIndex < bin? bin : nextMassBinIndex; // take max
+            }
+            pi = i;
           }
-          pi = i;
+
+          //double snr = sp-np;// / (np + 1);
+
         }
 
-        sp = maxSNRsp;
-        np = maxSNRnp;
         pi = 0;
+       // int isocntr = pi;
+
         for (int peakIndex = maxPeakIndex - 1; peakIndex >= 0; peakIndex--)
         {
           const double observedMz = logMzPeaks[peakIndex].mz;
@@ -908,7 +901,7 @@ namespace OpenMS
 
           //observedMz = mz + isof * i * d - d * mzDelta;
           double di = mz - observedMz;
-          int i = (int)(.5 + di / isof);
+          int i = (int) (.5 + di / isof);
 
           if (i > (int) leftIndex)
           {
@@ -922,40 +915,26 @@ namespace OpenMS
 
           if (abs(di - i * isof) >= mzDelta)
           {
-            np += intensity*intensity;
-            continue;
-          }
-
-          sp += intensity*intensity;
-
-          double snr = sp/(np+1);
-          if(maxSNR < snr){
-            maxSNR = snr;
-            //maxSNRsp = sp;
-            //maxSNRnp = np;
-            maxSNRminMz = observedMz;
-          }
-
-          const auto bin = peakBinNumbers[peakIndex] + binOffset;
-
-          if (bin < massBinSize)
+            np += intensity * intensity;
+            //continue;
+          }else
           {
-            LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
-            pg.peaks.push_back(p);
+            const auto bin = peakBinNumbers[peakIndex] + binOffset;
+
+            if (bin < massBinSize)
+            {
+              LogMzPeak p(logMzPeaks[peakIndex], charge, 0);
+              pg.peaks.push_back(p);
+            }
+
+            pi = i;
           }
 
-          pi = i;
-        }
+          //double snr = sp-np;// / (np + 1);
 
-        if(pg.maxSNR < maxSNR){
-          pg.maxSNR = maxSNR;
-          pg.maxSNRcharge = charge;
-          pg.maxSNRmaxMz = maxSNRmaxMz;
-          pg.maxSNRminMz = maxSNRminMz;
         }
-        //maxSNRcharge
+        //perChargeNoisePower[j] = np;
       }
-
 
       if (!pg.peaks.empty())
       {
@@ -993,13 +972,13 @@ namespace OpenMS
         }
 
         pg.massBinIndex = massBinIndex;
+        pg.perChargeNoisePower = perChargeNoisePower;
         peakGroups.push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);
     }
     delete[] currentPeakIndex;
     delete[] peakBinNumbers;
-
   }
 
   bool SpectrumDeconvolution::empty()
@@ -1013,7 +992,7 @@ namespace OpenMS
                                                                                                   unsigned int &msLevel)
   {
     auto minContinuousChargePeakCount =
-        param.minContinuousChargePeakCount[msLevel-1];//
+        param.minContinuousChargePeakCount[msLevel - 1];//
 
     auto tmp = param.currentChargeRange - minContinuousChargePeakCount;
     tmp = tmp < 0 ? 0 : tmp;
@@ -1021,7 +1000,7 @@ namespace OpenMS
         logMzPeaks[logMzPeaks.size() - 1].logMz -
         filter[tmp],
         log(param.currentMaxMass));
-    auto binWidth = param.binWidth[msLevel-1];
+    auto binWidth = param.binWidth[msLevel - 1];
     tmp = minContinuousChargePeakCount - 1;
     tmp = tmp < 0 ? 0 : tmp;
     double massBinMinValue = logMzPeaks[0].logMz - filter[tmp];
