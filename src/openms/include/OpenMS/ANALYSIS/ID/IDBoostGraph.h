@@ -500,6 +500,11 @@ namespace OpenMS {
     void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
         bool stop_at_first, std::vector<vertex_t>& result);
 
+    /// @todo untested
+    /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
+    /// except for the best protein group
+    /// Also removes the corresponding PeptideEvidences in the underlying ID data structure for now
+    /// @todo make the removals optional
     void resolveGraphPeptideCentric_(Graph& fg);
 
     template<class NodeType>

@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -45,8 +46,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
-
-
 
 using namespace std;
 using namespace OpenMS::Internal;
@@ -642,7 +641,7 @@ namespace OpenMS
       //{
       String score_l = pep_id.getScoreType();
       score_l = score_l.toLower();
-      if (score_l == "pep" || score_l == "posterior error probability")
+      if (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493")
       {
         for (auto &pep_hit : pep_id.getHits())
         {
@@ -682,8 +681,12 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
+      bool greedy_group_resolution, // TODO probably better to add it as a Param
       boost::optional<const ExperimentalDesign> exp_des)
   {
+    IDScoreSwitcherAlgorithm switcher;
+    Size counter(0);
+    switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
     //TODO BIG filtering needs to account for run info if used
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
     //TODO BIG filter empty PeptideIDs afterwards
@@ -701,7 +704,7 @@ namespace OpenMS
     pepFDR.setParameters(p);
 
     vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
-    if (proteinIDs.size() == 1)
+    if (proteinIDs.size() == 1) // could be merged with the general case, but we can save the runid lookup here.
     {
       // Save current scores as priors if requested
       if (user_defined_priors)
@@ -716,9 +719,10 @@ namespace OpenMS
       // TODO try to calc AUC partial only (e.g. up to 5% FDR)
       OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
 
+      setScoreTypeAndSettings_(proteinIDs[0]);
       IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, exp_des);
       inferPosteriorProbabilities_(ibg);
-      setScoreTypeAndSettings_(proteinIDs[0]);
+      //if (greedy_group_resolution) ibg.
 
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
     }
@@ -904,7 +908,7 @@ namespace OpenMS
 
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
 
-    //TODO BIG filtering needs to account for run info if used
+    //TODO BIG filtering needs to account for run info if only a subset is to be processed!
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
     IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);

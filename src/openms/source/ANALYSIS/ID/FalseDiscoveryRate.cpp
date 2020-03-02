@@ -882,7 +882,17 @@ namespace OpenMS
 
   double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff) const
   {
-    bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
+    bool higher_score_better(false);
+    // Check first ID in a feature for the score orientation.
+    for (const auto& f : ids)
+    {
+      const auto& pepids = f.getPeptideIdentifications();
+      if (!pepids.empty())
+      {
+        higher_score_better = pepids[0].isHigherScoreBetter();
+        break;
+      }
+    }
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;

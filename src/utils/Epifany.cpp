@@ -36,11 +36,14 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
@@ -120,11 +123,11 @@ protected:
   {
     //TODO support separate runs
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
-    //registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
-    //setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
+    setValidFormats_("in", {"idXML","consensusXML"});
+    registerInputFile_("exp_design", "<file>", "", "(Currently unused) Input: experimental design", false);
+    setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", {"idXML","consensusXML"});
 
     registerStringOption_("protein_fdr",
                           "<option>",
@@ -236,113 +239,166 @@ protected:
   {
     // get parameters specific for the algorithm underneath
     Param epifany_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to Epifany", epifany_param, 3);
-
-    StringList files = getStringList_("in");
-    IdXMLFile idXMLf;
-    IDMergerAlgorithm merger{};
-    StopWatch sw;
-    sw.start();
-    vector<ProteinIdentification> mergedprots{1};
-    vector<PeptideIdentification> mergedpeps;
-
-    OPENMS_LOG_INFO << "Loading input..." << std::endl;
-    if (files.size() > 1)
-    {
-      for (String& file : files)
-      {
-        //TODO this only works for idXML
-        vector<ProteinIdentification> prots;
-        vector<PeptideIdentification> peps;
-        idXMLf.load(file, prots, peps);
-        //TODO merger does not support groups yet, so clear them here right away.
-        // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?
-        prots[0].getIndistinguishableProteins().clear();
-        prots[0].getProteinGroups().clear();
-        merger.insertRuns(prots, peps);
-      }
-      merger.returnResultsAndClear(mergedprots[0], mergedpeps);
-    }
-    else
-    {
-      idXMLf.load(files[0], mergedprots, mergedpeps);
-      //TODO For now we delete because we want to add new groups here.
-      // Think about:
-      // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
-      // 2) keeping the groups and store them in a separate group object to output both and compare.
-      mergedprots[0].getIndistinguishableProteins().clear();
-      mergedprots[0].getProteinGroups().clear();
-    }
-
-    // Currently this is needed because otherwise there might be proteins with a previous score
-    // that get evaluated during FDR without a new posterior being set. (since components of size 1 are skipped)
-    // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
-    IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
-
-    OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
-    sw.reset();
-
-    BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
-    bpi1.setParameters(epifany_param);
-    bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
-    OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
-    sw.stop();
-
-    // Let's always add all the proteins to the protein group section, easier in postprocessing.
-    // PeptideProteinResolution needs it anyway.
-    //TODO check if still needed after adding the addSingleton option to the IDGraph function
-    mergedprots[0].fillIndistinguishableGroupsWithSingletons();
-
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") != "none";
     bool remove_prots_wo_evidence = getStringOption_("greedy_group_resolution") == "remove_proteins_wo_evidence";
 
-    if (greedy_group_resolution)
+    //writeDebug_("Parameters passed to Epifany", epifany_param, 3);
+    StringList files = getStringList_("in");
+    if (files.empty())
     {
-      OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
-      //TODO add group resolution to the IDBoostGraph class so we do not
-      // unnecessarily build a second (old) data structure
-
-      PeptideProteinResolution ppr;
-      ppr.buildGraph(mergedprots[0], mergedpeps);
-      ppr.resolveGraph(mergedprots[0], mergedpeps);
-
-      //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
+      OPENMS_LOG_ERROR << "No files given.\n";
     }
-    if (remove_prots_wo_evidence)
+
+    FileTypes::Type in_type = FileHandler::getType(files[0]);
+    String exp_des = getStringOption_("exp_design");
+
+    StopWatch sw;
+    sw.start();
+
+    String out_file = getStringOption_("out");
+
+    if (!files.empty() && (in_type == FileTypes::CONSENSUSXML))
     {
-      OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+      if (FileHandler::getType(out_file) != FileTypes::CONSENSUSXML)
+      {
+        OPENMS_LOG_FATAL_ERROR << "Error: Running on consensusXML requires output as consensusXML. Please change the "
+                                  "output type.\n";
+      }
+      OPENMS_LOG_INFO << "Loading input..." << std::endl;
+
+      if (files.size() > 1)
+      {
+        OPENMS_LOG_FATAL_ERROR << "Error: Multiple inputs only supported for idXML\n";
+      }
+      ConsensusMapMergerAlgorithm cmerge;
+      ConsensusMap cmap;
+      ConsensusXMLFile cxmlf;
+      cxmlf.load(files[0], cmap);
+      boost::optional<const ExperimentalDesign> edopt;
+      if (!exp_des.empty())
+      {
+        const ExperimentalDesign ed = ExperimentalDesignFile::load(exp_des, false);
+        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, ed);
+        edopt.emplace(ed);
+      }
+      else
+      {
+        cmerge.mergeAllIDRuns(cmap);
+      }
+      IDFilter::removeUnreferencedProteins(cmap, true);
+
+      OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
+      sw.reset();
+
+      BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
+      bpi1.setParameters(epifany_param);
+      bpi1.inferPosteriorProbabilities(cmap, greedy_group_resolution, edopt);
+      OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
+      sw.stop();
+
+      cxmlf.store(out_file, cmap);
+    }
+    else // ----------------------------   IdXML   -------------------------------------
+    {
+      IdXMLFile idXMLf;
+      IDMergerAlgorithm merger{};
+      OPENMS_LOG_INFO << "Loading input..." << std::endl;
+      vector<ProteinIdentification> mergedprots{1};
+      vector<PeptideIdentification> mergedpeps;
+      if (files.size() > 1)
+      {
+        for (String& file : files)
+        {
+          //TODO this only works for idXML
+          vector<ProteinIdentification> prots;
+          vector<PeptideIdentification> peps;
+          idXMLf.load(file, prots, peps);
+          //TODO merger does not support groups yet, so clear them here right away.
+          // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?
+          prots[0].getIndistinguishableProteins().clear();
+          prots[0].getProteinGroups().clear();
+          merger.insertRuns(prots, peps);
+        }
+        merger.returnResultsAndClear(mergedprots[0], mergedpeps);
+      }
+      else
+      {
+        idXMLf.load(files[0], mergedprots, mergedpeps);
+        //TODO For now we delete because we want to add new groups here.
+        // Think about:
+        // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
+        // 2) keeping the groups and store them in a separate group object to output both and compare.
+        mergedprots[0].getIndistinguishableProteins().clear();
+        mergedprots[0].getProteinGroups().clear();
+      }
+
+      // Currently this is needed because otherwise there might be proteins with a previous score
+      // that get evaluated during FDR without a new posterior being set. (since components of size 1 are skipped)
+      // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
+      // However, this is done additionally in the Inference class after filtering, so maybe not necessary.
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
-      IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
-      IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
+
+      OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
+      sw.reset();
+
+      BayesianProteinInferenceAlgorithm bpi1(getIntOption_("debug"));
+      bpi1.setParameters(epifany_param);
+      bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
+      OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
+      sw.stop();
+
+      // Let's always add all the proteins to the protein group section, easier in postprocessing.
+      // PeptideProteinResolution needs it anyway.
+      //TODO check if still needed after adding the addSingleton option to the IDGraph function
+      mergedprots[0].fillIndistinguishableGroupsWithSingletons();
+
+      if (greedy_group_resolution)
+      {
+        OPENMS_LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
+        //TODO add group resolution to the IDBoostGraph class so we do not
+        // unnecessarily build a second (old) data structure
+
+        PeptideProteinResolution ppr;
+        ppr.buildGraph(mergedprots[0], mergedpeps);
+        ppr.resolveGraph(mergedprots[0], mergedpeps);
+
+        //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
+      }
+      if (remove_prots_wo_evidence)
+      {
+        OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+        IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
+        IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
+        IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
+      }
+
+      bool calc_protFDR = getStringOption_("protein_fdr") == "true";
+      if (calc_protFDR)
+      {
+        OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+        FalseDiscoveryRate fdr;
+        Param fdrparam = fdr.getParameters();
+        fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+        fdrparam.setValue("add_decoy_proteins","true");
+        fdr.setParameters(fdrparam);
+        fdr.applyBasic(mergedprots[0], true);
+      }
+
+      OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
+                      mergedprots[0].getHits().size() << " proteins in " <<
+                      mergedprots[0].getIndistinguishableProteins().size() <<
+                      " indist. groups." << std::endl;
+
+      //sort for output because they might have been added in a different order
+      std::sort(
+          mergedprots[0].getIndistinguishableProteins().begin(),
+          mergedprots[0].getIndistinguishableProteins().end(),
+          [](const ProteinIdentification::ProteinGroup& f,
+             const ProteinIdentification::ProteinGroup& g)
+          {return f.accessions < g.accessions;});
+
+      idXMLf.store(out_file, mergedprots, mergedpeps);
     }
-
-    bool calc_protFDR = getStringOption_("protein_fdr") == "true";
-    if (calc_protFDR)
-    {
-      OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
-      FalseDiscoveryRate fdr;
-      Param fdrparam = fdr.getParameters();
-      fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
-      fdrparam.setValue("add_decoy_proteins","true");
-      fdr.setParameters(fdrparam);
-      fdr.applyBasic(mergedprots[0], true);
-    }
-
-    OPENMS_LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
-             mergedprots[0].getHits().size() << " proteins in " <<
-             mergedprots[0].getIndistinguishableProteins().size() <<
-             " indist. groups." << std::endl;
-
-    //sort for output because they might have been added in a different order
-    std::sort(
-        mergedprots[0].getIndistinguishableProteins().begin(),
-        mergedprots[0].getIndistinguishableProteins().end(),
-        [](const ProteinIdentification::ProteinGroup& f,
-            const ProteinIdentification::ProteinGroup& g)
-            {return f.accessions < g.accessions;});
-
-
-    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
 
 

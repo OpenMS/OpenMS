@@ -975,16 +975,49 @@ namespace OpenMS
             {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
         auto best_prot = std::max_element(prots.begin(), prots.end(), score_compare); //returns an iterator
         //TODO how to resolve ties
-
+        set<String> accsToRemove;
         for (const auto& prot : prots)
         {
-          if (prot == *best_prot)
+          if (prot != *best_prot)
           {
+            if (fg[prot].which() == 1) // if the node is a group, find their members first.
+            {
+              vector<vertex_t> single_prots;
+              queue<vertex_t> single_start;
+              single_start.push(prot);
+              getUpstreamNodesNonRecursive(single_start,fg,0,true,single_prots);
+              for (const auto& single_prot : single_prots)
+              {
+                ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[single_prot]);
+                accsToRemove.insert(proteinPtr->getAccession());
+              }
+            }
+            else
+            {
+              ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[prot]);
+              accsToRemove.insert(proteinPtr->getAccession());
+            }
             boost::remove_edge(prot, *ui, fg);
           }
         }
-        //TODO remove edges from ID structure as well?
-        // if the node is a group, find their members first.
+        vector<vertex_t> peps;
+        queue<vertex_t> start_pep;
+        start_pep.push(*ui);
+        getUpstreamNodesNonRecursive(start_pep,fg,6,true,peps);
+        for (const auto& pep : peps)
+        {
+          PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
+          auto& ev = peptidePtr->getPeptideEvidences();
+          vector<PeptideEvidence> newev;
+          for (const auto& e : ev)
+          {
+            if (accsToRemove.find(e.getProteinAccession()) == accsToRemove.end())
+            {
+              newev.emplace_back(e);
+            }
+          }
+          peptidePtr->setPeptideEvidences(std::move(newev));
+        }
       }
     }
   }
