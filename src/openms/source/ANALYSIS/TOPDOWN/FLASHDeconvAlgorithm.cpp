@@ -219,6 +219,7 @@ namespace OpenMS
             subPeakMassMap[p.mz] = pg.monoisotopicMass;
           }
         }
+
         //peakChargeMap[msLevel] = subPeakChargeMap;
         //peakIntMap[msLevel] = subPeakIntMap;
         //peakMassMap[msLevel] = subPeakMassMap;

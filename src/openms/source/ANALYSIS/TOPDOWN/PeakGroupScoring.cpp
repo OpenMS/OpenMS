@@ -415,24 +415,12 @@ namespace OpenMS
 
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.currentChargeRange];
-    //    auto intensityGrid = new double*[param.currentChargeRange];
-    //    auto intensityGrid2 = new double*[param.maxIsotopeCount];
-
-    /*for (int i = 0;  i < param.currentChargeRange ; i++)
-    {
-      intensityGrid[i] = new double[param.maxIsotopeCount];
-    }
-
-    for (int i = 0;  i < param.maxIsotopeCount ; i++)
-    {
-      intensityGrid2[i] = new double[param.currentChargeRange];
-    }*/
-    // filterPeakGroupsByIntensity(param.currentMaxMassCount);
 
     for (auto &pg : peakGroups)
     {
       if (pg.intensity < threshold)
       {
+        delete[] pg.perChargeNoisePower;
         continue; //
       }
 
@@ -441,65 +429,6 @@ namespace OpenMS
           perIsotopeIntensity, perChargeIntensity,
           pg);
 
-      /*
-            if(indices[0]<0 || indices[1]<0){
-              continue;
-            }
-
-            int tmp = 0;
-            double cost = .0;
-            for(int i=indices[0];i<param.currentChargeRange-1;i++){
-              auto int1 = intensityGrid[i];
-              auto int2 = intensityGrid[i+1];
-              auto cos = getCosine(int1, int2, param.maxIsotopeCount);
-              if (cos > cost){
-                tmp++;
-              }else{
-                break;
-              }
-            }
-            for(int i=indices[0]-1;i>=1;i--){
-              auto int1 = intensityGrid[i];
-              auto int2 = intensityGrid[i-1];
-              auto cos = getCosine(int1, int2, param.maxIsotopeCount);
-              if (cos > cost){
-                tmp++;
-              }else{
-                break;
-              }
-            }
-
-            if(tmp <2){
-              continue;
-            }
-
-            tmp = 0;
-            for(int i=indices[1];i<param.maxIsotopeCount-1;i++){
-              auto int1 = intensityGrid2[i];
-              auto int2 = intensityGrid2[i+1];
-              auto cos = getCosine(int1, int2, param.chargeRange);
-              if (cos > cost){
-                tmp++;
-              }else{
-                break;
-              }
-            }
-            for(int i=indices[1]-1;i>=1;i--){
-              auto int1 = intensityGrid2[i];
-              auto int2 = intensityGrid2[i-1];
-              auto cos = getCosine(int1, int2, param.chargeRange);
-              if (cos > cost){
-                tmp++;
-              }else{
-                break;
-              }
-            }
-
-            if(tmp <2){
-              continue;
-            }*/
-
-
       pg.chargeCosineScore = getChargeFitScore(perChargeIntensity, param.currentChargeRange);
 
       if (msLevel == 1)
@@ -507,6 +436,7 @@ namespace OpenMS
         if (pg.peaks.empty() ||
             pg.chargeCosineScore <= param.minChargeCosine)
         {
+          delete[] pg.perChargeNoisePower;
           continue;
         }
 
@@ -516,6 +446,7 @@ namespace OpenMS
 
         if (!isChargeWellDistributed)
         {
+          delete[] pg.perChargeNoisePower;
           continue;
         }
 
@@ -524,6 +455,7 @@ namespace OpenMS
       {
         if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)
         {
+          delete[] pg.perChargeNoisePower;
           continue;
         }
       }
@@ -538,9 +470,9 @@ namespace OpenMS
       if (pg.peaks.empty() ||
           (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
+        delete[] pg.perChargeNoisePower;
         continue;
       }
-
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
 
@@ -574,6 +506,7 @@ namespace OpenMS
           maxMz = maxMz > p.mz ? maxMz : p.mz;
         }
         if(maxMz <= 0){
+          delete[] perIsotopeIntensities;
           continue;
         }
 
@@ -593,7 +526,7 @@ namespace OpenMS
 
         double cos2 = cos * cos;
         double snr = cos2 * sp / ((1- cos2) * sp + pg.perChargeNoisePower[j] + 1);
-        //std::cout<< sp << " " << cos << " " << pg.perChargeNoisePower[j] << " " << snr << std::endl;
+
         if(snr > maxSNR){
           maxSNR = snr;
           pg.maxSNR = snr;
@@ -605,43 +538,6 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
       delete[] pg.perChargeNoisePower;
-
-      if(false){
-        perIsotopeIntensity = new double[param.maxIsotopeCount];
-        int minI = -1;
-        int maxI = 0;
-        for(auto j=0;j<param.maxIsotopeCount;++j){
-          if (perIsotopeIntensity[j]==0){
-            continue;
-          }
-          if(minI<0){
-            minI = j;
-          }
-          maxI = j;
-        }
-        pg.massPpmError = 0;
-        for(auto j=minI;j<=maxI;++j)
-        {
-          if (perIsotopeIntensity[j] != 0)
-          {
-            continue;
-          }
-          pg.massPpmError ++;
-        }
-        if (pg.massPpmError > 3){
-          continue;
-        }
-        //pg.massPpmError/=(maxI - minI+1);
-      }
-      //if (msLevel != 1)
-      //{
-      //  pg.massPpmError = getAvgMassPpmError(pg);
-      // if (pg.massPpmError > 4e-5)
-      // { //
-      //continue;
-      //  }
-      // }
-
       filteredPeakGroups.push_back(pg);
     }
 
