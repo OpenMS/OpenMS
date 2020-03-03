@@ -1215,8 +1215,11 @@ namespace OpenMS
           }
         }
       }
-      OPENMS_LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-        residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+      if (residue->getOneLetterCode() != "X") // don't warn for mass tags
+      {
+        OPENMS_LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
+            residue->getOneLetterCode() + "' - adding it to the database" << std::endl;
+      }
     }
     else if (specificity == ResidueModification::C_TERM)
     {
