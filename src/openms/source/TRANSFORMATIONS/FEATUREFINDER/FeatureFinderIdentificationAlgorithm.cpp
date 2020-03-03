@@ -487,6 +487,7 @@ namespace OpenMS
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
+      features.ensureUniqueId();
       FeatureXMLFile().store(candidates_out_, features);
     }
 
