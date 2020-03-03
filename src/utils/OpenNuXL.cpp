@@ -126,7 +126,9 @@ using namespace boost::accumulators;
 //#define FILTER_RANKS 1
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
 
+#ifdef ANNOTATED_QUANTILES
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
+#endif
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -4071,8 +4073,11 @@ static void scoreXLIons_(
     vector<omp_lock_t> annotated_peptides_lock(annotated_peptides.size());
     for (size_t i = 0; i != annotated_peptides_lock.size(); i++) { omp_init_lock(&(annotated_peptides_lock[i])); }
 #endif
+
+#ifdef ANNOTATED_QUANTILES
     vector<quantile_accu_t> annotated_peptides_quantiles_peptides(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
     vector<quantile_accu_t> annotated_peptides_quantiles_XLs(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
+#endif
 
     // load fasta file
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
@@ -4367,7 +4372,9 @@ static void scoreXLIons_(
                   omp_set_lock(&(annotated_peptides_lock[scan_index]));
 #endif
                   {
+#ifdef ANNOTATED_QUANTILES
                     annotated_peptides_quantiles_peptides[scan_index](ah.total_loss_score);
+#endif
                     annotated_peptides[scan_index].emplace_back(move(ah));
 
                     // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -4603,7 +4610,9 @@ static void scoreXLIons_(
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
 #endif
                     {
+#ifdef ANNOTATED_QUANTILES
                       annotated_peptides_quantiles_XLs[scan_index](ah.total_loss_score + ah.partial_loss_score);
+#endif
                       annotated_XLs[scan_index].emplace_back(move(ah));
 
                       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -4772,7 +4781,8 @@ static void scoreXLIons_(
 
     // annotate RNPxl related information to hits and create report
     vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
-/*
+
+#ifdef ANNOTATED_QUANTILES
       for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
       {
         PeptideIdentification& pi = peptide_ids[scan_index];
@@ -4789,7 +4799,7 @@ static void scoreXLIons_(
           }
         }
       }
-*/
+#endif
 
 
 
