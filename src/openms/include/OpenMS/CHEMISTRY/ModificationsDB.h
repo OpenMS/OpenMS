@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -102,6 +103,12 @@ public:
         The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
     */
     void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+
+    const ResidueModification* searchModifications_fast(const String& mod_name, 
+bool& multiple_matches,
+                                                        const String& residue = "",
+                                                        ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY
+                                                        ) const;
 
     /**
        @brief Returns the modification with the given name
@@ -179,7 +186,7 @@ protected:
     std::vector<ResidueModification*> mods_;
 
     /// Stores the mappings of (unique) names to the modifications
-    Map<String, std::set<const ResidueModification*> > modification_names_;
+    std::unordered_map<String, std::set<const ResidueModification*> > modification_names_;
 
     /// Helper function to check if a residue matches the origin for a modification
     bool residuesMatch_(const String& residue, const ResidueModification* origin) const;
