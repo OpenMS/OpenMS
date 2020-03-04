@@ -509,7 +509,7 @@ namespace OpenMS
     {
       for (auto & feat : features)
       {
-        for (auto & sub : feat_it.getSubordinates())
+        for (auto & sub : feat.getSubordinates())
         {
           sub.getConvexHulls().clear();
         }
