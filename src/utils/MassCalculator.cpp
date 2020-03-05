@@ -110,7 +110,7 @@ protected:
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out",ListUtils::create<String>("txt"));
+    setValidFormats_("out",ListUtils::create<String>("csv"));
 
     registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
