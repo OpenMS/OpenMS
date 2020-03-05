@@ -93,7 +93,7 @@ using Internal::IDBoostGraph;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ProteomicsLFQ
+  @page UTILS_ProteomicsLFQ ProteomicsLFQ
 
   // experiments TODO:
   // - change percentage of missingness in ID transfer
@@ -107,11 +107,14 @@ using Internal::IDBoostGraph;
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
  **/
 
-class UTILProteomicsLFQ :
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class ProteomicsLFQ :
   public TOPPBase
 {
 public:
-  UTILProteomicsLFQ() :
+  ProteomicsLFQ() :
     TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.", false)
   {
   }
@@ -1621,7 +1624,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  UTILProteomicsLFQ tool;
+  ProteomicsLFQ tool;
   return tool.main(argc, argv);
 }
 
