@@ -938,6 +938,8 @@ protected:
         tmp,
         seeds);
 
+      // TODO: consider moving this to FFid
+      // free parts of feature map not needed for further processing (e.g., subfeatures...)
       for (auto & f : tmp)
       {
         f.clearMetaInfo();
@@ -951,7 +953,6 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
-      // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       ++fraction_group;
     }
 
