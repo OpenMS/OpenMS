@@ -97,6 +97,8 @@
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps.
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
+  - @subpage UTILS_MetaProSIP - Detect labeled peptides from protein-SIP experiments.
+  - @subpage UTILS_ProteomicsLFQ - Perform label-free quantification in a single tool.
 
   <b>Map Alignment</b>
   - @subpage TOPP_ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
