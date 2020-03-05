@@ -49,7 +49,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  bool inline residuesMatch_fast_(const char residue, const ResidueModification* curr_mod)
+  bool ModificationsDB::residuesMatch_(const char residue, const ResidueModification* curr_mod) const
   {
     const char origin = curr_mod->getOrigin();
 
@@ -138,11 +138,11 @@ namespace OpenMS
     return s;
   }
 
-  const ResidueModification* ModificationsDB::searchModifications_fast(const String& mod_name_,
-                                                                       bool& multiple_matches,
-                                                                       const String& residue,
-                                                                       ResidueModification::TermSpecificity term_spec
-                                                                       ) const
+  const ResidueModification* ModificationsDB::searchModificationsFast(const String& mod_name_,
+                                                                      bool& multiple_matches,
+                                                                      const String& residue,
+                                                                      ResidueModification::TermSpecificity term_spec
+                                                                      ) const
   {
     const ResidueModification* mod(nullptr);
 
@@ -177,7 +177,7 @@ namespace OpenMS
       {
         for (const auto& it : modifications->second)
         {
-          if ( residuesMatch_fast_(res, it) &&
+          if ( residuesMatch_(res, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
                (term_spec == it->getTermSpecificity())))
           {
@@ -233,7 +233,7 @@ namespace OpenMS
       {
         for (const auto& it : modifications->second)
         {
-          if ( residuesMatch_fast_(res, it) &&
+          if ( residuesMatch_(res, it) &&
                (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
                (term_spec == it->getTermSpecificity())))
           {
@@ -253,10 +253,10 @@ namespace OpenMS
     if (!residue.empty() &&
         (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY))
     {
-      mod = searchModifications_fast(mod_name, multiple_matches, residue,
+      mod = searchModificationsFast(mod_name, multiple_matches, residue,
                           ResidueModification::ANYWHERE);
     }
-    if (mod == nullptr) mod = searchModifications_fast(mod_name, multiple_matches, residue, term_spec);
+    if (mod == nullptr) mod = searchModificationsFast(mod_name, multiple_matches, residue, term_spec);
 
     if (mod == nullptr)
     {
@@ -339,7 +339,7 @@ namespace OpenMS
       for (auto const & m : mods_)
       {
         if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
-            residuesMatch_fast_(res, m) &&
+            residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
@@ -365,7 +365,7 @@ namespace OpenMS
         // first matching UniMod entry)
         double mass_error = fabs(m->getDiffMonoMass() - mass);
         if ((mass_error < min_error) &&
-            residuesMatch_fast_(res, m) &&
+            residuesMatch_(res, m) &&
             ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
              (term_spec == m->getTermSpecificity())))
         {
