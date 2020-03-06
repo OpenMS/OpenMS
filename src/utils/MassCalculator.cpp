@@ -105,7 +105,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in",ListUtils::create<String>("txt"));
+    setValidFormats_("in",ListUtils::create<String>("tsv"));
 
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
