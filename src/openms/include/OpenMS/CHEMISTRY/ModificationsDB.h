@@ -215,7 +215,7 @@ protected:
      *
      * Underlying logic to determine whether a given residue matches the
      * modification: if the modification does not have origin of "X"
-     * (everything) then it is sufficient to check that the residue matches the orig
+     * (everything) then it is sufficient to check that the residue matches the origin
      *
     */
     bool residuesMatch_(const char residue, const ResidueModification* curr_mod) const;
