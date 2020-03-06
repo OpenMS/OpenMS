@@ -128,9 +128,11 @@ protected:
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
-      "1. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
-      "2. FalseDiscoveryRate (FDR:PSM = 0.01)\n"
-      "3. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type)\n"
+      "1. PeptideIndexer to annotate target and decoy information.\n"
+      "2. PSMFeatureExtractor to annotate percolator features.\n"
+      "3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
+      "4. IDFilter (pep:score = 0.01)\n"
+      "5. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type pep)\n"
       "To obtain well calibrated PEPs and an inital reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
@@ -177,31 +179,69 @@ protected:
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
 
-    registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
+    registerStringOption_("targeted_only", "<option>", "false", 
+      "true: Only ID based quantification.\n"
+      "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("transfer_ids", "<option>", "false", "Requantification.", false, true);
-    setValidStrings_("transfer_ids", ListUtils::create<String>("false,merged,SVM"));
+    // TODO: support transfer with SVM if we figure out a computational efficient way to do it.
+    registerStringOption_("transfer_ids", "<option>", "false", 
+      "Requantification using mean of aligned RTs of a peptide feature.\n"
+      "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
+    setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
 
-    registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
+    registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
 
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
+    for (const auto& s : {"report_FWHM", "report_FWHM_unit", "SignalToNoise:win_len", "SignalToNoise:bin_count", "SignalToNoise:min_required_elements", "SignalToNoise:write_log_messages"} )
+    {
+      pp_defaults.addTag(s, "advanced");
+    }
+
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
+    ffi_defaults.setValue("svm:samples", 10000); // restrict number of samples for training
+    ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
+    ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
+    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
+    // hide entries
+    for (const auto& s : {"svm:samples", "svm:log2_C", "svm:log2_gamma", "svm:min_prob", "svm:no_selection", "svm:xval_out", "svm:kernel", "svm:xval", "candidates_out", "extract:n_isotopes", "model:type"} )
+    {
+      ffi_defaults.addTag(s, "advanced");
+    }
+    ffi_defaults.remove("detect:peak_width"); // set from data
+
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     ma_defaults.setValue("max_rt_shift", 0.1);
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
 
+    // hide entries
+    for (const auto& s : {"use_unassigned_peptides", "use_feature_rt", "score_cutoff", "min_score"} )
+    {
+      ma_defaults.addTag(s, "advanced");
+    }
+
     //Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+    fl_defaults.setValue("distance_MZ:max_difference", 10.0);
+    fl_defaults.setValue("distance_MZ:unit", "ppm");
+    fl_defaults.setValue("distance_MZ:weight", 5.0);
+    fl_defaults.setValue("distance_intensity:weight", 0.1); 
+    fl_defaults.setValue("use_identifications", "true"); 
+    fl_defaults.remove("distance_RT:max_difference"); // estimated from data
+    for (const auto& s : {"distance_MZ:weight", "distance_intensity:weight", "use_identifications", "ignore_charge", "ignore_adduct"} )
+    {
+      fl_defaults.addTag(s, "advanced");
+    }
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     pq_defaults.setValue("include_all", "true"); 
+    pq_defaults.addTag("include_all", "advanced");
 
     // combine parameters of the individual algorithms
     Param combined;
@@ -420,7 +460,7 @@ protected:
     p.setValue("algorithm:labels", "");
     p.setValue("algorithm:charge", "2:5");
     p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-    p.setValue("algorithm:rt_band", median_fwhm);
+    p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces
     p.setValue("algorithm:rt_min", median_fwhm * 0.5);
     p.setValue("algorithm:spectrum_type", "centroid");
     algorithm.setParameters(p);
@@ -546,19 +586,15 @@ protected:
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-    fl_param.setValue("distance_MZ:max_difference", 10.0);
-    fl_param.setValue("distance_MZ:unit", "ppm");
-    fl_param.setValue("distance_MZ:weight", 5.0);
-    fl_param.setValue("distance_intensity:weight", 0.1); 
-    fl_param.setValue("use_identifications", "true"); 
+    linker.setParameters(fl_param);      
 /*
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-*/
     linker.setParameters(fl_param);      
+*/
     linker.group(feature_maps, consensus_fraction);
     OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
     assert(!consensus_fraction.empty());
@@ -743,6 +779,7 @@ protected:
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
+      IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
@@ -852,14 +889,7 @@ protected:
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-          if (getStringOption_("transfer_ids") == "merged" )
-          {
-            peptide_ids.push_back(it->second);
-          }
-          else if (getStringOption_("transfer_ids") == "SVM" )
-          {
-            ext_peptide_ids.push_back(it->second);
-          }
+          peptide_ids.push_back(it->second);
         }
       }
 
@@ -905,10 +935,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("svm:samples", 10000); // restrict number of samples for training
-      ffi_param.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
-      ffi_param.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
-      ffi_param.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
@@ -920,6 +946,8 @@ protected:
         tmp,
         seeds);
 
+      // TODO: consider moving this to FFid
+      // free parts of feature map not needed for further processing (e.g., subfeatures...)
       for (auto & f : tmp)
       {
         f.clearMetaInfo();
@@ -933,7 +961,6 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
-      // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       ++fraction_group;
     }
 
@@ -1197,6 +1224,8 @@ protected:
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
       f.load(idfile, protein_ids, peptide_ids);
+
+      IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
 
       // reannotate MS run if not present
       StringList id_msfile_ref;

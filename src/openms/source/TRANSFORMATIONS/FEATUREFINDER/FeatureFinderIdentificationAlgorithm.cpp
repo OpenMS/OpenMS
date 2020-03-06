@@ -368,19 +368,17 @@ namespace OpenMS
       ref_rt_map.clear();
     }
 
+    //-------------------------------------------------------------
+    // run feature detection
+    //-------------------------------------------------------------
+    OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
     for (auto& chunk : chunks)
     {
-
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
 
-      //-------------------------------------------------------------
-      // run feature detection
-      //-------------------------------------------------------------
-      OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
       {
-
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
         // take entries in library_ and put to chrom_temp and coords
@@ -397,17 +395,18 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
                        << " chromatogram(s)." << endl;
 
-      OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
+      OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
       if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
       if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
-      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-                      << endl;
       chrom_data_.clear(true);
       library_.clear(true);
     }
+
+    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
+                    << endl;
 
     ms_data_.reset(); // not needed anymore, free up the memory
     // complete feature annotation:
@@ -484,6 +483,9 @@ namespace OpenMS
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids) classifyFeatures_(features);
 
+    // make sure proper unique ids get assigned to all features
+    features.ensureUniqueId();
+
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
@@ -507,14 +509,11 @@ namespace OpenMS
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin(); 
-           feat_it != features.end(); ++feat_it)
+      for (auto & feat : features)
       {
-        for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it != 
-               feat_it->getSubordinates().end(); ++sub_it)
+        for (auto & sub : feat.getSubordinates())
         {
-          sub_it->getConvexHulls().clear();
+          sub.getConvexHulls().clear();
         }
       }
     }
@@ -1535,6 +1534,7 @@ namespace OpenMS
     }
     else
     {
+      // remove features without ID (or pseudo ID from seeds)
       features.erase(remove_if(features.begin(), features.end(),
                                feature_filter_peptides_), features.end());
     }
