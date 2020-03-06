@@ -483,10 +483,12 @@ namespace OpenMS
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids) classifyFeatures_(features);
 
+    // make sure proper unique ids get assigned to all features
+    features.ensureUniqueId();
+
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
-      features.ensureUniqueId();
       FeatureXMLFile().store(candidates_out_, features);
     }
 

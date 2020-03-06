@@ -176,10 +176,15 @@ protected:
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
 
-    registerStringOption_("targeted_only", "<option>", "false", "true: Only ID based quantification. false: include unidentified features.", false, false);
+    registerStringOption_("targeted_only", "<option>", "false", 
+      "true: Only ID based quantification.\n"
+      "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("transfer_ids", "<option>", "false", "Requantification using mean RT if quantified by ID in more than 50% of all runs (of a fraction).", false, false);
+    // TODO: support transfer with SVM if we figure out a computational efficient way to do it.
+    registerStringOption_("transfer_ids", "<option>", "false", 
+      "Requantification using mean of aligned RTs of a peptide feature.\n"
+      "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
     setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
 
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
