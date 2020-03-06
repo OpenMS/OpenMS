@@ -102,13 +102,29 @@ public:
        If @p term_spec is set, only modifications with matching term specificity are considered.
         The resulting set of modifications will be empty if no modification exists that fulfills the criteria.
     */
-    void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
+    void searchModifications(std::set<const ResidueModification*>& mods,
+                             const String& mod_name,
+                             const String& residue = "",
+                             ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
-    const ResidueModification* searchModifications_fast(const String& mod_name, 
-bool& multiple_matches,
-                                                        const String& residue = "",
-                                                        ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY
-                                                        ) const;
+    /**
+       @brief Returns the modification which has the given name as synonym (fast version)
+
+       Unlike searchModification(), only returns the one occurrence of the
+       modification (the last occurrence). It is therefore required to check @p
+       multiple_matches to ensure that only a single modification was found.
+
+       If @p residue is set, only modifications with matching residue of origin are considered.
+       If @p term_spec is set, only modifications with matching term specificity are considered.
+
+       @return The matching modification given the constraints. Returns nullptr
+       if no modification exists that fulfills the criteria. If multiple
+       modifications are found, the @multiple_matches flag will be set.
+    */
+    const ResidueModification* searchModificationsFast(const String& mod_name,
+                                                       bool& multiple_matches,
+                                                       const String& residue = "",
+                                                       ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /**
        @brief Returns the modification with the given name
@@ -188,8 +204,21 @@ protected:
     /// Stores the mappings of (unique) names to the modifications
     std::unordered_map<String, std::set<const ResidueModification*> > modification_names_;
 
-    /// Helper function to check if a residue matches the origin for a modification
-    bool residuesMatch_(const String& residue, const ResidueModification* origin) const;
+    /** @brief Helper function to check if a residue matches the origin for a modification
+     *
+     * Special cases are handled as follows:
+     *   * if the origin of the modification is not "X" (everything), then the
+     *     residue either needs to match the origin exactly or it must be one of "X", ".", or "?"
+     *   * if the origin of the modification is "X" (can match any amino acid),
+     *     then any residue should match -- except if the modification is
+     *     user-defined and maps to an unknown amino acid (indicated by "X")
+     *
+     * Underlying logic to determine whether a given residue matches the
+     * modification: if the modification does not have origin of "X"
+     * (everything) then it is sufficient to check that the residue matches the origin
+     *
+    */
+    bool residuesMatch_(const char residue, const ResidueModification* curr_mod) const;
 
 private:
 
