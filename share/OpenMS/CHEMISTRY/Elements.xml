@@ -869,7 +869,7 @@
     <NODE name="Krypton">
       <ITEM name="Name" value="Krypton" type="string" />
       <ITEM name="Symbol" value="Kr" type="string" />
-      <ITEM name="AtomicNumber" value="35" type="int" />
+      <ITEM name="AtomicNumber" value="36" type="int" />
       <NODE name="Isotopes">
         <NODE name="78">
           <ITEM name="RelativeAbundance" value="0.35" type="float" />
@@ -954,7 +954,7 @@
     <NODE name="Rhodium">
       <ITEM name="Name" value="Rhodium" type="string" />
       <ITEM name="Symbol" value="Rh" type="string" />
-      <ITEM name="AtomicNumber" value="44" type="int" />
+      <ITEM name="AtomicNumber" value="45" type="int" />
       <NODE name="Isotopes">
         <NODE name="103">
           <ITEM name="RelativeAbundance" value="100.00" type="float" />
