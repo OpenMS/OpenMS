@@ -251,7 +251,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
-
+    setValidFormats_("out", { "idXML" });
     // Ascore algorithm parameters:
     registerFullParam_(AScore().getDefaults());
   }
