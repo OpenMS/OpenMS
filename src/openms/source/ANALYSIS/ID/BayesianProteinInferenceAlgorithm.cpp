@@ -71,15 +71,16 @@ namespace OpenMS
 
     unsigned long operator() (IDBoostGraph::Graph& fg) {
       //TODO do quick bruteforce calculation if the cc is really small?
+      #pragma omp atomic
       cnt_++;
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-        OPENMS_LOG_DEBUG << "Running cc " << String(cnt_) << "...\n";
+        OPENMS_LOG_DEBUG << "Running cc " << String(cnt_) << "..." << std::endl;
         unsigned long nrEdges = boost::num_edges(fg);
 
-        OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges.";
+        OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges." << std::endl;
 
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
@@ -234,7 +235,7 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(cnt_) << "...\n";
+          OPENMS_LOG_DEBUG << "Finished cc " << String(cnt_) << std::endl;;
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
