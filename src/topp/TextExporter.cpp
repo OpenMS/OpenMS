@@ -513,7 +513,7 @@ protected:
     {
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
-      registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
+      registerOutputFile_("out", "<file>", "", "Output file.");
       setValidFormats_("out", ListUtils::create<String>("tsv"));
       registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
