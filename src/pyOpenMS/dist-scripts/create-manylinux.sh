@@ -35,10 +35,10 @@ rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
 for PYBIN in /opt/python/cp3[4-9]*; do
   "$PYBIN/bin/pip" install -U Cython
   "$PYBIN/bin/pip" install -U setuptools
-  "$PYBIN/bin/pip" install -U wheel
+  "$PYBIN/bin/pip" install -U wheel==0.31.1
   "$PYBIN/bin/pip" install -U numpy
   "$PYBIN/bin/pip" install -U nose
-  "$PYBIN/bin/pip" install -U autowrap==0.18.1
+  "$PYBIN/bin/pip" install -U autowrap
 done
 
 mkdir -p /data/wheelhouse/
