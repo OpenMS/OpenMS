@@ -741,6 +741,7 @@ namespace OpenMS
       }
       pl.endProgress();
     }
+    OPENMS_LOG_INFO << "Annotated " << String(protIDs_.getIndistinguishableProteins().size()) << " indist. protein groups.\n";
   }
 
   void IDBoostGraph::calculateAndAnnotateIndistProteins(bool addSingletons)
@@ -816,14 +817,10 @@ namespace OpenMS
           }
         }
 
-        auto clusterIt = indistProteins.find(childPeps);
-        if (clusterIt != indistProteins.end())
+        auto clusterIt = indistProteins.emplace(childPeps, ProteinNodeSet({*ui}));
+        if (!clusterIt.second) //no insertion -> append
         {
-          clusterIt->second.insert(*ui);
-        }
-        else
-        {
-          indistProteins[childPeps] = ProteinNodeSet({*ui});
+          (clusterIt.first)->second.insert(*ui);
         }
       }
     }
@@ -919,7 +916,7 @@ namespace OpenMS
         }
         else if (graph[*adjIt].which() > graph[curr_node].which())
         {
-            q.emplace(*adjIt);
+          q.emplace(*adjIt);
         }
       }
     }
@@ -1296,14 +1293,10 @@ namespace OpenMS
               }
             }
 
-            auto clusterIt = indistProteins.find(childPeps);
-            if (clusterIt != indistProteins.end())
+            auto clusterIt = indistProteins.emplace(childPeps, ProteinNodeSet({*ui}));
+            if (!clusterIt.second) //no insertion -> append
             {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              indistProteins[childPeps] = ProteinNodeSet({*ui});
+              (clusterIt.first)->second.insert(*ui);
             }
           }
         }
@@ -1462,14 +1455,10 @@ namespace OpenMS
               }
             }
 
-            auto clusterIt = indistProteins.find(childPeps);
-            if (clusterIt != indistProteins.end())
+            auto clusterIt = indistProteins.emplace(childPeps, ProteinNodeSet({*ui}));
+            if (!clusterIt.second) //no insertion -> append
             {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              indistProteins[childPeps] = ProteinNodeSet({*ui});
+              (clusterIt.first)->second.insert(*ui);
             }
           }
         }
@@ -1524,14 +1513,10 @@ namespace OpenMS
               }
             }
 
-            auto clusterIt = pepClusters.find(parents);
-            if (clusterIt != pepClusters.end())
+            auto clusterIt = indistProteins.emplace(parents, PeptideNodeSet({*ui}));
+            if (!clusterIt.second) //no insertion -> append
             {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              pepClusters[parents] = PeptideNodeSet({*ui});
+              (clusterIt.first)->second.insert(*ui);
             }
           }
         }

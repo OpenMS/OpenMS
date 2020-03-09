@@ -288,6 +288,9 @@ namespace OpenMS
   //merge proteins across fractions and replicates
   void ConsensusMapMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
   {
+    if (cmap.getProteinIdentifications().size() == 1)
+      return;
+
     // Everything needs to agree
     checkOldRunConsistency_(cmap.getProteinIdentifications(), cmap.getExperimentType());
 
@@ -298,12 +301,23 @@ namespace OpenMS
     newProtIDRun.setSearchEngine(cmap.getProteinIdentifications()[0].getSearchEngine());
     newProtIDRun.setSearchEngineVersion(cmap.getProteinIdentifications()[0].getSearchEngineVersion());
     newProtIDRun.setSearchParameters(cmap.getProteinIdentifications()[0].getSearchParameters());
-    //TODO based on old IDRuns or based on consensusHeaders?
-    //vector<String> mergedOriginFiles = cmap.getProteinIdentifications()...
-    vector<String> mergedOriginFiles{};
-    for (const auto& chead : cmap.getColumnHeaders())
+    String old_inference_engine = cmap.getProteinIdentifications()[0].getInferenceEngine();
+    if (!old_inference_engine.empty())
     {
-      mergedOriginFiles.push_back(chead.second.filename);
+      OPENMS_LOG_WARN << "Inference was already performed on the runs in this ConsensusXML."
+                         " Merging their proteins, will invalidate correctness of the inference."
+                         " You should redo it.\n";
+      // deliberately do not take over old inference settings.
+    }
+
+    //we do it based on the IDRuns since ID Runs maybe different from quantification in e.g. TMT
+    vector<String> mergedOriginFiles{};
+    //set<String> mergedOriginFiles{};
+    for (const auto& pid : cmap.getProteinIdentifications())
+    {
+      vector<String> out;
+      pid.getPrimaryMSRunPath(out);
+      mergedOriginFiles.emplace_back(out);
     }
     newProtIDRun.setPrimaryMSRunPath(mergedOriginFiles);
 

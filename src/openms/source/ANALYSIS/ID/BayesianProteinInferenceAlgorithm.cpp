@@ -76,6 +76,7 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        OPENMS_LOG_DEBUG << "Running cc " << String(cnt_) << "...\n";
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
@@ -183,7 +184,7 @@ namespace OpenMS
           }
 
           // create factor graph for Bayesian network
-          evergreen::InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
+          evergreen::InferenceGraph <IDBoostGraph::vertex_t> ig = bigb.to_graph();
           graph_mp_ownership_acquired = true;
 
           unsigned long maxMessages = param_
@@ -202,11 +203,12 @@ namespace OpenMS
 
           evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
 
+          unsigned long nrEdgesSq = nrEdges*nrEdges;
           auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
               {
-                  std::make_tuple(std::max<unsigned long>(10000ul, nrEdges*nrEdges*2ul), initDampeningLambda, initConvergenceThreshold),
-                  std::make_tuple(nrEdges*nrEdges, std::min(0.5,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
-                  std::make_tuple(nrEdges*nrEdges/2ul, std::min(0.5,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
+                  std::make_tuple(std::min(std::max<unsigned long>(10000ul, nrEdgesSq*2ul), maxMessages), initDampeningLambda, initConvergenceThreshold),
+                  std::make_tuple(std::min(nrEdgesSq,maxMessages - nrEdgesSq*2ul), std::min(0.49,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
+                  std::make_tuple(std::min(nrEdgesSq/2ul,maxMessages - nrEdgesSq*3ul), std::min(0.49,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
               });
 
           // TODO move the writing of statistics from IDBoostGraph here and write more stats
@@ -228,6 +230,9 @@ namespace OpenMS
             auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
+
+          OPENMS_LOG_DEBUG << "Finished cc " << String(cnt_) << "...\n";
+
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
           return nrMessagesNeeded;
@@ -578,7 +583,8 @@ namespace OpenMS
 
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        (1ul<<31)-1,
-                       "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
+                       "(Usually auto-determined by estimated but you can set a hard limit here)."
+                       " If not all messages converge, how many iterations should be done at max per connected component?");
     //I think restricting does not work because it only works for type Int (= int), not unsigned long
     //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
