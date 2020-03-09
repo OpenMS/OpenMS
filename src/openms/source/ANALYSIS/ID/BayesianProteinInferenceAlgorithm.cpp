@@ -77,6 +77,10 @@ namespace OpenMS
       if (boost::num_vertices(fg) >= 2)
       {
         OPENMS_LOG_DEBUG << "Running cc " << String(cnt_) << "...\n";
+        unsigned long nrEdges = boost::num_edges(fg);
+
+        OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges.";
+
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
@@ -193,9 +197,6 @@ namespace OpenMS
               .getValue("loopy_belief_propagation:dampening_lambda");
           double initConvergenceThreshold = param_.getValue(
               "loopy_belief_propagation:convergence_threshold");
-          unsigned long nrEdges = boost::num_edges(fg);
-
-          OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges.";
 
           //TODO parametrize the type of scheduler.
           evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
