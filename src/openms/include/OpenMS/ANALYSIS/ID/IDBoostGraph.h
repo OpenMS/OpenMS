@@ -335,7 +335,7 @@ namespace OpenMS {
 
 
     /// Do sth on connected components (your functor object has to inherit from std::function or be a lambda)
-    void applyFunctorOnCCs(const std::function<unsigned long(Graph&)>& functor);
+    void applyFunctorOnCCs(const std::function<unsigned long(Graph&, unsigned int)>& functor);
     /// Do sth on connected components single threaded (your functor object has to inherit from std::function or be a lambda)
     void applyFunctorOnCCsST(const std::function<void(Graph&)>& functor);
 

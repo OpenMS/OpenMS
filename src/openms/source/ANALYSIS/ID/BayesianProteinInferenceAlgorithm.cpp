@@ -69,18 +69,18 @@ namespace OpenMS
         cnt_(0)
     {}
 
-    unsigned long operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
+
       //TODO do quick bruteforce calculation if the cc is really small?
-      #pragma omp atomic
-      cnt_++;
+
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-        OPENMS_LOG_DEBUG << "Running cc " << String(cnt_) << "..." << std::endl;
+        OPENMS_LOG_DEBUG << "Running cc " << String(idx) << "..." << std::endl;
         unsigned long nrEdges = boost::num_edges(fg);
 
-        OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges." << std::endl;
+        OPENMS_LOG_DEBUG << "CC " << String(idx) << " has " << String(nrEdges) << " edges." << std::endl;
 
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
@@ -235,7 +235,7 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(cnt_) << std::endl;;
+          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << std::endl;;
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
@@ -262,7 +262,7 @@ namespace OpenMS
                 "_b" + String(param_.getValue("model_parameters:pep_spurious_emission")) + "_g" +
                 String(param_.getValue("model_parameters:prot_prior")) + "_c" +
                 String(param_.getValue("model_parameters:pep_prior")) + "_p" + String(pnorm) + "_"
-                + String(cnt_) + ".graphviz"
+                + String(idx) + ".graphviz"
                 , std::ofstream::out | std::ofstream::app);
             IDBoostGraph::printGraph(ofs, fg);
           }
@@ -291,7 +291,7 @@ namespace OpenMS
         param_(param)
     {}
 
-    unsigned long operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
       //TODO do quick bruteforce calculation if the cc is really small
 
       double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");

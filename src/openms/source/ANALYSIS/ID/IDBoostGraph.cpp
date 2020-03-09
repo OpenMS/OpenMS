@@ -604,7 +604,7 @@ namespace OpenMS
 
 
   /// Do sth on ccs
-  void IDBoostGraph::applyFunctorOnCCs(const std::function<unsigned long(Graph&)>& functor)
+  void IDBoostGraph::applyFunctorOnCCs(const std::function<unsigned long(Graph&, unsigned int)>& functor)
   {
     if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
@@ -635,7 +635,7 @@ namespace OpenMS
       #ifdef INFERENCE_BENCH
       unsigned long result = functor(curr_cc);
       #else
-      functor(curr_cc);
+      functor(curr_cc, i);
       #endif
 
 
