@@ -195,6 +195,8 @@ namespace OpenMS
               "loopy_belief_propagation:convergence_threshold");
           unsigned long nrEdges = boost::num_edges(fg);
 
+          OPENMS_LOG_DEBUG << "CC " << String(cnt_) << " has " << String(nrEdges) << " edges.";
+
           //TODO parametrize the type of scheduler.
           evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
                                                               initConvergenceThreshold,
