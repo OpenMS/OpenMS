@@ -71,10 +71,10 @@ ElutionModelFitter::ElutionModelFitter():
   defaults_.setMinFloat("check:boundaries", 0.0);
   defaults_.setMaxFloat("check:boundaries", 1.0);
 
-  defaults_.setValue("check:width", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", advanced);
+  defaults_.setValue("check:width", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores. '0' to disable. Not applied to individual mass traces (parameter 'each_trace').", advanced);
   defaults_.setMinFloat("check:width", 0.0);
 
-  defaults_.setValue("check:asymmetry", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", advanced);
+  defaults_.setValue("check:asymmetry", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores. '0' to disable. Not applied to individual mass traces (parameter 'each_trace').", advanced);
   defaults_.setMinFloat("check:asymmetry", 0.0);
 
   defaults_.setSectionDescription("check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
@@ -159,7 +159,7 @@ void ElutionModelFitter::fitAndValidateModel_(
     GaussTraceFitter* gauss = static_cast<GaussTraceFitter*>(fitter);
     double sigma = gauss->getSigma();
     feature.setMetaValue("model_Gauss_sigma", sigma);
-    feature.setMetaValue("model_width", sigma);
+    feature.setMetaValue("model_width", sigma); // yes, this is redundant
   }
 
   // goodness of fit:
