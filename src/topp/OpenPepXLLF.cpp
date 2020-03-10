@@ -117,17 +117,20 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXLLF.cli
+  @verbinclude TOPP_OpenPepXLLF.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXLLF.html
+  @htmlinclude TOPP_OpenPepXLLF.html
 */
+
+/// @cond TOPPCLASSES
+
 
 class TOPPOpenPepXLLF :
   public TOPPBase
 {
 public:
   TOPPOpenPepXLLF() :
-    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
+    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", true)
   {
   }
 
@@ -295,3 +298,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

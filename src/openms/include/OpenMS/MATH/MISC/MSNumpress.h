@@ -82,10 +82,10 @@ namespace MSNumpress {
 	
 	/**
 	 * Compute the maximal linear fixed point that prevents integer overflow.
-     *
-	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-     *
+   *
+	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+   *
 	 * @return		the linear fixed point safe to use
 	 */
 	double optimalLinearFixedPoint(
@@ -100,9 +100,9 @@ namespace MSNumpress {
      * this and in that case abandon numpress or use optimalLinearFixedPoint
      * which returns the largest safe value.
      *
-	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-	 * @mass_acc	desired m/z accuracy in Th
+	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+	 * @param mass_acc	desired m/z accuracy in Th
      *
 	 * @return		the linear fixed point that satisfies the accuracy requirement (or -1 in case of failure).
 	 */
@@ -123,10 +123,10 @@ namespace MSNumpress {
 	 * This encoding is suitable for typical m/z or retention time binary arrays. 
 	 * On a test set, the encoding was empirically show to be accurate to at least 0.002 ppm.
 	 *
-	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-	 * @result		pointer to where resulting bytes should be stored
-	 * @fixedPoint	the scaling factor used for getting the fixed point repr. 
+	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+	 * @param result		pointer to where resulting bytes should be stored
+	 * @param fixedPoint	the scaling factor used for getting the fixed point repr. 
 	 * 				This is stored in the binary and automatically extracted
 	 * 				on decoding.
 	 * @return		the number of encoded bytes
@@ -140,8 +140,8 @@ namespace MSNumpress {
 	/**
 	 * Calls lower level encodeLinear while handling vector sizes appropriately
 	 *
-	 * @data		vector of doubles to be encoded
-	 * @result		vector of resulting bytes (will be resized to the number of bytes)
+	 * @param data		vector of doubles to be encoded
+	 * @param result		vector of resulting bytes (will be resized to the number of bytes)
 	 */
 	void encodeLinear(
 		const std::vector<double> &data, 
@@ -157,10 +157,10 @@ namespace MSNumpress {
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
-	 * @data		pointer to array of bytes to be decoded (need memorycont. repr.)
-	 * @dataSize	number of bytes from *data to decode
-	 * @result		pointer to were resulting doubles should be stored
-	 * @return		the number of decoded doubles, or -1 if dataSize < 4 or 4 < dataSize < 8
+	 * @param data		pointer to array of bytes to be decoded (need memorycont. repr.)
+	 * @param dataSize	number of bytes from *data to decode
+	 * @param result		pointer to were resulting doubles should be stored
+	 * @param return		the number of decoded doubles, or -1 if dataSize < 4 or 4 < dataSize < 8
 	 */
 	size_t decodeLinear(
 		const unsigned char *data,
@@ -174,8 +174,8 @@ namespace MSNumpress {
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
-	 * @data		vector of bytes to be decoded
-	 * @result		vector of resulting double (will be resized to the number of doubles)
+	 * @param data		vector of bytes to be decoded
+	 * @param result		vector of resulting double (will be resized to the number of doubles)
 	 */
 	void decodeLinear(
 		const std::vector<unsigned char> &data,
@@ -192,9 +192,9 @@ namespace MSNumpress {
 	 * This encoding is suitable for typical m/z or retention time binary arrays, and is
 	 * intended to be used before zlib compression to improve compression.
 	 *
-	 * @data		pointer to array of doubles to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-	 * @result		pointer to were resulting bytes should be stored
+	 * @param data		pointer to array of doubles to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+	 * @param result		pointer to were resulting bytes should be stored
 	 */
 	size_t encodeSafe(
 		const double *data, 
@@ -209,9 +209,9 @@ namespace MSNumpress {
 	 *
 	 * Might throw const char* is something goes wrong during decoding.
 	 *
-	 * @data		pointer to array of bytes to be decoded (need memorycont. repr.)
-	 * @dataSize	number of bytes from *data to decode
-	 * @result		pointer to were resulting doubles should be stored
+	 * @param data		pointer to array of bytes to be decoded (need memorycont. repr.)
+	 * @param dataSize	number of bytes from *data to decode
+	 * @param result		pointer to were resulting doubles should be stored
 	 * @return		the number of decoded bytes
 	 */
 	size_t decodeSafe(
@@ -229,9 +229,9 @@ namespace MSNumpress {
 	 * The resulting binary is maximally dataSize * 5 bytes, but much less if the 
 	 * data is close to 0 on average.
 	 *
-	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-	 * @result		pointer to where resulting bytes should be stored
+	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+	 * @param result		pointer to where resulting bytes should be stored
 	 * @return		the number of encoded bytes
 	 */
 	size_t encodePic(
@@ -242,8 +242,8 @@ namespace MSNumpress {
 	/**
 	 * Calls lower level encodePic while handling vector sizes appropriately
 	 *
-	 * @data		vector of doubles to be encoded
-	 * @result		vector of resulting bytes (will be resized to the number of bytes)
+	 * @param data		vector of doubles to be encoded
+	 * @param result		vector of resulting bytes (will be resized to the number of bytes)
 	 */
 	void encodePic(
 		const std::vector<double> &data,
@@ -258,9 +258,9 @@ namespace MSNumpress {
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
-	 * @data		pointer to array of bytes to be decoded (need memorycont. repr.)
-	 * @dataSize	number of bytes from *data to decode
-	 * @result		pointer to were resulting doubles should be stored
+	 * @param data		pointer to array of bytes to be decoded (need memorycont. repr.)
+	 * @param dataSize	number of bytes from *data to decode
+	 * @param result		pointer to were resulting doubles should be stored
 	 * @return		the number of decoded doubles
 	 */
 	size_t decodePic(
@@ -275,7 +275,7 @@ namespace MSNumpress {
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
-	 * @data		vector of bytes to be decoded
+	 * @param data		vector of bytes to be decoded
 	 * @result		vector of resulting double (will be resized to the number of doubles)
 	 */
 	void decodePic(
@@ -297,9 +297,9 @@ namespace MSNumpress {
 	 *
 	 * the result vector is exactly |data| * 2 + 8 bytes long
 	 *
-	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
-	 * @dataSize	number of doubles from *data to encode
-	 * @result		pointer to were resulting bytes should be stored
+	 * @param data		pointer to array of double to be encoded (need memorycont. repr.)
+	 * @param dataSize	number of doubles from *data to encode
+	 * @param result		pointer to were resulting bytes should be stored
 	 * @return		the number of encoded bytes
 	 */
 	size_t encodeSlof(
@@ -311,7 +311,7 @@ namespace MSNumpress {
 	/**
 	 * Calls lower level encodeSlof while handling vector sizes appropriately
 	 *
-	 * @data		vector of doubles to be encoded
+	 * @param data		vector of doubles to be encoded
 	 * @result		vector of resulting bytes (will be resized to the number of bytes)
 	 */
 	void encodeSlof(
@@ -326,9 +326,9 @@ namespace MSNumpress {
 	 *
 	 * Note that this method may throw a const char* if it deems the input data to be corrupt.
 	 *
-	 * @data		pointer to array of bytes to be decoded (need memorycont. repr.)
-	 * @dataSize	number of bytes from *data to decode
-	 * @result		pointer to were resulting doubles should be stored
+	 * @param data		pointer to array of bytes to be decoded (need memorycont. repr.)
+	 * @param dataSize	number of bytes from *data to decode
+	 * @param result		pointer to were resulting doubles should be stored
 	 * @return		the number of decoded doubles
 	 */
 	size_t decodeSlof(
@@ -341,8 +341,8 @@ namespace MSNumpress {
 	 *
 	 * Note that this method may throw a const char* if it deems the input data to be corrupt.
 	 *
-	 * @data		vector of bytes to be decoded
-	 * @result		vector of resulting double (will be resized to the number of doubles)
+	 * @param data		vector of bytes to be decoded
+	 * @param result		vector of resulting double (will be resized to the number of doubles)
 	 */
 	void decodeSlof(
 		const std::vector<unsigned char> &data,

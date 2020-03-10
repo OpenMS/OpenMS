@@ -55,13 +55,13 @@ namespace OpenMS
     /// structure for storing results
     struct ContaminantsSummary
     {
-      ///(# contaminants in assigned/ #peptides in assigned)
+      ///(\#contaminants in assigned/ \#peptides in assigned)
       double assigned_contaminants_ratio;
       
-      ///(# contaminants in unassigned/ #peptides in unassigned)
+      ///(\#contaminants in unassigned/ \#peptides in unassigned)
       double unassigned_contaminants_ratio;
       
-      ///(# all contaminants/ #peptides in all)
+      ///(\#all contaminants/ \#peptides in all)
       double all_contaminants_ratio;
       
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
