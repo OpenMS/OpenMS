@@ -105,8 +105,8 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 		   # The Qt5Widgets_INCLUDES also includes the include directories for
 		   # dependencies QtCore and QtGui
                                      ${Qt5Widgets_INCLUDE_DIRS}
-				                             ${Qt5Svg_INCLUDE_DIRS}
-				                             ${Qt5Network_INCLUDE_DIRS}
+				                     ${Qt5Svg_INCLUDE_DIRS}
+				                     ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
