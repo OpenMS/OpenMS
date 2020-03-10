@@ -32,10 +32,10 @@ rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
 
 
 # install Python deps
-for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
+for PYBIN in /opt/python/cp3*; do
   "$PYBIN/bin/pip" install -U Cython
   "$PYBIN/bin/pip" install -U setuptools
-  "$PYBIN/bin/pip" install -U wheel
+  "$PYBIN/bin/pip" install -U wheel==0.31.1
   "$PYBIN/bin/pip" install -U numpy
   "$PYBIN/bin/pip" install -U nose
   "$PYBIN/bin/pip" install -U autowrap==0.18.1
@@ -47,7 +47,7 @@ mkdir -p /data/wheelhouse/before_fix/
 LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 # compile and configure OpenMS
-for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
+for PYBIN in /opt/python/cp3*; do
 
   PYVER=`basename $PYBIN`
   mkdir /openms-build-$PYVER

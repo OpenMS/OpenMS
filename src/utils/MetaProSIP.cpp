@@ -3638,3 +3638,5 @@ int main(int argc, const char** argv)
   MetaProSIP tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

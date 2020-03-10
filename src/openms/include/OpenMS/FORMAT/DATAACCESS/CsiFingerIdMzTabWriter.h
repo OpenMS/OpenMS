@@ -43,7 +43,7 @@ namespace OpenMS
           public:
 
           /**
-          @brief Internal structure used in @ref SiriusAdapter that is used
+          @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
            for the conversion of the Csi:FingerID output to an mzTab.
 
            CsiAdapterHit:

@@ -49,7 +49,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+    @page UTILS_MSFraggerAdapter MSFraggerAdapter
 
     @brief Peptide Identification with MSFragger
 

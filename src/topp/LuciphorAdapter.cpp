@@ -670,3 +670,5 @@ int main(int argc, const char** argv)
   LuciphorAdapter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond
