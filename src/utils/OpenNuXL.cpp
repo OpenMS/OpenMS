@@ -571,12 +571,19 @@ protected:
 
   static bool badPartialLossScore(float tlss_Morph, float plss_Morph, float plss_MIC, float plss_im_MIC, float plss_pc_MIC, float marker_ions_score)
   {
+#if !defined DONT_ACCUMULATE_PARTIAL_ION_SCORES
+    // if partial loss scores accumulate on the total loss scores, we first need to calculate the individual components
+    plss_Morph -= tlss_Morph;
+    float tlss_MIC = tlss_Morph - static_cast<int>(tlss_Morph);
+    plss_MIC -= tlss_MIC;
+#endif
+
     if (plss_Morph + tlss_Morph < 5.03) return true; // less than 5 peaks? 3% TIC
 
     if (plss_MIC + plss_im_MIC + plss_pc_MIC + marker_ions_score < 0.03) return true;
 
     // if we don't see shifted ladder ions, we need at least some signal in the shifted immonium ions
-    return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03); 
+    return (plss_Morph < MIN_SHIFTED_IONS && plss_im_MIC < 0.03);
   }
 
 
@@ -4436,9 +4443,9 @@ static void scoreXLIons_(
                   {
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
-/////////////////////////////////////////////////////////////////////////// basically an ID-filter reimplementation
+                    //////////////////////////////////////////
+                    //               ID-Filter
                     if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
-//////////////////////////////////////////
 #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
                     // require at least one mass tag
                     if (exp_spectrum.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
@@ -4497,6 +4504,12 @@ static void scoreXLIons_(
                     if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                     vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
+
+#ifdef DONT_ACCUMULATE_PARTIAL_ION_SCORES
+                    std::fill(b_ions.begin(), b_ions.end(), 0);
+                    std::fill(y_ions.begin(), y_ions.end(), 0);
+#endif
+                    vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
 
                     float plss_MIC(0), 
                       plss_err(1.0), 
