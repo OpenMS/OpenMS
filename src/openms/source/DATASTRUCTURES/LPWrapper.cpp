@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -425,7 +425,7 @@ namespace OpenMS
         model_->setContinuous(index);
       else if (type == 3)
       {
-        LOG_WARN << "Coin-Or only knows Integer variables, setting variable to integer type";
+        OPENMS_LOG_WARN << "Coin-Or only knows Integer variables, setting variable to integer type";
         model_->setColumnIsInteger(index, true);
       }
       else
@@ -659,7 +659,7 @@ namespace OpenMS
 #endif
                        )
   {
-    LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
+    OPENMS_LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       glp_iocp solver_param_glp;
@@ -749,7 +749,7 @@ namespace OpenMS
 
       // solve
       model.branchAndBound();
-      // if (verbose_level > 0) LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
+      // if (verbose_level > 0) OPENMS_LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
       //                                        << model.getNodeCount()<<" nodes with objective "
       //                                        << model.getObjValue()
       //                                        << (!model.status() ? " Finished" : " Not finished")
@@ -758,7 +758,7 @@ namespace OpenMS
       {
         solution_.push_back(model.solver()->getColSolution()[i]);
       }
-      LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
+      OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
       return model.status();
     }
 #endif

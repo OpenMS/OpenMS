@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 namespace OpenMS
 {
@@ -71,9 +73,9 @@ namespace OpenMS
           {
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
-            unsigned int rank;
+            unsigned int rank = 0;
             OpenMS::String molecular_formula;
-            double score;
+            double score = 0.;
             OpenMS::String name;
             OpenMS::String smiles;
             std::vector<String> pubchemids;
@@ -83,8 +85,11 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
-            int scan_index;
-            int scan_number;
+            double mz = 0.;
+            double rt = 0.;
+            OpenMS::String native_id;
+            int scan_index = -1;
+            int scan_number = -1;
             OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };
@@ -104,10 +109,10 @@ namespace OpenMS
           
           @return Result written to mzTab
           */
-          static void read(const std::vector<String> & sirius_output_paths,
-                           const String & original_input_mzml,
-                           const Size & top_n_hits,
-                           MzTab & result);
+          static void read(const std::vector<String>& sirius_output_paths,
+                           const String& original_input_mzml,
+                           const Size& top_n_hits,
+                           MzTab& result);
 
       };
 }

@@ -1,6 +1,6 @@
 format-version: 1.2
-data-version: 4.1.20
-date: 08:11:2018 17:00
+data-version: 4.1.28
+date: 16:07:2019 09:35
 saved-by: Gerhard Mayer
 auto-generated-by: OBO-Edit 2.3.1
 import: http://ontologies.berkeleybop.org/pato.obo
@@ -1639,9 +1639,9 @@ is_obsolete: true
 [Term]
 id: MS:1000235
 name: total ion current chromatogram
-def: "Chromatogram obtained by plotting the total ion current detected in each of a series of mass spectra recorded as a function of retention time." [PSI:MS]
+def: "Representation of the total ion current detected in each of a series of mass spectra versus time." [PSI:MS]
 synonym: "TIC chromatogram" EXACT []
-is_a: MS:1000810 ! mass chromatogram
+is_a: MS:1000810 ! ion current chromatogram
 
 [Term]
 id: MS:1000236
@@ -4325,27 +4325,27 @@ is_a: MS:1000026 ! detector type
 [Term]
 id: MS:1000625
 name: chromatogram
-def: "The representation of detector response versus time." [PSI:MS]
+def: "Representation of a chromatographic separation attribute measurement versus time." [PSI:MS]
 relationship: part_of MS:1001458 ! spectrum generation information
 
 [Term]
 id: MS:1000626
 name: chromatogram type
-def: "Broad category or type of a chromatogram." [PSI:MS]
+def: "Type of chromatogram measurement being represented." [PSI:MS]
 relationship: part_of MS:1000625 ! chromatogram
 
 [Term]
 id: MS:1000627
 name: selected ion current chromatogram
-def: "Chromatogram created by creating an array of the measurements of a specific single ion current at each time point." [PSI:MS]
+def: "Representation of an array of the measurements of a specific single ion current versus time." [PSI:MS]
 synonym: "SIC chromatogram" EXACT []
-is_a: MS:1000810 ! mass chromatogram
+is_a: MS:1000810 ! ion current chromatogram
 
 [Term]
 id: MS:1000628
 name: basepeak chromatogram
-def: "Chromatogram created by creating an array of the most intense peaks at each time point." [PSI:MS]
-is_a: MS:1000810 ! mass chromatogram
+def: "Representation of an array of the most intense peaks versus time." [PSI:MS]
+is_a: MS:1000810 ! ion current chromatogram
 
 [Term]
 id: MS:1000629
@@ -5600,15 +5600,15 @@ is_a: MS:1000808 ! chromatogram attribute
 
 [Term]
 id: MS:1000810
-name: mass chromatogram
-def: "A plot of the relative abundance of a beam or other collection of ions as a function of the retention time." [PSI:MS]
+name: ion current chromatogram
+def: "Representation of the current of ions versus time." [PSI:MS]
 is_a: MS:1000524 ! data file content
 is_a: MS:1000626 ! chromatogram type
 
 [Term]
 id: MS:1000811
 name: electromagnetic radiation chromatogram
-def: "The measurement of electromagnetic properties as a function of the retention time." [PSI:MS]
+def: "Representation of electromagnetic properties versus time." [PSI:MS]
 synonym: "EMR radiation chromatogram" EXACT []
 is_a: MS:1000524 ! data file content
 is_a: MS:1000626 ! chromatogram type
@@ -5616,13 +5616,13 @@ is_a: MS:1000626 ! chromatogram type
 [Term]
 id: MS:1000812
 name: absorption chromatogram
-def: "The measurement of light absorbed by the sample as a function of the retention time." [PSI:MS]
+def: "Representation of light absorbed by the sample versus time." [PSI:MS]
 is_a: MS:1000811 ! electromagnetic radiation chromatogram
 
 [Term]
 id: MS:1000813
 name: emission chromatogram
-def: "The measurement of light emitted by the sample as a function of the retention time." [PSI:MS]
+def: "Representation of light emitted by the sample versus time." [PSI:MS]
 is_a: MS:1000811 ! electromagnetic radiation chromatogram
 
 [Term]
@@ -5670,6 +5670,7 @@ def: "A data array of flow rate measurements." [PSI:MS]
 xref: binary-data-type:MS\:1000521 "32-bit float"
 xref: binary-data-type:MS\:1000523 "64-bit float"
 is_a: MS:1000513 ! binary data array
+relationship: has_units UO:0000271 ! microliters per minute
 
 [Term]
 id: MS:1000821
@@ -6525,9 +6526,9 @@ is_a: MS:1001011 ! search database details
 [Term]
 id: MS:1001016
 name: database version
-def: "OBSOLETE: Use attribute in mzIdentML instead. Version of the search database." [PSI:PI]
+def: "Version of the search database. In mzIdentML use the attribute instead." [PSI:PI]
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1001011 ! search database details
-is_obsolete: true
 
 [Term]
 id: MS:1001017
@@ -9311,24 +9312,24 @@ relationship: part_of MS:1001000 ! spectrum interpretation
 [Term]
 id: MS:1001472
 name: selected ion monitoring chromatogram
-def: "Chromatogram created by creating an array of the measurements of a selectively monitored ion at each time point." [PSI:MS]
+def: "Representation of an array of the measurements of a selectively monitored ion versus time." [PSI:MS]
 synonym: "SIM chromatogram" EXACT []
-is_a: MS:1000810 ! mass chromatogram
+is_a: MS:1000810 ! ion current chromatogram
 
 [Term]
 id: MS:1001473
 name: selected reaction monitoring chromatogram
-def: "Chromatogram created by creating an array of the measurements of a selectively monitored reaction at each time point." [PSI:MS]
+def: "Representation of an array of the measurements of a selectively monitored reaction versus time." [PSI:MS]
 synonym: "SRM chromatogram" EXACT []
-is_a: MS:1000810 ! mass chromatogram
+is_a: MS:1000810 ! ion current chromatogram
 
 [Term]
 id: MS:1001474
 name: consecutive reaction monitoring chromatogram
-def: "OBSOLETE Chromatogram created by creating an array of the measurements of a series of monitored reactions at each time point." [PSI:MS]
+def: "OBSOLETE Representation of an array of the measurements of a series of monitored reactions versus time." [PSI:MS]
 comment: This term was made obsolete because, by design, it can't be properly represented in mzML 1.1. CRM experiments must be represented in a spectrum-centric way.
 synonym: "CRM chromatogram" EXACT []
-is_a: MS:1000810 ! mass chromatogram
+is_a: MS:1000810 ! ion current chromatogram
 is_obsolete: true
 
 [Term]
@@ -14806,6 +14807,7 @@ is_a: MS:1002286 ! Trans-Proteomic Pipeline software
 id: MS:1002288
 name: iProphet
 def: "A program in the TPP that calculates distinct peptide probabilities based on several lines of corroborating evidence including search results from multiple search engines via the pepXML format." [PMID:21876204]
+synonym: "InterProphet" EXACT []
 is_a: MS:1002286 ! Trans-Proteomic Pipeline software
 
 [Term]
@@ -18240,13 +18242,12 @@ relationship: has_units MS:1002814 ! volt-second per square centimeter
 
 [Term]
 id: MS:1002816
-name: mean inverse reduced ion mobility array
-def: "Array of drift times or inverse reduced ion mobilities, averaged from a matrix of binned m/z and ion mobility values, corresponding to a spectrum of individual peaks encoded with an m/z array." [PSI:MS]
+name: mean ion mobility array
+def: "Array of drift times, averaged from a matrix of binned m/z and ion mobility values, corresponding to a spectrum of individual peaks encoded with an m/z array." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002893 ! ion mobility array
 relationship: has_units UO:0000028 ! millisecond
 relationship: has_units UO:0000010 ! second
-relationship: has_units MS:1002814 ! volt-second per square centimeter
 
 [Term]
 id: MS:1002817
@@ -19446,6 +19447,208 @@ xref: value-type:xsd\:nonNegativeInteger "The allowed value-type for this CV ter
 is_a: MS:1000878 ! external reference identifier
 
 [Term]
+id: MS:1002998
+name: LCMS-9030
+def: "Shimadzu Scientific Instruments LCMS-9030 Q-TOF MS." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1002999
+name: LCMS-8060
+def: "Shimadzu Scientific Instruments LCMS-8060 MS." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1003000
+name: LCMS-8050
+def: "Shimadzu Scientific Instruments LCMS-8050 MS." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1003001
+name: LCMS-8045
+def: "Shimadzu Scientific Instruments LCMS-8045 MS." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1003002
+name: LCMS-8040
+def: "Shimadzu Scientific Instruments LCMS-8040 MS." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1003003
+name: LCMS-2020
+def: "Shimadzu Scientific Instruments LCMS-2020." [PSI:MS]
+is_a: MS:1000603 ! Shimadzu Scientific Instruments instrument model
+
+[Term]
+id: MS:1003004
+name: maXis II
+def: "Bruker Daltonics' maXis II." [PSI:MS]
+is_a: MS:1001547 ! Bruker Daltonics maXis series
+
+[Term]
+id: MS:1003005
+name: timsTOF Pro
+def: "Bruker Daltonics' timsTOF Pro." [PSI:MS]
+is_a: MS:1000122 ! Bruker Daltonics instrument model
+
+[Term]
+id: MS:1003006
+name: mean inverse reduced ion mobility array
+def: "Array of inverse reduced ion mobilities, averaged from a matrix of binned m/z and ion mobility values, corresponding to a spectrum of individual peaks encoded with an m/z array." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1002893 ! ion mobility array
+relationship: has_units MS:1002814 ! volt-second per square centimeter
+
+[Term]
+id: MS:1003007
+name: raw ion mobility array
+def: "Array of raw drift times." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1002893 ! ion mobility array
+relationship: has_units UO:0000028 ! millisecond
+relationship: has_units UO:0000010 ! second
+
+[Term]
+id: MS:1003008
+name: raw inverse reduced ion mobility array
+def: "Array of raw inverse reduced ion mobilities." [PSI:MS]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1002893 ! ion mobility array
+relationship: has_units MS:1002814 ! volt-second per square centimeter
+
+[Term]
+id: MS:1003009
+name: Shimadzu Biotech LCD format
+def: "Shimadzu Biotech LCD file format." [PSI:PI]
+is_a: MS:1000560 ! mass spectrometer file format 
+
+[Term]
+id: MS:1003010
+name: LPPtiger
+def: "Software for lipidome-specific prediction and identification of oxidized phospholipids from LC-MS datasets." [PMID:29123162]
+is_a: MS:1002964 ! lipidomics analysis software
+is_a: MS:1001457 ! data processing software
+
+[Term]
+id: MS:1003011
+name: pFind
+def: "Sequence-tag-based search engine pFind." [PMID:30295672]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1003012
+name: KSDP score
+def: "Kernel mass spectral dot product scoring function." [PMID:15044235]
+is_a: MS:1001143 ! PSM-level search engine specific statistic
+relationship: has_order MS:1002108 ! higher score better
+
+[Term]
+id: MS:1003013
+name: i3tms
+def: "i3-tms search engine and data-analysis software." [PSI:PI]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1003014
+name: MSFragger
+def: "A database search-based peptide identification tool." [PMID:28394336]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1003015
+name: razor peptide
+def: "A peptide which is shared between protein groups and assigned to the protein group with the largest number of identified peptides." [PSI:PI]
+is_a: MS:1000860 ! peptide
+
+[Term]
+id: MS:1003016
+name: ProteinProphet:peptide weight
+def: "Fraction of peptide evidence attributable to a protein or a set of indistinguishable proteins." [PSI:PI]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1002490 ! peptide-level scoring
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
+
+[Term]
+id: MS:1003017
+name: ProteinProphet:peptide group weight
+def: "Fraction of peptide evidence attributable to a group of proteins." [PSI:PI]
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+is_a: MS:1002490 ! peptide-level scoring
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better
+relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
+
+[Term]
+id: MS:1003018
+name: Philosopher
+def: "General proteomics processing toolkit for shotgun proteomics." [https://philosopher.nesvilab.org/]
+is_a: MS:1001456 ! analysis software
+
+[Term]
+id: MS:1003019
+name: pressure chromatogram
+def: "Representation of chromatographic pressure versus time." [PSI:MS]
+is_a: MS:1000626 ! chromatogram type
+
+[Term]
+id: MS:1003020
+name: flow rate chromatogram
+def: "Representation of the chromatographic flow rate versus time." [PSI:MS]
+is_a: MS:1000626 ! chromatogram type
+
+[Term]
+id: MS:1003021
+name: Fixed modification
+def: "Post-translational modification which is assumed to be present at each instance of a residue type." [PSI:PI]
+is_a: MS:1001055 ! modification parameters
+is_a: MS:1003026 ! named element in mzIdentML
+
+[Term]
+id: MS:1003022
+name: Variable modification
+def: "Post-translational modification which may or may not be present at a residue type." [PSI:PI]
+is_a: MS:1001055 ! modification parameters
+is_a: MS:1003026 ! named element in mzIdentML
+
+[Term]
+id: MS:1003023
+name: OpenPepXL
+def: "Cross-Linking MS search engine." [PSI:PI]
+is_a: MS:1000752 ! TOPP software
+
+[Term]
+id: MS:1003024
+name: OpenPepXL:score
+def: "The OpenPepXL score for a cross-link spectrum match." [PSI:PI]
+xref: value-type:xsd\:double "The allowed value-type for this CV term."
+is_a: MS:1001143 ! PSM-level search engine specific statistic
+is_a: MS:1001153 ! search engine specific score
+relationship: has_order MS:1002108 ! higher score better 
+
+[Term]
+id: MS:1003025
+name: named element
+def: "A named element that is an attribute in a proteomics standards file." [PSI:PI]
+relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrometry Vocabularies
+
+[Term]
+id: MS:1003026
+name: named element in mzIdentML
+def: "A named element that is an attribute in a mzIdentML file." [PSI:PI]
+is_a: MS:1003025 ! named element
+
+[Term]
+id: MS:1003027
+name: named element in mzML
+def: "A named element that is an attribute in a mzML file." [PSI:PI]
+is_a: MS:1003025 ! named element
+
+[Term]
 id: PEFF:0000001
 name: PEFF CV term
 def: "PSI Extended FASTA Format controlled vocabulary term." [PSI:PEFF]
@@ -19655,7 +19858,7 @@ name: Processed
 def: "PEFF keyword for information on how the full length original protein sequence can be processed into shorter components such as signal peptides and chains." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001011
@@ -19664,7 +19867,7 @@ def: "OBSOLETE Sequence variation (substitution, insertion, deletion)." [PSI:PEF
 comment: This term was made obsolete in favor of VariantSimple and VariantComplex.
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 is_obsolete: true
 
 [Term]
@@ -19673,7 +19876,7 @@ name: ModResPsi
 def: "PEFF keyword for the modified residue with PSI-MOD identifier." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001013
@@ -19681,7 +19884,7 @@ name: ModRes
 def: "PEFF keyword for the modified residue without aPSI-MOD or UniMod identifier." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001014
@@ -19732,7 +19935,7 @@ name: mature protein
 def: "Portion of a newly synthesized protein that contributes to a final structure after other components such as signal peptides are removed." [PSI:PEFF]
 is_a: PEFF:0001032 ! PEFF molecule processing keyword
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001021
@@ -19740,7 +19943,7 @@ name: signal peptide
 def: "Short peptide present at the N-terminus of a newly synthesized protein that is cleaved off and is not part of the final mature protein." [PSI:PEFF]
 is_a: PEFF:0001032 ! PEFF molecule processing keyword
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001022
@@ -19748,7 +19951,7 @@ name: transit peptide
 def: "Short peptide present at the N-terminus of a newly synthesized protein that helps the protein through the membrane of its destination organelle." [PSI:PEFF]
 is_a: PEFF:0001032 ! PEFF molecule processing keyword
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001023
@@ -19756,7 +19959,7 @@ name: Conflict
 def: "PEFF keyword for the sequence conflict; a UniProtKB term." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001024
@@ -19785,7 +19988,7 @@ name: ModResUnimod
 def: "PEFF keyword for the modified residue with UniMod identifier." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001028
@@ -19793,7 +19996,7 @@ name: VariantSimple
 def: "PEFF keyword for the simple sequence variation of a single amino acid change. A change to a stop codon is permitted with a * symbol. More complex variations must be encoded with the VariantComplex term." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001029
@@ -19801,7 +20004,7 @@ name: VariantComplex
 def: "PEFF keyword for a sequence variation that is more complex than a single amino acid change or change to a stop codon." [PSI:PEFF]
 is_a: PEFF:0000003 ! PEFF file sequence entry term
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:0001030
@@ -19836,11 +20039,19 @@ name: propeptide
 def: "Short peptide that is cleaved off a newly synthesized protein and generally immediately degraded in the process of protein maturation, and is not a signal peptide or transit peptide." [PSI:PEFF]
 is_a: PEFF:0001032 ! PEFF molecule processing keyword
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
-relationship: has_regexp PEFF:1002001 ! regular expression for PEFF description line
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
+
+[Term]
+id: PEFF:0001035
+name: initiator methionine
+def: "N-terminal methionine residue of a protein that can be co-translationally cleaved." [PSI:PEFF]
+is_a: PEFF:0001032 ! PEFF molecule processing keyword
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+relationship: has_regexp PEFF:1002001 ! regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 
 [Term]
 id: PEFF:1002001
-name: regular expression for each VariantSimple item
+name: regular expression for a value in a key-value pair of a PEFF description line describing one sequence position followed by one PEFF term name and one optional comment
 def: "([0-9]+|[A-Z*](|.+)?)." [PSI:PEFF]
 is_a: MS:1002479 ! regular expression
 

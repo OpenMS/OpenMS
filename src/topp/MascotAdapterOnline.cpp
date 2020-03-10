@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -319,9 +319,7 @@ protected:
 
     vector<ProteinIdentification> prot_ids;
     prot_ids.push_back(prot_id);
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    prot_id.setPrimaryMSRunPath(ms_runs);
+    prot_id.setPrimaryMSRunPath({in}, exp);
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

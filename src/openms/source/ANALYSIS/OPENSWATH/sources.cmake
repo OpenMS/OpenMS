@@ -9,6 +9,7 @@ set(sources_list
   DIAHelper.cpp
   DIAPrescoring.cpp
   DIAScoring.cpp
+  IonMobilityScoring.cpp
   MasstraceCorrelator.cpp
   MRMAssay.cpp
   MRMDecoy.cpp
@@ -16,6 +17,8 @@ set(sources_list
   MRMFeatureFinderScoring.cpp
   MRMFeaturePicker.cpp
   MRMFeatureQC.cpp
+  MRMBatchFeatureSelector.cpp
+  MRMFeatureSelector.cpp
   MRMIonSeries.cpp
   MRMRTNormalizer.cpp
   MRMTransitionGroupPicker.cpp

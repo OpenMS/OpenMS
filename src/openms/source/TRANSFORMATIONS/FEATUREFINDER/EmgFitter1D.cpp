@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -226,7 +226,7 @@ namespace OpenMS
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-    if (boost::math::isnan(correlation))
+    if (std::isnan(correlation))
     {
       correlation = -1.0;
     }
@@ -266,7 +266,7 @@ namespace OpenMS
     symmetry_ = fabs(set[set.size() - 1].getPos() - set[median].getPos()) / fabs(set[median].getPos() - set[0].getPos());
 
     // check the symmetry
-    if (boost::math::isinf(symmetry_) || boost::math::isnan(symmetry_))
+    if (std::isinf(symmetry_) || std::isnan(symmetry_))
     {
       symmetric_ = true;
       symmetry_ = 10.0;

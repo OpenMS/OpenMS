@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #pragma once
+
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 namespace OpenMS
 {
@@ -72,18 +74,21 @@ namespace OpenMS
     {
       OpenMS::String formula;
       OpenMS::String adduct;
-      int rank;
-      double score;
-      double treescore;
-      double isoscore;
-      int explainedpeaks;
-      double explainedintensity;
+      int rank = 0;
+      double score = 0.;
+      double treescore = 0.;
+      double isoscore = 0.;
+      int explainedpeaks = 0;
+      double explainedintensity = 0.;
     };
 
     struct SiriusAdapterIdentification
     {
-      int scan_index;
-      int scan_number;
+      double mz = 0.;
+      double rt = 0.;
+      OpenMS::String native_id;
+      int scan_index = -1;
+      int scan_number = -1;
       OpenMS::String feature_id;
       std::vector<SiriusAdapterHit> hits;
     };
@@ -96,7 +101,7 @@ namespace OpenMS
     /**
     @brief Extract scan_index from filepath
     */
-    static int extract_scan_index(const String & path);
+    static int extract_scan_index(const String& path);
  
     /**
     @brief Conversion of sirius output to mzTab

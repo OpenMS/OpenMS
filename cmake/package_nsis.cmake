@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,15 @@
 
 ## Windows installer
 
-if (CMAKE_GENERATOR MATCHES ".*Win64.*")
-  set(PLATFORM "64")
-  set(ARCH "x64")
-else()
+## With VS2019 the architecture HAS TO BE specified with the "–A" option or CMAKE_GENERATOR_PLATFORM var.
+## Therefore the legacy way of adding a suffix to the Generator is not valid anymore.
+## Read value of CMAKE_VS_PLATFORM_NAME instead
+if (CMAKE_VS_PLATFORM_NAME MATCHES ".*Win32.*" OR CMAKE_GENERATOR MATCHES ".*Win32.*")
   set(PLATFORM "32")
   set(ARCH "x86")
+else()
+  set(PLATFORM "64")
+  set(ARCH "x64")
 endif()
 set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
 

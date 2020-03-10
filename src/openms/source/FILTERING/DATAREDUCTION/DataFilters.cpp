@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 using namespace std;
@@ -176,7 +177,7 @@ namespace OpenMS
       value = tmp.toDouble();
       value_is_numerical = true;
     }
-    catch (Exception::ConversionError)
+    catch (Exception::ConversionError&)
     {
       value_is_numerical = false;
       if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))

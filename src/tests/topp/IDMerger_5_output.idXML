@@ -47,7 +47,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
-	<IdentificationRun date="2009-05-22T15:28:33" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2009-05-22T15:28:32" search_engine="X! Tandem (k-score)" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_4" accession="sp|P00883|ALDOA_RABIT" score="0" sequence="" >
 			</ProteinHit>

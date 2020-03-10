@@ -13,5 +13,3 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h
         QuantitativeExperimentalDesign() nogil except +
         QuantitativeExperimentalDesign(QuantitativeExperimentalDesign) nogil except + #wrap-ignore
         void applyDesign2Resolver(ProteinResolver & resolver, TextFile & file_, StringList & fileNames) nogil except +
-        void applyDesign2Quantifier(PeptideAndProteinQuant & quantifier, TextFile & file_, StringList & fileNames) nogil except +
-

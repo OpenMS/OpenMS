@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,7 +79,9 @@ END_SECTION
 
 START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
   ModificationsDB* ptr = ModificationsDB::getInstance();
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)") < ptr->getModification("Phospho (S)"), true);
+  const ResidueModification* cm = ptr->getModification("Carboxymethyl (C)");
+  const ResidueModification* pm = ptr->getModification("Phospho (S)");
+  TEST_EQUAL(*cm < *pm, true);
 END_SECTION
 
 START_SECTION(void setId(const String& id))

@@ -1,7 +1,26 @@
 from String cimport String as _String
 cdef shared_ptr[_String] convString(argument_var)
+cdef convOutputString(_String s)
 
 
+
+cdef inline convOutputString(_String _r):
+    # Generic function to convert OpenMS::String to Python unicode strings
+    #
+    # This assumes that all data encoded in OpenMS::String is encoded using
+    # UTF8 (in practice OpenMS does not make any assumption about encoding and
+    # OpenMS::String simply contains a byte sequence, that is implicitely
+    # assumed to be ASCII encoded).
+    #
+    cdef char* c_string = _cast_const_away(<char*> _r.c_str())
+    cdef Py_ssize_t length = _r.length()
+
+    try:
+        py_result = c_string[:length].decode('UTF-8')
+    except UnicodeDecodeError:
+        py_result = c_string[:length]
+
+    return py_result
 
 cdef inline shared_ptr[_String] convString(argument_var):
     # Generic function to convert Python strings to OpenMS::String

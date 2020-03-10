@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/assign/list_of.hpp>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -399,8 +398,8 @@ END_SECTION
 
 START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false) ))
 {
-	std::vector<int> x = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16)(20);
-	std::vector<int> y = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16);
+  std::vector<int> x = {3,6,7,8,8,10,13,15,16,20};
+  std::vector<int> y = {3,6,7,8,8,10,13,15,16};
 
 	TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
 	TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);

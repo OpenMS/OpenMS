@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cmath>       // round
+#include <iomanip>     // setw
 
 namespace OpenSwath
 {
@@ -103,6 +104,11 @@ namespace OpenSwath
       else
       {
         return; // unknown: too dangerous to analyse
+      }
+
+      if (tmp.empty())
+      {
+        return; // something went wrong with the spectrum after peak picking (e.g. returned empty spectrum)
       }
 
       // Note: this will pick up also non-peptide signals; filtering by averagine might yield better results

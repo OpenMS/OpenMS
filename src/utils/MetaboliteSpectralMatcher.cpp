@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,7 +102,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
+    registerInputFile_("database", "<file>", "", "Default spectral database.", true);
     setValidFormats_("database", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
@@ -148,7 +148,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -171,7 +171,7 @@ protected:
 
     if (spec_db.empty())
     {
-      LOG_WARN << "The spectral library does not contain any spectra.";
+      OPENMS_LOG_WARN << "The spectral library does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,160 @@ namespace OpenMS
 {
   namespace DIAHelpers
   {
+
+    void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
+    {
+      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needst to be larger than zero.");
+
+      if (mz_extraction_ppm)
+      {
+        left -= left * mz_extract_window / 2e6;
+        right += right * mz_extract_window / 2e6;
+      }
+      else
+      {
+        left -= mz_extract_window / 2.0;
+        right += mz_extract_window / 2.0;
+      }
+    }
+
+    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
+                          const std::vector<double> & windowsCenter,
+                          double width,
+                          std::vector<double> & integratedWindowsIntensity,
+                          std::vector<double> & integratedWindowsMZ,
+                          bool remZero)
+    {
+      std::vector<double>::const_iterator beg = windowsCenter.begin();
+      std::vector<double>::const_iterator end = windowsCenter.end();
+      double mz, intensity;
+      for (; beg != end; ++beg)
+      {
+        double left = *beg - width / 2.0;
+        double right = *beg + width / 2.0;
+        if (integrateWindow(spectrum, left, right, mz, intensity, false))
+        {
+          integratedWindowsIntensity.push_back(intensity);
+          integratedWindowsMZ.push_back(mz);
+        }
+        else if (!remZero)
+        {
+          integratedWindowsIntensity.push_back(0.);
+          integratedWindowsMZ.push_back(*beg);
+        }
+      }
+    }
+
+    void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+                                              double mz_start,
+                                              double mz_end,
+                                              double & im,
+                                              double & intensity,
+                                              double drift_start,
+                                              double drift_end)
+    {
+      OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
+      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
+              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+              "Precondition violated: m/z vector needs to be sorted!" )
+
+      im = 0;
+      intensity = 0;
+
+      // get the weighted average for noncentroided data.
+      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+      auto mz_arr_end = spectrum->getMZArray()->data.end();
+      auto int_it = spectrum->getIntensityArray()->data.begin();
+      auto im_it = spectrum->getDriftTimeArray()->data.begin();
+
+      // this assumes that the spectra are sorted!
+      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+      auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+
+      // also advance intensity and ion mobility iterator now
+      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+      std::advance(int_it, iterator_pos);
+      std::advance(im_it, iterator_pos);
+
+      // Iterate from mz start to end, only storing ion mobility values that are in the range
+      for (; mz_it != mz_it_end; ++mz_it, ++int_it, ++im_it)
+      {
+        if ( *im_it >= drift_start && *im_it <= drift_end)
+        {
+          intensity += (*int_it);
+          im += (*int_it) * (*im_it);
+        }
+      }
+
+      if (intensity > 0.)
+      {
+        im /= intensity;
+      }
+      else
+      {
+        im = -1;
+        intensity = 0;
+      }
+
+    }
+
+    bool integrateWindow(const OpenSwath::SpectrumPtr spectrum,
+                         double mz_start,
+                         double mz_end,
+                         double & mz,
+                         double & intensity,
+                         bool centroided)
+    {
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
+              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+              "Precondition violated: m/z vector needs to be sorted!" )
+
+      mz = 0;
+      intensity = 0;
+      if (!centroided)
+      {
+        // get the weighted average for noncentroided data.
+        // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+        auto mz_arr_end = spectrum->getMZArray()->data.end();
+        auto int_it = spectrum->getIntensityArray()->data.begin();
+
+        // this assumes that the spectra are sorted!
+        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+        auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+
+        // also advance intensity iterator now
+        auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+        std::advance(int_it, iterator_pos);
+
+        for (; mz_it != mz_it_end; ++mz_it, ++int_it)
+        {
+          intensity += (*int_it);
+          mz += (*int_it) * (*mz_it);
+        }
+
+        if (intensity > 0.)
+        {
+          mz /= intensity;
+          return true;
+        }
+        else
+        {
+          mz = -1;
+          intensity = 0;
+          return false;
+        }
+
+      }
+      else
+      {
+        // not implemented
+        throw "Not implemented";
+      }
+    }
+
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getBYSeries(const AASequence& a, //
                      std::vector<double>& bseries, //
@@ -56,16 +210,15 @@ namespace OpenMS
                      TheoreticalSpectrumGenerator const * generator,
                      UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "true",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //generator.setParameters(p);
+
+      if (a.empty()) return;
+      
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
+      // Data array is present if AASequence is not empty
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
       for (Size i = 0; i != spec.size(); ++i)
@@ -82,18 +235,14 @@ namespace OpenMS
     } // end getBYSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getTheorMasses(const AASequence& a, std::vector<double>& masses,
+    void getTheorMasses(const AASequence& a,
+                        std::vector<double>& masses,
                         TheoreticalSpectrumGenerator const * generator,
                         UInt charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.      
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "false",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-      //generator.setParameters(p);
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
@@ -104,14 +253,15 @@ namespace OpenMS
     } // end getBYSeries
 
     void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, const double charge,
-                                         const int nr_isotopes, const double mannmass)
+                                         std::vector<std::pair<double, double> >& isotopesSpec,
+                                         const double charge,
+                                         const int nr_isotopes,
+                                         const double mannmass)
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      //std::cout << product_mz * charge << std::endl;
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;

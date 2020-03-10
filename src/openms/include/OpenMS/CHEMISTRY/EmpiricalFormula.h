@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <string>
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -114,6 +115,7 @@ public:
       @throw throws ParseError if the formula cannot be parsed
     */
     explicit EmpiricalFormula(const String& rhs);
+
 
     /// Constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
@@ -196,10 +198,10 @@ public:
     SignedSize getNumberOfAtoms() const;
 
     /// returns the charge
-    SignedSize getCharge() const;
+    Int getCharge() const;
 
     /// sets the charge
-    void setCharge(SignedSize charge);
+    void setCharge(Int charge);
 
     /// returns the formula as a string (charges are not included)
     String toString() const;
@@ -283,9 +285,9 @@ protected:
 
     MapType_ formula_;
 
-    SignedSize charge_;
+    Int charge_;
 
-    SignedSize parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
 
   };
 

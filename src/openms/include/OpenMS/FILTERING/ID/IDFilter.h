@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,18 +37,20 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <algorithm>
 #include <climits>
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -82,6 +84,10 @@ public:
     /// Destructor
     virtual ~IDFilter();
 
+    /// Typedefs
+    typedef std::map<Int, PeptideHit*> ChargeToPepHitP;
+    typedef std::unordered_map<std::string, ChargeToPepHitP> SequenceToChargeToPepHitP;
+    typedef std::map<std::string, SequenceToChargeToPepHitP> RunToSequenceToChargeToPepHitP;
 
     /**
        @name Predicates for peptide or protein hits
@@ -162,7 +168,7 @@ public:
       HasMetaValue(const String& key_, const DataValue& value_):
         key(key_),
         value(value_)
-      {} 
+      {}
 
       bool operator()(const HitType& hit) const
       {
@@ -222,6 +228,42 @@ public:
        @note This predicate also works for peptide evidence (class PeptideEvidence).
     */
     template <class HitType>
+    struct HasMatchingAccessionUnordered
+    {
+      typedef HitType argument_type; // for use as a predicate
+
+      const std::unordered_set<String>& accessions;
+
+      HasMatchingAccessionUnordered(const std::unordered_set<String>& accessions_):
+        accessions(accessions_)
+      {}
+
+      bool operator()(const PeptideHit& hit) const
+      {
+        for (const auto& it : hit.extractProteinAccessionsSet())
+        {
+          if (accessions.count(it) > 0) return true;
+        }
+        return false;
+      }
+
+      bool operator()(const ProteinHit& hit) const
+      {
+        return (accessions.count(hit.getAccession()) > 0);
+      }
+
+      bool operator()(const PeptideEvidence& evidence) const
+      {
+        return (accessions.count(evidence.getProteinAccession()) > 0);
+      }
+    };
+
+    /**
+       @brief Given a list of protein accessions, do any occur in the annotation(s) of this hit?
+
+       @note This predicate also works for peptide evidence (class PeptideEvidence).
+    */
+    template <class HitType>
     struct HasMatchingAccession
     {
       typedef HitType argument_type; // for use as a predicate
@@ -234,11 +276,9 @@ public:
 
       bool operator()(const PeptideHit& hit) const
       {
-        std::set<String> present_accessions = hit.extractProteinAccessionsSet();
-        for (std::set<String>::iterator it = present_accessions.begin();
-             it != present_accessions.end(); ++it)
+        for (const auto& it : hit.extractProteinAccessionsSet())
         {
-          if (accessions.count(*it) > 0) return true;
+          if (accessions.count(it) > 0) return true;
         }
         return false;
       }
@@ -302,7 +342,6 @@ public:
 
     };
 
-
     ///@}
 
 
@@ -339,7 +378,7 @@ public:
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
 
-    
+
     /**
        @brief Filter Peptide Hit by its digestion product
 
@@ -359,8 +398,8 @@ public:
       {}
 
       static inline Int disabledValue(){ return -1; }
-      
-      /// Filter function on min max cutoff values to be used with remove_if 
+
+      /// Filter function on min max cutoff values to be used with remove_if
       /// returns true if peptide should be removed (does not pass filter)
       bool operator()(PeptideHit& p)
       {
@@ -369,7 +408,7 @@ public:
           [&](const Int missed_cleavages)
           {
 
-            bool max_filter = max_cleavages_ != disabledValue() ? 
+            bool max_filter = max_cleavages_ != disabledValue() ?
                               missed_cleavages > max_cleavages_ : false;
             bool min_filter = min_cleavages_ != disabledValue() ?
                               missed_cleavages < min_cleavages_ : false;
@@ -379,7 +418,8 @@ public:
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)
       {
-        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)), hits.end());
+        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)),
+                   hits.end());
       }
 
     };
@@ -414,7 +454,7 @@ public:
       {
         if(!evidence.hasValidLimits())
         {
-          LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
+          OPENMS_LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
           return true;
         }
 
@@ -428,11 +468,11 @@ public:
         {
           if (evidence.getProteinAccession().empty())
           {
-            LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
+            OPENMS_LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
           }
           else
           {
-            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
+            OPENMS_LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
                      << "' not found in fasta file!" << std::endl;
           }
           return true;
@@ -445,7 +485,6 @@ public:
       }
 
     };
-
 
     ///@}
 
@@ -501,6 +540,46 @@ public:
     {
       items.erase(std::remove_if(items.begin(), items.end(), std::not1(pred)),
                   items.end());
+    }
+
+    /// Remove Hit items that satisfy a condition in one of our ID containers (e.g. vector of Peptide or ProteinIDs)
+    template <class IDContainer, class Predicate>
+    static void removeMatchingItemsUnroll(IDContainer& items, const Predicate& pred)
+    {
+      for (auto& item : items)
+      {
+        removeMatchingItems(item.getHits(), pred);
+      }
+    }
+
+    /// Keep Hit items that satisfy a condition in one of our ID containers (e.g. vector of Peptide or ProteinIDs)
+    template <class IDContainer, class Predicate>
+    static void keepMatchingItemsUnroll(IDContainer& items, const Predicate& pred)
+    {
+      for (auto& item : items)
+      {
+        keepMatchingItems(item.getHits(), pred);
+      }
+    }
+
+    template <class MapType, class Predicate>
+    static void keepMatchingPeptideHits(MapType& prot_and_pep_ids, Predicate& pred)
+    {
+      for (auto& feat : prot_and_pep_ids)
+      {
+        keepMatchingItemsUnroll(feat.getPeptideIdentifications(), pred);
+      }
+      keepMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
+    }
+
+    template <class MapType, class Predicate>
+    static void removeMatchingPeptideHits(MapType& prot_and_pep_ids, Predicate& pred)
+    {
+      for (auto& feat : prot_and_pep_ids)
+      {
+        removeMatchingItemsUnroll(feat.getPeptideIdentifications(), pred);
+      }
+      removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
     }
 
     ///@}
@@ -599,7 +678,7 @@ public:
 
     /**
        @brief remove peptide evidences based on a filter
-       
+
        @param filter filter function that overloads ()(PeptideEvidence&) operator
        @param peptides a collection of peptide evidences
      */
@@ -617,13 +696,12 @@ public:
           std::vector<PeptideEvidence> evidences;
           remove_copy_if(hit_it->getPeptideEvidences().begin(),
                          hit_it->getPeptideEvidences().end(),
-                         back_inserter(evidences), 
+                         back_inserter(evidences),
                          std::not1(filter));
           hit_it->setPeptideEvidences(evidences);
         }
       }
     }
-    
 
     ///@}
 
@@ -658,6 +736,17 @@ public:
       std::vector<PeptideIdentification>& peptides,
       const std::vector<ProteinIdentification>& proteins,
       bool remove_peptides_without_reference = false);
+
+    /**
+       @brief Removes references to missing proteins
+
+       Only PeptideEvidence entries that reference protein hits in @p proteins are kept in the peptide hits.
+
+       If @p remove_peptides_without_reference is set, peptide hits without any remaining protein reference are removed.
+    */
+    static void updateProteinReferences(
+        ConsensusMap& cmap,
+        bool remove_peptides_without_reference = false);
 
     /**
        @brief Update protein groups after protein hits were filtered
@@ -704,23 +793,17 @@ public:
     }
 
     /**
-       @brief Filters peptide or protein identifications according to the significance threshold of the hits.
+      @brief Filters peptide or protein identifications according to the score of the hits.
 
-       Only peptide/protein hits which reach a score above (or below, depending on score orientation) @p threshold_fraction * @p significance_threshold (as stored in the ID) are kept.
+      Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
     */
     template <class IdentificationType>
-    static void filterHitsBySignificance(std::vector<IdentificationType>& ids,
-                                         double threshold_fraction = 1.0)
+    static void filterHitsByScore(IdentificationType& id,
+                                  double threshold_score)
     {
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
-      {
-        double threshold_score = (threshold_fraction *
-                                  id_it->getSignificanceThreshold());
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(
-          threshold_score, id_it->isHigherScoreBetter());
-        keepMatchingItems(id_it->getHits(), score_filter);
-      }
+            threshold_score, id->isHigherScoreBetter());
+        keepMatchingItems(id->getHits(), score_filter);
     }
 
     /**
@@ -810,12 +893,10 @@ public:
     static void removeHitsMatchingProteins(std::vector<IdentificationType>& ids,
                                            const std::set<String> accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType>
-        acc_filter(accessions);
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      for (auto& id_it : ids)
       {
-        removeMatchingItems(id_it->getHits(), acc_filter);
+        removeMatchingItems(id_it.getHits(), acc_filter);
       }
     }
 
@@ -828,18 +909,14 @@ public:
     */
     template <class IdentificationType>
     static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids,
-                                         const std::set<String> accessions)
+                                         const std::set<String>& accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType>
-        acc_filter(accessions);
-      for (typename std::vector<IdentificationType>::iterator id_it =
-             ids.begin(); id_it != ids.end(); ++id_it)
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      for (auto& id_it : ids)
       {
-        keepMatchingItems(id_it->getHits(), acc_filter);
+        keepMatchingItems(id_it.getHits(), acc_filter);
       }
     }
-
-    
 
     ///@}
 
@@ -1006,30 +1083,6 @@ public:
       // @TODO: remove proteins that aren't referenced by peptides any more?
     }
 
-    /// Filters an MS/MS experiment according to fractions of the significance thresholds
-    static void filterHitsBySignificance(PeakMap& experiment,
-                                         double peptide_threshold_fraction,
-                                         double protein_threshold_fraction)
-    {
-      // filter protein hits:
-      filterHitsBySignificance(experiment.getProteinIdentifications(),
-                               protein_threshold_fraction);
-      // don't remove empty protein IDs - they contain search meta data and may
-      // be referenced by peptide IDs (via run ID)
-
-      // filter peptide hits:
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
-      {
-        filterHitsBySignificance(exp_it->getPeptideIdentifications(),
-                                 peptide_threshold_fraction);
-        removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-        updateProteinReferences(exp_it->getPeptideIdentifications(),
-                                experiment.getProteinIdentifications());
-      }
-      // @TODO: remove proteins that aren't referenced by peptides any more?
-    }
-
     /// Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
     static void keepNBestHits(PeakMap& experiment, Size n)
     {
@@ -1053,6 +1106,159 @@ public:
       // update protein hits:
       removeUnreferencedProteins(experiment.getProteinIdentifications(),
                                  all_peptides);
+    }
+
+    /// Filters a Consensus/FeatureMap by keeping the N best peptide hits for every spectrum
+    template <class MapType>
+    static void keepNBestPeptideHits(MapType& map, Size n)
+    {
+      // The rank predicate needs annotated ranks, not sure if they are always updated. Use the following instead,
+      // which sorts Hits first.
+      for (auto& feat : map)
+      {
+        keepNBestHits(feat.getPeptideIdentifications(), n);
+      }
+      keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
+    }
+
+    template <class MapType>
+    static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
+    {
+      removeMatchingPeptideHits(prot_and_pep_ids, HasNoHits<PeptideHit>());
+    }
+
+    /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
+    static void keepBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      annotateBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
+      keepMatchingItemsUnroll(pep_ids, best_per_peptide);
+    }
+
+    static void keepBestPerPeptidePerRun(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      annotateBestPerPeptidePerRun(prot_ids, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
+      keepMatchingItemsUnroll(pep_ids, best_per_peptide);
+    }
+
+    template <class MapType>
+    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      const auto& prot_ids = prot_and_pep_ids.getProteinIdentifications();
+
+      RunToSequenceToChargeToPepHitP best_peps_per_run;
+      for (const auto& idrun : prot_ids)
+      {
+        best_peps_per_run[idrun.getIdentifier()] = SequenceToChargeToPepHitP();
+      }
+
+      for (auto& feat : prot_and_pep_ids)
+      {
+        annotateBestPerPeptidePerRunWithData(best_peps_per_run, feat.getPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
+      }
+
+      annotateBestPerPeptidePerRunWithData(best_peps_per_run, prot_and_pep_ids.getUnassignedPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
+
+      HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
+      keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
+    }
+
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    static void annotateBestPerPeptidePerRun(const std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      RunToSequenceToChargeToPepHitP best_peps_per_run;
+      for (const auto& id : prot_ids)
+      {
+        best_peps_per_run[id.getIdentifier()] = SequenceToChargeToPepHitP();
+      }
+      annotateBestPerPeptidePerRunWithData(best_peps_per_run, pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+    }
+
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    /// To be used when a RunToSequenceToChargeToPepHitP map is already available
+    static void annotateBestPerPeptidePerRunWithData(RunToSequenceToChargeToPepHitP& best_peps_per_run, std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      for (auto &pep : pep_ids)
+      {
+        SequenceToChargeToPepHitP& best_pep = best_peps_per_run[pep.getIdentifier()];
+        annotateBestPerPeptideWithData(best_pep, pep, ignore_mods, ignore_charges, nr_best_spectrum);
+      }
+    }
+
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    /// Does not check Run information and just goes over all Peptide IDs
+    static void annotateBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      SequenceToChargeToPepHitP best_pep;
+      for (auto& pep : pep_ids)
+      {
+        annotateBestPerPeptideWithData(best_pep, pep, ignore_mods, ignore_charges, nr_best_spectrum);
+      }
+    }
+
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    /// Does not check Run information and just goes over all Peptide IDs
+    /// To be used when a SequenceToChargeToPepHitP map is already available
+    static void annotateBestPerPeptideWithData(SequenceToChargeToPepHitP& best_pep, PeptideIdentification& pep, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+        bool higher_score_better = pep.isHigherScoreBetter();
+        //make sure that first = best hit
+        pep.sort();
+
+        auto pepIt = pep.getHits().begin();
+        auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().size() <= nr_best_spectrum ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;
+        for (; pepIt != pepItEnd; ++pepIt)
+        {
+          PeptideHit &hit = *pepIt;
+
+          String lookup_seq;
+          if (ignore_mods)
+          {
+            lookup_seq = hit.getSequence().toUnmodifiedString();
+          }
+          else
+          {
+            lookup_seq = hit.getSequence().toString();
+          }
+
+          int lookup_charge = 0;
+          if (!ignore_charges)
+          {
+            lookup_charge = hit.getCharge();
+          }
+
+          // try to insert
+          auto it_inserted = best_pep.emplace(std::move(lookup_seq), ChargeToPepHitP());
+          auto it_inserted_chg = it_inserted.first->second.emplace(lookup_charge, &hit);
+
+          PeptideHit* &p = it_inserted_chg.first->second; //now this gets either the old one if already present, or this
+          if (!it_inserted_chg.second) //was already present -> possibly update
+          {
+            if (
+                (higher_score_better && (hit.getScore() > p->getScore())) ||
+                (!higher_score_better && (hit.getScore() < p->getScore()))
+                )
+            {
+              p->setMetaValue("best_per_peptide", 0);
+              hit.setMetaValue("best_per_peptide", 1);
+              p = &hit;
+            }
+            else //note that this was def. not the best
+            {
+              // TODO if it is only about filtering, we can omit writing this metavalue (absence = false)
+              hit.setMetaValue("best_per_peptide", 0);
+            }
+          }
+          else //newly inserted -> first for that sequence (and optionally charge)
+          {
+            hit.setMetaValue("best_per_peptide", 1);
+          }
+        }
     }
 
     /// Filters an MS/MS experiment according to the given proteins
@@ -1088,6 +1294,19 @@ public:
 
     ///@}
 
+
+    /// @name Filter functions for class IdentificationData
+    ///@{
+    static void keepBestMatchPerQuery(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeRef score_ref);
+
+    static void filterQueryMatchesByScore(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeRef score_ref, double cutoff);
+
+    static void removeDecoys(IdentificationData& id_data);
+    ///@}
 
   };
 

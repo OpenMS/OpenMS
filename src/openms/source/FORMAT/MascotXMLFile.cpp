@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,7 +88,7 @@ namespace OpenMS
     }
     if (missing_sequence) 
     {
-      LOG_WARN << "Warning: Removed " << missing_sequence 
+      OPENMS_LOG_WARN << "Warning: Removed " << missing_sequence 
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);
@@ -102,7 +102,7 @@ namespace OpenMS
     }
     if (no_rt_count)
     {
-      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+      OPENMS_LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
                << ") peptide identifications have no retention time value."
                << endl;
     }

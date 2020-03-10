@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,9 +125,9 @@ namespace OpenMS
 
         if (debug_level > 0)
         {
-          LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
-          LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
-          LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
+          OPENMS_LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
+          OPENMS_LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
+          OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
       
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
@@ -145,7 +145,7 @@ namespace OpenMS
         {
           if (debug_level > 0)
           {
-            LOG_INFO << "Connecting to REST server successful. " << endl;
+            OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
           QString response = query->getResponse();
@@ -154,7 +154,7 @@ namespace OpenMS
           {
             if (VersionInfo::getVersionStruct() < server_version)
             {
-              LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
+              OPENMS_LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
             }
           }
         }
@@ -162,8 +162,8 @@ namespace OpenMS
         {
           if (debug_level > 0)
           {
-            LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-            LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+            OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
+            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
           }
         }
         delete query;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,6 +71,10 @@
     they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
     If one fragment matches to multiple precursors, it is assigned to all of them. If it doesnt match any, it is assigned to all
   
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_CorrelateMassTraces.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_CorrelateMassTraces.html
 
 */
 

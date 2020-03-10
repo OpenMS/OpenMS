@@ -66,16 +66,30 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>" namespace "OpenMS":
 
     cdef cppclass FineIsotopePatternGenerator:
+        #
+        # wrap-doc:
+        #   Isotope pattern generator for fine isotope distributions.
+        #   Generates isotopes until a stop condition (threshold) is reached,
+        #   the lower the threshold the more isotopes are generated. The
+        #   parameter use_total_prob defines whether the stop condition is
+        #   interpreted as the total probability that the distribution should
+        #   cover (default) or as a threshold for individual peaks. Finally,
+        #   the absolute parameter specifies for individual peak thresholding
+        #   if the threshold is absolute or relative.
 
         FineIsotopePatternGenerator() nogil except + 
         FineIsotopePatternGenerator(double threshold) nogil except +
-        FineIsotopePatternGenerator(double threshold, bool absolute) nogil except +
+        FineIsotopePatternGenerator(double threshold, bool use_total_prob) nogil except +
+        FineIsotopePatternGenerator(double threshold, bool use_total_prob, bool absolute) nogil except +
 
         void setThreshold(double threshold) nogil except +
         double getThreshold() nogil except +
 
         void setAbsolute(bool absolute) nogil except +
         bool getAbsolute() nogil except +
+
+        void setTotalProbability(bool total) nogil except +
+        bool getTotalProbability() nogil except +
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
 

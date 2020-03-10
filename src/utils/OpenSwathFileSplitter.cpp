@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,15 @@
 // --------------------------------------------------------------------------
 
 // Files
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <OpenMS/SYSTEM/File.h>
 

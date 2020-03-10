@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -229,7 +229,7 @@ public:
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(double time);
+    static String toString(const double time);
 
 private:
 

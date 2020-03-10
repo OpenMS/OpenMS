@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -242,7 +242,6 @@ public:
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
     SpectrumCanvas* getActiveCanvas() const;
 
-
     /// returns a pointer to the SpectraIdentificationViewWidget
     SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
 
@@ -336,6 +335,8 @@ public slots:
     void toggleGridLines();
     /// Toggles the axis legends
     void toggleAxisLegends();
+    /// Toggles drawing of interesting MZs
+    void toggleInterestingMZs();
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data
@@ -440,7 +441,7 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layer_manager_;
+    QListWidget* layers_view_;
 
     ///@name Filter widgets
     //@{

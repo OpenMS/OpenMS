@@ -1,15 +1,15 @@
-PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
-500	628.435	2	2	1	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light				ProteinA	uniprot_nr_1	b	1	y5	1	4.5	tr_gr>1	tr&1	0	1	0	1	
-500	654.38	2	2	2	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light				ProteinA	uniprot_nr_1	b	2	y6	1	4.5	tr_gr>1	tr&2	0	1	0	1	
-501	618.31	2	2	10000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light				ProteinA	uniprot_nr_1	y	3	y4	1	-1	tr_gr2	tr3	0	1	0	1	
-501	628.435	2	2	2000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light				ProteinA	uniprot_nr_1	y	4	y5	1	-1	tr_gr2	tr4	0	1	0	1	
-501	651.3	2	3	4300	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light				ProteinA	uniprot_nr_1	y	5	y6	1	-1	tr_gr2	tr5	0	1	0	1	
-722.685	358.179	3	2	2714	52.2	QVFIGCPASVADQDAFERM	.(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM.(UniMod:11)	78	light				ProteinC	uniprot_nr_2	a	6	b3	-1	9	78	454	0	1	0	1	
-510.008269	628.435	2	2	1	0.44	PEPTIDEAR	PEPTIDEAR(UniMod:267)	tr_gr1	heavy				ProteinA	uniprot_nr_1	b	1	y5	1	-1	tr_gr1_heavy	tr1_heavy	0	1	0	1	
-510.008269	654.38	2	2	2	0.44	PEPTIDEAR	PEPTIDEAR(UniMod:267)	tr_gr1	heavy				ProteinA	uniprot_nr_1	b	2	y6	1	-1	tr_gr1_heavy	tr2_heavy	0	1	0	1	
-509.014199	618.31	2	2	10000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac				ProteinA	uniprot_nr_1	y	3	y4	1	-1	tr_gr2_heavy	tr3_heavy	0	1	0	1	
-509.014199	628.435	2	2	2000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac				ProteinA	uniprot_nr_1	y	4	y5	1	-1	tr_gr2_heavy	tr4_heavy	0	1	0	1	
-730.699199	651.3	2	3	4300	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac				ProteinA	uniprot_nr_1	y	5	y6	1	-1	tr_gr2_heavy	tr5_heavy	0	1	0	1	
-900	618.31	2	2	10000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac				ProteinA	uniprot_nr_1	y	3	y4	1	-1	tr_gr2_different_heavy	tr3_heavy2	0	1	0	1	
-900	628.435	2	2	2000	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac				ProteinA	uniprot_nr_1	y	4	y5	1	-1	tr_gr2_different_heavy	tr4_heavy2	0	1	0	1	
-900	651.3	2	3	4300	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac				ProteinA	uniprot_nr_1	y	5	y6	1	-1	tr_gr2_different_heavy	tr5_heavy2	0	1	0	1	
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+500.0	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	1	y5	1.0	4.5	tr_gr>1	tr&1	0	1	0	1	
+500.0	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	2	y6	1.0	4.5	tr_gr>1	tr&2	0	1	0	1	
+501.0	618.309999999999945	2	2	10000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	3	y4	1.0	-1.0	tr_gr2	tr3	0	1	0	1	
+501.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	4	y5	1.0	-1.0	tr_gr2	tr4	0	1	0	1	
+501.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	5	y6	1.0	-1.0	tr_gr2	tr5	0	1	0	1	
+722.684999999999945	358.178999999999974	3	2	2714.0	52.200000000000003	QVFIGCPASVADQDAFERM	.(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM.(UniMod:11)	78	light					ProteinC	uniprot_nr_2	NA	a	6	b3	-1.0	9.0	78	454	0	1	0	1	
+510.008268999999984	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR(UniMod:267)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	1	y5	1.0	-1.0	tr_gr1_heavy	tr1_heavy	0	1	0	1	
+510.008268999999984	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR(UniMod:267)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	2	y6	1.0	-1.0	tr_gr1_heavy	tr2_heavy	0	1	0	1	
+509.014199000000019	618.309999999999945	2	2	10000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y4	1.0	-1.0	tr_gr2_heavy	tr3_heavy	0	1	0	1	
+509.014199000000019	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y5	1.0	-1.0	tr_gr2_heavy	tr4_heavy	0	1	0	1	
+730.699199000000022	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK(UniMod:259)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y6	1.0	-1.0	tr_gr2_heavy	tr5_heavy	0	1	0	1	
+900.0	618.309999999999945	2	2	10000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y4	1.0	-1.0	tr_gr2_different_heavy	tr3_heavy2	0	1	0	1	
+900.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y5	1.0	-1.0	tr_gr2_different_heavy	tr4_heavy2	0	1	0	1	
+900.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(UniMod:21)IDEC(UniMod:4)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y6	1.0	-1.0	tr_gr2_different_heavy	tr5_heavy2	0	1	0	1	

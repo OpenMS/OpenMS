@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,13 +116,13 @@ public:
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // thirdparty executable 
     registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
     // input, output and parameter file 
     registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     // enzyme
@@ -186,7 +186,7 @@ protected:
   }
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

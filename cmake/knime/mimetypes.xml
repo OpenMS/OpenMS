@@ -21,6 +21,7 @@
  <mimetype name="MSP" binary="false" description="NIST spectra library file format" ext="msp"/>
  <mimetype name="OMSSAXML" binary="false" description="OMSSA XML file format for peptide identifications" ext="xml"/>
  <mimetype name="MASCOTXML" binary="false" description="Mascot XML file format for peptide identifications" ext="xml"/>
+ <mimetype name="RAW" binary="true" description="Thermo RAW file." ext="raw"/>
  <mimetype name="PNG" binary="false" description="Portable Network Graphics" ext="png"/>
  <mimetype name="XMASS" binary="false" description="XMass Analysis file (fid)" ext="fid"/>
  <mimetype name="TSV" binary="false" description="tab-separated file" ext="tsv"/>
@@ -37,4 +38,5 @@
  <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
  <mimetype name="PERCOLATORTAB" binary="false" description="Percolator tab seperated in/output" ext="tab"/>
  <mimetype name="PQP" binary="true" description="The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files." ext="pqp"/>
+ <mimetype name="MS" binary="false" description="SIRIUS file format" ext="ms"/  >
 </mimetypes>

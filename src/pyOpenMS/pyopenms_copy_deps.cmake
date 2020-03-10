@@ -9,5 +9,5 @@ foreach(DEPENDENCY_FILE ${DEPENDENCIES})
   
   get_filename_component(resolved_file_nosymlink ${resolved_file} REALPATH)
   #message("realpath of resolved dependency " ${resolved_file} " is " ${resolved_file_nosymlink})
-  file(COPY ${resolved_file_nosymlink} DESTINATION ${TARGET})
+  file(COPY ${resolved_file_nosymlink} DESTINATION ${TARGET} FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE NO_SOURCE_PERMISSIONS)
 endforeach()

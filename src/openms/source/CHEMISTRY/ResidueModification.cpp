@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -249,6 +249,14 @@ namespace OpenMS
     {
       term_spec_ = ANYWHERE;
     }
+    else if (term_spec == "Protein N-term")
+    {
+      term_spec_ = PROTEIN_N_TERM;
+    }
+    else if (term_spec == "Protein C-term")
+    {
+      term_spec_ = PROTEIN_C_TERM;
+    }
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", term_spec);
@@ -272,8 +280,12 @@ namespace OpenMS
 
     case N_TERM: return "N-term";
 
+    case PROTEIN_C_TERM: return "Protein C-term";
+
+    case PROTEIN_N_TERM: return "Protein N-term";
+
     case ANYWHERE: return "none";
-     
+
     default: break; // shouldn't happen
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));
@@ -558,4 +570,3 @@ namespace OpenMS
   }
 
 }
-

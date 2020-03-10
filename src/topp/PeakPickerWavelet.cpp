@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -162,7 +163,7 @@ protected:
 
     if (ms_exp_raw.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -199,7 +200,7 @@ protected:
     }
     catch (Exception::BaseException & e)
     {
-      LOG_ERROR << "Exception caught: " << e.what() << "\n";
+      OPENMS_LOG_ERROR << "Exception caught: " << e.what() << "\n";
       return INTERNAL_ERROR;
     }
     if (!write_meta_data_arrays)

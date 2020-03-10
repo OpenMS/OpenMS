@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,13 +118,13 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerInputFile_("database", "<file>", "", "FASTA file", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "comet.exe",
-      "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false); //required as first line in the param file
+      "comet.exe", // this is the name on ALL platforms currently...
+      "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
+    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -132,7 +132,7 @@ protected:
 
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
-    setValidFormats_("pin_out", ListUtils::create<String>("csv"));
+    setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
@@ -157,7 +157,7 @@ protected:
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true); 
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance", 0.01);
     registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
     setMinFloat_("fragment_bin_offset", 0.0);
@@ -180,7 +180,7 @@ protected:
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
 
     //Output
-    registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
@@ -240,7 +240,7 @@ protected:
         continue;
       }
       String modification(*mod_it);
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+      modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
@@ -332,13 +332,15 @@ protected:
         // 2 and -1 should be equal for now.
         nc_term = 2;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
+        residues = "n";
         term_distance = 0;
         nc_term = 0;
       }
-      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM) // not yet available
+      else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
+        residues = "c";
         term_distance = 0;
         nc_term = 1;
       }
@@ -367,11 +369,11 @@ protected:
     double bin_offset = getDoubleOption_("fragment_bin_offset");
     if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset <= 0.2))
     {
-      LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
+      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
     }
     else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
     {
-      LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
+      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
     };
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
@@ -408,7 +410,7 @@ protected:
     int precursor_charge_min(0), precursor_charge_max(0);
     if (!parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max))
     {
-      LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
+      OPENMS_LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
     }
 
     os << "scan_range = " << "0 0" << "\n";                        // start and scan scan range to search; 0 as 1st entry ignores parameter
@@ -421,7 +423,7 @@ protected:
     double digest_mass_range_min(600.0), digest_mass_range_max(5000.0);
     if (!parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max))
     {
-      LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
+      OPENMS_LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
     }
 
     os << "digest_mass_range = " << digest_mass_range_min << " " << digest_mass_range_max << "\n";        // MH+ peptide mass range to analyze
@@ -446,7 +448,7 @@ protected:
     double clear_mz_range_min(0.0), clear_mz_range_max(0.0);
     if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max))
     {
-      LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
+      OPENMS_LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
     }
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
@@ -473,8 +475,10 @@ protected:
     {
       for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
       {
-        String AA = it->getOrigin();
-        if ((AA!="N-term") && (AA!="C-term"))
+        // check modification (amino acid or terminal)
+        String AA = it->getOrigin(); // X (constructor) or amino acid (e.g. K)
+        String term_specificity = it->getTermSpecificityName(); // N-term, C-term, none
+        if ((AA != "X") && (term_specificity == "none"))
         {
           const Residue* r = ResidueDB::getInstance()->getResidue(AA);
           String name = r->getName();
@@ -482,7 +486,7 @@ protected:
         }
         else
         {
-          os << "add_" << AA.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
         }
       }
     }
@@ -508,7 +512,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    
+
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
     String tmp_param = File::getTemporaryFile();
@@ -561,7 +565,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2 
+    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -611,6 +615,9 @@ protected:
     PepXMLFile().load(tmp_pepxml, protein_identifications, peptide_identifications);
     writeDebug_("write idXMLFile", 1);
     writeDebug_(out, 1);
+
+    //Whatever the pepXML says, overwrite origin as the input mzML
+    protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

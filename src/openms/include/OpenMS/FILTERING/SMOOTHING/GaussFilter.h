@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,7 @@ public:
         {
           error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
-        LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
       else
       {
@@ -170,7 +170,7 @@ public:
         {
           error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
         }
-        LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
       else
       {

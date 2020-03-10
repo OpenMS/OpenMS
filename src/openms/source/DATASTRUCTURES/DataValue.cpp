@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,12 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <QtCore/QString>
+
+#include <sstream>
 
 using namespace std;
 
@@ -648,26 +650,29 @@ namespace OpenMS
   }
 
   // Convert DataValues to String
-  String DataValue::toString() const
+  String DataValue::toString(bool full_precision) const
   {
-    stringstream ss;
+    std::stringstream ss;
     switch (value_type_)
     {
-    case DataValue::EMPTY_VALUE: break;
+      case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_);
+      case DataValue::STRING_VALUE: return *(data_.str_);
 
-    case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
+      case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
 
-    case DataValue::INT_LIST: ss << *(data_.int_list_); break;
+      case DataValue::INT_LIST: ss << *(data_.int_list_); break;
 
-    case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_); break;
+      case DataValue::DOUBLE_LIST: 
+        if (full_precision) ss << *(data_.dou_list_);
+        else ss << VecLowPrecision<double>(*(data_.dou_list_));
+        break;
 
-    case DataValue::INT_VALUE: ss << data_.ssize_; break;
+      case DataValue::INT_VALUE: return String(data_.ssize_);
 
-    case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
+      case DataValue::DOUBLE_VALUE: return String(data_.dou_, full_precision);
 
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
     }
     return ss.str();
   }
@@ -791,6 +796,7 @@ namespace OpenMS
 
   // ----------------- Output operator ----------------------
 
+  /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision
   std::ostream& operator<<(std::ostream& os, const DataValue& p)
   {
     switch (p.value_type_)
@@ -803,9 +809,9 @@ namespace OpenMS
 
     case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
 
-    case DataValue::INT_VALUE: os << p.data_.ssize_; break;
+    case DataValue::INT_VALUE: os << String(p.data_.ssize_); break; // using our String conversion (faster than os)
 
-    case DataValue::DOUBLE_VALUE: os << precisionWrapper(p.data_.dou_); break;
+    case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
 
     case DataValue::EMPTY_VALUE: break;
     }

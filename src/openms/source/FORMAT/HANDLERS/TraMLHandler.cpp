@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -680,8 +680,8 @@ namespace OpenMS
                 {
                   residue = it->sequence[mit->location];
                 }
-                const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
-                String modname = rmod.getId();
+                const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
+                String modname = rmod->getId();
                 os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }

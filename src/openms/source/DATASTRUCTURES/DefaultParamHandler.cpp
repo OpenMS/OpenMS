@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,7 +101,7 @@ namespace OpenMS
     {
       if (defaults_.empty() && warn_empty_defaults_)
       {
-        LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+        OPENMS_LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
       }
 
       //remove registered subsections

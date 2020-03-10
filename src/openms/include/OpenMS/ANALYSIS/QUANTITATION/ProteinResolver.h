@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ public:
       Size number_of_decoy;
       Size number_of_target;
       Size number_of_target_plus_decoy;
-      float intensity;     // intensity of the MSD Group. Defined as the median of the peptide intensities.
+      float intensity;     ///< intensity of the MSD Group. Defined as the median of the peptide intensities.
     };
 
     struct ISDGroup

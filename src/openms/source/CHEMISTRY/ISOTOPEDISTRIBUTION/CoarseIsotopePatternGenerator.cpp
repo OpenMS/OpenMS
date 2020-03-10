@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,13 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <include/OpenMS/CONCEPT/Constants.h>
+
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -39,11 +46,6 @@
 #include <limits>
 #include <functional>
 #include <numeric>
-
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <include/OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 

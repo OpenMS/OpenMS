@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -174,7 +174,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {
@@ -369,7 +369,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {
@@ -736,14 +736,22 @@ namespace OpenMS
   {
     double mono_weight = precursor_mass;
     // link_pos can be zero, if the cross-link is N-terminal
-    if (link_pos > 1)
+    if (link_pos > 0)
     {
-      mono_weight -= peptide.getPrefix(link_pos-1).getMonoWeight(Residue::BIon);
+      mono_weight -= peptide.getPrefix(link_pos).getMonoWeight(Residue::BIon);
+    }
+    else
+    {
+      return; // this fragment type is not necessary for links on peptide terminal residues
     }
     // same here for C-terminal links
-    if (link_pos < peptide.size()-1)
+    if (link_pos < peptide.size())
     {
-      mono_weight -= peptide.getSuffix(peptide.size() - link_pos).getMonoWeight(Residue::XIon);
+      mono_weight -= peptide.getSuffix(peptide.size() - link_pos - 1).getMonoWeight(Residue::XIon);
+    }
+    else
+    {
+      return;
     }
 
     mono_weight += Constants::PROTON_MASS_U * static_cast<double>(charge);
@@ -860,7 +868,7 @@ namespace OpenMS
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
-      charges.setName("Charges");
+      charges.setName("charge");
     }
     if (add_metainfo_)
     {
@@ -875,19 +883,27 @@ namespace OpenMS
     std::vector< LossIndex > backward_losses;
     LossIndex losses_peptide2;
 
+    if (!crosslink.alpha)
+    {
+      return;
+    }
+    AASequence alpha = *crosslink.alpha;
+    AASequence beta;
+    if (crosslink.beta) { beta = *crosslink.beta; }
+
     if (add_losses_)
     {
       if (frag_alpha)
       {
-        losses_peptide2 = getBackwardLosses_(crosslink.beta)[0];
-        forward_losses = getForwardLosses_(crosslink.alpha);
-        backward_losses = getBackwardLosses_(crosslink.alpha);
+        losses_peptide2 = getBackwardLosses_(beta)[0];
+        forward_losses = getForwardLosses_(alpha);
+        backward_losses = getBackwardLosses_(alpha);
       }
       else
       {
-        losses_peptide2 = getBackwardLosses_(crosslink.alpha)[0];
-        forward_losses = getForwardLosses_(crosslink.beta);
-        backward_losses = getBackwardLosses_(crosslink.beta);
+        losses_peptide2 = getBackwardLosses_(alpha)[0];
+        forward_losses = getForwardLosses_(beta);
+        backward_losses = getBackwardLosses_(beta);
       }
     }
 
@@ -917,23 +933,20 @@ namespace OpenMS
       {
         addXLinkIonPeaks_(spectrum, charges, ion_names, crosslink, frag_alpha, Residue::ZIon, forward_losses, backward_losses, losses_peptide2, z);
       }
-      if (add_k_linked_ions_)
+      if (add_k_linked_ions_ && !beta.empty())
       {
-        double precursor_mass = crosslink.alpha.getMonoWeight() + crosslink.cross_linker_mass;
-        if (!crosslink.beta.empty())
-        {
-          precursor_mass += crosslink.beta.getMonoWeight();
-        }
+        double precursor_mass = alpha.getMonoWeight() + crosslink.cross_linker_mass;
+        precursor_mass += beta.getMonoWeight();
         AASequence peptide;
         Size link_pos;
         if (frag_alpha)
         {
-          peptide = crosslink.alpha;
+          peptide = alpha;
           link_pos = crosslink.cross_link_position.first;
         }
         else
         {
-          peptide = crosslink.beta;
+          peptide = beta;
           link_pos = crosslink.cross_link_position.second;
         }
         addKLinkedIonPeaks_(spectrum, charges, ion_names, peptide, link_pos, precursor_mass, frag_alpha, z);
@@ -942,10 +955,10 @@ namespace OpenMS
 
     if (add_precursor_peaks_)
     {
-      double precursor_mass = crosslink.alpha.getMonoWeight() + crosslink.cross_linker_mass;
-      if (!crosslink.beta.empty())
+      double precursor_mass = alpha.getMonoWeight() + crosslink.cross_linker_mass;
+      if (!beta.empty())
       {
-        precursor_mass += crosslink.beta.getMonoWeight();
+        precursor_mass += beta.getMonoWeight();
       }
       addPrecursorPeaks_(spectrum, charges, ion_names, precursor_mass, maxcharge);
     }
@@ -979,17 +992,21 @@ namespace OpenMS
 
   void TheoreticalSpectrumGeneratorXLMS::addXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, LossIndex & losses_peptide2, int charge) const
   {
-    if (crosslink.alpha.empty())
+    if (!crosslink.alpha || crosslink.alpha->empty())
     {
       cout << "Warning: Attempt at creating XLink Ions Spectrum from empty string!" << endl;
       return;
     }
 
-    double precursor_mass = crosslink.alpha.getMonoWeight() + crosslink.cross_linker_mass;
+    AASequence alpha = *crosslink.alpha;
+    AASequence beta;
+    if (crosslink.beta)  { beta = *crosslink.beta; }
 
-    if (!crosslink.beta.empty())
+    double precursor_mass = alpha.getMonoWeight() + crosslink.cross_linker_mass;
+
+    if (!beta.empty())
     {
-      precursor_mass += crosslink.beta.getMonoWeight();
+      precursor_mass += beta.getMonoWeight();
     }
 
     String ion_type;
@@ -999,15 +1016,15 @@ namespace OpenMS
     if (frag_alpha)
     {
       ion_type = "alpha|xi";
-      peptide = crosslink.alpha;
-      peptide2 = crosslink.beta;
+      peptide = alpha;
+      peptide2 = beta;
       link_pos = crosslink.cross_link_position.first;
     }
     else
     {
       ion_type = "beta|xi";
-      peptide = crosslink.beta;
-      peptide2 = crosslink.alpha;
+      peptide = beta;
+      peptide2 = alpha;
       link_pos = crosslink.cross_link_position.second;
     }
 

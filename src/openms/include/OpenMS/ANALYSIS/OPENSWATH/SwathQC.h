@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,7 +126,7 @@ namespace OpenSwath
       @brief Explicitly set the number of expected MS1 spectra (for sampling charge distribution)
 
       Computing the charge distribution using getSpectraProcessingFunc() requires knowing the total number of MS1 spectra.
-      Either use getExpSettingsFunc() externaly, or use this method to set it explicitly (depending on workflow).
+      Either use getExpSettingsFunc() externally, or use this method to set it explicitly (depending on workflow).
       If @p nr is set to 0, all spectra passed into getSpectraProcessingFunc() will be inspected for their charge distribution.
     */
     void setNrMS1Spectra(size_t nr);

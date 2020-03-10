@@ -16,24 +16,19 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
         String getFeatureOnly() nogil except +
         String getNoMasstraceInfoIsotopePattern() nogil except +
-        String getConverterMode() nogil except +
         Int getIsotopePatternIterations() nogil except +
         Int getCandidates() nogil except +
         Int getTopNHits() nogil except +
-
-        SiriusTmpStruct constructSiriusTmpStruct() nogil except +
-
-        libcpp_pair[String, String] checkSiriusExecutablePath(String& executable) nogil except +
 
         void preprocessingSirius(String featureinfo,
                                  MSExperiment& spectra,                
                                  libcpp_vector[FeatureMap]& v_fp,
                                  KDTreeFeatureMaps& fp_map_kd,
                                  SiriusAdapterAlgorithm sirius_algo,
-                                 FeatureToMs2Indices& feature_mapping)
+                                 FeatureMapping_FeatureToMs2Indices& feature_mapping)
 
         void checkFeatureSpectraNumber(String featureinfo,
-                                       FeatureToMs2Indices feature_mapping, 
+                                       FeatureMapping_FeatureToMs2Indices feature_mapping,
                                        MSExperiment spectra, 
                                        SiriusAdapterAlgorithm sirius_algo);
 
@@ -45,11 +40,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  
-    cdef cppclass SiriusTmpStruct "OpenMS::SiriusAdapterAlgorithm::SiriusTmpStruct":
-        SiriusTmpStruct()
-        SiriusTmpStruct(SiriusTmpStruct)
+    cdef cppclass SiriusTemporaryFileSystemObjects "OpenMS::SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects":
+        SiriusTemporaryFileSystemObjects(int debug_level)
+        SiriusTemporaryFileSystemObjects(SiriusTemporaryFileSystemObjects)
         
-        String tmp_dir 
-        String tmp_ms_file 
-        String tmp_out_dir 
+        String getTmpDir() nogil except +
+        String getTmpOutDir() nogil except +
+        String getTmpMsFile() nogil except + 
 

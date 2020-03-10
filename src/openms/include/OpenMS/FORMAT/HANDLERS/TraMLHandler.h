@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <ostream>
 
 namespace OpenMS
 {
@@ -87,16 +89,16 @@ public:
 protected:
 
       /// Progress logger
-      const ProgressLogger & logger_;
+      const ProgressLogger& logger_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
 
       String tag_;
 
-      TargetedExperiment * exp_;
+      TargetedExperiment* exp_;
 
-      const TargetedExperiment * cexp_;
+      const TargetedExperiment* cexp_;
 
       TargetedExperiment::Publication actual_publication_;
 

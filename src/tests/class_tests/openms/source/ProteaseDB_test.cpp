@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ START_TEST(ProteaseDB, "$Id$")
 
 ProteaseDB* ptr = nullptr;
 ProteaseDB* nullPointer = nullptr;
-String RKP("(?<=R)(?!P)");
+String RKP("(?<=[RX])(?!P)");
 START_SECTION(ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
@@ -160,6 +160,25 @@ START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
     Size old_size=names.size();
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2), test (0);
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto p = ProteaseDB::getInstance();
+    int tmp (0);
+    if (p->hasEnzyme("Trypsin"), true)
+    {
+      tmp++;
+    }
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 END_TEST

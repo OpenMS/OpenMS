@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,7 +106,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_cm", "<file>", "", "output consensus map");
+    registerOutputFile_("out_cm", "<file>", "", "output consensus map", false);
     registerOutputFile_("out_fm", "<file>", "", "output feature map", false);
     registerOutputFile_("outpairs", "<file>", "", "output file", false);
     setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));

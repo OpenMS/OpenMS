@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,7 +138,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
     + String("AGEGEN"))
 
   TEST_EQUAL(aa.isModified(), true)
-  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM).getId();
+  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM)->getId();
   TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
   sequences_iterator++;

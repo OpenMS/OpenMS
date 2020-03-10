@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,18 +53,17 @@ namespace OpenMS
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    // defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     // NOTE: the algorithm will only act upon the "fixed" value, if you would
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
     defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
     this->setLogType(CMD);

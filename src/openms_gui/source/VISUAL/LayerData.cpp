@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,7 +89,7 @@ namespace OpenMS
   void LayerData::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
 
     // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
@@ -189,7 +189,14 @@ namespace OpenMS
       if (pa == nullptr) { continue; }
 
       // add new fragment annotation
-      QString peak_anno = pa->getText();     
+      QString peak_anno = pa->getText().trimmed();
+
+      // check for newlines in the label and only continue with the first line for charge determination
+      QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+      if (lines.size() > 1)
+      {
+        peak_anno = lines[0];
+      }
 
       // read charge and text from annotation item string
       // we support two notations for the charge suffix: '2+' or '++'
@@ -205,22 +212,23 @@ namespace OpenMS
       {
         // count number of + and - in suffix (e.g., to support "++" as charge 2 anotation)
         int plus(0), minus(0);
-        for (int p = (int)peak_anno.size() - 1; p >= 0; ++p)
-        {        
-          if (peak_anno[p] == '+') 
-          { 
+
+        for (int p = (int)peak_anno.size() - 1; p >= 0; --p)
+        {
+          if (peak_anno[p] == '+')
+          {
             ++plus;
             continue;
           }
           else if (peak_anno[p] == '-')
           {
-            --minus;
+            ++minus;
             continue;
           }
           else // not '+' or '-'?
-          {            
+          {
             if (plus > 0 && minus == 0) // found pluses?
-            { 
+            {
               tmp_charge = plus;
               peak_anno = peak_anno.left(peak_anno.size() - plus);
               break;
@@ -240,22 +248,26 @@ namespace OpenMS
       fa.charge = tmp_charge;
       fa.mz = pa->getPeakPosition()[0];
       fa.intensity = pa->getPeakPosition()[1];
+      if (lines.size() > 1)
+      {
+        peak_anno.append("\n").append(lines[1]);
+      }
       fa.annotation = peak_anno;
-      
+
       fas.push_back(fa);
       annotations_changed = true;
     }
 
-    if (annotations_changed) 
-    { 
-      hit.setPeakAnnotations(fas); 
+    if (annotations_changed)
+    {
+      hit.setPeakAnnotations(fas);
     }
   }
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }

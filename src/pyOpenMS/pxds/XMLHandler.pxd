@@ -1,7 +1,7 @@
 from Types cimport *
 from Types cimport *
 from DateTime cimport *
-from MetaInfoInterface cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal":
     

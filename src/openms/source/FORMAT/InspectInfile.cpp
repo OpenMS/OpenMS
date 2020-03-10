@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -238,7 +239,7 @@ namespace OpenMS
             mass.insert(0, "-");
           }
           // if it is a mass
-          if (String(mass.toFloat()) == mass)
+          if (!String(mass.toFloat()).empty()) // just check if conversion does not throw, i.e. consumes the whole string
             mass_or_composition_or_name = 0;
         }
         catch (Exception::ConversionError& /*c_e*/)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -237,12 +237,10 @@ namespace OpenMS
     // check whether the fixed modifications are fulfilled
     for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
     {
-      String origin = ModificationsDB::getInstance()->getModification(*it1).getOrigin();
+      String origin = ModificationsDB::getInstance()->getModification(*it1)->getOrigin();
       // only single 1lc amino acids are allowed
-      if (origin.size() != 1)
-      {
-        continue;
-      }
+      if (origin.size() != 1) continue;
+     
       for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
       {
         if (origin == it2->getOneLetterCode())
@@ -253,7 +251,7 @@ namespace OpenMS
             return false;
           }
           // check whether the modification is the same
-          if (ModificationsDB::getInstance()->getModification(*it1).getId() != it2->getModificationName())
+          if (ModificationsDB::getInstance()->getModification(*it1)->getId() != it2->getModificationName())
           {
             return false;
           }

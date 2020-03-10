@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,7 +60,7 @@ public:
     void setMetadataOnly(bool only);
     ///returns whether or not to load only meta data
     bool getMetadataOnly() const;
-    
+
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
     void setForceMQCompatability(bool forceMQ);
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
@@ -221,9 +221,15 @@ public:
     void setMaxDataPoolSize(Size size);
     //@}
 
+    /// [mzML only!] Whether to use the "selected ion m/z" value as the precursor m/z value (alternative: use the "isolation window target m/z" value)
+    bool getPrecursorMZSelectedIon() const;
+
+    /// [mzML only!] Set whether to use the "selected ion m/z" value as the precursor m/z value (alternative: use the "isolation window target m/z" value)
+    void setPrecursorMZSelectedIon(bool choice);
+
     /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
     bool hasFilters();
-    
+
 private:
     bool metadata_only_;
     bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
@@ -249,7 +255,7 @@ private:
     MSNumpressCoder::NumpressConfig np_config_int_;
     MSNumpressCoder::NumpressConfig np_config_fda_;
     Size maximal_data_pool_size_;
-
+    bool precursor_mz_selected_ion_;
   };
 
 } // namespace OpenMS

@@ -19,6 +19,7 @@ application/x-traml TraML
 application/x-msp msp
 application/x-omssaxml xml
 application/x-mascotxml xml
+application/x-raw raw
 image/png png
 application/x-xmass fid
 text/tsv tsv tab
@@ -37,3 +38,4 @@ application/x-mztab mzTab
 application/x-paramxml paramXML
 application/x-percolatortab tab
 application/x-pqp pqp
+application/x-ms ms

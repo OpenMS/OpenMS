@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 
 #include <string>
 #include <fstream>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -77,22 +78,26 @@ namespace Internal
   */
   class OPENMS_DLLAPI IndexedMzMLHandler
   {
-      /// Name of the file
-      String filename_;
-      /// Binary offsets to all spectra
-      std::vector< std::pair<std::string, std::streampos> > spectra_offsets_;
-      /// Binary offsets to all chromatograms
-      std::vector< std::pair<std::string, std::streampos> > chromatograms_offsets_;
-      /// offset to the <indexList> element
-      std::streampos index_offset_;
-      /// Whether spectra are written before chromatograms in this file
-      bool spectra_before_chroms_;
-      /// The current filestream (opened by openFile)
-      std::ifstream filestream_;
-      /// Whether parsing the indexedmzML file was successful
-      bool parsing_success_;
-      /// Whether to skip XML checks
-      bool skip_xml_checks_;
+    /// Name of the file
+    String filename_;
+    /// Binary offsets to all spectra
+    std::vector< std::streampos > spectra_offsets_;
+    /// Mapping of spectra native ids to offsets
+    std::unordered_map< std::string, Size > spectra_native_ids_;
+    /// Binary offsets to all chromatograms
+    std::vector< std::streampos > chromatograms_offsets_;
+    /// Mapping of chromatogram native ids to offsets
+    std::unordered_map< std::string, Size > chromatograms_native_ids_;
+    /// offset to the <indexList> element
+    std::streampos index_offset_;
+    /// Whether spectra are written before chromatograms in this file
+    bool spectra_before_chroms_;
+    /// The current filestream (opened by openFile)
+    std::ifstream filestream_;
+    /// Whether parsing the indexedmzML file was successful
+    bool parsing_success_;
+    /// Whether to skip XML checks
+    bool skip_xml_checks_;
 
     /**
       @brief Try to parse the footer of the indexedmzML
@@ -173,6 +178,17 @@ namespace Internal
     const OpenMS::MSSpectrum getMSSpectrumById(int id);
 
     /**
+      @brief Retrieve the raw data for the spectrum with native id "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id cannot be found
+
+      @param id The spectrum native id
+      @param s The spectrum to be used and filled with data
+    */
+    void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s);
+
+    /**
       @brief Retrieve the raw data for the spectrum at position "id"
 
       @throw Exception if getParsingSuccess() returns false
@@ -202,6 +218,17 @@ namespace Internal
       @return The chromatogram at position id
     */
     const OpenMS::MSChromatogram getMSChromatogramById(int id);
+
+    /**
+      @brief Retrieve the raw data for the chromatogram with native id "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id cannot be found
+
+      @param id The chromatogram native id
+      @param s The chromatogram to be used and filled with data
+    */
+    void getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c);
 
     /**
       @brief Retrieve the raw data for the chromatogram at position "id"

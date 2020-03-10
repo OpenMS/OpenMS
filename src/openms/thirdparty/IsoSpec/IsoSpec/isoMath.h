@@ -23,7 +23,7 @@
 // 10M should be enough for anyone, right?
 // Actually, yes. If anyone tries to input a molecule that has more than 10M atoms, 
 // he deserves to get an exception thrown in his face.
-#define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+#define ISOSPEC_G_FACT_TABLE_SIZE 1024 // *1024*10
 #endif
 
 namespace IsoSpec
@@ -33,8 +33,12 @@ extern double* g_lfact_table;
 
 static inline double minuslogFactorial(int n) 
 { 
+    // check if value is too small or too large to be found in the lookup table
     if (n < 2) 
         return 0.0;
+    if (n >= ISOSPEC_G_FACT_TABLE_SIZE) return -lgamma(n+1);
+
+    // store in lookup table if not present yet
     if (g_lfact_table[n] == 0.0)
         g_lfact_table[n] = -lgamma(n+1);
 

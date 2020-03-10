@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,18 @@ namespace OpenMS
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           */
           static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
+
+          /**
+          @brief extractMIDFromSiriusMS
+          Extract mid from SIRIUS output (./spectrum.ms).
+          Mid is the native id + an index, which is incremented based
+          on the number of possible identifications (accurate mass search).
+
+          @return String mid of current SIRIUS compound
+
+          @param path_to_sirius_workspace: Path to SIRIUS workspace.
+          */
+          static OpenMS::String extractMIDFromSiriusMS_(const String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromSiriusFile  

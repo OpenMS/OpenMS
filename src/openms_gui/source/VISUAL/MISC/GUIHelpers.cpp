@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,8 +60,8 @@ namespace OpenMS
     {
       // execution failed
       QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
-      LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
-      LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
+      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
     }
 #else
     if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
@@ -92,12 +92,12 @@ namespace OpenMS
     else
     {
       // we could not find the app, try it the Linux way
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+      QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
       p->start(toppview_executable, args);
     }
 #else
     // LINUX+WIN
-    QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+    QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
     p->start(toppview_executable, args);
 #endif
 
@@ -105,9 +105,9 @@ namespace OpenMS
     if (!p->waitForStarted())
     {
       // execution failed
-      LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
   #if defined(Q_WS_MAC)
-      LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
+      OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
     }
   }

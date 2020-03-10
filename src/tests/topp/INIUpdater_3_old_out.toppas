@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<PARAMETERS version="1.7.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_7_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
@@ -31,11 +31,11 @@
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
-        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="algorithm" description="Algorithm section">
-          <ITEM name="debug" value="false" type="string" description="When debug mode is activated, several files with intermediate results are written to the folder &apos;debug&apos; (do not use in parallel mode)." required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="debug" value="false" type="bool" description="When debug mode is activated, several files with intermediate results are written to the folder &apos;debug&apos; (do not use in parallel mode)." required="false" advanced="false" />
           <NODE name="intensity" description="Settings for the calculation of a score indicating if a peak&apos;s intensity is significant in the local environment (between 0 and 1)">
             <ITEM name="bins" value="10" type="int" description="Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.#br#This parameter should be decreased, if the algorithm is used on small regions of a map." required="false" advanced="false" restrictions="1:" />
           </NODE>
@@ -109,20 +109,20 @@
         <ITEM name="mz_tolerance" value="20" type="double" description="m/z tolerance (in ppm or Da) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0:" />
         <ITEM name="mz_measure" value="ppm" type="string" description="Unit of &apos;mz_tolerance&apos;." required="false" advanced="false" restrictions="ppm,Da" />
         <ITEM name="mz_reference" value="precursor" type="string" description="Source of m/z values for peptide identifications. If &apos;precursor&apos;, the precursor-m/z from the idXML is used. If &apos;peptide&apos;,#br#masses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.#br#(&apos;peptide&apos; should be used together with &apos;feature:use_centroid_mz&apos; to avoid false-positive matches.)" required="false" advanced="false" restrictions="precursor,peptide" />
-        <ITEM name="ignore_charge" value="false" type="string" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="ignore_charge" value="false" type="bool" description="For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature." required="false" advanced="true" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
-        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="feature" description="Additional options for featureXML input">
-          <ITEM name="use_centroid_rt" value="false" type="string" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." required="false" advanced="false" restrictions="true,false" />
-          <ITEM name="use_centroid_mz" value="false" type="string" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="use_centroid_rt" value="false" type="bool" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." required="false" advanced="false" />
+          <ITEM name="use_centroid_mz" value="false" type="bool" description="Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.#br#(If you choose &apos;peptide&apos; as &apos;mz_reference&apos;, you should usually set this flag to avoid false-positive matches.)" required="false" advanced="false" />
         </NODE>
         <NODE name="consensus" description="Additional options for consensusXML input">
-          <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." required="false" advanced="false" restrictions="true,false" />
-          <ITEM name="annotate_ids_with_subelements" value="false" type="string" description="Store the map index of the sub-feature in the peptide ID." required="false" advanced="true" restrictions="true,false" />
+          <ITEM name="use_subelements" value="false" type="bool" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." required="false" advanced="false" />
+          <ITEM name="annotate_ids_with_subelements" value="false" type="bool" description="Store the map index of the sub-feature in the peptide ID." required="false" advanced="true" />
         </NODE>
         <NODE name="spectra" description="Additional options for mzML input">
           <ITEM name="in" value="" type="input-file" description="MS run used to annotated unidentified spectra to features or consensus features." required="false" advanced="false" supported_formats="*.mzML" />
@@ -141,17 +141,17 @@
         </ITEMLIST>
         <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.consensusXML" />
         <ITEM name="design" value="" type="input-file" description="input file containing the experimental design" required="false" advanced="false" supported_formats="*.tsv" />
-        <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="keep_subelements" value="false" type="bool" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." required="false" advanced="false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
-        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
-        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="algorithm" description="Algorithm parameters section">
           <ITEM name="second_nearest_gap" value="2" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1:" />
-          <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (features without ID&apos;s always match; only the best hit per peptide identification is considered)." required="false" advanced="false" restrictions="true,false" />
-          <ITEM name="ignore_charge" value="false" type="string" description="false [default]: pairing requires equal charge state (or at least one unknown charge &apos;0&apos;); true: Pairing irrespective of charge state" required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="use_identifications" value="false" type="bool" description="Never link features that are annotated with different peptides (features without ID&apos;s always match; only the best hit per peptide identification is considered)." required="false" advanced="false" />
+          <ITEM name="ignore_charge" value="false" type="bool" description="false [default]: pairing requires equal charge state (or at least one unknown charge &apos;0&apos;); true: Pairing irrespective of charge state" required="false" advanced="false" />
           <ITEM name="ignore_adduct" value="true" type="string" description="true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts" required="false" advanced="false" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
             <ITEM name="max_difference" value="100" type="double" description="Never pair features with a larger RT distance (in seconds)." required="false" advanced="false" restrictions="0:" />

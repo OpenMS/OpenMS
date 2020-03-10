@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@
 //#define DEBUG
 
 using namespace std;
-using namespace boost::math;
 
 namespace OpenMS
 {
@@ -267,7 +266,7 @@ namespace OpenMS
     
 #ifdef DEBUG
     // clock for monitoring run time performance
-    LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
+    OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
 #endif
 
     endProgress();
@@ -368,7 +367,8 @@ namespace OpenMS
     return true;
   }
   
-  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
+  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern,
+                                                            const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const
   {
     if (pattern.getMassShiftCount() < 2)
     {
@@ -395,18 +395,16 @@ namespace OpenMS
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
           
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_1;
-          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_2;
-          satellites_1 = satellites_profile.equal_range(idx_1);
-          satellites_2 = satellites_profile.equal_range(idx_2);
+          auto satellites_1 = satellites_profile.equal_range(idx_1);
+          auto satellites_2 = satellites_profile.equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (auto satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1) //OMS_CODING_TEST_EXCLUDE
           {
             double rt_1 = (satellite_it_1->second).getRT();
             
             // loop over satellites in mass trace 2
-            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (auto satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2) //OMS_CODING_TEST_EXCLUDE
             {
               double rt_2 = (satellite_it_2->second).getRT();
               

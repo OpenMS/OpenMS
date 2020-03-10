@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_OpenPepXL OpenPepXL
+  @page TOPP_OpenPepXL OpenPepXL
 
   @brief Search for peptide pairs linked with a labeled cross-linker
 
@@ -93,7 +93,7 @@ namespace OpenMS
   after the linking reaction (see section on output for clarification).
 
   <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
-  The input paramters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
+  The input parameters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
 
 
   <CENTER>
@@ -122,7 +122,8 @@ public:
     {
       EXECUTION_OK,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      INCOMPATIBLE_INPUT_DATA
     };
 
     /// Default constructor

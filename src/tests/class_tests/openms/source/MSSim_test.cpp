@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -218,13 +218,12 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SimTypes::
   SimTypes::SampleChannels channels;
   channels.push_back(proteins);
 
-  // TODO: we have to call get parameters first ??
   Param sim_params = mssim.getParameters();
   // define small RT range
   sim_params.setValue("RT:scan_window:min", 210.0);
   sim_params.setValue("RT:scan_window:max", 462.0);
-
   sim_params.setValue("RawTandemSignal:status", "precursor");
+  sim_params.setValue("Ionization:mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
 
   mssim.setParameters(sim_params);
 

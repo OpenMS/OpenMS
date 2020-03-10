@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,13 +87,14 @@ namespace OpenMS
 public:
     /** @name Type definitions */
     //@{
-    /// Dataset types
+    /// Dataset types.
+    /// Order in the enum determines the order in which layer types are drawn.
     enum DataType
     {
       DT_PEAK,            ///< Spectrum profile or centroided data
+      DT_CHROMATOGRAM,    ///< Chromatogram data
       DT_FEATURE,         ///< Feature data
       DT_CONSENSUS,       ///< Consensus feature data
-      DT_CHROMATOGRAM,    ///< Chromatogram data
       DT_IDENT,           ///< Peptide identification data
       DT_UNKNOWN          ///< Undefined data type indicating an error
     };

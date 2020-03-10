@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,8 +141,8 @@ namespace OpenMS
       */
       static void writeFooter_(std::ostream& os,
                                const PeakFileOptions& options,
-                               const std::vector< std::pair<std::string, long> > & spectra_offsets,
-                               const std::vector< std::pair<std::string, long> > & chromatograms_offsets);
+                               const std::vector< std::pair<std::string, Int64> > & spectra_offsets,
+                               const std::vector< std::pair<std::string, Int64> > & chromatograms_offsets);
 
       /**
         @brief Decode Base64 arrays and write into data_ array

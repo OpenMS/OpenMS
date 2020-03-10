@@ -45,14 +45,21 @@ try:
     from .all_modules import *
     from .python_extras import *
 except Exception as e:
-    print("\n")
+    print("")
     print("="*70)
-    print("\n")
-    print("maybe you miss some libraries. please run ldd (on linux) or")
-    print("dependency walker (on windows) on ")
-    print("\n")
+    print("Error when loading pyOpenMS libraries!")
+    print("Libraries could not be found / could not be loaded.")
+    print("")
+    print("Note: when using the Spyder IDE, this error may be triggered when")
+    print("the 'Automatic' backend is used. Please change this in Tools ->")
+    print("Preferences -> IPython -> Graphics to 'Inline'.")
+    print("")
+    print("To debug this error, please run ldd (on linux) or dependency walker (on windows) on ")
+    print("")
     print(os.path.join(here, "pyopenms.so"))
-    print("\n")
+    print("")
+    print("="*70)
+
     try:
         import PyQt4.QtCore
     except:

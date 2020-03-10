@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -133,7 +133,7 @@ END_SECTION
 START_SECTION(const Param& getParameters() const)
 {
   TargetedSpectraExtractor tse;
-  Param params = tse.getParameters();
+  const Param& params = tse.getParameters();
   TEST_EQUAL(params.getValue("rt_window"), 30.0)
   TEST_EQUAL(params.getValue("min_select_score"), 0.7)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
@@ -799,7 +799,7 @@ START_SECTION(void matchSpectrum(
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
   std::map<String,DataValue> options = {
     {"bin_size", 1.0},
-    {"peak_spread", 0.0},
+    {"peak_spread", 0},
     {"bin_offset", 0.4}
   };
   cmp.init(library.getSpectra(), options);
@@ -880,7 +880,7 @@ START_SECTION(void targetedMatching(
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
   std::map<String,DataValue> options = {
     {"bin_size", 1.0},
-    {"peak_spread", 0.0},
+    {"peak_spread", 0},
     {"bin_offset", 0.4}
   };
   cmp.init(library.getSpectra(), options);
@@ -938,7 +938,7 @@ START_SECTION(void untargetedMatching(
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
   std::map<String,DataValue> options = {
     {"bin_size", 1.0},
-    {"peak_spread", 0.0},
+    {"peak_spread", 0},
     {"bin_offset", 0.4}
   };
   cmp.init(library.getSpectra(), options);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,6 +163,14 @@ namespace OpenMS
       boost::math::normal_distribution<> ndf(x0, sigma);
       double int0 = A / boost::math::pdf(ndf, x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
       return (boost::math::pdf(ndf, x) * int0 );
+    }
+
+    double GaussFitter::GaussFitResult::log_eval_no_normalize(const double x) const
+    {
+      //TODO we could cache log sigma but then we would need to make the members private and update log sigma whenever
+      // sigma is reset
+      //TODO for likelihood maximization also the halflogtwopi constant could be removed
+      return -log(sigma) - halflogtwopi - 0.5 * pow((x - x0) / sigma, 2.0);
     }
 
   }   //namespace Math

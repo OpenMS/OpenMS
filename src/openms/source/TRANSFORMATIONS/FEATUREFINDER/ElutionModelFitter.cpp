@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,13 +92,13 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double mre = 0.0;
   double total_weights = 0.0;
   double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
-  double rt_end = min(fitter->getUpperRTBound(), 
+  double rt_end = min(fitter->getUpperRTBound(),
                       traces[0].peaks.back().first);
 
   for (MassTraces::const_iterator tr_it = traces.begin();
        tr_it != traces.end(); ++tr_it)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
+    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
            tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
     {
       double rt = p_it->first;
@@ -128,9 +128,9 @@ void ElutionModelFitter::fitAndValidateModel_(
   }
   catch (Exception::UnableToFit& except)
   {
-    LOG_ERROR << "Error fitting model to feature '" << feature.getUniqueId()
-              << "': " << except.getName() << " - " << except.getMessage()
-              << endl;
+    OPENMS_LOG_ERROR << "Error fitting model to feature '"
+                     << feature.getUniqueId() << "': " << except.getName()
+                     << " - " << except.getMessage() << endl;
     fit_success = false;
   }
 
@@ -206,7 +206,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   double check_boundaries = param_.getValue("check:boundaries");
   double area_limit = param_.getValue("check:min_area");
   double width_limit = param_.getValue("check:width");
-  double asym_limit = (asymmetric ? 
+  double asym_limit = (asymmetric ?
                        double(param_.getValue("check:asymmetry")) : 0.0);
 
   TraceFitter* fitter;
@@ -223,12 +223,12 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   }
 
   // collect peaks that constitute mass traces:
-  LOG_DEBUG << "Fitting elution models to features:" << endl;
+  OPENMS_LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
-    // LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
+    // OPENMS_LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
     double region_start = double(feat_it->getMetaValue("leftWidth"));
     double region_end = double(feat_it->getMetaValue("rightWidth"));
 
@@ -339,7 +339,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       abs_diffs[i] = fabs(widths[i] - median_width);
     }
     // median absolute deviation (constant factor to approximate std. dev.):
-    double mad_width = 1.4826 * Math::median(abs_diffs.begin(), 
+    double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
                                              abs_diffs.end());
 
     for (Feature& feature : features)
@@ -403,7 +403,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   vector<FeatureMap::Iterator> failed_models;
   Size model_successes = 0, model_failures = 0;
 
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
     feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -419,8 +419,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       if (impute)
       { // apply log-transform to weight down high outliers:
         double raw_intensity = feat_it->getIntensity();
-        LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
-                  << area << "; log(x) = " << log(raw_intensity) 
+        OPENMS_LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
+                  << area << "; log(x) = " << log(raw_intensity)
                   << ", log(y) = " << log(area) << endl;
         quant_values.push_back(make_pair(log(raw_intensity), log(area)));
       }
@@ -428,7 +428,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       model_successes++;
     }
   }
-  LOG_INFO << "Model fitting: " << model_successes << " successes, "
+  OPENMS_LOG_INFO << "Model fitting: " << model_successes << " successes, "
            << model_failures << " failures" << endl;
 
   if (impute) // impute results for cases where the model fit failed
@@ -438,7 +438,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     String x_weight, y_weight;
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
-    LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
+    OPENMS_LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)
     {

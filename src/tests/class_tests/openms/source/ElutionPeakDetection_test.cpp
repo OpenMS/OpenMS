@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,7 +112,7 @@ START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTra
 
         // mass traces split to local peaks
         //TEST_EQUAL(splitted_mt.size(), 2); // lowess and GSL
-        TEST_EQUAL(splitted_mt.size(), 2); // SavitzkyGolay
+        TEST_EQUAL(splitted_mt.size(), 3); // SavitzkyGolay
         //TEST_EQUAL(splitted_mt.size(), 6); // lowess with regression
 
         // correct labeling if subtraces?
@@ -173,7 +173,7 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     //TEST_EQUAL(mins.size(), 1);
     // SavitzkyGolay
     TEST_EQUAL(maxes.size(), 4);
-    TEST_EQUAL(mins.size(), 1);
+    TEST_EQUAL(mins.size(), 2);
     // lowess with regression
     //TEST_EQUAL(maxes.size(), 10);
     //TEST_EQUAL(mins.size(), 6);
@@ -200,16 +200,19 @@ END_SECTION
 
 START_SECTION((double computeMassTraceSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 2);
+    ABORT_IF(splitted_mt.size() != 3);
 
     double snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
     double snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
+    double snr3(test_epd.computeMassTraceSNR(splitted_mt[2]));
+
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 8.6058);
     //TEST_REAL_SIMILAR(snr2, 8.946);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 9.42792359866272);
-    TEST_REAL_SIMILAR(snr2, 7.64321913478949);
+    TEST_REAL_SIMILAR(snr1, 0.1907);
+    TEST_REAL_SIMILAR(snr2, 9.8855);
+    TEST_REAL_SIMILAR(snr3, 7.6432);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 0.0497);
     //TEST_REAL_SIMILAR(snr2, 0.1450);
@@ -218,17 +221,19 @@ END_SECTION
 
 START_SECTION((double computeApexSNR(const MassTrace &)))
 {
-    ABORT_IF(splitted_mt.size() != 2);
+    ABORT_IF(splitted_mt.size() != 3);
 
     double snr1(test_epd.computeApexSNR(splitted_mt[0]));
     double snr2(test_epd.computeApexSNR(splitted_mt[1]));
+    double snr3(test_epd.computeApexSNR(splitted_mt[2]));
 
     // using lowess and GSL
     //TEST_REAL_SIMILAR(snr1, 40.0159);
     //TEST_REAL_SIMILAR(snr2, 58.5950);
     // using SavitzkyGolay
-    TEST_REAL_SIMILAR(snr1, 37.7893);
-    TEST_REAL_SIMILAR(snr2, 52.9933);
+    TEST_REAL_SIMILAR(snr1,  2.0427);
+    TEST_REAL_SIMILAR(snr2, 37.7893);
+    TEST_REAL_SIMILAR(snr3, 52.9933);
     // using lowess with regression
     //TEST_REAL_SIMILAR(snr1, 6.5177);
     //TEST_REAL_SIMILAR(snr2, 7.3813);

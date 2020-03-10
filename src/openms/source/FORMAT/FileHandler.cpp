@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,8 @@ namespace OpenMS
     if (basename.hasSuffix(".xquest.xml"))
       return FileTypes::XQUESTXML;
 
+    if (basename.hasSuffix(".spec.xml"))
+      return FileTypes::SPECXML;
     try
     {
       tmp = basename.suffix('.');
@@ -360,7 +362,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -379,7 +381,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -502,7 +504,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -550,7 +552,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -632,8 +634,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     default:
       return false;
-
-      break;
     }
 
     if (rewrite_source_file)

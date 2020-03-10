@@ -9,6 +9,7 @@ set(sources_list_h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
+  IonMobilityScoring.h
   MasstraceCorrelator.h
   MRMAssay.h
   MRMDecoy.h
@@ -16,6 +17,8 @@ set(sources_list_h
   MRMFeatureFinderScoring.h
   MRMFeaturePicker.h
   MRMFeatureQC.h
+  MRMBatchFeatureSelector.h
+  MRMFeatureSelector.h
   MRMIonSeries.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h

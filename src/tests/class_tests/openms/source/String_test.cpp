@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -103,7 +103,7 @@ START_SECTION((String(const char* s, SizeType length)))
   // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
   // print(b"T\xfc\x62ingen".decode("iso8859"))
   char test_utf8[] =  "T\xc3\xbc\x62ingen";
-  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_utf16[] {'\xff','\xfe','T','\x00','\xfc','\x00','b','\x00','i','\x00','n','\x00','g','\x00','e','\x00','n','\x00'};
   char test_iso8859[] = "T\xfc\x62ingen";
 
   String s_utf8(test_utf8, 9);
@@ -129,11 +129,6 @@ START_SECTION((String(const char* s, SizeType length)))
   TEST_EQUAL(nonsense[1], '\xc3')
 END_SECTION
 
-START_SECTION((String(const DataValue& d)))
-  TEST_EQUAL(String(DataValue(1.4)),"1.4")
-  TEST_EQUAL(String(DataValue("bla")),"bla")
-  TEST_EQUAL(String(DataValue(4711)),"4711")
-END_SECTION
 
 START_SECTION((String(const std::string& s)))
   String s(string("blablabla"));
@@ -144,7 +139,7 @@ START_SECTION((String(const std::string& s)))
   // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
   // print(b"T\xfc\x62ingen".decode("iso8859"))
   char test_utf8[] =  "T\xc3\xbc\x62ingen";
-  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_utf16[] {'\xff','\xfe','T','\x00','\xfc','\x00','b','\x00','i','\x00','n','\x00','g','\x00','e','\x00','n','\x00'};
   char test_iso8859[] = "T\xfc\x62ingen";
 
   std::string std_s_utf8(test_utf8, 9);
@@ -213,19 +208,43 @@ START_SECTION((String(short unsigned int i)))
   TEST_EQUAL(s,"17")
 END_SECTION
 
-START_SECTION((String(float f)))
+START_SECTION((String(float f, bool full_precision = true)))
   String s(float(17.0123));
   TEST_EQUAL(s,"17.0123")
+  String s2(float(17.0123), false);
+  TEST_EQUAL(s2, "17.012")
 END_SECTION
 
-START_SECTION((String(double d)))
+START_SECTION((String(float f)))
+  float f = 50254.199219;
+  double d = f;
+  String s(f);
+  TEST_EQUAL(s,"50254.199219")
+  String s2(d);
+  TEST_EQUAL(s2, "50254.19921875")
+END_SECTION
+
+START_SECTION((String(double d, bool full_precision = true)))
   String s(double(17.012345));
   TEST_EQUAL(s,"17.012345")
+  String s2(double(17.012345), false);
+  TEST_EQUAL(s2, "17.012")
 END_SECTION
 
-START_SECTION((String(long double ld)))
+START_SECTION((String(long double ld, bool full_precision = true)))
   String s(17.012345L); // suffix L indicates long double
   TEST_EQUAL(s,"17.012345")
+  String s2(17.012345L, false); // suffix L indicates long double
+  TEST_EQUAL(s2, "17.012")
+END_SECTION
+
+START_SECTION((String(const DataValue& d, bool full_precision = true)))
+  TEST_EQUAL(String(DataValue(17.012345)), "17.012345")
+  TEST_EQUAL(String(DataValue(17.012345), false), "17.012")
+  TEST_EQUAL(String(DataValue(DoubleList({17.012345, 2.0}))), "[17.012345, 2.0]")
+  TEST_EQUAL(String(DataValue(DoubleList({17.012345, 2.0})), false), "[17.012, 2.0]")
+  TEST_EQUAL(String(DataValue("bla")), "bla")
+  TEST_EQUAL(String(DataValue(4711)), "4711")
 END_SECTION
 
 START_SECTION((String(long long unsigned int i)))
@@ -290,7 +309,7 @@ START_SECTION((template<class InputIterator> String(InputIterator first, InputIt
   // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
   // print(b"T\xfc\x62ingen".decode("iso8859"))
   char test_utf8[] =  "T\xc3\xbc\x62ingen";
-  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_utf16[] {'\xff','\xfe','T','\x00','\xfc','\x00','b','\x00','i','\x00','n','\x00','g','\x00','e','\x00','n','\x00'};
   char test_iso8859[] = "T\xfc\x62ingen";
 
   std::string std_s_utf8(test_utf8, 9);
@@ -560,9 +579,9 @@ START_SECTION((float toFloat() const))
   s = "123.9";
   TEST_REAL_SIMILAR(s.toFloat(),123.9);
   s = "73629.9";
-  TEST_EQUAL(String(s.toFloat()),"73629.9");
+  TEST_EQUAL(String(s.toFloat()),"73629.898438");
   s = "47218.8";
-  TEST_EQUAL(String(s.toFloat()),"47218.8");
+  TEST_EQUAL(String(s.toFloat()),"47218.800781");
   s = String("nan");
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
@@ -580,9 +599,9 @@ START_SECTION((double toDouble() const))
   s = "123.99999";
   TEST_REAL_SIMILAR(s.toDouble(),123.99999);
   s = "73629.980123";
-  TEST_EQUAL(String(s.toDouble()),"73629.980123");
+  TEST_EQUAL(String(s.toDouble()),"73629.980123000001186");
   s = "47218.890000001";
-  TEST_EQUAL(String(s.toDouble()),"47218.890000001");
+  TEST_EQUAL(String(s.toDouble()),"47218.8900000010035");
   s = "nan";
   TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "NaN";
@@ -952,15 +971,15 @@ START_SECTION((String operator+ (long long unsigned int i) const))
 END_SECTION
 
 START_SECTION((String operator+ (float f) const))
-  TEST_EQUAL(fixed + (float)(4), "test4")
+  TEST_EQUAL(fixed + (float)(4), "test4.0")
 END_SECTION
 
 START_SECTION((String operator+ (double d) const))
-  TEST_EQUAL(fixed + (double)(4), "test4")
+  TEST_EQUAL(fixed + (double)(4), "test4.0")
 END_SECTION
 
 START_SECTION((String operator+(long double ld) const ))
-  TEST_EQUAL(fixed + (long double)(4), "test4")
+  TEST_EQUAL(fixed + (long double)(4), "test4.0")
 END_SECTION
 
 START_SECTION((String operator+ (char c) const))

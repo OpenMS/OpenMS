@@ -5,7 +5,6 @@ from DataValue cimport *
 from String cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from MetaInfoInterface cimport *
 from ExperimentalSettings cimport *
 from DateTime cimport *
 from RangeManager cimport *
@@ -35,6 +34,14 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #   Spectra can be accessed by direct iteration or by getSpectrum(),
         #   while chromatograms are accessed through getChromatogram().
         #   See help(ExperimentalSettings) for information about meta-data.
+        #   -----
+        #   Usage:
+        #     exp = MSExperiment()
+        #     MzMLFile().load(path_to_file, exp)
+        #     for spectrum in exp:
+        #       print(spectrum.size()) # prints number of peaks
+        #       mz, intensities = spectrum.get_peaks()
+        #   -----
 
         MSExperiment() nogil except +
         MSExperiment(MSExperiment &)  nogil except +
@@ -43,13 +50,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         
         # COMMENT: Spectra functions
         MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
-        MSSpectrum getSpectrum(Size id_) nogil except +
+        MSSpectrum getSpectrum(Size id_) nogil except + # wrap-ignore
         void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
         # COMMENT: Chromatogram functions
-        MSChromatogram getChromatogram(Size id_) nogil except +
+        MSChromatogram getChromatogram(Size id_) nogil except + # wrap-ignore
         void addChromatogram(MSChromatogram chromatogram) nogil except +
         void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
         libcpp_vector[MSChromatogram] getChromatograms() nogil except +
@@ -96,16 +103,4 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool operator==(MSExperiment) nogil except +
         void reset() nogil except +
         bool clearMetaDataArrays() nogil except +
-
-        # from MetaInfoInterface:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 
