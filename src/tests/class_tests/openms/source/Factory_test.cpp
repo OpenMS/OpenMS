@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ END_SECTION
 START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )
 	Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
-  FilterFunctor* nullPointer = 0;
+  FilterFunctor* nullPointer = nullptr;
   TEST_NOT_EQUAL(ext, nullPointer)
 END_SECTION
 
@@ -73,6 +73,22 @@ END_SECTION
 START_SECTION(static std::vector<String> registeredProducts())
 	vector<String> list = Factory<FilterFunctor>::registeredProducts();
 	TEST_EQUAL(list.size(),6)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2);
+   int test = 0;
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
+    TICFilter reducer;
+    test += (*p == reducer);
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

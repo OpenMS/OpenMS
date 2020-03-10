@@ -14,10 +14,12 @@ FeatureGroupingAlgorithmLabeled.cpp
 FeatureGroupingAlgorithmKD.cpp
 FeatureGroupingAlgorithmQT.cpp
 FeatureGroupingAlgorithmUnlabeled.cpp
+FeatureMapping.cpp
 LabeledPairFinder.cpp
 MapAlignmentAlgorithmIdentification.cpp
 MapAlignmentAlgorithmKD.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
+MapAlignmentAlgorithmTreeGuided.cpp
 MapAlignmentAlgorithmSpectrumAlignment.cpp
 MapAlignmentEvaluationAlgorithm.cpp
 MapAlignmentEvaluationAlgorithmPrecision.cpp

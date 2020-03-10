@@ -4,6 +4,7 @@
 	<SearchParameters id="SP_0" db="SwissProtHuman554TD_20080526.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 		<VariableModification name="Carbamidomethyl (C)" />
+        <UserParam type="string" name="InferenceEngine" value="Fido"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-05-11T13:19:18" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" >

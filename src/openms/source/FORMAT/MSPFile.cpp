@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <fstream>
 
 using namespace std;
@@ -130,6 +125,7 @@ namespace OpenMS
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
     String instrument((String)param_.getValue("instrument"));
     bool inst_type_correct(true);
+    bool spectrast_format(false);
     Size spectrum_number = 0;
 
     PeakSpectrum spec;
@@ -152,10 +148,11 @@ namespace OpenMS
         line.split(' ', split);
         split[1].split('/', split2);
         String peptide = split2[0];
+        Int charge = split2[1].toInt();
         // remove damn (O), also defined in 'Mods=' comment
         peptide.substitute("(O)", "");
         PeptideIdentification id;
-        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), AASequence::fromString(peptide)));
+        id.insertHit(PeptideHit(0, 0, charge, AASequence::fromString(peptide)));
         ids.push_back(id);
         inst_type_correct = true;
       }
@@ -225,7 +222,7 @@ namespace OpenMS
                 {
                   peptide.setNTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -237,7 +234,7 @@ namespace OpenMS
                 {
                   peptide.setCTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -258,8 +255,10 @@ namespace OpenMS
           parseHeader_(line, spec);
         }
       }
-      else if (line.hasPrefix("Num peaks:"))
+      else if (line.hasPrefix("Num peaks:") || line.hasPrefix("NumPeaks:"))
       {
+        if (line.hasPrefix("NumPeaks:")) {spectrast_format = true;}
+
         if (!inst_type_correct)
         {
           while (getline(is, line) && ++line_number && line.size() > 0 && isdigit(line[0]))
@@ -273,9 +272,15 @@ namespace OpenMS
             vector<String> split;
             line.split('\t', split);
             Peak1D peak;
-            if (split.size() != 3)
+            if (spectrast_format && split.size() != 4)
             {
-              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  line, "not <mz><tab><intensity><tab>\"<annotation>\"<tab>\"<comment>\" in line " + String(line_number));
+            }
+            else if (!spectrast_format && split.size() != 3)
+            {
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
             }
             peak.setMZ(split[0].toFloat());
             peak.setIntensity(split[1].toFloat());
@@ -325,7 +330,8 @@ namespace OpenMS
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MSP) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MSP) + "'");
     }
 
     if (!File::writable(filename))
@@ -426,7 +432,7 @@ namespace OpenMS
         {
           if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
           {
-            ion_name = k;
+            ion_name = (int)k;
             break;
           }
         }

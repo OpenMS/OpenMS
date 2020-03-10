@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: Chris Bielow, Stephan Aiche, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_LOGSTREAM_H
-#define OPENMS_CONCEPT_LOGSTREAM_H
+#pragma once
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 
 #include <sstream>
 #include <iostream>
@@ -126,7 +125,7 @@ public:
       /**
         Destruct the buffer and free all stored messages strings.
       */
-      virtual ~LogStreamBuf();
+      ~LogStreamBuf() override;
 
       //@}
 
@@ -143,13 +142,13 @@ public:
         Incomplete lines (not terminated by "\n" / "\r" are
         stored in incomplete_line_.
       */
-      virtual int sync();
+      int sync() override;
 
       /**
         This method calls sync and <tt>streambuf::overflow(c)</tt> to
         prevent a buffer overflow.
       */
-      virtual int overflow(int c = -1);
+      int overflow(int c = -1) override;
       //@}
 
 
@@ -181,8 +180,8 @@ public:
         LogStreamNotifier * target;
 
         StreamStruct() :
-          stream(0),
-          target(0)
+          stream(nullptr),
+          target(nullptr)
         {}
 
         /// Delete the notification target.
@@ -250,6 +249,8 @@ protected:
       /// Returns the next free index for a log message
       Size getNextLogCounter_();
 
+      /// Non-lock acquiring sync function called in the d'tor
+      int syncLF_();
       //@}
     };
 
@@ -289,16 +290,23 @@ protected:
       appropriate stream:
 
       Macros:
-        - LOG_FATAL_ERROR
-        - LOG_ERROR (non-fatal error are reported (processing continues))
-        - LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
-        - LOG_INFO (information, e.g. a status should be reported)
-        - LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
+        - OPENMS_LOG_FATAL_ERROR
+        - OPENMS_LOG_ERROR (non-fatal error are reported (processing continues))
+        - OPENMS_LOG_WARN  (warning, a piece of information which should be read by the user, should be logged)
+        - OPENMS_LOG_INFO (information, e.g. a status should be reported)
+        - OPENMS_LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
 
       To use a specific logger of a log level simply use it as cerr or cout: <br>
-      <code> LOG_ERROR << " A bad error occurred ..."  </code>
+      <code> OPENMS_LOG_ERROR << " A bad error occurred ..."  </code>
       <br>
       Which produces an error message in the log.
+
+      @note The log stream macros are thread safe and can be used in a
+      multithreaded environment, the global variables are not! The macros are
+      protected by a OPENMS_THREAD_CRITICAL directive (which translates to an
+      OpenMP critical pragma), however there may be a small performance penalty
+      to this.
+
     */
     class OPENMS_DLLAPI LogStream :
       public std::ostream
@@ -317,10 +325,10 @@ public:
         @param  delete_buf
         @param	stream
       */
-      LogStream(LogStreamBuf * buf = 0, bool delete_buf = true, std::ostream * stream = 0);
+      LogStream(LogStreamBuf * buf = nullptr, bool delete_buf = true, std::ostream * stream = nullptr);
 
       /// Clears all message buffers.
-      virtual ~LogStream();
+      ~LogStream() override;
       //@}
 
       /// @name Stream Methods
@@ -438,33 +446,36 @@ private:
 
   } // namespace Logger
 
-
   /// Macro to be used if fatal error are reported (processing stops)
-#define LOG_FATAL_ERROR \
-  Log_fatal << __FILE__ << "(" << __LINE__ << "): "
+#define OPENMS_LOG_FATAL_ERROR \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_fatal << __FILE__ << "(" << __LINE__ << "): "
 
   /// Macro to be used if non-fatal error are reported (processing continues)
-#define LOG_ERROR \
-  Log_error
+#define OPENMS_LOG_ERROR \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_error
 
   /// Macro if a warning, a piece of information which should be read by the user, should be logged
-#define LOG_WARN \
-  Log_warn
+#define OPENMS_LOG_WARN \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_warn
 
   /// Macro if a information, e.g. a status should be reported
-#define LOG_INFO \
-  Log_info
+#define OPENMS_LOG_INFO \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_info
 
   /// Macro for general debugging information
-#define LOG_DEBUG \
-  Log_debug << __FILE__ << "(" << __LINE__ << "): "
+#define OPENMS_LOG_DEBUG \
+  OPENMS_THREAD_CRITICAL(LOGSTREAM) \
+  OpenMS_Log_debug << __FILE__ << "(" << __LINE__ << "): "
 
-  OPENMS_DLLAPI extern Logger::LogStream Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
-  OPENMS_DLLAPI extern Logger::LogStream Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
-  OPENMS_DLLAPI extern Logger::LogStream Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_fatal; ///< Global static instance of a LogStream to capture messages classified as fatal errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_error; ///< Global static instance of a LogStream to capture messages classified as errors. By default it is bound to @b cerr.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_warn;  ///< Global static instance of a LogStream to capture messages classified as warnings. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_info;  ///< Global static instance of a LogStream to capture messages classified as information. By default it is bound to @b cout.
+  OPENMS_DLLAPI extern Logger::LogStream OpenMS_Log_debug; ///< Global static instance of a LogStream to capture messages classified as debug output. By default it is not bound to any output stream. TOPP(AS)Base will connect cout, iff 0 < debug-level
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_LOGSTREAM_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ using namespace std;
     This is an implementation of the SRM scoring algorithm described in:
 
     Malmstroem, L.; Malmstroem, J.; Selevsek, N.; Rosenberger, G. & Aebersold, R.:\n
-    <a href="http://dx.doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
+    <a href="https://doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
     J. Proteome Res., 2012, 11, 1644-1653
 
     It has been adapted for the scoring of OpenSwath results.
@@ -123,7 +123,7 @@ public:
   }
 
   /// Docu in base class
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (OpenSwath results)");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -155,14 +155,14 @@ public:
   }
 
   /// Docu in base class
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     TargetedExperiment library_; // assay library
     Size n_decoys_; // number of decoys to use (per feature/true assay)
     Size n_transitions_; // number of transitions to consider
     TransformationDescription rt_trafo_; /// RT transformation to map measured RTs to assay RTs
 
-    LOG_DEBUG << "Reading parameters..." << endl;
+    OPENMS_LOG_DEBUG << "Reading parameters..." << endl;
     String in = getStringOption_("in");
     String lib = getStringOption_("lib");
     String out = getStringOption_("out");
@@ -170,14 +170,14 @@ public:
     n_decoys_ = getIntOption_("decoys");
     n_transitions_ = getIntOption_("transitions");
 
-    LOG_DEBUG << "Loading input files..." << endl;
+    OPENMS_LOG_DEBUG << "Loading input files..." << endl;
     FeatureMap features;
     FeatureXMLFile().load(in, features);
     TraMLFile().load(lib, library_);
 
     if (trafo.empty())
     {
-      LOG_WARN << "Warning: You have not supplied an RT transformation file "
+      OPENMS_LOG_WARN << "Warning: You have not supplied an RT transformation file "
                << "(parameter 'trafo'). You should be sure that the retention "
                << "times of your features ('in') and library ('lib') are on "
                << "the same scale." << endl;
@@ -197,7 +197,7 @@ public:
     scoring.initializeGlm(getDoubleOption_("GLM:intercept"), getDoubleOption_("GLM:delta_rt"), getDoubleOption_("GLM:dist_int"));
     scoring.scoreMap(features);
 
-    LOG_DEBUG << "Storing results..." << endl;
+    OPENMS_LOG_DEBUG << "Storing results..." << endl;
     addDataProcessing_(features, 
                        getProcessingInfo_(DataProcessing::DATA_PROCESSING));
     FeatureXMLFile().store(out, features);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ public:
   {}
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -122,12 +122,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet::getProductName());
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //input and output file names ..
     String in = getStringOption_("in");
@@ -155,9 +155,7 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    features.setPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath({in}, exp);
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
@@ -177,10 +175,10 @@ protected:
         {
           vector<String> keys;
           it->getKeys(keys);
-          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
           }
         }
       }

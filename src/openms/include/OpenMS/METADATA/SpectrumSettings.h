@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMSETTINGS_H
-#define OPENMS_METADATA_SPECTRUMSETTINGS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/InstrumentSettings.h>
@@ -71,8 +70,8 @@ public:
     enum SpectrumType
     {
       UNKNOWN,          ///< Unknown spectrum type
-      PEAKS,            ///< Peak data (also called centroided data or stick data)
-      RAWDATA,          ///< Raw data (also called profile data)
+      CENTROID,         ///< centroid data or stick data
+      PROFILE,          ///< profile data
       SIZE_OF_SPECTRUMTYPE
     };
     /// Names of spectrum types
@@ -81,12 +80,16 @@ public:
     /// Constructor
     SpectrumSettings();
     /// Copy constructor
-    SpectrumSettings(const SpectrumSettings & source);
+    SpectrumSettings(const SpectrumSettings &) = default;
+    /// Move constructor
+    SpectrumSettings(SpectrumSettings&&) = default;
     /// Destructor
     ~SpectrumSettings();
 
     // Assignment operator
-    SpectrumSettings & operator=(const SpectrumSettings & source);
+    SpectrumSettings & operator=(const SpectrumSettings &) = default;
+    /// Move assignment operator
+    SpectrumSettings& operator=(SpectrumSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const SpectrumSettings & rhs) const;
@@ -96,7 +99,7 @@ public:
     /// merge another spectrum setting into this one (data is usually appended, except for spectrum type which needs to be unambiguous to be kept)
     void unify(const SpectrumSettings & rhs);
 
-    ///returns the spectrum type
+    ///returns the spectrum type (centroided (PEAKS) or profile data (RAW))
     SpectrumType getType() const;
     ///sets the spectrum type
     void setType(SpectrumType type);
@@ -181,4 +184,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMSETTINGS_H

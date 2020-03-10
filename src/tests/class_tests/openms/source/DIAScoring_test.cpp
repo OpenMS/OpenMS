@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,10 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;
@@ -119,8 +121,22 @@ START_TEST(DIAScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DIAScoring* ptr = 0;
-DIAScoring* nullPointer = 0;
+DIAScoring diascoring_t;
+// diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+Param p_dia = diascoring_t.getDefaults();
+p_dia.setValue("dia_extraction_window", 0.05);
+p_dia.setValue("dia_extraction_unit", "Th");
+p_dia.setValue("dia_centroided", "false");
+p_dia.setValue("dia_byseries_intensity_min", 30.0);
+p_dia.setValue("dia_byseries_ppm_diff", 50.0);
+p_dia.setValue("dia_nr_isotopes", 4);
+p_dia.setValue("dia_nr_charges", 4);
+
+Param p_dia_large = p_dia;
+p_dia_large.setValue("dia_extraction_window", 0.5);
+
+DIAScoring* ptr = nullptr;
+DIAScoring* nullPointer = nullptr;
 
 START_SECTION(DIAScoring())
 {
@@ -141,7 +157,14 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, 1);
+
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -166,7 +189,7 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries ,1);
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -186,7 +209,6 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   TEST_REAL_SIMILAR (yseries[4], 646.33133  );
   TEST_REAL_SIMILAR (yseries[5], 809.39466 + 79.9657);
   //TEST_REAL_SIMILAR (yseries[6], 896.42668  );
-
 }
 END_SECTION
 
@@ -212,7 +234,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
+  diascoring.setParameters(p_dia);
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
@@ -240,7 +262,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   transitions.push_back(mock_tr1);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
+  diascoring.setParameters(p_dia);
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
@@ -267,7 +289,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
+  diascoring.setParameters(p_dia);
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
@@ -284,7 +306,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
   OpenSwath::SpectrumPtr sptr = prepareSpectrum();
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
+  diascoring.setParameters(p_dia);
 
   // Check for charge 1+ and m/z at 500
   {
@@ -334,7 +356,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
 }
 END_SECTION
 
-START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
+START_SECTION (void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
 {
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
 
@@ -347,14 +369,15 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.5, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  diascoring.setParameters(p_dia_large);
   double ppm_score = 0, ppm_score_weighted = 0;
   std::vector<double> normalized_library_intensity;
   normalized_library_intensity.push_back(0.7);
   normalized_library_intensity.push_back(0.3);
-  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+  std::vector<double> ppm_errors;
+  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
-  TEST_REAL_SIMILAR(ppm_score, 15 + 10); // 15 ppm and 10 ppm
+  TEST_REAL_SIMILAR(ppm_score, (15 + 10) / 2.0); // 15 ppm and 10 ppm
   TEST_REAL_SIMILAR(ppm_score_weighted, 15 * 0.7 + 10* 0.3); // weighted
 }
 END_SECTION
@@ -363,7 +386,7 @@ START_SECTION ( bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, tra
 { 
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.5, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  diascoring.setParameters(p_dia_large);
   double ppm_score = 0;
 
   TEST_EQUAL(diascoring.dia_ms1_massdiff_score(500.0, sptr, ppm_score), true);
@@ -384,12 +407,8 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
 
-  static const double arr1[] = {
-    100, 100, 100, 100,
-    100, 100, 100
-  };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = {
+  std::vector<double> intensity(6, 100);
+  std::vector<double> mz {
     // four of the naked b/y ions
     // as well as one of the modified b and y ions ion each
     350.17164, // b
@@ -399,7 +418,6 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
     646.33133, // y
     809.39466 + 79.9657 // y + P
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
   data1->data = mz;
   data2->data = intensity;
@@ -408,7 +426,7 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   sptr->setIntensityArray( data2 );
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  diascoring.setParameters(p_dia);
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   AASequence a = AASequence::fromString(sequence);
@@ -426,12 +444,6 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
 
   TEST_REAL_SIMILAR (bseries_score, 1);
   TEST_REAL_SIMILAR (yseries_score, 3);
-}
-END_SECTION
-
-START_SECTION((void set_dia_parameters(double dia_extract_window, double dia_centroided, double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)))
-{
-  NOT_TESTABLE
 }
 END_SECTION
 
@@ -456,7 +468,8 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  diascoring.setParameters(p_dia);
+
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
   TEST_REAL_SIMILAR (dotprod, 0.730836983200467);

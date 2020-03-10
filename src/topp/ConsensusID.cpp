@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,7 @@ using namespace std;
 
     <B>Reference:</B>
 
-    Nahnsen <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
+    Nahnsen <em>et al.</em>: <a href="https://doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
 
     <B>Algorithms:</B>
 
@@ -141,7 +141,7 @@ protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("idXML,featureXML,consensusXML"));
@@ -178,7 +178,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param algo_params;
     if (section == "PEPMatrix")
@@ -201,6 +201,8 @@ protected:
     set<String> fixed_mods_set;
     set<String> var_mods_set;
     StringList merged_spectra_data;
+    String engine = prot_ids[0].getSearchEngine();
+    String version = prot_ids[0].getSearchEngineVersion();
     for (vector<ProteinIdentification>::iterator it_prot_ids = prot_ids.begin(); it_prot_ids != prot_ids.end(); ++it_prot_ids)
     {
       ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
@@ -222,6 +224,13 @@ protected:
     prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
     prot_ids[0].setSearchParameters(search_params);
+
+    //TODO for completeness we could in the other algorithms, collect all search engines and put them here
+    // or maybe put it in a DataProcessingStep
+    if (algorithm_ == "best" || algorithm_ == "worst" || algorithm_ == "average")
+    {
+      prot_ids[0].setMetaValue("ConsensusIDBaseSearch", engine + String(":") + version);
+    }
 
     // make file name entries unique
     std::sort(merged_spectra_data.begin(), merged_spectra_data.end());
@@ -273,7 +282,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);
@@ -316,7 +325,7 @@ protected:
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
-    algo_params.update(getParam_(), false, Log_debug); // update general params.
+    algo_params.update(getParam_(), false, OpenMS_Log_debug); // update general params.
     consensus->setParameters(algo_params);
 
     //----------------------------------------------------------------
@@ -346,7 +355,7 @@ protected:
         String run_id = pep_it->getIdentifier();
         if (!pep_it->hasRT() || !pep_it->hasMZ())
         {
-          LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
+          OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
           return INCOMPATIBLE_INPUT_DATA;
         }
 

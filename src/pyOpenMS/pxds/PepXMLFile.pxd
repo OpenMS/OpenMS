@@ -45,7 +45,8 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   libcpp_vector[PeptideIdentification] & peptide_ids,
                   String mz_file,
                   String mz_name,
-                  bool peptideprophet_analyzed
+                  bool peptideprophet_analyzed,
+                  double rt_tolerance
                   ) nogil except +
 
         void keepNativeSpectrumName(bool keep) nogil except +

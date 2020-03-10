@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,11 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZMLFILE_H
-#define OPENMS_FORMAT_MZMLFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -61,7 +60,7 @@ public:
     ///Default constructor
     MzMLFile();
     ///Destructor
-    ~MzMLFile();
+    ~MzMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
@@ -84,7 +83,24 @@ public:
     void load(const String& filename, PeakMap& map);
 
     /**
+      @brief Loads a map from a MzML file stored in a buffer (in memory).
+
+      @p filename The buffer with the data
+      @p map Is an MSExperiment
+
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void loadBuffer(const std::string& buffer, PeakMap& map);
+
+    /**
       @brief Only count the number of spectra and chromatograms from a file
+
+      This method honors PeakOptions (if specified) for spectra, i.e. only spectra within the specified
+      RT range and MS levels are counted.
+      If PeakOptions have no filters set (the default), then spectra and chromatogram counts
+      are taken from the counts attribute of the spectrumList/chromatogramList tags (the
+      parsing skips all intermediate data and ends as soon as both counts are available).
+
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
@@ -96,6 +112,14 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename, const PeakMap& map) const;
+
+    /**
+      @brief Stores a map in an output string.
+
+      @p output An empty string to store the result
+      @p map has to be an MSExperiment
+    */
+    void storeBuffer(std::string & output, const PeakMap& map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
@@ -170,5 +194,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZMLFILE_H
 

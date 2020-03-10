@@ -1,19 +1,25 @@
 ### the directory name
 set(directory include/OpenMS/VISUAL)
 
-### list all MOC filenames of the directory here
-set(sources_list
+### list all header files of the directory here
+set(sources_list_h
+AxisTickCalculator.h
+AxisPainter.h
 AxisWidget.h
 ColorSelector.h
 EnhancedTabBar.h
+EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
+GUIProgressLoggerImpl.h
 HistogramWidget.h
+LayerData.h
 ListEditor.h
 MetaDataBrowser.h
+MultiGradient.h
 MultiGradientSelector.h
 ParamEditor.h
-SpectraIdentificationViewWidget.h
 SpectraViewWidget.h
+SpectraIdentificationViewWidget.h
 Spectrum1DCanvas.h
 Spectrum1DWidget.h
 Spectrum2DCanvas.h
@@ -42,70 +48,16 @@ TOPPViewSpectraViewBehavior.h
 )
 
 ### add path to the filenames
-set(sources)
-foreach(i ${sources_list})
-  list(APPEND sources ${directory}/${i})
-endforeach(i)
-
-### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
-
-### pass source file list to the upper instance
-set(OpenMSVisual_sources ${OpenMSVisual_sources} ${mocced_sources})
-
-source_group("Source Files\\OpenMS\\VISUAL" FILES ${mocced_sources})
-
-### list all header files of the directory here
-set(sources_list_h
-AxisTickCalculator.h
-AxisPainter.h
-AxisWidget.h
-ColorSelector.h
-EnhancedTabBar.h
-GUIProgressLoggerImpl.h
-HistogramWidget.h
-LayerData.h
-MetaDataBrowser.h
-MultiGradient.h
-MultiGradientSelector.h
-ParamEditor.h
-SpectraViewWidget.h
-SpectraIdentificationViewWidget.h
-Spectrum1DCanvas.h
-Spectrum1DWidget.h
-Spectrum2DCanvas.h
-Spectrum2DWidget.h
-Spectrum3DCanvas.h
-Spectrum3DOpenGLCanvas.h
-Spectrum3DWidget.h
-SpectrumCanvas.h
-SpectrumWidget.h
-ListEditor.h
-TOPPASWidget.h
-TOPPASScene.h
-TOPPASVertex.h
-TOPPASToolVertex.h
-TOPPASInputFileListVertex.h
-TOPPASOutputFileListVertex.h
-TOPPASMergerVertex.h
-TOPPASEdge.h
-TOPPASTabBar.h
-TOPPASTreeView.h
-TOPPASResource.h
-TOPPASResources.h
-TOPPViewIdentificationViewBehavior.h
-TOPPViewSpectraViewBehavior.h
-EnhancedWorkspace.h
-EnhancedTabBarWidgetInterface.h
-)
-
-### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
 	list(APPEND sources_h ${directory}/${i})
 endforeach(i)
 
-### source group definition
+### treat as source files, for autoMOC'ing instead of manually calling QT5_WRAP_CPP()
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources_h})
+### pass header file list to the upper instance
+set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})
+
+### header group definition for IDE's
 source_group("Header Files\\OpenMS\\VISUAL" FILES ${sources_h})
 
-set(OpenMSVisual_sources_h ${OpenMSVisual_sources_h} ${sources_h})

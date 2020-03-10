@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSSPECTRUM_H
-#define OPENMS_KERNEL_MSSPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -46,6 +45,7 @@
 namespace OpenMS
 {
   class Peak1D;
+
   /**
     @brief The representation of a 1D spectrum.
 
@@ -118,6 +118,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -135,6 +136,8 @@ public:
     using typename ContainerType::const_reference;
     using typename ContainerType::pointer;
     using typename ContainerType::difference_type;
+
+    typedef Precursor::DriftTimeUnit DriftTimeUnit;
     //@}
 
 
@@ -144,12 +147,18 @@ public:
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
+    /// Move constructor
+    MSSpectrum(MSSpectrum&&) = default;
+
     /// Destructor
-    ~MSSpectrum()
+    ~MSSpectrum() override
     {}
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
+
+    /// Move assignment operator
+    MSSpectrum& operator=(MSSpectrum&&) & = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const SpectrumSettings & source);
@@ -164,7 +173,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    virtual void updateRanges();
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{
@@ -175,7 +184,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+      @brief Returns the ion mobility drift time (-1 means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -185,9 +194,19 @@ public:
     double getDriftTime() const;
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds
+      @brief Sets the ion mobility drift time
     */
     void setDriftTime(double dt);
+
+    /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
 
     /**
       @brief Returns the MS level.
@@ -249,49 +268,6 @@ public:
 
     /// Sets the integer meta data arrays
     void setIntegerDataArrays(const IntegerDataArrays& ida);
-
-    /// Returns a mutable reference to the first integer meta data array with the given name
-    inline IntegerDataArray& getIntegerDataArrayByName(String name)
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first string meta data array with the given name
-    inline StringDataArray& getStringDataArrayByName(String name)
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first float meta data array with the given name
-    inline FloatDataArray& getFloatDataArrayByName(String name)
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first integer meta data array with the given name
-    inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first string meta data array with the given name
-    inline const StringDataArray& getStringDataArrayByName(String name) const
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first float meta data array with the given name
-    inline const FloatDataArray& getFloatDataArrayByName(String name) const
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
     //@}
 
     ///@name Sorting peaks
@@ -413,6 +389,78 @@ public:
     */
     ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    Iterator PosBegin(CoordinateType mz);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    Iterator PosBegin(Iterator begin, CoordinateType mz, Iterator end);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    ConstIterator PosBegin(CoordinateType mz) const;
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    ConstIterator PosBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    Iterator PosEnd(CoordinateType mz);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    Iterator PosEnd(Iterator begin, CoordinateType mz, Iterator end);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    ConstIterator PosEnd(CoordinateType mz) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
     //@}
 
 
@@ -432,13 +480,40 @@ public:
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
-protected:
 
+    /**
+      @brief Determine if spectrum is profile or centroided using up to three layers of information.
+
+      First, the SpectrumSettings are inquired and the type is returned unless it is unknown.
+      Second, all data processing entries are searched for a centroiding step.
+      If that is unsuccessful as well and @p query_data is true, the data is fed into PeakTypeEstimator().
+
+      @param [query_data] If SpectrumSettings and DataProcessing information are not sufficient, should the data be queried? (potentially expensive)
+      @return The spectrum type (centroided, profile or unknown)
+    */
+    SpectrumSettings::SpectrumType getType(const bool query_data) const;
+    using SpectrumSettings::getType; // expose base class function
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    ConstIterator getBasePeak() const;
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    Iterator getBasePeak();
+
+    /// compute the total ion count (sum of all peak intensities)
+    PeakType::IntensityType getTIC() const;
+
+protected:
     /// Retention time
     double retention_time_;
 
     /// Drift time
     double drift_time_;
+
+    /// Drift time unit
+    DriftTimeUnit drift_time_unit_;
 
     /// MS level
     UInt ms_level_;
@@ -474,5 +549,3 @@ protected:
   }
 
 } // namespace OpenMS
-
-#endif // OPENMS_KERNEL_MSSPECTRUM_H

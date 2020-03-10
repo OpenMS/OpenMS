@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,27 +32,18 @@
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOPPBASE_H
-#define OPENMS_APPLICATIONS_TOPPBASE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/DocumentIDTagger.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <fstream>
 
@@ -60,8 +51,35 @@ class QStringList;
 
 namespace OpenMS
 {
-
+  class FeatureMap;
   class ConsensusMap;
+  struct ParameterInformation;
+
+  /**
+    @brief Stores Citations for individual TOPP tools.
+
+    An example would be
+    \code{.cpp}
+      Citation c = {"Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+                    "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+                    "Nat Meth. 2016; 13, 9: 741-748",
+                    "10.1038/nmeth.3959"};
+    \endcode
+    Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
+  */
+  struct Citation
+  {
+    std::string authors;    ///< list of authors in AMA style, i.e. <surname> <initials>, ...
+    std::string title;      ///< title of article
+    std::string when_where; ///< suggested format: journal. year; volume, issue: pages
+    std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
+
+    /// mangle members to string
+    std::string toString() const
+    {
+      return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";
+    }
+  };
 
   namespace Exception
   {
@@ -154,13 +172,9 @@ public:
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
       If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
 
-      @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
-      In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
-
-      @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
-      @param require_args Require arguments on the command line (GUI tools should disable this)
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
     */
-    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "");
+    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {});
 
     /// Destructor
     virtual ~TOPPBase();
@@ -178,27 +192,23 @@ public:
     static void setMaxNumberOfThreads(int num_threads);
 
 private:
-
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
     /// Tool description. This is assigned once and for all in the constructor.
     String const tool_description_;
 
-    /// Tool indicates it supports assignment of unique DocumentID from IDPool
-    bool id_tag_support_;
-
-    /// Require at least one command line argument, exit immediately otherwise. GUI tools should disable this to be callable by double clicking.
-    bool require_args_;
-
-    /// Instance of DocumentIDTagger, which can be accessed using getDocumentIDTagger_()
-    DocumentIDTagger id_tagger_;
-
-    ///Instance number
+    /// Instance number
     Int const instance_number_;
 
-    ///Location in the ini file where to look for parameters.
+    /// Location in the ini file where to look for parameters.
     String const ini_location_;
+
+    /// An optional temporary working directory.
+    String working_dir_;
+
+    /// Debug level at which to keep working dir.
+    Int working_dir_keep_debug_lvl_;
 
     /// No default constructor.  It is "declared away".
     TOPPBase();
@@ -358,6 +368,8 @@ private:
     */
     String getSubsection_(const String& name) const;
 
+    String getDocumentationURL() const;
+
     /// Returns the default parameters
     Param getDefaultParameters_() const;
 
@@ -375,6 +387,9 @@ protected:
     /// Flag indicating if this an official TOPP tool
     bool official_;
 
+    /// Papers, specific for this tool (will be shown in '--help')
+    std::vector<Citation> citations_;
+    
     /**
       @brief Returns the location of the ini file where parameters are taken
       from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
@@ -469,16 +484,18 @@ protected:
       @brief Registers an input file option.
 
       Input files behave like string options, but are automatically checked with inputFileReadable_()
-      when the option is accessed in the TOPP tool.
+      when the option is accessed in the TOPP tool. 
+      This may also enable lookup on the PATH or skipping of the existance-check (see @p tags).
 
       @param name Name of the option in the command line and the INI file
       @param argument Argument description text for the help output
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
-      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param required If the user has to provide a value i.e. if the value has to differ from the default (verified in getStringOption())
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
-      @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
-                      Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
+      @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+                      Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
+                                  @em 'is_executable' - checks existance of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
     */
     void registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
@@ -610,9 +627,10 @@ protected:
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
-       @param tags A list of tags, e.g. 'skipexists', specifying the handling of the input file (e.g. when its an executable)
-              Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for an executable in global PATH)
-     */
+       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
+                       Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
+                                   'is_executable' - checks existance of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
+       */
     void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
@@ -750,6 +768,22 @@ protected:
     */
     void checkParam_(const Param& param, const String& filename, const String& location) const;
 
+    /**
+      @brief checks if an input file exists (respecting the flags)
+
+      Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
+      
+      For InputFile(s), it checks if the file is readable/findable. 
+      If 'is_executable' is specified as a tag, the filename is searched on PATH and upon success, the full absolute path is returned.
+      
+      For OutputFile(s), it checks if the file is writeable.
+
+      @param filename ...as given via commandline/ini/default
+      @param param_name Name of the parameter (key)
+      @param p All meta information for this param
+
+    */
+    void fileParamValidityCheck_(String& filename, const String& param_name, const ParameterInformation& p) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool
@@ -781,8 +815,11 @@ protected:
 
     ///@name Temporary directories
     //@{
-    /// Creates a unique temporary directory and returns its name
+    /// Creates a unique temporary directory and returns its name (you have to clean it up yourself)
     String makeTempDirectory_() const;
+
+    /// Creates a unique temporary directory and returns its name (will be cleaned up automatically if debug level is high enough)
+    String makeAutoRemoveTempDirectory_(Int keep_debug = 2);
 
     /**
        @brief Removes a (temporary) directory
@@ -790,6 +827,12 @@ protected:
        If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
     */
     void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
+    //@}
+
+    ///@name External processes (TODO consider creating another AdapterBase class)
+    //@{
+    /// Runs an external process via QProcess and reports its status in the logs
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
     //@}
 
     /**
@@ -811,6 +854,8 @@ protected:
       , e.g. "in" which specified the filename (this is useful for error messages when the file cannot be read, so the
       user can immediately see which parameter to change). If no parameter is responsible for the
       name of the input file, then leave @em param_name empty.
+      @param filename An absolute or relative path+filename
+      @param param_name Name of the parameter the filename value was provided by
 
       @exception Exception::FileNotFound is thrown if the file is not found
       @exception Exception::FileNotReadable is thrown if the file is not readable
@@ -862,18 +907,7 @@ protected:
     void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
-    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const
-    {
-      boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
-      for (Size i = 0; i < map.size(); ++i)
-      {
-        map[i].getDataProcessing().push_back(dp_);
-      }
-      for (Size i = 0; i < map.getNrChromatograms(); ++i)
-      {
-        map.getChromatogram(i).getDataProcessing().push_back(dp_);
-      }
-    }
+    void addDataProcessing_(PeakMap& map, const DataProcessing& dp) const;
 
     ///Returns the data processing information
     DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;
@@ -883,14 +917,8 @@ protected:
 
     //@}
 
-    /// get DocumentIDTagger to assign DocumentIDs to maps
-    const DocumentIDTagger& getDocumentIDTagger_() const;
-
     /// Write common tool description (CTD) file
     bool writeCTD_();
-
-    /// Write WSDL file and validate it. Returns EXECUTION_OK or INTERNAL_ERROR (if validation failed)
-    ExitCodes writeWSDL_(const String& filename);
 
     /**
       @brief Test mode
@@ -907,6 +935,9 @@ protected:
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
+
+    /// The OpenMS citation
+    static const Citation cite_openms_;
 
     /// Debug level set by -debug
     Int debug_level_;
@@ -932,4 +963,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_APPLICATIONS_TOPPBASE_H

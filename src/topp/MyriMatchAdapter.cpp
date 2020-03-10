@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -162,9 +162,9 @@ protected:
       set<String> mod_names = mod_set.getFixedModificationNames();
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-        String origin = String(mod.getOrigin());
-        String mass_diff = String(mod.getDiffMonoMass());
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = mod->getOrigin();
+        String mass_diff = String(mod->getDiffMonoMass());
         if (origin == "N-term")
         {
           origin = "(";
@@ -173,15 +173,15 @@ protected:
         {
           origin = ")";
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "N-term")
         {
           origin = "(" + origin;
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "C-term")
         {
           origin = ")" + origin;
         }
-        static_mod_list.push_back(origin + " " + mod.getDiffMonoMass());
+        static_mod_list.push_back(origin + " " + mod->getDiffMonoMass());
       }
     }
 
@@ -191,9 +191,9 @@ protected:
 
       for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
       {
-        ResidueModification mod = ModificationsDB::getInstance()->getModification(*it);
-        String origin = String(mod.getOrigin());
-        String mass_diff = String(mod.getDiffMonoMass());
+        const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it);
+        String origin = mod->getOrigin();
+        String mass_diff = String(mod->getDiffMonoMass());
         if (origin == "N-term")
         {
           origin = "(";
@@ -202,11 +202,11 @@ protected:
         {
           origin = ")";
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "N-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "N-term")
         {
           origin = "(" + origin;
         }
-        else if (mod.getTermSpecificityName(mod.getTermSpecificity()) == "C-term")
+        else if (mod->getTermSpecificityName(mod->getTermSpecificity()) == "C-term")
         {
           origin = ")" + origin;
         }
@@ -215,7 +215,7 @@ protected:
     }
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     addEmptyLine_();
 
@@ -239,16 +239,14 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""),
-                        "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""),
-                        "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'.", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     addEmptyLine_();
     registerInputFile_("myrimatch_executable", "<executable>", "myrimatch",
-                       "The 'myrimatch' executable of the MyriMatch installation", true, false, ListUtils::create<String>("skipexists"));
+                       "The 'myrimatch' executable of the MyriMatch installation. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerIntOption_("NumChargeStates", "<num>", 3, "The number of charge states that MyriMatch will handle during all stages of the program.", false);
     registerDoubleOption_("TicCutoffPercentage", "<percentage>", 0.98, "Noise peaks are filtered out by sorting the original peaks in descending order of intensity, and then picking peaks from that list until the cumulative ion current of the picked peaks divided by the total ion current (TIC) is greater than or equal to this parameter.", false);
 
@@ -276,7 +274,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
@@ -515,9 +513,7 @@ protected:
 
     if (!protein_identifications.empty())
     {
-      StringList ms_runs;
-      exp.getPrimaryMSRunPath(ms_runs);
-      protein_identifications[0].setPrimaryMSRunPath(ms_runs);
+      protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

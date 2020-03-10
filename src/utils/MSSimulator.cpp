@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Ole Schulz-Trieglaff, Stephan Aiche, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Stephan Aiche, Chris Bielow, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #include <iostream>
@@ -78,7 +78,7 @@ using namespace std;
   Look at the INI file (via "MSSimulator -write_ini myini.ini") to see the available parameters and more functionality.
 
   <h3>Input: FASTA files</h3>
-  Protein sequences can be provided as FASTA file.
+  Protein sequences (including amino acid modifications) can be provided as FASTA file.
   We allow a special tag in the description of each entry to specify protein abundance.
   If you want to create a complex FASTA file with a Gaussian protein abundance model in log space,
   see our Python script shipping with your OpenMS installation (e.g., <OpenMS-dir>/share/OpenMS/examples/simulation/FASTAProteinAbundanceSampling.py).
@@ -101,12 +101,16 @@ using namespace std;
     <li> RT (used as is without local error)
   </ul>
 
+  For amino acid modifications, insert their name at the respective amino acid residues. The modifications are fixed. If you need variable modifications,
+  you have to add the desired combinatorial variants (presence/absence of one or all modifications) to the FASTA file.
+  Valid modification names are listed in many TOPP/UTILS, e.g @ref TOPP_MSGFPlusAdapter 's @em -fixed_modifications parameter.
+
 e.g.
 @code
 >seq1 optional comment [# intensity=567.4 #]
-ASQYLATARHGFLPRHRDTGILP
+(Acetyl).M(Oxidation)ASQYLATARHGC(Carbamidomethyl)FLPRHRDTGILP
 >seq2 optional comment [# intensity=117.4, RT=405.3 #]
-QKRPSQRHGLATARHGTGGGDRA
+QKRPSQRHGLATAC(Carbamidomethyl)RHGTGGGDRAT.(Dehydrated)
 @endcode
 
     <B>The command line parameters of this tool are:</B>
@@ -123,13 +127,19 @@ class TOPPMSSimulator :
 {
 public:
   TOPPMSSimulator() :
-    TOPPBase("MSSimulator", "A highly configurable simulator for mass spectrometry experiments.", false)
+    TOPPBase("MSSimulator",
+             "A highly configurable simulator for mass spectrometry experiments.", 
+             false,
+             { Citation{"Bielow C, Aiche S, Andreotti S, Reinert K",
+                        "MSSimulator: Simulation of Mass Spectrometry Data",
+                        "J. Proteome Res. 2011; 10, 7:2922-2929",
+                        "10.1021/pr200155f"} })
   {
   }
-
+  
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // I/O settings
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input protein sequences", true, false);
@@ -152,18 +162,18 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param tmp;
     tmp.insert("MSSim:", MSSim().getParameters());
 
     // set parameters for the different types of random number generators
     // we support one for the technical and one for the biological variability
-    tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+    tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same)");
     tmp.setValidStrings("RandomNumberGenerators:biological", ListUtils::create<String>("reproducible,random"));
-    tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+    tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same)");
     tmp.setValidStrings("RandomNumberGenerators:technical", ListUtils::create<String>("reproducible,random"));
-    tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times.");
+    tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times");
     return tmp;
   }
 
@@ -232,7 +242,7 @@ protected:
     writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -247,7 +257,7 @@ protected:
         getStringOption_("out_cntm") == "" &&
         getStringOption_("out_id") == "")
     {
-      LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
+      OPENMS_LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
       return MISSING_PARAMETERS;
     }
 
@@ -308,9 +318,9 @@ protected:
       writeLog_(String("Storing charged consensus features in: ") + cxml_out);
 
       ConsensusMap& charge_consensus = ms_simulation.getChargeConsensus();
-      charge_consensus.getFileDescriptions()[0].filename = fxml_out;
-      charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
-      charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
+      charge_consensus.getColumnHeaders()[0].filename = fxml_out;
+      charge_consensus.getColumnHeaders()[0].size = ms_simulation.getSimulatedFeatures().size();
+      charge_consensus.getColumnHeaders()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
 
       ConsensusXMLFile().store(cxml_out, charge_consensus);
     }
@@ -322,8 +332,8 @@ protected:
 
       // set file name for all (sub)feature maps
       ConsensusMap& labeling_consensus = ms_simulation.getLabelingConsensus();
-      for (ConsensusMap::FileDescriptions::iterator fdI = labeling_consensus.getFileDescriptions().begin();
-           fdI != labeling_consensus.getFileDescriptions().end();
+      for (ConsensusMap::ColumnHeaders::iterator fdI = labeling_consensus.getColumnHeaders().begin();
+           fdI != labeling_consensus.getColumnHeaders().end();
            ++fdI)
       {
         fdI->second.filename = fxml_out;

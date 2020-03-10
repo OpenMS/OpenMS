@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,16 @@
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <QtCore/QProcess>
-#include <iostream>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QProcess>
+
+#include <sstream> 
+
 #include <QDir>
+#include <QProcess>
 
 using namespace OpenMS;
 using namespace std;
@@ -96,7 +98,7 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
       StringList empty;
 
@@ -144,9 +146,8 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_user_mod_file, "<user_mod_file>", "", "Specify name of user-defined modifications file. Default is \"spectrast.usermods\".", false, true);
   }
 
-
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
      // Assemble command line for SpectraST
      QStringList arguments;
@@ -176,7 +177,7 @@ protected:
      String index_file = File::removeExtension(library_file).append(".spidx");
      if (! File::exists(index_file))
      {
-         LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
          return INPUT_FILE_NOT_FOUND;
      }
      arguments << library_file.toQString().prepend("-sL");
@@ -190,14 +191,14 @@ protected:
          // Check empty or invalid sequence database type
          if (sequence_database_type.empty())
          {
-            LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
+            OPENMS_LOG_ERROR << "ERROR: Sequence database type invalid or not provided" << endl;
             return MISSING_PARAMETERS;
          }
          arguments << sequence_database_type.toQString().prepend("-sT");
          arguments << sequence_database_file.toQString().prepend("-sD");
      }
 
-     // Set the number of threads in spectraST
+     // Set the number of threads in SpectraST
      Int threads = getIntOption_("threads");
      arguments << (threads > 1 ?  QString::number(threads).prepend("-sP") : "-sP!");
 
@@ -224,12 +225,12 @@ protected:
      StringList output_files = getStringList_(TOPPSpectraSTSearchAdapter::param_output_files);
      if (spectra_files.size() != output_files.size())
      {
-        LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
+        OPENMS_LOG_ERROR << "ERROR: Number of output files does not match number of input files." << endl;
         return ILLEGAL_PARAMETERS;
      }
      if (spectra_files.size() < 1)
      {
-         LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
+         OPENMS_LOG_ERROR << "ERROR: At least one file containing spectra to be searched must be provided." << endl;
          return ILLEGAL_PARAMETERS;
      }
      String first_output_file = output_files[0];
@@ -246,22 +247,16 @@ protected:
      }
      if (outputFormat.empty())
      {
-         LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
          return ILLEGAL_PARAMETERS;
      }
-     // Output files must agree on format and are not allowed to exist already
-     for (StringList::const_iterator it = output_files.begin();
-         it != output_files.end(); ++it)
+     // Output files must agree on format
+     for (StringList::const_iterator it = output_files.begin(); it != output_files.end(); ++it)
      {
          String output_file = *it;
-         if (File::exists(output_file))
-         {
-             LOG_ERROR << "ERROR: Output file already exists: " << output_file << endl;
-             return ILLEGAL_PARAMETERS;
-         }
          if (! output_file.hasSuffix(outputFormat))
          {
-             LOG_ERROR << "ERROR: Output filename does not agree in format: "
+             OPENMS_LOG_ERROR << "ERROR: Output filename does not agree in format: "
                        << output_file << " is not " << outputFormat << endl;
              return ILLEGAL_PARAMETERS;
          }
@@ -269,7 +264,7 @@ protected:
 
      String temp_dir = File::getTempDirectory();
      arguments << outputFormat.toQString().prepend("-sE");
-     arguments <<  temp_dir.toQString().prepend("-sO");
+     arguments << temp_dir.toQString().prepend("-sO");
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -289,7 +284,7 @@ protected:
      // Exit if the input file format is invalid
      if (inputFormat.empty())
      {
-         LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
+         OPENMS_LOG_ERROR << "ERROR: Unrecognized input format from file: " << first_input_file << endl;
          return ILLEGAL_PARAMETERS;
      }
 
@@ -298,28 +293,29 @@ protected:
       String input_file = *it;
       if (! input_file.hasSuffix(inputFormat))
       {
-        LOG_ERROR << "ERROR: Input filename does not agree in format: "
+        OPENMS_LOG_ERROR << "ERROR: Input filename does not agree in format: "
                        << input_file << " is not " << inputFormat << endl;
         return ILLEGAL_PARAMETERS;
       }
       arguments << input_file.toQString();
      }
 
-     // Writing the final spectrast command to the DEBUG LOG
-     LOG_DEBUG << "COMMAND: " << executable;
+     // Writing the final SpectraST command to the DEBUG LOG
+     std::stringstream ss;
+     ss << "COMMAND: " << executable;
      for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
      {
-         LOG_DEBUG << " " << it->toStdString();
+         ss << " " << it->toStdString();
      }
-     LOG_DEBUG << endl;
+     OPENMS_LOG_DEBUG << ss.str() << endl;
 
-     // Run spectrast
+     // Run SpectraST
      QProcess spectrast_process;
      spectrast_process.start(executable.toQString(), arguments);
 
      if (! spectrast_process.waitForFinished(-1))
      {
-         LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
+         OPENMS_LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
          return EXTERNAL_PROGRAM_ERROR;
      }
 
@@ -338,6 +334,7 @@ protected:
     // Exit the tool
     return EXECUTION_OK;
   }
+
 };
 // End of Tool definition
 
@@ -355,10 +352,8 @@ const String TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass = 
 const String TOPPSpectraSTSearchAdapter::param_use_all_charge_states = "use_all_charge_states";
 const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
-const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
+const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,tsv,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
-
-
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
@@ -366,3 +361,4 @@ int main(int argc, const char ** argv)
   TOPPSpectraSTSearchAdapter tool;
   return tool.main(argc, argv);
 }
+

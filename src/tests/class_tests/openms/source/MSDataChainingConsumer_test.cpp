@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,16 +49,6 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-void FunctionChangeSpectrum (OpenMS::MSSpectrum & s)
-{
-  s.sortByIntensity();
-}
-
-void FunctionChangeChromatogram (OpenMS::MSChromatogram & c)
-{
-  c.sortByIntensity();
-}
-
 
 START_TEST(MSDataChainingConsumer, "$Id$")
 
@@ -67,8 +57,8 @@ START_TEST(MSDataChainingConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataChainingConsumer* chaining_consumer_ptr = 0;
-MSDataChainingConsumer* chaining_consumer_nullPointer = 0;
+MSDataChainingConsumer* chaining_consumer_ptr = nullptr;
+MSDataChainingConsumer* chaining_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataChainingConsumer()))
   chaining_consumer_ptr = new MSDataChainingConsumer();
@@ -110,9 +100,14 @@ END_SECTION
 
 START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
 {
+   auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
+
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -169,9 +164,14 @@ END_SECTION
 
 START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
 {
+  auto f2 = [](OpenMS::MSChromatogram & c)
+  {
+    c.sortByIntensity();
+  };
+  
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setChromatogramProcessingPtr(FunctionChangeChromatogram);
+  transforming_consumer->setChromatogramProcessingFunc(f2);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -215,8 +215,12 @@ END_SECTION
 START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
+  auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());

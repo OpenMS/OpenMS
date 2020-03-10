@@ -17,7 +17,7 @@
 			</sampleDescription>
 			<sourceFile>
 				<nameOfFile>FileConverter_8_input.mzML</nameOfFile>
-				<pathToFile><TEST_DATA_PATH></pathToFile>
+				<pathToFile>file:///Users/pfeuffer/git/OpenMS-inference-src/src/tests/topp</pathToFile>
 				<fileType>mzML file</fileType>
 			</sourceFile>
 			<contact>
@@ -126,7 +126,9 @@
 							<cvParam cvLabel="psi" accession="PSI:1000043" name="IntensityUnit" value="NumberOfCounts"/>
 							<userParam name="source_file_name" value="pr.dta"/>
 							<userParam name="source_file_path" value="file:///F:/data/Exp03"/>
+							<userParam name="spectrum_ref" value="index=0"/>
 							<userParam name="iwname" value="isolationwindow1"/>
+							<userParam name="isolation window target m/z" value="5.55"/>
 							<userParam name="siname" value="selectedion1"/>
 							<userParam name="buffer gas" value="Krypton"/>
 							<userParam name="collision gas" value="Argon"/>

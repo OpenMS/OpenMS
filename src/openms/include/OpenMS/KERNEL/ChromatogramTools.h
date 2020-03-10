@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_CHROMATOGRAMTOOLS_H
-#define OPENMS_KERNEL_CHROMATOGRAMTOOLS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -135,14 +134,15 @@ public:
       @param remove_spectra if set to true, the chromatogram spectra are removed from the experiment.
     */
     template <typename ExperimentType>
-    void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false)
+    void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
       Map<double, Map<double, std::vector<SpectrumType> > > chroms;
+      Map<double, MSChromatogram > chroms_xic;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
-        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::SRM)
+        if (it->getInstrumentSettings().getScanMode() == InstrumentSettings::SRM || force_conversion)
         {
           // exactly one precursor and one product ion
           if (it->getPrecursors().size() == 1 && it->size() == 1)
@@ -164,21 +164,47 @@ public:
               chroms[it->getPrecursors().begin()->getMZ()][(*it)[peak_idx].getMZ()].push_back(dummy);
             }
           }
+          // We have no precursor, so this may be a MS1 chromatogram scan (as encountered in GC-MS)
+          else if (force_conversion)
+          {
+            for (auto& p : *it)
+            {
+              double mz = p.getMZ();
+              ChromatogramPeak chr_p;
+              chr_p.setRT(it->getRT());
+              chr_p.setIntensity(p.getIntensity());
+              if (chroms_xic.find(mz) == chroms_xic.end())
+              {
+                // new chromatogram
+                chroms_xic[mz].getPrecursor().setMZ(mz);
+                // chroms_xic[mz].setProduct(prod); // probably no product
+                chroms_xic[mz].setInstrumentSettings(it->getInstrumentSettings());
+                chroms_xic[mz].getPrecursor().setMetaValue("description", String("XIC @ " + String(mz)));
+                chroms_xic[mz].setAcquisitionInfo(it->getAcquisitionInfo());
+                chroms_xic[mz].setSourceFile(it->getSourceFile());
+              }
+              chroms_xic[mz].push_back(chr_p);
+            }
+          }
           else
           {
-            LOG_WARN << "ChromatogramTools: need exactly one precursor (given " << it->getPrecursors().size() <<
-            ") and one or more product ions (" << it->size() << "), skipping conversion of this spectrum to chromatogram." << std::endl;
+            OPENMS_LOG_WARN << "ChromatogramTools: need exactly one precursor (given " << it->getPrecursors().size() <<
+            ") and one or more product ions (" << it->size() << "), skipping conversion of this spectrum to chromatogram. If this is a MS1 chromatogram, please force conversion (e.g. with -convert_to_chromatograms)." << std::endl;
           }
         }
         else
         {
           // This does not makes sense to warn here, because it would also warn on simple mass spectra...
           // TODO think what to to here
-          //LOG_WARN << "ChromatogramTools: cannot convert other chromatogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
+          //OPENMS_LOG_WARN << "ChromatogramTools: cannot convert other chromatogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
           //
         }
       }
 
+      // Add the XIC chromatograms
+      for (auto & chrom: chroms_xic) exp.addChromatogram(chrom.second);
+
+      // Add the SRM chromatograms
       typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
@@ -219,4 +245,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_CHROMATOGRAMTOOLS_H

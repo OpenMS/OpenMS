@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGBASE_H
-#define OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGBASE_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -80,9 +79,9 @@ public:
       double s_yion;
       double s_witness;
       double position;
-      double s_isotope_pattern_1;   // isotope pattern score charge 1
-      Int is_isotope_1_mono;   // 0 means not tested, 1 mean is, -1 is tail of isotopes
-      double s_isotope_pattern_2;   // "" charge 2
+      double s_isotope_pattern_1;   ///< isotope pattern score charge 1
+      Int is_isotope_1_mono;   ///< 0 means not tested, 1 mean is, -1 is tail of isotopes
+      double s_isotope_pattern_2;   ///< "" charge 2
     };
 
 
@@ -96,7 +95,7 @@ public:
     CompNovoIonScoringBase(const CompNovoIonScoringBase & source);
 
     /// destructor
-    virtual ~CompNovoIonScoringBase();
+    ~CompNovoIonScoringBase() override;
     //@}
 
     ///
@@ -111,7 +110,7 @@ public:
 protected:
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
 
     IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it);
@@ -135,4 +134,3 @@ public:
 
 }
 
-#endif

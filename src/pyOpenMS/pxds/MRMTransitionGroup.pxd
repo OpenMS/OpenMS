@@ -48,3 +48,6 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
         MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_string ] tr_ids) nogil except +
 
+        bool isInternallyConsistent() nogil except +
+
+        bool chromatogramIdsMatch() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/config.h>
-
-#include <ctime>
-#include <iostream>
 
 using namespace std;
 
@@ -55,13 +50,16 @@ namespace OpenMS
   DateTime::DateTime(const DateTime& date) :
     QDateTime(date)
   {
+  }
 
+  DateTime::DateTime(DateTime&& date) noexcept :
+    QDateTime(std::move(date)) // use Qt implementation if available
+  {
   }
 
   DateTime::DateTime(const QDateTime& date) :
     QDateTime(date)
   {
-
   }
 
   DateTime& DateTime::operator=(const DateTime& source)
@@ -72,6 +70,18 @@ namespace OpenMS
     }
 
     QDateTime::operator=(source);
+
+    return *this;
+  }
+
+  DateTime& DateTime::operator=(DateTime&& source) & noexcept
+  {
+    if (&source == this)
+    {
+      return *this;
+    }
+
+    QDateTime::operator=(std::move(source)); // use Qt implementation if available
 
     return *this;
   }

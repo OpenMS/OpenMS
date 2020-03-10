@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -54,11 +54,15 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
+
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -69,7 +73,7 @@ using namespace std;
 
 /**
   @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an OpenMS readable file.
+  @brief Shows basic information about the data in an %OpenMS readable file.
 
   <CENTER>
   <table>
@@ -136,7 +140,7 @@ public:
   }
 
 protected:
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
@@ -156,7 +160,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesHumanReadable_(Map map, ostream &os)
+  void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
     os << "Ranges:"
        << "\n"
@@ -167,20 +171,33 @@ protected:
   }
 
   template <class Map>
-  void writeRangesMachineReadable_(Map map, ostream &os)
+  void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "retention time (min)"
+    os << "general: ranges: retention time: min"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
-       << "retention time (max)"
+       << "general: ranges: retention time: max"
        << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
-       << "mass-to-charge (min)"
+       << "general: ranges: mass-to-charge: min"
        << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << "\n"
-       << "mass-to-charge (max)"
+       << "general: ranges: mass-to-charge: max"
        << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << "\n"
-       << "intensity (min)"
+       << "general: ranges: intensity: min"
        << "\t" << String::number(map.getMinInt(), 2) << "\n"
-       << "intensity (max)"
+       << "general: ranges: intensity: max"
        << "\t" << String::number(map.getMaxInt(), 2) << "\n";
+  }
+
+  template <class T>
+  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String title)
+  {
+    os << "statistics: " << title << ": num. of values" << "\t" << stats.count    << "\n"
+       << "statistics: " << title << ": mean"           << "\t" << stats.mean     << "\n"
+       << "statistics: " << title << ": minimum"        << "\t" << stats.min      << "\n"
+       << "statistics: " << title << ": lower quartile" << "\t" << stats.lowerq   << "\n"
+       << "statistics: " << title << ": median"         << "\t" << stats.median   << "\n"
+       << "statistics: " << title << ": upper quartile" << "\t" << stats.upperq   << "\n"
+       << "statistics: " << title << ": maximum"        << "\t" << stats.max      << "\n"
+       << "statistics: " << title << ": variance"       << "\t" << stats.variance << "\n";
   }
 
   ExitCodes outputTo_(ostream &os, ostream &os_tsv)
@@ -198,7 +215,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      in_type = fh.getType(in);
+      in_type = FileHandler::getType(in);
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
     }
 
@@ -215,9 +232,9 @@ protected:
        << "File name: " << in << "\n"
        << "File type: " << FileTypes::typeToName(in_type) << "\n";
 
-    os_tsv << "file name"
+    os_tsv << "general: file name"
            << "\t" << in << "\n"
-           << "file type"
+           << "general: file type"
            << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     PeakMap exp;
@@ -364,16 +381,16 @@ protected:
       }
 
       std::cout << "Checking mzML file for valid indices ... " << std::endl;
-      IndexedMzMLFile ifile;
+      Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
         // Validate that we can access each single spectrum and chromatogram
-        for (Size i = 0; i < ifile.getNrSpectra(); i++)
+        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
         }
-        for (Size i = 0; i < ifile.getNrChromatograms(); i++)
+        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
         {
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
@@ -398,46 +415,81 @@ protected:
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
 
-      map<char, int> aacids;
-      int number_of_aacids = 0;
+      Map<char, int> aacids; // required for default construction of non-existing keys
+      size_t number_of_aacids = 0;
 
       SysInfo::MemUsage mu;
-      //loading input
+      // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
-      os << "Number of sequences: " << entries.size() << "\n"
-         << "\n";
+      Size dup_header(0);
+      Size dup_seq(0);
 
+      typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
+      SHashmap m_headers;
+      SHashmap m_seqs;
+
+      std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
-        auto iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
-        if (iter != loopiter)
         {
-          os << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+          size_t id_hash = s_hash(loopiter->identifier);
+          auto it_id = m_headers.find(id_hash);
+          if (it_id != m_headers.end())
+          { // hash matches ... test the real indices to make sure
+            vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].headerMatches(*loopiter); });
+            if (iter != it_id->second.end())
+            {
+              os << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << "\n";
+              ++dup_header;
+            }
+
+          }
+          // add our own hash
+          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
         }
 
-        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
-        if (iter != loopiter && iter != entries.end())
         {
-          os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+          size_t id_seq = s_hash(loopiter->sequence);
+          auto it_id = m_seqs.find(id_seq);
+          if (it_id != m_seqs.end())
+          { // hash matches ... test the real indices to make sure
+            vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].sequenceMatches(*loopiter); });
+            if (iter != it_id->second.end())
+            {
+              os << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " == #" << *iter << ", ID: " << entries[*iter].identifier << "\n";
+              ++dup_seq;
+            }
+
+          }
+          // add our own hash
+          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
 
-        for (Size i = 0; i < loopiter->sequence.size(); i++)
+        for (char a : loopiter->sequence)
         {
-          ++aacids[loopiter->sequence[i]];
+          ++aacids[a];
         }
         number_of_aacids += loopiter->sequence.size();
       }
 
-      os << "Total amino acids: " << number_of_aacids << "\n\n";
-      os << "Amino acid counts: "
-         << "\n";
+      os << "\n";
+      os << "Number of sequences   : " << entries.size() << "\n";
+      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 :
+                                                                 static_cast<Size>(dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : static_cast<Size>(dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "Total amino acids     : " << number_of_aacids << "\n\n";
+      os << "Amino acid counts: \n";
 
       for (auto it = aacids.begin(); it != aacids.end(); ++it)
       {
         os << it->first << '\t' << it->second << "\n";
       }
+      size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
+      size_t amb_I = amb + aacids['I'] + aacids['i'];
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (static_cast<Size>(amb * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
+      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (static_cast<Size>(amb_I * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
     }
 
     else if (in_type == FileTypes::FEATUREXML) //features
@@ -455,39 +507,53 @@ protected:
 
       os << "Number of features: " << feat.size() << "\n"
          << "\n";
+      os_tsv << "general: number of features" << "\t"
+             << feat.size() << "\n";
+
       writeRangesHumanReadable_(feat, os);
       writeRangesMachineReadable_(feat, os_tsv);
 
       // Charge distribution and TIC
-      Map<UInt, UInt> charges;
-      Map<UInt, UInt> numberofids;
+      Map<Int, UInt> charges;
+      Map<size_t, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
-        charges[feat[i].getCharge()]++;
+        ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
         const vector<PeptideIdentification> &peptide_ids = feat[i].getPeptideIdentifications();
-        numberofids[peptide_ids.size()]++;
+        ++numberofids[peptide_ids.size()];
       }
 
       os << "Total ion current in features: " << tic << "\n";
+      os_tsv << "general: total ion current in features" << "\t"
+             << tic << "\n";
+
       os << "\n"
          << "Charge distribution:"
          << "\n";
-      for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
+      for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
+        os_tsv << "general: charge distribution: charge: "
+               << it->first << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
          << "Distribution of peptide identifications (IDs) per feature:\n";
-      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
+        os_tsv << "general: distribution of peptide identifications (IDs) per feature: IDs: "
+               << it->first << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
          << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
+      os_tsv << "general: unassigned peptide identifications" << "\t"
+             << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
@@ -500,10 +566,61 @@ protected:
       cons.updateRanges();
 
       map<Size, UInt> num_consfeat_of_size;
+      map<Size, UInt> num_consfeat_of_size_with_id;
+
+      map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
       for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
       {
         ++num_consfeat_of_size[cmit->size()];
+        const auto& pids = cmit->getPeptideIdentifications();
+        if (!pids.empty())
+        {
+          ++num_consfeat_of_size_with_id[cmit->size()];
+
+          // count how often a peptide/charge pair has been observed in the different maps
+          const vector<PeptideHit>& phits = pids[0].getHits();
+          if (!phits.empty())
+          {
+            const String s = phits[0].getSequence().toString();
+            const int z = phits[0].getCharge();
+
+            if (seq_charge2map_occurence[make_pair(s,z)].empty())
+            {
+              seq_charge2map_occurence[make_pair(s,z)] = vector<int>(cons.getColumnHeaders().size(), 0);
+            }
+
+            // assign id to all dimensions in the consensus feature
+            for (auto const & f : cmit->getFeatures())
+            {
+              Size map_index = f.getMapIndex();
+              seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
+            }
+          }
+        }
       }
+
+      // now at the level of peptides (different charges and modifications are counted separately) 
+      // to get a number independent of potential alignment/link errors
+      // Note: 
+      // we determine the size of a consensus feature we would obtain if we would link just be sequence and charge
+      // and we sum up all sub features for these consensus feature that has at least one id
+      // (as we assume that the ID is transfered to all sub features)
+      map<Size, UInt> num_aggregated_consfeat_of_size_with_id;
+      map<Size, UInt> num_aggregated_feat_of_size_with_id;
+      for (auto & a : seq_charge2map_occurence)
+      {
+        const vector<int>& occurences = a.second;
+        Size n(0); // dimensions with at least one peptide id assigned
+        Size f(0); // number of subfeatures with a least one peptide id assigned
+        for (int i : occurences) 
+        { 
+          if (i != 0) ++n; 
+          f += i;
+        }
+        num_aggregated_consfeat_of_size_with_id[n] += 1;
+        num_aggregated_feat_of_size_with_id[n] += f;	
+      }
+
       if (num_consfeat_of_size.empty())
       {
         os << "\n"
@@ -518,11 +635,44 @@ protected:
         os << "\n"
            << "Number of consensus features:"
            << "\n";
+        
+        Size number_features{0};
+        Size number_cons_features_with_id{0};
+        Size number_features_with_id{0};
         for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
         {
-          os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+          const Size csize = i->first;
+          const Size nfeatures = i->first * i->second;
+          const Size nc_with_id = num_consfeat_of_size_with_id[i->first];
+          number_features += nfeatures;
+          number_features_with_id += csize * nc_with_id;
+          number_cons_features_with_id += nc_with_id;
+
+          os << "  of size " << setw(field_width) << csize << ": " << i->second 
+             << "\t (features: " << nfeatures << " )"
+             << "\t with at least one ID: " << nc_with_id
+             << "\t (features: " << csize * nc_with_id << " )"
+             << "\n";
+
         }
-        os << "  total:    " << string(field_width, ' ') << cons.size() << "\n"
+
+        map<Size, UInt>::reverse_iterator ci = num_aggregated_consfeat_of_size_with_id.rbegin();
+        map<Size, UInt>::reverse_iterator fi = num_aggregated_feat_of_size_with_id.rbegin();
+        for (; ci != num_aggregated_consfeat_of_size_with_id.rend(); ++ci, ++fi)
+        {
+          const Size csize = ci->first;
+          const Size nconsfeatures = ci->second;
+          const Size nfeatures = fi->second;
+
+          os << "  peptides (with different mod. and charge) observed in " << setw(field_width) << csize << " maps: " << nconsfeatures 
+             << "\t (features: " << nfeatures << " )"
+             << "\n";
+
+        }
+        os << "  total consensus features:    "  << cons.size()
+           << "  with at least one ID: " << number_cons_features_with_id << "\n"
+           << "  total features:              " << number_features 
+           << "  with at least one ID: " << string(field_width, ' ') << number_features_with_id
            << "\n";
 
         writeRangesHumanReadable_(cons, os);
@@ -530,12 +680,12 @@ protected:
       }
 
       // file descriptions
-      const ConsensusMap::FileDescriptions &descs = cons.getFileDescriptions();
+      const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
       if (!descs.empty())
       {
         os << "File descriptions:"
            << "\n";
-        for (ConsensusMap::FileDescriptions::const_iterator it = descs.begin(); it != descs.end(); ++it)
+        for (ConsensusMap::ColumnHeaders::const_iterator it = descs.begin(); it != descs.end(); ++it)
         {
           os << "  " << it->second.filename << ":"
              << "\n"
@@ -553,6 +703,7 @@ protected:
       UInt runs_count(0);
       Size protein_hit_count(0);
       set<String> peptides;
+      set<String> peptides_ignore_mods;
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
@@ -571,36 +722,41 @@ protected:
       std::cout << "\n\n" << mu.delta("loading idXML") << std::endl;
 
       // export metadata to second output stream
-      os_tsv << "database"
+      os_tsv << "general: database"
              << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
-             << "database version"
+             << "general: database version"
              << "\t" << id_data.proteins[0].getSearchParameters().db_version << "\n"
-             << "taxonomy"
+             << "general: taxonomy"
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
+      UInt average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
         if (!id_data.peptides[i].empty())
         {
           ++spectrum_count;
+          average_peptide_hits += id_data.peptides[i].getHits().size();
           peptide_hit_count += id_data.peptides[i].getHits().size();
           const vector<PeptideHit> &temp_hits = id_data.peptides[i].getHits();
           // collect stats about modifications from TOP HIT!
           if (temp_hits[0].getSequence().isModified())
           {
             ++modified_peptide_count;
-            AASequence aa = temp_hits[0].getSequence();
+            const AASequence& aa = temp_hits[0].getSequence();
+            if (aa.hasCTerminalModification()) ++mod_counts[aa.getCTerminalModificationName()];
+            if (aa.hasNTerminalModification()) ++mod_counts[aa.getNTerminalModificationName()];
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
-                ++mod_counts[aa[ia].getModificationName()];
+                ++mod_counts[aa[ia].getModification()->getFullId()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
-            peptide_length.push_back(temp_hits[j].getSequence().size());
+            peptides_ignore_mods.insert(temp_hits[j].getSequence().toUnmodifiedString());
+            peptide_length.push_back((uint16_t)temp_hits[j].getSequence().size());
           }
         }
       }
@@ -616,7 +772,7 @@ protected:
       }
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
-        peptide_length.push_back(0); 
+        peptide_length.push_back(0);
       }
 
       os << "Number of:"
@@ -628,6 +784,8 @@ protected:
          << "\n";
       os << "\n";
       os << "  matched spectra:    " << spectrum_count << "\n";
+      os << "  peptide sequences:  " << peptides_ignore_mods.size() << "\n";
+      os << "  PSMs / spectrum (ignoring unidentified spectra):    " << average_peptide_hits / std::max(1, (Int)spectrum_count) << "\n";
       os << "  peptide hits:               " << peptide_hit_count << " (avg. length: " << Math::round(Math::mean(peptide_length.begin(), peptide_length.end())) << ")\n";
       os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
@@ -638,18 +796,20 @@ protected:
         if (it != mod_counts.begin())
           os << ", ";
         else
-          os << "  Modifications (top-hits only): ";
-        os << it->first << "(" << it->second << ")";
+          os << "  Modification count (top-hits only): ";
+        os << it->first << " " << it->second;
       }
 
-      os_tsv << "peptide hits"
-             << "\t" << peptide_hit_count << "\n";
-      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
-             << "\t" << peptides.size() << "\n";
-      os_tsv << "protein hits"
-             << "\t" << protein_hit_count << "\n";
-      os_tsv << "non-redundant protein hits (only hits that differ in the accession)"
+      os_tsv << "general: num. of runs" << "\t" << runs_count << "\n";
+      os_tsv << "general: num. of protein hits" << "\t" << protein_hit_count << "\n";
+      os_tsv << "general: num. of non-redundant protein hits (only hits that differ in the accession)"
              << "\t" << proteins.size() << "\n";
+      os_tsv << "general: num. of matched spectra" << "\t" << spectrum_count << "\n";
+      os_tsv << "general: num. of peptide hits" << "\t" << peptide_hit_count << "\n";
+      os_tsv << "general: num. of modified top-hits" << "\t" << modified_peptide_count << "\n";
+      os_tsv << "general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
+             << "\t" << peptides.size() << "\n";
+
     }
     else if (in_type == FileTypes::PEPXML)
     {
@@ -663,7 +823,7 @@ protected:
       os << "\nTransformation model: " << trafo.getModelType() << "\n";
       trafo.printSummary(os);
     }
-    else //peaks
+    else // peaks
     {
 
       SysInfo::MemUsage mu;
@@ -673,69 +833,38 @@ protected:
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
-      // report memory consumption
-      std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
 
-      //check if the meta data indicates that this is peak data
-      UInt meta_type = SpectrumSettings::UNKNOWN;
-      if (exp.size() > 0)
-      {
-        for (Size i = 0; i < exp[0].getDataProcessing().size(); ++i)
-        {
-          if (exp[0].getDataProcessing()[i]->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
-          {
-            meta_type = SpectrumSettings::PEAKS;
-          }
-        }
-      }
-      //determine type (search for the first scan with at least 5 peaks)
-      UInt type = SpectrumSettings::UNKNOWN;
-      UInt i = 0;
-      while (i < exp.size() && exp[i].size() < 5)
-      {
-        ++i;
-      }
-      if (i != exp.size())
-      {
-        type = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
-      }
-      os << "\n"
-         << "Peak type (metadata): " << SpectrumSettings::NamesOfSpectrumType[meta_type] << "\n"
-         << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << "\n";
-      //if raw data, determine the spacing
-      if (type == SpectrumSettings::RAWDATA)
-      {
-        vector<float> spacing;
-        for (Size j = 1; j < exp[i].size(); ++j)
-        {
-          spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
-        }
-        sort(spacing.begin(), spacing.end());
-        os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")"
-           << "\n";
-        os_tsv << "estimated raw data spacing"
-               << "\t" << spacing[spacing.size() / 2] << "\n"
-               << "estimated raw data spacing (min)"
-               << "\t" << spacing[0] << "\n"
-               << "estimated raw data spacing (max)"
-               << "\t" << spacing.back() << "\n";
-      }
-      os << "\n";
-
-      //basic info
+      // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
       vector<UInt> levels = exp.getMSLevels();
 
-      os << "Number of spectra: " << exp.size() << "\n";
-      os << "Number of peaks: " << exp.getSize() << "\n"
-         << "\n";
-      os_tsv << "number of spectra"
-             << "\t" << exp.size() << "\n"
-             << "number of peaks"
-             << "\t" << exp.getSize() << "\n";
+      // report memory consumption
+      std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
 
-      writeRangesHumanReadable_(exp, os);
-      writeRangesMachineReadable_(exp, os_tsv);
+      os << "\n";
+
+      // check if the meta data indicates that this is peak data
+      // and count how many spectra per MS level there are
+      map<Size, UInt> level_annotated_picked;
+      map<Size, UInt> level_estimated_picked;
+      map<Size, UInt> counts;
+      for (Size i = 0; i != exp.size(); ++i)
+      {
+        const Size level = exp[i].getMSLevel();
+        ++counts[level];  // count MS level
+
+        // annotate peak type (profile / centroided) from meta data
+        if (level_annotated_picked.count(level) == 0)
+        {
+          level_annotated_picked[level] = exp[i].getType(false);
+        }
+
+        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
+        if (level_estimated_picked.count(level) == 0 && exp[i].size() > 10)
+        {
+          level_estimated_picked[level] = PeakTypeEstimator::estimateType(exp[i].begin(), exp[i].end());
+        }
+      }
 
       os << "MS levels: ";
       if (!levels.empty())
@@ -748,18 +877,21 @@ protected:
       }
       os << "\n";
 
-      //count how many spectra per MS level there are
-      map<Size, UInt> counts;
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-      {
-        ++counts[it->getMSLevel()];
-      }
-      //output
+      // basic info
+      os << "Total number of peaks: " << exp.getSize() << "\n"; // count ALL peaks (also chromatographic)
+      os << "Number of spectra: " << exp.size() << "\n"
+         << "\n";
+      os_tsv << "number of spectra"
+             << "\t" << exp.size() << "\n"
+             << "total number of peaks"
+             << "\t" << exp.getSize() << "\n";
+
+      // output
       if (!counts.empty())
       {
         os << "Number of spectra per MS level:"
            << "\n";
-        for (map<Size, UInt>::iterator it = counts.begin(); it != counts.end(); ++it)
+        for (auto it = counts.begin(); it != counts.end(); ++it)
         {
           os << "  level " << it->first << ": " << it->second << "\n";
           os_tsv << "number of MS" << it->first << " spectra"
@@ -768,10 +900,22 @@ protected:
         os << "\n";
       }
 
+      writeRangesHumanReadable_(exp, os);
+      writeRangesMachineReadable_(exp, os_tsv);
+
+      // write peak types (centroided / profile mode)
+      os << "Peak type metadata (estimated)\n";
+      for (const auto& l : levels)
+      {
+        os << "  level " << l << ": "
+           << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
+           << SpectrumSettings::NamesOfSpectrumType[level_estimated_picked[l]] << ")\n";
+      }
+
       // show meta data array names
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        for (i = 0; i < it->getFloatDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
           String name = it->getFloatDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -783,7 +927,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getIntegerDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
         {
           String name = it->getIntegerDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -795,7 +939,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getStringDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
         {
           String name = it->getStringDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -881,32 +1025,51 @@ protected:
       }
 
       // Detailed listing of scans
-      if (getFlag_("d") && exp.size() > 0)
+      if (getFlag_("d") && !exp.empty())
       {
         os << "\n"
            << "-- Detailed spectrum listing --"
            << "\n";
         UInt count = 0;
-        for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto const& spectrum : exp)
         {
           ++count;
           os << "\n"
              << "Spectrum " << count << ":"
              << "\n"
-             << "  mslevel:  " << it->getMSLevel() << "\n"
-             << "  scanMode: " << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << "\n"
-             << "  peaks:    " << it->size() << "\n"
-             << "  RT:       " << it->getRT() << "\n"
-             << "  m/z:      ";
-          if (!it->empty())
+             << "  mslevel:    " << spectrum.getMSLevel() << "\n"
+             << "  scanMode:   " << InstrumentSettings::NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()] << "\n"
+             << "  peaks:      " << spectrum.size() << "\n"
+             << "  RT:         " << spectrum.getRT() << "\n"
+             << "  m/z:        ";
+
+          if (!spectrum.empty())
           {
-            os << it->begin()->getMZ() << " .. " << it->rbegin()->getMZ();
+            os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << "\n";
           }
-          os << "\n";
+
+          os << "Precursors:  " << spectrum.getPrecursors().size() <<  "\n";
+
+          auto pc_count = UInt{0};
+          for (auto const& pc : spectrum.getPrecursors())
+          {
+            os << "Precursor[" << pc_count << "]\n"
+               << "  charge: " << pc.getCharge() << "\n"
+               << "  mz:     " << pc.getMZ() << "\n"
+               << "  activation methods: \n";
+            for (auto const& am : pc.getActivationMethods())
+            {
+              os << "    " << Precursor::NamesOfActivationMethodShort[am] << " (" << Precursor::NamesOfActivationMethod[am] << ")\n";
+            }
+
+            os << "\n";
+
+            ++pc_count;
+          }
         }
       }
 
-      //Check for corrupt data
+      // Check for corrupt data
       if (getFlag_("c"))
       {
         os << "\n"
@@ -1026,9 +1189,8 @@ protected:
     //-------------------------------------------------------------
     // meta information
     //-------------------------------------------------------------
-    if (getFlag_("m") || getStringOption_("out_tsv") != "")
+    if (getFlag_("m") || !getStringOption_("out_tsv").empty())
     {
-
       //basic info
       os << "\n"
          << "-- Meta information --"
@@ -1039,6 +1201,8 @@ protected:
       {
         os << "Document ID: " << feat.getIdentifier() << "\n"
            << "\n";
+        os_tsv << "meta: document ID" << "\t"
+               << feat.getIdentifier() << "\n";
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
@@ -1049,6 +1213,8 @@ protected:
       {
         os << "Document ID: " << id_data.identifier << "\n"
            << "\n";
+        os_tsv << "meta: document ID" << "\t"
+               << id_data.identifier;
       }
       else if (in_type == FileTypes::PEPXML)
       {
@@ -1056,10 +1222,10 @@ protected:
       }
       else if (in_type == FileTypes::FASTA)
       {
+        // TODO
       }
       else //peaks
       {
-
         os << "Document ID:        " << exp.getIdentifier() << "\n"
            << "Date:               " << exp.getDateTime().get() << "\n";
         os_tsv << "document id"
@@ -1198,16 +1364,34 @@ protected:
           os << "  software name:    " << dp[i].getSoftware().getName() << "\n";
           os << "  software version: " << dp[i].getSoftware().getVersion() << "\n";
           os << "  completion time:  " << dp[i].getCompletionTime().get() << "\n";
+
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software name" << "\t"
+                 << dp[i].getSoftware().getName() << "\n";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software version" << "\t"
+                 << dp[i].getSoftware().getVersion() << "\n";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": completion time" << "\t"
+                 << dp[i].getCompletionTime().get() << "\n";
+
           os << "  actions:          ";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": actions" << "\t";
           for (set<DataProcessing::ProcessingAction>::const_iterator it = dp[i].getProcessingActions().begin();
                it != dp[i].getProcessingActions().end(); ++it)
           {
             if (it != dp[i].getProcessingActions().begin())
+            {
               os << ", ";
+              os_tsv << ", ";
+            }
             os << DataProcessing::NamesOfProcessingAction[*it];
+            os_tsv << DataProcessing::NamesOfProcessingAction[*it];
           }
           os << "\n"
              << "\n";
+          os_tsv << "\n";
         }
       }
     }
@@ -1243,30 +1427,40 @@ protected:
           peak_widths[idx] = fm_iter->getWidth();
         }
 
+        Math::SummaryStatistics<vector<double>> intensities_summary;
+        intensities_summary = Math::SummaryStatistics<vector<double>>(intensities);
         os.precision(writtenDigits<>(Feature::IntensityType()));
-        os << "Intensities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(intensities) << "\n";
+        os << "Intensities:" << "\n" << intensities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::IntensityType()));
+        writeSummaryStatisticsMachineReadable_(intensities_summary, os_tsv, "intensities");
 
+        Math::SummaryStatistics<vector<double>> peak_widths_summary;
+        peak_widths_summary = Math::SummaryStatistics<vector<double>>(peak_widths);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Feature FWHM in RT dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(peak_widths) << "\n";
+        os << "Feature FWHM in RT dimension:" << "\n" << peak_widths_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(peak_widths_summary, os_tsv, "feature FWHM in RT dimension");
 
+        Math::SummaryStatistics<vector<double>> overall_qualities_summary;
+        overall_qualities_summary = Math::SummaryStatistics<vector<double>>(overall_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Overall qualities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(overall_qualities) << "\n";
+        os << "Overall qualities:" << "\n" << overall_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(overall_qualities_summary, os_tsv, "overall qualities");
 
+        Math::SummaryStatistics<vector<double>> rt_qualities_summary;
+        rt_qualities_summary = Math::SummaryStatistics<vector<double>>(rt_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in retention time dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(rt_qualities) << "\n";
+        os << "Qualities in retention time dimension:" << "\n" << rt_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(rt_qualities_summary, os_tsv, "qualities in retention time dimension");
 
+        Math::SummaryStatistics<vector<double>> mz_qualities_summary;
+        mz_qualities_summary = Math::SummaryStatistics<vector<double>>(mz_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in mass-to-charge dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(mz_qualities) << "\n";
+        os << "Qualities in mass-to-charge dimension:" << "\n" << mz_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(mz_qualities_summary, os_tsv, "qualities in mass-to-charge dimension");
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
@@ -1322,7 +1516,7 @@ protected:
             }
             mz_aad_by_elems.push_back(mz_diff);
             mz_aad += mz_diff;
-            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() ? cm_iter->getIntensity() : 1.);
+            double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() > 0 ? cm_iter->getIntensity() : 1.);
             it_delta_by_elems.push_back(it_ratio);
             if (it_ratio < 1.)
             {
@@ -1461,13 +1655,13 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String out = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
 
     TOPPBase::ExitCodes ret;
-    if (out != "" && out_tsv != "")
+    if (!out.empty() && !out_tsv.empty())
     {
       ofstream os(out.c_str());
       ofstream os_tsv(out_tsv.c_str());
@@ -1475,7 +1669,7 @@ protected:
       os.close();
       os_tsv.close();
     }
-    else if (out != "" && out_tsv == "")
+    else if (!out.empty() && out_tsv.empty())
     {
       ofstream os(out.c_str());
       // Output stream with null output
@@ -1484,10 +1678,11 @@ protected:
       ret = outputTo_(os, os_tsv);
       os.close();
     }
-    else if (out == "" && out_tsv != "")
+    else if (out.empty() && !out_tsv.empty())
     {
       ofstream os_tsv(out_tsv.c_str());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info, os_tsv);
       os_tsv.close();
     }
     else
@@ -1495,7 +1690,8 @@ protected:
       // Output stream with null output
       boost::iostreams::filtering_ostream os_tsv;
       os_tsv.push(boost::iostreams::null_sink());
-      ret = outputTo_(LOG_INFO, os_tsv);
+      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info, os_tsv);
     }
     return ret;
   }

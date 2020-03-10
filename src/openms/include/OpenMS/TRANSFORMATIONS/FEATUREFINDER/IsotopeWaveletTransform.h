@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
@@ -45,7 +44,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
@@ -75,15 +74,15 @@ public:
     /** @brief Internally used data structure. */
     struct BoxElement
     {
-      double mz; //<The monoisotopic position
-      UInt c; //<Note, this is not the charge (it is charge-1!!!)
-      double score; //<The associated score
-      double intens; //<The transformed intensity at the monoisotopic mass
+      double mz; ///<The monoisotopic position
+      UInt c; ///<Note, this is not the charge (it is charge-1!!!)
+      double score; ///<The associated score
+      double intens; ///<The transformed intensity at the monoisotopic mass
       double ref_intens;
-      double RT; //<The elution time (not the scan index)
-      UInt RT_index; //<The elution time (map) index
-      UInt MZ_begin; //<Index
-      UInt MZ_end; //<Index
+      double RT; ///<The elution time (not the scan index)
+      UInt RT_index; ///<The elution time (map) index
+      UInt MZ_begin; ///<Index
+      UInt MZ_end; ///<Index
     };
 
     typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
@@ -100,7 +99,7 @@ public:
 
       /** Default constructor */
       TransSpectrum() :
-        reference_(NULL), trans_intens_(NULL)
+        reference_(nullptr), trans_intens_(nullptr)
       {
       }
 
@@ -203,8 +202,8 @@ public:
 
 protected:
 
-      const MSSpectrum* reference_; //<The reference spectrum
-      std::vector<float>* trans_intens_; //<The intensities of the transform
+      const MSSpectrum* reference_; ///<The reference spectrum
+      std::vector<float>* trans_intens_; ///<The intensities of the transform
 
     };
 
@@ -257,43 +256,6 @@ protected:
 
     virtual void initializeScan(const MSSpectrum& c_ref, const UInt c = 0);
 
-#ifdef OPENMS_HAS_CUDA
-    /** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes.
-        * @param scan The scan under consideration. */
-    virtual int initializeScanCuda(const MSSpectrum& scan, const UInt c = 0);
-
-    /** @brief Clean up. */
-    virtual void finalizeScanCuda();
-
-    /** @brief Computes The isotope wavelet transform of charge state (@p c+1) on a CUDA compatible GPU.
-        * @param c_trans Contains the reference spectrum (already by call) as well as the transformed intensities.
-        * @param c The charge state minus 1 (e.g. c=2 means charge state 3)*/
-    virtual void getTransformCuda(TransSpectrum& c_trans, const UInt c);
-
-    /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
-* @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
-    * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
-    * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
-    * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
-    * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
-    * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between
-    * noise and signal. Please note that it is not a "simple" hard thresholding parameter in the sense of drawing a virtual
-    * line in the spectrum, which is then used as a guillotine cut. Maybe you should play around a bit with this parameter to
-    * get a feeling about its range. For peptide mass fingerprints on small data sets (like single MALDI-scans e.g.), it
-    * makes sense to start @p ampl_cutoff=0 or even @p ampl_cutoff=-1,
-    * indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the
-    * average intensity in the wavelet transform.
-    * * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
-    * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyChargeCuda(const TransSpectrum& candidates, const UInt scan_index, const UInt c,
-                                    const double ampl_cutoff, const bool check_PPMs);
-
-    /** Sorts the associated spectrum @p by increasing intensities.
-        * @param sorted The spectrum to be sorted. */
-    virtual int sortCuda(MSSpectrum& sorted);
-#endif
-
-
     /** @brief A function keeping track of currently open and closed sweep line boxes.
         * This function is used by the isotope wavelet feature finder and must be called for each processed scan.
         * @param map The original map containing the data set to be analyzed.
@@ -302,9 +264,6 @@ protected:
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
     void updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
-
-
-    void mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
 
 
     /** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -481,7 +440,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const PeakMap& map, const Box box);
+    void extendBox_(const PeakMap& map, const Box& box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -611,7 +570,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
       old = 0; old_pos = (my_local_pos - from_max_to_left_ - 1 >= 0) ? c_ref[my_local_pos - from_max_to_left_ - 1].getMZ() : c_ref[0].getMZ() - min_spacing_;
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
       c_diff = 0;
@@ -654,7 +613,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
 
 
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
@@ -756,7 +715,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -774,7 +733,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -1092,8 +1051,8 @@ protected:
     {
 
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       //Now, let's get the RT boundaries for the box
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
@@ -1546,7 +1505,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box& box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -1665,8 +1624,8 @@ protected:
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
@@ -1821,7 +1780,7 @@ protected:
 
       c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
-      av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0;
+      av_intens = 0; av_ref_intens = 0; av_score = 0; av_mz = 0; av_RT = 0;
       //Now, let's get the RT boundaries for the box
       std::vector<DPosition<2> > point_set;
       double sum_of_ref_intenses_l;
@@ -1965,7 +1924,7 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
       typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
@@ -1987,7 +1946,7 @@ protected:
         }
       }
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       if (real_mz <= 0 || real_intens <= 0)
       {
         return false;
@@ -1999,7 +1958,7 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
@@ -2021,7 +1980,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2083,10 +2042,10 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
-      typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+      auto h_iter = ref_iter, hc_iter = ref_iter;
       while (h_iter != ref.begin())
       {
         --h_iter;
@@ -2106,7 +2065,7 @@ protected:
       }
       ++h_iter;
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
       std::cout << "Plausibility check old_mz: " << iter->getMZ() << "\t" << real_mz << std::endl;
@@ -2123,11 +2082,11 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
-        typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+        auto h_iter = ref_iter, hc_iter = ref_iter;
         while (h_iter != ref.begin())
         {
           --h_iter;
@@ -2145,7 +2104,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2209,4 +2168,4 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif
+

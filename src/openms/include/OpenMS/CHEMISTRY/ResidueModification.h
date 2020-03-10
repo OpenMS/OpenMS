@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -64,7 +63,7 @@ namespace OpenMS
       getFullName()         | "Oxidation or Hydroxylation"
       getUniModAccession()  | "UniMod:312"
 
-      Note that some modifications are not explicitely defined from an input
+      Note that some modifications are not explicitly defined from an input
       file but get added on the fly when reading amino acid sequences with
       bracket notation, e.g. "PEPTX[999]IDE". If there is no known modification
       corresponding to the indicated mass, then a new ResidueModification will
@@ -130,21 +129,29 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     ResidueModification();
 
-    /// copy constructor
-    ResidueModification(const ResidueModification& modification);
+    /// Copy constructor
+    ResidueModification(const ResidueModification&) = default;
 
-    /// destructor
+    /// Move constructor
+    ResidueModification(ResidueModification&&) = default;
+
+    /// Destructor
     virtual ~ResidueModification();
     //@}
 
     /** @name Assignment operator
     */
     //@{
-    /// assignment operator
-    ResidueModification& operator=(const ResidueModification& modification);
+
+    /// Assignment operator
+    ResidueModification& operator=(const ResidueModification&) = default;
+
+    /// Move assignment operator
+    ResidueModification& operator=(ResidueModification&&) & = default;
     //@}
 
     /** @name Accessors
@@ -180,7 +187,7 @@ public:
     /// sets the unimod record id
     void setUniModRecordId(const Int& id);
 
-    /// sets the unimod record id
+    /// gets the unimod record id
     const Int& getUniModRecordId() const;
 
     /// returns the unimod accession if available
@@ -334,6 +341,9 @@ public:
 
     /// inequality operator
     bool operator!=(const ResidueModification& modification) const;
+
+    /// less operator
+    bool operator<(const ResidueModification& modification) const;
     //@}
 
 protected:
@@ -379,4 +389,3 @@ protected:
   };
 }
 
-#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
         # overloading Cython Issue
         # TODO: Mismatch between C++ return type ([u'Size']) and Python return type (['void']) in function public setUniqueId:
         # Size setUniqueId() nogil except +
-        # void setUniqueId(String & rhs) nogil except +
+        # void setUniqueId(const String & rhs) nogil except +
 
         bool isValid(UInt64 unique_id) nogil except +
 

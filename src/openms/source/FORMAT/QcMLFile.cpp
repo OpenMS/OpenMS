@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,8 @@
 
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
-#include <iostream>
-#include <algorithm>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
@@ -1055,7 +1052,7 @@ namespace OpenMS
       String xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
       std::ifstream in(xslt_file.c_str());
       xslt = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-      xslt = xslt.erase(0, xslt.find("\n") + 1);
+      xslt = xslt.erase(0, xslt.find('\n') + 1);
       xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
     catch (Exception::FileNotFound &)
@@ -1158,7 +1155,7 @@ namespace OpenMS
                 qp.cvAcc = "QC:0000005";
                 for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
                 {
-                  //<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
+                  ///<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
                   if (qit->cvAcc == "MS:1000577")
                     qp.value = qit->value;
                 }

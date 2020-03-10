@@ -11,7 +11,7 @@ from logging import basicConfig
 basicConfig(level=21)
 
 # import config
-from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
+from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
                  OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
                  Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
@@ -23,12 +23,17 @@ if iswin and IS_DEBUG:
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import autowrap.Main
+import autowrap.CodeGenerator
+import autowrap.DeclResolver
 import glob
 import pickle
 import os.path
 import os
 import shutil
-import time
+
+classdocu_base = "http://www.openms.de/current_doxygen/html/"
+autowrap.CodeGenerator.special_class_doc = "\n    Documentation is available at " + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html\n"
+autowrap.DeclResolver.default_namespace = "OpenMS"
 
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
@@ -43,15 +48,6 @@ def chunkIt(seq, num):
     return out
 
 j = os.path.join
-
-if iswin:
-  # copy stuff
-  try:
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openswathalgo", "OpenSwathAlgo.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openms", "OpenMS.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "superhirn", "SuperHirn.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
-  except IOError:
-    pass
 
 src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
@@ -96,8 +92,12 @@ for d in decls:
 # as setup.py relies on it as well.
 pxd_files_chunk = chunkIt(list(pxd_decl_mapping.keys()), int(PY_NUM_MODULES))
 print (len(pxd_files_chunk), PY_NUM_MODULES)
-assert (len(pxd_files_chunk) == int(PY_NUM_MODULES)), "Internal Error: number of chunks not equal to number of modules"
-assert (sum( [len(ch) for ch in pxd_files_chunk]) == len(pxd_decl_mapping)), "Internal Error: chunking lost files"
+
+# Sanity checks: we should find all of our chunks and not have lost files
+if len(pxd_files_chunk) != int(PY_NUM_MODULES):
+    raise Exception("Internal Error: number of chunks not equal to number of modules")
+if sum([len(ch) for ch in pxd_files_chunk]) != len(pxd_decl_mapping):
+    raise Exception("Internal Error: chunking lost files")
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 allDecl_mapping = {}
@@ -173,7 +173,7 @@ def doCythonCompile(arg):
     modname, autowrap_include_dirs = arg
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
-    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts=None, out=m_filename)
+    autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts={"compiler_directives": {"language_level": 2}}, out=m_filename)
 
     if False:
         #
@@ -217,78 +217,4 @@ version = OPEN_MS_VERSION
 
 print("version=%r\n" % version, file=open("pyopenms/version.py", "w"))
 print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/qt_version_info.py", "w"))
-
-# parse config
-
-if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
-    OPEN_MS_CONTRIB_BUILD_DIRS = OPEN_MS_CONTRIB_BUILD_DIRS[:-1]
-
-for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
-    if os.path.exists(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR, "lib")):
-        break
-
-
-if iswin:
-    for libname in ["math", "regex"]:
-        # fix for broken library names on Windows
-        for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
-                                        "lib",
-                                        "libboost_%s_*mt.lib" % libname)):
-
-            # Copy for MSVS 2008 (vc90), MSVS 2010 (vc100) and MSVS 2015 (vc140)
-            if "vc90" in p:
-                continue
-            if "vc100" in p:
-                continue
-            if "vc140" in p:
-                continue
-            new_p = p.replace("-mt.lib", "-vc90-mt-%s_%s.lib" % (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
-            shutil.copy(p, new_p)
-            new_p = p.replace("-mt.lib", "-vc100-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
-            shutil.copy(p, new_p)
-            new_p = p.replace("-mt.lib", "-vc140-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
-            shutil.copy(p, new_p)
-
-
-# Package data expected to be installed. On Linux the debian package
-# contains share/ data and must be installed to get access to the OpenMS shared
-# library.
-#
-if iswin:
-    shutil.copy(OPEN_MS_LIB, "pyopenms")
-    shutil.copy(OPEN_SWATH_ALGO_LIB, "pyopenms")
-    shutil.copy(SUPERHIRN_LIB, "pyopenms")
-
-    if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"), "pyopenms")
-    else:
-        shutil.copy(j(QT_LIBRARY_DIR, "QtCore4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "sqlite3.dll"), "pyopenms")
-
-elif sys.platform.startswith("linux"):
-
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.so"), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so"), "pyopenms")
-
-elif sys.platform == "darwin":
-
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
-    shutil.copy(j(QT_LIBRARY_DIR, "QtCore.framework", "QtCore"), "pyopenms")
-    shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
-
-else:
-    print("\n")
-    print("platform", sys.platform, "not supported yet")
-    print("\n")
-    exit()
-
-print("copied files needed for distribution to pyopenms/")
-print("\n")
 

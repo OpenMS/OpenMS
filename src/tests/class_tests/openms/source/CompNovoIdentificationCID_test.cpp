@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ START_TEST(CompNovoIdentificationCID, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompNovoIdentificationCID* ptr = 0;
-CompNovoIdentificationCID* nullPointer = 0;
+CompNovoIdentificationCID* ptr = nullptr;
+CompNovoIdentificationCID* nullPointer = nullptr;
 START_SECTION(CompNovoIdentificationCID())
 {
   ptr = new CompNovoIdentificationCID();
@@ -89,7 +89,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
@@ -128,7 +128,7 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;

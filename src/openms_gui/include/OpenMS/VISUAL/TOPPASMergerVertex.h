@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASMERGERVERTEX_H
-#define OPENMS_VISUAL_TOPPASMERGERVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -64,29 +63,27 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASMergerVertex();
+    TOPPASMergerVertex() = default;
     /// Constructor
     TOPPASMergerVertex(bool round_based);
     /// Copy constructor
-    TOPPASMergerVertex(const TOPPASMergerVertex& rhs);
+    TOPPASMergerVertex(const TOPPASMergerVertex& rhs) = default;
     /// Destructor
-    virtual ~TOPPASMergerVertex();
+    ~TOPPASMergerVertex() override = default;
     /// Assignment operator
-    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs);
+    TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs) = default;
     /// returns "MergerVertex"
-    virtual String getName() const;
+    String getName() const override;
     /// check if upstream nodes are finished and call downstream nodes
-    virtual void run();
+    void run() override;
     /// Determines whether this merger is merging round based or merging all inputs into one list
     bool roundBasedMode();
     // documented in base class
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
-    // documented in base class
-    virtual void markUnreachable();
+    void markUnreachable() override;
 
 public slots:
 
@@ -97,15 +94,7 @@ signals:
 protected:
 
     /// Stores whether this merger is merging round based or merging all inputs into one list
-    bool round_based_mode_;
-
-    ///@name reimplemented Qt events
-    //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
-    //@}
-
-
+    bool round_based_mode_{true};
   };
 }
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #include <vector>
 
 #include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 
 using std::map;
 using std::vector;
@@ -65,7 +64,7 @@ namespace OpenMS
       return;
     else
     {
-      LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
+      OPENMS_LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
       SimTypes::FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
       features.clear();
       features.push_back(final_map);

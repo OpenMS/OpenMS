@@ -1,4 +1,3 @@
-from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Element cimport *
@@ -30,20 +29,20 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # exact number of sulfurs, and approximate elemental stoichiometry
         bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P) nogil except +
 
-        # @brief returns the isotope distribution of the formula
-        #   *	The details of the calculation of the isotope distribution
-        #   * are described in the doc to the IsotopeDistribution class.
-        #   *	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
-        IsotopeDistribution getIsotopeDistribution(UInt max_depth) nogil except +
+        # Computes the isotope distribution of an empirical formula using the CoarseIsotopePatternGenerator or the FineIsotopePatternGenerator method
+        IsotopeDistribution getIsotopeDistribution(CoarseIsotopePatternGenerator) nogil except +
+        IsotopeDistribution getIsotopeDistribution(FineIsotopePatternGenerator) nogil except +
 
-        # @brief returns the fragment isotope distribution of this conditioned
+        # returns the fragment isotope distribution of this conditioned
         # on a precursor formula and a list of isolated precursor isotopes.
-        # @param precursor: the empirical formula of the precursor
-        # @param precursor_isotopes: the set of precursor isotopes that were isolated
-        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        # precursor: the empirical formula of the precursor
+        # precursor_isotopes: the set of precursor isotopes that were isolated
+        # method: the method that will be used for the calculation of the IsotopeDistribution
+        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes, CoarseIsotopePatternGenerator method) nogil except +
 
         # returns the number of atoms
-        Size getNumberOf(Element * element) nogil except +
+        # doesnt work!
+        ## Size getNumberOf(Element * element) nogil except +
 
         # returns the atoms total
         Size getNumberOfAtoms() nogil except +
@@ -56,6 +55,10 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
         # returns the formula as a string (charges are not included)
         String toString() nogil except +
+
+        # returns the formula as a hash
+        libcpp_map[libcpp_string, int] toMap() nogil except + #wrap-as:getElementalComposition wrap-doc:Get elemental composition as a hash {'Symbol' -> NrAtoms}
+
 
         # returns true if the formula does not contain a element
         bool isEmpty() nogil except +
@@ -75,4 +78,12 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # returns true if the formulas differ in elements composition
         bool operator!=(EmpiricalFormula) nogil except +
 
+        EmpiricalFormula operator+(EmpiricalFormula) nogil except +
+        # EmpiricalFormula operator-(EmpiricalFormula) nogil except +
+        # EmpiricalFormula operator*(EmpiricalFormula) nogil except +
 
+        EmpiricalFormula iadd(EmpiricalFormula)   nogil except + # wrap-as:operator+=
+        # EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
+
+        double calculateTheoreticalIsotopesNumber() nogil except +
+        

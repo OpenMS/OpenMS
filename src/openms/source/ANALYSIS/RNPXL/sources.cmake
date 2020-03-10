@@ -5,12 +5,12 @@ set(directory source/ANALYSIS/RNPXL)
 set(sources_list
 HyperScore.cpp
 ModifiedPeptideGenerator.cpp
+MorpheusScore.cpp
 PScore.cpp
-RNPxlReport.cpp
+RNPxlFragmentAnnotationHelper.cpp
 RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
-HyperScore.cpp
-PScore.cpp
+RNPxlReport.cpp
 )
 
 ### add path to the filenames

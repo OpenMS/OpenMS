@@ -14,9 +14,9 @@
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="623.58" RT="-1" >
 			<PeptideHit score="40.5" sequence="APRTPEPTIDER" charge="2" protein_refs="PH_0" >
 			</PeptideHit>
-			<PeptideHit score="30.5" sequence="APRTPEPTIDERR" charge="2" protein_refs="PH_0" >
-			</PeptideHit>
 			<PeptideHit score="40.5" sequence="APRTTPEPTIDER" charge="2" protein_refs="PH_1" >
+			</PeptideHit>
+			<PeptideHit score="30.5" sequence="APRTPEPTIDERR" charge="2" protein_refs="PH_0" >
 			</PeptideHit>
 			<PeptideHit score="30.5" sequence="APEPTIDER" charge="2" >
 			</PeptideHit>

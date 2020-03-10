@@ -1,0 +1,966 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TraML version="0.9.2" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML0.9.2.xsd">
+  <cvList>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+  </cvList>
+  <ProteinList>
+    <Protein id="A2MG" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="AACT" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="APOA" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="APOA1" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="APOB" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="APOE" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="B2MG" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="C1QA" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="C1QB" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="C1QC" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="C1R" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CADH5" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CCNH" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CFAB" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CLUS" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CO3" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CO4A" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CO5" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CO6" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="CO7" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="FN1" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="GELS" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="HPT" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="IC1" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="IGF2" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="ITIH4" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="PLMN" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="PON1" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="PZP" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="RET4" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="SHBG" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="TETN" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="THBG" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="THRB" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="Tr_peps_set2" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="TRFE" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="TTHY" >
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="VTNC" >
+      <Sequence></Sequence>
+    </Protein>
+  </ProteinList>
+  <CompoundList>
+    <Peptide id="SSSNEEVMFLTVQVK.2" sequence="SSSNEEVMFLTVQVK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="A2MG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="26.987521784"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="EIGELYLPK.2" sequence="EIGELYLPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="AACT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.8176672628"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="NPDAVAAPYBYTR.2" sequence="NPDAVAAPYCYTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOA"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="16.5217192251"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DLATVYVDVLK.2" sequence="DLATVYVDVLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOA1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="29.4062098919"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DYVSQFEGSALGK.2" sequence="DYVSQFEGSALGK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOA1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="23.4252425991"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VSFLSALEEYTK.2" sequence="VSFLSALEEYTK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOA1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="33.019093333"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FSVPAGIVIPSFQALTAR.3" sequence="FSVPAGIVIPSFQALTAR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="36.0712197595"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="AATVGSLAGQPLQER.2" sequence="AATVGSLAGQPLQER">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="17.4025018692"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="SELEEQLTPVAEETR.2" sequence="SELEEQLTPVAEETR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="20.0216129458"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="SWFEPLVEDMQR.2" sequence="SWFEPLVEDMQR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="APOE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="31.1402449999"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VEHSDLSFSK.3" sequence="VEHSDLSFSK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="B2MG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="11.7653403403"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VNHVTLSQPK.3" sequence="VNHVTLSQPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="B2MG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="9.2953215701"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="SLGFBDTTNK.2" sequence="SLGFCDTTNK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1QA"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="13.7713138086"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GNLBVNLMR.2" sequence="GNLCVNLMR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1QB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="19.6734263631"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LEQGENVFLQATDK.2" sequence="LEQGENVFLQATDK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1QB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.0969584759"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FQSVFTVTR.2" sequence="FQSVFTVTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1QC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.4653501356"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="QTHQPPAPNSLIR.3" sequence="QTHQPPAPNSLIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1QC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="13.9924932717"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YTTTMGVNTYK.2" sequence="YTTTMGVNTYK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="C1R"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="14.2644886051"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YTFVVPEDTR.2" sequence="YTFVVPEDTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CADH5"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="20.4110846253"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="HWTFSSEEQLAR.3" sequence="HWTFSSEEQLAR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CCNH"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.7825310067"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="QLNEINYEDHK.2" sequence="QLNEINYEDHK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CFAB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="12.2097789855"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YGLVTYATYPK.2" sequence="YGLVTYATYPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CFAB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.1234102383"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YGQTIRPIBLPBTEGTTR.3" sequence="YGQTIRPICLPCTEGTTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CFAB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="20.1262398397"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="ASSIIDELFQDR.2" sequence="ASSIIDELFQDR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CLUS"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="31.5093081274"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="IHWESASLLR.3" sequence="IHWESASLLR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO3"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="29.7309357962"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="ILLQGTPVAQMTEDAVDAER.3" sequence="ILLQGTPVAQMTEDAVDAER">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO3"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="30.8767040567"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GSFEFPVGDAVSK.2" sequence="GSFEFPVGDAVSK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO4A"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="23.4430466699"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LGQYASPTAK.2" sequence="LGQYASPTAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO4A"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="9.9612955564"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FQNSAILTIQPK.2" sequence="FQNSAILTIQPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO5"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.1317527172"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TDAPDLPEENQAR.2" sequence="TDAPDLPEENQAR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO5"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="13.2270708327"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TLLPVSKPEIR.3" sequence="TLLPVSKPEIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO5"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.8459948889"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DLHLSDVFLK.3" sequence="DLHLSDVFLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO6"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="26.6486340131"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="IGESIELTBPK.2" sequence="IGESIELTCPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO6"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.0072501994"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YSAWAESVTNLPQVIK.2" sequence="YSAWAESVTNLPQVIK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="CO7"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="29.5315505505"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="SYTITGLQPGTDYK.2" sequence="SYTITGLQPGTDYK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="FN1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="19.7846458501"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="AGALNSNDAFVLK.2" sequence="AGALNSNDAFVLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="GELS"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="20.9363962784"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="EVQGFESATFLGYFK.2" sequence="EVQGFESATFLGYFK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="GELS"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="32.2357142169"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="HVVPNEVVVQR.3" sequence="HVVPNEVVVQR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="GELS"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="12.5766720511"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DIAPTLTLYVGK.2" sequence="DIAPTLTLYVGK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="HPT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="26.1622471458"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VTSIQDWVQK.2" sequence="VTSIQDWVQK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="HPT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="20.8623516913"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VVLHPNYSQVDIGLIK.3" sequence="VVLHPNYSQVDIGLIK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="HPT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="24.4533208646"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YVMLPVADQDQBIR.2" sequence="YVMLPVADQDQCIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="HPT"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.8652994849"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GVTSVSQIFHSPDLAIR.3" sequence="GVTSVSQIFHSPDLAIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="IC1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="27.1450725501"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VTTSQDMLSIMEK.2" sequence="VTTSQDMLSIMEK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="IC1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="24.3850549702"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GIVEEBBFR.2" sequence="GIVEECCFR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="IGF2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="16.1474471351"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="SBDLALLETYBATPAK.2" sequence="SCDLALLETYCATPAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="IGF2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="25.2051816885"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="ETLFSVMPGLK.2" sequence="ETLFSVMPGLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="ITIH4"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="29.5845354653"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LGVYELLLK.2" sequence="LGVYELLLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="ITIH4"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="30.0790002939"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FSPATHPSEGLEENYBR.3" sequence="FSPATHPSEGLEENYCR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PLMN"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="15.6176793775"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="HSIFTPETNPR.2" sequence="HSIFTPETNPR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PLMN"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="13.7296726304"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="QLGAGSIEEBAAK.2" sequence="QLGAGSIEECAAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PLMN"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="14.4213190694"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="IQNILTEEPK.2" sequence="IQNILTEEPK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PON1"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.0679671677"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="MVSGFIPLKPTVK.2" sequence="MVSGFIPLKPTVK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PZP"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.2046565461"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YGAATFTR.2" sequence="YGAATFTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="PZP"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="12.1414437061"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FSGTWYAMAK.2" sequence="FSGTWYAMAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="RET4"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.3432637809"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LIVHNGYBDGR.3" sequence="LIVHNGYCDGR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="RET4"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="10.7809685252"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="IALGGLLFPASNLR.2" sequence="IALGGLLFPASNLR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="SHBG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="33.7733755106"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LDTLAQEVALLK.2" sequence="LDTLAQEVALLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TETN"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="29.3073209957"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TFHEASEDBISR.3" sequence="TFHEASEDCISR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TETN"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="10.4634252918"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="EGQMESVEAAMSSK.2" sequence="EGQMESVEAAMSSK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="THBG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.4379255856"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VTABHSSQPNATLYK.3" sequence="VTACHSSQPNATLYK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="THBG"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="10.6897363968"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="HQDFNSAVQLVENFBR.3" sequence="HQDFNSAVQLVENFCR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="THRB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="28.6547967133"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LAVTTHGLPBLAWASAQAK.3" sequence="LAVTTHGLPCLAWASAQAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="THRB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="26.4937487707"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TATSEYQTFFNPR.2" sequence="TATSEYQTFFNPR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="THRB"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="23.2310663158"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="ADVTPADFSEWSK.2" sequence="ADVTPADFSEWSK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="23.5878192001"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DGLDAASYYAPVR.2" sequence="DGLDAASYYAPVR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.2097854161"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GAGSSEPVTGLDAK.2" sequence="GAGSSEPVTGLDAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="12.4492718176"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GTFIIDPAAVIR.2" sequence="GTFIIDPAAVIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="30.0473802641"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GTFIIDPGGVIR.2" sequence="GTFIIDPGGVIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="26.9274355884"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LFLQFGAQGSPFLK.2" sequence="LFLQFGAQGSPFLK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="32.3618077333"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="LGGNEQVTR.2" sequence="LGGNEQVTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="6.642962663"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TPVISGGPYEYR.2" sequence="TPVISGGPYEYR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="18.3037541079"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TPVITGAPYEYR.2" sequence="TPVITGAPYEYR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="19.2460879684"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VEATFGVDESNAK.2" sequence="VEATFGVDESNAK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="15.0701075491"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="YILAGVENSK.2" sequence="YILAGVENSK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="light"/>
+      <ProteinRef ref="Tr_peps_set2"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="16.9567286309"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="EGYYGYTGAFR.2" sequence="EGYYGYTGAFR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TRFE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="19.8739103743"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="MYLGYEYVTAIR.2" sequence="MYLGYEYVTAIR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TRFE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="27.6379706205"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="TAGWNIPMGLLYNK.2" sequence="TAGWNIPMGLLYNK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TRFE"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="32.0866076672"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="AADDTWEPFASGK.2" sequence="AADDTWEPFASGK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TTHY"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.9238812624"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GSPAINVAVHVFR.3" sequence="GSPAINVAVHVFR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="TTHY"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.6401135971"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="DVWGIEGPIDAAFTR.2" sequence="DVWGIEGPIDAAFTR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="VTNC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="33.3418048338"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="FEDGVLDPDYPR.2" sequence="FEDGVLDPDYPR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="VTNC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="21.244681395"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="GQYBYELDEK.2" sequence="GQYCYELDEK">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="VTNC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="14.6114136422"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="VDTVDPPYPR.2" sequence="VDTVDPPYPR">
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="heavy"/>
+      <ProteinRef ref="VTNC"/>
+      <RetentionTimeList>
+       <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="15.2385645803"/>
+       </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+  </CompoundList>
+  <TransitionList>
+
+
+    <Transition id="B2MG.VNHVTLSQPK.3.y5.1.heavy" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="24.13"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.551778" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="580.354437" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="B2MG.VNHVTLSQPK.3.y5.1.light" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="24.13"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.820378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="572.340238" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="B2MG.VNHVTLSQPK.3.y6.1.heavy" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="20.85"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.551778" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="681.402115" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="B2MG.VNHVTLSQPK.3.y6.1.light" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="20.85"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.830378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="673.387916" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="B2MG.VNHVTLSQPK.3.y7.1.heavy" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10.59"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.551778" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="780.470529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+    <Transition id="B2MG.VNHVTLSQPK.3.y7.1.light" peptideRef="VNHVTLSQPK.3" >
+      <cvParam cvRef="" accession="" name="annotation" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="19.66888"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10.59"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <Precursor>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.810378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="772.45633" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+    </Transition>
+
+
+
+
+
+
+
+
+
+  </TransitionList>
+</TraML>

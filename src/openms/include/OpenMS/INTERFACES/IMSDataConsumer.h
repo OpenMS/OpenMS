@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_IMSDATACONSUMER_H
-#define OPENMS_INTERFACES_IMSDATACONSUMER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -60,6 +59,8 @@ namespace Interfaces
       write data to disk. Depending on the implementation, an exception may
       occur if the ExperimentalSettings and the size of the experiment are not
       set before consuming any spectra.
+
+      Implementations in OpenMS can be found in OpenMS/FORMAT/DATAACCESS
 
       @note The member functions setExpectedSize and setExperimentalSettings
       are expected to be called before consuming starts.
@@ -128,4 +129,3 @@ namespace Interfaces
 } //end namespace Interfaces
 } //end namespace OpenMS
 
-#endif

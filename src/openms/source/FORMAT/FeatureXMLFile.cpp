@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,8 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <fstream>
@@ -62,8 +60,8 @@ namespace OpenMS
   void FeatureXMLFile::resetMembers_()
   {
     disable_parsing_ = 0;
-    current_feature_ = 0;
-    map_ = 0;
+    current_feature_ = nullptr;
+    map_ = nullptr;
     //options_ = FeatureFileOptions(); do NOT reset this, since we need to preserve options!
     size_only_ = false;
     expected_size_ = 0;
@@ -73,7 +71,7 @@ namespace OpenMS
     dim_ = 0;
     in_description_ = false;
     subordinate_feature_level_ = 0;
-    last_meta_ = 0;
+    last_meta_ = nullptr;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -156,7 +154,7 @@ namespace OpenMS
       // We can detect this here but it is too late to fix the problem;
       // there is no straightforward action to be taken in all cases.
       // Note also that we are given a const reference.
-      LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
+      OPENMS_LOG_INFO << String("FeatureXMLFile::store():  found ") + invalid_unique_ids + " invalid unique ids" << std::endl;
     }
 
     // This will throw if the unique ids are not unique,
@@ -167,7 +165,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition& e)
     {
-      LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
     }
 
@@ -185,12 +183,12 @@ namespace OpenMS
     {
       os << " id=\"fm_" << feature_map.getUniqueId() << "\"";
     }
-    os << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << " xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("UserParam", os, feature_map, 1);
 
-    //write data processing
+    // write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
     {
       const DataProcessing& processing = feature_map.getDataProcessing()[i];
@@ -203,6 +201,9 @@ namespace OpenMS
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
     }
+
+    // throws if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)
+    checkUniqueIdentifiers_(feature_map.getProteinIdentifications());
 
     // write identification runs
     Size prot_count = 0;
@@ -256,7 +257,7 @@ namespace OpenMS
         //Add MetaInfo, when modifications has it (Andreas)
       }
 
-      writeUserParam_("UserParam", os, search_param, 4);
+      writeUserParam_("UserParam", os, search_param, 3);
 
       os << "\t\t</SearchParameters>\n";
 
@@ -428,7 +429,7 @@ namespace OpenMS
     }
     else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
     {
-      if (last_meta_ == 0)
+      if (last_meta_ == nullptr)
       {
         fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
@@ -525,22 +526,24 @@ namespace OpenMS
       prot_id_.setSearchEngine(attributeAsString_(attributes, "search_engine"));
       prot_id_.setSearchEngineVersion(attributeAsString_(attributes, "search_engine_version"));
       prot_id_.setDateTime(DateTime::fromString(String(attributeAsString_(attributes, "date")).toQString(), "yyyy-MM-ddThh:mm:ss"));
-      //set identifier
-      String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date");
-      String id = attributeAsString_(attributes, "id");
+      // set identifier
+      // always generate a unique id to link a ProteinIdentification and the corresponding PeptideIdentifications
+      // , since any FeatureLinker might just carelessly concatenate PepIDs from different FeatureMaps.
+      // If these FeatureMaps have identical identifiers (SearchEngine time + type match exactly), then ALL PepIDs would be falsely attributed
+      // to a single ProtID...
 
-      if (!id_identifier_.has(id))
-      {
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
-      }
-      else
-      {
-        warning(LOAD, "Non-unique identifier for IdentificationRun encountered '" + identifier + "'. Generating a unique one.");
-        UInt64 uid = UniqueIdGenerator::getUniqueId();
-        identifier = identifier + String(uid);
-        prot_id_.setIdentifier(identifier);
-        id_identifier_[id] = identifier;
+      String id = attributeAsString_(attributes, "id");
+      while (true)
+      { // loop until the identifier is unique (should be on the first iteration -- very(!) unlikely it will not be unique)
+        // Note: technically, it would be preferrable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
+        String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
+
+        if (!id_identifier_.has(id))
+        {
+          prot_id_.setIdentifier(identifier);
+          id_identifier_[id] = identifier;
+          break;
+        }
       }
     }
     else if (tag == "SearchParameters")
@@ -572,9 +575,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }
@@ -582,13 +585,13 @@ namespace OpenMS
     {
       search_param_.fixed_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "VariableModification")
     {
       search_param_.variable_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "ProteinIdentification")
     {
@@ -688,7 +691,7 @@ namespace OpenMS
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
-      if (refs != 0)
+      if (refs != nullptr)
       {
         String accession_string = sm_.convert(refs);
         accession_string.trim();
@@ -831,7 +834,7 @@ namespace OpenMS
         }
         else
         {
-          Feature* f1(0);
+          Feature* f1(nullptr);
           if (!map_->empty())
           {
             f1 = &(map_->back());
@@ -875,7 +878,7 @@ namespace OpenMS
     {
       map_->getProteinIdentifications().push_back(prot_id_);
       prot_id_ = ProteinIdentification();
-      last_meta_  = 0;
+      last_meta_  = nullptr;
     }
     else if (tag == "SearchParameters")
     {
@@ -906,7 +909,7 @@ namespace OpenMS
     {
       map_->getUnassignedPeptideIdentifications().push_back(pep_id_);
       pep_id_ = PeptideIdentification();
-      last_meta_  = 0;
+      last_meta_  = nullptr;
     }
     else if (tag == "PeptideHit")
     {
@@ -1075,8 +1078,8 @@ namespace OpenMS
 
       const vector<PeptideEvidence>& pes = id.getHits()[j].getPeptideEvidences();
 
-      os << IdXMLFile::createFlankingAAXMLString_(pes);
-      os << IdXMLFile::createPositionXMLString_(pes);
+      IdXMLFile::createFlankingAAXMLString_(pes, os);
+      IdXMLFile::createPositionXMLString_(pes, os);
 
       String accs;
       for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
@@ -1129,8 +1132,8 @@ namespace OpenMS
       {
         if (map_->empty())
         {
-          current_feature_ = 0;
-          last_meta_ =  0;
+          current_feature_ = nullptr;
+          last_meta_ =  nullptr;
         }
         else
         {
@@ -1141,15 +1144,15 @@ namespace OpenMS
       return;
     }
 
-    Feature* f1 = 0;
+    Feature* f1 = nullptr;
     if (map_->empty())
     {
       // do NOT throw an exception here. this is a valid case! e.g. the
       // only one feature in a map was discarded during endElement(), thus
       // the map_ is empty() now and we cannot assign a current_feature,
       // because there is none!
-      current_feature_ = 0;
-      last_meta_ = 0;
+      current_feature_ = nullptr;
+      last_meta_ = nullptr;
       return;
     }
     else
@@ -1181,8 +1184,8 @@ namespace OpenMS
     {
       if (f1->getSubordinates().empty())
       {
-        current_feature_ = 0;
-        last_meta_ = 0;
+        current_feature_ = nullptr;
+        last_meta_ = nullptr;
         return;
       }
       else

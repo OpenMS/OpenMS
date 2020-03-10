@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,14 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROTEINHIT_H
-#define OPENMS_METADATA_PROTEINHIT_H
+#pragma once
 
 #include <vector>
+#include <functional>
+#include <set>
+#include <map>
 
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -49,13 +52,36 @@ namespace OpenMS
     It contains the fields score, score_type, rank, accession,
     sequence and coverage.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI ProteinHit :
     public MetaInfoInterface
   {
 public:
     static const double COVERAGE_UNKNOWN; // == -1
+
+    /// @name Hashes for ProteinHit
+    //@{
+    /// Hash of a ProteinHit based on its accession only!
+    class OPENMS_DLLAPI ProteinHitAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit & p)
+      {
+        return std::hash<std::string>{}(p.getAccession());
+      }
+
+    };
+    class OPENMS_DLLAPI ProteinHitPtrAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit * p)
+      {
+        return std::hash<std::string>{}(p->getAccession());
+      }
+
+    };
+    //@}
 
     /// @name Comparators ProteinHit
     //@{
@@ -101,23 +127,27 @@ public:
     /** @name Constructors and Destructor */
     //@{
 
-    /// default constructor
+    /// Default constructor
     ProteinHit();
 
-    /// values constructor
+    /// Values constructor
     ProteinHit(double score, UInt rank, String accession, String sequence);
 
-    /// copy constructor
-    ProteinHit(const ProteinHit & source);
+    /// Copy constructor
+    ProteinHit(const ProteinHit &) = default;
 
-    /// destructor
-    virtual ~ProteinHit();
+    /// Move constructor
+    ProteinHit(ProteinHit&&) = default;
+
     //@}
 
-    /// assignment operator
-    ProteinHit & operator=(const ProteinHit & source);
+    /// Assignment operator
+    ProteinHit & operator=(const ProteinHit &) = default;
 
-    /// assignment for MetaInfo
+    /// Move assignment operator
+    ProteinHit& operator=(ProteinHit&&) = default; // TODO: add noexcept (gcc 4.8 bug)
+
+    /// Assignment for MetaInfo
     ProteinHit & operator=(const MetaInfoInterface & source);
 
     /// Equality operator
@@ -131,7 +161,7 @@ public:
     //@{
 
     /// returns the score of the protein hit
-    float getScore() const;
+    double getScore() const;
 
     /// returns the rank of the protein hit
     UInt getRank() const;
@@ -166,17 +196,21 @@ public:
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
 
+    /// returns the set of modified protein positions
+    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
+
+    /// sets the set of modified protein positions
+    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
     //@}
 
 protected:
-    float score_;                        ///< the score of the protein hit
-    UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
-    String accession_;          ///< the protein identifier
-    String sequence_;               ///< the amino acid sequence of the protein hit
-    double coverage_;         ///< coverage of the protein based upon the matched peptide sequences
-
+    double score_;        ///< the score of the protein hit
+    UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
+    String accession_;   ///< the protein identifier
+    String sequence_;    ///< the amino acid sequence of the protein hit
+    double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
+    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PROTEINHIT_H

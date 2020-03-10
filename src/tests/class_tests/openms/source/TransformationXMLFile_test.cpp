@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,8 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationXMLFile* ptr = 0;
-TransformationXMLFile* nullPointer = 0;
+TransformationXMLFile* ptr = nullptr;
+TransformationXMLFile* nullPointer = nullptr;
 
 START_SECTION((TransformationXMLFile()))
 {
@@ -204,7 +204,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   params = trafo2.getModelParameters();
   TEST_EQUAL(params.getValue("num_breakpoints"), 4);
   TEST_EQUAL(params.getValue("break_positions"), "uniform");
-  TEST_EQUAL(params.size(), 2);
+  TEST_EQUAL(params.size(), 8);
   TEST_EQUAL(trafo2.getDataPoints().size(), 11);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].second, 5.2);

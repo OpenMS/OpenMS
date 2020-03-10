@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         #  ProgressLogger
         QcMLFile() nogil except +
         QcMLFile(QcMLFile) nogil except + #wrap-ignore
-        String map2csv(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except + # wrap-ignore
-        String exportIDstats(String & filename) nogil except +
+        String map2csv(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, const String & separator) nogil except + # wrap-ignore
+        String exportIDstats(const String & filename) nogil except +
         void addRunQualityParameter(String r, QualityParameter qp) nogil except +
         void addRunAttachment(String r, Attachment at) nogil except +
         void addSetQualityParameter(String r, QualityParameter qp) nogil except +
@@ -33,8 +33,8 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         bool existsSet(String filename) nogil except +
         void existsRunQualityParameter(String filename, String qpname, libcpp_vector[ String ] & ids) nogil except +
         void existsSetQualityParameter(String filename, String qpname, libcpp_vector[ String ] & ids) nogil except +
-        void store(String & filename) nogil except +
-        void load(String & filename) nogil except +
+        void store(const String & filename) nogil except +
+        void load(const String & filename) nogil except +
 
         void registerRun(String id_, String name) nogil except +
         void registerSet(String id_, String name, libcpp_set[ String ] & names) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
@@ -97,24 +98,24 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
+    registerInputFile_("database", "<file>", "", "Default spectral database.", true);
     setValidFormats_("database", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return MetaboliteSpectralMatching().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -147,7 +148,7 @@ protected:
 
     if (ms_peakmap.empty())
     {
-      LOG_WARN << "The input file does not contain any spectra.";
+      OPENMS_LOG_WARN << "The input file does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -170,7 +171,7 @@ protected:
 
     if (spec_db.empty())
     {
-      LOG_WARN << "The spectral library does not contain any spectra.";
+      OPENMS_LOG_WARN << "The spectral library does not contain any spectra.";
       return INCOMPATIBLE_INPUT_DATA;
     }
 

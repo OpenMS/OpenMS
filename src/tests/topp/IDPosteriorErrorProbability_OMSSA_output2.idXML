@@ -15,53 +15,11 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="380.6954346" RT="778.61" >
-			<PeptideHit score="0.999999703800026" sequence="AEDAKAR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.79432823472"/>
+			<PeptideHit score="0.992137188268975" sequence="GDRADAR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.0063095734448"/>
 			</PeptideHit>
-			<PeptideHit score="0.999999703800026" sequence="AEDAKAR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.79432823472"/>
-			</PeptideHit>
-			<PeptideHit score="0.999997619610497" sequence="TVDGVNR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_0" >
-				<UserParam type="float" name="OMSSA_score" value="0.34673685045"/>
-			</PeptideHit>
-			<PeptideHit score="0.999997619610497" sequence="TVDGVNR" charge="3" aa_before="R" aa_after="E" protein_refs="PH_0" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.34673685045"/>
-			</PeptideHit>
-			<PeptideHit score="0.999996682184601" sequence="TVDGPSGK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.30199517204"/>
-			</PeptideHit>
-			<PeptideHit score="0.999996682184601" sequence="TVDGPSGK" charge="3" aa_before="K" aa_after="L" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.30199517204"/>
-			</PeptideHit>
-			<PeptideHit score="0.999977806014592" sequence="AEQAVSR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="0.13182567386"/>
-			</PeptideHit>
-			<PeptideHit score="0.999977806014592" sequence="AEQAVSR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.13182567386"/>
-			</PeptideHit>
-			<PeptideHit score="0.999799808981541" sequence="EAAAVGSR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
-				<UserParam type="float" name="OMSSA_score" value="0.0457088189615"/>
-			</PeptideHit>
-			<PeptideHit score="0.999799808981541" sequence="EAAAVGSR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.0457088189615"/>
-			</PeptideHit>
-			<PeptideHit score="0.99972646822851" sequence="EAEGRAK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.0389045144994"/>
-			</PeptideHit>
-			<PeptideHit score="0.99972646822851" sequence="EAEGRAK" charge="3" aa_before="R" aa_after="E" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.0389045144994"/>
-			</PeptideHit>
-			<PeptideHit score="0.995387619683354" sequence="EAEGARK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.00851138038202"/>
-			</PeptideHit>
-			<PeptideHit score="0.995387619683354" sequence="EAEGARK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.00851138038202"/>
-			</PeptideHit>
-			<PeptideHit score="0.99519248174031" sequence="LSNEAAR" charge="2" aa_before="R" aa_after="R" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.00831763771103"/>
-			</PeptideHit>
-			<PeptideHit score="0.99519248174031" sequence="LSNEAAR" charge="3" aa_before="R" aa_after="R" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.00831763771103"/>
+			<PeptideHit score="0.992137188268975" sequence="GDRADAR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.0063095734448"/>
 			</PeptideHit>
 			<PeptideHit score="0.993318846453717" sequence="AEASVAGR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="float" name="OMSSA_score" value="0.00691830970919"/>
@@ -69,11 +27,53 @@
 			<PeptideHit score="0.993318846453717" sequence="AEASVAGR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="float" name="Posterior Error Probability_score" value="0.00691830970919"/>
 			</PeptideHit>
-			<PeptideHit score="0.992137188268975" sequence="GDRADAR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.0063095734448"/>
+			<PeptideHit score="0.99519248174031" sequence="LSNEAAR" charge="2" aa_before="R" aa_after="R" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.00831763771103"/>
 			</PeptideHit>
-			<PeptideHit score="0.992137188268975" sequence="GDRADAR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.0063095734448"/>
+			<PeptideHit score="0.99519248174031" sequence="LSNEAAR" charge="3" aa_before="R" aa_after="R" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.00831763771103"/>
+			</PeptideHit>
+			<PeptideHit score="0.995387619683354" sequence="EAEGARK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.00851138038202"/>
+			</PeptideHit>
+			<PeptideHit score="0.995387619683354" sequence="EAEGARK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.00851138038202"/>
+			</PeptideHit>
+			<PeptideHit score="0.99972646822851" sequence="EAEGRAK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.0389045144994"/>
+			</PeptideHit>
+			<PeptideHit score="0.99972646822851" sequence="EAEGRAK" charge="3" aa_before="R" aa_after="E" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.0389045144994"/>
+			</PeptideHit>
+			<PeptideHit score="0.999799808981541" sequence="EAAAVGSR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
+				<UserParam type="float" name="OMSSA_score" value="0.0457088189615"/>
+			</PeptideHit>
+			<PeptideHit score="0.999799808981541" sequence="EAAAVGSR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.0457088189615"/>
+			</PeptideHit>
+			<PeptideHit score="0.999977806014592" sequence="AEQAVSR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="0.13182567386"/>
+			</PeptideHit>
+			<PeptideHit score="0.999977806014592" sequence="AEQAVSR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.13182567386"/>
+			</PeptideHit>
+			<PeptideHit score="0.999996682184601" sequence="TVDGPSGK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.30199517204"/>
+			</PeptideHit>
+			<PeptideHit score="0.999996682184601" sequence="TVDGPSGK" charge="3" aa_before="K" aa_after="L" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.30199517204"/>
+			</PeptideHit>
+			<PeptideHit score="0.999997619610497" sequence="TVDGVNR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_0" >
+				<UserParam type="float" name="OMSSA_score" value="0.34673685045"/>
+			</PeptideHit>
+			<PeptideHit score="0.999997619610497" sequence="TVDGVNR" charge="3" aa_before="R" aa_after="E" protein_refs="PH_0" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.34673685045"/>
+			</PeptideHit>
+			<PeptideHit score="0.999999703800026" sequence="AEDAKAR" charge="2" aa_before="R" aa_after="V" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.79432823472"/>
+			</PeptideHit>
+			<PeptideHit score="0.999999703800026" sequence="AEDAKAR" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.79432823472"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="309.2268982" RT="958.267" >
@@ -85,47 +85,11 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="375.6966248" RT="998.481" >
-			<PeptideHit score="0.453250508471886" sequence="VANYQR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="0.000223872113857"/>
+			<PeptideHit score="0.00935505970276241" sequence="VEFFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="2.39883291902e-07"/>
 			</PeptideHit>
-			<PeptideHit score="0.453250508471886" sequence="VANYQR" charge="3" aa_before="R" aa_after="D" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="0.000223872113857"/>
-			</PeptideHit>
-			<PeptideHit score="0.205898136317334" sequence="RQYQR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="7.58577575029e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.205898136317334" sequence="RQYQR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="7.58577575029e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.105295709433451" sequence="QGVYQR" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="3.0199517204e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.105295709433451" sequence="QGVYQR" charge="3" aa_before="K" aa_after="V" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="3.0199517204e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.0829167864461242" sequence="VYEPSR" charge="2" aa_before="R" aa_after="F" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.0829167864461242" sequence="VYEPSR" charge="3" aa_before="R" aa_after="F" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="2.08929613085e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.0552026346076845" sequence="MQATTAK" charge="2" aa_after="R" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="1e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.0552026346076845" sequence="MQATTAK" charge="3" aa_after="R" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="1e-05"/>
-			</PeptideHit>
-			<PeptideHit score="0.039216373494282" sequence="DFEAIR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="4.78630092323e-06"/>
-			</PeptideHit>
-			<PeptideHit score="0.039216373494282" sequence="DFEAIR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="4.78630092323e-06"/>
-			</PeptideHit>
-			<PeptideHit score="0.0265340096810519" sequence="FDELAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-06"/>
-			</PeptideHit>
-			<PeptideHit score="0.0265340096810519" sequence="FDELAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="2.08929613085e-06"/>
+			<PeptideHit score="0.00935505970276241" sequence="VEFFAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="2.39883291902e-07"/>
 			</PeptideHit>
 			<PeptideHit score="0.0201592377248982" sequence="VEEFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="float" name="OMSSA_score" value="1.17489755494e-06"/>
@@ -133,11 +97,47 @@
 			<PeptideHit score="0.0201592377248982" sequence="VEEFAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="float" name="Posterior Error Probability_score" value="1.17489755494e-06"/>
 			</PeptideHit>
-			<PeptideHit score="0.00935505970276241" sequence="VEFFAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="OMSSA_score" value="2.39883291902e-07"/>
+			<PeptideHit score="0.0265340096810519" sequence="FDELAR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-06"/>
 			</PeptideHit>
-			<PeptideHit score="0.00935505970276241" sequence="VEFFAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
-				<UserParam type="float" name="Posterior Error Probability_score" value="2.39883291902e-07"/>
+			<PeptideHit score="0.0265340096810519" sequence="FDELAR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="2.08929613085e-06"/>
+			</PeptideHit>
+			<PeptideHit score="0.039216373494282" sequence="DFEAIR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="4.78630092323e-06"/>
+			</PeptideHit>
+			<PeptideHit score="0.039216373494282" sequence="DFEAIR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="4.78630092323e-06"/>
+			</PeptideHit>
+			<PeptideHit score="0.0552026346076845" sequence="MQATTAK" charge="2" aa_after="R" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="1e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.0552026346076845" sequence="MQATTAK" charge="3" aa_after="R" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="1e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.0829167864461242" sequence="VYEPSR" charge="2" aa_before="R" aa_after="F" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="2.08929613085e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.0829167864461242" sequence="VYEPSR" charge="3" aa_before="R" aa_after="F" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="2.08929613085e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.105295709433451" sequence="QGVYQR" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="3.0199517204e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.105295709433451" sequence="QGVYQR" charge="3" aa_before="K" aa_after="V" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="3.0199517204e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.205898136317334" sequence="RQYQR" charge="2" aa_before="R" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="OMSSA_score" value="7.58577575029e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.205898136317334" sequence="RQYQR" charge="3" aa_before="R" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="7.58577575029e-05"/>
+			</PeptideHit>
+			<PeptideHit score="0.453250508471886" sequence="VANYQR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_1" >
+				<UserParam type="float" name="OMSSA_score" value="0.000223872113857"/>
+			</PeptideHit>
+			<PeptideHit score="0.453250508471886" sequence="VANYQR" charge="3" aa_before="R" aa_after="D" protein_refs="PH_1" >
+				<UserParam type="float" name="Posterior Error Probability_score" value="0.000223872113857"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

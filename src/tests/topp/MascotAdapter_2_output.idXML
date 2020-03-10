@@ -71,13 +71,13 @@
 			</PeptideHit>
 			<PeptideHit score="6.66" sequence="SISVEDKTDVR" charge="2" aa_before="R R R R R R" aa_after="K K K K K K" protein_refs="PH_15 PH_16 PH_17 PH_18 PH_19 PH_20" >
 			</PeptideHit>
+			<PeptideHit score="5.61" sequence="AQQRMSGTLEK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_24" >
+			</PeptideHit>
 			<PeptideHit score="5.57" sequence="EQMATSGNEPGK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_21" >
 			</PeptideHit>
 			<PeptideHit score="5.24" sequence="VVEVFSEYFK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_22" >
 			</PeptideHit>
 			<PeptideHit score="4.59" sequence="TPQADKTEEVK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_23" >
-			</PeptideHit>
-			<PeptideHit score="5.61" sequence="AQQRMSGTLEK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_24" >
 			</PeptideHit>
 			<PeptideHit score="4.24" sequence="LSSEDKEAIEK" charge="2" aa_before="K K" aa_after="A A" protein_refs="PH_25 PH_26" >
 			</PeptideHit>

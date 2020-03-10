@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
@@ -160,7 +161,7 @@
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
-#include <QtGui/QApplication>
+#include <QApplication>
 
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -342,6 +343,7 @@ int main(int argc, char** argv)
   // Simple cases
   //////////////////////////////////
 
+  DOCME(AScore);
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
@@ -481,9 +483,9 @@ int main(int argc, char** argv)
   DOCME(TOPPViewBase);
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

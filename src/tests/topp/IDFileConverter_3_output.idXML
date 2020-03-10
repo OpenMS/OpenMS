@@ -47,23 +47,19 @@
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.7701" sequence="TAGWNIPMGLLYNK" charge="2" protein_refs="PH_0" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="0.6859" sequence="IMNGEADAMSLDGGFVYIAGK" charge="2" protein_refs="PH_0" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="0.3973" sequence="TAGWNIPMGLLYNK" charge="2" protein_refs="PH_0" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="1"/>
-			</PeptideHit>
 			<PeptideHit score="0.778" sequence="AVMDDFAAFVEK" charge="2" protein_refs="PH_1" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
+			<PeptideHit score="0.7701" sequence="TAGWNIPMGLLYNK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
 			<PeptideHit score="0.7534" sequence="RHPDYSVVLLLR" charge="3" protein_refs="PH_1" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.7504" sequence="ITPNLAEFAFSLYR" charge="2" protein_refs="PH_2" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
@@ -75,11 +71,7 @@
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.3025" sequence="RMPCAEDYLSVVLNQLCVLHEK" charge="3" protein_refs="PH_1" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="0.7504" sequence="ITPNLAEFAFSLYR" charge="2" protein_refs="PH_2" >
+			<PeptideHit score="0.6859" sequence="IMNGEADAMSLDGGFVYIAGK" charge="2" protein_refs="PH_0" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
@@ -88,6 +80,14 @@
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.4788" sequence="QEPSQGTTTFAVTSILR" charge="2" protein_refs="PH_3 PH_4" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3973" sequence="TAGWNIPMGLLYNK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3025" sequence="RMPCAEDYLSVVLNQLCVLHEK" charge="3" protein_refs="PH_1" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="1"/>
 			</PeptideHit>

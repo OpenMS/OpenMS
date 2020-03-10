@@ -110,30 +110,30 @@ Function un.TrimNewlines
    Exch $R0
 FunctionEnd
 
-Function un.RemoveEmptyDirs
-  Pop $9
-  !define Index 'Line${__LINE__}'
-  FindFirst $0 $1 "$INSTDIR$9*"
-  StrCmp $0 "" "${Index}-End"
-  "${Index}-Loop:"
-    StrCmp $1 "" "${Index}-End"
-    StrCmp $1 "." "${Index}-Next"
-    StrCmp $1 ".." "${Index}-Next"
-      Push $0
-      Push $1
-      Push $9
-      Push "$9$1\"
-      Call un.RemoveEmptyDirs
-      Pop $9
-      Pop $1
-      Pop $0
-    "${Index}-Remove:"
-    RMDir "$INSTDIR$9$1"
-    "${Index}-Next:"
-    FindNext $0 $1
-    Goto "${Index}-Loop"
-  "${Index}-End:"
-  FindClose $0
-  !undef Index
-FunctionEnd
+; Function un.RemoveEmptyDirs
+  ; Pop $9
+  ; !define Index 'Line${__LINE__}'
+  ; FindFirst $0 $1 "$INSTDIR$9*"
+  ; StrCmp $0 "" "${Index}-End"
+  ; "${Index}-Loop:"
+    ; StrCmp $1 "" "${Index}-End"
+    ; StrCmp $1 "." "${Index}-Next"
+    ; StrCmp $1 ".." "${Index}-Next"
+      ; Push $0
+      ; Push $1
+      ; Push $9
+      ; Push "$9$1\"
+      ; Call un.RemoveEmptyDirs
+      ; Pop $9
+      ; Pop $1
+      ; Pop $0
+    ; "${Index}-Remove:"
+    ; RMDir "$INSTDIR$9$1"
+    ; "${Index}-Next:"
+    ; FindNext $0 $1
+    ; Goto "${Index}-Loop"
+  ; "${Index}-End:"
+  ; FindClose $0
+  ; !undef Index
+; FunctionEnd
 

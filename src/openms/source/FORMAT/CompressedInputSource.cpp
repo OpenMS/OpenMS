@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,14 +31,13 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
-#include <xercesc/internal/MemoryManagerImpl.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLUniDefs.hpp>
 
 
@@ -150,7 +149,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }
@@ -160,7 +159,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }

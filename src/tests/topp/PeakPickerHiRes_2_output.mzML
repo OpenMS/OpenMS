@@ -83,11 +83,11 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>NW4qQ8QFOEE=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="2" encodedLength="24" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="2" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
-						<binary>AAAAYEWaskAAAADAFuaeQA==</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>K9KURbYw90Q=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -119,11 +119,11 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>GnkOQo1VWEGa3SlBeNoCQQ==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="4" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
-						<binary>AAAAIF6iq0AAAAAA3ZyoQAAAAKDzQalAAAAAQJKtp0A=</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>8RJdRejmREWdD0pFkmw9RQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -155,11 +155,11 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>eWoQRA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="1" encodedLength="8" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
-						<binary>AAAAwL6ZsUA=</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>9s2MRQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -191,11 +191,11 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>NW4qQ8QFOEE=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="2" encodedLength="24" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="2" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
-						<binary>AAAAYEWaskAAAADAFuaeQA==</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>K9KURbYw90Q=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -227,11 +227,11 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>b62nQaBtwkHsoCtB</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="3" encodedLength="16" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="FWHM_ppm" />
-						<binary>AAAAgNWAsEAAAABgdAy0QAAAAICJ8qRA</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>rAaERaNjoEVMlCdF</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -241,12 +241,12 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="tr1">3673</offset>
-		<offset idRef="tr3">5682</offset>
-		<offset idRef="tr2">7743</offset>
-		<offset idRef="tr4">9723</offset>
-		<offset idRef="tr5">11732</offset>
+		<offset idRef="tr3">5670</offset>
+		<offset idRef="tr2">7711</offset>
+		<offset idRef="tr4">9686</offset>
+		<offset idRef="tr5">11683</offset>
 	</index>
 </indexList>
-<indexListOffset>13794</indexListOffset>
+<indexListOffset>13729</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

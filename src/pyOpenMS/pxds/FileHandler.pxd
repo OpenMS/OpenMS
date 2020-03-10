@@ -1,6 +1,7 @@
 from MSExperiment  cimport *
 from FeatureMap cimport *
 from Feature cimport *
+from String cimport *
 from libcpp.string cimport string as libcpp_string
 from FileTypes cimport *
 from Types cimport *
@@ -12,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         FileHandler() nogil except +
         FileHandler(FileHandler) nogil except +
 
-        bool loadExperiment(libcpp_string, MSExperiment &) nogil except+
-        void storeExperiment(libcpp_string, MSExperiment) nogil except+
-        bool loadFeatures(libcpp_string, FeatureMap &) nogil except +
+        bool loadExperiment(String, MSExperiment &) nogil except+
+        void storeExperiment(String, MSExperiment) nogil except+
+        bool loadFeatures(String, FeatureMap &) nogil except +
 
         PeakFileOptions  getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +
@@ -24,10 +25,10 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
 #
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
 
-    int getType(String filename) nogil except + # wrap-attach:FileHandler
-    FileType getTypeByFileName(String & filename) nogil except + # wrap-attach:FileHandler 
-    FileType getTypeByContent(String & filename) nogil except + # wrap-attach:FileHandler 
-    String computeFileHash(String & filename) nogil except + # wrap-attach:FileHandler 
+    int getType(const String& filename) nogil except + # wrap-attach:FileHandler
+    FileType getTypeByFileName(const String & filename) nogil except + # wrap-attach:FileHandler 
+    FileType getTypeByContent(const String & filename) nogil except + # wrap-attach:FileHandler 
+    String computeFileHash(const String & filename) nogil except + # wrap-attach:FileHandler 
     bool isSupported(FileType type_) nogil except + # wrap-attach:FileHandler 
-    bool hasValidExtension(String & filename, FileType type_) nogil except + # wrap-attach:FileHandler 
+    bool hasValidExtension(const String & filename, FileType type_) nogil except + # wrap-attach:FileHandler 
 

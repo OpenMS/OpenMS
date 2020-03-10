@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
 {
@@ -52,27 +51,32 @@ namespace OpenMS
     {
     public:
 
-      // Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
+      /// Maps enzyme_num in xQuest result file to the enzyme name used by OpenMS
       static std::map< Size, String > enzymes;
 
-      // Maps String encoding month to the numeric value
+      /// Maps String encoding month to the numeric value
       static std::map<String, UInt> months;
 
-      // Decoy string used by xQuest
-      static const String decoy_string;
-
+      /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
-                             std::vector< std::vector< PeptideIdentification > > & csms,
-                             std::vector< ProteinIdentification > & prot_ids,
-                             Size min_n_ions_per_spectrum,
-                             bool load_to_peptideHit_);
-      virtual ~XQuestResultXMLHandler();
+                             std::vector< PeptideIdentification > & pep_ids,
+                             std::vector< ProteinIdentification > & prot_ids
+                             );
+
+      /// Constructor for a write-only handler for internal identification structures
+      XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
+                             const std::vector<PeptideIdentification>& pep_id,
+                             const String& filename,
+                             const String& version
+                           );
+
+      ~XQuestResultXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname);
+      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       /**
        * @brief Returns the minimum score encountered in the file.
@@ -92,45 +96,87 @@ namespace OpenMS
        */
       UInt getNumberOfHits() const;
 
+      //Docu in base class
+      virtual void writeTo(std::ostream& os) override;
+
+      // TODO move these to StringUtils?
+      /**
+        * @brief splits the @input string at the nth occurrence of the @separator
+
+          If the separator does not occur in the input string n times, then the first output string will be the entire input string
+          and the second one will be empty.
+
+        * @return StringList with two elements, the two parts of the input without the nth separator
+      */
+      static StringList splitByNth(const String& input, const char separator, const Size n);
+
+      /**
+        * @brief counts occurrences of the @separator and splits the @input string into two at the middle
+
+          If the separator occurs 5 times in the input string, the string will be split at the 3rd occurrence.
+          If 7 times, then at the 4th.
+          The separator has to occur in the string an uneven number of times.
+          If the separator occurs once, the string will be split at this one instance.
+          If this one occurrence is at the beginning or end, one of the result strings will be empty.
+
+        * @exception Exception::IllegalArgument is thrown if the @separator does not occur in the @input string an uneven number of times and at least once
+        * @return StringList with two elements, the two halves of the input without the middle separator
+      */
+      static StringList splitByMiddle(const String& input, const char separator);
+
     private:
 
-      // Main data structures that are populated during loading the file
-      std::vector< std::vector< PeptideIdentification > > & csms_;
-      std::vector< ProteinIdentification > & prot_ids_;
 
-      UInt n_hits_; // Total no. of hits found in the result XML file
+      // Decoy string used by xQuest, initialize to a default value
+      String decoy_string_ = "decoy_";
+      int spectrum_index_light_;
+      int spectrum_index_heavy_;
+      String cross_linker_name_;
+
+      // Main data structures that are populated during loading the file
+      std::vector< PeptideIdentification >* pep_ids_;
+      std::vector< ProteinIdentification >* prot_ids_;
+
+      // internal ID items for writing files
+      const std::vector<ProteinIdentification>* cpro_id_;
+      const std::vector<PeptideIdentification>* cpep_id_;
+
+      UInt n_hits_; ///< Total no. of hits found in the result XML file
 
       // Keeps track of the minscore and maxscore encountered
       double min_score_;
       double max_score_;
 
-      Size min_n_ions_per_spectrum_;
-      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
+      /// Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
+      bool is_openpepxl_;
 
-      // Whether or not current xquest result tag comes from OpenProXL (xQuest otherwise)
-      bool is_openproxl_;
-
-      // Set of all protein accessions that are within the ProteinHits.
+      /// Set of all protein accessions that are within the ProteinHits.
       std::set< String > accessions_;
 
-      // The enzyme database for enzyme lookup
-      EnzymesDB * enzymes_db_;
+      /// The enzyme database for enzyme lookup
+      ProteaseDB* enzymes_db_;
 
-      // Keeps track of the charges of the hits
+      /// Keeps track of the charges of the hits
       std::set< UInt > charges_;
       UInt min_precursor_charge_;
       UInt max_precursor_charge_;
 
-      // Current Retention time of light spectrum
+      // Current Retention time of spectrum pair
       double rt_light_;
+      double rt_heavy_;
 
-      // The masses of the Monolinks
-      std::set< double > monolinks_masses_;
+      // Current experimental m/z of spectrum pair
+      double mz_light_;
+      double mz_heavy_;
 
-      // The current spectrum search
+      // primary MS run path
+      StringList ms_run_path_;
+      String spectrum_input_file_;
+
+      /// The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
 
-      // Stores the attributes of a record (peptide identification)
+      /// Stores the attributes of a record (peptide identification)
       std::map<String, DataValue> peptide_id_meta_values_;
 
       /**
@@ -141,7 +187,9 @@ namespace OpenMS
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
 
       /**
-       * @brief Assignes all meta values stored in the peptide_id_attributes member to an meta info interface
+       * @brief Assigns all meta values stored in the peptide_id_attributes
+       * member to an meta info interface
+       *
        * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
@@ -160,25 +208,6 @@ namespace OpenMS
        */
       void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 
-      /**
-       * @brief Sets the meta value of the peptide identification for alpha hit.
-       * @param key Which meta value to set
-       * @param datavalue Value to be set
-       * @param pep_id For which peptide identification the meta value should be set.
-       * @param alpha Alpha peptide hit for which the meta value should be set.
-       */
-      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha);
-
-      /**
-       * @brief Sets the meta value of the peptide identification for alpha hit.
-       * @param key Which meta value to set
-       * @param datavalue Value to be set
-       * @param pep_id For which peptide identification the meta value should be set.
-       * @param alpha Alpha peptide hit for which the meta value should be set.
-       * @param beta Beta peptide hit for which the meta value should be set.
-       */
-      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta);
     };
   } // namespace Internal
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H

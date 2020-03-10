@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         String meta_name
         bool value_is_numerical
         String toString() nogil except +
-        void fromString(String & filter_) nogil except +
+        void fromString(const String & filter_) nogil except +
         bool operator==(DataFilter & rhs) nogil except +
         bool operator!=(DataFilter & rhs) nogil except +
 

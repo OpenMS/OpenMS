@@ -13,13 +13,13 @@
     <Peptide id="78" sequence="QVFIGCPASVADQDAFERR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="QVFIGCPASVADQDAFERR"/>
-      <userParam name="full_peptide_name" type="xsd:string" value="(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERR(UniMod:11)"/>
+      <userParam name="full_peptide_name" type="xsd:string" value="(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERR(UniMod:193)"/>
       <ProteinRef ref="ProteinC"/>
       <Modification location="0" monoisotopicMassDelta="43.005814" averageMassDelta="43.0247">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:5" name="Carbamyl"/>
       </Modification>
-      <Modification location="20" monoisotopicMassDelta="-48.003371" averageMassDelta="-48.1075">
-        <cvParam cvRef="UNIMOD" accession="UNIMOD:11" name="Met->Hsl"/>
+      <Modification location="20" monoisotopicMassDelta="4.008491" averageMassDelta="3.9995">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:193" name="Label:18O(2)"/>
       </Modification>
       <Modification location="6" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 // interfaces
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 // helpers
@@ -124,7 +126,7 @@ protected:
   typedef TargetedExperiment TargetedExpType;
   typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -138,7 +140,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMTransitionGroupPicker().getDefaults();
   }
@@ -200,7 +202,7 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
           continue;
         }
 
@@ -265,7 +267,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     String in = getStringOption_("in");
@@ -286,9 +288,16 @@ protected:
     run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
-    StringList ms_runs;
-    exp->getPrimaryMSRunPath(ms_runs);
-    output.setPrimaryMSRunPath(ms_runs);
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)}, *exp);
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, *exp);
+    }      
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,14 +50,11 @@
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
 #include <QFile>
 #include <QCryptographicHash>
-
-#include <fstream>
 
 using namespace std;
 
@@ -83,6 +80,11 @@ namespace OpenMS
     if (basename.hasSuffix(".prot.xml"))
       return FileTypes::PROTXML;
 
+    if (basename.hasSuffix(".xquest.xml"))
+      return FileTypes::XQUESTXML;
+
+    if (basename.hasSuffix(".spec.xml"))
+      return FileTypes::SPECXML;
     try
     {
       tmp = basename.suffix('.');
@@ -303,6 +305,9 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mascot_search_results"))
       return FileTypes::MASCOTXML;
 
+    if (all_simple.hasPrefix("{"))
+      return FileTypes::JSON;
+
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
     {
@@ -357,7 +362,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -376,7 +381,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -407,6 +412,13 @@ namespace OpenMS
       {
         return FileTypes::MS2;
       }
+    }
+
+    // mzTab file format
+    for (Size i = 0; i != complete_file.size(); ++i) {
+        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
+            return FileTypes::MZTAB;
+        }
     }
 
     // msInspect file (.tsv)
@@ -492,7 +504,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -525,7 +537,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
-    // setting the flag for hash recomputation only works if source file entries are rewritten 
+    // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
 
     //determine file type
@@ -540,7 +552,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -622,8 +634,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     default:
       return false;
-
-      break;
     }
 
     if (rewrite_source_file)
@@ -631,8 +641,8 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       SourceFile src_file;
       src_file.setNameOfFile(File::basename(filename));
       String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
-      
-      // make sure we end up with at most 3 forward slashes       
+
+      // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
       src_file.setPathToFile(uri);
       // this is more complicated since the data formats allowed by mzML are very verbose.

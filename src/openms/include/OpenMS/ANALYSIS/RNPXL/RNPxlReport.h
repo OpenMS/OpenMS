@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
@@ -47,7 +46,7 @@
 namespace OpenMS
 {
 
-// struct to hold a single report line
+/// @brief struct to hold a single report line
 struct OPENMS_DLLAPI RNPxlReportRow
 {
   bool no_id;
@@ -70,19 +69,19 @@ struct OPENMS_DLLAPI RNPxlReportRow
   double m_H;
   double m_2H;
   double m_3H;
-  double m_4H;
-  String fragment_annotation_string;  
+  double m_4H;  
+  int rank;
   String getString(const String& separator) const;
 
 };
 
-// create header line
+/// create header line
 struct OPENMS_DLLAPI RNPxlReportRowHeader
 {
   static String getString(const String& separator);
 };
 
-// create report
+/// create report
 struct OPENMS_DLLAPI RNPxlReport
 {
   static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);
@@ -90,5 +89,4 @@ struct OPENMS_DLLAPI RNPxlReport
 
 }
 
-#endif
 

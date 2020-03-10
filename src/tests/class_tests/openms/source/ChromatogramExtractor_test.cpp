@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,12 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
-#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,8 +49,8 @@ START_TEST(ChromatogramExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramExtractor* ptr = 0;
-ChromatogramExtractor* nullPointer = 0;
+ChromatogramExtractor* ptr = nullptr;
+ChromatogramExtractor* nullPointer = nullptr;
 
 START_SECTION(ChromatogramExtractor())
 {
@@ -81,16 +82,8 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   TargetedExperiment::Peptide firstpeptide = transitions.getPeptides()[0];
   TEST_EQUAL(firstpeptide.rts.size(), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms().count("MS:1000896"), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms()["MS:1000896"].size(), 1);
-
-  OpenMS::DataValue v = firstpeptide.rts[0].getCVTerms()["MS:1000896"][0].getValue();
-  if(v.valueType() == 0) {  //data value is a string, e.g. "1042.42" and needs to be converted to double
-    TEST_EQUAL( (String(v)).toDouble(), 44);
-  }
-  else { 
-    TEST_EQUAL( (double)v, 44);
-  }
+  TEST_EQUAL(firstpeptide.hasRetentionTime(), true);
+  TEST_REAL_SIMILAR(firstpeptide.getRetentionTime(), 44.0)
 
   TEST_EQUAL(transitions.getTransitions().size(), 3)
   TEST_EQUAL(transitions.getTransitions()[0].getPrecursorMZ(), 500)
@@ -108,13 +101,7 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
   ///////////////////////////////////////////////////////////////////////////
   ChromatogramExtractor extractor;
   TransformationDescription trafo;
-#ifdef USE_SP_INTERFACE
-  SpectrumChromatogramInterface::SpectrumInterface* experiment = getSpectrumInterfaceOpenMSPtr(exp);
-  extractor.extractChromatograms(*experiment, out_exp, transitions, extract_window, false, trafo, -1, "tophat");
-  delete experiment;
-#else
   extractor.extractChromatograms(exp, out_exp, transitions, extract_window, false, trafo, -1, "tophat");
-#endif
 
   TEST_EQUAL(out_exp.size(), 0)
   TEST_EQUAL(out_exp.getChromatograms().size(), 3)
@@ -231,10 +218,11 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     TEST_REAL_SIMILAR(coordinates[0].rt_end, 44.5)
     TEST_REAL_SIMILAR(coordinates[1].rt_end, 2.5)
 
+    TEST_EQUAL(coordinates[0].id, "tr_gr1_Precursor_i0")
+    TEST_EQUAL(coordinates[1].id, "tr_gr2_Precursor_i0")
 
-
-    TEST_EQUAL(coordinates[0].id, "tr_gr1")
-    TEST_EQUAL(coordinates[1].id, "tr_gr2")
+    TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId(coordinates[0].id), "tr_gr1")
+    TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId(coordinates[1].id), "tr_gr2")
   }
 
 }
@@ -254,16 +242,18 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
-  std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
-  std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
-  ChromatogramExtractor extractor;
-  extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
-
-  extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
-      extract_window, ppm, extraction_function);
-  
   std::vector< OpenMS::MSChromatogram > chromatograms;
-  extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
+  {
+    std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    ChromatogramExtractor extractor;
+    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
+
+    extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
+        extract_window, ppm, extraction_function);
+
+    extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
+  }
 
   TEST_EQUAL(chromatograms.size(), 3)
   TEST_EQUAL(chromatograms[0].getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,16 @@
 // $Authors: Andreas Bertsch, Chris Bielow, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_FILE_H
-#define OPENMS_SYSTEM_FILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/config.h>
+#include <cstdlib>
 
 
 namespace OpenMS
 {
-
+  class Param;
   class TOPPBase;
 
   /**
@@ -59,7 +58,7 @@ public:
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
-    ///  File::getExecutablePath() + "mytool"
+    /// File::getExecutablePath() + "mytool"
     static String getExecutablePath();
 
     /// Method used to test if a @p file exists.
@@ -67,6 +66,41 @@ public:
 
     /// Return true if the file does not exist or the file is empty
     static bool empty(const String& file);
+
+    /**
+       @brief Rename a file
+       
+       If @p from and @p to point to the same file (symlinks are resolved),
+       no action will be taken and true is returned.
+       If the target already exists (and is not identical to the source),
+       this function will fail unless @p overwrite_existing is true.
+       
+       @param from Source filename
+       @param to Target filename
+       @param overwrite_existing Delete already existing target, before renaming
+       @param verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
+       @return True on success
+    */
+    static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
+
+    /**
+       @brief Copy directory recursively
+       
+       Copies a source directory to a new target directory (recursive).
+       If the target directory already exists, files will be added.
+       If files from the source already exist in the target, @p option allows for the following behaviour:
+       
+       OVERWRITE: Overwrite the file in the target directory if it already exists.
+       SKIP: Skip the file in the target directory if it already exists.
+       CANCEL: Cancel the copy process if file already exists in target directory - return false.
+
+       @param from_dir Source directory
+       @param to_dir Target directory
+       @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
+       @return True on success
+    */
+    enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
+    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /**
       @brief Removes a file (if it exists).
@@ -183,12 +217,39 @@ public:
     static String findDatabase(const String& db_name);
 
     /**
+      @brief Extract list of directories from a concatenated string (usually $PATH).
+
+      Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
+      All paths use the '/' as separator and end in '/'.
+      E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
+            or 'PATH=c:\temp;c:\Windows' the result is {"c:/temp/", "c:/Windows/"}
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+    */
+    static StringList getPathLocations(const String& path = std::getenv("PATH"));
+
+    /**
+      @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
+
+      This function can be used to find the full path+filename to an executable in
+      the PATH environment. Only the @em first hit (by order in PATH) is returned.
+      If the @p exe_filename has a relative or full path which points to an existing file, PATH information will not be used.
+      The function returns true if the filename was found (exists) and false otherwise.
+      Note: this does not require the file to have executable permission set (this is not tested)
+      The returned content of @p exe_filename is only valid if true is returned.
+
+      @param [in/out] exe_filename The executable to search for.
+      @return true if @p exe_filename could be resolved to a full path and it exists
+    */
+    static bool findExecutable(OpenMS::String& exe_filename);
+
+    /**
       @brief Searches for an executable with the given name.
 
       @param toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
-    static String findExecutable(const String& toolName);
+    static String findSiblingTOPPExecutable(const String& toolName);
 
     /**
       @brief Obtain a temporary filename, ensuring automatic deletion upon exit
@@ -216,9 +277,22 @@ private:
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const String& path);
 
+#ifdef OPENMS_WINDOWSPLATFORM
+    /**
+      @brief Get list of file suffices to try during search on PATH (usually .exe, .bat etc)
+
+      Input could be ".COM;.EXE;.BAT;.CMD;.VBS".
+      If the result does not contain at least ".exe", then we assume the environment variable is broken and return a
+      fallback, i.e. {".exe", ".bat"}.
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
+
+    */
+    static StringList executableExtensions_(const String& ext = std::getenv("PATHEXT"));
+#endif
 
     /**
-      @brief Internal helper class, which holds temporary filenames and deletes these file at program exit
+      @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
     */
     class TemporaryFiles_
     {
@@ -229,7 +303,8 @@ private:
 
         ~TemporaryFiles_();
       private:
-        TemporaryFiles_(const TemporaryFiles_&); // copy is forbidden
+        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
     };
 
@@ -241,4 +316,3 @@ private:
 
 }
 
-#endif // OPENMS_SYSTEM_FILE_H

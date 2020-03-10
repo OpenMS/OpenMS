@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CONSENSUSXMLFILE_H
-#define OPENMS_FORMAT_CONSENSUSXMLFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -53,9 +52,9 @@ namespace OpenMS
     This class can be used to load the content of a consensusXML file into a ConsensusMap
     or to save the content of an ConsensusMap object into an XML file.
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
-  @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
+  @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on OPENMS_LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
 
     @ingroup FileIO
   */
@@ -68,7 +67,7 @@ public:
     ///Default constructor
     ConsensusXMLFile();
     ///Destructor
-    ~ConsensusXMLFile();
+    ~ConsensusXMLFile() override;
 
 
     /**
@@ -98,13 +97,13 @@ public:
 protected:
 
     // Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+    void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
@@ -150,5 +149,4 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CONSENSUSXMLFILE_H
 

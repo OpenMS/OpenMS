@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -45,9 +45,11 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -194,7 +196,7 @@ protected:
     return true;
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -211,16 +213,16 @@ protected:
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     //Sequence library
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -313,7 +315,7 @@ protected:
     //-nox <Integer> maximum size of peptides for no-enzyme and semi-tryptic searches
     registerIntOption_("v", "<Integer>", 1, "number of missed cleavages allowed", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllOMSSANames(all_enzymes);
+    ProteaseDB::getInstance()->getAllOMSSANames(all_enzymes);
     registerStringOption_("enzyme", "<enzyme>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
     //registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
@@ -388,7 +390,7 @@ protected:
     registerIntOption_("chunk_size", "<Integer>", 0, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions (which is usually the case on Windows). To disable chunking (i.e. submit all spectra in one big chunk), set it to '0'.", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList parameters;
     // path to the log file
@@ -412,7 +414,7 @@ protected:
     OMSSAVersion omssa_version_i;
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that OMSSA exists and the path given in '-omssa_executable' is correct!");
+      writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that the OMSSA executable given in '-omssa_executable' is correct!");
       return ILLEGAL_PARAMETERS;
     }
     else
@@ -440,7 +442,7 @@ protected:
     //-------------------------------------------------------------
     if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
     {
-      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      OPENMS_LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -458,7 +460,7 @@ protected:
       }
       catch (...)
       {
-        LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
+        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
@@ -470,10 +472,10 @@ protected:
     bool has_phr = File::readable(db_name + ".phr");
     if (!has_pin || !has_phr)
     {
-      LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
-      LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
+      OPENMS_LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
+      if (!has_pin) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
+      if (!has_phr) OPENMS_LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      OPENMS_LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -533,7 +535,7 @@ protected:
     parameters << "-i" << getStringOption_("i");
     parameters << "-z1" << String(getDoubleOption_("z1"));
     parameters << "-v" << String(getIntOption_("v"));
-    parameters << "-e" << String(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAID());
+    parameters << "-e" << String(ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAID());
     parameters << "-tez" << String(getIntOption_("tez"));
 
 
@@ -673,8 +675,9 @@ protected:
             9 modmax	-  the max number of modification types
         */
 
-        ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(it->second).getTermSpecificity();
-        String origin = ModificationsDB::getInstance()->getModification(it->second).getOrigin();
+	const ResidueModification* mod = ModificationsDB::getInstance()->getModification(it->second);
+        ResidueModification::TermSpecificity ts = mod->getTermSpecificity();
+        const String& origin = mod->getOrigin();
         if (ts == ResidueModification::ANYWHERE)
         {
           out << "\t\t<MSModType value=\"modaa\">0</MSModType>" << "\n";
@@ -704,8 +707,8 @@ protected:
         out << "\t</MSModSpec_type>" << "\n";
 
         out << "\t<MSModSpec_name>" << it->second << "</MSModSpec_name>" << "\n";
-        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
-        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second).getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
+        out << "\t<MSModSpec_monomass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffMonoMass()  << "</MSModSpec_monomass>" << "\n";
+        out << "\t<MSModSpec_averagemass>" << ModificationsDB::getInstance()->getModification(it->second)->getDiffAverageMass() << "</MSModSpec_averagemass>" << "\n";
         out << "\t<MSModSpec_n15mass>0</MSModSpec_n15mass>" << "\n";
 
         if (origin != "")
@@ -718,8 +721,8 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
+          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
+          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -748,10 +751,10 @@ protected:
     writeDebug_("Splitting modification into N-Term, C-Term and anywhere specificity", 1);
     for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
     {
-      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
+      ResidueModification::TermSpecificity ts = ModificationsDB::getInstance()->getModification(*it)->getTermSpecificity();
       if (ts == ResidueModification::ANYWHERE)
       {
-        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it).getOrigin()] = *it;
+        fixed_residue_mods[ModificationsDB::getInstance()->getModification(*it)->getOrigin()] = *it;
       }
       if (ts == ResidueModification::C_TERM)
       {
@@ -773,16 +776,17 @@ protected:
     //-------------------------------------------------------------
 
     // names of temporary files for data chunks
-    StringList file_spectra_chunks_in, file_spectra_chunks_out, primary_ms_runs;
+    StringList file_spectra_chunks_in, file_spectra_chunks_out;
     Size ms2_spec_count(0);
+    ProteinIdentification protein_identification;    
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
+      protein_identification.setPrimaryMSRunPath({inputfile_name}, peak_map);
 
-      peak_map.getPrimaryMSRunPath(primary_ms_runs);
       ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
@@ -794,7 +798,7 @@ protected:
       // determine type of spectral data (profile or centroided)
       SpectrumSettings::SpectrumType spectrum_type = peak_map[0].getType();
 
-      if (spectrum_type == SpectrumSettings::RAWDATA)
+      if (spectrum_type == SpectrumSettings::PROFILE)
       {
         if (!getFlag_("force"))
         {
@@ -838,8 +842,6 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    ProteinIdentification protein_identification;
-    protein_identification.setPrimaryMSRunPath(primary_ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     ProgressLogger pl;
@@ -1020,13 +1022,13 @@ protected:
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme")));
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
-    
+
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");
@@ -1039,7 +1041,7 @@ protected:
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
 

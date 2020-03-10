@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -72,14 +73,14 @@ using namespace std;
   </center>
 
   Reference:\n
-  Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+  Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
   The conversion of the "raw" ion count data acquired
   by the machine into peak lists for further processing
   is usually called peak picking or centroiding. The choice of the algorithm
   should mainly depend on the resolution of the data.
   As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution (orbitrap or FTICR) data.
+  algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
@@ -140,7 +141,7 @@ protected:
       pp_ = pp;
     }
 
-    void processSpectrum_(MapType::SpectrumType& s)
+    void processSpectrum_(MapType::SpectrumType& s) override
     {
       if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
 
@@ -149,7 +150,7 @@ protected:
       s = sout;  // todo: swap? (requires implementation)
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c)
+    void processChromatogram_(MapType::ChromatogramType & c) override
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
@@ -162,7 +163,7 @@ protected:
     std::vector<Int> ms_levels_;
   };
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -175,7 +176,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return PeakPickerHiRes().getDefaults();
   }
@@ -198,7 +199,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -230,7 +231,7 @@ protected:
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }

@@ -3,6 +3,7 @@ set(directory source/METADATA)
 
 ### list all filenames of the directory here
 set(sources_list
+AbsoluteQuantitationStandards.cpp
 Acquisition.cpp
 AcquisitionInfo.cpp
 CVTerm.cpp

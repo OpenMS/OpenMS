@@ -1,5 +1,5 @@
+from Types cimport *
 from String cimport *
-from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
 
@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
         # TODO 
         # libcpp_vector[ libcpp_vector[unsigned int] ] getPercentages() nogil except +
 
-        # sets all precentage values to 0
+        # sets all percentage values to 0
         void clearPercentages() nogil except +
         # checks if the percentages of all timepoints add up to 100%
         bool isValid() nogil except +

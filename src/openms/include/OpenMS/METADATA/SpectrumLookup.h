@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMLOOKUP_H
-#define OPENMS_METADATA_SPECTRUMLOOKUP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -119,7 +118,7 @@ namespace OpenMS
           scan_no = extractScanNumber(native_id, scan_regexp_, true);
           if (scan_no < 0)
           {
-            LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
+            OPENMS_LOG_WARN << "Warning: Could not extract scan number from spectrum native ID '" + native_id + "' using regular expression '" + scan_regexp + "'. Look-up by scan number may not work properly." << std::endl;
           }
         }
         addEntry_(i, spectrum.getRT(), scan_no, native_id);
@@ -213,6 +212,9 @@ namespace OpenMS
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    static Int extractScanNumber(const String& native_id,
+                                 const String& native_id_type_accession);
+
   protected:
 
     /// Named groups recognized in regular expression
@@ -272,4 +274,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMLOOKUP_H

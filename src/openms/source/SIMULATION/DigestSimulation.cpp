@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,9 @@
 
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
 {
@@ -71,7 +69,7 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    EnzymesDB::getInstance()->getAllNames(enzymes);
+    ProteaseDB::getInstance()->getAllNames(enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
@@ -95,7 +93,7 @@ namespace OpenMS
 
   void DigestSimulation::digest(SimTypes::FeatureMapSim& feature_map)
   {
-    LOG_INFO << "Digest Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "Digest Simulation ... started" << std::endl;
 
     if ((String)param_.getValue("enzyme") == String("no cleavage"))
     {
@@ -139,7 +137,7 @@ namespace OpenMS
 
 
     UInt min_peptide_length = param_.getValue("min_peptide_length");
-    bool use_log_model = param_.getValue("model") == "trained" ? true : false;
+    bool use_log_model = param_.getValue("model") == "trained";
     UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
     double cleave_threshold = param_.getValue("model_trained:threshold");
     if (use_log_model)
@@ -149,7 +147,7 @@ namespace OpenMS
     }
     else
     {
-      EnzymaticDigestion digestion;
+      ProteaseDigestion digestion;
       digestion.setEnzyme((String)param_.getValue("enzyme"));
     }
 
@@ -177,7 +175,7 @@ namespace OpenMS
       }
       else
       {
-        EnzymaticDigestion digestion;
+        ProteaseDigestion digestion;
         digestion.setEnzyme((String)param_.getValue("enzyme"));
         digestion.setMissedCleavages(0);
         complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
@@ -217,13 +215,13 @@ namespace OpenMS
       }
       else
       {
-        EnzymaticDigestion digestion;
+        ProteaseDigestion digestion;
         digestion.setEnzyme((String)param_.getValue("enzyme"));
         digestion.setMissedCleavages(missed_cleavages);
         digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
       }
 
-      for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
+      for (std::vector<AASequence>::iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
            ++dp_it)
       {
@@ -235,7 +233,7 @@ namespace OpenMS
         // If we see this Peptide the first time -> generate corresponding feature
         if (generated_features.count(*dp_it) == 0)
         {
-          PeptideHit pep_hit(1.0, 1, 0, *dp_it);
+          PeptideHit pep_hit(1.0, 1, 0, std::move(*dp_it));
 
           PeptideIdentification pep_id;
           pep_id.insertHit(pep_hit);
@@ -309,4 +307,4 @@ namespace OpenMS
 
   }
 
-}
+} // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,6 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 
-#include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
-#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h> // for ConvexHull2D, etc
-#include <OpenMS/KERNEL/BaseFeature.h> // for BaseFeature::QualityType, etc
-
 using namespace std;
 
 namespace OpenMS
@@ -59,6 +55,17 @@ namespace OpenMS
     convex_hull_(feature.convex_hull_),
     subordinates_(feature.subordinates_)
   {
+    std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
+  }
+
+  Feature::Feature(Feature&& feature) noexcept :
+    BaseFeature(std::move(feature)),
+    convex_hulls_(std::move(feature.convex_hulls_)),
+    convex_hulls_modified_(std::move(feature.convex_hulls_modified_)),
+    convex_hull_(std::move(feature.convex_hull_)),
+    subordinates_(std::move(feature.subordinates_))
+  {
+    // TODO: no strong exception safety here
     std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
   }
 
@@ -164,14 +171,33 @@ namespace OpenMS
   Feature& Feature::operator=(const Feature& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     BaseFeature::operator=(rhs);
-    copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
-    convex_hulls_                       = rhs.convex_hulls_;
+    std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    convex_hulls_           = rhs.convex_hulls_;
     convex_hulls_modified_  = rhs.convex_hulls_modified_;
-    convex_hull_                = rhs.convex_hull_;
-    subordinates_                       = rhs.subordinates_;
+    convex_hull_            = rhs.convex_hull_;
+    subordinates_           = rhs.subordinates_;
+
+    return *this;
+  }
+
+  Feature& Feature::operator=(Feature&& rhs) & noexcept
+  {
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    BaseFeature::operator=(std::move(rhs));
+    std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    convex_hulls_           = std::move(rhs.convex_hulls_);
+    convex_hulls_modified_  = std::move(rhs.convex_hulls_modified_);
+    convex_hull_            = std::move(rhs.convex_hull_);
+    subordinates_           = std::move(rhs.subordinates_);
 
     return *this;
   }

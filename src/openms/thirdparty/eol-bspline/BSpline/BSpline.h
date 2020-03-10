@@ -14,8 +14,7 @@
  *
  *************************************************************************/
 
-#ifndef BSPLINE_H
-#define BSPLINE_H
+#pragma once
 
 #include "BSplineBase.h"
 #include <vector>
@@ -121,4 +120,3 @@ protected:
 
 } // end namespace
 
-#endif 

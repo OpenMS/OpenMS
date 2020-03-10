@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -51,11 +50,11 @@ namespace OpenMS
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
   {
-    std::map<String, UInt> exception; //count exceptions
+    std::map<String, UInt> exception; ///<count exceptions
     UInt no_exceptions;
-    std::map<String, UInt> mz_model; //count used mz models
-    std::map<float, UInt> mz_stdev; //count used mz standard deviations
-    std::vector<UInt> charge; //count used charges
+    std::map<String, UInt> mz_model; ///<count used mz models
+    std::map<float, UInt> mz_stdev; ///<count used mz standard deviations
+    std::vector<UInt> charge; ///<count used charges
     double corr_mean, corr_max, corr_min; //boxplot for correlation
 
     /// Initial values
@@ -86,14 +85,14 @@ public:
     /// default constructor
     FeatureFinderAlgorithm() :
       DefaultParamHandler("FeatureFinderAlgorithm"),
-      map_(0),
-      features_(0),
-      ff_(0)
+      map_(nullptr),
+      features_(nullptr),
+      ff_(nullptr)
     {
     }
 
     /// destructor
-    virtual ~FeatureFinderAlgorithm()
+    ~FeatureFinderAlgorithm() override
     {
     }
 
@@ -156,4 +155,3 @@ private:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H

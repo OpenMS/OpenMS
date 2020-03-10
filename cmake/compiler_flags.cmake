@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,18 @@
 #------------------------------------------------------------------------------
 # This cmake file handles all the project specific compiler flags
 
+# allow additional custom compile flags on the cmake command line by using -DMY_CXX_FLAGS="-g -D_GLIBCXX_ASSERTIONS ..."
+# useful for e.g. Release with debug symbols on gcc/clang
+if (MY_CXX_FLAGS)
+  message(STATUS "Adding custom compile flags: '${MY_CXX_FLAGS}'!")
+  add_compile_options(${MY_CXX_FLAGS})
+endif()
+
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 
-  add_definitions(-Wall -Wextra 
-    -fvisibility=hidden
+  add_compile_options(-Wall -Wextra 
+    #-fvisibility=hidden # This is now added as a target property for each library.
     -Wno-non-virtual-dtor 
     -Wno-unknown-pragmas
     -Wno-long-long 
@@ -48,23 +56,16 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
   option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
-    add_definitions(-Werror)
+    add_compile_options(-Werror)
     message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
   endif()
 
-  if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
-		add_definitions(--pedantic)
-	endif()
 
-	# Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
-	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
-		add_definitions(-fmessage-length=0)
-	endif()
+  # Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
+  if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
+    add_compile_options(-fmessage-length=0)
+  endif()
 
-	# Is this still needed? Why? Only on 4.3?
-	if (NOT OPENMS_64BIT_ARCHITECTURE AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.3.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.4.0")
-		add_definitions(-march=i486)
-	endif()
   
 elseif (MSVC)
 	# do not use add_definitions
@@ -96,6 +97,9 @@ elseif (MSVC)
 	## coinor windows.h include bug workaround
 	add_definitions(/DNOMINMAX)
 
+	## hdf5 linkage for windows (in case we want to build dynamically)
+	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
+
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
@@ -110,9 +114,10 @@ elseif (MSVC)
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
   # add clang specific warning levels
-  add_definitions(-Weverything)
+  # we should not use -Weverything routinely https://quuxplusone.github.io/blog/2018/12/06/dont-use-weverything/
+  add_compile_options(-Wall -Wextra)
   # .. and disable some of the harmless ones
-  add_definitions(
+  add_compile_options(
                   -Wno-sign-conversion
                   # These are warnings of low severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
@@ -130,6 +135,9 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-c++98-compat-pedantic
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
+                  -Wno-unknown-warning-option
+                  -Wno-double-promotion
+                  -Wno-unused-template
                   -Wno-conversion
                   -Wno-float-equal
                   -Wno-switch-enum
@@ -142,24 +150,24 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-missing-noreturn
                   )
 else()
-	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
+  set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
 if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
-	CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
-	if (WITH_FPIC)
-		add_definitions(-fPIC)
-	endif()
+  CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
+  if (WITH_FPIC)
+    add_compile_options(-fPIC)
+  endif()
 endif()
 
 ## -Wconversion flag for GCC
 set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
 if (CXX_WARN_CONVERSION)
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		add_definitions(-Wconversion)
-	endif()
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(-Wconversion)
+  endif()
 endif()
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 

@@ -8,6 +8,7 @@ Constants.cpp
 Exception.cpp
 FuzzyStringComparator.cpp
 GlobalExceptionHandler.cpp
+Init.cpp
 LogConfigHandler.cpp
 LogStream.cpp
 PrecisionWrapper.cpp

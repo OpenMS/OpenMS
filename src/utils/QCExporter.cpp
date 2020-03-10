@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <QFileInfo>
 
 //~ #include <QIODevice>
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -99,12 +100,12 @@ class TOPPQCExporter :
 {
 public:
   TOPPQCExporter() :
-    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", false)
+    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", false, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", ListUtils::create<String>("qcML"));
@@ -115,7 +116,7 @@ protected:
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

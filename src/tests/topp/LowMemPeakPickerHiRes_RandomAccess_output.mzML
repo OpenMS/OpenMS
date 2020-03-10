@@ -56,7 +56,7 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_7" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="LowMemPeakPickerHiRes_RandomAccess" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="LowMemPeakPickerHiResRandomAccess" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">

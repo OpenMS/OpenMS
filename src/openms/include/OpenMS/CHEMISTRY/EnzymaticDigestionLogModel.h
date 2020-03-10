@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,11 @@
 // $Authors: Marc Sturm, Chris Bielow, Xiao Liang $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H
-#define OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
 #include <string>
 #include <vector>
@@ -130,7 +129,7 @@ protected:
     bool isCleavageSite_(const AASequence& sequence, const AASequence::ConstIterator& p) const;
 
     /// Used enzyme
-    Enzyme enzyme_;
+    const DigestionEnzyme* enzyme_;
 
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;
@@ -140,4 +139,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H

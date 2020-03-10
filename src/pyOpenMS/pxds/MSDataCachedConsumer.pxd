@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>" namespace "
 
     cdef cppclass MSDataCachedConsumer:
 
+        MSDataCachedConsumer(String filename) nogil except +
         MSDataCachedConsumer(String filename, bool clear) nogil except +
         MSDataCachedConsumer(MSDataCachedConsumer) nogil except + #wrap-ignore
 

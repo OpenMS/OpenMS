@@ -13,7 +13,6 @@ Autwrap has wrapped 366 classes, 3794 methods and 62 enums
 
 In total, 153 classes are wrapped at the current moment.
 
-x    AdditiveSeries.cpp # 331 lines
 ok   BaselineFilter.cpp # morph filter
 ok   CompNovo.cpp
 ok   CompNovoCID.cpp
@@ -119,7 +118,6 @@ ok   FeatureFinderSuperHirn.cpp
 n    FFEval.cpp
 n    FuzzyDiff.cpp
 ok   IDDecoyProbability.cpp
-n    IDEvaluator.cpp # plotting tool
 x    IDExtractor.cpp  # 200 lines
 n    IDMassAccuracy.cpp
 n    IDSplitter.cpp
@@ -192,7 +190,6 @@ ok  TOFCalibration - Applies time of flight calibration.
 
 Quantitation
 
-x   AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples. # all in TOPP Tool
 ok  Decharger - Decharges and merges different feature charge variants of the same chemical entity.
 ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
 ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
@@ -258,9 +255,3 @@ Misc
 
 GenericWrapper - Allows the generic wrapping of external tools.
 ExecutePipeline - Executes workflows created by TOPPAS.
-
-
-
-
-
-

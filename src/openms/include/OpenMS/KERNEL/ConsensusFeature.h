@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_CONSENSUSFEATURE_H
-#define OPENMS_KERNEL_CONSENSUSFEATURE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -51,7 +50,12 @@ namespace OpenMS
   class Peak2D;
 
   /**
-    @brief A 2-dimensional consensus feature.
+    @brief A consensus feature spanning multiple LC-MS/MS experiments.
+
+    A ConsensusFeature represents analytes that have been
+    quantified across multiple LC-MS/MS experiments. Each analyte in a
+    ConsensusFeature is linked to its original LC-MS/MS run through a
+    unique identifier.
 
     A consensus feature represents corresponding features in multiple feature
     maps. The corresponding features are represented a set of @ref
@@ -156,7 +160,10 @@ public:
     ConsensusFeature();
 
     /// Copy constructor
-    ConsensusFeature(const ConsensusFeature& rhs);
+    ConsensusFeature(const ConsensusFeature& rhs) = default;
+
+    /// Move constructor
+    ConsensusFeature(ConsensusFeature&& rhs) = default;
 
     /// Constructor from basic feature
     explicit ConsensusFeature(const BaseFeature& feature);
@@ -178,10 +185,13 @@ public:
     ConsensusFeature(UInt64 map_index, const BaseFeature& element);
 
     /// Assignment operator
-    ConsensusFeature& operator=(const ConsensusFeature& rhs);
+    ConsensusFeature& operator=(const ConsensusFeature& rhs) = default;
+
+    /// Move Assignment operator
+    ConsensusFeature& operator=(ConsensusFeature&& rhs) = default;
 
     /// Destructor
-    virtual ~ConsensusFeature();
+    ~ConsensusFeature() override;
     //@}
 
 
@@ -225,6 +235,9 @@ public:
 
     /// Mutable access to a copy of the contained feature handles
     std::vector<FeatureHandle> getFeatureList() const;
+
+    /// Set the feature set to a new one
+    void setFeatures(HandleSetType h);
     //@}
 
     ///@name Accessors
@@ -327,8 +340,10 @@ public:
     //@}
 
 private:
+
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
+
 
   };
 
@@ -337,4 +352,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_CONSENSUSFEATURE_H

@@ -2,7 +2,7 @@
                      pyopenms -- Python wrapper for OpenMS
 -------------------------------------------------------------------------------
 
-Copyright (C) 2011-2016 -- Uwe Schmitt
+Copyright (C) 2011-2017 -- Uwe Schmitt
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright

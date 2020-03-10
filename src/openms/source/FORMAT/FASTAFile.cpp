@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@
 #include <seqan/stream.h>
 #include <seqan/seq_io/guess_stream_format.h>
 #include <seqan/seq_io/read_fasta_fastq.h>
-#include <seqan/sequence.h>
 
 namespace OpenMS
 {
@@ -76,6 +75,19 @@ namespace OpenMS
     if (infile_.is_open()) infile_.close(); // precaution
 
     infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
+
+    // Skip the header of PEFF files (http://www.psidev.info/peff)
+    std::string line;
+    std::streampos firstline = 0;
+    while (TextFile::getLine(infile_, line))
+    {
+      if (!line.empty() && line[0] != '#')
+      {
+        break;
+      }
+      firstline = infile_.tellg();
+    }
+    infile_.seekg(firstline);
   
     // automatically deletes old handles
     reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),

@@ -14,11 +14,13 @@ FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h
 FeatureGroupingAlgorithmUnlabeled.h
+FeatureMapping.h
 LabeledPairFinder.h
 MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmKD.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h
+MapAlignmentAlgorithmTreeGuided.h
 MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h

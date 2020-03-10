@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/fa/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_5305331602851715574" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="" label="decharged features" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_5544180789932800495" quality="0">
+			<centroid rt="102" mz="300.000670404656" it="900"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102" mz="298.992724" it="100" charge="-1"/>
+				<element map="0" id="101" rt="102" mz="148.992724" it="100" charge="-2"/>
+				<element map="0" id="102" rt="102" mz="280.98161" it="100" charge="-1"/>
+				<element map="0" id="103" rt="102" mz="320.974666" it="100" charge="-1"/>
+				<element map="0" id="104" rt="102" mz="334.969402" it="100" charge="-1"/>
+				<element map="0" id="105" rt="102" mz="336.948606" it="100" charge="-1"/>
+				<element map="0" id="106" rt="102" mz="378.918885" it="100" charge="-1"/>
+				<element map="0" id="107" rt="102" mz="98.992724" it="100" charge="-3"/>
+				<element map="0" id="108" rt="102" mz="344.998201" it="100" charge="-1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[-3, -2, -1]"/>
+			<UserParam type="int" name="distinct_charges_size" value="3"/>
+			<UserParam type="int" name="pure_proton_features" value="3"/>
+			<UserParam type="string" name="102" value="H-3O-1"/>
+			<UserParam type="string" name="103" value="H-2Na1"/>
+			<UserParam type="string" name="104" value="Cl1"/>
+			<UserParam type="string" name="105" value="H-2K1"/>
+			<UserParam type="string" name="106" value="Br1"/>
+			<UserParam type="string" name="108" value="C1H1O2"/>
+			<UserParam type="string" name="101" value="H-2"/>
+			<UserParam type="string" name="100" value="H-1"/>
+			<UserParam type="string" name="107" value="H-3"/>
+		</consensusElement>
+		<consensusElement id="e_2820855813419109252" quality="0">
+			<centroid rt="100" mz="101.007276" it="100"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100" mz="101.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_15821371501051276986" quality="0">
+			<centroid rt="100" mz="108.33459" it="100"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="100" mz="108.33459" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_16247858443050999688" quality="0">
+			<centroid rt="100" mz="115.661904" it="100"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="100" mz="115.661904" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_17589328263146396490" quality="0">
+			<centroid rt="100" mz="122.989218" it="100"/>
+			<groupedElementList>
+				<element map="0" id="12" rt="100" mz="122.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_1668569847566219630" quality="0">
+			<centroid rt="100" mz="151.007276" it="100"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100" mz="151.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_2923859055626839012" quality="0">
+			<centroid rt="100" mz="159.52055" it="100"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100" mz="159.52055" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_7079299220379506483" quality="0">
+			<centroid rt="100" mz="161.998247" it="100"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100" mz="161.998247" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_14585985052890294934" quality="0">
+			<centroid rt="100" mz="341.984986933542" it="100"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100" mz="169.985217" it="100" charge="-2"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_15228323068357874672" quality="0">
+			<centroid rt="100" mz="172.989218" it="100"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100" mz="172.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_7904331021332342013" quality="0">
+			<centroid rt="100" mz="301.007276" it="100"/>
+			<groupedElementList>
+				<element map="0" id="15" rt="100" mz="301.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_16824643771122819542" quality="0">
+			<centroid rt="100" mz="318.033823" it="100"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100" mz="318.033823" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_10427798130343062978" quality="0">
+			<centroid rt="100" mz="322.989218" it="100"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100" mz="322.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_277288293309248432" quality="0">
+			<centroid rt="100" mz="339.970434466771" it="100"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100" mz="338.963158" it="100" charge="-1"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_8060924860367445558" quality="0">
+			<centroid rt="100" mz="342.033823" it="100"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="100" mz="342.033823" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_1889377723564787800" quality="0">
+			<centroid rt="100" mz="344.97116" it="100"/>
+			<groupedElementList>
+				<element map="0" id="14" rt="100" mz="344.97116" it="100"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

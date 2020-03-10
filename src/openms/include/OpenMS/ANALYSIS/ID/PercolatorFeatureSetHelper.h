@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
-#define OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -110,7 +109,7 @@ namespace OpenMS
 
         /**
          * @brief addXTANDEMFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param feature_set register of added features
          *
          * Creates and adds X!Tandem specific Percolator features and registers them in feature_set
@@ -119,7 +118,7 @@ namespace OpenMS
 
         /**
          * @brief addCOMETFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param feature_set register of added features
          *
          * Creates and adds Comet specific Percolator features and registers them in feature_set
@@ -128,7 +127,7 @@ namespace OpenMS
 
         /**
          * @brief addMASCOTFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param feature_set register of added features
          *
          * Creates and adds Mascot specific Percolator features and registers them in feature_set
@@ -137,7 +136,7 @@ namespace OpenMS
 
         /**
          * @brief addMULTISEFeatures
-         * @param peptide_ids PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
          * @param search_engines_used the list of search engines to be considered
          * @param feature_set register of added features
          * @param complete_only will only add features for PeptideIdentifications where all given search engines identified something
@@ -149,7 +148,7 @@ namespace OpenMS
 
         /**
          * @brief addCONCATSEFeatures
-         * @param peptide_id_list PeptideIdentification vector to create Percolator featrues in
+         * @param peptide_id_list PeptideIdentification vector to create Percolator features in
          * @param search_engines_used the list of search engines to be considered
          * @param feature_set register of added features
          *
@@ -174,7 +173,7 @@ namespace OpenMS
         /// helper function for assigning the frequently occurring feature delta score
         static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
 
-        /// gets the scan identifer to merge by
+        /// gets the scan identifier to merge by
         static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);
 
         /// For accession dependent sorting of ProteinHits
@@ -199,5 +198,4 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
 

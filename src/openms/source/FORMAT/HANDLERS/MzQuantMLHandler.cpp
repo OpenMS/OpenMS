@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,17 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <set>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <algorithm>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -54,7 +45,7 @@ namespace OpenMS
     MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      msq_(0),
+      msq_(nullptr),
       cmsq_(&msq)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing
@@ -64,7 +55,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       msq_(&msq),
-      cmsq_(0)
+      cmsq_(nullptr)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     }
@@ -321,8 +312,7 @@ namespace OpenMS
 
       if (tag_ == "PeptideSequence")
       {
-        AASequence p = AASequence::fromString(String(sm_.convert(chars)));
-        PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
+        PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), AASequence::fromString(String(sm_.convert(chars))));
         cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
       }

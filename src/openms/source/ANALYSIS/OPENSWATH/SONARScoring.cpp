@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,15 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <cmath>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+
+#include <boost/cast.hpp>
 
 // #define DEBUG_SONAR
 
@@ -51,10 +52,11 @@ namespace OpenMS
   SONARScoring::SONARScoring() :
     DefaultParamHandler("SONARScoring")
   {
-
-    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
+    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
-    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
+    defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
+    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
     defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
@@ -64,14 +66,15 @@ namespace OpenMS
   void SONARScoring::updateMembers_()
   {
     dia_extract_window_ = (double)param_.getValue("dia_extraction_window");
+    dia_extraction_ppm_ = param_.getValue("dia_extraction_unit") == "ppm";
     dia_centroided_ = param_.getValue("dia_centroided").toBool();
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                     double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
-    typedef std::map<int, double> XCorrArrayType;
+    typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
     typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
 
@@ -84,7 +87,7 @@ namespace OpenMS
       {
         // compute normalized cross correlation
         xcorr_matrix[i][j] = OpenSwath::Scoring::normalizedCrossCorrelation(
-                sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
+                                  sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
       }
     }
 
@@ -107,8 +110,6 @@ namespace OpenMS
       xcorr_coelution_score = deltas_mean + deltas_stdv;
     }
 
-
-
     // shape score (intensity)
     std::vector<double> intensities;
     for (std::size_t i = 0; i < xcorr_matrix.size(); i++)
@@ -128,7 +129,7 @@ namespace OpenMS
 
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
-                                        std::vector<OpenSwath::SwathMap>& swath_maps,
+                                        const std::vector<OpenSwath::SwathMap>& swath_maps,
                                         OpenSwath_Scores & scores)
   {
     if (transitions.empty()) {return;}
@@ -211,10 +212,20 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0;
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0;
+        double left = transitions[k].getProductMZ();
+        double right = transitions[k].getProductMZ();
+        if (dia_extraction_ppm_)
+        {
+          left -= left * dia_extract_window_ / 2e6;
+          right += right * dia_extract_window_ / 2e6;
+        }
+        else
+        {
+          left -= dia_extract_window_ / 2.0;
+          right += dia_extract_window_ / 2.0;
+        }
         double mz, intensity;
-        integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
+        DIAHelpers::integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);
