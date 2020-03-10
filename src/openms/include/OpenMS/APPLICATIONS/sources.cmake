@@ -24,6 +24,7 @@ set(sources_list_h
 ConsoleUtils.h
 INIUpdater.h
 MapAlignerBase.h
+OpenSwathBase.h
 ParameterInformation.h
 ToolHandler.h
 TOPPBase.h
