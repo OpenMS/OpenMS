@@ -1513,7 +1513,7 @@ namespace OpenMS
               }
             }
 
-            auto clusterIt = indistProteins.emplace(parents, PeptideNodeSet({*ui}));
+            auto clusterIt = pepClusters.emplace(parents, PeptideNodeSet({*ui}));
             if (!clusterIt.second) //no insertion -> append
             {
               (clusterIt.first)->second.insert(*ui);

@@ -108,7 +108,7 @@ namespace OpenMS
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
         // TODO Can be sped up using directed graph. Needs some restructuring in IDBoostGraph class first tho.
-        std::vector<IDBoostGraph::vertex_t> in{};
+        vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
         //TODO the try section could in theory be slimmed down a little bit. Start at first use of insertDependency maybe.
@@ -198,22 +198,59 @@ namespace OpenMS
               .getValue("loopy_belief_propagation:dampening_lambda");
           double initConvergenceThreshold = param_.getValue(
               "loopy_belief_propagation:convergence_threshold");
+          String scheduler_type = param_.getValue(
+              "loopy_belief_propagation:scheduling_type");
 
-          //TODO parametrize the type of scheduler.
-          evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
-                                                              initConvergenceThreshold,
-                                                              maxMessages);
-          scheduler.add_ab_initio_edges(ig);
+          evergreen::Scheduler<IDBoostGraph::vertex_t>* scheduler;
+          if (scheduler_type == "priority")
+          {
+             scheduler =
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                     initConvergenceThreshold,
+                                                                     maxMessages);
+          }
+          else if (scheduler_type == "subtree")
+          {
+            scheduler =
+                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                          initConvergenceThreshold,
+                                                                          maxMessages);
+          }
+          else if (scheduler_type == "fifo")
+          {
+            scheduler =
+                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                 initConvergenceThreshold,
+                                                                 maxMessages);
+          }
+          else
+          {
+            scheduler =
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                     initConvergenceThreshold,
+                                                                     maxMessages);
+          }
+          scheduler->add_ab_initio_edges(ig);
 
-          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(*scheduler, ig);
 
+          vector<evergreen::LabeledPMF<IDBoostGraph::vertex_t>> posteriorFactors;
           unsigned long nrEdgesSq = nrEdges*nrEdges;
-          auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
-              {
-                  std::make_tuple(std::min(std::max<unsigned long>(10000ul, nrEdgesSq*2ul), maxMessages), initDampeningLambda, initConvergenceThreshold),
-                  std::make_tuple(std::min(nrEdgesSq,maxMessages - nrEdgesSq*2ul), std::min(0.49,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
-                  std::make_tuple(std::min(nrEdgesSq/2ul,maxMessages - nrEdgesSq*3ul), std::min(0.49,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
-              });
+          if (maxMessages < nrEdgesSq * 3ul)
+          {
+            posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
+            {
+                std::make_tuple(maxMessages, initDampeningLambda, initConvergenceThreshold)});
+          }
+          else
+          {
+            posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
+            {
+                std::make_tuple(std::max<unsigned long>(10000ul, nrEdgesSq*2ul), initDampeningLambda, initConvergenceThreshold),
+                std::make_tuple(nrEdgesSq, std::min(0.49,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
+                std::make_tuple(nrEdgesSq/2ul, std::min(0.49,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
+            });
+          }
 
           // TODO move the writing of statistics from IDBoostGraph here and write more stats
           //  like nr messages and failure/success
@@ -235,7 +272,7 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << std::endl;;
+          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << std::endl;;
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
@@ -266,14 +303,14 @@ namespace OpenMS
                 , std::ofstream::out | std::ofstream::app);
             IDBoostGraph::printGraph(ofs, fg);
           }
-          std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+          OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
           return 0;
         }
       }
       else
       {
-        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        OPENMS_LOG_DEBUG << "Skipped cc with only one type (proteins or peptides)" << std::endl;
         return 0;
       }
     }
@@ -562,8 +599,8 @@ namespace OpenMS
                        "(Not used yet) How to pick the next message:"
                            " priority = based on difference to last message (higher = more important)."
                            " fifo = first in first out."
-                           " random_spanning_tree = message passing follows a random spanning tree in each iteration");
-    defaults_.setValidStrings("loopy_belief_propagation:scheduling_type", {"priority","fifo","random_spanning_tree"});
+                           " subtree = message passing follows a random spanning tree in each iteration");
+    defaults_.setValidStrings("loopy_belief_propagation:scheduling_type", {"priority","fifo","subtree"});
 
     //TODO not yet implemented
 /*    defaults_.setValue("loopy_belief_propagation:message_difference",
