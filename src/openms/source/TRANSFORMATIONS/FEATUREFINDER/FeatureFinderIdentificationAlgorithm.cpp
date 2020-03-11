@@ -326,7 +326,7 @@ namespace OpenMS
         ++seeds_added;
       }
     }
-    OPENMS_LOG_INFO << "Seeds added: " << seeds_added << endl;
+    OPENMS_LOG_INFO << "Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
 
 
     n_internal_peps_ = peptide_map_.size();
