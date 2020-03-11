@@ -20,54 +20,6 @@
    <attribute name="title">
     <string>Config</string>
    </attribute>
-   <widget class="QGroupBox" name="box_python">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>371</width>
-      <height>71</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Python</string>
-    </property>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Python version: ...</string>
-     </property>
-    </widget>
-    <widget class="QWidget" name="">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>351</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLineEdit" name="lineEdit"/>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>browse</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </widget>
    <widget class="QGroupBox" name="box_pyProphet">
     <property name="geometry">
      <rect>
@@ -94,6 +46,16 @@
      </property>
     </widget>
    </widget>
+   <widget class="PythonSelector" name="py_selector" native="true">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>9</y>
+      <width>371</width>
+      <height>71</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="lcms_files">
    <property name="layoutDirection">
@@ -109,10 +71,14 @@
    </attribute>
   </widget>
  </widget>
- <tabstops>
-  <tabstop>lineEdit</tabstop>
-  <tabstop>pushButton</tabstop>
- </tabstops>
+ <customwidgets>
+  <customwidget>
+   <class>PythonSelector</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/DIALOGS/PythonSelector.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

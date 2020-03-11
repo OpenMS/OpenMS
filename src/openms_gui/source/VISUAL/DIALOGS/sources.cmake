@@ -10,6 +10,8 @@ FeatureEditDialog.ui
 HistogramDialog.cpp
 LayerStatisticsDialog.cpp
 LayerStatisticsDialog.ui
+PythonSelector.cpp
+PythonSelector.ui
 SaveImageDialog.cpp
 Spectrum1DGoToDialog.cpp
 Spectrum1DGoToDialog.ui

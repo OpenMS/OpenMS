@@ -7,6 +7,7 @@ DataFilterDialog.h
 FeatureEditDialog.h
 HistogramDialog.h
 LayerStatisticsDialog.h
+PythonSelector.h
 SaveImageDialog.h
 Spectrum1DGoToDialog.h
 Spectrum1DPrefDialog.h
