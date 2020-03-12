@@ -10,8 +10,119 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+    - name: Install Miniconda
+      shell: bash
+      run: |
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" = "macOS" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" = "Windows" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
+          fi
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+        
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.7'
+        host: 'mac'
+        target: 'desktop'
+        dir: '/qt5/'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+    - name: Build
+      run: |
+          export CC=clang
+          export CXX=clang++
+          pushd OpenMS
+          git submodule update --init contrib
+          popd 
+          
+          export MACOSX_DEPLOYMENT_TARGET=10.9
+
+          mkdir contribbld
+          pushd contribbld
+          cmake -DBUILD_TYPE=ALL ../OpenMS/contrib
+          popd
+
+          mkdir bld
+          pushd bld
+          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" \
+                -DCMAKE_PREFIX_PATH="${QT_ROOT}" \
+                -DQt5_DIR="${Qt5_DIR}" \
+                -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 \
+                -DBOOST_USE_STATIC=ON \
+                ../OpenMS
+
+          make -j4 OpenMS
+
+          # update conda 
+          conda update conda
+
+          # Search for the latest 3 main python versions in the repository pkgs/main 
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+          echo $SUPPORTED_PYTHONS
+
+          mkdir pyopenms_whls
+
+          for py in $SUPPORTED_PYTHONS
+          do
+            conda create -n pyoms-bld-$py python=$py
+            conda activate pyoms-bld-$py 
+            
+            # set current python executable
+            CURRENT_PYTHON_EXECUTABLE=$(which python)
+              conda deactivate
+
+            # pip install all the stuff
+            pip install -U setuptools
+            pip install -U pip
+            pip install -U autowrap
+            pip install -U nose
+            pip install -U numpy
+            pip install -U wheel    
+            
+            echo $CURRENT_PYTHON_EXECUTABLE
+
+            # build pyopenms distribution (macOS)
+            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            make -j4 pyopenms
+
+            # copy to directory 
+            cp pyOpenMS/dist/*.whl pyopenms_whls
+
+            # clean up 
+            conda remove --name pyoms-bld-$py --all
+
+          done
+
+    - uses: actions/upload-artifact@v1
+      with:
+        name: macwheels
+        path: build/pyopenms_whls
+        
+  build-lnx:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     container: hroest/manylinux2014_qt59_contrib:v1.1
