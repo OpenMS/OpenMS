@@ -50,6 +50,9 @@ jobs:
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
         
+    - name: Install build tools
+      run: brew install autoconf automake libtool
+        
     - name: Build
       run: |
           export CC=clang
@@ -62,7 +65,7 @@ jobs:
 
           mkdir contribbld
           pushd contribbld
-          cmake -DBUILD_TYPE=ALL ../OpenMS/contrib
+          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
           popd
 
           mkdir bld
