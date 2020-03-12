@@ -3830,7 +3830,7 @@ static void scoreXLIons_(
 
     // autotune (only works if non-XL peptides present)
     set<String> skip_peptide_spectrum;
-    if (autotune)
+    if (autotune || idfilter)
     {
       SimpleSearchEngineAlgorithm sse;
       vector<ProteinIdentification> prot_ids;
@@ -3897,11 +3897,14 @@ static void scoreXLIons_(
 
         // use 68-percentile as in identipy
         double new_fragment_mass_tolerance = 4.0 * median_fragment_error_ppm[median_fragment_error_ppm.size() * 0.68];
-        fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
         double left_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.005];
         double median_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.5];
         double right_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
 
+        if (autotune)
+        {
+          fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
+        }
         cout << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
         cout << "Estimated precursor mass tolerance (ppm): " << left_precursor_mass_tolerance << "\t" << median_precursor_mass_tolerance << "\t" << right_precursor_mass_tolerance << endl;
       }
@@ -4509,8 +4512,6 @@ static void scoreXLIons_(
                     std::fill(b_ions.begin(), b_ions.end(), 0);
                     std::fill(y_ions.begin(), y_ions.end(), 0);
 #endif
-                    vector<double> y_ions(total_loss_template_z1_b_ions.size(), 0.0); 
-
                     float plss_MIC(0), 
                       plss_err(1.0), 
                       plss_Morph(0), 
