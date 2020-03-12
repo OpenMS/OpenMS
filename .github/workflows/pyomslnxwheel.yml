@@ -59,10 +59,10 @@ jobs:
             for PYBIN in /opt/python/cp3*; do
 
               PYVER=`basename $PYBIN`
-              mkdir /openms-build-$PYVER
+              mkdir openms-build-$PYVER
               cd /openms-build-$PYVER
               # configure
-              cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python /OpenMS
+              cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
 
               # ensure auditwheel can find the libraries
