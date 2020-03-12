@@ -102,6 +102,6 @@ jobs:
             done
             
     - uses: actions/upload-artifact@v1
-        with:
-          name: lnxwheels
-          path: /data/wheelhouse/
+      with:
+        name: lnxwheels
+        path: /data/wheelhouse/
