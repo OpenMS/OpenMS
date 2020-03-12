@@ -32,9 +32,8 @@ jobs:
             # 3. Patch init (since the linked libraries are all in .lib)
             cd OpenMS
             wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
-            sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.5.0/' src/pyOpenMS/env.py.in
-            patch -p0 src/pyOpenMS/pyopenms/__init__.py < /data/manylinux.patch 
-            patch -p0 src/pyOpenMS/setup.py < /data/manylinux.patch2 ## somehow required to link against regex boost lib
+            patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch 
+            patch -p0 src/pyOpenMS/setup.py < src/pyOpenMS/dist-scripts/manylinux.patch2 ## somehow required to link against regex boost lib
             cd /
 
             # fixes some issues with empty pxd files
@@ -101,3 +100,8 @@ jobs:
               rm -rf wheelhouse/fix/
               mv wheelhouse/* /data/wheelhouse/
             done
+            
+    - uses: actions/upload-artifact@v1
+        with:
+          name: lnxwheels
+          path: /data/wheelhouse/
