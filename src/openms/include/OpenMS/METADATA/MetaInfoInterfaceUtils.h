@@ -36,10 +36,12 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <algorithm>
 #include <map>
 #include <vector>
+
 
 namespace OpenMS
 {
@@ -100,6 +102,17 @@ public:
       return common_keys;
     }
 
+    /// function to copy all meta values from one object to another
+    //TODO get a MetaValue list to copy only those that have been set
+    static void copyMetaValues(const MetaInfoInterface& from, MetaInfoInterface& to)
+    {
+      std::vector<String> keys;
+      from.getKeys(keys);
+      for (String& key : keys)
+      {
+        to.setMetaValue(key, from.getMetaValue(key));
+      }
+    }
 private:
     /// hide c'tors to avoid instantiation of utils class
     MetaInfoInterfaceUtils();

@@ -48,6 +48,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
@@ -160,11 +161,10 @@ protected:
 
     // load databases and other single file inputs
     String in_contaminants = getStringOption_("in_contaminants");
-    FASTAFile fasta_file;
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
-      fasta_file.load(in_contaminants, contaminants);
+      FASTAFile::load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
     ConsensusMap cmap;
@@ -444,25 +444,12 @@ private:
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        copyMetaValues_(f_pep_id, *(it_pep->second));
+        MetaInfoInterfaceUtils::copyMetaValues(f_pep_id, *(it_pep->second));
 
-        // copy all MetaValues that are at Hit level
-        copyMetaValues_(f_pep_id.getHits()[0], (it_pep->second)->getHits()[0]);
+        // copy all MetaValues that are at best Hit level
+        //TODO check if first = best assumption is met!
+        MetaInfoInterfaceUtils::copyMetaValues(f_pep_id.getHits()[0], (it_pep->second)->getHits()[0]);
       }
-    }
-  }
-
-
-  // templated function to copy all meta values from one object to another
-  template <class FROM, class TO>
-  //TODO get a MetaValue list to copy only those that have been set
-  void copyMetaValues_(const FROM& from, TO& to) const
-  {
-    vector<String> keys;
-    from.getKeys(keys);
-    for (String& key : keys)
-    {
-      to.setMetaValue(key, from.getMetaValue(key));
     }
   }
 };
