@@ -84,7 +84,6 @@ jobs:
           echo "Qt5_DIR defined as ${Qt5_Dir}"
           ls -la ${Qt5_Dir}/
           ls -la ${Qt5_Dir}/lib/
-          exit 0
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
@@ -136,10 +135,10 @@ jobs:
 
           done
 
-    #- uses: actions/upload-artifact@v1
-    #  with:
-    #    name: macwheels
-    #    path: build/pyopenms_whls
+    - uses: actions/upload-artifact@v1
+      with:
+        name: macwheels
+        path: build/pyopenms_whls
         
   build-lnx:
     # The type of runner that the job will run on
