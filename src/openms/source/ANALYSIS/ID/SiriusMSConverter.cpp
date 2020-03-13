@@ -49,7 +49,7 @@ namespace OpenMS
 {
   // precursor correction (highest intensity)
   Int getHighestIntensityPeakInMZRange(double test_mz,
-                                       const MSSpectrum& spectrum1,
+                                       const MSSpectrum& spectrum,
                                        double tolerance,
                                        bool ppm)
   {
@@ -60,8 +60,8 @@ namespace OpenMS
     // Here left has to be smaller than right
     OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
 
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
-    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
+    MSSpectrum::ConstIterator left = spectrum.MZBegin(tolerance_window.first);
+    MSSpectrum::ConstIterator right = spectrum.MZBegin(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
     if (left == right)
@@ -71,7 +71,7 @@ namespace OpenMS
 
     MSSpectrum::ConstIterator max_intensity_it = max_element(left, right, Peak1D::IntensityLess());
 
-    return max_intensity_it - spectrum1.begin();
+    return max_intensity_it - spectrum.begin();
   }
 
   // extract precursor isotope pattern if no feature information is available
@@ -85,7 +85,11 @@ namespace OpenMS
     Peak1D peak;
 
     // monoisotopic_trace
-    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, 10, true);
+    const int tolerance = 10;
+    const bool ppm = true;
+    const int isotope_tolerance = 1;
+
+    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, tolerance, ppm);
     if (peak_index != -1)
     {
       peak = precursor_spectrum[peak_index];
@@ -103,8 +107,8 @@ namespace OpenMS
 
     while (peak_index != -1 && iterations > 0)
     {
-      // check for isotope trace with one ppm error
-      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, 1, true);
+      // check for isotope trace with "isotope_tolerance" ppm error
+      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, isotope_tolerance, ppm);
       if (peak_index != -1)
       {
         peak = precursor_spectrum[peak_index];
@@ -145,11 +149,11 @@ namespace OpenMS
       for (const size_t& ind : ms2_spectra_index)
       {
         // construct compound info structure
-        const MSSpectrum &current_ms2 = spectra[ind];
-        const double current_rt = current_ms2.getRT();
+        const MSSpectrum& current_ms2 = spectra[ind];
+        const double& current_rt = current_ms2.getRT();
 
-        const String native_id = current_ms2.getNativeID();
-        const int scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
+        const String& native_id = current_ms2.getNativeID();
+        const int& scan_number = SpectrumLookup::extractScanNumber(native_id, ainfo.native_id_accession);
 
         const vector<Precursor> &precursor = current_ms2.getPrecursors();
 
@@ -323,10 +327,10 @@ namespace OpenMS
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = feature_id;
             }
-            os << "##des " << String(v_description[k]) << "\n";
-            os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
-            os << "##source file " << ainfo.sf_path << endl;
-            os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
+            os << "#des " << String(v_description[k]) << "\n";
+            os << "#specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
+            os << "#source file " << ainfo.sf_path << endl;
+            os << "#source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
             cmpinfo.des = String(v_description[k]);
             cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
             cmpinfo.source_file = ainfo.sf_path;
@@ -435,7 +439,7 @@ namespace OpenMS
 
     bool use_feature_information = false;
     bool use_unassigend_ms2 = false;
-    bool no_feautre_information = false;
+    bool no_feature_information = false;
 
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
@@ -443,7 +447,7 @@ namespace OpenMS
     // feature information was provided and unassigend ms2 should be used (feature only parameter)
     if (!unassigned_ms2.empty() && !feature_only) use_unassigend_ms2 = true;
     // no feature information was provided (mzml input only)
-    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feautre_information = true;
+    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
@@ -643,7 +647,7 @@ namespace OpenMS
                    v_cmpinfo);
     }
 
-    if (no_feautre_information)
+    if (no_feature_information)
     {
       // no feature information was provided
       bool writecompound = true;

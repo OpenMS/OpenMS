@@ -66,7 +66,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
     if (spectrum_ms_file)
     {
       const String nid_prefix = "##nid";
-      const String rt_prefix = "#rt";
+      const String rt_prefix = ">rt";
       const String pmass_prefix = ">parentmass";
       const String ms1peaks = ">ms1peaks";
       String line;

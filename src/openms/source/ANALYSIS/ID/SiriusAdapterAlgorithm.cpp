@@ -44,7 +44,10 @@
 
 namespace OpenMS
 {
-    using NightSkyName = String;
+  // ###################
+  // Set subtool parameters
+  // ###################
+
     using SiriusName = String;
     using FingeridName = String;
     using PassatuttoName = String;
@@ -55,17 +58,15 @@ namespace OpenMS
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
       DefaultParamHandler("SiriusAdapterAlgorithm"),
       preprocessing(Preprocessing(this)),
-      nightsky_nightsky(Nightsky(this)),
-      nightsky_sirius(Sirius(this)),
-      nightsky_fingerid(Fingerid(this)),
-      nightsky_passatutto(Passatutto(this))
+      sirius(Sirius(this)),
+      fingerid(Fingerid(this)),
+      passatutto(Passatutto(this))
     {
-      // Defines the Parameters for preprocessing and NightSky subtools
+      // Defines the Parameters for preprocessing and SIRIUS subtools
       preprocessing.parameters();
-      nightsky_nightsky.parameters();
-      nightsky_sirius.parameters();
-      nightsky_fingerid.parameters();
-      nightsky_passatutto.parameters();
+      sirius.parameters();
+      fingerid.parameters();
+      passatutto.parameters();
 
       defaultsToParam_();
     }
@@ -119,43 +120,33 @@ namespace OpenMS
           );
     }
 
-    void SiriusAdapterAlgorithm::Nightsky::parameters()
+    void SiriusAdapterAlgorithm::Sirius::parameters()
     {
-      // -w, --workspace=<workspace>
-      // Specify sirius workspace location. This is the directory
-      // for storing Property files, logs, databases and caches.
-      // This is NOT for the project-space that stores the
-      // results! Default is $USER_HOME/.sirius
-      parameter(
-                 NightSkyName("workspace"),
-                 DefaultValue(),
-                 Description("Specify sirius workspace location. This is the directory\n"
-                             "for storing Property files, logs, databases and caches.\n"
-                             "This is NOT for the project-space that stores the\n"
-                             "results! Default is $USER_HOME/.sirius.")
-               );
 
+      // This will be called internal using the "out_project_space" parameter (SiriusAdapter)
       // -o, -p, --output, --project-space=<projectSpaceLocation>
       // Specify project-space to read from and also write to if
       // nothing else is specified. For compression use the File
       // ending .zip or .sirius
 
-      // this will be called internal using the "out_project_space" parameter (SiriusAdapter)
+      // This should not be changes since the mztab writers/readers are depend on the default naming schema on it.
+      // --naming-convention=<projectSpaceFilenameFormatter>
+      //    Specify a naming scheme for the  compound
+      // directories ins the project-space. Default %index_%filename_%compoundname
 
+      // This will be called internal using the preprocessed .ms file
       // -i, --input=<input>
       // Input for the analysis. Ths can be either preprocessed mass
       // spectra in .ms or .mgf file format, LC/MS runs in .mzML/.
       // mzXml format or already existing SIRIUS project-space(s)
       // (uncompressed/compressed).
 
-      // this will be called internal using the preprocessed .ms file
-
       // --maxmz=<maxMz>
       // Just consider compounds with a precursor mz lower or equal
       // this maximum mz. All other compounds in the input file
       // are ignored.
       parameter(
-                 NightSkyName("maxmz"),
+          SiriusName("maxmz"),
                  DefaultValue(),
                  Description("Just consider compounds with a precursor mz lower or equal\n"
                              "this maximum mz. All other compounds in the input file\n"
@@ -166,7 +157,7 @@ namespace OpenMS
       // Number of cpu cores to use. If not specified Sirius uses
       // all available cores.
       parameter(
-                 NightSkyName("processors"),
+          SiriusName("processors"),
                  DefaultValue(1),
                  Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
                );
@@ -174,15 +165,13 @@ namespace OpenMS
       // --ignore-formula
       // Ignore given molecular formula in .ms or .mgf file format,
       flag(
-            NightSkyName("ignore-formula"),
+          SiriusName("ignore-formula"),
             Description("Ignore given molecular formula in internal .ms format, while processing.")
           );
 
-      // TODO: Not sure if that actually works - it seems there is a problem
-      // TODO: with the qprocess or the bash script disrupting the shell output in general!
       // -q  suppress shell output
       flag(
-            NightSkyName("q"),
+          SiriusName("q"),
             Description("Suppress shell output")
           );
 
@@ -194,24 +183,13 @@ namespace OpenMS
       // computation. A smaller buffer saves Memory. To load all
       // compounds immediately set it to 0. Default: 2 * --cores
 
-      // TODO: Needed? Should probably not be changed in the Adapter, but i guess
-      // TODO: I think the mztab-writer still need the information - present in the filename
-      // TODO: This could also lead to errors in the scripts currently used for the
-      // TODO: DIAMetAlyzer
-      // --naming-convention=<projectSpaceFilenameFormatter>
-      //  Specify a format for compounds' output directories. Default
-      //  %index_%filename_%compoundname
-
       // TODO: Needed?
       // --recompute
       // Recompute ALL results of ALL SubTools that are already
       // present. By defaults already present results of an
       // instance will be preserved and the instance will be
       // skipped for the corresponding Task/Tool
-    }
 
-    void SiriusAdapterAlgorithm::Sirius::parameters()
-    {
       // --ppm-max=<ppmMax>
       // Maximum allowed mass deviation in ppm for decomposing masses.
       parameter(
@@ -410,6 +388,8 @@ namespace OpenMS
       // If no database is used for molecular formula search, PubChem is
       // used for structure search.
 
+      // TODO: should always use the same as SIRIUS?
+
       //TODO: set valid strings
       parameter(
                  FingeridName("fingerid-db"),
@@ -418,7 +398,27 @@ namespace OpenMS
                              "for molecular formula search is also used for structure search.\n"
                              "If no database is used for molecular formula search, PubChem is\n"
                              "used for structure search.")
-                ).withValidStrings({"all", "pubchem", "bio", "kegg", "hmdb"});
+                ).withValidStrings({"all",
+                                    "pubchem",
+                                    "mesh",
+                                    "hmdb",
+                                    "knapsack",
+                                    "chebi",
+                                    "pubmed",
+                                    "bio",
+                                    "kegg",
+                                    "hsdb",
+                                    "maconda",
+                                    "metacyc",
+                                    "gnps",
+                                    "zincbio",
+                                    "train",
+                                    "undp",
+                                    "pantcyc",
+                                    "ymdb",
+                                    "keggmine",
+                                    "ecocycmine",
+                                    "ymdbmine"});
 
       // -s, --formula-score=<predictors>
       // Specifies the Score that is used to rank the list Molecular
@@ -435,6 +435,7 @@ namespace OpenMS
 
     }
 
+    // TODO: how to call passatutto
     void SiriusAdapterAlgorithm::Passatutto::parameters()
     {
 //      Usage: night-sky passatutto [-hV] [COMMAND]
@@ -489,19 +490,11 @@ namespace OpenMS
       const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
       OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
-
-      // TODO: from upstream not sure which one is better
-      // normalize file path
-      // QString exe = executable.toQString();
-      // QFileInfo file_info(exe);
-      // exe = file_info.canonicalFilePath();
-  
-      //OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
-      // const String path_to_executable = File::path(exe);
-      // executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
-      
-      // return executable_workdir;
     }
+
+    // ################
+    // Algorithm
+    // ################
 
     SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
     {
@@ -514,7 +507,9 @@ namespace OpenMS
       return tmp_struct;
     } 
     
-    void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
+    void SiriusAdapterAlgorithm::
+
+    Sirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,
                                                      KDTreeFeatureMaps& fp_map_kd,
@@ -534,20 +529,7 @@ namespace OpenMS
           double precursor_mz_tol = getPrecursorMzTolerance();
           double precursor_rt_tol = getPrecursorRtTolerance();
 
-// TODO: from upstream:
-//
-//          bool feature_only;
-//          if (sirius_algo.feature_only_ == "true") feature_only = true;
-//          else if (sirius_algo.feature_only_ == "false") feature_only = false;
-//          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature only is either true or false");
-//
-//          unsigned int num_masstrace_filter = sirius_algo.filter_by_num_masstraces_;
-//          double precursor_mz_tol = sirius_algo.precursor_mz_tolerance_;
-//          double precursor_rt_tol = sirius_algo.precursor_rt_tolerance_;
-//          bool ppm_prec;
-//          if (sirius_algo.precursor_mz_tolerance_unit_ == "ppm") ppm_prec = true;
-//          else if (sirius_algo.precursor_mz_tolerance_unit_ == "Da") ppm_prec = false;
-//          else throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor m/z tolerance unit is either ppm or Da");
+
 
           if (num_masstrace_filter != 1 && !isFeatureOnly())
           {
@@ -606,6 +588,10 @@ namespace OpenMS
         OPENMS_LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     }
+
+  // ################
+  // Algorithm
+  // ################
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
@@ -696,6 +682,10 @@ namespace OpenMS
       }
       return subdirs;
     }
+
+  // ################
+  // Parameter handling
+  // ################
 
     SiriusAdapterAlgorithm::ParameterModifier SiriusAdapterAlgorithm::ParameterSection::parameter(
             const String &parameter_name,

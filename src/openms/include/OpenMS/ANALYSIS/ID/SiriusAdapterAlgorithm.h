@@ -252,7 +252,7 @@ namespace OpenMS
       }
     };
 
-    using NightSkySubtool = ParameterSection;
+    using SiriusSubtool = ParameterSection;
 
     class Preprocessing : public ParameterSection
     {
@@ -262,15 +262,7 @@ namespace OpenMS
       void parameters() override;
     };
 
-    class Nightsky final : public NightSkySubtool
-    {
-      String sectionName() const override { return "nightsky"; }
-    public:
-      explicit Nightsky(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
-      void parameters() override;
-    };
-
-    class Sirius final : public NightSkySubtool
+    class Sirius final : public SiriusSubtool
     {
       String sectionName() const override { return "sirius"; }
     public:
@@ -278,7 +270,7 @@ namespace OpenMS
       void parameters() override;
     };
 
-    class Fingerid final : public NightSkySubtool
+    class Fingerid final : public SiriusSubtool
     {
       String sectionName() const override { return "fingerid"; }
     public:
@@ -286,7 +278,7 @@ namespace OpenMS
       void parameters() override;
     };
 
-    class Passatutto final : public NightSkySubtool
+    class Passatutto final : public SiriusSubtool
     {
       String sectionName() const override { return "passatutto"; }
     public:
@@ -295,10 +287,9 @@ namespace OpenMS
      };
 
     Preprocessing preprocessing;
-    Nightsky nightsky_nightsky;
-    Sirius nightsky_sirius;
-    Fingerid nightsky_fingerid;
-    Passatutto nightsky_passatutto;
+    Sirius sirius;
+    Fingerid fingerid;
+    Passatutto passatutto;
 
     };
 } // namespace OpenMS
