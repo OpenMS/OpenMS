@@ -83,13 +83,15 @@ jobs:
       run: |
           echo "Qt5_DIR defined as ${Qt5_Dir}"
           ls -la ${Qt5_Dir}/
+          ls -la ${Qt5_Dir}/lib/
+          exit 0
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
 
           mkdir bld
           pushd bld
-          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}" -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}" -DQt5_DIR="${Qt5_Dir}/lib/cmake" -DCMAKE_FIND_DEBUG_MODE=ON -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
 
           make -j4 OpenMS
 
