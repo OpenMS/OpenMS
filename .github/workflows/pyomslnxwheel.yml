@@ -81,7 +81,8 @@ jobs:
           
     - name: Build
       run: |
-          echo "Qt5_DIR defined as {{ Qt5_DIR }}"
+          echo "Qt5_DIR defined as ${Qt5_Dir}"
+          ls -la ${Qt5_Dir}/
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
@@ -90,7 +91,6 @@ jobs:
           pushd bld
           cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" \
                 -DCMAKE_PREFIX_PATH="${Qt5_Dir}" \
-                -DQt5_DIR="${Qt5_Dir}" \
                 -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 \
                 -DBOOST_USE_STATIC=ON \
                 ../OpenMS
