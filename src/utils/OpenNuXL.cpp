@@ -125,6 +125,7 @@ using namespace boost::accumulators;
 //#define SVM_RECALIBRATE
 //#define FILTER_RANKS 1
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
+//#define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
 
 #ifdef ANNOTATED_QUANTILES
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
@@ -3799,6 +3800,7 @@ static void scoreXLIons_(
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
 
+    // Parameter: Input
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(getStringOption_("in"));
 
@@ -3812,9 +3814,10 @@ static void scoreXLIons_(
       in_mzml = convertRawFile_(getStringOption_("in"));
     }
 
+    String out_idxml = getStringOption_("out");
     String in_db = getStringOption_("database");
 
-
+    //
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
@@ -3858,23 +3861,73 @@ static void scoreXLIons_(
       cout << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
 
+/// try to run percolator
+      {    
+        vector<ProteinIdentification> perc_prot_ids;
+        vector<PeptideIdentification> perc_pep_ids;
+
+        const String percolator_executable = getStringOption_("percolator_executable");
+        bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
+        if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
+        {
+          // run percolator on idXML
+          String perc_out = out_idxml;
+          perc_out.substitute(".idXML", "_sse_perc.idXML");
+//        String weights_out = out_idxml;
+//        weights_out.substitute(".idXML", "_sse.weights");
+
+          QStringList process_params;
+          process_params << "-in" << out_idxml.toQString()
+                       << "-out" << perc_out.toQString()
+                       << "-percolator_executable" << percolator_executable.toQString()
+                       << "-train-best-positive" 
+                       << "-score_type" << "q-value"
+                       << "-post-processing-tdc";
+//                       << "-nested-xval-bins" << "3"
+                       //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
+//                       << "-weights" << weights_out.toQString();
+                       ;
+          TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
+
+          if (exit_code != EXECUTION_OK) 
+          { 
+            OPENMS_LOG_WARN << "Score recalibration failed in IDFilter. Using original results." << endl; 
+          }
+          else
+          { 
+            // load back idXML
+            IdXMLFile().load(perc_out, perc_prot_ids, perc_pep_ids);
+ 
+            // generate filtered results
+            IDFilter::keepNBestHits(perc_pep_ids, 1);
+            IDFilter::removeUnreferencedProteins(perc_prot_ids, perc_pep_ids);
+          }
+        }
+
+        cout << "Filtering ..." << endl;
+        IDFilter::filterHitsByScore(perc_pep_ids, 0.01); // 1% PSM-FDR
+        IDFilter::removeEmptyIdentifications(perc_pep_ids);
+        cout << "Peptide PSMs at 1% FDR: " << perc_pep_ids.size() << endl;
+
+        // ID-filter part for linear peptides
+        if (idfilter)
+        {
+          for (const auto& pi : perc_pep_ids)
+          {
+            skip_peptide_spectrum.insert((String)pi.getMetaValue("spectrum_reference")); // get native id
+          }
+        }
+      }
+////////// end percolator part
+
       cout << "Calculating FDR..." << endl;
       FalseDiscoveryRate fdr;
-      fdr.apply(pep_ids); 
+      fdr.apply(pep_ids);
       cout << "Filtering ..." << endl;
       IDFilter::filterHitsByScore(pep_ids, 0.01); // 1% PSM-FDR
       IDFilter::removeEmptyIdentifications(pep_ids);
-      cout << "Peptide identifications left: " << pep_ids.size() << endl;
-
-      // ID-filter part for linear peptides
-      if (idfilter)
-      {
-        for (const auto& pi : pep_ids)
-        {
-          skip_peptide_spectrum.insert((String)pi.getMetaValue("spectrum_reference")); // get native id
-        }
-      }
-
+      cout << "Peptide PSMs at 1% FDR (no percolator): " << pep_ids.size() << endl;
+ 
       if (pep_ids.size() > 100)
       {
         vector<double> median_fragment_error_ppm;
@@ -3916,7 +3969,6 @@ static void scoreXLIons_(
    
     OPENMS_LOG_INFO << "IDFilter excludes " << skip_peptide_spectrum.size() << " spectra." << endl;
  
-    String out_idxml = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
 
     fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
