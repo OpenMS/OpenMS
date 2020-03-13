@@ -20,11 +20,11 @@ set(qc_executables_list
   FragmentMassError_test
   MissedCleavages_test
   Ms2IdentificationRate_test
+  Ms2SpectrumStats_test
   MzCalibration_test
   QCBase_test
   RTAlignment_test
   TIC_test
-  TopNoverRT_test
 )
 
 set(datastructures_executables_list
@@ -419,6 +419,7 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGenerator_test
+  Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   WeightWrapper_test
@@ -470,6 +471,8 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
+  FIAMSDataProcessor_test
+  FIAMSScheduler_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
@@ -489,6 +492,7 @@ set(analysis_executables_list
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
+  TMTSixteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -502,6 +506,7 @@ set(analysis_executables_list
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
+  MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,9 +92,12 @@ namespace OpenMS
         }
       };
 
-
       /**
        * @brief Enumerates precursor masses for all candidates in an XL-MS search
+
+          Assumes the list of peptides and the list of spectrum precursor masses are sorted by mass in ascending order,
+          and the list of mono-link masses is sorted in descending order.
+
        * @param peptides The peptides with precomputed masses from the digestDatabase function
        * @param cross_link_mass_light Mass of the cross-linker, only the light one if a labeled linker is used
        * @param cross_link_mass_mono_link A list of possible masses for the cross-link, if it is attached to a peptide on one side
@@ -251,8 +254,21 @@ namespace OpenMS
        * @param cross_link_residue1 A list of one-letter-code residues, that the first side of the cross-linker can attach to
        * @param cross_link_residue2 A list of one-letter-code residues, that the second side of the cross-linker can attach to
        * @param cross_link_name The name of the cross-linker, e.g. "DSS" or "BS3"
+       * @param use_sequence_tags Whether to use sequence tags to filter out candidates
+       * @param tags The list of sequence tags that are used to filter candidate sequences. Only applied if use_sequence_tags = true
        */
-      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(const IntList& precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(const IntList& precursor_correction_steps,
+                                                                                                double precursor_mass,
+                                                                                                double precursor_mass_tolerance,
+                                                                                                bool precursor_mass_tolerance_unit_ppm,
+                                                                                                const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
+                                                                                                double cross_link_mass,
+                                                                                                DoubleList cross_link_mass_mono_link,
+                                                                                                StringList cross_link_residue1,
+                                                                                                StringList cross_link_residue2,
+                                                                                                String cross_link_name,
+                                                                                                bool use_sequence_tags = false,
+                                                                                                const std::vector<std::string>& tags = std::vector<std::string>());
 
       /**
        * @brief Computes the mass error of a precursor mass to a hit
@@ -272,10 +288,12 @@ namespace OpenMS
        */
       static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
-    private:
+      /**
+       * @brief Filters the list of candidates for cases that include at least one of the tags in at least one of the two sequences
 
-      // helper function for enumerateCrossLinksAndMasses
-      static bool filter_and_add_candidate(std::vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, const std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor);
-
+       * @param candidates The list of XLPrecursors as enumerated by e.g. enumerateCrossLinksAndMasses
+       * @param tags The list of tags for the current spectrum produced by the Tagger
+       */
+      static void filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags);
   };
 }

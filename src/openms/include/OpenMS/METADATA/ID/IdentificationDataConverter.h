@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,5 +197,10 @@ namespace OpenMS
     /// Helper function to export DB search parameters to legacy format
     static ProteinIdentification::SearchParameters exportDBSearchParameters_(
       IdentificationData::SearchParamRef ref);
+
+    /// Helper function to export (primary) MS run information to legacy format
+    static void exportMSRunInformation_(
+      IdentificationData::ProcessingStepRef step_ref,
+      ProteinIdentification& protein);
   };
 }

@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,14 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
@@ -116,17 +117,20 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXLLF.cli
+  @verbinclude TOPP_OpenPepXLLF.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXLLF.html
+  @htmlinclude TOPP_OpenPepXLLF.html
 */
+
+/// @cond TOPPCLASSES
+
 
 class TOPPOpenPepXLLF :
   public TOPPBase
 {
 public:
   TOPPOpenPepXLLF() :
-    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
+    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", true)
   {
   }
 
@@ -146,17 +150,17 @@ protected:
     registerFullParam_(OpenPepXLLFAlgorithm().getDefaults());
 
     // output file
-    registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
-    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
-
-    registerOutputFile_("out_xquest_specxml", "<file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
-    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
-
-    registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
+    registerOutputFile_("out_idXML", "<idXML_file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out_mzIdentML", "<file>","", "Results in mzIdentML (.mzid) format (at least one of these output parameters should be set, otherwise you will not have any results)", false);
+    registerOutputFile_("out_mzIdentML", "<mzIdentML_file>","", "Results in mzIdentML (.mzid) format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
+
+    registerOutputFile_("out_xquestxml", "<xQuestXML_file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xquest.xml"));
+
+    registerOutputFile_("out_xquest_specxml", "<xQuestSpecXML_file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
+    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("spec.xml"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -250,7 +254,7 @@ protected:
     {
       // if test mode set, add file without path so we can compare it
       protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
-    }   
+    }
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
@@ -294,3 +298,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

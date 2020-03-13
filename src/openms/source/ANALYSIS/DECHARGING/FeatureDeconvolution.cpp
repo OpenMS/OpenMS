@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
@@ -208,8 +209,10 @@ namespace OpenMS
       }
 
       // determine charge of adduct (by # of '+' or '-')
-      Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
-      Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
+      Size charge_s_len = adduct[1].size();
+      Int pos_charge = charge_s_len - adduct[1].remove('+').size();
+      charge_s_len = adduct[1].size();
+      Int neg_charge = charge_s_len - adduct[1].remove('-').size();
       if (pos_charge > 0 && neg_charge > 0)
       {
         String error = "FeatureDeconvolution::potential_adducts mixes charges for an adduct!";

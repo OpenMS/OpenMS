@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,7 @@ namespace OpenMS
     out_dir_(File::getUserDirectory().toQString()),
     changed_(false),
     running_(false),
+    error_occured_(false),
     user_specified_out_dir_(false),
     clipboard_(nullptr),
     dry_run_(true),
@@ -621,7 +622,6 @@ namespace OpenMS
 
   void TOPPASScene::runPipeline()
   {
-
     error_occured_ = false;
     resume_source_ = nullptr; // we are not resuming, so reset the resume node
 
@@ -875,7 +875,7 @@ namespace OpenMS
         String extra_quotes = "";
 #endif
 
-        String cmd = extra_quotes + "\"" + File::findExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
+        String cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {

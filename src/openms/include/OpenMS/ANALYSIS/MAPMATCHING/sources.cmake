@@ -20,6 +20,7 @@ MapAlignmentAlgorithmIdentification.h
 MapAlignmentAlgorithmKD.h
 MapAlignmentAlgorithmPoseClustering.h
 MapAlignmentAlgorithmSpectrumAlignment.h
+MapAlignmentAlgorithmTreeGuided.h
 MapAlignmentEvaluationAlgorithm.h
 MapAlignmentEvaluationAlgorithmPrecision.h
 MapAlignmentEvaluationAlgorithmRecall.h

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -122,8 +122,8 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "comet.exe",
-      "Comet executable of the installation e.g. 'comet.exe'", true, false, {"skipexists"});
+      "comet.exe", // this is the name on ALL platforms currently...
+      "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerStringOption_("comet_version","<choice>", "2016.01 rev. 2", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
@@ -132,7 +132,7 @@ protected:
 
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
-    setValidFormats_("pin_out", ListUtils::create<String>("csv"));
+    setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
@@ -180,7 +180,7 @@ protected:
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
 
     //Output
-    registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);

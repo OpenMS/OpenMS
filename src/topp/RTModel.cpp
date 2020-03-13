@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,15 +34,17 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <map>
 #include <numeric>

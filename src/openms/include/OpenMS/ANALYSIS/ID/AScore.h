@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -167,6 +167,9 @@ namespace OpenMS
     */
     void determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const std::vector<std::vector<Size>>& permutations, std::multimap<double, Size>& ranking) const;
 
+    /// Computes probability for a peak depth of one given spectra and mass_tolerance variables
+    double computeBaseProbability_(double ppm_reference_mz) const;
+
     /// Computes the cumulative binomial probabilities.
     double computeCumulativeScore_(Size N, Size n, double p) const;
     
@@ -197,7 +200,8 @@ namespace OpenMS
     Size max_peptide_length_; ///< Limit for peptide lengths that can be analyzed
     Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
-    
+    double base_match_probability_; ///< Probability of a match at a peak depth of 1
+
   };
 
 } // namespace OpenMS

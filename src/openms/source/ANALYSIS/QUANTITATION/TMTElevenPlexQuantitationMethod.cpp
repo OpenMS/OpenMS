@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,16 +37,12 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <boost/assign/list_of.hpp>
-
 #include <algorithm>
-
-using namespace boost::assign;
 
 namespace OpenMS
 {
 const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
-const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131N")("131C");
+const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = {"126","127N","127C","128N","128C","129N","129C","130N","130C","131N","131C"};
 
 TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
 {
@@ -86,10 +82,6 @@ TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
     reference_channel_ = 0;
 
     setDefaultParams_();
-}
-
-TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod()
-{
 }
 
 void TMTElevenPlexQuantitationMethod::setDefaultParams_()

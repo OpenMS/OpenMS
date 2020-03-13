@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-#include <cstdint>
-#include <QDir>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <QDir>
+#include <cstdint>
 
 using namespace OpenMS;
 using namespace std;
@@ -438,14 +438,14 @@ namespace OpenMS
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;
-    bool use_unassigend_ms2 = false;
+    bool use_unassigned_ms2 = false;
     bool no_feature_information = false;
 
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
     // feature information was provided and unassigend ms2 should be used (feature only parameter)
-    if (!unassigned_ms2.empty() && !feature_only) use_unassigend_ms2 = true;
+    if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
     if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
@@ -615,7 +615,7 @@ namespace OpenMS
     }
 
     // if not mappend information available (e.g. empty featurexml or only a few features)
-    if (use_unassigend_ms2)
+    if (use_unassigned_ms2)
     {
       // no feature information was provided
       bool writecompound = true;

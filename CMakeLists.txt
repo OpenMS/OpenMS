@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project("OpenMS_host")
 
 # required for cmake < 3.13 if ccache is used
@@ -42,17 +42,6 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
-# Set C++ version
-SET(CMAKE_CXX_STANDARD 11)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  # require at least gcc 4.8 for full C++11 support
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8)
-    message(FATAL_ERROR "GCC version must be at least 4.8!")
-  endif()
-endif()
 
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -109,7 +98,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "4")
+set(OPENMS_PACKAGE_VERSION_MINOR "5")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -127,7 +116,7 @@ if(NOT GIT_TRACKING)
   set(OPENMS_GIT_SHORT_SHA1 "disabled")
   set(OPENMS_GIT_SHORT_REFSPEC "disabled")
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
+elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   message(STATUS "  [CMake cannot track Git commits and branching, since Git was not found. ('-D GIT_TRACKING=On')]")
@@ -142,11 +131,11 @@ endif()
 # Additional versioning information for packaging
 # If it is not built from a release branch (or master) it will add the branch name
 # and the last change date to everything that can handle strings in the version (eg. installer filenames).
-if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "disabled" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "exported")
+if(OPENMS_GIT_SHORT_REFSPEC MATCHES "disabled" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "exported")
   string(TIMESTAMP DATE "%Y%m%d")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC}-${DATE}")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
-elseif(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "master")
+elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "release*" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "master")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
 else()
@@ -331,33 +320,44 @@ set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Never use RPATH. We have other means on every platform.
+# Never use RPATH by default. We have other means on every platform.
 # E.g. not yet compatible with our fix_mac_dependencies script.
-SET(CMAKE_MACOSX_RPATH FALSE)
+if(NOT DEFINED CMAKE_MACOSX_RPATH)
+  SET(CMAKE_MACOSX_RPATH FALSE)
+endif()
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
-SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
-
-if(UNIX AND NOT APPLE)
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-if (ENABLE_PREPARE_KNIME_PACKAGE)
-  ## Since we rely on copying instead of "installing" for KNIME packaging
-  ## we need to do it during building already.
-  ## In this case, make sure that QT is in a system path if you want to test it locally.
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-else()
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+if(NOT DEFINED CMAKE_INSTALL_NAME_DIR)
+  SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 endif()
 
-# the RPATH to be used when installing
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+if(UNIX AND NOT APPLE)
+	# use, i.e. don't skip the full RPATH for the build tree
+	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
+	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	endif()
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	# when building, don't use the install RPATH already
+	# (but later on when installing)
+	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
+		if (ENABLE_PREPARE_KNIME_PACKAGE)
+			## Since we rely on copying instead of "installing" for KNIME packaging
+			## we need to do it during building already.
+			## In this case, make sure that QT is in a system path if you want to test it locally.
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+		else()
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+		endif()
+  endif()
+	# the RPATH to be used when installing
+	if(NOT DEFINED CMAKE_INSTALL_RPATH)
+		SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+	endif()
+
+	# don't add the automatically determined parts of the RPATH
+	# which point to directories outside the build tree to the install RPATH
+	if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

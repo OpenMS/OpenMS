@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,7 +165,7 @@ namespace OpenMS
   {
     QStringList args{ "-write_ini", ini_file_.toQString(), "-log", (ini_file_+".log").toQString() };
     QProcess qp;
-    String executable = File::findExecutable(getTool());
+    String executable = File::findSiblingTOPPExecutable(getTool());
     qp.start(executable.toQString(), args);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     if (qp.error() == QProcess::FailedToStart || success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)

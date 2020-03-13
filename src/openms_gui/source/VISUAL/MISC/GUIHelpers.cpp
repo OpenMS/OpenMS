@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,12 +92,12 @@ namespace OpenMS
     else
     {
       // we could not find the app, try it the Linux way
-      QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+      QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
       p->start(toppview_executable, args);
     }
 #else
     // LINUX+WIN
-    QString toppview_executable = (File::findExecutable("TOPPView")).toQString();
+    QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
     p->start(toppview_executable, args);
 #endif
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,14 +213,8 @@ public:
       enzyme.setEnzyme(enzyme_name_);
       enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 
-      bool xtandem_fix_parameters = true, msgfplus_fix_parameters = true;
-
-      // specificity is none or semi? don't automate xtandem 
-      if (enzyme.getSpecificity() == EnzymaticDigestion::SPEC_SEMI ||
-          enzyme.getSpecificity() == EnzymaticDigestion::SPEC_NONE) 
-      {
-        xtandem_fix_parameters = false;
-      }
+      bool xtandem_fix_parameters = true;
+      bool msgfplus_fix_parameters = true;
 
       // determine if search engine is solely xtandem or MSGFPlus
       for (const auto& prot_id : prot_ids)

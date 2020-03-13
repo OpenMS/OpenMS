@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 
 using namespace std;
@@ -1328,11 +1329,11 @@ namespace OpenMS
             }
             if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart()) + "\"";
+              e += " start=\"" + String(pe->getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
-              e += " start=\"" + String(hit.getMetaValue("start")) + "\"";
+              e += " start=\"" + String( int(hit.getMetaValue("start")) + 1) + "\"";
             }
             else
             {
@@ -1340,11 +1341,11 @@ namespace OpenMS
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd()) + "\"";
+              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
-              e += " end=\"" + String(hit.getMetaValue("end")) + "\"";
+              e += " end=\"" + String( int(hit.getMetaValue("end")) + 1) + "\"";
             }
             else
             {
@@ -1870,11 +1871,11 @@ namespace OpenMS
             }
             if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart()) + "\"";
+              e += " start=\"" + String(pe->getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
-              e += " start=\"" + String(hit.getMetaValue("start")) + "\"";
+              e += " start=\"" + String( int(hit.getMetaValue("start")) + 1) + "\"";
             }
             else
             {
@@ -1882,11 +1883,11 @@ namespace OpenMS
             }
             if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd()) + "\"";
+              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
-              e += " end=\"" + String(hit.getMetaValue("end")) + "\"";
+              e += " end=\"" + String( int(hit.getMetaValue("end")) + 1) + "\"";
             }
             else
             {
@@ -1943,7 +1944,7 @@ namespace OpenMS
             }
             if (start[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
-              e += " start=\"" + start[ev] + "\"";
+              e += " start=\"" + String(start[ev].toInt() + 1) + "\"";
             }
             else
             {
@@ -1951,7 +1952,7 @@ namespace OpenMS
             }
             if (end[ev] != String(PeptideEvidence::UNKNOWN_POSITION))
             {
-              e += " end=\"" + end[ev] + "\"";
+              e += " end=\"" + String(end[ev].toInt() + 1) + "\"";
             }
             else
             {

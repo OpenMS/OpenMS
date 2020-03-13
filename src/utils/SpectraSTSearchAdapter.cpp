@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,16 @@
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <QtCore/QProcess>
-#include <iostream>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QtCore/QProcess>
-#include <QDir>
+
 #include <sstream> 
+
+#include <QDir>
+#include <QProcess>
 
 using namespace OpenMS;
 using namespace std;
@@ -351,7 +352,7 @@ const String TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass = 
 const String TOPPSpectraSTSearchAdapter::param_use_all_charge_states = "use_all_charge_states";
 const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
-const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
+const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,tsv,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
 
 // the actual main function needed to create an executable
@@ -361,3 +362,4 @@ int main(int argc, const char ** argv)
   return tool.main(argc, argv);
 }
 
+///@endcond

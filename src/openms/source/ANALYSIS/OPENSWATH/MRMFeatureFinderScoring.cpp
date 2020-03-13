@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,7 @@ namespace OpenMS
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("scoring_model", "default", "Scoring model to use", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
-    defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25\% extra on each side)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("im_extra_drift", 0.0);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
@@ -1050,8 +1050,10 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
-                                                              TransformationDescription trafo, double rt_extraction_window)
+                                                              TargetedExpType& transition_exp,
+                                                              TransitionGroupMapType& transition_group_map,
+                                                              TransformationDescription trafo,
+                                                              double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();

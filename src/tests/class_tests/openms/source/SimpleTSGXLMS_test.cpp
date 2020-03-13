@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -256,7 +256,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   spec.clear();
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
 
-  double result[] = {428.87870, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 642.81441, 661.67042, 661.99842, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
+  double result[] = {442.55421, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 661.67042, 661.99842, 663.32768, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].mz, result[i])
@@ -435,7 +435,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   spec.clear();
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
 
-  double result[] = {324.46775, 447.53482, 462.53119, 476.54550, 486.19799, 495.55399, 514.56115, 525.56830, 557.25947, 557.58748, 563.26299, 670.79860, 693.29315, 714.31461, 742.82736, 771.33809, 787.84882};
+  double result[] = {338.14327, 447.53482, 462.53119, 476.54550, 495.55399, 506.71126, 514.56115, 525.56830, 557.25947, 557.58748, 563.26299, 670.79860, 693.29315, 714.31461, 742.82736, 771.33809, 787.84882};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].mz, result[i])
@@ -548,29 +548,33 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // 6 ion types with 4 charges each are expected, each with a second isotopic peak
   TEST_EQUAL(spec.size(), 48)
 
-  // // Benchmarking sorting of double and SimplePeak vectors
-  // for (Size i = 0; i <= 50000; i++)
+
+  // // Benchmarking of generating cross-linked ion spectra using different sorting algorithms (minimal value in sec)
+  // // std::sort                      19.9
+  // // rev + std::sort                21.5
+  // // std::stable_sort               21.9
+  // // rev + std::stable_sort         20.5
+  // // boost::spinsort:               45
+  // // rev + boost::spinsort          19.25
+  // // boost::pdqsort:                18.52
+  // // rev + boost::pdqsort           18.46 + better average
+  // for (Size i = 0; i <= 2000000; i++)
   // {
-  //   double mz = 2500;
+  //   spec.clear();
+  //   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 5);
+  // }
+
+  // // Linear spectra
+  // // std::sort                      23
+  // // std::stable_sort:              19.24
+  // // boost::spinsort                20.45
+  // // boost::pdqsort:                18.5
   //
-  //   vector< double > double_vector;
-  //   for (Size j = 0; j <= 2000; j++)
-  //   {
-  //     double_vector.push_back(mz);
-  //     mz -= 1.0;
-  //   }
-  //   sort(double_vector.begin(), double_vector.end());
-  //
-  //   vector< SimpleTSGXLMS::SimplePeak > simple_vector;
-  //   SimpleTSGXLMS::SimplePeak p;
-  //   p.charge = 1;
-  //   for (Size j = 0; j <= 2000; j++)
-  //   {
-  //     p.mz = mz;
-  //     simple_vector.push_back(p);
-  //     mz -= 1.0;
-  //   }
-  //   sort(simple_vector.begin(), simple_vector.end(), SimpleTSGXLMS::SimplePeakComparator());
+  // AASequence tmp_peptide = AASequence::fromString("PEPTIDEPEPTIDEPEPTIDE");
+  // for (Size i = 0; i <= 2000000; i++)
+  // {
+  //   spec.clear();
+  //   ptr->getLinearIonSpectrum(spec, tmp_peptide, 9, true, 2);
   // }
 
 END_SECTION

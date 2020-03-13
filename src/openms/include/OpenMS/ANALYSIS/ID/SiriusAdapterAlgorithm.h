@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,6 @@
 
 #pragma once 
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 #include <OpenMS/SYSTEM/File.h>
@@ -50,6 +46,10 @@ using namespace std;
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class File;
+  class KDTreeFeatureMaps;
+
   class OPENMS_DLLAPI SiriusAdapterAlgorithm : public DefaultParamHandler
     {
     public:
@@ -74,8 +74,6 @@ namespace OpenMS
 
       int getNumberOfCandidates() const { return nightsky_sirius.getValue("candidates");  }
 
-
-
       /*
        *  Accessors for Fingerid Parameters
        */
@@ -99,19 +97,27 @@ namespace OpenMS
       bool hasFullNameParameter(const String &name) const;
 
       /// Struct for temporary folder structure
-      struct SiriusTmpStruct
+      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
-        String tmp_dir;
-        String tmp_ms_file;
-        String tmp_out_dir;
+      public:
+
+        /// Construct temporary folder structure for SIRIUS (SiriusTemporaryFileSystemObjects)
+        SiriusTemporaryFileSystemObjects(int debug_level);
+
+        /// Destructor of SiriusTemporaryFileSystemObjects based on debug level
+        ~SiriusTemporaryFileSystemObjects();
+
+        const String& getTmpDir() const;
+        const String& getTmpOutDir() const;
+        const String& getTmpMsFile() const;
+      
+      private:
+        int debug_level_;
+
+        String tmp_dir_;
+        String tmp_ms_file_;
+        String tmp_out_dir_;
       };
-
-      /**
-        @brief Construct temporary folder structure for SIRIUS (SiriusTmpStruct)
-
-        @return SiriusTmpStruct
-      */
-      static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct();
 
       /**
       @brief Checks if the provided String points to a valid SIRIUS executable, otherwise tries
@@ -166,7 +172,7 @@ namespace OpenMS
       */
       const vector<String> callSiriusQProcess(const String& tmp_ms_file,
                                               const String& tmp_out_dir,
-                                              String& executable, // TODO: Why not const?
+                                              String& executable,
                                               const String& out_csifingerid);
 
     private:

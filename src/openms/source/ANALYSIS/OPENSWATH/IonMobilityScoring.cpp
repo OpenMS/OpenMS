@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -254,7 +254,6 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (ms1spectrum->getDriftTimeArray() == nullptr)
     {
@@ -331,9 +330,10 @@ namespace OpenMS
     }
 
     OpenSwath::MRMScoring mrmscore_;
+    // horribly broken: provides vector of length 1, but expects at least length 2 in calcXcorrPrecursorContrastCoelutionScore()
     mrmscore_.initializeXCorrPrecursorContrastMatrix({ms1_int_values}, {fragment_values});
     OPENMS_LOG_DEBUG << "Contrast Scores : coelution precursor : " << mrmscore_.calcXcorrPrecursorContrastCoelutionScore() << " / shape  precursor " << 
-      mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+       mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
     scores.im_ms1_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
     scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
 
@@ -352,7 +352,6 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
     OPENMS_PRECONDITION(!transitions.empty(), "Need at least one transition");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (spectrum->getDriftTimeArray() == nullptr)
     {
@@ -385,7 +384,6 @@ namespace OpenMS
                                         const double drift_extra)
   {
     OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot score drift time if no drift time is available.");
 
     if (spectrum->getDriftTimeArray() == nullptr)
     {
@@ -433,21 +431,23 @@ namespace OpenMS
       // delta_drift_weighted += delta_drift * normalized_library_intensity[k];
       // weights += normalized_library_intensity[k];
     }
-    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift / tr_used << std::endl;
-    scores.im_delta_score = delta_drift / tr_used;
 
     if (tr_used != 0)
     {
+      delta_drift /= tr_used;
       computed_im /= tr_used;
       computed_im_weighted /= sum_intensity;
     }
     else
     {
+      delta_drift = -1;
       computed_im = -1;
       computed_im_weighted = -1;
     }
 
+    OPENMS_LOG_DEBUG << " Scoring delta drift time " << delta_drift << std::endl;
     OPENMS_LOG_DEBUG << " Scoring weighted delta drift time " << computed_im_weighted << " -> get difference " << std::fabs(computed_im_weighted - drift_target)<< std::endl;
+    scores.im_delta_score = delta_drift;
     scores.im_drift = computed_im;
     scores.im_drift_weighted = computed_im_weighted;
 
@@ -456,13 +456,19 @@ namespace OpenMS
     std::vector< std::vector< double > > aligned_mobilograms;
     for (const auto & mobilogram : mobilograms) 
     {
-      std::vector< double > arrInt, arrIM;
+      std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
-      alignToGrid(mobilogram, im_grid, arrInt, arrIM, eps, max_peak_idx);
-      aligned_mobilograms.push_back(arrInt);
+      alignToGrid(mobilogram, im_grid, arr_int, arr_IM, eps, max_peak_idx);
+      if (!arr_int.empty()) aligned_mobilograms.push_back(arr_int);
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
+    if (aligned_mobilograms.size() < 2)
+    {
+      scores.im_xcorr_coelution_score = 0;
+      scores.im_xcorr_shape_score = std::numeric_limits<double>::quiet_NaN();
+      return;
+    }
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrMatrix(aligned_mobilograms);
 

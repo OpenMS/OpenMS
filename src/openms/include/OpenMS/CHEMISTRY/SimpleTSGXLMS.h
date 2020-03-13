@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,8 +69,16 @@ namespace OpenMS
        */
       struct SimplePeak
       {
-        double mz = 0;
-        int charge = 0;
+        double mz;
+        int charge;
+
+        SimplePeak(double mz, int charge)
+        : mz(mz), charge(charge)
+        {}
+
+        SimplePeak()
+        : mz(0.0), charge(0)
+        {}
       };
 
       /**
@@ -185,15 +193,6 @@ namespace OpenMS
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
       virtual void addLinearPeaks_(std::vector< SimplePeak >& spectrum, AASequence& peptide, Size link_pos, Residue::ResidueType res_type, std::vector< LossIndex >& forward_losses, std::vector< LossIndex >& backward_losses, int charge = 1, Size link_pos_2 = 0) const;
-
-      /**
-       * @brief Adds a single peak with mz and charge to a spectrum
-
-       * @param spectrum The spectrum to which the new peak is added
-       * @param pos
-       * @param charge The charge of the ion
-       */
-      virtual void addPeak_(std::vector< SimplePeak >&, double pos, int charge) const;
 
       /**
        * @brief Adds precursor masses including neutral losses for the given charge

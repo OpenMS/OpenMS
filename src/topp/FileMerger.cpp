@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -43,7 +45,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -113,13 +114,13 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
+    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,fasta"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
     registerStringOption_("append_method", "<choice>", "append_rows", "Append consensusMaps rowise or colwise. (Please use colwise for the MSstatsConverter)", false);

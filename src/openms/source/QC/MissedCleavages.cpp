@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,8 +45,7 @@
 namespace OpenMS
 {
   typedef std::map<UInt32, UInt32> MapU32;
-  //counts the number of MissedCleavages per PeptideIdentification.
-  //stores the result as a vector of maps and additionally in the FeatureMap
+
   void MissedCleavages::compute(FeatureMap& fmap)
   {
     MapU32 result{};
@@ -104,6 +103,38 @@ namespace OpenMS
 
     //function of QCBase, which iterates through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
     QCBase::iterateFeatureMap(fmap, l);
+
+
+    /// add FWHM to peptides (a bit unrelated)
+    for (auto& f : fmap)
+    {
+      if (f.metaValueExists("FWHM")) // from FF-Centroided
+      {
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
+        }
+      }
+      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
+      {
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make meta value unique for downstream processing
+        }
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
+      }
+    }
+
+    // add experimental mass to PeptideHit (a bit unrelated)
+    QCBase::iterateFeatureMap(fmap, [](PeptideIdentification& pi)
+    {
+      if (pi.getHits().empty()) return;
+      auto& hit = pi.getHits()[0];
+      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
+    });
 
     mc_result_.push_back(result);
   }

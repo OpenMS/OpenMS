@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,12 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -908,24 +910,24 @@ START_SECTION((void insert(const String& prefix, const Param &param)))
 	TEST_REAL_SIMILAR(float(p2.getValue("n2:d")), 17.8)
 END_SECTION
 
-Param p;
-p.setValue("test:float",17.4f,"floatdesc");
-p.setValue("test:string","test,test,test","stringdesc");
-p.setValue("test:int",17,"intdesc");
-p.setValue("test2:float",17.5f);
-p.setValue("test2:string","test2");
-p.setValue("test2:int",18);
-p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", ListUtils::create<String>("a,b,c"));
+Param p_src;
+p_src.setValue("test:float",17.4f,"floatdesc");
+p_src.setValue("test:string","test,test,test","stringdesc");
+p_src.setValue("test:int",17,"intdesc");
+p_src.setValue("test2:float",17.5f);
+p_src.setValue("test2:string","test2");
+p_src.setValue("test2:int",18);
+p_src.setSectionDescription("test","sectiondesc");
+p_src.addTags("test:float", {"a", "b", "c"});
 
 START_SECTION((Param(const Param& rhs)))
-	Param p2(p);
+	Param p2(p_src);
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("test:float"), "floatdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p.getDescription("test:string"), "stringdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:string"), "stringdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
-	TEST_STRING_EQUAL(p.getDescription("test:int"), "intdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:int"), "intdesc")
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
 	TEST_STRING_EQUAL(p2.getDescription("test2:float"), String::EMPTY)
 	TEST_EQUAL(p2.getValue("test2:string"), "test2")
@@ -939,11 +941,11 @@ END_SECTION
 
 START_SECTION((Param& operator = (const Param& rhs)))
 	Param p2;
-	p2=p;
+	p2=p_src;
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
-	TEST_STRING_EQUAL(p.getDescription("test:float"), "floatdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
-	TEST_STRING_EQUAL(p.getDescription("test:string"), "stringdesc")
+	TEST_STRING_EQUAL(p_src.getDescription("test:string"), "stringdesc")
 	TEST_EQUAL(Int(p2.getValue("test:int")), 17)
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), "intdesc")
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), 17.5)
@@ -960,10 +962,10 @@ END_SECTION
 START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const))
 	Param p2;
 
-	p2 = p.copy("notthere:");
+	p2 = p_src.copy("notthere:");
 	TEST_EQUAL((p2==Param()),true)
 
-	p2 = p.copy("test:");
+	p2 = p_src.copy("test:");
 
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
@@ -973,13 +975,13 @@ START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const)
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), "stringdesc")
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test2:float"))
 
-	p2 = p.copy("test:",true);
+	p2 = p_src.copy("test:",true);
 	TEST_REAL_SIMILAR(float(p2.getValue("float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("string"), "test,test,test")
 	TEST_STRING_EQUAL(p2.getDescription("string"), "stringdesc")
 
-	p2 = p.copy("test");
+	p2 = p_src.copy("test");
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
@@ -997,7 +999,7 @@ END_SECTION
 
 START_SECTION((void remove(const String& key)))
 
-	Param p2(p);
+	Param p2(p_src);
 	p2.setValue("test:string2","test,test");
 
 	TEST_EQUAL(p2.size(),7)
@@ -1024,7 +1026,7 @@ START_SECTION((void remove(const String& key)))
 	TEST_EQUAL(p2.size(),3)
 
   // test deletion of nodes (when using a trailing ':')
-  p2 = p;
+  p2 = p_src;
 	p2.setValue("test:string2","an entry");
   p2.setValue("test:string2:e1","subnode with entries");
   p2.setValue("test:string2:sn2","subsubnode with entries");
@@ -1054,7 +1056,7 @@ START_SECTION((void remove(const String& key)))
 END_SECTION
 
 START_SECTION((void removeAll(const String& prefix)))
-	Param p2(p);
+	Param p2(p_src);
 
 	p2.removeAll("test:float");
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:float"))
@@ -1080,16 +1082,16 @@ END_SECTION
 
 
 START_SECTION((bool operator == (const Param& rhs) const))
-	Param p2(p);
-	TEST_EQUAL(p==p2, true)
+	Param p2(p_src);
+	TEST_EQUAL(p_src==p2, true)
 	p2.setValue("test:float",17.5f);
-	TEST_EQUAL(p==p2, false)
-	p2 = p;
+	TEST_EQUAL(p_src==p2, false)
+	p2 = p_src;
 	p2.setValue("test:float3",17.4f);
-	TEST_EQUAL(p==p2, false)
-	p2 = p;
+	TEST_EQUAL(p_src==p2, false)
+	p2 = p_src;
 	p2.removeAll("test:float");
-	TEST_EQUAL(p==p2, false)
+	TEST_EQUAL(p_src==p2, false)
 
 	//it should be independent of entry order
 	Param p3,p4;

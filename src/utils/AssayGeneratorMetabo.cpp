@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,31 +32,28 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <algorithm>
-#include <map> //insert
-
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h> 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
-
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
+#include <algorithm>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -161,10 +158,12 @@ protected:
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
 
     // transition extraction 
-    registerIntOption_("min_transitions", "<int>", 3, "minimal number of transitions", false);
-    registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
+    registerIntOption_("min_transitions", "<int>", 3, "Minimal number of transitions", false);
+    registerIntOption_("max_transitions", "<int>", 3, "Maximal number of transitions", false);
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
-    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
+    registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
+    registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
+    registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
 
     registerTOPPSubsection_("deisotoping", "deisotoping");
     registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
@@ -211,6 +210,8 @@ protected:
 
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
+    double min_fragment_mz = getDoubleOption_("min_fragment_mz");
+    double max_fragment_mz = getDoubleOption_("max_fragment_mz");
 
     double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
@@ -389,37 +390,34 @@ protected:
       if (use_fragment_annotation && executable.empty())
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "SIRIUS executable was not found.");
+            "SIRIUS executable was not found.");
       }
       else if (use_fragment_annotation && !executable.empty())
       {
         // make temporary files
-        SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
-        String tmp_dir = sirius_tmp.tmp_dir;
-        String tmp_ms_file = sirius_tmp.tmp_ms_file;
-        String tmp_out_dir = sirius_tmp.tmp_out_dir;
-  
+        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
+
         // write msfile and store the compound information in CompoundInfo Object
         vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
         SiriusMSFile::store(spectra,
-                            tmp_ms_file,
-                            feature_mapping,
-                            algorithm.isFeatureOnly(),
-                            algorithm.getIsotopePatternIterations(),
-                            algorithm.isNoMasstraceInfoIsotopePattern(),
-                            v_cmpinfo);
+            sirius_tmp.getTmpMsFile(),
+            feature_mapping,
+            algorithm.isFeatureOnly(),
+            algorithm.getIsotopePatternIterations(),
+            algorithm.isNoMasstraceInfoIsotopePattern(),
+            v_cmpinfo);
 
         algorithm.logFeatureSpectraNumber(id[file_counter],
-                                                          feature_mapping,
-                                                          spectra);
-  
+            feature_mapping,
+            spectra);
+
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
-        subdirs = algorithm.callSiriusQProcess(tmp_ms_file,
-                                                             tmp_out_dir,
-                                                             executable,
-                                                             out_csifingerid);
+        subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+            sirius_tmp.getTmpOutDir(),
+            executable,
+            out_csifingerid);
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
@@ -445,7 +443,7 @@ protected:
           sirius_workspace_directory = String(sw_dir.absolutePath());
 
           // move tmp folder to new location
-          bool copy_status = File::copyDirRecursively(tmp_dir.toQString(), sirius_workspace_directory.toQString());
+          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
           if (copy_status)
           {
             OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
@@ -456,25 +454,6 @@ protected:
           }
         }
        
-        // clean tmp directory if debug level < 2 
-        if (debug_level_ >= 2)
-        {
-          writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-        }
-        else
-        {
-          if (tmp_dir.empty() == false)
-          {
-            writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
-            File::removeDir(tmp_dir.toQString());
-          }
-          if (tmp_ms_file.empty() == false)
-          {
-            writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-            File::remove(tmp_ms_file); // remove msfile
-          }
-        }
-
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
         for (const auto& cmp : v_cmpinfo)
         {
@@ -553,6 +532,8 @@ protected:
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
                                                                                     transition_threshold,
+                                                                                    min_fragment_mz,
+                                                                                    max_fragment_mz,
                                                                                     use_exact_mass,
                                                                                     exclude_ms2_precursor,
                                                                                     file_counter);
@@ -565,6 +546,8 @@ protected:
                                                                   precursor_mz_distance,
                                                                   cosine_sim_threshold,
                                                                   transition_threshold,
+                                                                  min_fragment_mz,
+                                                                  max_fragment_mz,
                                                                   method_consensus_spectrum,
                                                                   exclude_ms2_precursor,
                                                                   file_counter);

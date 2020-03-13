@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,13 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <QtCore/QProcess>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <QDirIterator>
-
+#include <QString>
+#include <QtCore/QProcess>
 #include <fstream>
 #include <include/OpenMS/DATASTRUCTURES/StringUtils.h>
 
@@ -478,42 +480,69 @@ namespace OpenMS
         const String& qsiriuspathenv = QProcessEnvironment::systemEnvironment().value("SIRIUS_PATH");
         if (qsiriuspathenv.empty())
         {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__, 
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                         "");
+            const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+            OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
         }
-        executable = qsiriuspathenv;
-      }
-
-      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
-      OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
+    }
+    
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)
+    {
+      QString base_dir = File::getTempDirectory().toQString();
+      tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+      tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+      tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+      debug_level_ = debug_level;
+    }
+
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
+    {
+      constexpr int debug_threshold = 2;
+
+      // clean tmp directory if debug level < debug threshold
+      if (debug_level_ >= debug_threshold)
+      {
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level lower than " << debug_threshold << " to remove them." << std::endl;
+      }
+      else
+      {
+        if (!tmp_dir_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::removeDir(tmp_dir_.toQString());
+        }
+        if (!tmp_ms_file_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::remove(tmp_ms_file_);
+        }
+      }
     }
 
     // ################
     // Algorithm
     // ################
 
-    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpDir() const
     {
-      SiriusTmpStruct tmp_struct;
-      QString base_dir = File::getTempDirectory().toQString();
-      tmp_struct.tmp_dir = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
-      tmp_struct.tmp_ms_file = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
-      tmp_struct.tmp_out_dir = QDir(tmp_struct.tmp_dir.toQString()).filePath("sirius_out");
+      return tmp_dir_;
+    }
 
-      return tmp_struct;
-    } 
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpOutDir() const
+    {
+      return tmp_out_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
+    {
+      return tmp_ms_file_;
+    }
     
-    void SiriusAdapterAlgorithm::
-
-    Sirius(const String& featureinfo,
-                                                     const MSExperiment& spectra,
-                                                     std::vector<FeatureMap>& v_fp,
-                                                     KDTreeFeatureMaps& fp_map_kd,
-                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
+    void SiriusAdapterAlgorithm::preprocessing(const String& featureinfo,
+                                               const MSExperiment& spectra,
+                                               std::vector<FeatureMap>& v_fp,
+                                               KDTreeFeatureMaps& fp_map_kd,
+                                               FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -528,8 +557,6 @@ namespace OpenMS
           UInt num_masstrace_filter = getFilterByNumMassTraces();
           double precursor_mz_tol = getPrecursorMzTolerance();
           double precursor_rt_tol = getPrecursorRtTolerance();
-
-
 
           if (num_masstrace_filter != 1 && !isFeatureOnly())
           {
@@ -601,14 +628,13 @@ namespace OpenMS
 
     {
       // get the command line parameters from all the subtools
-      QStringList nightsky_params = nightsky_nightsky.getCommandLine();
-      QStringList sirius_params = nightsky_sirius.getCommandLine();
-      QStringList fingerid_params = nightsky_fingerid.getCommandLine();
+      QStringList sirius_params = sirius.getCommandLine();
+      QStringList fingerid_params = fingerid.getCommandLine();
 
       const bool run_csifingerid = ! out_csifingerid.empty();
 
       // structure of the command line passed to NightSky
-      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project-space", tmp_out_dir.toQString()}) + nightsky_params + QStringList("sirius") + sirius_params;
+      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project-space", tmp_out_dir.toQString()}) + sirius_params;
 
       // TODO: add passatutto - where does this parameter come from, since it will be an initial parameter of the SiriusAdaper?
       // TODO: e.g. add .msp output as spectral library - with target and decoys based on SIRIUS / Passatutto
@@ -627,7 +653,7 @@ namespace OpenMS
         command_line << "fingerid " << fingerid_params;
       }
 
-      OPENMS_LOG_INFO << "Running NightSky with the following command line parameters: " << endl;
+      OPENMS_LOG_INFO << "Running SIRIUS with the following command line parameters: " << endl;
       for (const auto &param: command_line)
       {
         OPENMS_LOG_INFO << param.toStdString() << " ";
@@ -636,12 +662,10 @@ namespace OpenMS
 
       // the actual process
       QProcess qp;
-      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
-
-      //since library paths are relative to sirius executable path
-      qp.setWorkingDirectory(File::path(executable).toQString());
-      qp.start(executable_qstring, command_line); // does automatic escaping etc... start
-
+      QString exe = executable.toQString();
+      QString wd = File::path(executable).toQString();
+      qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
+      qp.start(exe, process_params); // does automatic escaping etc... start
       std::stringstream ss;
       ss << "COMMAND: " << executable_qstring.toStdString();
       for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
@@ -650,7 +674,6 @@ namespace OpenMS
       }
       OPENMS_LOG_WARN << ss.str() << std::endl;
       OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;
-      // OPENMS_LOG_WARN << "Working Dir is: " + String(wd) << std::endl;
 
       const bool success = qp.waitForFinished(-1);
 

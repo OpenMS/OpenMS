@@ -8,7 +8,8 @@
 			<ProteinHit id="PH_0" accession="dme-let-7-5p" score="0.0" coverage="100.0" sequence="UGAGGUAGUAGGUUGUAUAGU" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file:///U:\Byron\DATA\20180522_Let7-+Um_mixture_ramp_02/minimal_01a.raw]"/>
+            <UserParam type="stringList" name="spectra_data" value="[NucleicAcidSearchEngine_1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data_raw" value="[file:///U:\Byron\DATA\20180522_Let7-+Um_mixture_ramp_02\minimal_01a.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="2263.620361328119998" RT="14.104380000000001" spectrum_reference="controllerType=0 controllerNumber=1 scan=88" >
 			<PeptideHit score="50.529285659036816" sequence="" charge="-3" aa_before="[" aa_after="]" start="0" end="20" protein_refs="PH_0" >

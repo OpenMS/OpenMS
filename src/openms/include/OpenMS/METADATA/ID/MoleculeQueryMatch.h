@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,14 +72,14 @@ namespace OpenMS
 
       explicit MoleculeQueryMatch(
         IdentifiedMoleculeRef identified_molecule_ref,
-        DataQueryRef data_query_ref, Int charge = 0,
-        const AppliedProcessingSteps& steps_and_scores =
-        AppliedProcessingSteps(),
-        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
-        ScoredProcessingResult(steps_and_scores),
-        identified_molecule_ref(identified_molecule_ref),
-        data_query_ref(data_query_ref), charge(charge),
-        peak_annotations(peak_annotations)
+        DataQueryRef data_query_ref, Int m_charge = 0,
+        const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
+        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()
+      )
+        : ScoredProcessingResult(steps_and_scores),
+          identified_molecule_ref(identified_molecule_ref),
+          data_query_ref(data_query_ref), charge(m_charge),
+          peak_annotations(peak_annotations)
       {
       }
 

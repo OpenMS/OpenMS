@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -234,7 +234,7 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        inputFileReadable_((svmfile_name + "_samples").c_str(), "svm_model (derived)");
+        inputFileReadable_((svmfile_name + "_samples"), "svm_model (derived)");
 
         training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
         svm.setTrainingSample(training_data);

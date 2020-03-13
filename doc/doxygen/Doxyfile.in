@@ -199,7 +199,7 @@ STRIP_FROM_INC_PATH    = @CF_OPENMS_DOCUMENTATION_STRIP_INCLUDES@
 # support long names like on DOS, Mac, or CD-ROM.
 # The default value is: NO.
 
-SHORT_NAMES            = YES
+SHORT_NAMES            = NO
 
 # If the JAVADOC_AUTOBRIEF tag is set to YES then doxygen will interpret the
 # first line (until the first dot) of a Javadoc-style comment as the brief
@@ -346,7 +346,7 @@ EXTENSION_MAPPING      =
 # mix doxygen, HTML, and XML commands with Markdown formatting. Disable only in
 # case of backward compatibilities issues.
 # The default value is: YES.
-
+## --> this still needs some work from our side, since indentation of doxygen snippets must be carefully checked
 MARKDOWN_SUPPORT       = NO
 
 # When the TOC_INCLUDE_HEADINGS tag is set to a non-zero value, all headings up
@@ -924,7 +924,7 @@ EXCLUDE_PATTERNS       = */.git/* \
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories use the pattern */test/*
 
-EXCLUDE_SYMBOLS        =
+EXCLUDE_SYMBOLS        = "OpenMS::Internal::Looper"
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
@@ -1291,7 +1291,7 @@ HTML_TIMESTAMP         = YES
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_MENUS     = NO
 
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the

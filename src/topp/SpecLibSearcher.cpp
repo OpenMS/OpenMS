@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,18 +31,21 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
 #include <vector>

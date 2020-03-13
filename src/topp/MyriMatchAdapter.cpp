@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,7 +246,7 @@ protected:
 
     addEmptyLine_();
     registerInputFile_("myrimatch_executable", "<executable>", "myrimatch",
-                       "The 'myrimatch' executable of the MyriMatch installation", true, false, ListUtils::create<String>("skipexists"));
+                       "The 'myrimatch' executable of the MyriMatch installation. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerIntOption_("NumChargeStates", "<num>", 3, "The number of charge states that MyriMatch will handle during all stages of the program.", false);
     registerDoubleOption_("TicCutoffPercentage", "<percentage>", 0.98, "Noise peaks are filtered out by sorting the original peaks in descending order of intensity, and then picking peaks from that list until the cumulative ion current of the picked peaks divided by the total ion current (TIC) is greater than or equal to this parameter.", false);
 

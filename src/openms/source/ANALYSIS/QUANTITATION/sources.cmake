@@ -18,6 +18,7 @@ PeptideAndProteinQuant.cpp
 ProteinInference.cpp
 ProteinResolver.cpp
 QuantitativeExperimentalDesign.cpp
+TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,6 +128,9 @@ namespace OpenMS
     }
     vector<PeakSpectrum> windows_top10 = peakPickingPerWindowsInSpectrum_(real_spectrum);
 
+    // compute match probability for a peak depth of 1
+    base_match_probability_ = computeBaseProbability_(real_spectrum.back().getMZ());
+
     // calculate peptide score for each possible phospho site permutation
     vector<vector<double>> peptide_site_scores = calculatePermutationPeptideScores_(th_spectra, windows_top10);
 
@@ -164,7 +167,7 @@ namespace OpenMS
 
         computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions);
         Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
-        double p = static_cast<double>(s_it->peak_depth) / 100.0;
+        double p = static_cast<double>(s_it->peak_depth) * base_match_probability_;
 
         Size n_first = 0; // number of matching peaks for first peptide
         for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
@@ -200,6 +203,16 @@ namespace OpenMS
     }
     phospho.setScore(best_Ascore);
     return phospho;
+  }
+
+  double AScore::computeBaseProbability_(double ppm_reference_mz) const
+  {
+    double base_match_probability = 2. * fragment_mass_tolerance_ / 100.;
+    if (fragment_tolerance_ppm_)
+    {
+      base_match_probability *= ppm_reference_mz * 1e-6; // 1e-6 converts fragment_mass_tolerance_ to ppm
+    }
+    return base_match_probability;
   }
 
   double AScore::computeCumulativeScore_(Size N, Size n, double p) const
@@ -393,7 +406,7 @@ namespace OpenMS
             + scores[7] * 0.5
             + scores[8] * 0.25
             + scores[9] * 0.25)
-           / 10.0;
+           / 7.0;
   }
 
   vector<Size> AScore::getSites_(const AASequence& without_phospho) const
@@ -569,9 +582,9 @@ namespace OpenMS
         {
           n += numberOfMatchedIons_(*it, windows_top10[current_win], i);
         }
-        double p = static_cast<double>(i) / 100.0;
+        double p = static_cast<double>(i) * base_match_probability_;
         double cumulative_score = computeCumulativeScore_(N, n, p);
-        
+
         //abs is used to avoid -0 score values
         (*site_score)[i - 1] = abs((-10.0 * log10(cumulative_score)));
       }
