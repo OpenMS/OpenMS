@@ -94,9 +94,6 @@ jobs:
 
           make -j4 OpenMS
 
-          # update conda 
-          conda update conda
-
           # Search for the latest 3 main python versions in the repository pkgs/main 
           SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
 
@@ -107,11 +104,10 @@ jobs:
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
-            conda activate pyoms-bld-$py 
+            source activate pyoms-bld-$py 
             
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
-              conda deactivate
 
             # pip install all the stuff
             pip install -U setuptools
@@ -121,6 +117,8 @@ jobs:
             pip install -U numpy
             pip install -U wheel    
             
+            conda deactivate
+
             echo $CURRENT_PYTHON_EXECUTABLE
 
             # build pyopenms distribution (macOS)
