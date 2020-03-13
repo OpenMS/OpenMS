@@ -102,6 +102,8 @@ namespace OpenMS
      * @return Status for RAWMZML and POSTFDRFEAT
      */
     QCBase::Status requires() const override;
+
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
   };
 
 } // namespace OpenMS

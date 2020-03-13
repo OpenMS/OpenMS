@@ -76,6 +76,9 @@ namespace OpenMS
 
     QCBase::Status requires() const override;
 
+    /// append QC data for given metrics to mzTab's MTD section
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
+
   private:
     const String name_ = "TIC";
     std::vector<MSChromatogram> results_;

@@ -778,7 +778,6 @@ OPENMS_THREAD_CRITICAL(oms_log)
     }
   }
 
-
   void ConsensusMap::applyFunctionOnPeptideIDs_(vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f)
   {
     for (auto& id : idvec)

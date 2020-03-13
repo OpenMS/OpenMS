@@ -36,6 +36,9 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/MzTab.h>
+//#include <OpenMS/QC/TIC.h>
+//#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <iostream>
 #include <map>
 
@@ -52,6 +55,44 @@ namespace OpenMS
   class OPENMS_DLLAPI QCBase
   {
   public:
+
+    /// two way mapping from ms-run-path to protID|pepID-identifier
+    struct Mapping
+    {
+      std::map<String, StringList> identifier_to_msrunpath;
+      std::map<StringList, String> runpath_to_identifier;
+
+      Mapping() = default;
+
+      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        create(prot_ids);
+      }
+      void create(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        identifier_to_msrunpath.clear();
+        runpath_to_identifier.clear();
+        StringList filenames;
+        for (const ProteinIdentification& prot_id : prot_ids)
+        {
+          prot_id.getPrimaryMSRunPath(filenames);
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+          }
+          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+          const auto& it = runpath_to_identifier.find(filenames);
+          if (it != runpath_to_identifier.end())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+                                          ListUtils::concatenate(filenames, ","));
+          }
+          runpath_to_identifier[filenames] = prot_id.getIdentifier();
+        }
+      }
+    };
+
     /**
      * @brief Enum to encode a file type as a bit.
      */
@@ -232,30 +273,11 @@ namespace OpenMS
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
-    
 
-    /**
-     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
-     *
-     * The Lambda may or may not change the PeptideIdentification
-     */
 
-    template <typename MAP, typename T>
-    static void iterateFeatureMap(MAP& fmap, T lambda)
-    {
-      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
-      {
-        lambda(pep_id);
-      }
-
-      for (auto& features : fmap)
-      {
-        for (auto& pep_id : features.getPeptideIdentifications())
-        {
-          lambda(pep_id);
-        }
-      }
-    }
+    /// tests if a metric has the required input files
+    /// gives a warning with the name of the metric that can not be performed
+    bool isRunnable(const Status& s) const;
   };
 
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)

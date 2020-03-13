@@ -77,4 +77,20 @@ namespace OpenMS
   {
     return nativeid_to_index_.size();
   }
+
+  // function tests if a metric has the required input files
+  // gives a warning with the name of the metric that can not be performed
+  bool QCBase::isRunnable(const Status& s) const
+  {
+    if (s.isSuperSetOf(this->requires())) return true;
+
+    for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
+    {
+      if (this->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
+      {
+        OPENMS_LOG_WARN << "Metric '" << this->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
+      }
+    }
+    return false;
+  }
 } //namespace OpenMS

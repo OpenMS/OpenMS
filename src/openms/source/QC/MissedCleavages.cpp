@@ -79,7 +79,7 @@ namespace OpenMS
     digestor.setMissedCleavages(0);
 
     //lambda function: digests the Sequence in PeptideHit and counts the number of missed cleavages
-    auto l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
+    std::function<void(PeptideIdentification&)> l = [&digestor, &result, &max_mc](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -102,7 +102,7 @@ namespace OpenMS
     };
 
     //function of QCBase, which iterates through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
-    QCBase::iterateFeatureMap(fmap, l);
+    fmap.applyFunctionOnPeptideIDs(l);
 
 
     /// add FWHM to peptides (a bit unrelated)
@@ -128,13 +128,17 @@ namespace OpenMS
       }
     }
 
-    // add experimental mass to PeptideHit (a bit unrelated)
-    QCBase::iterateFeatureMap(fmap, [](PeptideIdentification& pi)
+    std::function<void(PeptideIdentification&)> f =
+        [](PeptideIdentification& pi)
     {
       if (pi.getHits().empty()) return;
       auto& hit = pi.getHits()[0];
       hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-    });
+    };
+
+    // add experimental mass to PeptideHit (a bit unrelated)
+    fmap.applyFunctionOnPeptideIDs(f);
+
 
     mc_result_.push_back(result);
   }

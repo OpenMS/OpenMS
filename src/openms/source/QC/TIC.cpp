@@ -68,4 +68,40 @@ namespace OpenMS
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
+
+  void TIC::addMetaDataMetricsToMzTab(MzTabMetaData& meta)
+  {
+    // Adding TIC information to meta data
+    const auto& tics = this->getResults();
+    for (Size i = 0; i < tics.size(); ++i)
+    {
+      MzTabParameter tic{};
+      tic.setCVLabel("total ion current");
+      tic.setAccession("MS:1000285");
+      tic.setName("TIC_" + String(i + 1));
+      String value("[");
+      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
+      for (Size j = 1; j < tics[i].size(); ++j)
+      {
+        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
+      }
+      value += "]";
+      tic.setValue(value);
+      meta.custom[meta.custom.size()] = tic;
+    }
+
+  }
+/*
+  // Adding MS2_ID_Rate to meta data
+  const auto& ms2_irs = qc_ms2ir.getResults();
+  for (Size i = 0; i < ms2_irs.size(); ++i)
+{
+  MzTabParameter ms2_ir{};
+  ms2_ir.setCVLabel("MS2 identification rate");
+  ms2_ir.setAccession("null");
+  ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
+  ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+  meta.custom[meta.custom.size()] = ms2_ir;
+}
+ */
 }
