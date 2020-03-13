@@ -85,7 +85,18 @@ jobs:
           export MACOSX_DEPLOYMENT_TARGET=10.9
 
           ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
-          ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Headers
+          ls -lL /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Headers
+          
+          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
+          pushd $Qt5_Dir/include
+            for f in $Qt5_Dir/lib/*.framework/Headers
+            do
+              lnknm=$(basename "${f%/*}" ".framework")
+              ln -s $f $lnknm
+            done
+          popd
+          
+          ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
           
           mkdir bld
           pushd bld
