@@ -115,4 +115,17 @@ namespace OpenMS
     return (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0);
   }
 
+  String PythonInfo::getVersion(const String& python_executable)
+  {
+    String v;
+    QProcess qp;
+    qp.start(python_executable.toQString(), QStringList() << "--version", QIODevice::ReadOnly);
+    bool success = qp.waitForFinished();
+    if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
+    {
+      v = qp.readAllStandardOutput().toStdString();
+    }
+    return v;
+  }
+
 } // namespace OpenMS

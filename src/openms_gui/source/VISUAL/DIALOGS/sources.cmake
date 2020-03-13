@@ -10,6 +10,8 @@ FeatureEditDialog.ui
 HistogramDialog.cpp
 LayerStatisticsDialog.cpp
 LayerStatisticsDialog.ui
+PythonModuleRequirement.cpp
+PythonModuleRequirement.ui
 PythonSelector.cpp
 PythonSelector.ui
 SaveImageDialog.cpp

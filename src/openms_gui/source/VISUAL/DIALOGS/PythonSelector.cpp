@@ -48,9 +48,9 @@ namespace OpenMS
 {
   namespace Internal
   {
-      PythonSelector::PythonSelector(QWidget* parent) :
-      QWidget(parent),
-      ui_(new Ui::PythonSelector)
+    PythonSelector::PythonSelector(QWidget* parent) :
+    QWidget(parent),
+    ui_(new Ui::PythonSelector)
     {
       ui_->setupUi(this);
       
@@ -90,6 +90,7 @@ namespace OpenMS
       if (success)
       {
         last_known_python_exe_ = exe;
+        ui_->label->setText(PythonInfo::getVersion(exe).toQString());
         currently_valid_ = true;
       }
       else

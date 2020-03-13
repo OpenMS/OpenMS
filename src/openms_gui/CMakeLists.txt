@@ -55,7 +55,7 @@ IF (NOT Qt5Widgets_FOUND)
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -94,6 +94,12 @@ set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                              ${Qt5Network_LIBRARIES}
                             )
 set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
+
+# manually extract .ui files and track them (trigger rebuild of ui_CLASS.h upon changing CLASS.ui)
+# see https://gitlab.kitware.com/cmake/cmake/issues/18741
+set(UI_SOURCES ${OpenMSVisual_sources}) # copy list of .cpp + .ui files
+list(FILTER UI_SOURCES INCLUDE REGEX "\\.ui$")
+qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add them to OpenMSVisual_sources_h
 
 #------------------------------------------------------------------------------
 # add the library

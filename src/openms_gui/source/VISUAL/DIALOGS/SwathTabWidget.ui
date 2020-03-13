@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>394</width>
-    <height>396</height>
+    <height>387</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>394</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>TabWidget</string>
@@ -17,45 +23,49 @@
    <number>0</number>
   </property>
   <widget class="QWidget" name="config">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <attribute name="title">
     <string>Config</string>
    </attribute>
-   <widget class="QGroupBox" name="box_pyProphet">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>90</y>
-      <width>371</width>
-      <height>101</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>PyProphet</string>
-    </property>
-    <widget class="QLabel" name="pyprophet_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Modules:</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="PythonSelector" name="py_selector" native="true">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>9</y>
-      <width>371</width>
-      <height>71</height>
-     </rect>
-    </property>
-   </widget>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="PythonSelector" name="py_selector" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>300</width>
+        <height>100</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="PythonModuleRequirement" name="py_pyprophet" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>300</width>
+        <height>100</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QWidget" name="lcms_files">
    <property name="layoutDirection">
@@ -76,6 +86,12 @@
    <class>PythonSelector</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/DIALOGS/PythonSelector.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PythonModuleRequirement</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

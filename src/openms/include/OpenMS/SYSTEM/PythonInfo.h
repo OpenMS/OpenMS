@@ -62,7 +62,7 @@ namespace OpenMS
 
 
     /**
-     @brief determine if the Python given in @p python_executable has the package @p package_name already installed
+     @brief Determine if the Python given in @p python_executable has the package @p package_name already installed
 
      If Python cannot be found, the function will just return false.
      Thus, make sure that PythonInfo::canRun() succeeds before calling this function.
@@ -72,6 +72,18 @@ namespace OpenMS
      @return true if package is installed
     */
     static bool isPackageInstalled(const String& python_executable, const String& package_name);
+
+    /**
+     @brief Determine the version of Python given in @p python_executable by calling '--version'
+
+     If Python cannot be found, the function will return the empty string.
+     Thus, make sure that PythonInfo::canRun() succeeds before calling this function.
+
+     @param python_executable As determined by canRun()...
+     @param package_name The package you want to test (mind lower/upper case!)
+     @return the output of 'python --version'
+    */
+    static String getVersion(const String& python_executable);
   };
 
 }

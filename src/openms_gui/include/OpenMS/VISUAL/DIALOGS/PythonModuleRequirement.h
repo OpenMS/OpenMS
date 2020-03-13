@@ -35,49 +35,50 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>
 
 namespace Ui
 {
-  class PythonSelector;
+  class PythonModuleRequirement;
 }
 
 namespace OpenMS
 {
   namespace Internal
   {
-    /// A QLineEdit + Browse button to have the user select a local python installation
-    /// By default, 'python' is used
-    class OPENMS_GUI_DLLAPI PythonSelector : public QWidget
+    ///Preferences dialog for Spectrum3DWidget
+    class OPENMS_GUI_DLLAPI PythonModuleRequirement : public QWidget
     {
       Q_OBJECT
-
+      
     public:
-      explicit PythonSelector(QWidget* parent = nullptr);
-      ~PythonSelector();
+      explicit PythonModuleRequirement(QWidget* parent = nullptr);
+      ~PythonModuleRequirement();
+
+      void setRequiredModules(const StringList& m);
+      void setFreeText(const String& text);
+
 
     signals:
-      /// emitted whenever the line-edit has new values for the current python executable
-      void valueChanged(String last_known_python_exe, bool valid_python);
-      
-    
-    private slots:
-      void showFileDialog_();
+      /// emitted whenever the requirement check was executed...
+      void valueChanged(StringList& valid_modules, StringList& missing_modules);
 
-      void validate_();
+
+    private slots:
+      void validate_(const String& python_exe);
 
     private:
-      String last_known_python_exe_ = "python"; ///< initial guess or last valid user input
-      bool currently_valid_ = false; ///< unless proven otherwise by 'validate_()'
+      StringList required_modules_; ///< list of modules which are needed (order might be important -- know your Python...)
+      String info_text_; ///< additional text to display for the user
 
-      Ui::PythonSelector* ui_;
+      Ui::PythonModuleRequirement* ui_;
     };
 
   }
 } // ns OpenMS
 
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonSelector member
-using PythonSelector = OpenMS::Internal::PythonSelector;
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonModuleRequirement member
+using PythonModuleRequirement = OpenMS::Internal::PythonModuleRequirement;

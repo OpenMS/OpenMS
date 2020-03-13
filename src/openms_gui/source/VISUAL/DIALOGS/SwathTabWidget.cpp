@@ -35,6 +35,8 @@
 #include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
 #include <ui_SwathTabWidget.h>
 
+#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -46,6 +48,11 @@ namespace OpenMS
         ui(new Ui::SwathTabWidget)
     {
         ui->setupUi(this);
+        auto py_pyprophet = ui->config->findChild<PythonModuleRequirement*>("py_pyprophet", Qt::FindDirectChildrenOnly);
+        py_pyprophet->setRequiredModules({"pyprophet", "stats"});
+        py_pyprophet->setFreeText("In order to run PyProphet after OpenSWATH, the above modules need to be installed\n" \
+                                  "Once they are available, the 'pyProphet' tab will become active and configurable.");
+
     }
 
     SwathTabWidget::~SwathTabWidget()
