@@ -37,8 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MzTab.h>
-//#include <OpenMS/QC/TIC.h>
-//#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <iostream>
 #include <map>
 
