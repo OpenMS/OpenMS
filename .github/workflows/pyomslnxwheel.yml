@@ -23,7 +23,7 @@ jobs:
         version: '5.12.7'
         host: 'mac'
         target: 'desktop'
-        dir: '$GITHUB_WORKSPACE/qt5'
+        dir: '/opt/qt5'
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
