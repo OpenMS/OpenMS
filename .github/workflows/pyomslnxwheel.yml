@@ -89,11 +89,7 @@ jobs:
 
           mkdir bld
           pushd bld
-          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" \
-                -DCMAKE_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}" \
-                -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 \
-                -DBOOST_USE_STATIC=ON \
-                ../OpenMS
+          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}" -DCMAKE_MACOSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
 
           make -j4 OpenMS
 
