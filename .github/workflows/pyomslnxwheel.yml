@@ -137,7 +137,7 @@ jobs:
             make -j4 pyopenms
 
             # copy to directory 
-            cp pyOpenMS/dist/*.whl pyopenms_whls
+            cp pyOpenMS/dist/*.whl pyopenms_whls/
 
             # clean up 
             conda remove --name pyoms-bld-$py --all
@@ -148,7 +148,7 @@ jobs:
       name: Upload artifacts
       with:
         name: macwheels
-        path: build/pyopenms_whls
+        path: bld/pyopenms_whls
         
   build-lnx:
     # The type of runner that the job will run on
