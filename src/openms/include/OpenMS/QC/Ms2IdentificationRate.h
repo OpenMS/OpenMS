@@ -43,6 +43,7 @@ namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
+  class MzTabMetaData;
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
    

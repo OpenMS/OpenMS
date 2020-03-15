@@ -169,8 +169,9 @@ START_TEST(MissedCleavages, "$Id$")
 
     std::vector<UInt32> frequ;
 
-    //test if result is stored as MetaInformation in PeptidHits in FeatureMap
-    auto lam = [&frequ](PeptideIdentification& pep_id)
+    //test if result is stored as MetaInformation in PeptideHits in FeatureMap
+    std::function<void(PeptideIdentification&)> lam =
+        [&frequ](PeptideIdentification& pep_id)
     {
       if(pep_id.getHits().empty())
       {
@@ -182,7 +183,7 @@ START_TEST(MissedCleavages, "$Id$")
       }
     };
 
-    OpenMS::QCBase::iterateFeatureMap(feature_map, lam);
+    feature_map.applyFunctionOnPeptideIDs(lam);
     TEST_EQUAL(frequ.size(), 4)
     TEST_EQUAL(frequ[0], 1)
     TEST_EQUAL(frequ[1], 1)

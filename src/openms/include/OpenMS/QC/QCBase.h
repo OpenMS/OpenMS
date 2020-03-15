@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <iostream>
 #include <map>
 
@@ -118,7 +117,7 @@ namespace OpenMS
       SpectraMap() = default;
 
       /// CTor which allows immediate indexing of an MSExperiment
-      SpectraMap(const MSExperiment& exp);
+      explicit SpectraMap(const MSExperiment& exp);
 
       /// Destructor
       ~SpectraMap() = default;
@@ -164,7 +163,7 @@ namespace OpenMS
       Status() : value_(0)
       {}
 
-      Status(const Requires& req)
+      explicit Status(const Requires& req)
       {
         value_ = getPow_(req);
       }
