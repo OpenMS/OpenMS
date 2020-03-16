@@ -53,7 +53,7 @@ namespace OpenMS
     // if the FeatureMap is empty, result is 0
     if (fmap.empty())
     {
-      OPENMS_LOG_WARN << "FeatureXML is empty.";
+      OPENMS_LOG_WARN << "FeatureXML is empty.\n";
       mc_result_.push_back(result);
       return;
     }

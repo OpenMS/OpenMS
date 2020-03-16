@@ -322,4 +322,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);
 
 } // namespace OpenMS
-

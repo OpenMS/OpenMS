@@ -140,7 +140,7 @@ START_TEST(MissedCleavages, "$Id$")
 
   MissedCleavages* ptr = nullptr;
   MissedCleavages* nulpt = nullptr;
-  START_SECTION(MissedCleavges())
+  START_SECTION(MissedCleavages())
   {
   ptr = new MissedCleavages();
   TEST_NOT_EQUAL(ptr, nulpt)
@@ -170,7 +170,7 @@ START_TEST(MissedCleavages, "$Id$")
     std::vector<UInt32> frequ;
 
     //test if result is stored as MetaInformation in PeptideHits in FeatureMap
-    std::function<void(PeptideIdentification&)> lam =
+    auto lam =
         [&frequ](PeptideIdentification& pep_id)
     {
       if(pep_id.getHits().empty())
@@ -185,9 +185,9 @@ START_TEST(MissedCleavages, "$Id$")
 
     feature_map.applyFunctionOnPeptideIDs(lam);
     TEST_EQUAL(frequ.size(), 4)
-    TEST_EQUAL(frequ[0], 1)
+    TEST_EQUAL(frequ[0], 0)
     TEST_EQUAL(frequ[1], 1)
-    TEST_EQUAL(frequ[2], 0)
+    TEST_EQUAL(frequ[2], 1)
     TEST_EQUAL(frequ[3], 1)
 
     //empty feature map

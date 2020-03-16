@@ -52,7 +52,6 @@ namespace OpenMS
   class OPENMS_DLLAPI QCBase
   {
   public:
-
     /**
      * @brief Enum to encode a file type as a bit.
      */

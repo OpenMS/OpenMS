@@ -57,9 +57,9 @@ namespace OpenMS
     /// Structure for storing results
     struct IdentificationRateData
     {
-      UInt64 num_peptide_identification;
-      UInt64 num_ms2_spectra;
-      double identification_rate;
+      UInt64 num_peptide_identification = 0;
+      UInt64 num_ms2_spectra = 0;
+      double identification_rate = 0.;
     };
 
   private:

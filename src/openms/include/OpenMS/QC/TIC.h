@@ -85,6 +85,5 @@ namespace OpenMS
   private:
     const String name_ = "TIC";
     std::vector<MSChromatogram> results_;
-
   };
 }

@@ -90,6 +90,5 @@ namespace OpenMS
       tic.setValue(value);
       meta.custom[meta.custom.size()] = tic;
     }
-
   }
 }
