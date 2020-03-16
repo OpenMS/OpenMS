@@ -2,7 +2,7 @@
 
 name: pyopenms-wheels
 
-# Controls when the action will run. Triggers the workflow on push or pull request 
+# Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   push:
@@ -48,25 +48,25 @@ jobs:
       run: |
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
-        
+
     - name: Install build tools
       run: brew install autoconf automake libtool
-        
+
     - name: Cache contrib
       id: cache-contrib
       uses: actions/cache@v1
       with:
         path: contribbld
         key: ${{ runner.os }}-contrib
-    
+
     # TODO cache or better download from contrib builds
     - name: Contrib build
       if: steps.cache-contrib.outputs.cache-hit != 'true'
       run: |
           pushd OpenMS
             git submodule update --init contrib
-          popd 
-          
+          popd
+
           export CC=clang
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
@@ -77,7 +77,7 @@ jobs:
             rm -rf src
             rm -rf CMakeFiles
           popd
-          
+ 
     - name: Build
       run: |
           export CC=clang
@@ -86,7 +86,7 @@ jobs:
 
           ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
           ls -lL /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Headers
-          
+
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
           pushd $Qt5_Dir/include
             for f in $Qt5_Dir/lib/*.framework/Headers
@@ -95,9 +95,9 @@ jobs:
               ln -s $f $lnknm
             done
           popd
-          
+
           ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
-          
+
           mkdir bld
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
@@ -105,7 +105,7 @@ jobs:
 
           make -j4 OpenMS SuperHirn
 
-          # Search for the latest 3 main python versions in the repository pkgs/main 
+          # Search for the latest 3 main python versions in the repository pkgs/main
           SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
 
           echo $SUPPORTED_PYTHONS
@@ -115,8 +115,8 @@ jobs:
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
-            source activate pyoms-bld-$py 
-            
+            source activate pyoms-bld-$py
+
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
 
@@ -126,8 +126,8 @@ jobs:
             pip install -U autowrap
             pip install -U nose
             pip install -U numpy
-            pip install -U wheel    
-            
+            pip install -U wheel
+
             conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
@@ -136,10 +136,10 @@ jobs:
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             make -j4 pyopenms
 
-            # copy to directory 
+            # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
 
-            # clean up 
+            # clean up
             conda remove --name pyoms-bld-$py --all
 
           done
@@ -149,7 +149,7 @@ jobs:
       with:
         name: macwheels
         path: bld/pyopenms_whls
-        
+
   build-lnx:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -172,7 +172,7 @@ jobs:
             # 3. Patch init (since the linked libraries are all in .lib)
             cd OpenMS
             wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
-            patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch 
+            patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch
             patch -p0 src/pyOpenMS/setup.py < src/pyOpenMS/dist-scripts/manylinux.patch2 ## somehow required to link against regex boost lib
             cd /
 
@@ -208,9 +208,9 @@ jobs:
               # ensure auditwheel can find the libraries
               export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
               # strip the libraries
-              strip --strip-all lib/libOpenMS.so 
-              strip --strip-all lib/libOpenSwathAlgo.so 
-              strip --strip-all lib/libSuperHirn.so 
+              strip --strip-all lib/libOpenMS.so
+              strip --strip-all lib/libOpenSwathAlgo.so
+              strip --strip-all lib/libSuperHirn.so
               cd pyOpenMS
               # remove the libraries as auditwheel will take care of linked libs
               rm -rf pyopenms/lib*
@@ -232,7 +232,7 @@ jobs:
               mkdir fix
               cp pyopenms-*.whl fix/fix.zip
               cd fix
-              unzip fix.zip 
+              unzip fix.zip
               /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
               /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
               zip -r ../pyopenms-*.whl pyopenms/
@@ -240,7 +240,7 @@ jobs:
               rm -rf wheelhouse/fix/
               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
             done
-            
+
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
       with:
