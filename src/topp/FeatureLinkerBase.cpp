@@ -297,7 +297,7 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
         if (keep_subelements)
         {
-          std::function<void(PeptideIdentification &)> saveOldMapIndex =
+          auto saveOldMapIndex =
             [](PeptideIdentification &p)
             {
               if (p.metaValueExists("map_index"))

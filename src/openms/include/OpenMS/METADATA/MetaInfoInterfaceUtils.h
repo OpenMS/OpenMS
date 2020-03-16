@@ -54,7 +54,12 @@ namespace OpenMS
   class /*OPENMS_DLLAPI -- disabled since it's template code only */ MetaInfoInterfaceUtils
   {
 public:
-    
+    /// hide c'tors to avoid instantiation of utils class
+    MetaInfoInterfaceUtils() = delete;
+    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&) = delete;
+    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&) = delete;
+    // no Move semantics for utils class
+
     ///@name Methods to find key sets
     //@{
     /**
@@ -101,24 +106,6 @@ public:
       }
       return common_keys;
     }
-
-    /// function to copy all meta values from one object to another
-    //TODO get a MetaValue list to copy only those that have been set
-    static void copyMetaValues(const MetaInfoInterface& from, MetaInfoInterface& to)
-    {
-      std::vector<String> keys;
-      from.getKeys(keys);
-      for (String& key : keys)
-      {
-        to.setMetaValue(key, from.getMetaValue(key));
-      }
-    }
-private:
-    /// hide c'tors to avoid instantiation of utils class
-    MetaInfoInterfaceUtils();
-    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&);
-    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&);
-    // no Move semantics for utils class
   
   }; // class
 

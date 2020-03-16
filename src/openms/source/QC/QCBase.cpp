@@ -34,6 +34,7 @@
 
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

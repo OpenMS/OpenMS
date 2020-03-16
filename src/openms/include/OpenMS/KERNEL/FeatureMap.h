@@ -44,6 +44,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
+
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
@@ -98,7 +100,8 @@ namespace OpenMS
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<FeatureMap>
+    public UniqueIdIndexer<FeatureMap>,
+    public MapUtilities<FeatureMap>
   {
 public:
     /**
@@ -264,19 +267,6 @@ public:
     */
     OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
-    /// applies a function on all PeptideHits or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned = true);
-
-    /// applies a function on all PeptideIDs or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned = true);
-
-    /// applies a const function on all PeptideHits or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>&, bool include_unassigned = true) const;
-
-    /// applies a const function on all PeptideIDs or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned = true) const;
-
-
     /**
       @brief Applies a member function of Type to the container itself and all features (including subordinates).
       The returned values are accumulated.
@@ -327,15 +317,6 @@ protected:
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
 
-private:
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const;
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const;
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f);
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f);
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);

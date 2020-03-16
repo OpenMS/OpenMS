@@ -36,10 +36,12 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <algorithm>
+
 
 namespace OpenMS
 {
@@ -70,7 +72,7 @@ namespace OpenMS
     //counts peptideIdentifications
     UInt64 peptide_identification_counter{};
 
-    std::function<void(const PeptideIdentification&)> f =
+    auto f =
         [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())

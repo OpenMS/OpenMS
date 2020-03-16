@@ -174,7 +174,7 @@ protected:
     //-------------------------------------------------------------
     // prot/pepID-identifier -->  ms-run-path
     //-------------------------------------------------------------
-    QCBase::Mapping mp_c(cmap.getProteinIdentifications());
+    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
 
     //-------------------------------------------------------------
     // Build a PepID Map to later find the corresponding PepID in the CMap
@@ -224,7 +224,7 @@ protected:
         spec_map.calculateMap(exp);
       }
 
-      QCBase::Mapping mp_f;
+      ProteinIdentification::Mapping mp_f;
       FeatureXMLFile fxml_file;
       FeatureMap fmap;
       if (!in_postFDR.empty())
@@ -331,7 +331,7 @@ protected:
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
-    std::function<void(const PeptideIdentification&)> f =
+    auto f =
         [&incomplete_features](const PeptideIdentification& pep_id)
         {
           if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
@@ -444,11 +444,11 @@ private:
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        MetaInfoInterfaceUtils::copyMetaValues(f_pep_id, *(it_pep->second));
+        it_pep->second->addMetaValues(f_pep_id);
 
         // copy all MetaValues that are at best Hit level
         //TODO check if first = best assumption is met!
-        MetaInfoInterfaceUtils::copyMetaValues(f_pep_id.getHits()[0], (it_pep->second)->getHits()[0]);
+        (it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
       }
     }
   }

@@ -238,7 +238,7 @@ namespace OpenMS
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
     };
 
-    std::function<void(const PeptideIdentification&)> fVar =
+    auto fVar =
         [&result](const PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())

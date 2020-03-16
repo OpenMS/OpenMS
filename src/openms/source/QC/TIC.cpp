@@ -35,6 +35,7 @@
 
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 using namespace std;
 
@@ -69,7 +70,7 @@ namespace OpenMS
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
 
-  void TIC::addMetaDataMetricsToMzTab(MzTabMetaData& meta)
+  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
   {
     // Adding TIC information to meta data
     const auto& tics = this->getResults();
@@ -91,17 +92,4 @@ namespace OpenMS
     }
 
   }
-/*
-  // Adding MS2_ID_Rate to meta data
-  const auto& ms2_irs = qc_ms2ir.getResults();
-  for (Size i = 0; i < ms2_irs.size(); ++i)
-{
-  MzTabParameter ms2_ir{};
-  ms2_ir.setCVLabel("MS2 identification rate");
-  ms2_ir.setAccession("null");
-  ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
-  ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
-  meta.custom[meta.custom.size()] = ms2_ir;
-}
- */
 }
