@@ -58,8 +58,8 @@ jobs:
 
     - name: Build
       run: |
-      # TODO: correct compiler?
-      # TODO: correct qt?
+          # TODO: correct compiler?
+          # TODO: correct qt?
           mkdir bld
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
