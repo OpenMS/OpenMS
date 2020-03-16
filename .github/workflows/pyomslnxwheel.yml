@@ -11,6 +11,101 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
+  build-win:
+    runs-on: windows-latest
+    steps:
+    -uses: actions/checkout@v2
+     with:
+        path: OpenMS
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.7'
+        host: 'windows' # default: win64_msvc2017_64
+        target: 'desktop'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+    - name: Install Miniconda
+      shell: bash # uses git bash on windows
+      run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3 
+          fi
+
+    - name: Load contrib build
+      run: |
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz
+          tar -xzf contrib_build.tar.gz
+
+    # TODO: If loaded chaching not needed?
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+
+    - name: Build
+      run: |
+      # TODO: correct compiler?
+      # TODO: correct qt?
+          mkdir bld
+          pushd bld
+          # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
+          # TODO: auto set generator? based on contrib?
+          cmake -G "Visual Studio 15 2017" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+          make -j4 OpenMS
+
+          # Search for the latest 3 main python versions in the repository pkgs/main
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+          echo $SUPPORTED_PYTHONS
+
+          mkdir pyopenms_whls
+
+          for py in $SUPPORTED_PYTHONS
+          do
+            conda create -n pyoms-bld-$py python=$py
+            source activate pyoms-bld-$py
+
+            # set current python executable
+            CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+            # pip install all the stuff
+            pip install -U setuptools
+            pip install -U pip
+            pip install -U autowrap
+            pip install -U nose
+            pip install -U numpy
+            pip install -U wheel
+
+            conda deactivate
+
+            echo $CURRENT_PYTHON_EXECUTABLE
+
+            # build pyopenms distribution (macOS)
+            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            make -j4 pyopenms
+
+            # copy to directory
+            cp pyOpenMS/dist/*.whl pyopenms_whls/
+
+            # clean up
+            conda remove --name pyoms-bld-$py --all
+          done
+      #TODO: add upload
+
   build-macos:
     runs-on: macos-latest
     steps:
@@ -42,6 +137,17 @@ jobs:
             curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
           fi
+
+    - name: Contrib build
+      run: |
+          mkdir contribbld
+
+          pushd contribbld
+            cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
+            rm -rf archives
+            rm -rf src
+            rm -rf CMakeFiles
+          popd
 
     - name: Setup conda paths
       shell: bash
@@ -76,7 +182,7 @@ jobs:
             rm -rf src
             rm -rf CMakeFiles
           popd
- 
+
     - name: Build
       run: |
           export CC=clang
