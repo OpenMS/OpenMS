@@ -64,7 +64,7 @@ jobs:
       run: |
           # https://github.com/actions/virtual-environments/blob/master/images/win/Windows2019-Readme.md 
           # TODO: Better option to set VS path automatically
-          export PATH="$PATH:C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+          export PATH="$PATH:/C/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise"
           mkdir bld
           pushd bld
           # TODO: auto set generator? based on contrib?
