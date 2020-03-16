@@ -45,8 +45,11 @@ jobs:
 
     - name: Load contrib build
       run: |
+          mkdir contribbld
+          cd contribbld
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
 
     # TODO: If loaded chaching not needed?
 
