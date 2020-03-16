@@ -112,7 +112,7 @@ jobs:
         name: winwheels
         path: bld/pyopenms_whls
 
-build-macos:
+  build-macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
