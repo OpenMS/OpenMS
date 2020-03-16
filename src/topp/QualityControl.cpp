@@ -269,6 +269,8 @@ protected:
     for (Size i = 0; i < cmap.size(); ++i)
     {
       fillConsensusPepIDMap_(cmap[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+      // connect CF with its peptides (they might get separated later...)
+      cmap[i].setMetaValue("cf_id", i);
       for (auto& pep_id : cmap[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
     }
     fillConsensusPepIDMap_(cmap.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
