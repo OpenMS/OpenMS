@@ -57,12 +57,13 @@ jobs:
         echo "::add-path::$HOME/miniconda3/Scripts"
 
     - name: Build
+      shell: bash
       run: |
-          # TODO: correct compiler?
-          # TODO: correct qt?
+          # https://github.com/actions/virtual-environments/blob/master/images/win/Windows2019-Readme.md 
+          # TODO: Better option to set VS path automatically
+          export PATH="$PATH:C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
           mkdir bld
           pushd bld
-          # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
           # TODO: auto set generator? based on contrib?
           cmake -G "Visual Studio 15 2017" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           make -j4 OpenMS
@@ -95,7 +96,7 @@ jobs:
             echo $CURRENT_PYTHON_EXECUTABLE
 
             # build pyopenms distribution (macOS)
-            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            cmake -G "Visual Studio 15 2017" -A x64 -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             make -j4 pyopenms
 
             # copy to directory
@@ -104,9 +105,14 @@ jobs:
             # clean up
             conda remove --name pyoms-bld-$py --all
           done
-      #TODO: add upload
+          
+    - uses: actions/upload-artifact@v1
+      name: Upload artifacts
+      with:
+        name: winwheels
+        path: bld/pyopenms_whls
 
-  build-macos:
+build-macos:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
