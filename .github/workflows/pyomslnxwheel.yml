@@ -45,7 +45,7 @@ jobs:
 
     - name: Load contrib build
       run: |
-          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-15/contrib_build.tar.gz
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
 
     # TODO: If loaded chaching not needed?
@@ -65,7 +65,7 @@ jobs:
           mkdir bld
           pushd bld
           # TODO: auto set generator? based on contrib?
-          cmake -G "Visual Studio 15 2017" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+          cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           make -j4 OpenMS
 
           # Search for the latest 3 main python versions in the repository pkgs/main
