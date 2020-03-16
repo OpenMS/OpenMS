@@ -14,6 +14,10 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
     - uses: actions/checkout@v2
       with:
         path: OpenMS
@@ -120,6 +124,10 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
     - uses: actions/checkout@v2
       with:
         path: OpenMS
@@ -258,13 +266,16 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
     - uses: actions/checkout@v2
       name: Checkout sources
       with:
         path: OpenMS
 
-    # Runs a set of commands using the runners shell
     - name: Build on manylinux2014
       run: |
             # Apply a patches / fixes
