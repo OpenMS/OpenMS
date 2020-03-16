@@ -102,7 +102,7 @@ jobs:
 
             # build pyopenms distribution
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
-            cmake --build . --config Release --target pyopenms -- /m
+            cmake --build . --config Release --target pyopenms
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
