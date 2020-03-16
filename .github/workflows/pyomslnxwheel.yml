@@ -45,7 +45,7 @@ jobs:
 
     - name: Configure x64 environment
       if: runner.os == 'Windows'
-      run: contrib\.github\workflows\vsenv.bat -arch=x64 -host_arch=x64
+      run: OpenMS\.github\workflows\vsenv.bat -arch=x64 -host_arch=x64
 
     - name: Load contrib build
       run: |
@@ -54,8 +54,6 @@ jobs:
           curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
-
-    # TODO: If loaded chaching not needed?
 
     - name: Setup conda paths
       shell: bash
@@ -71,7 +69,7 @@ jobs:
           export PATH="$PATH:/C/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise"
           mkdir bld
           pushd bld
-          # TODO: auto set generator? based on contrib?
+          # TODO: set generator via variable, then we can share this step
           cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           make -j4 OpenMS
 
@@ -102,8 +100,8 @@ jobs:
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
-            # build pyopenms distribution (macOS)
-            cmake -G "Visual Studio 15 2017" -A x64 -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            # build pyopenms distribution
+            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
             make -j4 pyopenms
 
             # copy to directory
@@ -192,9 +190,6 @@ jobs:
           export CXX=clang++
           export MACOSX_DEPLOYMENT_TARGET=10.9
 
-          ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
-          ls -lL /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Headers
-
           # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
           pushd $Qt5_Dir/include
             for f in $Qt5_Dir/lib/*.framework/Headers
@@ -203,8 +198,6 @@ jobs:
               ln -s $f $lnknm
             done
           popd
-
-          ls -la /Users/runner/runners/2.165.2/work/OpenMS/Qt/5.12.7/clang_64/include
 
           mkdir bld
           pushd bld
