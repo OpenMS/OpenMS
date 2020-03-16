@@ -71,7 +71,7 @@ jobs:
           pushd bld
           # TODO: set generator via variable, then we can share this step
           cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
-          make -j4 OpenMS
+          cmake --build . --config Release --target OpenMS -- /m
 
           # Search for the latest 3 main python versions in the repository pkgs/main
           SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
@@ -102,7 +102,7 @@ jobs:
 
             # build pyopenms distribution
             cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
-            make -j4 pyopenms
+            cmake --build . --config Release --target pyopenms -- /m
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
