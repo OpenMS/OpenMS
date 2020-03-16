@@ -43,6 +43,10 @@ jobs:
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3 
           fi
 
+    - name: Configure x64 environment
+      if: runner.os == 'Windows'
+      run: contrib\.github\workflows\vsenv.bat -arch=x64 -host_arch=x64
+
     - name: Load contrib build
       run: |
           mkdir contribbld
