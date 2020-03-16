@@ -195,6 +195,15 @@ set(CF_OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
+# Visibility settings
+if (NOT CMAKE_CXX_VISIBILITY_PRESET)
+  set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
+  cmake_policy(SET CMP0063 NEW)
+endif()
+if (CMAKE_VISIBILITY_INLINES_HIDDEN)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+endif()
+
 #------------------------------------------------------------------------------
 # Enable STL debug mode (GCC only)
 #------------------------------------------------------------------------------

@@ -32,7 +32,7 @@
 # $Authors: Witold Wolski, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project("OpenMS_class_tests_openswathalgo")
 
 # --------------------------------------------------------------------------
