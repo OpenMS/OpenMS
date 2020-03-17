@@ -77,6 +77,14 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        if (idx == 9)
+        {
+          std::ofstream ofs;
+          ofs.open ("cc_" + String(idx) + ".graphviz"
+              , std::ofstream::out);
+          IDBoostGraph::printGraph(ofs, fg);
+        }
+
         OPENMS_LOG_DEBUG << "Running cc " << String(idx) << "..." << std::endl;
         unsigned long nrEdges = boost::num_edges(fg);
 
@@ -272,7 +280,7 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << std::endl;;
+          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages" << std::endl;;
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
