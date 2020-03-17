@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include "OpenMS/QC/QCBase.h"
+#include <OpenMS/QC/QCBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -47,9 +47,9 @@ namespace OpenMS
   public:
     enum class ToleranceUnit
     {
+      AUTO,
       PPM,
       DA,
-      AUTO,
       SIZE_OF_TOLERANCEUNIT
     };
     /// strings corresponding to enum ToleranceUnit

@@ -34,3 +34,4 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
         EXECUTION_OK
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT
+        INCOMPATIBLE_INPUT_DATA

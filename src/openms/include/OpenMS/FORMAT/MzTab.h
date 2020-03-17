@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -947,12 +947,12 @@ public:
       *
       * Additionally this function fills two std::maps with mappings for external usage.
       *
-      * @param[IN] prot_ids Data structure containing protein identifications
-      * @param[IN] peptide_ids Data structure containing peptide identifications
-      * @param[IN] filename Input idXML file name
-      * @param[IN] first_run_inference_only Is all protein inference information stored in the first run?
-      * @param[OUT] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
-      * @param[OUT] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
+      * @param[in] prot_ids Data structure containing protein identifications
+      * @param[in] peptide_ids Data structure containing peptide identifications
+      * @param[in] filename Input idXML file name
+      * @param[in] first_run_inference_only Is all protein inference information stored in the first run?
+      * @param[out] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
+      * @param[out] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
       *
       * @return mzTab object
     */

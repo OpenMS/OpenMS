@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,10 +166,11 @@ namespace OpenMS
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
-    ContainerType::shrink_to_fit(); 
 
     if (clear_meta_data)
     {
+      ContainerType::shrink_to_fit();
+
       clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;

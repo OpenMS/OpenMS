@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -349,7 +349,7 @@ protected:
         }
       }
       UInt pro_count = 0;
-      for (UInt a = 0; a < PROTEINS.size() - 1; ++a)
+      for (UInt a = 0; a + 1 < PROTEINS.size(); ++a)
       {
         if (PROTEINS[a] == PROTEINS[a + 1])
         {

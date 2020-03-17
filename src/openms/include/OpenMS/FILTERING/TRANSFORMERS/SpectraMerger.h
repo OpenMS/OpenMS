@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,9 @@ namespace OpenMS
 
   Parameter's are accessible via the DefaultParamHandler.
 
-      @htmlinclude OpenMS_SpectraMerger.parameters
+  @htmlinclude OpenMS_SpectraMerger.parameters
 
-*/
+  */
   class OPENMS_DLLAPI SpectraMerger :
     public DefaultParamHandler, public ProgressLogger
   {
@@ -300,8 +300,8 @@ public:
     /**
      * @brief average over neighbouring spectra
      *
-     * @param exp   experimental data to be averaged
-     * @param average_type    averaging type to be used ("gaussian" or "tophat")
+     * @param exp experimental data to be averaged
+     * @param average_type averaging type to be used ("gaussian" or "tophat")
      */
     template <typename MapType>
     void average(MapType& exp, const String& average_type)

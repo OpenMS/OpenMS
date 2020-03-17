@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@
 
 namespace OpenMS
 {
-  const std::string FragmentMassError::names_of_toleranceUnit[] = {"ppm", "da", "auto"};
+  const std::string FragmentMassError::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 
   template <typename MIV>
   void twoSpecErrors (MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
@@ -138,16 +138,21 @@ namespace OpenMS
     {
       if (fmap.getProteinIdentifications().empty() )
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no information about fragment mass tolerance given in the FeatureXML. Please choose a fragment_mass_unit");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
       tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
+      if (tolerance <= 0.0)
+      { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+      }
     }
 
     bool print_warning {false};
 
     // computes the FragmentMassError
-    auto lamCompPPM = [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
+    std::function<void(PeptideIdentification&)> fCompPPM =
+        [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -233,7 +238,8 @@ namespace OpenMS
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
     };
 
-    auto lamVar = [&result](const PeptideIdentification& pep_id)
+    auto fVar =
+        [&result](const PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -247,7 +253,7 @@ namespace OpenMS
     };
 
     // computation of ppms
-    QCBase::iterateFeatureMap(fmap, lamCompPPM);
+    fmap.applyFunctionOnPeptideIDs(fCompPPM);
     // if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
@@ -259,7 +265,7 @@ namespace OpenMS
     result.average_ppm = accumulator_ppm / counter_ppm;
 
     // computes variance
-    QCBase::iterateFeatureMap(fmap, lamVar);
+    fmap.applyFunctionOnPeptideIDs(fVar);
 
     result.variance_ppm = result.variance_ppm / counter_ppm;
 

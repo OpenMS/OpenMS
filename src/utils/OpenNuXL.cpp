@@ -2993,7 +2993,7 @@ static void scoreXLIons_(
     const Size max_variable_mods_per_peptide,
     const Size scan_index, 
     const MSSpectrum& spec,
-    const vector<PrecursorPurity::PurityScores>& purities,
+    const map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates)
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
@@ -3141,7 +3141,7 @@ static void scoreXLIons_(
 
       if (!purities.empty())
       {
-        ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
+        ph.setMetaValue("precursor_purity", purities.at(spec.getNativeID()).signal_proportion);
       }
 
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[1][0]);
@@ -3186,7 +3186,7 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
-    const vector<PrecursorPurity::PurityScores>& purities,
+    const map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates)
   {
    assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
@@ -4079,7 +4079,7 @@ static void scoreXLIons_(
     f.setLogType(log_type_);
 
     // load both MS1 and MS2 for precursor purity annotation
-    vector<PrecursorPurity::PurityScores> purities;
+    map<String, PrecursorPurity::PurityScores> purities;
     {
       PeakMap tmp_spectra;
       f.load(in_mzml, tmp_spectra);

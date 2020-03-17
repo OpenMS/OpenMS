@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -142,7 +142,7 @@ public:
      * @param trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
      * @param transition_group_map Output mapping of transition groups
@@ -259,17 +259,16 @@ private:
      * The function is used twice, for target and decoy identification transitions. The results are
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
-     * @param transition_group Containing all detecting, identifying transitions
      * @param transition_group_identification Containing all detecting and identifying transitions
      * @param scorer An instance of OpenSwathScoring
      * @param feature_idx The index of the current feature
      * @param native_ids_detection The native IDs of the detecting transitions
-     * @param sn_win_len_ The signal to noise window length
-     * @param sn_bin_count_ The signal to noise bin count
      * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param det_mi_ratio_score The MI score of the detection transitions for normalization
-     * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Ind_Scores containing either target or decoy values
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     *                  the chromatograms were extracted. Use empty map if no
+     *                  data is available.
+     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
                                               OpenSwathScoring& scorer,

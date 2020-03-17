@@ -419,6 +419,7 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGenerator_test
+  Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test
   WeightWrapper_test
@@ -470,6 +471,8 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
+  FIAMSDataProcessor_test
+  FIAMSScheduler_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
@@ -503,6 +506,7 @@ set(analysis_executables_list
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
   MapAlignmentAlgorithmSpectrumAlignment_test
+  MapAlignmentAlgorithmTreeGuided_test
   MapAlignmentEvaluationAlgorithmPrecision_test
   MapAlignmentEvaluationAlgorithmRecall_test
   MapAlignmentEvaluationAlgorithm_test

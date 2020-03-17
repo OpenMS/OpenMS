@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,7 +165,7 @@ namespace OpenMS
 
         // compute p score as e.g. in the AScore implementation or Andromeda
         const double p = level / mz_window;
-        const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
+        const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore_(N, matched_peaks, p));
         if (pscore > best_pscore)
         {
           best_pscore = pscore;
@@ -205,7 +205,7 @@ namespace OpenMS
       // compute p score as e.g. in the AScore implementation or Andromeda
       const double p = (level + 1) / mz_window;
 
-      const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
+      const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore_(N, matched_peaks, p));
 
       if (pscore > best_pscore)
       {

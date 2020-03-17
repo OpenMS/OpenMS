@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ using namespace std;
   is usually called peak picking or centroiding. The choice of the algorithm
   should mainly depend on the resolution of the data.
   As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution (orbitrap or FTICR) data.
+  algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 

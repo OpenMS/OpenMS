@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,11 +76,7 @@ public:
     /// returns a pointer to the singleton instance of the element db
     /// Upon first call, the Elements.xml file is parsed
     /// This is thread safe upon first and subsequent calls.
-    inline static const ElementDB* getInstance()
-    {
-      static ElementDB db_; // this is thread safe!
-      return &db_;
-    }
+    static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const Map<String, const Element *> & getNames() const;

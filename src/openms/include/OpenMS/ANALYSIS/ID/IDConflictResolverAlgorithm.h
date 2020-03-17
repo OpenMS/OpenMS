@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,19 +42,18 @@
 // Doxygen docu
 //-------------------------------------------------------------
 
-/**
-    @page TOPP_IDConflictResolver IDConflictResolver
 
-    @brief Resolves ambiguous annotations of features with peptide identifications.
-
-    The peptide identifications are filtered so that only one identification
-    with a single hit (with the best score) is associated to each feature. (If
-    two IDs have the same best score, either one of them may be selected.)
-*/
 
 namespace OpenMS
 {
 
+/**
+    @brief Resolves ambiguous annotations of features with peptide identifications.
+
+    The peptide identifications are filtered so that only one identification
+    with a single hit (with the best score) is associated to each feature.
+    (If two IDs have the same best score, either one of them may be selected.)
+*/
 class OPENMS_DLLAPI IDConflictResolverAlgorithm
 {
 public:

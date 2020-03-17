@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -673,9 +673,9 @@ namespace OpenMS
               double ppm_error(0);
 
               // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
-              if (pi[pi_idx].getHits()[0].metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+              if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
               {
-                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
+                ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
               }
               else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
               {
