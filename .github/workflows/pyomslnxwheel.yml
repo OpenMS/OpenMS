@@ -350,7 +350,7 @@ jobs:
 
 # Tests the build workflows
   test-macos:
-    #needs: [build-macos] # comment for debugging
+    needs: [build-macos]
     runs-on: macos-latest
     steps:
     - name: Install Miniconda
