@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Julianus Pfeuffer$
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -51,7 +51,7 @@ namespace OpenMS
   public:
     /// applies a function on all PeptideHits or only assigned ones
     template <class T>
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(T&& f, bool include_unassigned = true)
+    void applyFunctionOnPeptideHits(T&& f, bool include_unassigned = true)
     {
       for (auto& feat : static_cast<MapType&>(*this))
       {
@@ -65,7 +65,7 @@ namespace OpenMS
 
     /// applies a function on all PeptideIDs or only assigned ones
     template <class T>
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(T&& f, bool include_unassigned = true)
+    void applyFunctionOnPeptideIDs(T&& f, bool include_unassigned = true)
     {
       for (auto& feat : static_cast<MapType&>(*this))
       {
@@ -79,7 +79,7 @@ namespace OpenMS
 
     /// applies a const function on all PeptideHits or only assigned ones
     template <class T>
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(T&& f, bool include_unassigned = true) const
+    void applyFunctionOnPeptideHits(T&& f, bool include_unassigned = true) const
     {
       for (const auto& feat : static_cast<MapType const&>(*this))
       {
@@ -93,7 +93,7 @@ namespace OpenMS
 
     /// applies a const function on all PeptideIDs or only assigned ones
     template <class T>
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(T&& f, bool include_unassigned = true) const
+    void applyFunctionOnPeptideIDs(T&& f, bool include_unassigned = true) const
     {
       for (const auto& feat : static_cast<MapType const&>(*this))
       {
