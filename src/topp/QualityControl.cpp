@@ -48,6 +48,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/QC/Contaminants.h>
 #include <OpenMS/QC/FragmentMassError.h>
 #include <OpenMS/QC/MissedCleavages.h>
@@ -105,42 +106,7 @@ See @ref TOPP_example_qualitycontrol for details.
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-/// two way mapping from ms-run-path to protID|pepID-identifier
-struct Mapping
-{
-  map<String, StringList> identifier_to_msrunpath;
-  map<StringList, String> runpath_to_identifier;
 
-  Mapping() = default;
-
-  explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
-  {
-    create(prot_ids);
-  }
-  void create(const std::vector<ProteinIdentification>& prot_ids)
-  {
-    identifier_to_msrunpath.clear();
-    runpath_to_identifier.clear();
-    StringList filenames;
-    for (const ProteinIdentification& prot_id : prot_ids)
-    {
-      prot_id.getPrimaryMSRunPath(filenames);
-      if (filenames.empty())
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
-      }
-      identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
-      const auto& it = runpath_to_identifier.find(filenames);
-      if (it != runpath_to_identifier.end())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
-          ListUtils::concatenate(filenames, ","));
-      }
-      runpath_to_identifier[filenames] = prot_id.getIdentifier();
-    }
-  }
-};
 
 class TOPPQualityControl : public TOPPBase
 {
@@ -179,57 +145,6 @@ protected:
     //TODO get ProteinQuantifier output for PRT section
   }
 
-  // function tests if a metric has the required input files
-  // gives a warning with the name of the metric that can not be performed
-  bool isRunnable_(const QCBase* m, const OpenMS::QCBase::Status& s) const
-  {
-    if (s.isSuperSetOf(m->requires())) return true;
-
-    for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
-    {
-      if (m->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
-      {
-        OPENMS_LOG_WARN << "Metric '" << m->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
-      }
-    }
-    return false;
-  }
-
-  /// append QC data for given metrics to mzTab's MTD section
-  void addMetaDataMetrics_(MzTabMetaData& meta, const TIC& qc_tic, const Ms2IdentificationRate& qc_ms2ir)
-  {
-    // Adding TIC information to meta data
-    const auto& tics = qc_tic.getResults();
-    for (Size i = 0; i < tics.size(); ++i)
-    {
-      MzTabParameter tic;
-      tic.setCVLabel("total ion current");
-      tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
-      {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
-      }
-      value += "]";
-      tic.setValue(value);
-      meta.custom[meta.custom.size()] = tic;
-    }
-    // Adding MS2_ID_Rate to meta data
-    const auto& ms2_irs = qc_ms2ir.getResults();
-    for (Size i = 0; i < ms2_irs.size(); ++i)
-    {
-      MzTabParameter ms2_ir;
-      ms2_ir.setCVLabel("MS2 identification rate");
-      ms2_ir.setAccession("null");
-      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
-      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
-      meta.custom[meta.custom.size()] = ms2_ir;
-    }
-  }
-
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
@@ -246,11 +161,10 @@ protected:
 
     // load databases and other single file inputs
     String in_contaminants = getStringOption_("in_contaminants");
-    FASTAFile fasta_file;
     vector<FASTAFile::FASTAEntry> contaminants;
     if (!in_contaminants.empty())
     {
-      fasta_file.load(in_contaminants, contaminants);
+      FASTAFile::load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
     ConsensusMap cmap;
@@ -260,7 +174,7 @@ protected:
     //-------------------------------------------------------------
     // prot/pepID-identifier -->  ms-run-path
     //-------------------------------------------------------------
-    Mapping mp_c(cmap.getProteinIdentifications());
+    ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
 
     //-------------------------------------------------------------
     // Build a PepID Map to later find the corresponding PepID in the CMap
@@ -312,7 +226,7 @@ protected:
         spec_map.calculateMap(exp);
       }
 
-      Mapping mp_f;
+      ProteinIdentification::Mapping mp_f;
       FeatureXMLFile fxml_file;
       FeatureMap fmap;
       if (!in_postFDR.empty())
@@ -331,43 +245,43 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      if (isRunnable_(&qc_contaminants, status))
+      if (qc_contaminants.isRunnable(status))
       {
         qc_contaminants.compute(fmap, contaminants);
       }
 
-      if (isRunnable_(&qc_frag_mass_err, status))
+      if (qc_frag_mass_err.isRunnable(status))
       {
         qc_frag_mass_err.compute(fmap, exp, spec_map, tolerance_unit, tolerance_value);
       }
 
-      if (isRunnable_(&qc_ms2ir, status))
+      if (qc_ms2ir.isRunnable(status))
       {
         qc_ms2ir.compute(fmap, exp, fdr_flag);
       }
 
-      if (isRunnable_(&qc_mz_calibration, status))
+      if (qc_mz_calibration.isRunnable(status))
       {
         qc_mz_calibration.compute(fmap, exp, spec_map);
       }
       
       // after qc_mz_calibration, because it calculates 'mass' metavalue
-      if (isRunnable_(&qc_missed_cleavages, status))
+      if (qc_missed_cleavages.isRunnable(status))
       {
         qc_missed_cleavages.compute(fmap);
       }
 
-      if (isRunnable_(&qc_rt_alignment, status))
+      if (qc_rt_alignment.isRunnable(status))
       { // add metavalues rt_raw & rt_align to all PepIDs
         qc_rt_alignment.compute(fmap, trafo_descr);
       }
 
-      if (isRunnable_(&qc_tic, status))
+      if (qc_tic.isRunnable(status))
       {
         qc_tic.compute(exp);
       }
 
-      if (isRunnable_(&qc_ms2stats, status))
+      if (qc_ms2stats.isRunnable(status))
       {
         // copies FWHM metavalue to PepIDs as well
         vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, fmap, spec_map);
@@ -385,7 +299,7 @@ protected:
         }
 
         // annotate the RT alignment
-        if (isRunnable_(&qc_rt_alignment, status))
+        if (qc_rt_alignment.isRunnable(status))
         {
           qc_rt_alignment.compute(new_upep_ids, trafo_descr);
         }
@@ -419,16 +333,18 @@ protected:
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
-    QCBase::iterateFeatureMap(cmap, [&incomplete_features](const PeptideIdentification& pep_id)
-    {
-      if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
-      {
-        OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString() 
-                         << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier() 
-                         << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
-        incomplete_features = true;
-      }
-    });
+    auto f =
+        [&incomplete_features](const PeptideIdentification& pep_id)
+        {
+          if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
+          {
+            OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
+                             << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
+                             << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
+            incomplete_features = true;
+          }
+        };
+    cmap.applyFunctionOnPeptideIDs(f, true);
     if (incomplete_features) return ILLEGAL_PARAMETERS;
     
     // add new PeptideIdentifications (for unidentified MS2 spectra)
@@ -445,7 +361,8 @@ protected:
 
     MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
     MzTabMetaData meta = mztab.getMetaData();
-    addMetaDataMetrics_(meta, qc_tic, qc_ms2ir);
+    qc_tic.addMetaDataMetricsToMzTab(meta);
+    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
     mztab.setMetaData(meta);
 
     MzTabFile mztab_out;
@@ -529,25 +446,12 @@ private:
       for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
       {
         // copy all MetaValues that are at PepID level
-        copyMetaValues_(f_pep_id, *(it_pep->second));
+        it_pep->second->addMetaValues(f_pep_id);
 
-        // copy all MetaValues that are at Hit level
-        copyMetaValues_(f_pep_id.getHits()[0], (it_pep->second)->getHits()[0]);
+        // copy all MetaValues that are at best Hit level
+        //TODO check if first = best assumption is met!
+        (it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
       }
-    }
-  }
-
-
-  // templated function to copy all meta values from one object to another
-  template <class FROM, class TO>
-  //TODO get a MetaValue list to copy only those that have been set
-  void copyMetaValues_(const FROM& from, TO& to) const
-  {
-    vector<String> keys;
-    from.getKeys(keys);
-    for (String& key : keys)
-    {
-      to.setMetaValue(key, from.getMetaValue(key));
     }
   }
 };

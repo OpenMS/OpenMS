@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/QC/TIC.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
 

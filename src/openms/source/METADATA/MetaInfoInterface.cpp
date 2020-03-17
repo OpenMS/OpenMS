@@ -245,5 +245,16 @@ namespace OpenMS
     }
   }
 
+  //TODO get a MetaValue list to copy only those that have been set
+  void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
+  {
+    std::vector<String> keys;
+    from.getKeys(keys);
+    for (String& key : keys)
+    {
+      this->setMetaValue(key, from.getMetaValue(key));
+    }
+  }
+
 } //namespace
 

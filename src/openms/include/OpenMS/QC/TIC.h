@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 /**
  * @brief Total Ion Count (TIC) as a QC metric
@@ -49,6 +48,10 @@
 
 namespace OpenMS
 {
+  class MzTabMetaData;
+  class MSExperiment;
+  class MSChromatogram;
+
   class OPENMS_DLLAPI TIC : public QCBase
   {
   public:
@@ -75,6 +78,9 @@ namespace OpenMS
     const std::vector<MSChromatogram>& getResults() const ;
 
     QCBase::Status requires() const override;
+
+    /// append QC data for given metrics to mzTab's MTD section
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
 
   private:
     const String name_ = "TIC";

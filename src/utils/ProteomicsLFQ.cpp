@@ -802,6 +802,7 @@ protected:
         // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
         for (PeptideHit & ph : pid.getHits())
         {
+          // TODO: keep target_decoy information for QC
           ph.clearMetaInfo();
         }
       }
@@ -950,6 +951,7 @@ protected:
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
       for (auto & f : tmp)
       {
+        //TODO keep FWHM meta value for QC
         f.clearMetaInfo();
         f.setSubordinates({});
         f.setConvexHulls({});
