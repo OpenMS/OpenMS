@@ -126,6 +126,7 @@ set(system_executables_list
   File_test
   FileWatcher_test
   JavaInfo_test
+  PythonInfo_test
   StopWatch_test
   SysInfo_test
 )

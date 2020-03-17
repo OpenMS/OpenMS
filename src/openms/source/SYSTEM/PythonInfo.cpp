@@ -124,6 +124,7 @@ namespace OpenMS
     if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
     {
       v = qp.readAllStandardOutput().toStdString();
+      v.trim(); // remove '\n'
     }
     return v;
   }

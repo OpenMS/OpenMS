@@ -28,38 +28,72 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <OpenMS/config.h>
+/////////////////////////////////////////////////////////////
 
-namespace OpenMS
-{
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/PythonInfo.h>
 
-    Similar classes exist for other external tools, e.g. PythonInfo .
+#include <QDir>
 
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+using namespace OpenMS;
+using namespace std;
+
+///////////////////////////
+
+START_TEST(TextFile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+START_SECTION((static bool canRun(String& python_executable, String& error_msg)))
+  // test for missing python executable
+  String py = "does_not_exist_@@";
+  String error_msg;
+  TEST_EQUAL(PythonInfo::canRun(py, error_msg), false)
+  TEST_EQUAL(error_msg.hasSubstring("Python not found at"), true)
+
+  auto tmp_file = File::getTemporaryFile();
+  ofstream f(tmp_file); // create the file
+  f.close(); 
+  TEST_EQUAL(PythonInfo::canRun(tmp_file, error_msg), false)
+  TEST_EQUAL(error_msg.hasSubstring("failed to run"), true)  
+
+  py = "python";
+  if (PythonInfo::canRun(py, error_msg))
+  { 
+    TEST_EQUAL(File::exists(py), true)
+    TEST_EQUAL(QDir::isRelativePath(py.toQString()), false)
+  }
+
+END_SECTION
+
+START_SECTION(bool PythonInfo::isPackageInstalled(const String& python_executable, const String& package_name))
+  String error_msg;
+  String py = "python";
+  if (PythonInfo::canRun(py, error_msg))
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    TEST_EQUAL(PythonInfo::isPackageInstalled(py, "veryWeirdPackage___@@__@"), false)
+    TEST_EQUAL(PythonInfo::isPackageInstalled(py, "math"), true)
+  }
+END_SECTION
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+START_SECTION(static String getVersion(const String& python_executable))
+  
+  String py = "python";
+  String error_msg;
+  if (PythonInfo::canRun(py, error_msg))
+  {
+    String version = PythonInfo::getVersion(py);
+    TEST_EQUAL(version.empty(), false)
+  }
+END_SECTION
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
-
-}
-
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

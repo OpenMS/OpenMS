@@ -40,7 +40,9 @@ namespace OpenMS
 {
   class String;
   /**
-    @brief Detect Java and retrieve information.
+    @brief Detect Python and retrieve information.
+
+    Similar classes exist for other external tools, e.g. JavaInfo .
 
     @ingroup System
   */
@@ -80,7 +82,6 @@ namespace OpenMS
      Thus, make sure that PythonInfo::canRun() succeeds before calling this function.
 
      @param python_executable As determined by canRun()...
-     @param package_name The package you want to test (mind lower/upper case!)
      @return the output of 'python --version'
     */
     static String getVersion(const String& python_executable);
