@@ -181,6 +181,22 @@ START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
 }
 END_SECTION
 
+START_SECTION((map<String, pair<double, double>> void getScaling()
+               const))
+{
+  map<String, double> feat_weights;
+  auto scaling = svm.getScaling();
+  for (const auto& s : scaling)
+  {
+    const String name = s.first;
+    const pair<double, double> min_max = s.second;
+    cout << name << "\t" << min_max.first << "\t" << min_max.second << endl;
+  }
+  TEST_EQUAL(scaling.size(), predictors.size()); // one min/max entry for every predictor
+}
+END_SECTION
+
+
 START_SECTION((void writeXvalResults(const String& path) const))
 {
   string xval_file;
