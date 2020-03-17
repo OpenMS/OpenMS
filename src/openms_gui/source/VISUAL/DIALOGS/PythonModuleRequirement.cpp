@@ -54,23 +54,23 @@ namespace OpenMS
     {
       ui_->setupUi(this);
 
-      //connect(ui_->line_edit, SIGNAL(editingFinished()), this, SLOT(validate_()));
-
-
     }
 
     // slot
-    void PythonModuleRequirement::validate_(const String& python_exe)
+    void PythonModuleRequirement::validate(const QString& python_exe)
     {
-      StringList valid_modules;
-      StringList missing_modules;
+      QStringList valid_modules;
+      QStringList missing_modules;
+      ui_->lbl_modules->setText(" ... updating ... ");
       for (const auto& s : required_modules_)
       {
         if (PythonInfo::isPackageInstalled(python_exe, s)) valid_modules.push_back(s);
         else missing_modules.push_back(s);
       }
       emit valueChanged(valid_modules, missing_modules);
-      ui_->lbl_modules->setText((ListUtils::concatenate(valid_modules, ",") + " found\n" + ListUtils::concatenate(missing_modules, ",") + " missing!").toQString());
+      ui_->lbl_modules->setText(QString("<ul><li> [<code style = \"color: red\">%1</code>] missing"\
+                                        "    <li> [<code style = \"color: green\">%2</code>] present"\
+                                        "</ul>").arg(valid_modules.join(", "), missing_modules.join(", ")));
     }
 
     PythonModuleRequirement::~PythonModuleRequirement()
@@ -79,17 +79,17 @@ namespace OpenMS
       // TODO: store UI to INI?
     }
 
-    void PythonModuleRequirement::setRequiredModules(const StringList& m)
+    void PythonModuleRequirement::setRequiredModules(const QStringList& m)
     {
       required_modules_ = m;
     }
 
-    void PythonModuleRequirement::setFreeText(const String& text)
+    void PythonModuleRequirement::setFreeText(const QString& text)
     {
-      ui_->lbl_freetext->setText(text.toQString());
+      ui_->lbl_freetext->setText(text);
     }
 
 
-  }   //namespace Internal
+  } //namespace Internal
 } //namspace OpenMS
 

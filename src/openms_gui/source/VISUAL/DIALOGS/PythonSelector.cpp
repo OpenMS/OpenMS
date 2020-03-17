@@ -102,7 +102,7 @@ namespace OpenMS
       // reset to last known
       ui_->line_edit->setText(last_known_python_exe_.toQString());
 
-      emit valueChanged(last_known_python_exe_, currently_valid_);
+      emit valueChanged(last_known_python_exe_.toQString(), currently_valid_);
     }
 
 

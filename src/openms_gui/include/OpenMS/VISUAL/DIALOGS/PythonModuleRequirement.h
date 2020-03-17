@@ -34,8 +34,6 @@
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>
@@ -49,7 +47,8 @@ namespace OpenMS
 {
   namespace Internal
   {
-    ///Preferences dialog for Spectrum3DWidget
+    /// Given a list of python modules which are required, this widget checks them and
+    /// displays the current status
     class OPENMS_GUI_DLLAPI PythonModuleRequirement : public QWidget
     {
       Q_OBJECT
@@ -58,21 +57,29 @@ namespace OpenMS
       explicit PythonModuleRequirement(QWidget* parent = nullptr);
       ~PythonModuleRequirement();
 
-      void setRequiredModules(const StringList& m);
-      void setFreeText(const String& text);
+      /// a list of python modules required for a certain functionality/script
+      void setRequiredModules(const QStringList& m);
+
+      /// some arbitrary description for the user to display statically
+      void setFreeText(const QString& text);
+
+      /// are all modules present?
+      bool isReady() { return is_ready_;};
 
 
     signals:
       /// emitted whenever the requirement check was executed...
-      void valueChanged(StringList& valid_modules, StringList& missing_modules);
+      void valueChanged(QStringList& valid_modules, QStringList& missing_modules);
 
 
-    private slots:
-      void validate_(const String& python_exe);
+    public slots:
+      /// re-evaluate the presence of modules, based on a new python version
+      void validate(const QString& python_exe);
 
     private:
-      StringList required_modules_; ///< list of modules which are needed (order might be important -- know your Python...)
-      String info_text_; ///< additional text to display for the user
+      QStringList required_modules_; ///< list of modules which are needed (order might be important -- know your Python...)
+      QString info_text_; ///< additional text to display for the user
+      bool is_ready_; ///< all modules are present and the app is good to go
 
       Ui::PythonModuleRequirement* ui_;
     };

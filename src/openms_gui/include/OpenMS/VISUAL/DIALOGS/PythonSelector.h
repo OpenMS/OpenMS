@@ -59,9 +59,16 @@ namespace OpenMS
       explicit PythonSelector(QWidget* parent = nullptr);
       ~PythonSelector();
 
+      const String& getLastPython() const
+      {
+        return last_known_python_exe_;
+      }
+
     signals:
       /// emitted whenever the line-edit has new values for the current python executable
-      void valueChanged(String last_known_python_exe, bool valid_python);
+      /// @param last_known_python_exe The currently best guess where python can be found
+      /// @param valid_python Is the python executable given in @last_known_python_exe callable?
+      void valueChanged(QString last_known_python_exe, bool valid_python);
       
     
     private slots:
