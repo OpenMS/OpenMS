@@ -40,7 +40,7 @@ jobs:
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
             curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
-            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3 
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
           fi
 
     - name: Configure x64 environment
@@ -60,7 +60,6 @@ jobs:
       run: |
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
-
     - name: Build
       shell: bash
       run: |
@@ -106,7 +105,6 @@ jobs:
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
-
             # clean up
             conda remove --name pyoms-bld-$py --all
           done
@@ -198,7 +196,6 @@ jobs:
               ln -s $f $lnknm
             done
           popd
-
           mkdir bld
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
@@ -350,3 +347,65 @@ jobs:
       with:
         name: lnxwheels
         path: data/wheelhouse/
+
+# Tests the build workflows
+  test-macos:
+    needs: [build-macos]
+    runs-on: macos-latest
+    steps:
+    - name: Install Miniconda
+      shell: bash
+      run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
+          fi
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+
+    - name: Download acrtifacts from macwheels
+      uses: actions/download-artifact@v1
+      with:
+        name: macwheels
+    - name: Test
+      run: |
+        # Search for the latest 3 main python versions in the repository pkgs/main
+        SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+        echo $SUPPORTED_PYTHONS
+
+        for py in $SUPPORTED_PYTHONS
+        do
+          conda create -n pyoms-bld-$py python=$py
+          source activate pyoms-bld-$py
+
+          # Find .whl for current python version
+          CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
+          CURRENT_WHL=$(find $HOME -name "*$CURRENT_VERSION*")
+
+          # pip install all the stuff
+          pip install -U pip
+          pip install 
+
+          python -c "import sys; 'pyopenms' in sys.modules" # should be true after installation
+
+          conda deactivate
+
+          # clean up
+          conda remove --name pyoms-bld-$py --all
+
+        done
+
