@@ -91,7 +91,7 @@ AASequence DecoyGenerator::shufflePeptide(
         auto last = --peptide_string_shuffled.end();
         double lowest_identity(1.0);
         String lowest_identity_string(peptide_string_shuffled);
-        for (int i = 0; i < max_attempts; ++i) // try to find sequence with identity lower than threshold
+        for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
         {
           std::shuffle(std::begin(peptide_string_shuffled), last, rng);
           double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
