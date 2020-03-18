@@ -296,6 +296,31 @@ protected:
       OPENMS_LOG_INFO << "Inference total took " << sw.toString() << std::endl;
       sw.stop();
 
+      if (remove_prots_wo_evidence)
+      {
+        OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+        IDFilter::removeUnreferencedProteins(cmap, true);
+        for (auto run : cmap.getProteinIdentifications())
+        {
+          IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
+        }
+      }
+
+      bool calc_protFDR = getStringOption_("protein_fdr") == "true";
+      if (calc_protFDR)
+      {
+        OPENMS_LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+        FalseDiscoveryRate fdr;
+        Param fdrparam = fdr.getParameters();
+        fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
+        fdrparam.setValue("add_decoy_proteins","true");
+        fdr.setParameters(fdrparam);
+        for (auto run : cmap.getProteinIdentifications())
+        {
+          fdr.applyBasic(run, true);
+        }
+      }
+
       cxmlf.store(out_file, cmap);
     }
     else // ----------------------------   IdXML   -------------------------------------
@@ -349,7 +374,10 @@ protected:
 
       // Let's always add all the proteins to the protein group section, easier in postprocessing.
       // PeptideProteinResolution needs it anyway.
-      //TODO check if still needed after adding the addSingleton option to the IDGraph function
+      //Note: this might be possible with the addSingleton option when clustering the graph
+      //  But this would lead to unnecessary computations during inference. So add after.
+      //The PeptideProteinResolution class needs it.
+      //TODO remove, when resolution in IDBGraph is stable
       mergedprots[0].fillIndistinguishableGroupsWithSingletons();
 
       if (greedy_group_resolution)

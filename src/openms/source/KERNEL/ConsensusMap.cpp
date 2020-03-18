@@ -555,7 +555,7 @@ namespace OpenMS
     Size i(0);
     for (auto const & p : s)
     {
-      if (!p.hasSuffix("mzML"))
+      if (!p.hasSuffix("mzML") && !p.hasSuffix("mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
                         << "Filename: '" << p << "'" << std::endl;                          

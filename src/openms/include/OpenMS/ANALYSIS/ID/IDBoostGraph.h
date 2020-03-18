@@ -366,10 +366,11 @@ namespace OpenMS {
 
     /// @todo untested
     /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
-    /// except for the best protein group
+    /// except for the best protein group.
+    /// @pre Graph must contain PeptideCluster nodes (e.g. with clusterIndistProteinsAndPeptides).
     /// @param removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
     ///     ID data structure. Only deactivate if you know what you are doing.
-    void resolveGraphPeptideCentric(bool removeAssociationsInData);
+    void resolveGraphPeptideCentric(bool removeAssociationsInData = true);
 
 
 
@@ -506,6 +507,9 @@ namespace OpenMS {
 
     void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
         bool stop_at_first, std::vector<vertex_t>& result);
+
+    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
+                                      bool stop_at_first, std::vector<vertex_t>& result);
 
 
     /// see equivalent public method

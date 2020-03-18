@@ -414,9 +414,6 @@ namespace OpenMS
                                 std::vector<PeptideIdentification>& idedSpectra,
                                 Size use_top_psms)
   {
-    StringList runs;
-    proteins.getPrimaryMSRunPath(runs);
-
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
 
     unordered_map<string, ProteinHit*> accession_map{};
@@ -898,6 +895,8 @@ namespace OpenMS
 
   void IDBoostGraph::getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
   {
+    if (lvl >= graph[q.front()].which()) return;
+
     while (!q.empty())
     {
       vertex_t curr_node = q.front();
@@ -907,6 +906,34 @@ namespace OpenMS
       for (;adjIt != adjIt_end; ++adjIt)
       {
         if (graph[*adjIt].which() <= lvl)
+        {
+          result.emplace_back(*adjIt);
+          if (!stop_at_first && graph[*adjIt].which() < graph[curr_node].which())
+          {
+            q.emplace(*adjIt);
+          }
+        }
+        else if (graph[*adjIt].which() < graph[curr_node].which())
+        {
+          q.emplace(*adjIt);
+        }
+      }
+    }
+  }
+
+  void IDBoostGraph::getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
+  {
+    if (lvl <= graph[q.front()].which()) return;
+
+    while (!q.empty())
+    {
+      vertex_t curr_node = q.front();
+      q.pop();
+      Graph::adjacency_iterator adjIt, adjIt_end;
+      boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(curr_node, graph);
+      for (;adjIt != adjIt_end; ++adjIt)
+      {
+        if (graph[*adjIt].which() >= lvl)
         {
           result.emplace_back(*adjIt);
           if (!stop_at_first && graph[*adjIt].which() > graph[curr_node].which())
@@ -951,7 +978,7 @@ namespace OpenMS
   }
   */
 
-  void IDBoostGraph::resolveGraphPeptideCentric(bool removeAssociationsInData = true/*, bool resolveTies*/)
+  void IDBoostGraph::resolveGraphPeptideCentric(bool removeAssociationsInData/*, bool resolveTies*/)
   {
     if (ccs_.empty() && boost::num_vertices(g) == 0)
     {
@@ -1014,7 +1041,7 @@ namespace OpenMS
         auto score_compare = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
             {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
         auto best_prot = std::max_element(prots.begin(), prots.end(), score_compare); //returns an iterator
-        //TODO how to resolve ties
+        //TODO how to/if resolve ties AND allow preferring targets? We need to merge the PR with TD info for groups first.
         set<String> accsToRemove;
         for (const auto& prot : prots)
         {
@@ -1047,7 +1074,7 @@ namespace OpenMS
           vector<vertex_t> peps;
           queue<vertex_t> start_pep;
           start_pep.push(*ui);
-          getUpstreamNodesNonRecursive(start_pep,fg,6,true,peps);
+          getDownstreamNodesNonRecursive(start_pep,fg,6,true,peps);
           for (const auto& pep : peps)
           {
             PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
