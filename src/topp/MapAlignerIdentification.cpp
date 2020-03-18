@@ -498,13 +498,13 @@ private:
         for (const String& input_file : input_files)
         {
           IdentificationData::InputFileRef ref =
-            id.registerInputFile(input_file);
+            id.registerInputFile(IdentificationData::InputFile(input_file));
           step.input_file_refs.push_back(ref);
         }
         if (!reference_file.empty())
         {
           IdentificationData::InputFileRef ref =
-            id.registerInputFile(reference_file);
+            id.registerInputFile(IdentificationData::InputFile(reference_file));
           step.input_file_refs.push_back(ref);
         }
         step.date_time = processing_time;
