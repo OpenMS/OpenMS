@@ -70,8 +70,6 @@ namespace OpenMS
             );
     
     protected:
-
-      static double SequenceIdentity_(const String& decoy, const String& target);  
-                
+      static double SequenceIdentity_(const String& decoy, const String& target);                  
   };
 }
