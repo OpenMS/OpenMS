@@ -707,14 +707,11 @@ namespace OpenMS
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    bool higher_better = score_ref->higher_better;
-
     id_data.removeFromSetIf_(
       id_data.query_matches_, [&](IdentificationData::QueryMatchRef it) -> bool
       {
         pair<double, bool> score = it->getScore(score_ref);
-        return !score.second || id_data.isBetterScore(cutoff, score.first,
-                                                      higher_better);
+        return !score.second || score_ref->isBetterScore(cutoff, score.first);
       });
 
     id_data.cleanup();

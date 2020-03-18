@@ -70,7 +70,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # QT dependencies
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 if (NOT Qt5Network_FOUND)
   message(STATUS "QtNetwork module not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

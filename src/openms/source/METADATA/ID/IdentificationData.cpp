@@ -93,9 +93,24 @@ namespace OpenMS
 
 
   IdentificationData::InputFileRef
-  IdentificationData::registerInputFile(const String& file)
+  IdentificationData::registerInputFile(const InputFile& file)
   {
-    return input_files_.insert(file).first;
+    if (file.name.empty())
+    {
+      String msg = "input file must have a name";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    auto result = input_files_.insert(file);
+    if (!result.second) // existing element - merge in new information
+    {
+      input_files_.modify(result.first, [&file](InputFile& existing)
+                          {
+                            existing += file;
+                          });
+    }
+
+    return result.first;
   }
 
 
@@ -173,9 +188,10 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   IdentificationData::registerScoreType(const ScoreType& score)
   {
-    if (score.cv_term.getAccession().empty() && score.cv_term.getName().empty())
+    // @TODO: allow just an accession? (all look-ups are currently by name)
+    if (score.cv_term.getName().empty())
     {
-      String msg = "score type must have an accession or a name";
+      String msg = "score type must have a name (as part of its CV term)";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -209,9 +225,22 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    DataQueryRef ref = data_queries_.insert(query).first;
-    data_query_lookup_.insert(ref);
-    return ref;
+
+    // can't use "insertIntoMultiIndex_" because DataQuery doesn't have the
+    // "steps_and_scores" member (from ScoredProcessingResult)
+    auto result = data_queries_.insert(query);
+    if (!result.second) // existing element - merge in new information
+    {
+      data_queries_.modify(result.first, [&query](DataQuery& existing)
+                           {
+                             existing += query;
+                           });
+    }
+
+    data_query_lookup_.insert(uintptr_t(&(*result.first)));
+
+    // @TODO: add processing step (currently not supported by DataQuery)
+    return result.first;
   }
 
 
@@ -439,7 +468,6 @@ namespace OpenMS
   IdentificationData::getBestMatchPerQuery(ScoreTypeRef score_ref) const
   {
     vector<QueryMatchRef> results;
-    bool higher_better = score_ref->higher_better;
     pair<double, bool> best_score = make_pair(0.0, false);
     QueryMatchRef best_ref = query_matches_.end();
     for (QueryMatchRef ref = query_matches_.begin();
@@ -456,8 +484,8 @@ namespace OpenMS
       }
       else if (current_score.second &&
                (!best_score.second ||
-                isBetterScore(current_score.first, best_score.first,
-                              higher_better)))
+                score_ref->isBetterScore(current_score.first,
+                                         best_score.first)))
       {
         // new best score for the current query:
         best_score = current_score;
@@ -782,6 +810,19 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
     }
+  }
+
+
+  bool IdentificationData::empty() const
+  {
+    return (input_files_.empty() && processing_softwares_.empty() &&
+            processing_steps_.empty() && db_search_params_.empty() &&
+            db_search_steps_.empty() && score_types_.empty() &&
+            data_queries_.empty() && parent_molecules_.empty() &&
+            parent_molecule_groupings_.empty() &&
+            identified_peptides_.empty() && identified_compounds_.empty() &&
+            identified_oligos_.empty() && query_matches_.empty() &&
+            query_match_groups_.empty());
   }
 
 } // end namespace OpenMS

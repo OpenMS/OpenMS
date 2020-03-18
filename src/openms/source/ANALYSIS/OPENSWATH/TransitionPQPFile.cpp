@@ -510,7 +510,7 @@ namespace OpenMS
       {
         gene_name = peptide.getMetaValue("GeneName");
       }
-      
+
       if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
       peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 

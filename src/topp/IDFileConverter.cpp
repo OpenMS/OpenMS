@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -49,6 +50,7 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
@@ -86,8 +88,7 @@ using namespace std;
     </table>
 </CENTER>
 
-IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem)
-into other (OpenMS-specific) formats.
+IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem) into other (OpenMS-specific) formats.
 For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
@@ -212,14 +213,15 @@ protected:
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
+                       "- a single file in OpenMS database format (.oms),\n"
+                       "- a single file in a multi-purpose XML format (.idXML, .mzid, .pepXML, .protXML),\n"
                        "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
+    setValidFormats_("in", ListUtils::create<String>("oms,idXML,mzid,pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
+    String formats("oms,idXML,mzid,pepXML,FASTA,xquest.xml");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -236,9 +238,9 @@ protected:
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
-    registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
-    registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
-    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+    registerFlag_("no_spectra_data_override", "[+mz_file only] Avoid overriding 'spectra_data' in protein identifications if 'mz_file' is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same 'mz_file' as used for identification.", true);
+    registerFlag_("no_spectra_references_override", "[+mz_file only] Avoid overriding 'spectrum_reference' in peptide identifications if 'mz_file' is given and a 'spectrum_reference' is already present.", true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0, "[+mz_file only] Annotate the identifications with ion matches from spectra in 'mz_file' using the given tolerance (in Da). This will take quite some time.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -321,7 +323,6 @@ protected:
 
           for (Size j = 0; j < peptide_ids_seq.size(); ++j)
           {
-
             // We have to explicitly set the identifiers, because the normal set ones are composed of search engine name and date, which is the same for a bunch of sequest out-files.
             peptide_ids_seq[j].setIdentifier(*in_files_it + "_" + i);
 
@@ -372,8 +373,9 @@ protected:
     else
     {
       FileTypes::Type in_type = fh.getType(in);
-
-      if (in_type == FileTypes::PEPXML)
+      switch (in_type)
+      {
+      case FileTypes::PEPXML:
       {
         String mz_name =  getStringOption_("mz_name");
         if (mz_file.empty())
@@ -394,17 +396,18 @@ protected:
                             peptide_identifications, mz_name, lookup);
         }
       }
+      break;
 
-      else if (in_type == FileTypes::IDXML)
+      case FileTypes::IDXML:
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
         // get spectrum_references from the mz data, if necessary:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
-            peptide_identifications, 
-            mz_file, 
-            false, 
+            peptide_identifications,
+            mz_file,
+            false,
             !getFlag_("no_spectra_data_override"),
             !getFlag_("no_spectra_references_override"),
             protein_identifications);
@@ -416,8 +419,9 @@ protected:
           }
         }
       }
+      break;
 
-      else if (in_type == FileTypes::MZIDENTML)
+      case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications,
@@ -436,23 +440,26 @@ protected:
           }
         }
       }
+      break;
 
-      else if (in_type == FileTypes::PROTXML)
+      case FileTypes::PROTXML:
       {
         protein_identifications.resize(1);
         peptide_identifications.resize(1);
         ProtXMLFile().load(in, protein_identifications[0],
                            peptide_identifications[0]);
       }
+      break;
 
-      else if (in_type == FileTypes::OMSSAXML)
+      case FileTypes::OMSSAXML:
       {
         protein_identifications.resize(1);
         OMSSAXMLFile().load(in, protein_identifications[0],
                             peptide_identifications, true);
       }
+      break;
 
-      else if (in_type == FileTypes::MASCOTXML)
+      case FileTypes::MASCOTXML:
       {
         if (!mz_file.empty())
         {
@@ -468,8 +475,9 @@ protected:
         MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
+      break;
 
-      else if (in_type == FileTypes::XML) // X! Tandem
+      case FileTypes::XML: // X! Tandem
       {
         ProteinIdentification protein_id;
         ModificationDefinitionsSet mod_defs;
@@ -508,8 +516,9 @@ protected:
           }
         }
       }
+      break;
 
-      else if (in_type == FileTypes::PSMS) // Percolator
+      case FileTypes::PSMS: // Percolator
       {
         String score_type = getStringOption_("score_type");
         enum PercolatorOutfile::ScoreType perc_score =
@@ -526,8 +535,9 @@ protected:
         PercolatorOutfile().load(in, protein_identifications[0],
                                  peptide_identifications, lookup, perc_score);
       }
+      break;
 
-      else if (in_type == FileTypes::TSV)
+      case FileTypes::TSV:
       {
         ProteinIdentification protein_id;
         protein_id.setSearchEngineVersion("");
@@ -556,14 +566,28 @@ protected:
           peptide_identifications.push_back(pepid);
         }
       }
+      break;
 
-      else if (in_type == FileTypes::XQUESTXML)
+      case FileTypes::XQUESTXML:
       {
         XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
       }
+      break;
 
-      else
+      case FileTypes::OMS:
       {
+        IdentificationData id_data;
+        OMSFile().load(in, id_data);
+        // if we don't have peptides, but have RNA oligos, then export those:
+        bool export_rna = (id_data.getIdentifiedPeptides().empty() &&
+                           !id_data.getIdentifiedOligos().empty());
+        IdentificationDataConverter::exportIDs(id_data, protein_identifications,
+                                               peptide_identifications,
+                                               export_rna);
+      }
+      break;
+
+      default:
         writeLog_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
@@ -587,32 +611,32 @@ protected:
     }
 
     logger.startProgress(0, 1, "Storing...");
-
-    if (out_type == FileTypes::PEPXML)
+    switch (out_type)
+    {
+    case FileTypes::PEPXML:
     {
       bool peptideprophet_analyzed = getFlag_("peptideprophet_analyzed");
       String mz_name = getStringOption_("mz_name");
       PepXMLFile().store(out, protein_identifications, peptide_identifications,
                          mz_file, mz_name, peptideprophet_analyzed);
     }
+    break;
 
-    else if (out_type == FileTypes::IDXML)
-    {
+    case FileTypes::IDXML:
       IdXMLFile().store(out, protein_identifications, peptide_identifications);
-    }
+      break;
 
-    else if (out_type == FileTypes::MZIDENTML)
-    {
+    case FileTypes::MZIDENTML:
       MzIdentMLFile().store(out, protein_identifications,
                             peptide_identifications);
-    }
+      break;
 
-    else if (out_type == FileTypes::XQUESTXML)
-    {
-      XQuestResultXMLFile().store(out, protein_identifications, peptide_identifications);
-    }
+    case FileTypes::XQUESTXML:
+      XQuestResultXMLFile().store(out, protein_identifications,
+                                  peptide_identifications);
+      break;
 
-    else if (out_type == FileTypes::FASTA)
+    case FileTypes::FASTA:
     {
       Size count = 0;
       ofstream fasta(out.c_str(), ios::out);
@@ -638,9 +662,18 @@ protected:
       }
       fasta.close();
     }
+    break;
 
-    else
+    case FileTypes::OMS:
     {
+      IdentificationData id_data;
+      IdentificationDataConverter::importIDs(id_data, protein_identifications,
+                                             peptide_identifications);
+      OMSFile().store(out, id_data);
+    }
+    break;
+
+    default:
       writeLog_("Unsupported output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;

@@ -962,6 +962,12 @@ set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_26" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_26_input.mzid -out IDFileConverter_26_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_26_out1" ${DIFF} -in1 IDFileConverter_26_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_26_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_26")
+# OpenMS SQLite format (input file is "IdXMLFile_whole.idXML" from the class test, with one score type renamed for consistency):
+add_test("TOPP_IDFileConverter_27_1" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_27_input.idXML -out IDFileConverter_27_output1.oms)
+add_test("TOPP_IDFileConverter_27_2" ${TOPP_BIN_PATH}/IDFileConverter -test -in IDFileConverter_27_output1.oms -out IDFileConverter_27_output2.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_27_out" ${DIFF} -in1 IDFileConverter_27_output2.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_27_output.idXML)
+set_tests_properties("TOPP_IDFileConverter_27_2" PROPERTIES DEPENDS "TOPP_IDFileConverter_27_1")
+set_tests_properties("TOPP_IDFileConverter_27_out" PROPERTIES DEPENDS "TOPP_IDFileConverter_27_2")
 
 #------------------------------------------------------------------------------
 # IDFilter tests

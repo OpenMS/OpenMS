@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,61 +34,54 @@
 
 #pragma once
 
-#include <OpenMS/METADATA/ID/MetaData.h>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/member.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief Information about a score type.
-    */
-    struct ScoreType: public MetaInfoInterface
+    /// Information about input files that were processed
+    struct InputFile
     {
-      CVTerm cv_term; // @TODO: derive from CVTerm instead?
+      String name;
 
-      bool higher_better;
+      String experimental_design_id;
 
-      ScoreType():
-        higher_better(true)
+      std::set<String> primary_files;
+
+      explicit InputFile(const String& name,
+                         const String& experimental_design_id = "",
+                         const std::set<String>& primary_files =
+                         std::set<String>()):
+        name(name), experimental_design_id(experimental_design_id),
+        primary_files(primary_files)
       {
       }
 
-      explicit ScoreType(const CVTerm& cv_term, bool higher_better):
-        cv_term(cv_term), higher_better(higher_better)
-      {
-      }
+      InputFile(const InputFile& other) = default;
 
-      explicit ScoreType(const String& name, bool higher_better):
-        cv_term(), higher_better(higher_better)
+      /// Merge in data from another object
+      InputFile& operator+=(const InputFile& other)
       {
-        cv_term.setName(name);
-      }
-
-      ScoreType(const ScoreType& other) = default;
-
-      // don't include "higher_better" in the comparison:
-      bool operator<(const ScoreType& other) const
-      {
-        // @TODO: implement/use "CVTerm::operator<"?
-        return (std::tie(cv_term.getAccession(), cv_term.getName()) <
-                std::tie(other.cv_term.getAccession(),
-                         other.cv_term.getName()));
-      }
-
-      // don't include "higher_better" in the comparison:
-      bool operator==(const ScoreType& other) const
-      {
-        return cv_term == other.cv_term;
-      }
-
-      bool isBetterScore(double first, double second) const
-      {
-        if (higher_better) return first > second;
-        return first < second;
+        if (experimental_design_id.empty())
+        {
+          experimental_design_id = other.experimental_design_id;
+        }
+        primary_files.insert(other.primary_files.begin(),
+                             other.primary_files.end());
+        return *this;
       }
     };
 
-    typedef std::set<ScoreType> ScoreTypes;
-    typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
+    typedef boost::multi_index_container<
+      InputFile,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          InputFile, String, &InputFile::name>>>
+      > InputFiles;
+    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
+
   }
 }

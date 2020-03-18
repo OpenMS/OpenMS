@@ -108,6 +108,7 @@ public:
     String(InputIterator first, InputIterator last) :
       std::string(first, last)
     {
+
     }
 
     /// Constructor from an integer
@@ -472,7 +473,7 @@ public:
         return;
       }
 
-      std::string::operator=(* first);
+      std::string::operator=(*first);
       for (StringIterator it = ++first; it != last; ++it)
       {
         std::string::operator+=(glue + (*it));

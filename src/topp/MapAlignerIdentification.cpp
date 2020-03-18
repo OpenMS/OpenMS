@@ -116,7 +116,7 @@ public:
 
 private:
   template <typename MapType, typename FileType>
-  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins,
                         FileType& input_file)
   {
     // custom progress logger for this task:
@@ -134,7 +134,7 @@ private:
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
   template <typename MapType, typename FileType>
-  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs,
                              FileType& output_file)
   {
     // custom progress logger for this task:
@@ -145,7 +145,7 @@ private:
     {
       progresslogger.setProgress(i);
       // annotate output with data processing info:
-      addDataProcessing_(maps[i], 
+      addDataProcessing_(maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
@@ -191,7 +191,7 @@ private:
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), 
+    progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
@@ -246,13 +246,13 @@ private:
     String formats = "featureXML,consensusXML,idXML";
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
     // TODO: potentially move to base class so every aligner has to support design
-    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    registerInputFile_("design", "<file>", "", "Input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const override
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "algorithm")
     {
@@ -316,7 +316,8 @@ private:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file,
+                                                             false);
 
         // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
         frac2files = ed.getFractionToMSFilesMapping();
@@ -343,7 +344,7 @@ private:
       if (frac2files.size() == 1) // group one fraction
       {
         performAlignment_(algorithm, feature_maps, transformations,
-          reference_index);
+                          reference_index);
         applyTransformations_(feature_maps, transformations);
       }
       else // group multiple fractions
@@ -356,24 +357,21 @@ private:
           size_t n_fractions = frac2files.size();
 
           // TODO FRACTIONS: determine map index based on annotated MS files (getPrimaryMSRuns())
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
-            ++feature_map_index)
+          for (size_t feature_map_index = 0; feature_map_index != n_fractions;
+               ++feature_map_index)
           {
             fraction_maps.push_back(feature_maps[feature_map_index]);
           }
           performAlignment_(algorithm, fraction_maps, fraction_transformations,
-            reference_index);
+                            reference_index);
           applyTransformations_(fraction_maps, fraction_transformations);
 
           // copy into transformations and feature maps
           transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
 
           Size f = 0;
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
-            ++feature_map_index,
-            ++f)
+          for (size_t feature_map_index = 0; feature_map_index != n_fractions;
+               ++feature_map_index, ++f)
           {
             feature_maps[feature_map_index].swap(fraction_maps[f]);
           }
@@ -430,7 +428,7 @@ private:
 
       if (!output_files.empty())
       {
-        progresslogger.startProgress(0, output_files.size(), 
+        progresslogger.startProgress(0, output_files.size(),
                                      "writing output files");
         for (Size i = 0; i < output_files.size(); ++i)
         {

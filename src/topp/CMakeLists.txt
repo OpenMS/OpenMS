@@ -42,7 +42,7 @@ cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
 
 # add all the tools
 include(executables.cmake)
@@ -60,7 +60,7 @@ endforeach(i)
 if(WITH_GUI)
   ## TODO Check if the find command actually does anything but double check.
   ## Libraries are I think anyway already hardcoded in OpenMS_GUI_LIBRARIES
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport REQUIRED)
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport Sql REQUIRED)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
