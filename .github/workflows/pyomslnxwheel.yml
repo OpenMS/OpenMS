@@ -403,7 +403,7 @@ jobs:
 
           # pip install all the stuff
           pip install -U pip
-          pip install 
+          pip install CURRENT_WHL
 
           python -c "import sys; 'pyopenms' in sys.modules" # should be true after installation
 
