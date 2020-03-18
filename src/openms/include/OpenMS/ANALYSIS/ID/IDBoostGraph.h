@@ -58,9 +58,12 @@
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
 
-namespace OpenMS {
-  namespace Internal
+namespace OpenMS
 {
+  struct ScoreToTgtDecLabelPairs;
+
+  namespace Internal
+  {
 
   /**
    @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
@@ -87,8 +90,8 @@ namespace OpenMS {
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
-    /// indistinguishable protein groups
-    BOOST_STRONG_TYPEDEF(double, ProteinGroup)
+    /// indistinguishable protein groups (size, nr targets, score)
+    typedef std::tuple<int, int, double> ProteinGroup;
 
     /// an (currently unmodified) peptide sequence
     BOOST_STRONG_TYPEDEF(String, Peptide)
@@ -278,7 +281,7 @@ namespace OpenMS {
 
       void operator()(ProteinGroup& pg, double posterior) const
       {
-        pg = posterior;
+        get<2>(pg) = posterior;
       }
 
       // Everything else, do nothing for now
@@ -307,7 +310,7 @@ namespace OpenMS {
 
       double operator()(ProteinGroup& pg) const
       {
-        return pg;
+        return get<2>(pg);
       }
 
       // Everything else, do nothing for now
@@ -377,6 +380,9 @@ namespace OpenMS {
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
     static void printGraph(std::ostream& out, const Graph& fg);
+
+    void getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
+    void getProteinGroupScoresAndHitchhikingTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
 
   private:
 
@@ -537,6 +543,7 @@ namespace OpenMS {
         }
       }
     }
+
   };
 
 } } //namespace OpenMS

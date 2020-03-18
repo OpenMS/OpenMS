@@ -48,6 +48,7 @@ namespace OpenMS
       DefaultParamHandler("BasicProteinInferenceAlgorithm"),
       ProgressLogger()
   {
+    //TODO allow min_unique_peptides_per_protein (not the same as "use_shared = F" if you want to score the shared ones)
     defaults_.setValue("min_peptides_per_protein", 1,
         "Minimal number of peptides needed for a protein identification."
         " If set to zero, unmatched proteins get a score of -Infinity."
@@ -58,6 +59,7 @@ namespace OpenMS
                        "maximum",
                        "How to aggregate scores of peptides matching to the same protein?");
     defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
+    //TODO set valid strings
     defaults_.setValue("treat_charge_variants_separately", "true",
                        "If this is set, different charge variants of the same peptide sequence count as individual evidences.");
     defaults_.setValue("treat_modification_variants_separately", "true",
@@ -124,6 +126,10 @@ namespace OpenMS
       std::vector<PeptideIdentification>& pep_ids,
       Size min_peptides_per_protein) const
   {
+    // TODO actually clearing the scores should be enough, since this algorithm does not change the grouping
+    prot_run.getProteinGroups().clear();
+    prot_run.getIndistinguishableProteins().clear();
+
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
@@ -161,7 +167,6 @@ namespace OpenMS
     switch (aggregation_method)
     {
      //TODO for 0 probability peptides we could also multiply a minimum value
-     //TODO Why are protein scores just floats???
      case AggregationMethod::PROD :
        initScore = 1.0;
        break;
@@ -183,7 +188,7 @@ namespace OpenMS
     String overall_score_type = "";
     bool higher_better = true;
 
-    //TODO check all pep IDs?
+    //TODO check all pep IDs? this assumes equality
     if (!pep_ids.empty())
     {
       overall_score_type = pep_ids[0].getScoreType();

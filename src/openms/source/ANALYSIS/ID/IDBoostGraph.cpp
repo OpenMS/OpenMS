@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -224,7 +226,7 @@ namespace OpenMS
         auto accToPHit = accession_map.find(std::string(proteinAcc));
         if (accToPHit == accession_map.end())
         {
-         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
+          OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
           continue;
         }
         //TODO consider/calculate missing digests. Probably not here though!
@@ -866,6 +868,7 @@ namespace OpenMS
 
   void IDBoostGraph::annotateIndistProteins_(const Graph& fg, bool addSingletons)
   {
+
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
@@ -874,7 +877,7 @@ namespace OpenMS
       if (fg[*ui].which() == 1) //prot group
       {
         ProteinIdentification::ProteinGroup pg{};
-        pg.probability = (double) boost::get<IDBoostGraph::ProteinGroup>(fg[*ui]); //init
+        pg.probability = std::get<2>(boost::get<IDBoostGraph::ProteinGroup>(fg[*ui])); //init
         Graph::adjacency_iterator nbIt, nbIt_end;
         boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
@@ -978,7 +981,7 @@ namespace OpenMS
 
         for (const auto& prot : prots)
         {
-          if (prot == *best_prot)
+          if (prot != *best_prot)
           {
             boost::remove_edge(prot, *ui, fg);
           }
@@ -1407,8 +1410,6 @@ namespace OpenMS
         unordered_map< ProteinNodeSet, PeptideNodeSet, MyUIntSetHasher > pepClusters; //maps the parent (protein) set to peptides that have the same
         unordered_map< PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
 
-        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
-
         // Cluster proteins
         for (; ui != ui_end; ++ui)
         {
@@ -1452,9 +1453,12 @@ namespace OpenMS
           //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
           //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
           auto grpVID = boost::add_vertex(ProteinGroup{}, curr_cc);
-
+          int nr_targets = 0;
           for (auto const &proteinVID : pepsToGrps.second)
           {
+            //check if decoy to count the decoys
+            bool target = boost::get<ProteinHit*>(curr_cc[proteinVID])->getMetaValue("target_decoy").toString()[0] == 't';
+            if (target) nr_targets++;
             //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
             //pg.accessions.push_back(proteinPtr->getAccession());
             boost::add_edge(proteinVID, grpVID, curr_cc);
@@ -1467,7 +1471,10 @@ namespace OpenMS
           {
             boost::add_edge(grpVID, pepVID, curr_cc);
           }
-          //pg.probability = -1.0;
+          ProteinGroup& pgnode = boost::get<ProteinGroup&>(curr_cc[grpVID]);
+          std::get<0>(pgnode) = pepsToGrps.second.size();
+          std::get<1>(pgnode) = nr_targets;
+          std::get<2>(pgnode) = -1.0;
         }
 
         // reset iterator to loop through vertices again for peptide clusters
@@ -1577,6 +1584,129 @@ namespace OpenMS
       g[v] = ptr;
     }
     return v;
+  }
+
+  void IDBoostGraph::getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction)
+  {
+    const std::function<void(Graph&)>& fun =
+        [&scores_and_tgt_fraction]
+        (const Graph& graph)
+        {
+          Graph::vertex_iterator ui, ui_end;
+          boost::tie(ui,ui_end) = boost::vertices(graph);
+
+          for (; ui != ui_end; ++ui)
+          {
+            //TODO introduce an enum for the types to make it more clear.
+            //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+            if (graph[*ui].which() == 0) // protein
+            {
+              Graph::adjacency_iterator adjIt, adjIt_end;
+              boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, graph);
+              bool part_of_group = false;
+              for (; adjIt != adjIt_end; adjIt++)
+              {
+                if (graph[*adjIt].which() == 1) // if part of a group, skip
+                {
+                  part_of_group = true;
+                  break;
+                }
+                if (!part_of_group)
+                {
+                  ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
+                  scores_and_tgt_fraction.emplace_back(
+                      ph->getScore(),
+                      static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+                }
+              }
+            }
+            if (graph[*ui].which() == 1) //protein group
+            {
+              ProteinGroup &pg = boost::get<ProteinGroup &>(graph[*ui]);
+              scores_and_tgt_fraction.emplace_back(std::get<2>(pg), std::get<1>(pg) / std::get<0>(pg));
+            }
+          }
+        };
+    applyFunctorOnCCsST(fun);
+  }
+
+  /// not finished yet!
+  void IDBoostGraph::getProteinGroupScoresAndHitchhikingTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction)
+  {
+    const std::function<void(Graph&)>& fun =
+        [&scores_and_tgt_fraction,this]
+            (const Graph& fg)
+        {
+          Graph::vertex_iterator ui, ui_end;
+          boost::tie(ui,ui_end) = boost::vertices(fg);
+
+          GetPosteriorVisitor gpv{};
+          std::unordered_map<vertex_t, double> prot_to_current_max;
+          for (; ui != ui_end; ++ui)
+          {
+            if (fg[*ui].which() == 2)
+              // It should suffice to resolve at the pep cluster level
+              // if a pep does not belong to a cluster it didnt have multiple parents and
+              // therefore does not need to be resolved
+            {
+              vector<vertex_t> prots;
+              queue<vertex_t> start;
+              start.push(*ui);
+              getUpstreamNodesNonRecursive(start,fg,1,true,prots);
+              auto score_greater = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
+              {return boost::apply_visitor(gpv, fg[n]) > boost::apply_visitor(gpv, fg[m]);};
+
+              std::sort(prots.begin(), prots.end(), score_greater);
+
+              Size target_contribution_penalty = 1;
+              double target_fraction = 0.0;
+
+              // currently the maximum for a protein is saved.
+              // i.e. if once it is IDed as the second for a peptide and once as the third
+              // for a peptide, the estimated fraction for the former is used.
+              // TODO I am currently missing proteins with unique peptides here!!
+              for (const auto& prot : prots)
+              {
+                if (fg[prot].which() == 0) //protein
+                {
+                  ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
+                  // target = 1/penalty; decoy = 0;
+                  target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
+                  target_fraction /= target_contribution_penalty;
+                  auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
+                  if (!it_inserted.second)
+                  {
+                    if (target_fraction > it_inserted.first->second)
+                    {
+                      it_inserted.first->second = target_fraction;
+                    }
+                  }
+                }
+                else if (fg[prot].which() == 1) //protein group
+                {
+                  ProteinGroup &pg = boost::get<ProteinGroup &>(fg[prot]);
+                  target_fraction = static_cast<double>(std::get<1>(pg)) / std::get<0>(pg);
+                  target_fraction /= target_contribution_penalty;
+                  auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
+                  if (!it_inserted.second)
+                  {
+                    if (target_fraction > it_inserted.first->second)
+                    {
+                      it_inserted.first->second = target_fraction;
+                    }
+                  }
+                }
+                target_contribution_penalty++;
+              }
+            }
+          }
+          for (const auto& prot_tgt_frac : prot_to_current_max)
+          {
+            scores_and_tgt_fraction.emplace_back(boost::apply_visitor(gpv, fg[prot_tgt_frac.first]), prot_tgt_frac.second);
+          }
+
+        };
+    applyFunctorOnCCsST(fun);
   }
 
   Size IDBoostGraph::getNrConnectedComponents()

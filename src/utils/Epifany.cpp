@@ -270,6 +270,7 @@ protected:
       // Think about:
       // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
       // 2) keeping the groups and store them in a separate group object to output both and compare.
+      // 3) doing it first/additionally where it is needed (in annotateIndistGroups in IDBoostGraph)
       mergedprots[0].getIndistinguishableProteins().clear();
       mergedprots[0].getProteinGroups().clear();
     }
