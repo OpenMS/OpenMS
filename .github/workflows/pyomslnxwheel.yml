@@ -325,7 +325,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
       with:
-        name: name: ${{ runner.os }}-wheels
+        name: ${{ runner.os }}-wheels
         path: data/wheelhouse/
 
 # Tests the build workflows
