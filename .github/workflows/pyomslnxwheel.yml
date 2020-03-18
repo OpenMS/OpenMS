@@ -409,7 +409,7 @@ jobs:
           pip install -U pip
           pip install $CURRENT_WHL
 
-          python -c "import sys; 'pyopenms' in sys.modules" # should be true after installation
+          python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
 
           conda deactivate
 
