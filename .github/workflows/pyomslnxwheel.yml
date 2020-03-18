@@ -350,8 +350,12 @@ jobs:
 
 # Tests the build workflows
   test-macos:
-    #needs: [build-macos]
-    runs-on: macos-latest
+    #needs: [build-win, build-macos, build-lnx]
+    runs-on: ${{ matrix.os }}
+    strategy:
+    matrix:
+      os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
     - name: Install Miniconda
       shell: bash
@@ -376,14 +380,29 @@ jobs:
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
 
+    # TODO: add depending on matrix.os; Download artifacts
     - name: Download acrtifacts from macwheels
-      #uses: actions/download-artifact@v1
-      #with:
-        #name: macwheels
-      shell: bash 
-      run: |  
-        wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
-
+      if: runner.os == 'windows-latest'
+        #uses: actions/download-artifact@v1
+        #with:
+          #name: winwheels 
+        shell: bash 
+        run: |  
+          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+      if: runner.os == 'macos-latest'
+        #uses: actions/download-artifact@v1
+        #with:
+          #name: macwheels 
+        shell: bash 
+        run: |  
+          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+      if: runner.os == 'ubuntu-latest'
+        #uses: actions/download-artifact@v1
+        #with:
+          #name: lnxwheels 
+        shell: bash 
+        run: |  
+          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
 
     - name: Test
       run: |
