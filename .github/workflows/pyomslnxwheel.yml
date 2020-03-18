@@ -382,27 +382,27 @@ jobs:
 
     # TODO: add depending on matrix.os; Download artifacts
     - name: Download acrtifacts from macwheels
-      if: runner.os == 'windows-latest'
+      shell: bash 
+        if: runner.os == 'Windows'
+        run: |  
+          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
         #uses: actions/download-artifact@v1
         #with:
           #name: winwheels 
-        shell: bash 
+
+        if: runner.os == 'macOS'
         run: |  
           wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
-      if: runner.os == 'macos-latest'
         #uses: actions/download-artifact@v1
         #with:
           #name: macwheels 
-        shell: bash 
+
+        if: runner.os == 'Linux'
         run: |  
           wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
-      if: runner.os == 'ubuntu-latest'
         #uses: actions/download-artifact@v1
         #with:
           #name: lnxwheels 
-        shell: bash 
-        run: |  
-          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
 
     - name: Test
       run: |
