@@ -394,7 +394,7 @@ jobs:
 
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
-          CURRENT_WHL=$(find $HOME -name "*$CURRENT_VERSION*")
+          CURRENT_WHL=$(find $HOME/macwheels -name "*$CURRENT_VERSION*.whl")
 
           # pip install all the stuff
           pip install -U pip
