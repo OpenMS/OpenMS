@@ -384,22 +384,22 @@ jobs:
     - name: Download acrtifacts from macwheels
       shell: bash 
       if: runner.os == 'Windows'
-        run: |  
-          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+      run: |  
+        wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
         #uses: actions/download-artifact@v1
         #with:
           #name: winwheels 
 
       if: runner.os == 'macOS'
-        run: |  
-          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+      run: |  
+        wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
         #uses: actions/download-artifact@v1
         #with:
           #name: macwheels 
 
       if: runner.os == 'Linux'
-        run: |  
-          wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+      run: |  
+        wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
         #uses: actions/download-artifact@v1
         #with:
           #name: lnxwheels 
