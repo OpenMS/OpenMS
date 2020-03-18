@@ -138,7 +138,14 @@ namespace OpenMS
         if (!ids.empty())
         {
           new_type = findScoreType(ids[0], type);
-          break;
+          if (new_type == ids[0].getScoreType())
+          {
+            return;
+          }
+          else
+          {
+            break;
+          }
         }
       }
       if (new_type.empty())
@@ -158,6 +165,7 @@ namespace OpenMS
 
       function<void(PeptideIdentification&)> f = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
       cmap.applyFunctionOnPeptideIDs(f, unassigned_peptides_too);
+
     }
 
 
@@ -170,7 +178,7 @@ namespace OpenMS
       if (possible_types.find(curr_score_type) != possible_types.end())
       {
         OPENMS_LOG_INFO << "Requested score type already set as main score: " + curr_score_type + "\n";
-        return "";
+        return curr_score_type;
       }
       else
       {

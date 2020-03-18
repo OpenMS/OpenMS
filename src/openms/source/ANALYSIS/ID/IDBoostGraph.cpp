@@ -726,14 +726,14 @@ namespace OpenMS
         const Graph& curr_cc = ccs_.at(i);
 
         #ifdef INFERENCE_MT_DEBUG
-       OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
         #endif
 
         #ifdef INFERENCE_DEBUG
-       OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-       OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
+        OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
         printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
         #endif
 
         annotateIndistProteins_(curr_cc, addSingletons);
@@ -974,7 +974,7 @@ namespace OpenMS
       #pragma omp parallel for
       for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
       {
-        const Graph& curr_cc = ccs_.at(i);
+        Graph& curr_cc = ccs_.at(i);
 
         #ifdef INFERENCE_MT_DEBUG
         OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
@@ -982,9 +982,9 @@ namespace OpenMS
 
         #ifdef INFERENCE_DEBUG
         OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-       OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
         printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
         #endif
 
         resolveGraphPeptideCentric_(curr_cc, removeAssociationsInData);

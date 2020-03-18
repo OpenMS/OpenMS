@@ -734,7 +734,21 @@ namespace OpenMS
   {
     IDScoreSwitcherAlgorithm switcher;
     Size counter(0);
-    switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
+    try
+    {
+      switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
+    }
+    catch (OpenMS::Exception::MissingInformation& e)
+    {
+      throw OpenMS::Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Epifany needs Posterior Error Probabilities in the Peptide Hits. Use Percolator with PEP score"
+          " or run IDPosteriorErrorProbability first.");
+    }
+
+
     //TODO BIG filtering needs to account for run info if used
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
     //TODO BIG filter empty PeptideIDs afterwards
@@ -770,7 +784,7 @@ namespace OpenMS
       setScoreTypeAndSettings_(proteinIDs[0]);
       IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, exp_des);
       inferPosteriorProbabilities_(ibg);
-      if (greedy_group_resolution) ibg.re
+      if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
     }
@@ -794,6 +808,7 @@ namespace OpenMS
         setScoreTypeAndSettings_(proteinID);
         IDBoostGraph ibg(proteinID, cmap, nr_top_psms, use_run_info, use_unannotated_ids);
         inferPosteriorProbabilities_(ibg);
+        if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
         OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
       }

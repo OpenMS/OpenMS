@@ -317,7 +317,7 @@ namespace OpenMS
     {
       vector<String> out;
       pid.getPrimaryMSRunPath(out);
-      mergedOriginFiles.emplace_back(out);
+      mergedOriginFiles.insert(mergedOriginFiles.end(), out.begin(), out.end());
     }
     newProtIDRun.setPrimaryMSRunPath(mergedOriginFiles);
 
