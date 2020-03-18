@@ -248,105 +248,105 @@ jobs:
   #       name: macwheels
   #       path: bld/pyopenms_whls
 
-  # build-lnx:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    container: hroest/manylinux2014_qt59_contrib:v1.1
+#   build-lnx:
+#     # The type of runner that the job will run on
+#     runs-on: ubuntu-latest
+#     container: hroest/manylinux2014_qt59_contrib:v1.1
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-    - uses: rokroskar/workflow-run-cleanup-action@master
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+#     # Steps represent a sequence of tasks that will be executed as part of the job
+#     steps:
+#     - uses: rokroskar/workflow-run-cleanup-action@master
+#       env:
+#         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v2
-      name: Checkout sources
-      with:
-        path: OpenMS
+#     - uses: actions/checkout@v2
+#       name: Checkout sources
+#       with:
+#         path: OpenMS
 
-    - name: Build on manylinux2014
-      run: |
-            # Apply a patches / fixes
-            # 1. Updated readme (due to pypi.org not displaying markdown)
-            # 2. Updated version number
-            # 3. Patch init (since the linked libraries are all in .lib)
-            cd OpenMS
-            wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
-            patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch
-            patch -p0 src/pyOpenMS/setup.py < src/pyOpenMS/dist-scripts/manylinux.patch2 ## somehow required to link against regex boost lib
-            cd /
+#     - name: Build on manylinux2014
+#       run: |
+#             # Apply a patches / fixes
+#             # 1. Updated readme (due to pypi.org not displaying markdown)
+#             # 2. Updated version number
+#             # 3. Patch init (since the linked libraries are all in .lib)
+#             cd OpenMS
+#             wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
+#             patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch
+#             patch -p0 src/pyOpenMS/setup.py < src/pyOpenMS/dist-scripts/manylinux.patch2 ## somehow required to link against regex boost lib
+#             cd /
 
-            # fixes some issues with empty pxd files
-            rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+#             # fixes some issues with empty pxd files
+#             rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
 
 
-            # install Python deps
-            for PYBIN in /opt/python/cp3*; do
-              "$PYBIN/bin/pip" install -U Cython
-              "$PYBIN/bin/pip" install -U setuptools
-              "$PYBIN/bin/pip" install -U wheel==0.31.1
-              "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U nose
-              "$PYBIN/bin/pip" install -U autowrap==0.18.1
-            done
+#             # install Python deps
+#             for PYBIN in /opt/python/cp3*; do
+#               "$PYBIN/bin/pip" install -U Cython
+#               "$PYBIN/bin/pip" install -U setuptools
+#               "$PYBIN/bin/pip" install -U wheel==0.31.1
+#               "$PYBIN/bin/pip" install -U numpy
+#               "$PYBIN/bin/pip" install -U nose
+#               "$PYBIN/bin/pip" install -U autowrap==0.18.1
+#             done
 
-            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
-            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+#             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+#             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
 
-            LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+#             LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
-            # compile and configure OpenMS
-            for PYBIN in /opt/python/cp3*; do
+#             # compile and configure OpenMS
+#             for PYBIN in /opt/python/cp3*; do
 
-              PYVER=`basename $PYBIN`
-              mkdir /openms-build-$PYVER
-              cd /openms-build-$PYVER
-              # configure
-              cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
-              make -j4 pyopenms
+#               PYVER=`basename $PYBIN`
+#               mkdir /openms-build-$PYVER
+#               cd /openms-build-$PYVER
+#               # configure
+#               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+#               make -j4 pyopenms
 
-              # ensure auditwheel can find the libraries
-              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
-              # strip the libraries
-              strip --strip-all lib/libOpenMS.so
-              strip --strip-all lib/libOpenSwathAlgo.so
-              strip --strip-all lib/libSuperHirn.so
-              cd pyOpenMS
-              # remove the libraries as auditwheel will take care of linked libs
-              rm -rf pyopenms/lib*
-              rm -rf build/lib*/pyopenms/lib*
+#               # ensure auditwheel can find the libraries
+#               export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+#               # strip the libraries
+#               strip --strip-all lib/libOpenMS.so
+#               strip --strip-all lib/libOpenSwathAlgo.so
+#               strip --strip-all lib/libSuperHirn.so
+#               cd pyOpenMS
+#               # remove the libraries as auditwheel will take care of linked libs
+#               rm -rf pyopenms/lib*
+#               rm -rf build/lib*/pyopenms/lib*
 
-              "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
+#               "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
 
-              # Bundle external shared libraries into the wheels
-              for whl in wheelhouse_tmp/pyopenms*.whl; do
-                auditwheel repair "$whl" -w wheelhouse/
-              done
+#               # Bundle external shared libraries into the wheels
+#               for whl in wheelhouse_tmp/pyopenms*.whl; do
+#                 auditwheel repair "$whl" -w wheelhouse/
+#               done
 
-              /usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+#               /usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
 
-              # Somehow auditwheelis broken and we get the wrong libraries here for
-              # libcrypto and libssl, lets go and fix it ...
-              yum install -y zip
-              cd wheelhouse
-              mkdir fix
-              cp pyopenms-*.whl fix/fix.zip
-              cd fix
-              unzip fix.zip
-              /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
-              /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
-              zip -r ../pyopenms-*.whl pyopenms/
-              cd ../..
-              rm -rf wheelhouse/fix/
-              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
-            done
+#               # Somehow auditwheelis broken and we get the wrong libraries here for
+#               # libcrypto and libssl, lets go and fix it ...
+#               yum install -y zip
+#               cd wheelhouse
+#               mkdir fix
+#               cp pyopenms-*.whl fix/fix.zip
+#               cd fix
+#               unzip fix.zip
+#               /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
+#               /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
+#               zip -r ../pyopenms-*.whl pyopenms/
+#               cd ../..
+#               rm -rf wheelhouse/fix/
+#               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+#             done
 
-    - uses: actions/upload-artifact@v1
-      name: Upload artifacts
-      with:
-        name: lnxwheels
-        path: data/wheelhouse/
+#     - uses: actions/upload-artifact@v1
+#       name: Upload artifacts
+#       with:
+#         name: lnxwheels
+#         path: data/wheelhouse/
 
 # Tests the build workflows
   test-macos:
@@ -383,6 +383,7 @@ jobs:
       shell: bash 
       run: |  
         wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
+
 
     - name: Test
       run: |
