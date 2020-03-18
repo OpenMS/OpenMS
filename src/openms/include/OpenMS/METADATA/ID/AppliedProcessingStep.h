@@ -47,14 +47,22 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /** @brief A processing step that was applied to a data item, possibly with associated scores.
+    /*!
+      A processing step that was applied to a data item, possibly with associated scores.
     */
     struct AppliedProcessingStep
     {
-      // if there are only scores, the processing step may be missing:
+      /*!
+        @brief (Optional) reference to the processing step
+
+        If there are only scores, the processing step may be missing.
+       */
       boost::optional<ProcessingStepRef> processing_step_opt;
+
+      /// Map of scores and their types
       std::map<ScoreTypeRef, double> scores;
 
+      /// Constructor
       explicit AppliedProcessingStep(
         const boost::optional<ProcessingStepRef>& processing_step_opt =
         boost::none, const std::map<ScoreTypeRef, double>& scores =
@@ -63,18 +71,23 @@ namespace OpenMS
       {
       }
 
+      /// Equality operator (needed for multi-index container)
       bool operator==(const AppliedProcessingStep& other) const
       {
         return ((processing_step_opt == other.processing_step_opt) &&
                 (scores == other.scores));
       }
 
-      /** @brief Return scores in order of priority (primary first).
+      /*!
+        @brief Return scores in order of priority (primary first).
 
         The order is defined in the @p DataProcessingSoftware referenced by the processing step (if available).
         Scores not listed there are included at the end of the output.
+
+        @param primary_only Only return the primary score (ignoring any others)?
       */
-      std::vector<std::pair<ScoreTypeRef, double>> getScoresInOrder() const
+      std::vector<std::pair<ScoreTypeRef, double>>
+      getScoresInOrder(bool primary_only = false) const
       {
         std::vector<std::pair<ScoreTypeRef, double>> result;
         std::set<ScoreTypeRef> scores_done;
@@ -88,6 +101,7 @@ namespace OpenMS
             if (pos != scores.end())
             {
               result.push_back(*pos);
+              if (primary_only) return result;
               scores_done.insert(score_ref);
             }
           }
@@ -97,6 +111,7 @@ namespace OpenMS
           if (!scores_done.count(pair.first))
           {
             result.push_back(pair);
+            if (primary_only) return result;
           }
         }
         return result;

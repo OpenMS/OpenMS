@@ -210,4 +210,24 @@ namespace OpenMS
     }
   }
 
+
+  void MapAlignmentTransformer::transformRetentionTimes(
+    IdentificationData& id_data, const TransformationDescription& trafo,
+    bool store_original_rt)
+  {
+    // update RTs in-place:
+    for (IdentificationData::DataQueryRef it = id_data.data_queries_.begin();
+         it != id_data.data_queries_.end(); ++it)
+    {
+      id_data.data_queries_.modify(it, [&](IdentificationData::DataQuery& query)
+                                   {
+                                     if (store_original_rt)
+                                     {
+                                       storeOriginalRT_(query, query.rt);
+                                     }
+                                     query.rt = trafo.apply(query.rt);
+                                   });
+    }
+  }
+
 }
