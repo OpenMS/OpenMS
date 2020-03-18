@@ -381,7 +381,7 @@ jobs:
         echo "::add-path::$HOME/miniconda3/Scripts"
 
     # TODO: add depending on runner.os; Download artifacts
-    - name: Download acrtifacts from macwheels
+    - name: Download acrtifacts from Windows
       shell: bash 
       if: runner.os == 'Windows'
       run: |  
@@ -389,7 +389,9 @@ jobs:
         #uses: actions/download-artifact@v1
         #with:
           #name: winwheels 
-
+          
+    - name: Download acrtifacts from macOS
+      shell: bash 
       if: runner.os == 'macOS'
       run: |  
         wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
@@ -397,6 +399,8 @@ jobs:
         #with:
           #name: macwheels 
 
+    - name: Download acrtifacts from lnx
+      shell: bash 
       if: runner.os == 'Linux'
       run: |  
         wget --no-parent -r -P $HOME/macwheels_abi "https://abibuilder.informatik.uni-tuebingen.de/archive/openms/pyopenms/macOS/"  
