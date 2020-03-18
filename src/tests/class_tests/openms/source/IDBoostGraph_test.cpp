@@ -138,9 +138,10 @@ START_TEST(IDBoostGraph, "$Id$")
           idb.resolveGraphPeptideCentric();
           TEST_EQUAL(idb.getNrConnectedComponents(), 3)
           // Only cc 0 and 1 have indist prot group
-          TEST_EQUAL(boost::num_edges(idb.getComponent(0)), 4)
-          TEST_EQUAL(boost::num_edges(idb.getComponent(1)), 5)
-          TEST_EQUAL(boost::num_edges(idb.getComponent(2)), 2)
+          TEST_EQUAL(boost::num_edges(idb.getComponent(0)), 3)
+          // There is one shared peptide in the second component whose edge will be resolved
+          TEST_EQUAL(boost::num_edges(idb.getComponent(1)), 3)
+          TEST_EQUAL(boost::num_edges(idb.getComponent(2)), 1)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 4)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 5)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
