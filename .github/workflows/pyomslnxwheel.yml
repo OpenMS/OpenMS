@@ -399,7 +399,11 @@ jobs:
 
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
+          echo $CURRENT_VERSION
+          echo $GITHUB_WORKSPACE
+          echo $HOME
           CURRENT_WHL=$(find $HOME/macwheels_abi -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
+          echo $CURRENT_WHL
 
           # pip install all the stuff
           pip install -U pip
