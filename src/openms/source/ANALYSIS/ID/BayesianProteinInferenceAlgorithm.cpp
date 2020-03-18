@@ -77,13 +77,6 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-        if (idx == 9)
-        {
-          std::ofstream ofs;
-          ofs.open ("cc_" + String(idx) + ".graphviz"
-              , std::ofstream::out);
-          IDBoostGraph::printGraph(ofs, fg);
-        }
 
         OPENMS_LOG_DEBUG << "Running cc " << String(idx) << "..." << std::endl;
         unsigned long nrEdges = boost::num_edges(fg);
@@ -280,7 +273,7 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages" << std::endl;;
+          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages" << std::endl;
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
@@ -307,8 +300,8 @@ namespace OpenMS
                 "_b" + String(param_.getValue("model_parameters:pep_spurious_emission")) + "_g" +
                 String(param_.getValue("model_parameters:prot_prior")) + "_c" +
                 String(param_.getValue("model_parameters:pep_prior")) + "_p" + String(pnorm) + "_"
-                + String(idx) + ".graphviz"
-                , std::ofstream::out | std::ofstream::app);
+                + String(idx) + ".dot"
+                , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
           }
           OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
@@ -777,7 +770,7 @@ namespace OpenMS
       setScoreTypeAndSettings_(proteinIDs[0]);
       IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, exp_des);
       inferPosteriorProbabilities_(ibg);
-      //if (greedy_group_resolution) ibg.
+      if (greedy_group_resolution) ibg.re
 
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
     }

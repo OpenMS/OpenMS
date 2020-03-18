@@ -364,6 +364,13 @@ namespace OpenMS {
     /// Splits the initialized graph into connected components and clears it.
     void computeConnectedComponents();
 
+    /// @todo untested
+    /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
+    /// except for the best protein group
+    /// @param removeAssociationsInData Also removes the corresponding PeptideEvidences in the underlying
+    ///     ID data structure. Only deactivate if you know what you are doing.
+    void resolveGraphPeptideCentric(bool removeAssociationsInData);
+
 
 
     /// Zero means the graph was not split yet
@@ -500,12 +507,9 @@ namespace OpenMS {
     void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
         bool stop_at_first, std::vector<vertex_t>& result);
 
-    /// @todo untested
-    /// Removes all edges from a peptide (and its PSMs) to its parent protein groups (and its proteins)
-    /// except for the best protein group
-    /// Also removes the corresponding PeptideEvidences in the underlying ID data structure for now
-    /// @todo make the removals optional
-    void resolveGraphPeptideCentric_(Graph& fg);
+
+    /// see equivalent public method
+    void resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData);
 
     template<class NodeType>
     void getDownstreamNodes(vertex_t start, Graph graph, std::vector<NodeType>& result)

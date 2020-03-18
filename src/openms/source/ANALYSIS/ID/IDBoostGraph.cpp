@@ -951,7 +951,50 @@ namespace OpenMS
   }
   */
 
-  void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg/*, bool resolveTies*/)
+  void IDBoostGraph::resolveGraphPeptideCentric(bool removeAssociationsInData = true/*, bool resolveTies*/)
+  {
+    if (ccs_.empty() && boost::num_vertices(g) == 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
+    }
+
+    ProgressLogger pl;
+    pl.setLogType(ProgressLogger::CMD);
+
+    if (ccs_.empty())
+    {
+      pl.startProgress(0, 1, "Resolving graph...");
+      resolveGraphPeptideCentric_(g, removeAssociationsInData);
+      pl.nextProgress();
+      pl.endProgress();
+    }
+    else
+    {
+      pl.startProgress(0, ccs_.size(), "Resolving graph...");
+      #pragma omp parallel for
+      for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
+      {
+        const Graph& curr_cc = ccs_.at(i);
+
+        #ifdef INFERENCE_MT_DEBUG
+        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+        #endif
+
+        #ifdef INFERENCE_DEBUG
+        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
+       OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        printGraph(LOG_INFO, curr_cc);
+       OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        #endif
+
+        resolveGraphPeptideCentric_(curr_cc, removeAssociationsInData);
+        pl.setProgress(i);
+      }
+      pl.endProgress();
+    }
+  }
+
+  void IDBoostGraph::resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData = true/*, bool resolveTies*/)
   {
     GetPosteriorVisitor gpv{};
     Graph::vertex_iterator ui, ui_end;
@@ -987,33 +1030,38 @@ namespace OpenMS
               {
                 ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[single_prot]);
                 accsToRemove.insert(proteinPtr->getAccession());
+                proteinPtr->setScore(0.);
               }
             }
             else
             {
               ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[prot]);
               accsToRemove.insert(proteinPtr->getAccession());
+              proteinPtr->setScore(0.);
             }
             boost::remove_edge(prot, *ui, fg);
           }
         }
-        vector<vertex_t> peps;
-        queue<vertex_t> start_pep;
-        start_pep.push(*ui);
-        getUpstreamNodesNonRecursive(start_pep,fg,6,true,peps);
-        for (const auto& pep : peps)
+        if (removeAssociationsInData)
         {
-          PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
-          auto& ev = peptidePtr->getPeptideEvidences();
-          vector<PeptideEvidence> newev;
-          for (const auto& e : ev)
+          vector<vertex_t> peps;
+          queue<vertex_t> start_pep;
+          start_pep.push(*ui);
+          getUpstreamNodesNonRecursive(start_pep,fg,6,true,peps);
+          for (const auto& pep : peps)
           {
-            if (accsToRemove.find(e.getProteinAccession()) == accsToRemove.end())
+            PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
+            auto& ev = peptidePtr->getPeptideEvidences();
+            vector<PeptideEvidence> newev;
+            for (const auto& e : ev)
             {
-              newev.emplace_back(e);
+              if (accsToRemove.find(e.getProteinAccession()) == accsToRemove.end())
+              {
+                newev.emplace_back(e);
+              }
             }
+            peptidePtr->setPeptideEvidences(std::move(newev));
           }
-          peptidePtr->setPeptideEvidences(std::move(newev));
         }
       }
     }
