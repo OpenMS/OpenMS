@@ -41,6 +41,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -470,20 +472,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
-
-        std::vector<AASequence> output;
-        digestor.digest(AASequence::fromString(e.sequence), output);
-
-        // pseudo reverse protein digest
-        e.sequence = "";
-        for (const auto & aas : output)
-        {
-          std::string s = aas.toUnmodifiedString();
-          auto last = --s.end();
-          std::reverse(s.begin(), last);
-          e.sequence += s;
-        }
-
+        e.sequence = DecoyGenerator::reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }

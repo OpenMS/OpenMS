@@ -233,6 +233,7 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 
 void SimpleSVM::scaleData_(PredictorMap& predictors)
 {
+  scaling_.clear();
   for (PredictorMap::iterator pred_it = predictors.begin();
        pred_it != predictors.end(); ++pred_it)
   {
