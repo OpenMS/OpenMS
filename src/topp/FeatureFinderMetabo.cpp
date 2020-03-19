@@ -75,7 +75,7 @@ using namespace std;
   Mass traces alone would allow for further analysis such as metabolite ID or
   statistical evaluation. However, in general, monoisotopic mass traces are
   accompanied by satellite C13 peaks and thus may render the analysis more
-  difficult. @ref FeatureFinderMetabo fulfills a further data reduction step by
+  difficult. FeatureFinderMetabo fulfills a further data reduction step by
   assembling compatible mass traces to metabolite features (that is, all mass
   traces originating from one metabolite). To this end, multiple metabolite
   hypotheses are formulated and scored according to how well differences in RT (optional),

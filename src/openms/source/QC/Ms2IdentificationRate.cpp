@@ -36,10 +36,12 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <algorithm>
+
 
 namespace OpenMS
 {
@@ -70,7 +72,8 @@ namespace OpenMS
     //counts peptideIdentifications
     UInt64 peptide_identification_counter{};
 
-    auto lam = [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
+    auto f =
+        [force_fdr, &peptide_identification_counter](const PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -92,8 +95,8 @@ namespace OpenMS
       }
     };
 
-    //iterates through all PeptideIdentifications in FeatureMap, applies lambda function lam to all of them
-    QCBase::iterateFeatureMap(feature_map, lam);
+    //iterates through all PeptideIdentifications in FeatureMap, applies function f to all of them
+    feature_map.applyFunctionOnPeptideIDs(f, true);
 
     if (ms2_level_counter < peptide_identification_counter)
     {
@@ -104,7 +107,7 @@ namespace OpenMS
     double ratio = (double) peptide_identification_counter / ms2_level_counter;
 
     // struct that is made to store results
-    IdentificationRateData id_rate_data;
+    IdentificationRateData id_rate_data{};
 
     //store results
     id_rate_data.num_peptide_identification = peptide_identification_counter;
@@ -130,5 +133,20 @@ namespace OpenMS
   QCBase::Status Ms2IdentificationRate::requires() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
+  }
+
+  void Ms2IdentificationRate::addMetaDataMetricsToMzTab(MzTabMetaData& meta)
+  {
+    // Adding MS2_ID_Rate to meta data
+    const auto& ms2_irs = this->getResults();
+    for (Size i = 0; i < ms2_irs.size(); ++i)
+    {
+      MzTabParameter ms2_ir{};
+      ms2_ir.setCVLabel("MS2 identification rate");
+      ms2_ir.setAccession("null");
+      ms2_ir.setName("MS2_ID_Rate_" + String(i + 1));
+      ms2_ir.setValue(String(100 * ms2_irs[i].identification_rate));
+      meta.custom[meta.custom.size()] = ms2_ir;
+    }
   }
 } // namespace OpenMS

@@ -313,21 +313,9 @@ namespace OpenMS
 
         const String pseudo_mod_name = String(100000 + seeds_added);
 
-        // Check if pseudo mod is already there.
-        // Multiple runs of the algorithm might have already registered it
-        if (!ModificationsDB::getInstance()->has("[" + pseudo_mod_name + "]"))
-        {
-          ResidueModification * new_mod = new ResidueModification();
-          new_mod->setFullId("[" + pseudo_mod_name + "]"); // setting FullId but not Id makes it a user-defined mod
-          new_mod->setTermSpecificity(ResidueModification::ANYWHERE);
-          new_mod->setUniModRecordId(100000 + seeds_added); // required for TargetedExperimentHelper
-          new_mod->setOrigin('X');
-          ModificationsDB::getInstance()->addModification(new_mod);
-        }
-
-        AASequence some_seq = AASequence::fromString("XXX");
-        some_seq.setModification(1, "[" + pseudo_mod_name + "]");
+        AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
         seed_hit.setSequence(some_seq);
+        OPENMS_LOG_DEBUG << "adding seed: " << some_seq.toString() << " to peptide map." << endl;
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
         peptides.back().setHits(seed_hits);
@@ -338,7 +326,7 @@ namespace OpenMS
         ++seeds_added;
       }
     }
-   OPENMS_LOG_INFO << "Seeds added: " << seeds_added << endl;
+    OPENMS_LOG_INFO << "Seeds without RT and m/z overlap with identified peptides added: " << seeds_added << endl;
 
 
     n_internal_peps_ = peptide_map_.size();
@@ -366,21 +354,20 @@ namespace OpenMS
       cout << "Writing debug.traml file." << endl;
       TraMLFile().store("debug.traml", library_);
       ref_rt_map.clear();
+      library_.clear(true);
     }
 
+    //-------------------------------------------------------------
+    // run feature detection
+    //-------------------------------------------------------------
+    OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
     for (auto& chunk : chunks)
     {
-
       createAssayLibrary_(chunk.first, chunk.second, ref_rt_map);
 
-      //-------------------------------------------------------------
-      // run feature detection
-      //-------------------------------------------------------------
-      OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
       {
-
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
         // take entries in library_ and put to chrom_temp and coords
@@ -397,17 +384,18 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
                        << " chromatogram(s)." << endl;
 
-      OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
+      OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
       if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
       feat_finder_.pickExperiment(chrom_data_, features, library_,
                                   TransformationDescription(), ms_data_);
       if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
-      OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
-                      << endl;
       chrom_data_.clear(true);
       library_.clear(true);
     }
+
+    OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
+                    << endl;
 
     ms_data_.reset(); // not needed anymore, free up the memory
     // complete feature annotation:
@@ -484,6 +472,9 @@ namespace OpenMS
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids) classifyFeatures_(features);
 
+    // make sure proper unique ids get assigned to all features
+    features.ensureUniqueId();
+
     // store feature candidates before filtering
     if (!candidates_out_.empty())
     {
@@ -507,14 +498,11 @@ namespace OpenMS
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin(); 
-           feat_it != features.end(); ++feat_it)
+      for (auto & feat : features)
       {
-        for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it != 
-               feat_it->getSubordinates().end(); ++sub_it)
+        for (auto & sub : feat.getSubordinates())
         {
-          sub_it->getConvexHulls().clear();
+          sub.getConvexHulls().clear();
         }
       }
     }
@@ -1013,7 +1001,13 @@ namespace OpenMS
 
       if (rt_internal.empty() && rt_external.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty.");
+        OPENMS_LOG_DEBUG << "PeptideRefs in RTMap:" << endl;
+        for (const auto& rtm : ref_rt_map)
+        {
+          OPENMS_LOG_DEBUG << rtm.first << endl;
+        }
+
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty for peptide '" + String(peptide_ref) + "' stored as '" + String(feat_it->getMetaValue("PeptideRef")) + "'.");
       }
 
       if (!rt_internal.empty()) // validate based on internal IDs
@@ -1535,6 +1529,7 @@ namespace OpenMS
     }
     else
     {
+      // remove features without ID (or pseudo ID from seeds)
       features.erase(remove_if(features.begin(), features.end(),
                                feature_filter_peptides_), features.end());
     }

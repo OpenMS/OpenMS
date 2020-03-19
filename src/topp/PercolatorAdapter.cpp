@@ -87,7 +87,7 @@ using namespace std;
 depending on the search engine. Must be prepared beforehand. If you do not want
 to use the specific features, use the generic-feature-set flag. Will incorporate
 the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
+score with @ref UTILS_IDScoreSwitcher . Be aware, that you might very well
 experience a performance loss compared to the search engine specific features.
 You can also perform protein inference with percolator when you activate the protein fdr parameter.
 Additionally you need to set the enzyme setting.
@@ -228,7 +228,7 @@ protected:
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid,osw"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<String>("tsv"), !force_openms_format);
 
@@ -262,7 +262,11 @@ protected:
     registerIntOption_("maxiter", "<number>", 10, "Maximal number of iterations", !is_required, is_advanced_option);
     registerFlag_("quick-validation", "Quicker execution by reduced internal cross-validation.", is_advanced_option);
     registerOutputFile_("weights", "<file>", "", "Output final weights to the given file", !is_required, is_advanced_option);
+    setValidFormats_("weights", ListUtils::create<String>("tsv"), !force_openms_format);
+
     registerInputFile_("init-weights", "<file>", "", "Read initial weights to the given file", !is_required, is_advanced_option);
+    setValidFormats_("init-weights", ListUtils::create<String>("tsv"), !force_openms_format);
+
     registerStringOption_("default-direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerFlag_("unitnorm", "Use unit normalization [0-1] instead of standard deviation normalization", is_advanced_option);

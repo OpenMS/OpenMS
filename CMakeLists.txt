@@ -116,7 +116,7 @@ if(NOT GIT_TRACKING)
   set(OPENMS_GIT_SHORT_SHA1 "disabled")
   set(OPENMS_GIT_SHORT_REFSPEC "disabled")
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
+elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
   message(STATUS "  [CMake cannot track Git commits and branching, since Git was not found. ('-D GIT_TRACKING=On')]")
@@ -131,11 +131,11 @@ endif()
 # Additional versioning information for packaging
 # If it is not built from a release branch (or master) it will add the branch name
 # and the last change date to everything that can handle strings in the version (eg. installer filenames).
-if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "disabled" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "exported")
+if(OPENMS_GIT_SHORT_REFSPEC MATCHES "disabled" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "exported")
   string(TIMESTAMP DATE "%Y%m%d")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC}-${DATE}")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
-elseif(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "master")
+elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "release*" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "master")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
 else()
@@ -194,6 +194,15 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 set(CF_OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
+
+# Visibility settings
+if (NOT CMAKE_CXX_VISIBILITY_PRESET)
+  set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
+  cmake_policy(SET CMP0063 NEW)
+endif()
+if (CMAKE_VISIBILITY_INLINES_HIDDEN)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+endif()
 
 #------------------------------------------------------------------------------
 # Enable STL debug mode (GCC only)

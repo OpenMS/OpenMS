@@ -112,11 +112,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));    
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML"));
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()

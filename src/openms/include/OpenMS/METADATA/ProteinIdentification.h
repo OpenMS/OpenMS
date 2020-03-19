@@ -75,6 +75,43 @@ public:
     /// Hit type definition
     typedef ProteinHit HitType;
 
+    /// two way mapping from ms-run-path to protID|pepID-identifier
+    struct Mapping
+    {
+      std::map<String, StringList> identifier_to_msrunpath;
+      std::map<StringList, String> runpath_to_identifier;
+
+      Mapping() = default;
+
+      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        create(prot_ids);
+      }
+      void create(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        identifier_to_msrunpath.clear();
+        runpath_to_identifier.clear();
+        StringList filenames;
+        for (const ProteinIdentification& prot_id : prot_ids)
+        {
+          prot_id.getPrimaryMSRunPath(filenames);
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+          }
+          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+          const auto& it = runpath_to_identifier.find(filenames);
+          if (it != runpath_to_identifier.end())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+                                          ListUtils::concatenate(filenames, ","));
+          }
+          runpath_to_identifier[filenames] = prot_id.getIdentifier();
+        }
+      }
+    };
+
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */

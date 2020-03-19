@@ -43,6 +43,7 @@ namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
+  class MzTabMetaData;
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
    
@@ -56,9 +57,9 @@ namespace OpenMS
     /// Structure for storing results
     struct IdentificationRateData
     {
-      UInt64 num_peptide_identification;
-      UInt64 num_ms2_spectra;
-      double identification_rate;
+      UInt64 num_peptide_identification = 0;
+      UInt64 num_ms2_spectra = 0;
+      double identification_rate = 0.;
     };
 
   private:
@@ -102,6 +103,8 @@ namespace OpenMS
      * @return Status for RAWMZML and POSTFDRFEAT
      */
     QCBase::Status requires() const override;
+
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
   };
 
 } // namespace OpenMS

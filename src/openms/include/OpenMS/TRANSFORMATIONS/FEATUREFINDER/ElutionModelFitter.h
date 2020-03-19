@@ -77,6 +77,12 @@ namespace OpenMS
     /// Calculate quality of model fit (mean relative error)
     double calculateFitQuality_(const TraceFitter* fitter, 
                                 const MassTraces& traces);
+
+    /// Helper function to fit (and validate) a model for one set of mass traces
+    void fitAndValidateModel_(TraceFitter* fitter, MassTraces& traces,
+                              Feature& feature, double region_start,
+                              double region_end, bool asymmetric,
+                              double area_limit, double check_boundaries);
   };
 }
 
