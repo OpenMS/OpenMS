@@ -334,7 +334,7 @@ namespace OpenMS
     x_scrollbar_->hide();
     y_scrollbar_->hide();
 
-    if (sel_filter->contains(".svg", Qt::CaseInsensitive)) // svg vector format FIXME
+    if (sel_filter->contains(".svg", Qt::CaseInsensitive)) // svg vector format
     {
       QSvgGenerator generator;
       generator.setFileName(file_name);
