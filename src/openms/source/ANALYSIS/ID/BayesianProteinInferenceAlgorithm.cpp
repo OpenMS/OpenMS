@@ -329,8 +329,9 @@ namespace OpenMS
         param_(param)
     {}
 
-    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
+    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int /*idx*/) {
       //TODO do quick bruteforce calculation if the cc is really small
+      //TODO make use of idx
 
       double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
       if (pnorm <= 0)

@@ -1677,7 +1677,7 @@ namespace OpenMS
     return ccs_.size();
   }
 
-  ProteinIdentification& IDBoostGraph::getProteinIDs()
+  const ProteinIdentification& IDBoostGraph::getProteinIDs()
   {
     return protIDs_;
   }
