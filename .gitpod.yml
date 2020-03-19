@@ -1,6 +1,11 @@
 tasks:
   - init: mkdir -p build && pushd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../ && popd
-    prebuild: git submodule update --init THIRDPARTY && mkdir -p build && pushd build && make -j16 && popd 
+    prebuild: mkdir thirdparty && 
+       git submodule update --init THIRDPARTY && 
+       cp -r THIRDPARTY/All/* thirdparty && 
+       cp -r THIRDPARTY/Linux/64bit/* thirdparty &&
+       export PATH=${PWD}/thirdparty:$PATH
+       cp -rmkdir -p build && pushd build && make -j16 && popd 
 image:
   file: .gitpod.Dockerfile
 github:
