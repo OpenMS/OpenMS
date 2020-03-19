@@ -366,6 +366,7 @@ jobs:
           name: ${{ runner.os }}-wheels
 
     - name: Test
+      shell: bash 
       run: |
         # Search for the latest 3 main python versions in the repository pkgs/main
         SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
