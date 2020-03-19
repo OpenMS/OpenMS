@@ -538,6 +538,8 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
 
+      vector<ProteinIdentification> protein_ids;
+      vector<PeptideIdentification> peptide_ids;
 
       if (getFlag_("legacy_conversion"))
       {
@@ -585,7 +587,6 @@ protected:
         search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
 
         // create idXML file
-        vector<ProteinIdentification> protein_ids;
         ProteinIdentification protein_id;
         protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
 
@@ -714,7 +715,6 @@ protected:
         protein_ids.push_back(protein_id);
 
         // iterate over map and create a vector of peptide identifications
-        vector<PeptideIdentification> peptide_ids;
         PeptideIdentification pep;
         for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
              it != peptide_identifications.end(); ++it)
@@ -723,24 +723,28 @@ protected:
           pep.sort();
           peptide_ids.push_back(pep);
         }
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
       }
-      else
+      else // no legacy conversion
       {
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+
         // set the MS-GF+ spectral e-value as new peptide identification score
-        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
-        {
-          switchScores_(*pep_it);
-        }
+        for (auto& pep : peptide_ids) { switchScores_(pep); }
 
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
       }
+
+      // use OpenMS meta value key
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        for (PeptideHit& psm : pid.getHits())
+        {
+          auto v = psm.getMetaValue("IsotopeError");
+          psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
+          psm.removeMetaValue("IsotopeError");
+        }
+      }
+      IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
     //-------------------------------------------------------------

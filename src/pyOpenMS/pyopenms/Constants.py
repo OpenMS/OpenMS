@@ -119,7 +119,7 @@ JOULE_PER_CAL  = 4.184;
 CAL_PER_JOULE = (1 / 4.184);
 
 # User parameter name for precursor mz error in ppm
-PRECURSOR_ERROR_PPM_USERPARAM = "OMS:precursor_mz_error_ppm";
+PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
 # User parameter name for precursor mz error in ppm
 FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
