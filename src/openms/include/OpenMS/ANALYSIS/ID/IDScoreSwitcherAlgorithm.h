@@ -154,12 +154,14 @@ namespace OpenMS
           }
         }
       }
+
       if (new_type.empty())
       {
         String msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
+
       new_score_ = new_type;
       new_score_type_ = new_type;
 
@@ -171,7 +173,6 @@ namespace OpenMS
 
       function<void(PeptideIdentification&)> f = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
       cmap.applyFunctionOnPeptideIDs(f, unassigned_peptides_too);
-
     }
 
 
@@ -242,6 +243,5 @@ namespace OpenMS
             {ScoreType::FDR, false},
             {ScoreType::QVAL, false}
         };
-
   };
 } // namespace OpenMS

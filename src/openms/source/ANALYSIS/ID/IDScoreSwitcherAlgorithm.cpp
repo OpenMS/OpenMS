@@ -65,15 +65,12 @@ namespace OpenMS
     if (new_score_type_.empty()) new_score_type_ = new_score_;
   }
 
-
-
   String IDScoreSwitcherAlgorithm::describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
            "', charge " + String(hit.getCharge()) + ", score " +
            String(hit.getScore());
   }
-
 
   String IDScoreSwitcherAlgorithm::describeHit_(const ProteinHit& hit)
   {

@@ -172,9 +172,9 @@ protected:
     double minscore = 2.;
     double maxscore = -1.;
     //convert all scores to PPs
-    for (auto &pep_id : mergedpeps)
+    for (auto& pep_id : mergedpeps)
     {
-      for (auto &pep_hit : pep_id.getHits())
+      for (auto& pep_hit : pep_id.getHits())
       {
         double newScore = pep_hit.getScore();
         if (newScore > 0)
@@ -193,13 +193,13 @@ protected:
   void convertPSMScores_(vector<PeptideIdentification>& mergedpeps)
   {
     //convert all scores to PPs
-    for (auto &pep_id : mergedpeps)
+    for (auto& pep_id : mergedpeps)
     {
       String score_l = pep_id.getScoreType();
       score_l = score_l.toLower();
       if (score_l == "pep" || score_l == "posterior error probability")
       {
-        for (auto &pep_hit : pep_id.getHits())
+        for (auto& pep_hit : pep_id.getHits())
         {
           double newScore = 1. - pep_hit.getScore();
           pep_hit.setScore(newScore);
@@ -225,9 +225,9 @@ protected:
   void removeExtremeValues_(vector<PeptideIdentification>& mergedpeps, double minscore, double maxscore)
   {
     //convert all scores to PPs
-    for (auto &pep_id : mergedpeps)
+    for (auto& pep_id : mergedpeps)
     {
-      for (auto &pep_hit : pep_id.getHits())
+      for (auto& pep_hit : pep_id.getHits())
       {
         double score = pep_hit.getScore();
         pep_hit.setScore(std::min(std::max(score,minscore),maxscore));
@@ -274,12 +274,10 @@ protected:
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
       cxmlf.load(files[0], cmap);
-      boost::optional<const ExperimentalDesign> edopt;
+      boost::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
       if (!exp_des.empty())
       {
-        const ExperimentalDesign ed = ExperimentalDesignFile::load(exp_des, false);
-        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, ed);
-        edopt.emplace(ed);
+        cmerge.mergeProteinsAcrossFractionsAndReplicates(cmap, edopt.get());
       }
       else
       {
@@ -300,7 +298,7 @@ protected:
       {
         OPENMS_LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
         IDFilter::removeUnreferencedProteins(cmap, true);
-        for (auto run : cmap.getProteinIdentifications())
+        for (auto& run : cmap.getProteinIdentifications())
         {
           IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
         }
@@ -315,7 +313,7 @@ protected:
         fdrparam.setValue("conservative", getStringOption_("conservative_fdr"));
         fdrparam.setValue("add_decoy_proteins","true");
         fdr.setParameters(fdrparam);
-        for (auto run : cmap.getProteinIdentifications())
+        for (auto& run : cmap.getProteinIdentifications())
         {
           fdr.applyBasic(run, true);
         }
@@ -428,22 +426,28 @@ protected:
       idXMLf.store(out_file, mergedprots, mergedpeps);
     }
     return ExitCodes::EXECUTION_OK;
-
-
-    // Some thoughts about how to leverage info from different runs.
-    //Fractions: Always merge (not much to leverage, maybe agreement at borders)
-    // - Think about only allowing one/the best PSM per peptidoform across fractions
-    //Replicates: Use matching ID and quant, also a always merge
-    //Samples: In theory they could yield different proteins/pep-protein-associations
-    // 3 options:
-    // - don't merge: -> don't leverage peptide quant profiles (or use them repeatedly -> same as second opt.?)
-    // - merge and assume same proteins: -> You can use the current graph and weigh the associations
-    //   based on deviation in profiles
-    // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
-    //   of the proteins for every sample
   }
 
+  // Some thoughts about how to leverage info from different runs.
+  //Fractions: Always merge (not much to leverage, maybe agreement at borders)
+  // - Think about only allowing one/the best PSM per peptidoform across fractions
+  //Replicates: Use matching ID and quant, also a always merge
+  //Samples: In theory they could yield different proteins/pep-protein-associations
+  // 3 options:
+  // - don't merge: -> don't leverage peptide quant profiles (or use them repeatedly -> same as second opt.?)
+  // - merge and assume same proteins: -> You can use the current graph and weigh the associations
+  //   based on deviation in profiles
+  // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
+  //   of the proteins for every sample
+
+  static boost::optional<const ExperimentalDesign> maybeGetExpDesign_(const String& filename)
+  {
+    if (filename.empty()) return boost::none;
+    return boost::optional<const ExperimentalDesign>(ExperimentalDesignFile::load(filename, false));
+  }
 };
+
+
 
 int main(int argc, const char** argv)
 {

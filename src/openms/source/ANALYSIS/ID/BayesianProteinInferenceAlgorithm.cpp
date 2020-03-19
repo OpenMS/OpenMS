@@ -70,14 +70,12 @@ namespace OpenMS
     {}
 
     unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
-
       //TODO do quick bruteforce calculation if the cc is really small?
 
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-
         OPENMS_LOG_DEBUG << "Running cc " << String(idx) << "..." << std::endl;
         unsigned long nrEdges = boost::num_edges(fg);
 

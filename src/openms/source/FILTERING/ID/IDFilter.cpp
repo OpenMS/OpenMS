@@ -289,7 +289,6 @@ namespace OpenMS
              pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
       {
-
         const set<String>& current_accessions = 
           hit_it->extractProteinAccessionsSet();
 
