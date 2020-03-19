@@ -868,7 +868,6 @@ namespace OpenMS
 
   void IDBoostGraph::annotateIndistProteins_(const Graph& fg, bool addSingletons)
   {
-
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
@@ -1704,7 +1703,6 @@ namespace OpenMS
           {
             scores_and_tgt_fraction.emplace_back(boost::apply_visitor(gpv, fg[prot_tgt_frac.first]), prot_tgt_frac.second);
           }
-
         };
     applyFunctorOnCCsST(fun);
   }

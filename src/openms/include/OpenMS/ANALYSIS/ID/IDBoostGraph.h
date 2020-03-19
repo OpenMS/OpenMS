@@ -543,8 +543,8 @@ namespace OpenMS
         }
       }
     }
-
   };
 
-} } //namespace OpenMS
+  } //namespace Internal
+} //namespace OpenMS
 
