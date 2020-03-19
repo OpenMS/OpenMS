@@ -361,6 +361,7 @@ jobs:
         echo "::add-path::$HOME/miniconda3/Scripts"
 
     - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
       with:
           name: ${{ runner.os }}-wheels
 
