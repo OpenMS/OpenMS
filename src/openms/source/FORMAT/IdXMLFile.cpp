@@ -360,7 +360,7 @@ namespace OpenMS
               const auto acc = accession_to_id.find(protein_accession);
               if (acc != accession_to_id.end())
               {
-                protein_accessions.emplace_back("PH_" + String(prot_count));
+                protein_accessions.emplace_back("PH_" + String(acc->second));
               }
               else
               {
