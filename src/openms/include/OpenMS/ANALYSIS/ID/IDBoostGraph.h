@@ -91,7 +91,12 @@ namespace OpenMS
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
     /// indistinguishable protein groups (size, nr targets, score)
-    typedef std::tuple<int, int, double> ProteinGroup;
+    struct ProteinGroup
+    {
+      int size = 0;
+      int tgts = 0;
+      double score = 0.;
+    };
 
     /// an (currently unmodified) peptide sequence
     BOOST_STRONG_TYPEDEF(String, Peptide)
@@ -281,7 +286,7 @@ namespace OpenMS
 
       void operator()(ProteinGroup& pg, double posterior) const
       {
-        get<2>(pg) = posterior;
+        pg.score = posterior;
       }
 
       // Everything else, do nothing for now
@@ -310,7 +315,7 @@ namespace OpenMS
 
       double operator()(ProteinGroup& pg) const
       {
-        return get<2>(pg);
+        return pg.score;
       }
 
       // Everything else, do nothing for now
@@ -545,6 +550,7 @@ namespace OpenMS
     }
   };
 
+    bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs);
   } //namespace Internal
 } //namespace OpenMS
 

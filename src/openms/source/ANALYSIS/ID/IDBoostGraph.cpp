@@ -876,7 +876,7 @@ namespace OpenMS
       if (fg[*ui].which() == 1) //prot group
       {
         ProteinIdentification::ProteinGroup pg{};
-        pg.probability = std::get<2>(boost::get<IDBoostGraph::ProteinGroup>(fg[*ui])); //init
+        pg.probability = boost::get<IDBoostGraph::ProteinGroup>(fg[*ui]).score; //init
         Graph::adjacency_iterator nbIt, nbIt_end;
         boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
@@ -1471,9 +1471,9 @@ namespace OpenMS
             boost::add_edge(grpVID, pepVID, curr_cc);
           }
           ProteinGroup& pgnode = boost::get<ProteinGroup&>(curr_cc[grpVID]);
-          std::get<0>(pgnode) = pepsToGrps.second.size();
-          std::get<1>(pgnode) = nr_targets;
-          std::get<2>(pgnode) = -1.0;
+          pgnode.size = pepsToGrps.second.size();
+          pgnode.tgts = nr_targets;
+          pgnode.score = -1.0;
         }
 
         // reset iterator to loop through vertices again for peptide clusters
@@ -1622,7 +1622,7 @@ namespace OpenMS
             if (graph[*ui].which() == 1) //protein group
             {
               ProteinGroup &pg = boost::get<ProteinGroup &>(graph[*ui]);
-              scores_and_tgt_fraction.emplace_back(std::get<2>(pg), std::get<1>(pg) / std::get<0>(pg));
+              scores_and_tgt_fraction.emplace_back(pg.score, static_cast<double>(pg.tgts) / pg.size);
             }
           }
         };
@@ -1684,7 +1684,7 @@ namespace OpenMS
                 else if (fg[prot].which() == 1) //protein group
                 {
                   ProteinGroup &pg = boost::get<ProteinGroup &>(fg[prot]);
-                  target_fraction = static_cast<double>(std::get<1>(pg)) / std::get<0>(pg);
+                  target_fraction = static_cast<double>(pg.tgts) / pg.size;
                   target_fraction /= target_contribution_penalty;
                   auto it_inserted = prot_to_current_max.emplace(prot, target_fraction);
                   if (!it_inserted.second)
@@ -1728,10 +1728,11 @@ namespace OpenMS
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
-
   namespace Internal
   {
     /// Hashers for the strong typedefs
+    //TODO switch everything to pointers so we compare memory addresses
+    // then we dont need those. They are just here to fulfill the "interface".
     std::size_t hash_value(const IDBoostGraph::Peptide& x)
     {
       boost::hash<std::string> hasher;
@@ -1751,6 +1752,12 @@ namespace OpenMS
     {
       return 0;
     }
+    bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs)
+    {
+      return std::tie(lhs.score, lhs.size, lhs.tgts) ==
+          std::tie(rhs.score, rhs.size, rhs.tgts);
+    }
+
     std::size_t hash_value(const IDBoostGraph::PeptideCluster&)
     {
       return 1;

@@ -195,17 +195,24 @@ namespace OpenMS
       higher_better = pep_ids[0].isHigherScoreBetter();
     }
 
+    //TODO do something smart about the scores, e.g. let the user specify a general score type
+    // he wants to use and then switch all of them
+    // At least use the new ScoreType class to check for the many names in a unified way.
     if (overall_score_type != "Posterior Error Probability" // from IDPEP
     && overall_score_type != "Posterior Probability"
-    && overall_score_type != "pep") // from Percolator
+    && overall_score_type != "pep" // from Percolator
+    && overall_score_type != "MS:1001493" // from Percolator
+    && aggregation_method == AggregationMethod::PROD)
     {
-      throw OpenMS::Exception::InvalidParameter(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
-          " or run IDPosteriorErrorProbability first.");
+      OPENMS_LOG_WARN << "ProteinInference with multiplicative aggregation "
+                         " should probably use Posterior (Error) Probabilities in the Peptide Hits."
+                         " Use Percolator with PEP score or run IDPosteriorErrorProbability first.\n";
     }
+
+    bool pep_scores =
+        (overall_score_type == "Posterior Error Probability" // from IDPEP
+        || overall_score_type != "pep" // from Percolator
+        || overall_score_type != "MS:1001493"); // from Percolator
 
     for (auto &pep : pep_ids)
     {
@@ -237,6 +244,7 @@ namespace OpenMS
           (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique")))
         continue;
 
+      //TODO refactor: this is very similar to IDFilter best per peptide functionality
       String lookup_seq;
       if (!treat_modification_variants_separately)
       {
@@ -300,8 +308,7 @@ namespace OpenMS
 
           double new_score = pep_hit.second->getScore();
 
-          //TODO: Maybe use something else than the metavalue to do the updates (quicker)
-          if (!higher_better) // convert PEP to PP
+          if (!higher_better && pep_scores) // convert PEP to PP
             new_score = 1. - new_score;
 
           switch (aggregation_method)
