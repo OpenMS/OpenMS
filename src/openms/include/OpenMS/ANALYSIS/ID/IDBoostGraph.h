@@ -377,14 +377,44 @@ namespace OpenMS {
     /// Zero means the graph was not split yet
     Size getNrConnectedComponents();
 
+    /// \brief Returns a specific connected component of the graph as a graph itself
+    /// \param cc the index of the component
+    /// \return the component as graph
     const Graph& getComponent(Size cc);
 
-    ProteinIdentification& getProteinIDs();
+    /// \brief Returns the underlying protein identifications for viewing
+    /// \return const ref to the protein ID run in this graph (can only be one)
+    const ProteinIdentification& getProteinIDs();
 
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
+    /// \brief Prints a graph (component or if not split, the full graph) in graphviz (i.e. dot) format
+    /// \param out an ostream to print to
+    /// \param fg the graph to print
     static void printGraph(std::ostream& out, const Graph& fg);
+
+    /// \brief Searches for all upstream nodes from a (set of) start nodes that are lower
+    ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
+    /// \param q a queue of start nodes
+    /// \param graph the graph to look in (q has to be part of it)
+    /// \param lvl the level to start reporting from
+    /// \param stop_at_first do you want to stop at the first node <= lvl or also report its
+    ///    upstream "predecessors"
+    /// \param result vector of reported nodes
+    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
+                                      bool stop_at_first, std::vector<vertex_t>& result);
+
+    /// \brief Searches for all downstream nodes from a (set of) start nodes that are higher
+    ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
+    /// \param q a queue of start nodes
+    /// \param graph the graph to look in (q has to be part of it)
+    /// \param lvl the level to start reporting from
+    /// \param stop_at_first do you want to stop at the first node >= lvl or also report its
+    ///    upstream "predecessors"
+    /// \param result vector of reported nodes
+    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
+                                        bool stop_at_first, std::vector<vertex_t>& result);
 
   private:
 
@@ -503,13 +533,6 @@ namespace OpenMS {
                                std::vector<PeptideIdentification>& idedSpectra,
                                Size use_top_psms,
                                const ExperimentalDesign& ed);
-
-
-    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
-        bool stop_at_first, std::vector<vertex_t>& result);
-
-    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
-                                      bool stop_at_first, std::vector<vertex_t>& result);
 
 
     /// see equivalent public method

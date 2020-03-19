@@ -52,6 +52,10 @@ namespace OpenMS
   public:
     IDScoreSwitcherAlgorithm ();
 
+    /// This is a rough hierarchy of possible score types in MS
+    /// In an ideal case this should be reimplemented to follow
+    /// ontology hierarchies as soon as e.g. MS-OBO is complete
+    /// and we switched the Metavalues to CV terms.
     enum class ScoreType
     {
       RAW,
@@ -62,6 +66,8 @@ namespace OpenMS
       QVAL,
     };
 
+    /// Switches all main scores in all hits in @p id according to
+    /// the settings in the param object of the switcher class
     template <typename IDType>
     void switchScores(IDType& id, Size& counter)
     {
@@ -205,9 +211,12 @@ namespace OpenMS
     /// relative tolerance for score comparisons:
     const double tolerance_ = 1e-6;
 
-    String new_score_, new_score_type_, old_score_; // tool parameters
+    /// will be set accoring to the algorithm parameters
+    String new_score_, new_score_type_, old_score_;
+    /// will be set accoring to the algorithm parameters
     bool higher_better_; // for the new scores, are higher ones better?
 
+    /// a map from ScoreType to their names as used around OpenMS
     map<ScoreType, set<String>> type_to_str_ =
         {
             {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh"}},
@@ -223,6 +232,7 @@ namespace OpenMS
             {ScoreType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
         };
 
+    /// a map from ScoreType to their ordering
     map<ScoreType, bool> type_to_better_ =
         {
             {ScoreType::RAW, true}, //TODO this might actually not always be true
