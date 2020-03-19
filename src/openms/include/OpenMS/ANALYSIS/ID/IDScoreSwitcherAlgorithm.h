@@ -82,9 +82,9 @@ namespace OpenMS
                                               OPENMS_PRETTY_FUNCTION, msg);
         }
 
-        String old_score_meta = (old_score_.empty() ? id.getScoreType() :
+        const String& old_score_meta = (old_score_.empty() ? id.getScoreType() :
                                  old_score_);
-        DataValue dv = hit_it->getMetaValue(old_score_meta);
+        const DataValue& dv = hit_it->getMetaValue(old_score_meta);
         if (!dv.isEmpty()) // meta value for old score already exists
         {
           if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
@@ -171,8 +171,8 @@ namespace OpenMS
         higher_better_ = type_to_better_[type];
       }
 
-      function<void(PeptideIdentification&)> f = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
-      cmap.applyFunctionOnPeptideIDs(f, unassigned_peptides_too);
+      const auto switchScoresSingle = [&counter,this](PeptideIdentification& id){switchScores(id,counter);};
+      cmap.applyFunctionOnPeptideIDs(switchScoresSingle, unassigned_peptides_too);
     }
 
 
@@ -180,8 +180,8 @@ namespace OpenMS
     template <typename IDType>
     String findScoreType(IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
     {
-      String curr_score_type = id.getScoreType();
-      set<String>& possible_types = type_to_str_[type];
+      const String& curr_score_type = id.getScoreType();
+      const set<String>& possible_types = type_to_str_[type];
       if (possible_types.find(curr_score_type) != possible_types.end())
       {
         OPENMS_LOG_INFO << "Requested score type already set as main score: " + curr_score_type + "\n";
@@ -205,8 +205,16 @@ namespace OpenMS
     }
 
   private:
+    /// \brief describes a PeptideHit for debug/exception messages
+    /// \param hit the hit
+    /// \return a String description to include in a message
     String describeHit_(const PeptideHit& hit);
+
+    /// \brief describes a ProteinHit for debug/exception messages
+    /// \param hit the hit
+    /// \return a String description to include in a message
     String describeHit_(const ProteinHit& hit);
+
     void updateMembers_() override;
 
     /// relative tolerance for score comparisons:

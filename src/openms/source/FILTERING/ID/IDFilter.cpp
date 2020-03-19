@@ -242,7 +242,7 @@ namespace OpenMS
     // collect accessions that are referenced by peptides for each ID run:
     map<String, unordered_set<String> > run_to_accessions;
 
-    function<void(const PeptideIdentification&)> f =
+    auto add_references_to_map =
         [&run_to_accessions](const PeptideIdentification& pepid)
     {
       const String& run_id = pepid.getIdentifier();
@@ -259,7 +259,7 @@ namespace OpenMS
                                          current_accessions.end());
       }
     };
-    cmap.applyFunctionOnPeptideIDs(f,include_unassigned);
+    cmap.applyFunctionOnPeptideIDs(add_references_to_map,include_unassigned);
 
     vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
 
@@ -326,7 +326,7 @@ namespace OpenMS
       }
     }
 
-    function<void(PeptideIdentification&)> f = [&run_to_accessions,&remove_peptides_without_reference]
+    auto check_prots_avail = [&run_to_accessions,&remove_peptides_without_reference]
         (PeptideIdentification& pep_it) -> void
     {
       const String& run_id = pep_it.getIdentifier();
@@ -352,7 +352,7 @@ namespace OpenMS
       }
     };
 
-    cmap.applyFunctionOnPeptideIDs(f);
+    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
 
   void IDFilter::updateProteinReferences(
