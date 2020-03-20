@@ -336,6 +336,10 @@ jobs:
               cd ../..
               rm -rf wheelhouse/fix/
               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+              
+              # Remove all current .whl from wheelhouse_tmp and fix/fix.zip from wheelhouse
+              rm -rf /openms-build/pyOpenMS/wheelhouse_tmp/*.whl
+              # rm -rf /openms-build/pyOpenMS/wheelhouse/* # is done above rm -rf wheelhouse/fix
 
               # Copy the inital libraries back
               cd /openms-build/lib
