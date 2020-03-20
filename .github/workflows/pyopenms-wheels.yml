@@ -290,10 +290,9 @@ jobs:
                 # remove the libraries as auditwheel will take care of linked libs
                 rm -rf pyopenms/lib*
                 rm -rf build/lib*/pyopenms/lib*
+                # create wheel without libraries
+                "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
               popd
-            
-              # create wheel without libraries
-              "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
             done
 
             # ensure auditwheel can find the libraries
@@ -304,33 +303,35 @@ jobs:
             strip --strip-all lib/libOpenSwathAlgo.so
             strip --strip-all lib/libSuperHirn.so
             
-            # Bundle stripped plus external shared libraries into the wheels
-            for whl in wheelhouse_tmp/pyopenms*.whl; do
-              auditwheel repair "$whl" -w wheelhouse/
-            done
-
-            # Note: Uncomment this line if you want to test the wheels before our fix
-            #/usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
-
-            # Somehow auditwheel is broken and we get the wrong libraries here for
-            # libcrypto and libssl, lets go and fix it ...
-            yum install -y zip
-            pushd wheelhouse
-              mkdir fix
-
-              for whl in pyopenms-*.whl
-              do
-                cp $whl fix/fix.zip
-                pushd fix
-                  unzip fix.zip
-                  /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
-                  /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
-                  zip -r ../$whl pyopenms/
-                popd
-                rm -rf fix
+            pushd pyOpenMS
+              # Bundle stripped plus external shared libraries into the wheels
+              for whl in wheelhouse_tmp/pyopenms*.whl; do
+                auditwheel repair "$whl" -w wheelhouse/
               done
+
+              # Note: Uncomment this line if you want to test the wheels before our fix
+              #/usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+
+              # Somehow auditwheel is broken and we get the wrong libraries here for
+              # libcrypto and libssl, lets go and fix it ...
+              yum install -y zip
+              pushd wheelhouse
+                mkdir fix
+
+                for whl in pyopenms-*.whl
+                do
+                  cp $whl fix/fix.zip
+                  pushd fix
+                    unzip fix.zip
+                    /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
+                    /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
+                    zip -r ../$whl pyopenms/
+                  popd
+                  rm -rf fix
+                done
+              popd
+              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
             popd
-            mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
 
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
