@@ -57,7 +57,8 @@ jobs:
           pushd bld
           # TODO: set generator via variable, then we can share this step
           cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
-          cmake --build . --config Release --target OpenMS
+          # Note: multiple --targets only supported by CMake 3.15+
+          cmake --build . --config Release --target OpenMS SuperHirn
 
           # Search for the latest 3 main python versions in the repository pkgs/main
           SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
@@ -179,7 +180,7 @@ jobs:
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
           cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
-          make -j4 OpenMS 
+          make -j4 OpenMS SuperHirn
 
           # Search for the latest 3 main python versions in the repository pkgs/main
           SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
@@ -273,82 +274,63 @@ jobs:
 
             LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
-            # work around build OpenMS library #without building the library 174 min
             mkdir openms-build
             cd openms-build
             cmake -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
-            make -j4 OpenMS
-            
-            # Copy the libraries
-            cd lib 
-            for lib in *so
-            do
-              cp $lib /tmp/$lib.tmp
-            done
-            cd ..
+            make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
             for PYBIN in /opt/python/cp3*; do
 
-              PYVER=`basename $PYBIN`
-
-              # Always build in the same directory 
-              # cp -r /openms-build /openms-build-$PYVER
-              # mkdir /openms-build-$PYVER
-              # cd /openms-build-$PYVER
-
               # configure
               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
-
-              # ensure auditwheel can find the libraries
-              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
-              # strip the libraries
-              strip --strip-all lib/libOpenMS.so
-              strip --strip-all lib/libOpenSwathAlgo.so
-              strip --strip-all lib/libSuperHirn.so
-              cd pyOpenMS
-              # remove the libraries as auditwheel will take care of linked libs
-              rm -rf pyopenms/lib*
-              rm -rf build/lib*/pyopenms/lib*
-
-              "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
-
-              # Bundle external shared libraries into the wheels
-              for whl in wheelhouse_tmp/pyopenms*.whl; do
-                auditwheel repair "$whl" -w wheelhouse/
-              done
-
-              # Note: Uncomment this line if you want to test the wheels before out fix
-              #/usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
-
-              # Somehow auditwheelis broken and we get the wrong libraries here for
-              # libcrypto and libssl, lets go and fix it ...
-              yum install -y zip
-              cd wheelhouse
-              mkdir fix
-              cp pyopenms-*.whl fix/fix.zip
-              cd fix
-              unzip fix.zip
-              /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
-              /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
-              zip -r ../pyopenms-*.whl pyopenms/
-              cd ../..
-              rm -rf wheelhouse/fix/
-              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
               
-              # Remove all current .whl from wheelhouse_tmp and fix/fix.zip from wheelhouse
-              rm -rf /openms-build/pyOpenMS/wheelhouse_tmp/*.whl
-              # rm -rf /openms-build/pyOpenMS/wheelhouse/* # is done above rm -rf wheelhouse/fix
-
-              # Copy the inital libraries back
-              cd /openms-build/lib
-              for lib in /tmp/*.tmp
-              do
-                cp $lib $PWD/$(basename -- ${lib%%.tmp})
-              done
-              cd ..
+              pushd pyOpenMS
+                # remove the libraries as auditwheel will take care of linked libs
+                rm -rf pyopenms/lib*
+                rm -rf build/lib*/pyopenms/lib*
+              popd
+            
+              # create wheel without libraries
+              "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
             done
+
+            # ensure auditwheel can find the libraries
+            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+
+            # strip the libraries before repairing
+            strip --strip-all lib/libOpenMS.so
+            strip --strip-all lib/libOpenSwathAlgo.so
+            strip --strip-all lib/libSuperHirn.so
+            
+            # Bundle stripped plus external shared libraries into the wheels
+            for whl in wheelhouse_tmp/pyopenms*.whl; do
+              auditwheel repair "$whl" -w wheelhouse/
+            done
+
+            # Note: Uncomment this line if you want to test the wheels before our fix
+            #/usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+
+            # Somehow auditwheel is broken and we get the wrong libraries here for
+            # libcrypto and libssl, lets go and fix it ...
+            yum install -y zip
+            pushd wheelhouse
+              mkdir fix
+
+              for whl in pyopenms-*.whl
+              do
+                cp $whl fix/fix.zip
+                pushd fix
+                  unzip fix.zip
+                  /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
+                  /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
+                  zip -r ../$whl pyopenms/
+                popd
+                rm -rf fix
+              done
+            popd
+            mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
 
     - uses: actions/upload-artifact@v1
       name: Upload artifacts
