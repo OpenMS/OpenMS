@@ -79,6 +79,11 @@ namespace OpenMS
       // TODO: store UI to INI?
     }
 
+    void PythonModuleRequirement::setTitle(const QString& title)
+    {
+      ui_->box->setTitle(title);
+    }
+
     void PythonModuleRequirement::setRequiredModules(const QStringList& m)
     {
       required_modules_ = m;

@@ -55,6 +55,7 @@ namespace OpenMS
         py_pyprophet->setRequiredModules({"pyprophet", "stats"});
         py_pyprophet->setFreeText("In order to run PyProphet after OpenSWATH, the above modules need to be installed\n" \
                                   "Once they are available, the 'pyProphet' tab will become active and configurable.");
+        py_pyprophet->setTitle("External: PyProphet tool");
         connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
         
         // call once to update py_pyprophet canvas 

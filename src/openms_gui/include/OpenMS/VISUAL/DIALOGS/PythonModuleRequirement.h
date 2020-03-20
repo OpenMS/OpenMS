@@ -57,6 +57,9 @@ namespace OpenMS
       explicit PythonModuleRequirement(QWidget* parent = nullptr);
       ~PythonModuleRequirement();
 
+      /// change the label of the surrounding box
+      void setTitle(const QString& title);
+
       /// a list of python modules required for a certain functionality/script
       void setRequiredModules(const QStringList& m);
 
