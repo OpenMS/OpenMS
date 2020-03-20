@@ -608,7 +608,7 @@ namespace OpenMS
     }
 
     // Use dynamic schedule because big CCs take much longer!
-    #pragma omp parallel for schedule(dynamic) default(none)
+    #pragma omp parallel for schedule(dynamic) default(none) shared(functor)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       #ifdef INFERENCE_BENCH
@@ -1028,7 +1028,7 @@ namespace OpenMS
       {
         q.push(*ui);
         getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
-        q = {};
+
         auto score_compare = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
             {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
         auto best_prot = std::max_element(groups_or_singles.begin(), groups_or_singles.end(), score_compare); //returns an iterator
@@ -1042,7 +1042,7 @@ namespace OpenMS
             {
               q.push(prot);
               getUpstreamNodesNonRecursive(q,fg,0,true,singles);
-              q = {};
+
               for (const auto& single_prot : singles)
               {
                 ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[single_prot]);
@@ -1063,8 +1063,8 @@ namespace OpenMS
         if (removeAssociationsInData)
         {
           q.push(*ui);
-          getDownstreamNodesNonRecursive(q,fg,6,true,singles);
-          q = {};
+          getDownstreamNodesNonRecursive(q, fg, 6, true, singles);
+
           for (const auto& pep : singles)
           {
             PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
@@ -1104,12 +1104,13 @@ namespace OpenMS
 
     pair<int,int> chargeRange = protIDs_.getSearchParameters().getChargeRange();
 
-    if (ccs_.empty()) {
+    if (ccs_.empty())
+    {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange)
+    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange, OpenMS_Log_info)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];

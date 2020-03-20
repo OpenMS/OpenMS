@@ -311,7 +311,7 @@ namespace OpenMS
 
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
-    stream << "peptide hit with sequence '" + hit.getSequence().toString() +
+    return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
            "', charge " + String(hit.getCharge()) + ", score " +
            String(hit.getScore());
   }

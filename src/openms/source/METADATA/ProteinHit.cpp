@@ -174,7 +174,7 @@ namespace OpenMS
 
   std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)
   {
-    stream << "protein hit with accession '" + hit.getAccession() + "', score " +
+    return stream << "protein hit with accession '" + hit.getAccession() + "', score " +
                          String(hit.getScore());
   }
 
