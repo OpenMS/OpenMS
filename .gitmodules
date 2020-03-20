@@ -1,6 +1,8 @@
 [submodule "contrib"]
 	path = contrib
 	url = https://github.com/OpenMS/contrib
+	shallow = true
 [submodule "THIRDPARTY"]
 	path = THIRDPARTY
 	url = https://github.com/OpenMS/THIRDPARTY
+	shallow = true
