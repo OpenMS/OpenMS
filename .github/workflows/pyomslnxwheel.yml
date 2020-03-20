@@ -279,16 +279,24 @@ jobs:
             cd openms-build
             cmake -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
             make -j4
-            cd /
+            
+            # Copy the libraries
+            cd lib 
+            for lib in *so
+            do
+              cp $lib /tmp/$lib.tmp
+            done
+            cd ..
 
             # compile and configure OpenMS
             for PYBIN in /opt/python/cp3*; do
 
               PYVER=`basename $PYBIN`
 
-              cp -r /openms-build /openms-build-$PYVER
-              #mkdir /openms-build-$PYVER
-              cd /openms-build-$PYVER
+              # Always build in the same directory 
+              # cp -r /openms-build /openms-build-$PYVER
+              # mkdir /openms-build-$PYVER
+              # cd /openms-build-$PYVER
 
               # configure
               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
@@ -329,6 +337,14 @@ jobs:
               cd ../..
               rm -rf wheelhouse/fix/
               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+
+              # Copy the inital libraries back
+              cd lib
+              for lib in /tmp/*.tmp
+              do
+                cp $lib $PWD/$(basename -- ${lib%%.tmp})
+              done
+              cd ..
             done
 
     - uses: actions/upload-artifact@v1
