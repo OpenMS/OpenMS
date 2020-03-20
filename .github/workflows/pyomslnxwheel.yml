@@ -339,7 +339,7 @@ jobs:
               mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
 
               # Copy the inital libraries back
-              cd lib
+              cd /openms-build/lib
               for lib in /tmp/*.tmp
               do
                 cp $lib $PWD/$(basename -- ${lib%%.tmp})
