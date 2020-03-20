@@ -244,7 +244,7 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Build on manylinux2014
+    - name: Build on manylinux2014 
       run: |
             # Apply a patches / fixes
             # 1. Updated readme (due to pypi.org not displaying markdown)
@@ -275,12 +275,19 @@ jobs:
 
             LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
+            # work around build OpenMS library #without building the library 174 min
+            # TODO: not sure if that works due to library strip
+            # Alternative copy OpenMS library to different directory (?)
+            cmake -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+            make -j4
+
             # compile and configure OpenMS
             for PYBIN in /opt/python/cp3*; do
 
               PYVER=`basename $PYBIN`
               mkdir /openms-build-$PYVER
               cd /openms-build-$PYVER
+
               # configure
               cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
               make -j4 pyopenms
