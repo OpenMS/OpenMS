@@ -76,10 +76,16 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-        OPENMS_LOG_DEBUG << "Running cc " << String(idx) << "..." << std::endl;
+
         unsigned long nrEdges = boost::num_edges(fg);
 
-        OPENMS_LOG_DEBUG << "CC " << String(idx) << " has " << String(nrEdges) << " edges." << std::endl;
+        // avoid critical sections if not needed
+        if (debug_lvl_ > 1)
+        {
+          // we do not need information about file and line so use LOG_INFO instead
+          OPENMS_LOG_INFO << "Running cc " << String(idx) << "...\n";
+          OPENMS_LOG_INFO << "CC " << String(idx) << " has " << String(nrEdges) << " edges.\n";
+        }
 
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
@@ -271,7 +277,12 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
 
-          OPENMS_LOG_DEBUG << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages" << std::endl;
+          // avoid critical sections if not needed
+          if (debug_lvl_ > 1)
+          {
+            // we do not need information about file and line so use LOG_INFO instead
+            OPENMS_LOG_INFO << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages\n";
+          }
 
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
@@ -309,7 +320,7 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)" << std::endl;
         return 0;
       }
     }

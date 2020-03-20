@@ -334,6 +334,9 @@ namespace OpenMS {
                 const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
 
+    //TODO think about templating to avoid wrapping to std::function
+    // although we usually do long-running tasks per CC such that the extra virtual call does not matter much
+    // Instead we gain type erasure.
     /// Do sth on connected components (your functor object has to inherit from std::function or be a lambda)
     void applyFunctorOnCCs(const std::function<unsigned long(Graph&, unsigned int)>& functor);
     /// Do sth on connected components single threaded (your functor object has to inherit from std::function or be a lambda)
@@ -377,43 +380,43 @@ namespace OpenMS {
     /// Zero means the graph was not split yet
     Size getNrConnectedComponents();
 
-    /// \brief Returns a specific connected component of the graph as a graph itself
-    /// \param cc the index of the component
-    /// \return the component as graph
+    /// @brief Returns a specific connected component of the graph as a graph itself
+    /// @param cc the index of the component
+    /// @return the component as graph
     const Graph& getComponent(Size cc);
 
-    /// \brief Returns the underlying protein identifications for viewing
-    /// \return const ref to the protein ID run in this graph (can only be one)
+    /// @brief Returns the underlying protein identifications for viewing
+    /// @return const ref to the protein ID run in this graph (can only be one)
     const ProteinIdentification& getProteinIDs();
 
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
-    /// \brief Prints a graph (component or if not split, the full graph) in graphviz (i.e. dot) format
-    /// \param out an ostream to print to
-    /// \param fg the graph to print
+    /// @brief Prints a graph (component or if not split, the full graph) in graphviz (i.e. dot) format
+    /// @param out an ostream to print to
+    /// @param fg the graph to print
     static void printGraph(std::ostream& out, const Graph& fg);
 
-    /// \brief Searches for all upstream nodes from a (set of) start nodes that are lower
+    /// @brief Searches for all upstream nodes from a (set of) start nodes that are lower
     ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
-    /// \param q a queue of start nodes
-    /// \param graph the graph to look in (q has to be part of it)
-    /// \param lvl the level to start reporting from
-    /// \param stop_at_first do you want to stop at the first node <= lvl or also report its
+    /// @param q a queue of start nodes
+    /// @param graph the graph to look in (q has to be part of it)
+    /// @param lvl the level to start reporting from
+    /// @param stop_at_first do you want to stop at the first node <= lvl or also report its
     ///    upstream "predecessors"
-    /// \param result vector of reported nodes
-    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
+    /// @param result vector of reported nodes
+    void getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                       bool stop_at_first, std::vector<vertex_t>& result);
 
-    /// \brief Searches for all downstream nodes from a (set of) start nodes that are higher
+    /// @brief Searches for all downstream nodes from a (set of) start nodes that are higher
     ///    or equal than a given level. The ordering is the same as in the IDPointer variant typedef.
-    /// \param q a queue of start nodes
-    /// \param graph the graph to look in (q has to be part of it)
-    /// \param lvl the level to start reporting from
-    /// \param stop_at_first do you want to stop at the first node >= lvl or also report its
+    /// @param q a queue of start nodes
+    /// @param graph the graph to look in (q has to be part of it)
+    /// @param lvl the level to start reporting from
+    /// @param stop_at_first do you want to stop at the first node >= lvl or also report its
     ///    upstream "predecessors"
-    /// \param result vector of reported nodes
-    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl,
+    /// @param result vector of reported nodes
+    void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                         bool stop_at_first, std::vector<vertex_t>& result);
 
   private:
@@ -460,7 +463,6 @@ namespace OpenMS {
 
     //TODO think about preallocating it, but the number of peptide hits is not easily computed
     // since they are inside the pepIDs
-
     //TODO would multiple sets be better?
 
     /// if a graph is built with run information, this will store the run, each peptide hit
@@ -478,7 +480,7 @@ namespace OpenMS {
 
     /// helper function to add a vertex if it is not present yet, otherwise return the present one
     /// needs a temporary filled vertex_map that is modifiable
-    vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
+    vertex_t addVertexWithLookup_(const IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
 
 
@@ -539,7 +541,7 @@ namespace OpenMS {
     void resolveGraphPeptideCentric_(Graph& fg, bool removeAssociationsInData);
 
     template<class NodeType>
-    void getDownstreamNodes(vertex_t start, Graph graph, std::vector<NodeType>& result)
+    void getDownstreamNodes(const vertex_t& start, const Graph& graph, std::vector<NodeType>& result)
     {
       Graph::adjacency_iterator adjIt, adjIt_end;
       boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(start, graph);
@@ -557,7 +559,7 @@ namespace OpenMS {
     }
 
     template<class NodeType>
-    void getUpstreamNodes(vertex_t start, Graph graph, std::vector<NodeType>& result)
+    void getUpstreamNodes(const vertex_t& start, const Graph graph, std::vector<NodeType>& result)
     {
       Graph::adjacency_iterator adjIt, adjIt_end;
       boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(start, graph);

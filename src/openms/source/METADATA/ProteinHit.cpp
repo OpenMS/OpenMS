@@ -172,6 +172,11 @@ namespace OpenMS
     modifications_ = mods;
   }
 
+  std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)
+  {
+    stream << "protein hit with accession '" + hit.getAccession() + "', score " +
+                         String(hit.getScore());
+  }
 
 } // namespace OpenMS
 

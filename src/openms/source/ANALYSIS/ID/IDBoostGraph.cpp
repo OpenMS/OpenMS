@@ -49,7 +49,6 @@
 #endif
 
 //#define INFERENCE_DEBUG
-
 //#define INFERENCE_MT_DEBUG
 
 using namespace OpenMS;
@@ -144,7 +143,7 @@ namespace OpenMS
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
-    OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins." << std::endl;
+    OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins.\n";
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
@@ -164,7 +163,7 @@ namespace OpenMS
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
-    " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
+    " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins.\n";
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));
@@ -204,7 +203,8 @@ namespace OpenMS
   }
 
 
-  void IDBoostGraph::addPeptideIDWithAssociatedProteins_(PeptideIdentification& spectrum,
+  void IDBoostGraph::addPeptideIDWithAssociatedProteins_(
+      PeptideIdentification& spectrum,
       unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
       const unordered_map<string, ProteinHit*>& accession_map,
       Size use_top_psms)
@@ -224,7 +224,7 @@ namespace OpenMS
         auto accToPHit = accession_map.find(std::string(proteinAcc));
         if (accToPHit == accession_map.end())
         {
-         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
+         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
           continue;
         }
         //TODO consider/calculate missing digests. Probably not here though!
@@ -286,7 +286,7 @@ namespace OpenMS
         auto accToPHit = accession_map.find(std::string(proteinAcc));
         if (accToPHit == accession_map.end())
         {
-         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession." << std::endl;
+         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
           continue;
         }
         //TODO consider/calculate missing digests. Probably not here though!
@@ -608,7 +608,7 @@ namespace OpenMS
     }
 
     // Use dynamic schedule because big CCs take much longer!
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) default(none)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       #ifdef INFERENCE_BENCH
@@ -619,14 +619,14 @@ namespace OpenMS
       Graph& curr_cc = ccs_.at(i);
 
       #ifdef INFERENCE_MT_DEBUG
-     OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+      OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << "\n";
       #endif
 
       #ifdef INFERENCE_DEBUG
-     OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-     OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices.\n";
+      OPENMS_LOG_INFO << "Printing cc " << i << "\n";
       printGraph(LOG_INFO, curr_cc);
-     OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Printed cc " << i << "\n";
       #endif
 
       #ifdef INFERENCE_BENCH
@@ -634,7 +634,6 @@ namespace OpenMS
       #else
       functor(curr_cc, i);
       #endif
-
 
       #ifdef INFERENCE_BENCH
       sw.stop();
@@ -648,7 +647,10 @@ namespace OpenMS
 
     for (const auto& size_time : sizes_and_times_ )
     {
-      debugfile << std::get<0>(size_time) << "\t" << std::get<1>(size_time) <<  "\t" << std::get<2>(size_time) << "\t" << std::get<3>(size_time) << "\n";
+      debugfile << std::get<0>(size_time) << "\t"
+        << std::get<1>(size_time) << "\t"
+        << std::get<2>(size_time) << "\t"
+        << std::get<3>(size_time) << "\n";
     }
     debugfile.close();
     #endif
@@ -671,10 +673,10 @@ namespace OpenMS
       Graph& curr_cc = ccs_.at(i);
 
       #ifdef INFERENCE_DEBUG
-     OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-     OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices.\n";
+      OPENMS_LOG_INFO << "Printing cc " << i << "\n";
       printGraph(LOG_INFO, curr_cc);
-     OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Printed cc " << i << "\n";
       #endif
 
       functor(curr_cc);
@@ -717,24 +719,29 @@ namespace OpenMS
     else
     {
       pl.startProgress(0, ccs_.size(), "Annotating indistinguishable proteins...");
-      #pragma omp parallel for
+      Size cnt(0);
+      #pragma omp parallel for schedule(dynamic) default(none) shared(addSingletons, cnt, pl)
       for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
       {
         const Graph& curr_cc = ccs_.at(i);
 
         #ifdef INFERENCE_MT_DEBUG
-        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << "\n";
         #endif
 
         #ifdef INFERENCE_DEBUG
-        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-        OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices.\n";
+        OPENMS_LOG_INFO << "Printing cc " << i << "\n";
         printGraph(LOG_INFO, curr_cc);
-        OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << "\n";
         #endif
 
         annotateIndistProteins_(curr_cc, addSingletons);
-        pl.setProgress(i);
+
+        #pragma omp atomic
+        ++cnt;
+
+        IF_MASTERTHREAD pl.setProgress(cnt);
       }
       pl.endProgress();
     }
@@ -761,24 +768,29 @@ namespace OpenMS
     else
     {
       pl.startProgress(0, ccs_.size(), "Annotating indistinguishable proteins...");
-      #pragma omp parallel for
+      Size cnt(0);
+      #pragma omp parallel for schedule(dynamic) default(none) shared(addSingletons, cnt, pl)
       for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
       {
         const Graph& curr_cc = ccs_.at(i);
 
         #ifdef INFERENCE_MT_DEBUG
-       OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
         #endif
 
         #ifdef INFERENCE_DEBUG
-       OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-       OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices.\n";
+        OPENMS_LOG_INFO << "Printing cc " << i << "\n";
         printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << "\n";
         #endif
 
         calculateAndAnnotateIndistProteins_(curr_cc, addSingletons);
-        pl.setProgress(i);
+
+        #pragma omp atomic
+        ++cnt;
+
+        IF_MASTERTHREAD pl.setProgress(cnt);
       }
       pl.endProgress();
     }
@@ -798,11 +810,11 @@ namespace OpenMS
     {
       IDBoostGraph::IDPointer curr_idObj = fg[*ui];
       //TODO introduce an enum for the types to make it more clear.
-      //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+      // Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
       if (curr_idObj.which() == 0) //protein: find indist. ones
       {
         //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-        //Or just check rigorously here.
+        // Or just check rigorously here.
         PeptideNodeSet childPeps;
         GraphConst::adjacency_iterator adjIt, adjIt_end;
         boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
@@ -872,12 +884,11 @@ namespace OpenMS
         Graph::adjacency_iterator nbIt, nbIt_end;
         boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
-        ProteinHit *proteinPtr = nullptr;
         for (; nbIt != nbIt_end; ++nbIt)
         {
           if (fg[*nbIt].which() == 0) //neighboring proteins
           {
-            proteinPtr = boost::get<ProteinHit*>(fg[*nbIt]);
+            ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[*nbIt]);
             pg.accessions.push_back(proteinPtr->getAccession());
           }
         }
@@ -893,7 +904,7 @@ namespace OpenMS
     }
   }
 
-  void IDBoostGraph::getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
+  void IDBoostGraph::getUpstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
   {
     if (lvl >= graph[q.front()].which()) return;
 
@@ -921,7 +932,7 @@ namespace OpenMS
     }
   }
 
-  void IDBoostGraph::getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, Graph graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
+  void IDBoostGraph::getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl, bool stop_at_first, std::vector<vertex_t>& result)
   {
     if (lvl <= graph[q.front()].which()) return;
 
@@ -949,35 +960,6 @@ namespace OpenMS
     }
   }
 
-  /* Under development
-  void IDBoostGraph::resolveGraphProteinCentric_(const Graph& fg)
-  {
-    Graph::vertex_iterator ui, ui_end;
-    boost::tie(ui,ui_end) = boost::vertices(fg);
-
-    unordered_set<vertex_t> prots;
-    for (; ui != ui_end; ++ui)
-    {
-      if (fg[*ui].which() == 0) //prot
-      {
-        Graph::adjacency_iterator nbIt, nbIt_end;
-        boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
-        if (fg[*nbIt].which() == 1) // if the first neighbor is a group it is not a singleton
-        {
-          //add to set
-        }
-        else
-        {
-          //add prot to set
-        }
-      }
-    }
-    //sort by score
-    //for each:
-    // go through peps and remove all incoming connections except the one to this
-  }
-  */
-
   void IDBoostGraph::resolveGraphPeptideCentric(bool removeAssociationsInData/*, bool resolveTies*/)
   {
     if (ccs_.empty() && boost::num_vertices(g) == 0)
@@ -998,24 +980,28 @@ namespace OpenMS
     else
     {
       pl.startProgress(0, ccs_.size(), "Resolving graph...");
-      #pragma omp parallel for
+      Size cnt(0);
+      #pragma omp parallel for default(none) shared(removeAssociationsInData, cnt, pl)
       for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
       {
         Graph& curr_cc = ccs_.at(i);
 
         #ifdef INFERENCE_MT_DEBUG
-        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+        OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << "\n";
         #endif
 
         #ifdef INFERENCE_DEBUG
-        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-        OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << "\n";
+        OPENMS_LOG_INFO << "Printing cc " << i << "\n";
         printGraph(LOG_INFO, curr_cc);
-        OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << "\n";
         #endif
 
         resolveGraphPeptideCentric_(curr_cc, removeAssociationsInData);
-        pl.setProgress(i);
+        #pragma omp atomic
+        cnt++;
+
+        IF_MASTERTHREAD pl.setProgress(cnt);
       }
       pl.endProgress();
     }
@@ -1027,6 +1013,12 @@ namespace OpenMS
     Graph::vertex_iterator ui, ui_end;
     boost::tie(ui,ui_end) = boost::vertices(fg);
 
+    set<String> accs_to_remove;
+    queue<vertex_t> q;
+    vector<vertex_t> groups_or_singles;
+    vector<vertex_t> singles;
+    vector<PeptideEvidence> newev;
+
     for (; ui != ui_end; ++ui)
     {
       if (fg[*ui].which() == 2)
@@ -1034,36 +1026,35 @@ namespace OpenMS
         // if a pep does not belong to a cluster it didnt have multiple parents and
         // therefore does not need to be resolved
       {
-        vector<vertex_t> prots;
-        queue<vertex_t> start;
-        start.push(*ui);
-        getUpstreamNodesNonRecursive(start,fg,1,true,prots);
+        q.push(*ui);
+        getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
+        q = {};
         auto score_compare = [&fg,&gpv](vertex_t& n, vertex_t& m) -> bool
             {return boost::apply_visitor(gpv, fg[n]) < boost::apply_visitor(gpv, fg[m]);};
-        auto best_prot = std::max_element(prots.begin(), prots.end(), score_compare); //returns an iterator
+        auto best_prot = std::max_element(groups_or_singles.begin(), groups_or_singles.end(), score_compare); //returns an iterator
         //TODO how to/if resolve ties AND allow preferring targets? We need to merge the PR with TD info for groups first.
-        set<String> accsToRemove;
-        for (const auto& prot : prots)
+
+        for (const auto& prot : groups_or_singles)
         {
           if (prot != *best_prot)
           {
             if (fg[prot].which() == 1) // if the node is a group, find their members first.
             {
-              vector<vertex_t> single_prots;
-              queue<vertex_t> single_start;
-              single_start.push(prot);
-              getUpstreamNodesNonRecursive(single_start,fg,0,true,single_prots);
-              for (const auto& single_prot : single_prots)
+              q.push(prot);
+              getUpstreamNodesNonRecursive(q,fg,0,true,singles);
+              q = {};
+              for (const auto& single_prot : singles)
               {
                 ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[single_prot]);
-                accsToRemove.insert(proteinPtr->getAccession());
+                accs_to_remove.insert(proteinPtr->getAccession());
                 proteinPtr->setScore(0.);
               }
+              singles.clear();
             }
             else
             {
               ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[prot]);
-              accsToRemove.insert(proteinPtr->getAccession());
+              accs_to_remove.insert(proteinPtr->getAccession());
               proteinPtr->setScore(0.);
             }
             boost::remove_edge(prot, *ui, fg);
@@ -1071,197 +1062,27 @@ namespace OpenMS
         }
         if (removeAssociationsInData)
         {
-          vector<vertex_t> peps;
-          queue<vertex_t> start_pep;
-          start_pep.push(*ui);
-          getDownstreamNodesNonRecursive(start_pep,fg,6,true,peps);
-          for (const auto& pep : peps)
+          q.push(*ui);
+          getDownstreamNodesNonRecursive(q,fg,6,true,singles);
+          q = {};
+          for (const auto& pep : singles)
           {
             PeptideHit *peptidePtr = boost::get<PeptideHit*>(fg[pep]);
             auto& ev = peptidePtr->getPeptideEvidences();
-            vector<PeptideEvidence> newev;
             for (const auto& e : ev)
             {
-              if (accsToRemove.find(e.getProteinAccession()) == accsToRemove.end())
+              if (accs_to_remove.find(e.getProteinAccession()) == accs_to_remove.end())
               {
                 newev.emplace_back(e);
               }
             }
             peptidePtr->setPeptideEvidences(std::move(newev));
+            newev.clear();
           }
         }
       }
     }
   }
-
-
-  /*void IDBoostGraph::clusterIndistProteinsAndPeptidesOld()
-  {
-    if (ccs_.empty()) {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
-    }
-
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
-    {
-      Graph& curr_cc = ccs_.at(i);
-
-     OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-
-      #ifdef INFERENCE_MT_DEBUG
-     OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
-      #endif
-
-      #ifdef INFERENCE_DEBUG
-     OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
-      printGraph(LOG_INFO, curr_cc);
-     OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
-      #endif
-
-      // Skip cc without peptide or protein
-      //TODO better to do quick bruteforce calculation if the cc is really small
-      if (boost::num_edges(curr_cc) >= 1)
-      {
-        // Cluster peptides with same parents
-        unordered_map< ProteinNodeSet, PeptideNodeSet, MyUIntSetHasher > pepClusters; //maps the parent (protein) set to peptides that have the same
-        unordered_map< PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
-
-        Graph::vertex_iterator ui, ui_end;
-        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
-
-        // Cluster proteins
-        for (; ui != ui_end; ++ui)
-        {
-          IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
-
-          //TODO introduce an enum for the types to make it more clear.
-          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-          if (curr_idObj.which() == 0) //protein: find indist. ones
-          {
-            //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-            //Or just check rigorously here.
-            PeptideNodeSet childPeps;
-            Graph::adjacency_iterator adjIt, adjIt_end;
-            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
-            for (; adjIt != adjIt_end; ++adjIt)
-            {
-              if (curr_cc[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
-              {
-                childPeps.insert(*adjIt);
-              }
-            }
-
-            auto clusterIt = indistProteins.find(childPeps);
-            if (clusterIt != indistProteins.end())
-            {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              indistProteins[childPeps] = ProteinNodeSet({*ui});
-            }
-          }
-        }
-
-        // add the protein groups to the graph
-        // and edges from the groups to the proteins for quick access
-        for (auto const& pepsToGrps : indistProteins)
-        {
-          if (pepsToGrps.second.size() <= 1)
-            continue;
-
-          //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
-          //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
-          //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
-          auto grpVID = boost::add_vertex(&staticPG, curr_cc);
-
-          for (auto const &proteinVID : pepsToGrps.second)
-          {
-            //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
-            //pg.accessions.push_back(proteinPtr->getAccession());
-            boost::add_edge(proteinVID, grpVID, curr_cc);
-            for (auto const &pepVID : pepsToGrps.first)
-            {
-              boost::remove_edge(proteinVID, pepVID, curr_cc);
-            }
-          }
-          for (auto const &pepVID : pepsToGrps.first)
-          {
-            boost::add_edge(grpVID, pepVID, curr_cc);
-          }
-          //pg.probability = -1.0;
-        }
-
-
-
-        // reset iterator to loop through vertices again for peptide clusters
-        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
-
-        for (; ui != ui_end; ++ui)
-        {
-          IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
-          //TODO introduce an enum for the types to make it more clear.
-          if (curr_idObj.which() == 3) //peptide: find peptide clusters
-          {
-            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-            //Or just check rigorously here.
-            ProteinNodeSet parents;
-            Graph::adjacency_iterator adjIt, adjIt_end;
-            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
-            for (; adjIt != adjIt_end; ++adjIt)
-            {
-              if (curr_cc[*adjIt].which() <= 1) // Either protein or protein group
-              {
-                parents.insert(*adjIt);
-              }
-            }
-
-            auto clusterIt = pepClusters.find(parents);
-            if (clusterIt != pepClusters.end())
-            {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              pepClusters[parents] = PeptideNodeSet({*ui});
-            }
-          }
-        }
-
-        // we add an edge from protein to pepCluster and from pepCluster to peptides
-        // peptides can use the same info from there.
-        for (auto const& protsToPepClusters : pepClusters)
-        {
-          if (protsToPepClusters.first.size() <= 1)
-            continue;
-          auto pcVID = boost::add_vertex(&staticPC, curr_cc);
-          for (auto const& pgVID : protsToPepClusters.first)
-          {
-            boost::add_edge(pgVID, pcVID, curr_cc);
-            for (auto const& peptideVID : protsToPepClusters.second)
-            {
-              boost::remove_edge(pgVID, peptideVID, curr_cc);
-            }
-          }
-          for (auto const& peptideVID : protsToPepClusters.second)
-          {
-            boost::add_edge(pcVID, peptideVID, curr_cc);
-          }
-        }
-
-        #ifdef INFERENCE_DEBUG
-       OPENMS_LOG_INFO << "Printing cc " << i << "with intermediate nodes." << std::endl;
-        printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
-        #endif
-
-      }
-      else
-      {
-       OPENMS_LOG_INFO << "Skipped cc with only one type (proteins or peptides)" << std::endl;
-      }
-    }
-  }*/
 
   //needs run info annotated.
   void IDBoostGraph::clusterIndistProteinsAndPeptidesAndExtendGraph()
@@ -1279,7 +1100,7 @@ namespace OpenMS
       protIDs_.getPrimaryMSRunPath(runs);
       nrReplicates = runs.size();
     }
-     */
+    */
 
     pair<int,int> chargeRange = protIDs_.getSearchParameters().getChargeRange();
 
@@ -1288,21 +1109,20 @@ namespace OpenMS
           "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    // add_vertex and add_edge not threadsafe
-    //#pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic) default(none) shared(chargeRange)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];
 
       #ifdef INFERENCE_MT_DEBUG
-     OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+      OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << "\n";
       #endif
 
       #ifdef INFERENCE_DEBUG
-     OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-     OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << "\n";
+      OPENMS_LOG_INFO << "Printing cc " << i << "\n";
       printGraph(LOG_INFO, curr_cc);
-     OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Printed cc " << i << "\n";
       #endif
 
       // Skip cc without peptide or protein
@@ -1405,8 +1225,6 @@ namespace OpenMS
           //pg.probability = -1.0;
         }
 
-
-
         // reset iterator to loop through vertices again for peptide clusters
         boost::tie(ui,ui_end) = boost::vertices(curr_cc);
 
@@ -1428,14 +1246,10 @@ namespace OpenMS
               }
             }
 
-            auto clusterIt = pepClusters.find(parents);
-            if (clusterIt != pepClusters.end())
+            auto clusterIt = pepClusters.emplace(parents, PeptideNodeSet({*ui}));
+            if (!clusterIt.second) //no insertion -> append
             {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              pepClusters[parents] = PeptideNodeSet({*ui});
+              (clusterIt.first)->second.insert(*ui);
             }
           }
         }
@@ -1462,14 +1276,14 @@ namespace OpenMS
         }
 
         #ifdef INFERENCE_DEBUG
-       OPENMS_LOG_INFO << "Printing cc " << i << "with intermediate nodes." << std::endl;
+        OPENMS_LOG_INFO << "Printing cc " << i << "with intermediate nodes.\n";
         printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes.\n";
         #endif
       }
       else
       {
-       OPENMS_LOG_INFO << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        OPENMS_LOG_INFO << "Skipped cc with only one type (proteins or peptides)\n";
       }
     }
   }
@@ -1487,14 +1301,14 @@ namespace OpenMS
       Graph& curr_cc = ccs_[i];
 
       #ifdef INFERENCE_MT_DEBUG
-     OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+      OPENMS_LOG_INFO << "Processing on thread# " << omp_get_thread_num() << "\n";
       #endif
 
       #ifdef INFERENCE_DEBUG
-     OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-     OPENMS_LOG_INFO << "Printing cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices.\n";
+      OPENMS_LOG_INFO << "Printing cc " << i << "\n";
       printGraph(LOG_INFO, curr_cc);
-     OPENMS_LOG_INFO << "Printed cc " << i << std::endl;
+      OPENMS_LOG_INFO << "Printed cc " << i << "\n";
       #endif
 
       // Skip cc without peptide or protein
@@ -1618,14 +1432,14 @@ namespace OpenMS
         }
 
         #ifdef INFERENCE_DEBUG
-       OPENMS_LOG_INFO << "Printing cc " << i << "with intermediate nodes." << std::endl;
+        OPENMS_LOG_INFO << "Printing cc " << i << "with intermediate nodes.\n";
         printGraph(LOG_INFO, curr_cc);
-       OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
+        OPENMS_LOG_INFO << "Printed cc " << i << "with intermediate nodes.\n";
         #endif
       }
       else
       {
-       OPENMS_LOG_INFO << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+       OPENMS_LOG_INFO << "Skipped cc with only one type (proteins or peptides)\n";
       }
     }
   }
@@ -1636,7 +1450,7 @@ namespace OpenMS
   {
     auto vis = dfs_ccsplit_visitor(ccs_);
     boost::depth_first_search(g, visitor(vis));
-   OPENMS_LOG_INFO << "Found " << ccs_.size() << " connected components." << std::endl;
+    OPENMS_LOG_INFO << "Found " << ccs_.size() << " connected components.\n";
     #ifdef INFERENCE_BENCH
     sizes_and_times_.resize(ccs_.size());
     #endif
@@ -1655,7 +1469,7 @@ namespace OpenMS
     }
   }
 
-  IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(IDPointer& ptr, unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map)
+  IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(const IDPointer& ptr, unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map)
   {
     vertex_t v;
     auto vertex_iter = vertex_map.find(ptr);

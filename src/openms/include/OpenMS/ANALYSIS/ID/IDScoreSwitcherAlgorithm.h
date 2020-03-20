@@ -41,8 +41,6 @@
 #include <vector>
 #include <set>
 
-using namespace std;
-
 namespace OpenMS
 {
 
@@ -76,10 +74,10 @@ namespace OpenMS
       {
         if (!hit_it->metaValueExists(new_score_))
         {
-          String msg = "Meta value '" + new_score_ + "' not found for " +
-                       describeHit_(*hit_it);
+          std::stringstream msg;
+          msg << "Meta value '" << new_score_ << "' not found for " << *hit_it;
           throw Exception::MissingInformation(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg);
+                                              OPENMS_PRETTY_FUNCTION, msg.str());
         }
 
         const String& old_score_meta = (old_score_.empty() ? id.getScoreType() :
@@ -90,10 +88,11 @@ namespace OpenMS
           if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
                    (double(dv) + hit_it->getScore())) > tolerance_)
           {
-            String msg = "Meta value '" + old_score_meta + "' already exists "
-                                                           "with a conflicting value for " + describeHit_(*hit_it);
+            std::stringstream msg;
+            msg << "Meta value '" << old_score_meta << "' already exists "
+              << "with a conflicting value for " << *hit_it;
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          msg, dv.toString());
+                                          msg.str(), dv.toString());
           } // else: values match, nothing to do
         }
         else
@@ -109,7 +108,7 @@ namespace OpenMS
     /// Looks at the first Hit of the given @p id and according to the given @p type ,
     /// deduces a fitting score and score direction to be switched to.
     /// Then tries to switch all hits.
-    void switchToGeneralScoreType(vector<PeptideIdentification>& id, ScoreType type, Size& counter)
+    void switchToGeneralScoreType(std::vector<PeptideIdentification>& id, ScoreType type, Size& counter)
     {
       if (id.empty()) return;
       String t = findScoreType(id[0], type);
@@ -181,7 +180,7 @@ namespace OpenMS
     String findScoreType(IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
     {
       const String& curr_score_type = id.getScoreType();
-      const set<String>& possible_types = type_to_str_[type];
+      const std::set<String>& possible_types = type_to_str_[type];
       if (possible_types.find(curr_score_type) != possible_types.end())
       {
         OPENMS_LOG_INFO << "Requested score type already set as main score: " + curr_score_type + "\n";
@@ -205,28 +204,19 @@ namespace OpenMS
     }
 
   private:
-    /// \brief describes a PeptideHit for debug/exception messages
-    /// \param hit the hit
-    /// \return a String description to include in a message
-    String describeHit_(const PeptideHit& hit);
-
-    /// \brief describes a ProteinHit for debug/exception messages
-    /// \param hit the hit
-    /// \return a String description to include in a message
-    String describeHit_(const ProteinHit& hit);
 
     void updateMembers_() override;
 
     /// relative tolerance for score comparisons:
     const double tolerance_ = 1e-6;
 
-    /// will be set accoring to the algorithm parameters
+    /// will be set according to the algorithm parameters
     String new_score_, new_score_type_, old_score_;
-    /// will be set accoring to the algorithm parameters
+    /// will be set according to the algorithm parameters
     bool higher_better_; // for the new scores, are higher ones better?
 
     /// a map from ScoreType to their names as used around OpenMS
-    map<ScoreType, set<String>> type_to_str_ =
+    std::map<ScoreType, std::set<String>> type_to_str_ =
         {
             {ScoreType::RAW, {"XTandem", "OMSSA", "SEQUEST:xcorr", "Mascot", "mvh"}},
             //TODO find out reasonable raw scores for SES that provide evalues as main score or see below
@@ -242,7 +232,7 @@ namespace OpenMS
         };
 
     /// a map from ScoreType to their ordering
-    map<ScoreType, bool> type_to_better_ =
+    std::map<ScoreType, bool> type_to_better_ =
         {
             {ScoreType::RAW, true}, //TODO this might actually not always be true
             {ScoreType::RAW_EVAL, false},

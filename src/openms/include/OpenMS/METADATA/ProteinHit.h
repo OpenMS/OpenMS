@@ -212,5 +212,7 @@ protected:
     std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
 
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit);
+
 } // namespace OpenMS
 
