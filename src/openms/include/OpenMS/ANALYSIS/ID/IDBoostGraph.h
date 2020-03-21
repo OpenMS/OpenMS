@@ -58,9 +58,12 @@
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
 
-namespace OpenMS {
-  namespace Internal
+namespace OpenMS
 {
+  struct ScoreToTgtDecLabelPairs;
+
+  namespace Internal
+  {
 
   /**
    @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
@@ -87,8 +90,13 @@ namespace OpenMS {
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
-    /// indistinguishable protein groups
-    BOOST_STRONG_TYPEDEF(double, ProteinGroup)
+    /// indistinguishable protein groups (size, nr targets, score)
+    struct ProteinGroup
+    {
+      int size = 0;
+      int tgts = 0;
+      double score = 0.;
+    };
 
     /// an (currently unmodified) peptide sequence
     BOOST_STRONG_TYPEDEF(String, Peptide)
@@ -278,7 +286,7 @@ namespace OpenMS {
 
       void operator()(ProteinGroup& pg, double posterior) const
       {
-        pg = posterior;
+        pg.score = posterior;
       }
 
       // Everything else, do nothing for now
@@ -307,7 +315,7 @@ namespace OpenMS {
 
       double operator()(ProteinGroup& pg) const
       {
-        return pg;
+        return pg.score;
       }
 
       // Everything else, do nothing for now
@@ -418,6 +426,9 @@ namespace OpenMS {
     /// @param result vector of reported nodes
     void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                         bool stop_at_first, std::vector<vertex_t>& result);
+
+    void getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
+    void getProteinGroupScoresAndHitchhikingTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
 
   private:
 
@@ -577,5 +588,7 @@ namespace OpenMS {
     }
   };
 
-} } //namespace OpenMS
+    bool operator==(const IDBoostGraph::ProteinGroup& lhs, const IDBoostGraph::ProteinGroup& rhs);
+  } //namespace Internal
+} //namespace OpenMS
 

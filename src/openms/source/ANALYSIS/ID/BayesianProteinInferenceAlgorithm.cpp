@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -266,7 +267,7 @@ namespace OpenMS
             IDBoostGraph::SetPosteriorVisitor pv;
             IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
             const evergreen::PMF &pmf = posteriorFactor.pmf();
-            // If Index 0 is in the range of this result PMFFactor is probability is non-zero
+            // If Index 0 is in the range of this result PMFFactor its probability is non-zero
             // and the prob of presence is 1-P(p=0). Important in multi-value factors like protein groups.
             if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0])
             {
@@ -311,6 +312,7 @@ namespace OpenMS
                 + String(idx) + ".dot"
                 , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
+            //TODO print graph with peptide probabilities to see which evidences cause problems with which params
           }
           OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
@@ -500,7 +502,14 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_spurious_emission", beta);
       GraphInferenceFunctor gif {param_, debug_lvl_};
       ibg_.applyFunctorOnCCs(gif);
+
       FalseDiscoveryRate fdr;
+      if (param_.getValue("annotate_group_probabilities").toBool())
+      {
+        ScoreToTgtDecLabelPairs scores_and_tgt_fraction{};
+        ibg_.getProteinGroupScoresAndTgtFraction(scores_and_tgt_fraction);
+        fdr.applyEvaluateProteinIDs(scores_and_tgt_fraction, 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
+      }
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
       fdrparam.setValue("add_decoy_proteins","true");
@@ -533,7 +542,7 @@ namespace OpenMS
 
     defaults_.setValue("psm_probability_cutoff",
                           0.001,
-                          "Remove PSMs with probabilities less than or equal this cutoff");
+                          "Remove PSMs with probabilities less than this cutoff");
     defaults_.setMinFloat("psm_probability_cutoff", 0.0);
     defaults_.setMaxFloat("psm_probability_cutoff", 1.0);
 
@@ -650,7 +659,7 @@ namespace OpenMS
     defaults_.addSection("param_optimize","Settings for the parameter optimization.");
     defaults_.setValue("param_optimize:aucweight",
                        0.3,
-                       "How important is AUC vs calibration of the posteriors?"
+                       "How important is target decoy AUC vs calibration of the posteriors?"
                        " 0 = maximize calibration only,"
                        " 1 = maximize AUC only,"
                        " between = convex combination.");
@@ -661,6 +670,11 @@ namespace OpenMS
                           "true",
                           "Use (D+1)/(T) instead of (D+1)/(T+D) for parameter estimation.");
     defaults_.setValidStrings("param_optimize:conservative_fdr", {"true","false"});
+
+    defaults_.setValue("param_optimize:regularized_fdr",
+                       "true",
+                       "Use a regularized FDR for proteins without unique peptides.");
+    defaults_.setValidStrings("param_optimize:regularized_fdr", {"true","false"});
 
 
     // write defaults into Param object param_
@@ -710,7 +724,7 @@ namespace OpenMS
         //TODO remove hits "on-the-go"?
         IDFilter::removeMatchingItems(pep_id.getHits(),
                                       [&probability_cutoff](PeptideHit &hit)
-                                      { return hit.getScore() <= probability_cutoff; });
+                                      { return hit.getScore() < probability_cutoff; });
       }
       else
       {
@@ -760,7 +774,7 @@ namespace OpenMS
 
     //TODO BIG filtering needs to account for run info if used
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
-    //TODO BIG filter empty PeptideIDs afterwards
+    //TODO BIG filter empty PeptideIDs and proteins afterwards
     bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
     bool use_unannotated_ids = param_.getValue("use_ids_outside_features").toBool();
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
@@ -978,12 +992,14 @@ namespace OpenMS
                          "the first will be processed for now." << std::endl;
     }
 
+    // groups will be reannotated
+    proteinIDs[0].getIndistinguishableProteins().clear();
+
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
 
     //TODO BIG filtering needs to account for run info if only a subset is to be processed!
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
-    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
 
@@ -994,6 +1010,8 @@ namespace OpenMS
       IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true, true, static_cast<unsigned int>(nr_top_psms));
       IDFilter::removeEmptyIdentifications(peptideIDs);
     }
+
+    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     FalseDiscoveryRate pepFDR;
     Param p = pepFDR.getParameters();
