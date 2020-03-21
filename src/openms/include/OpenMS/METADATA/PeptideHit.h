@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <ostream>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
