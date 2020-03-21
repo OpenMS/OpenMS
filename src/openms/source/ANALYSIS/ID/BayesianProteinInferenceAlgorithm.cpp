@@ -76,7 +76,6 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-
         unsigned long nrEdges = boost::num_edges(fg);
 
         // avoid critical sections if not needed

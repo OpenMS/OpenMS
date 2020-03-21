@@ -204,7 +204,6 @@ namespace OpenMS
     }
 
   private:
-
     void updateMembers_() override;
 
     /// relative tolerance for score comparisons:
