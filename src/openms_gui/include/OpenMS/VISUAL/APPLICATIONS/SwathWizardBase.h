@@ -101,7 +101,12 @@ protected:
     /// The path for temporary files
     String tmp_path_;
 
-private:
+  private slots:
+    void on_actionExit_triggered();
+    void on_actionVisit_OpenSwath_homepage_triggered();
+    void on_actionReport_new_issue_triggered();
+
+  private:
     Ui::SwathWizardBase* ui;
     
   }; //class

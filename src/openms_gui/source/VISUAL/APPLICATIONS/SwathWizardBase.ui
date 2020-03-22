@@ -23,6 +23,13 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -35,7 +42,40 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionVisit_OpenSwath_homepage"/>
+   <addaction name="separator"/>
+   <addaction name="actionReport_new_issue"/>
   </widget>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionReport_new_issue">
+   <property name="text">
+    <string>Report new issue</string>
+   </property>
+   <property name="toolTip">
+    <string>Search the OpenMS/OpenSwath issue tracker or open a new ticket</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionVisit_OpenSwath_homepage">
+   <property name="text">
+    <string>Visit OpenSwath homepage</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the homepage for tutorials, examples and latest news</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+H</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

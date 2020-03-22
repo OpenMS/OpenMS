@@ -43,6 +43,8 @@
 
 //Qt
 #include <QtCore/QDir>
+#include <QDesktopServices>
+#include <QMessageBox>
 #include <QSettings>
 
 using namespace std;
@@ -80,5 +82,32 @@ namespace OpenMS
     QApplicationTOPP::showAboutDialog(this, "SwathWizard");
   }
 
+  void OpenMS::SwathWizardBase::on_actionExit_triggered()
+  {
+      QApplicationTOPP::exit();
+  }
+
+  void OpenMS::SwathWizardBase::on_actionVisit_OpenSwath_homepage_triggered()
+  {
+    const char* url = "http://openswath.org";
+    if (!QDesktopServices::openUrl(QUrl(url)))
+    {
+      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+    }
+  }
+
+  void OpenMS::SwathWizardBase::on_actionReport_new_issue_triggered()
+  {
+    const char* url = "https://github.com/OpenMS/OpenMS/issues";
+    if (!QDesktopServices::openUrl(QUrl(url)))
+    {
+      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+    }
+  }
 
 } //namespace OpenMS
+
+
+
+
+
