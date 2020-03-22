@@ -637,6 +637,25 @@ protected:
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
+      if (protein_ids.empty())
+      {
+        throw Exception::ElementNotFound(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has not ProteinIDRuns.");
+      }
+      else if (protein_ids.size() > 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " all original single-run idXML inputs as list to this tool.",
+            "# runs: " + String(protein_ids.size()));
+      }
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
       for (vector<PeptideIdentification>::iterator pit = peptide_ids.begin(); pit != peptide_ids.end(); ++pit)

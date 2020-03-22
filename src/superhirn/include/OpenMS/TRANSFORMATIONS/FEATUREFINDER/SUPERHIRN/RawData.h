@@ -48,7 +48,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
 #include <vector>
-#include <ostream>
+#include <iosfwd>
 
 #include <OpenMS/config.h>
 
@@ -61,7 +61,7 @@ namespace OpenMS
 
 public:
 
-    RawData() {}
+    RawData() = default;
     RawData(std::vector<double> &, std::vector<double> &);
     virtual ~RawData();
 

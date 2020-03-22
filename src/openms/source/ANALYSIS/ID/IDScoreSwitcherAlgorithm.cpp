@@ -28,58 +28,41 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Anton Pervukhin <Anton.Pervukhin@CeBiTec.Uni-Bielefeld.DE> $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-//
 
-#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
-#include <ostream>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <unordered_map>
 
+using namespace std;
 namespace OpenMS
 {
 
-  namespace ims
+  IDScoreSwitcherAlgorithm::IDScoreSwitcherAlgorithm() :
+      IDScoreSwitcherAlgorithm::DefaultParamHandler("IDScoreSwitcherAlgorithm")
   {
+    defaults_.setValue("new_score", "", "Name of the meta value to use as the new score");
+    defaults_.setValue("new_score_orientation", "", "Orientation of the new score (are higher or lower values better?)");
+    defaults_.setValidStrings("new_score_orientation", {"lower_better","higher_better"});
+    defaults_.setValue("new_score_type", "", "Name to use as the type of the new score (default: same as 'new_score')");
+    defaults_.setValue("old_score", "", "Name to use for the meta value storing the old score (default: old score type)");
+    defaults_.setValue("proteins", "false", "Apply to protein scores instead of PSM scores");
+    defaults_.setValidStrings("proteins", {"true","false"});
+    defaultsToParam_();
+    updateMembers_();
+  }
 
-    /**
-      @note Value for electron mass is taken from
-      @link www.mcelwee.net/html/table_of_physical_constants.html
-    */
-    const IMSElement::mass_type IMSElement::ELECTRON_MASS_IN_U = 0.00054858;
+  void IDScoreSwitcherAlgorithm::updateMembers_()
+  {
+    new_score_ = param_.getValue("new_score");
+    new_score_type_ = param_.getValue("new_score_type");
+    old_score_ = param_.getValue("old_score");
+    higher_better_ = (param_.getValue("new_score_orientation").toString() ==
+                      "higher_better");
 
-    IMSElement & IMSElement::operator=(const IMSElement & element)
-    {
-      // if one doesn't assign object to itself,
-      // assign all object elements to the elements of the given object
-      if (this != &element)
-      {
-        name_ = element.name_;
-        sequence_ = element.sequence_;
-        isotopes_ = element.isotopes_;
-      }
-      return *this;
-    }
+    if (new_score_type_.empty()) new_score_type_ = new_score_;
+  }
 
-    bool IMSElement::operator==(const IMSElement & element) const
-    {
-      return this == &element ||
-             (name_ == element.name_ &&
-              sequence_ == element.sequence_ &&
-              isotopes_ == element.isotopes_);
-    }
-
-    bool IMSElement::operator!=(const IMSElement & element) const
-    {
-      return !this->operator==(element);
-    }
-
-    std::ostream & operator<<(std::ostream & os, const IMSElement & element)
-    {
-      os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
-      << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';
-      return os;
-    }
-
-  } // namespace ims
 } // namespace OpenMS

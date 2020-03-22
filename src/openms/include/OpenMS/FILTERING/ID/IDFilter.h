@@ -720,6 +720,10 @@ public:
       }
     }
 
+    /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
+    /// or if requested in the unassigned peptide list
+    static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
+
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
     static void removeUnreferencedProteins(
       std::vector<ProteinIdentification>& proteins,
