@@ -50,6 +50,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <iosfwd>
+#include <string>
 #include <cmath>
 #include <vector>
 
