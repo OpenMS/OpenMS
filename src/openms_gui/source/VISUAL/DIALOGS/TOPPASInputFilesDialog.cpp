@@ -52,8 +52,9 @@
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd)
-    : cwd_(cwd),
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd, QWidget* parent)
+    : QDialog(parent),
+      cwd_(cwd),
       ui_(new Ui::TOPPASInputFilesDialogTemplate)
   {
     ui_->setupUi(this);
@@ -67,8 +68,6 @@ namespace OpenMS
     connect(ui_->remove_button, SIGNAL(clicked()), this, SLOT(removeSelected()));
     connect(ui_->remove_all_button, SIGNAL(clicked()), this, SLOT(removeAll()));
     connect(ui_->edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
-    connect(ui_->up_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
-    connect(ui_->down_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
 
     // allow dragging of filenames from OS window manager (Finder, Explorer etc)
     setAcceptDrops(true);
@@ -90,7 +89,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::dropEvent(QDropEvent* e)
   {
-    foreach (const QUrl& url, e->mimeData()->urls())
+    for (const QUrl& url : e->mimeData()->urls())
     {
       ui_->input_file_list->addItem(url.toLocalFile());
     }
@@ -113,6 +112,11 @@ namespace OpenMS
     else if (e->key() == Qt::Key_Escape)
     {
       this->close();
+    }
+    // delete currently selected items
+    else if (e->key() == Qt::Key_Delete)
+    {
+      removeSelected();
     }
   }
 
@@ -172,38 +176,5 @@ namespace OpenMS
     }
   }
 
-  void TOPPASInputFilesDialog::moveCurrentItem()
-  {
-    if (ui_->input_file_list->count() < 2)
-    {
-      return;
-    }
-    int row = ui_->input_file_list->currentRow();
-    if (row < 0)
-    {
-      return;
-    }
-
-    if (QObject::sender() == ui_->up_button)     // move upwards
-    {
-      if (row == 0)
-      {
-        return;
-      }
-      QListWidgetItem * item = ui_->input_file_list->takeItem(row);
-      ui_->input_file_list->insertItem(row - 1, item);
-      ui_->input_file_list->setCurrentItem(item);
-    }
-    else if (QObject::sender() == ui_->down_button) // move downwards
-    {
-      if (row == ui_->input_file_list->count() - 1)
-      {
-        return;
-      }
-      QListWidgetItem * item = ui_->input_file_list->takeItem(row);
-      ui_->input_file_list->insertItem(row + 1, item);
-      ui_->input_file_list->setCurrentItem(item);
-    }
-  }
 
 } // namespace

@@ -59,7 +59,9 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd);
+    TOPPASInputFilesDialog(QWidget* parent)
+     : TOPPASInputFilesDialog(QStringList(), "", parent) {}
+    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent);
     ~TOPPASInputFilesDialog();
 
     /// support drag'n'drop of files from OS window manager
@@ -87,8 +89,7 @@ public slots:
     void removeAll();
     /// Shows a TOPPASInputFileDialog which edits the current item
     void editCurrentItem();
-    /// Moves the current item up/downwards
-    void moveCurrentItem();
+
 
 protected:
     /// current working dir, i.e. the last position a file was added from
@@ -97,5 +98,9 @@ protected:
 private:
     Ui::TOPPASInputFilesDialogTemplate* ui_;
   };
-
+  
 }
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
+using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
+
