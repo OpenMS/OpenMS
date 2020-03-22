@@ -146,7 +146,7 @@
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
 				<UserParam type="string" name="CTermIonCurrentRatio" value="0.21376967"/>
 				<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.37198755"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="string" name="MS2IonCurrent" value="73.86864"/>
 				<UserParam type="string" name="MeanErrorAll" value="181.62581"/>
 				<UserParam type="string" name="MeanErrorTop7" value="181.62581"/>
