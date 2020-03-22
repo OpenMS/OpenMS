@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinHit.h>
+#include <ostream>
 
 
 using namespace std;
