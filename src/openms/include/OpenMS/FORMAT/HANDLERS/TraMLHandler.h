@@ -41,7 +41,7 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <ostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

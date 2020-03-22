@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <ostream>
+#include <iosfwd>
 #include <vector>
 #include <functional>
 #include <set>
