@@ -1037,10 +1037,12 @@ protected:
       for (auto & f : tmp)
       {
         //keep FWHM meta value for QC
-        double fwhm = static_cast<double>(f.getMetaValue("FWHM"));
+        double fwhm = static_cast<double>(f.getMetaValue("model_FWHM"));
         f.clearMetaInfo();
         f.setSubordinates({});
         f.setConvexHulls({});
+        // QC tools will create a FWHM metavalue as a copy anyway,
+        // so save it as FWHM right away
         f.setMetaValue("FWHM", fwhm);
       }
       feature_maps.push_back(tmp);
@@ -1160,6 +1162,7 @@ protected:
       qc_frag_mass_err.compute(fmap, exp, spec_map, FragmentMassError::ToleranceUnit::AUTO, 0.);
 
       //if we force fdr we can omit the TD metavalue, since we filtered for decoys already -> everything is target
+      // TODO But: Do you really want an ID-rate after FDR? Hmm..
       qc_ms2ir.compute(fmap, exp, true);
 
       qc_mz_calibration.compute(fmap, exp, spec_map);
