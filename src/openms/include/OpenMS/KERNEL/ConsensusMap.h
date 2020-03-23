@@ -113,6 +113,7 @@ public:
     using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
 
     using privvec::push_back;
+    using privvec::emplace_back;
 
     /// Description of the columns in a consensus map
     struct OPENMS_DLLAPI ColumnHeader :
@@ -360,7 +361,22 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+    OPENMS_DLLAPI bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+
+    /**
+     @brief splits ConsensusMap into its original FeatureMaps
+
+     If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
+     provided by the map index.
+     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are seperated. All PeptideIdentifications
+     (assigned and unassigned) are added to the first FeatureMap.
+
+     MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
+
+     @param mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
+     @return FeatureMaps
+    */
+    OPENMS_DLLAPI std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
 protected:
 

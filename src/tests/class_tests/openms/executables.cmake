@@ -18,10 +18,12 @@ set(concept_executables_list
 set(qc_executables_list
   Contaminants_test
   FragmentMassError_test
+  FWHM_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MzCalibration_test
+  PeptideMass_test
   QCBase_test
   RTAlignment_test
   TIC_test

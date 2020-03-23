@@ -1,8 +1,9 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,63 +30,36 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Swenja Wagner, Patricia Scheil $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
-
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/PeptideMass.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <vector>
-#include <map>
 namespace OpenMS
 {
-  class FeatureMap;
-  /**
-   * @brief This class is a metric for the QualityControl TOPP Tool.
-   *
-   * This class counts the number of MissedCleavages per PeptideIdentification given a FeatureMap
-   * and returns an agglomeration statistic (observed counts).
-   * Additionally the PeptideHits in the FeatureMap are augmented with MetaInformation:
-   *  - 'missed_cleavages'
-   *  - 'FWHM' (from feature's 'FWHM' or 'model_FWHM')
-   *  - 'mass' (experimental mass of peptide)
-   */
-  class OPENMS_DLLAPI MissedCleavages : public QCBase
+  void PeptideMass::compute(FeatureMap& features)
   {
-  public:
-    ///constructor
-    MissedCleavages() = default;
 
-    ///destructor
-    virtual ~MissedCleavages() = default;
+    // add experimental mass to PeptideHit (a bit unrelated)
+    QCBase::iterateFeatureMap(features, [](PeptideIdentification& pi)
+    {
+      if (pi.getHits().empty()) return;
+      auto& hit = pi.getHits()[0];
+      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
+    });
+  }
 
-    /**
-     * @brief Counts the number of MissedCleavages per PeptideIdentification.
-     *
-     * The result is a key/value map: #missed_cleavages --> counts
-     * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
-     * The protease and digestion parameters are taken from the first ProteinIdentication (and SearchParamter therein) within the FeatureMap itself.
-     *
-     * @param fmap FeatureMap with Peptide and ProteinIdentifications
-     */
-    void compute(FeatureMap& fmap);
+  const String& PeptideMass::getName() const
+  {
+    static const String& name = "PeptideMass";
+    return name;
+  }
 
-    /// returns the name of the metric
-    const String& getName() const override;
-    
-    /// returns the result as maps of #missed_cleavages --> counts; one map for each call to compute(...)
-    const std::vector<std::map<UInt32, UInt32>>& getResults() const;
-
-    /**
-     * @brief Returns the input data requirements of the compute(...) function
-     * @return Status for POSTFDRFEAT;
-     */
-    QCBase::Status requires() const override;
-
-  private:
-    /// container that stores results
-    std::vector<std::map<UInt32, UInt32>> mc_result_;
-  };
-} // namespace OpenMS
+  QCBase::Status PeptideMass::requires() const
+  {
+    return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
+  }
+}
