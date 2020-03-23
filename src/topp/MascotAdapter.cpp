@@ -236,6 +236,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'mascot_in' Mascot generic format is written.");
     setValidFormats_("out", {"idXML", "mgf"});
+    registerStringOption_("out_type", "<type>", "", "output file type (for TOPPAS)", false, false);
+    setValidStrings_("out_type", {"idXML", "mgf"});
     registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -352,7 +354,16 @@ protected:
     }
 
     FileTypes::Type in_type = FileHandler::getType(inputfile_name);
-    FileTypes::Type out_type = FileHandler::getType(outputfile_name);
+    FileTypes::Type out_type;
+    if (!getStringOption_("out_type").empty())
+    {
+        out_type = FileTypes::nameToType(getStringOption_("out_type"));
+    }
+    else
+    {
+        out_type = FileHandler::getType(outputfile_name);
+    }
+    
     mascot_out = in_type == FileTypes::MASCOTXML;
     mascot_in = out_type == FileTypes::MGF;
     if (mascot_out && mascot_in)
