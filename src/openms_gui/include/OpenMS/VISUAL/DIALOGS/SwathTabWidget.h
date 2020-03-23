@@ -56,6 +56,9 @@ namespace OpenMS
     public:
         explicit SwathTabWidget(QWidget *parent = nullptr);
         ~SwathTabWidget();
+    
+    private slots:
+      void on_pushButton_clicked();
 
     private:
         Ui::SwathTabWidget *ui;

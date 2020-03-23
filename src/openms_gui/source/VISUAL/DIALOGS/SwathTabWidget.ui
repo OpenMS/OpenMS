@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>394</width>
-    <height>387</height>
+    <width>539</width>
+    <height>501</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,7 +20,7 @@
    <string>TabWidget</string>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>1</number>
   </property>
   <widget class="QWidget" name="config">
    <property name="sizePolicy">
@@ -74,6 +74,34 @@
    <attribute name="title">
     <string>LC/MS files</string>
    </attribute>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="toolTip">
+       <string>Hint: only non-split mzML files are supported.</string>
+      </property>
+      <property name="title">
+       <string>mzML input files</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="InputFileList" name="widget" native="true">
+         <property name="acceptDrops">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>PushButton</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QWidget" name="database">
    <attribute name="title">
@@ -92,6 +120,12 @@
    <class>PythonModuleRequirement</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>InputFileList</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/InputFileList.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

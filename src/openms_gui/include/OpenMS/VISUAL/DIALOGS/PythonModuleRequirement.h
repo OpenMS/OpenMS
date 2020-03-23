@@ -87,7 +87,7 @@ namespace OpenMS
       Ui::PythonModuleRequirement* ui_;
     };
 
-  }
+  } // ns Internal
 } // ns OpenMS
 
 // this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonModuleRequirement member

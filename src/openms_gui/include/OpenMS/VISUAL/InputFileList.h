@@ -32,49 +32,68 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
-#include <ui_SwathTabWidget.h>
+#pragma once
 
-#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-using namespace std;
+#include <QWidget>
+
+namespace Ui
+{
+  class InputFileList;
+}
 
 namespace OpenMS
 {
   namespace Internal
   {
-    SwathTabWidget::SwathTabWidget(QWidget *parent) :
-        QTabWidget(parent),
-        ui(new Ui::SwathTabWidget)
+    class InputFileList : public QWidget
     {
-        ui->setupUi(this);
+        Q_OBJECT
+
+    public:
+        explicit InputFileList(QWidget *parent = nullptr);
+        ~InputFileList();
+        /// support drag'n'drop of files from OS window manager
+        void dragEnterEvent(QDragEnterEvent* e) override;
+        /// support drag'n'drop of files from OS window manager
+        void dropEvent(QDropEvent* e) override;
+        void dragMoveEvent(QDragMoveEvent* pEvent) override;
         
-        auto py_selector = (PythonSelector*)ui->py_selector;
+        /// Stores the list of all filenames in the list widget in @p files
+        void getFilenames(QStringList& files) const;
+        /// Set the list of all filenames in the list widget
+        void setFilenames(const QStringList& files);
 
-        auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
-        py_pyprophet->setRequiredModules({"pyprophet", "stats"});
-        py_pyprophet->setFreeText("In order to run PyProphet after OpenSWATH, the above modules need to be installed\n" \
-                                  "Once they are available, the 'pyProphet' tab will become active and configurable.");
-        py_pyprophet->setTitle("External: PyProphet tool");
-        connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
-        
-        // call once to update py_pyprophet canvas 
-        // alternative: load latest data from .ini and set py_selector (will update py_pyprophet via above signal/slot)
-        py_pyprophet->validate(py_selector->getLastPython().toQString());
-    }
+        /// get the CWD (according to most recently added file)
+        const QString& getCWD() const;
+        /// set the current working directory (for opening files) 
+        void setCWD(const QString& cwd);
 
-    SwathTabWidget::~SwathTabWidget()
-    {
-        delete ui;
-    }
+        /// support Ctrl+C to copy currently selected items to clipboard
+        void keyPressEvent(QKeyEvent* e) override;
 
-    void SwathTabWidget::on_pushButton_clicked()
-    {
-        TOPPASInputFilesDialog tifd({}, "", 0);
-        tifd.exec();
-    }
-  }   //namespace Internal
-} //namspace OpenMS
+    public slots:
+
+      /// Lets the user select files via a file dialog
+      void showFileDialog();
+      /// Removes all currently selected files from the list
+      void removeSelected();
+      /// Removes all files from the list
+      void removeAll();
+      /// Shows a TOPPASInputFileDialog which edits the current item
+      void editCurrentItem();
 
 
+    protected:
+      /// current working dir, i.e. the last position a file was added from
+      QString cwd_;
+
+    private:
+      Ui::InputFileList *ui_;
+    };
+  } // ns Internal
+} // ns OpenMS
+
+// this is required to allow parent widgets (auto UIC'd from .ui) to have a InputFileList member
+using InputFileList = OpenMS::Internal::InputFileList;
