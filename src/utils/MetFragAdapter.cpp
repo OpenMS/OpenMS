@@ -189,7 +189,6 @@ protected:
         double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
         bool ppm_prec = getStringOption_("precursor_recalibration_window_unit") == "ppm";
 
-
         // filter feature by number of masstraces
         auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                                 [&num_masstrace_filter](const Feature &feat) -> bool
@@ -498,20 +497,24 @@ protected:
         else
         {
           // if peak mz higher than precursor mz set intensity to zero
+          double prec_charge = spectrum.getPrecursors()[0].getCharge();
           double prec_mz = spectrum.getPrecursors()[0].getMZ();
           double mass_diff = Math::ppmToMass(10.0, prec_mz);
-          for (auto& spec : spectrum)
+          if (abs(prec_charge) == 1) // only works for spectra with a charge of 1
           {
-            if (spec.getMZ() > prec_mz + mass_diff)
+            for (auto& spec : spectrum)
             {
-              spec.setIntensity(0);
+              if (spec.getMZ() > prec_mz + mass_diff)
+              {
+                spec.setIntensity(0);
+              }
             }
+            spectrum.erase(remove_if(spectrum.begin(),
+                                    spectrum.end(),
+                                    InIntensityRange<PeakMap::PeakType>(1,
+                                                                        numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                        true)), spectrum.end());
           }
-          spectrum.erase(remove_if(spectrum.begin(),
-                                   spectrum.end(),
-                                   InIntensityRange<PeakMap::PeakType>(1,
-                                                                       numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                       true)), spectrum.end());
         }
       }
 
