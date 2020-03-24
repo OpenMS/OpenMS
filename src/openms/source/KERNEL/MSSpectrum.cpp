@@ -154,7 +154,7 @@ namespace OpenMS
 
   MSSpectrum::PeakType::IntensityType MSSpectrum::getTIC() const
   {
-    return std::accumulate(cbegin(), 
+    return std::accumulate(cbegin(),
                            cend(),
                            0.0,
                            [](MSSpectrum::PeakType::IntensityType sum, const PeakType& p)
@@ -166,7 +166,7 @@ namespace OpenMS
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
-    ContainerType::shrink_to_fit(); 
+    ContainerType::shrink_to_fit();
 
     if (clear_meta_data)
     {
@@ -293,6 +293,27 @@ namespace OpenMS
     {
       return Size(it2 - ContainerType::begin());
     }
+  }
+
+  Int MSSpectrum::findHighestInWindow(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
+                              MSSpectrum::CoordinateType tolerance_right) const
+  {
+    if (ContainerType::empty()) return -1;
+
+    // get left/right iterator
+    auto left = this->MZBegin(mz - tolerance_left);
+    auto right = this->MZEnd(mz + tolerance_right);
+
+    // no MS1 precursor peak in +- tolerance window found
+    if  (left == right)
+    {
+      return -1;
+    }
+
+    auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+
+    // find peak (index) with highest intensity to expected position
+    return (max_intensity_it - this->begin());
   }
 
   void MSSpectrum::sortByPosition()
