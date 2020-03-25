@@ -233,7 +233,7 @@ namespace OpenMS
           it->getPrimaryMSRunPath(toFill);
           newProtIDs[newrunid].setPrimaryMSRunPath(toFill);
           newProtIDs[newrunid].setIdentifier("condition" + String(newrunid));
-          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair<String,Size>{runIDToNewRunIdcsPair.first, newrunid}, 0);
+          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair(runIDToNewRunIdcsPair.first, newrunid), 0);
         }
         // if not, merge settings or check consistency
         else
@@ -242,7 +242,7 @@ namespace OpenMS
           it->peptideIDsMergeable(newProtIDs[newrunid], experiment_type);
           StringList toFill; it->getPrimaryMSRunPath(toFill); // new ones
           newProtIDs[newrunid].addPrimaryMSRunPath(toFill); //add to previous
-          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair<String,Size>{runIDToNewRunIdcsPair.first, newrunid}, toFill.size());
+          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair(runIDToNewRunIdcsPair.first, newrunid), toFill.size());
         }
       }
 
