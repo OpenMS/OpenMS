@@ -64,6 +64,8 @@ namespace OpenMS
     QSettings settings("OpenMS", "SwathWizard");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
+    setWindowTitle("SwathWizard");
+    setWindowIcon(QIcon(":/SwathWizard.png"));
 
     SwathTabWidget* cw_swath = new SwathTabWidget(this);
     setCentralWidget(cw_swath);
