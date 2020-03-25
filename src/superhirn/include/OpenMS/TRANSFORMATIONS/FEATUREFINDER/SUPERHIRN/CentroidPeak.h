@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <ostream>
+#include <iosfwd>
+#include <string>
 #include <cmath>
 #include <vector>
 
@@ -227,7 +228,7 @@ protected:
 
   inline void CentroidPeak::setExtraPeakInfo(std::string in)
   {
-    extraPeakInfo_ = in;
+    extraPeakInfo_ = std::move(in);
   }
 
   inline void CentroidPeak::setRetentionTime(double in)

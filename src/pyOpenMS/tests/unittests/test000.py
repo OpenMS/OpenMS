@@ -1722,8 +1722,8 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
     scores = [float(i) for i in range(10)]
-    model.fit(scores)
-    model.fit(scores, scores)
+    model.fit(scores, "none")
+    model.fit(scores, scores, "none")
 
     model.fillLogDensities(scores, scores, scores)
 
@@ -3529,6 +3529,73 @@ def testMapAlignment():
     pyopenms.MapAlignmentTransformer.transformRetentionTimes
 
 @report
+def testMatrixDouble():
+
+    """
+    @tests: MatrixDouble
+     MapAlignmentAlgorithmIdentification.__init__
+     """
+
+    m = pyopenms.MatrixDouble()
+    N = 90
+    m.resize(N-1, N+2, 5.0)
+
+    assert m.rows() == 89
+    assert m.cols() == 92
+
+    rows = N-1
+    cols = N+2
+    test = []
+    for i in range(int(rows)):
+        for j in range(int(cols)):
+            test.append( m.getValue(i,j) )
+
+    testm = np.asarray(test)
+    testm = testm.reshape(rows, cols)
+
+    assert sum(sum(testm)) == 40940.0
+    assert sum(sum(testm)) == (N-1)*(N+2)*5
+
+    matrix = m.get_matrix()
+    assert sum(sum(matrix)) == 40940.0
+    assert sum(sum(matrix)) == (N-1)*(N+2)*5
+
+    matrix_view = m.get_matrix_as_view()
+    assert sum(sum(matrix_view)) == 40940.0
+    assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
+
+
+    # Column = 3 / Row = 5
+    ## Now change a value:
+
+    assert m.getValue(3, 5) == 5.0
+    m.setValue(3, 5, 8.0)
+    assert m.getValue(3, 5) == 8.0
+
+    mat = m.get_matrix_as_view()
+    assert mat[3, 5] == 8.0
+
+    mat = m.get_matrix()
+    assert m.getValue(3, 5) == 8.0
+    assert mat[3, 5] == 8.0
+
+    # Whatever we change here gets changed in the raw data as well
+    matrix_view = m.get_matrix_as_view()
+    matrix_view[1, 6] = 11.0
+    assert m.getValue(1, 6) == 11.0
+    assert matrix_view[1, 6] == 11.0
+
+    m.clear()
+    assert m.rows() == 0
+    assert m.cols() == 0
+
+    mat[3, 6] = 9.0
+    m.set_matrix(mat)
+    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(3, 6) == 9.0
+
+
+@report
 def testMapAlignmentIdentification():
 
     """
@@ -5101,6 +5168,105 @@ def testModificationsDB():
     assert m.getId() == "Oxidation", m.getId()
     assert m.getFullName() == "Oxidation or Hydroxylation", m.getFullName()
     assert m.getUniModAccession() == "UniMod:35"
+
+@report
+def testRNaseDB():
+    """
+    @tests: RNaseDB
+        const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
+        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +
+        void getAllNames(libcpp_vector[ String ]& all_names) nogil except +
+        bool hasEnzyme(const String& name) nogil except +
+        bool hasRegEx(const String& cleavage_regex) nogil except +
+     """
+    db = pyopenms.RNaseDB()
+    names = []
+    db.getAllNames(names)
+
+    e = db.getEnzyme("RNase_T1")
+    assert e.getRegEx() == u'(?<=G)'
+    assert e.getThreePrimeGain() == u'p'
+
+    assert db.hasRegEx(u'(?<=G)')
+    assert db.hasEnzyme("RNase_T1")
+    
+
+@report
+def testRibonucleotideDB():
+    """
+    @tests: RibonucleotideDB
+    """
+    r = pyopenms.RibonucleotideDB()
+
+    uridine = r.getRibonucleotide(b"U")
+
+    assert uridine.getName() == u'uridine'
+    assert uridine.getCode() == u'U'
+    assert uridine.getFormula().toString() == u'C9H12N2O6'
+    assert uridine.isModified() == False
+
+@report
+def testRibonucleotide():
+    """
+    @tests: Ribonucleotide
+    """
+    r = pyopenms.Ribonucleotide()
+
+    assert not r.isModified()
+
+    r.setHTMLCode("test")
+    assert r.getHTMLCode() == "test"
+
+    r.setOrigin(b"A")
+    assert r.getOrigin() == "A"
+
+    r.setNewCode(b"A")
+    assert r.getNewCode() == "A"
+
+
+@report
+def testRNaseDigestion():
+    """
+    @tests: RNaseDigestion
+     """
+
+    dig = pyopenms.RNaseDigestion()
+    dig.setEnzyme("RNase_T1")
+    assert dig.getEnzymeName() == "RNase_T1"
+
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+
+    result = []
+    dig.digest(oligo, result)
+    assert len(result) == 3
+
+
+@report
+def testNASequence():
+    """
+    @tests: NASequence
+     """
+
+    oligo = pyopenms.NASequence.fromString("pAUGUCGCAG");
+
+    assert oligo.size() == 9
+    seq_formula = oligo.getFormula()
+    seq_formula.toString() == u'C86H108N35O64P9'
+
+    oligo_mod = pyopenms.NASequence.fromString("A[m1A][Gm]A")
+    seq_formula = oligo_mod.getFormula()
+    seq_formula.toString() == u'C42H53N20O23P3'
+
+    for r in oligo:
+        pass
+
+    assert oligo_mod[1].isModified()
+
+    charge = 2
+    oligo_mod.getMonoWeight(pyopenms.NASequence.NASFragmentType.WIon, charge)
+    oligo_mod.getFormula(pyopenms.NASequence.NASFragmentType.WIon, charge)
+
+
 
 @report
 def testExperimentalDesign():

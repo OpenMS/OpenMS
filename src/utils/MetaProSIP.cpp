@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,36 @@ using boost::math::normal;
 typedef map<double, double> MapRateToScoreType;
 typedef pair<double, vector<double> > IsotopePattern;
 typedef vector<IsotopePattern> IsotopePatterns;
+
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_MetaProSIP MetaProSIP 
+
+    @brief Performs proteinSIP on peptide features for elemental flux analysis.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_MetaProSIP.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_MetaProSIP.html
+ */
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+class MetaProSIP :
+  public TOPPBase
+{
+public:
+  MetaProSIP()
+    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
+    ADDITIONAL_ISOTOPES(5),
+    FEATURE_STRING("feature"),
+    UNASSIGNED_ID_STRING("id"),
+    UNIDENTIFIED_STRING("unidentified")
+  {
+  }
 
 struct RateScorePair
 {
@@ -2017,35 +2047,6 @@ public:
 
 };
 
-//-------------------------------------------------------------
-// Doxygen docu
-//-------------------------------------------------------------
-
-/**
-    @page UTILS_MetaProSIP MetaProSIP 
-
-    @brief Performs proteinSIP on peptide features for elemental flux analysis.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_MetaProSIP.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_MetaProSIP.html
- */
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-class TOPPMetaProSIP :
-  public TOPPBase
-{
-public:
-  TOPPMetaProSIP()
-    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
-    ADDITIONAL_ISOTOPES(5),
-    FEATURE_STRING("feature"),
-    UNASSIGNED_ID_STRING("id"),
-    UNIDENTIFIED_STRING("unidentified")
-  {
-  }
 
 protected:
   Size ADDITIONAL_ISOTOPES;
@@ -3634,6 +3635,8 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPMetaProSIP tool;
+  MetaProSIP tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

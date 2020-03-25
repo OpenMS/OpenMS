@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -332,6 +332,19 @@ public:
       @note Search for the left border is done using a binary search followed by a linear scan
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
+
+    /**
+      @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied to both sides of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+      @note Peaks exactly on borders are considered in tolerance window.
+    */
+    Int findHighestInWindow(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
 
     /**
       @brief Binary search for peak range begin

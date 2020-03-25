@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,8 +126,8 @@ namespace OpenMS
 
   //IMPLEMENTATIONS:
 
-  template <typename L>
-  MessagePasserFactory<L>::MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior) {
+  template <typename Label>
+  MessagePasserFactory<Label>::MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior) {
     assert(0. <= alpha && alpha <= 1.);
     assert(0. <= beta && beta <= 1.);
     assert(0. <= gamma && gamma <= 1.);
@@ -141,8 +141,8 @@ namespace OpenMS
     pepPrior_ = pep_prior;
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, int nrMissingPeps) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createProteinFactor(Label id, int nrMissingPeps) {
     double prior = gamma_;
     if (nrMissingPeps > 0)
     {
@@ -150,32 +150,32 @@ namespace OpenMS
       prior = -prior/(prior * powFactor - prior - powFactor);
     }
     double table[] = {1.0 - prior, prior};
-    evergreen::LabeledPMF<L> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
-    return evergreen::TableDependency<L>(lpmf,p_);
+    evergreen::LabeledPMF<Label> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, double prior, int nrMissingPeps) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createProteinFactor(Label id, double prior, int nrMissingPeps) {
     if (nrMissingPeps > 0)
     {
       double powFactor = std::pow(1.0 - alpha_, -nrMissingPeps);
       prior = -prior/(prior * powFactor - prior - powFactor);
     }
     double table[] = {1.0 - prior, prior};
-    evergreen::LabeledPMF<L> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
-    return evergreen::TableDependency<L>(lpmf,p_);
+    evergreen::LabeledPMF<Label> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, double prob) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createPeptideEvidenceFactor(Label id, double prob) {
     double table[] = {(1 - prob) * (1 - pepPrior_), prob * pepPrior_};
-    evergreen::LabeledPMF<L> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
-    return evergreen::TableDependency<L>(lpmf,p_);
+    evergreen::LabeledPMF<Label> lpmf({id}, evergreen::PMF({0L}, evergreen::Tensor<double>::from_array(table)));
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createSumEvidenceFactor(size_t nrParents, Label nId, Label pepId) {
     evergreen::Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
     for (unsigned long i=0; i <= nrParents; ++i) {
       double notConditional = notConditionalGivenSum(i);
@@ -185,13 +185,13 @@ namespace OpenMS
       table[indexArr2] = 1.0 - notConditional;
     }
     //std::cout << table << std::endl;
-    evergreen::LabeledPMF<L> lpmf({nId, pepId}, evergreen::PMF({0L,0L}, table));
+    evergreen::LabeledPMF<Label> lpmf({nId, pepId}, evergreen::PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return evergreen::TableDependency<L>(lpmf,p_);
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createRegularizingSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createRegularizingSumEvidenceFactor(size_t nrParents, Label nId, Label pepId) {
     evergreen::Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
     unsigned long z[2]{0ul,0ul};
     unsigned long z1[2]{0ul,1ul};
@@ -205,25 +205,25 @@ namespace OpenMS
       table[indexArr2] = (1.0 - notConditional) / i;
     }
     //std::cout << table << std::endl;
-    evergreen::LabeledPMF<L> lpmf({nId, pepId}, evergreen::PMF({0L,0L}, table));
+    evergreen::LabeledPMF<Label> lpmf({nId, pepId}, evergreen::PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return evergreen::TableDependency<L>(lpmf,p_);
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createSumFactor(size_t nrParents, L nId) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createSumFactor(size_t nrParents, Label nId) {
     evergreen::Tensor<double> table({nrParents+1});
     for (unsigned long i=0; i <= nrParents; ++i) {
       table[i] = 1.0/(nrParents+1.);
     }
     //std::cout << table << std::endl;
-    evergreen::LabeledPMF<L> lpmf({nId}, evergreen::PMF({0L}, table));
+    evergreen::LabeledPMF<Label> lpmf({nId}, evergreen::PMF({0L}, table));
     //std::cout << lpmf << std::endl;
-    return evergreen::TableDependency<L>(lpmf,p_);
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createReplicateFactor(L seqId, L repId) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createReplicateFactor(Label seqId, Label repId) {
     using arr = unsigned long[2];
     evergreen::Tensor<double> table({2,2});
     table[arr{0,0}] = 0.999;
@@ -231,13 +231,13 @@ namespace OpenMS
     table[arr{1,0}] = 0.1;
     table[arr{1,1}] = 0.9;
     //std::cout << table << std::endl;
-    evergreen::LabeledPMF<L> lpmf({seqId,repId}, evergreen::PMF({0L,0L}, table));
+    evergreen::LabeledPMF<Label> lpmf({seqId,repId}, evergreen::PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return evergreen::TableDependency<L>(lpmf,p_);
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::TableDependency<L> MessagePasserFactory<L>::createChargeFactor(L repId, L chgId, int chg) {
+  template <typename Label>
+  evergreen::TableDependency<Label> MessagePasserFactory<Label>::createChargeFactor(Label repId, Label chgId, int chg) {
     double chgPrior = chgLLhoods[chg];
     using arr = unsigned long[2];
     evergreen::Tensor<double> table({2,2});
@@ -246,44 +246,44 @@ namespace OpenMS
     table[arr{1,0}] = 0.1;
     table[arr{1,1}] = chgPrior;
     //std::cout << table << std::endl;
-    evergreen::LabeledPMF<L> lpmf({repId,chgId}, evergreen::PMF({0L,0L}, table));
+    evergreen::LabeledPMF<Label> lpmf({repId,chgId}, evergreen::PMF({0L,0L}, table));
     //std::cout << lpmf << std::endl;
-    return evergreen::TableDependency<L>(lpmf,p_);
+    return evergreen::TableDependency<Label>(lpmf,p_);
   }
 
-  template <typename L>
-  evergreen::AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId) {
-    std::vector<std::vector<L>> parents;
-    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return evergreen::AdditiveDependency<L>(parents, {nId}, p_);
+  template <typename Label>
+  evergreen::AdditiveDependency<Label> MessagePasserFactory<Label>::createPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId) {
+    std::vector<std::vector<Label>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const Label& l){return std::vector<Label>{l};});
+    return evergreen::AdditiveDependency<Label>(parents, {nId}, p_);
   }
 
-  template <typename L>
-  evergreen::AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::vector<L> & parentProteinIDs, L nId) {
-    std::vector<std::vector<L>> parents;
-    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return evergreen::AdditiveDependency<L>(parents, {nId}, p_);
+  template <typename Label>
+  evergreen::AdditiveDependency<Label> MessagePasserFactory<Label>::createPeptideProbabilisticAdderFactor(const std::vector<Label> & parentProteinIDs, Label nId) {
+    std::vector<std::vector<Label>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const Label& l){return std::vector<Label>{l};});
+    return evergreen::AdditiveDependency<Label>(parents, {nId}, p_);
   }
 
-  template <typename L>
-  evergreen::PseudoAdditiveDependency<L> MessagePasserFactory<L>::createBFPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId, const std::vector<evergreen::TableDependency<L>> & deps) {
-    std::vector<std::vector<L>> parents;
-    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
-    return evergreen::PseudoAdditiveDependency<L>(parents, {nId}, deps, p_);
+  template <typename Label>
+  evergreen::PseudoAdditiveDependency<Label> MessagePasserFactory<Label>::createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId, const std::vector<evergreen::TableDependency<Label>> & deps) {
+    std::vector<std::vector<Label>> parents;
+    std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const Label& l){return std::vector<Label>{l};});
+    return evergreen::PseudoAdditiveDependency<Label>(parents, {nId}, deps, p_);
   }
 
   /// Works on a vector of protein indices (potentially not consecutive)
   // TODO we could recollect the protIDs from the union of parents.
-  template <typename L>
-  void MessagePasserFactory<L>::fillVectorsOfMessagePassers(const std::vector<L> & protIDs,
-                                                            const std::vector<std::vector<L>> & parentsOfPeps,
-                                                            const std::vector<double> & pepEvidences,
-                                                            evergreen::InferenceGraphBuilder<L> & igb)
+  template <typename Label>
+  void MessagePasserFactory<Label>::fillVectorsOfMessagePassers(const std::vector<Label>& protIDs,
+                                                            const std::vector<std::vector<Label>>& parentsOfPeps,
+                                                            const std::vector<double>& pepEvidences,
+                                                            evergreen::InferenceGraphBuilder<Label>& igb)
   {
     //TODO asserts could be loosened
     assert(parentsOfPeps.size() == pepEvidences.size());
     for (const std::vector<uiint>& parents : parentsOfPeps)
-      for (L parent : parents)
+      for (Label parent : parents)
         assert(std::find(protIDs.begin(), protIDs.end(), parent) != protIDs.end());
 
     for (uiint pid : protIDs)
@@ -298,11 +298,11 @@ namespace OpenMS
   }
 
   /* unused but working
-  template <typename L>
-  void MessagePasserFactory<L>::fillVectorsOfMessagePassersBruteForce(const std::vector<L> & protIDs,
-                                                                      const std::vector<std::vector<L>> & parentsOfPeps,
+  template <typename Label>
+  void MessagePasserFactory<Label>::fillVectorsOfMessagePassersBruteForce(const std::vector<Label> & protIDs,
+                                                                      const std::vector<std::vector<Label>> & parentsOfPeps,
                                                                       const std::vector<double> & pepEvidences,
-                                                                      evergreen::InferenceGraphBuilder<L> & igb)
+                                                                      evergreen::InferenceGraphBuilder<Label> & igb)
   {
     assert(parentsOfPeps.size() == pepEvidences.size());
     for (std::vector<uiint> parents : parentsOfPeps)

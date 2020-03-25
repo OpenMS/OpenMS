@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1310,6 +1310,37 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance
   //empty spectrum
   MSSpectrum spec_test2;
   TEST_EQUAL(spec_test2.findNearest(427.3, 1.0, 1.0), -1);
+}
+END_SECTION
+START_SECTION((Size findHighestInWindow(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_righ) const))
+{
+  //test outside mass range
+  TEST_EQUAL(spec_test.findHighestInWindow(400.0, 1.0, 1.0), -1);
+  TEST_EQUAL(spec_test.findHighestInWindow(500.0, 1.0, 1.0), -1);
+
+  //test mass range borders
+  TEST_EQUAL(spec_test.findHighestInWindow(412.4, 0.01, 0.01), -1);
+  TEST_EQUAL(spec_test.findHighestInWindow(412.4, 0.1, 0.1), 0);
+  TEST_EQUAL(spec_test.findHighestInWindow(441.3, 0.01, 0.01),-1);
+  TEST_EQUAL(spec_test.findHighestInWindow(441.3, 0.1, 0.1), 20);
+
+  //test inside scan
+  TEST_EQUAL(spec_test.findHighestInWindow(426.29, 0.1, 0.1), 10);
+  TEST_EQUAL(spec_test.findHighestInWindow(426.3, 0.1, 0.1), 10);
+  TEST_EQUAL(spec_test.findHighestInWindow(427.2, 0.1, 0.1), 11);
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 0.1, 0.1), 11);
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 0.001, 0.001), -1);
+
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 0.1, 0.001), 11);
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 0.001, 1.01), -1);
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 0.001, 1.1), 12);
+
+  TEST_EQUAL(spec_test.findHighestInWindow(427.3, 9.0, 4.0), 8);
+  TEST_EQUAL(spec_test.findHighestInWindow(430.25, 1.9, 1.01), 13);
+
+  //empty spectrum
+  MSSpectrum spec_test2;
+  TEST_EQUAL(spec_test2.findHighestInWindow(427.3, 1.0, 1.0), -1);
 }
 END_SECTION
 

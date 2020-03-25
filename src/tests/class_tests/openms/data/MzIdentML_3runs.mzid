@@ -141,7 +141,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="230" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.8081117E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.7710217E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0378108" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.20113297" name="NTermIonCurrentRatio"/>
@@ -166,7 +166,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="204" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="3.4786748E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="4.6707992E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0465344" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.09375288" name="NTermIonCurrentRatio"/>
@@ -191,7 +191,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="226" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.4569498E-30" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.298934E-24" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0508276" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.10062517" name="NTermIonCurrentRatio"/>
@@ -216,7 +216,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="212" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="1.3307773E-29" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="1.7844179E-23" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="0.7054312" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.16492341" name="NTermIonCurrentRatio"/>
@@ -248,7 +248,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="230" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.8081117E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.7710217E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0378108" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.20113297" name="NTermIonCurrentRatio"/>
@@ -273,7 +273,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="204" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="3.4786748E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="4.6707992E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0465344" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.09375288" name="NTermIonCurrentRatio"/>
@@ -298,7 +298,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="226" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.4569498E-30" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.298934E-24" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0508276" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.10062517" name="NTermIonCurrentRatio"/>
@@ -323,7 +323,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="212" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="1.3307773E-29" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="1.7844179E-23" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="0.7054312" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.16492341" name="NTermIonCurrentRatio"/>
@@ -355,7 +355,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="230" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.8081117E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.7710217E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0378108" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.20113297" name="NTermIonCurrentRatio"/>
@@ -380,7 +380,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="204" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="3.4786748E-32" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="4.6707992E-26" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0465344" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.09375288" name="NTermIonCurrentRatio"/>
@@ -405,7 +405,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="226" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="2.4569498E-30" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="3.298934E-24" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="1.0508276" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.10062517" name="NTermIonCurrentRatio"/>
@@ -430,7 +430,7 @@
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="212" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="1.3307773E-29" name="MS-GF:SpecEValue"/>
                     <cvParam accession="MS:1002053" cvRef="PSI-MS" value="1.7844179E-23" name="MS-GF:EValue"/>
-                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="0" name="isotope_error"/>
                     <userParam value="CID" name="AssumedDissociationMethod"/>
                     <userParam value="0.7054312" name="ExplainedIonCurrentRatio"/>
                     <userParam value="0.16492341" name="NTermIonCurrentRatio"/>
