@@ -202,6 +202,10 @@ namespace OpenMS
     //TODO preallocate with sum of proteins?
     unordered_map<ProteinHit,set<Size>,hash_type,equal_type> proteinsCollectedHitsRuns(0, accessionHash_, accessionEqual_);
 
+    // we only need to store an offset if we append the primaryRunPaths
+    //(oldRunID, newRunIdx) -> newMergeIdxOffset
+    map<pair<String,Size>, Size> oldRunID_NewRunIdx_Pair2NewMergeIdxOffset;
+
     for (auto& runIDToNewRunIdcsPair : runIDToNewRunIdcs)
     {
       // find old run
@@ -217,6 +221,8 @@ namespace OpenMS
         // go through new runs and fill the proteins and update search settings
         // if first time filling this new run:
         //TODO safe to check for empty identifier?
+
+        //TODO create mapping for setting id_merge_idx metavalue
         if (newProtIDs.at(newrunid).getIdentifier().empty())
         {
           //initialize new run
@@ -227,6 +233,7 @@ namespace OpenMS
           it->getPrimaryMSRunPath(toFill);
           newProtIDs[newrunid].setPrimaryMSRunPath(toFill);
           newProtIDs[newrunid].setIdentifier("condition" + String(newrunid));
+          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair<String,Size>{runIDToNewRunIdcsPair.first, newrunid}, 0);
         }
         // if not, merge settings or check consistency
         else
@@ -235,6 +242,7 @@ namespace OpenMS
           it->peptideIDsMergeable(newProtIDs[newrunid], experiment_type);
           StringList toFill; it->getPrimaryMSRunPath(toFill); // new ones
           newProtIDs[newrunid].addPrimaryMSRunPath(toFill); //add to previous
+          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair<String,Size>{runIDToNewRunIdcsPair.first, newrunid}, toFill.size());
         }
       }
 
@@ -260,7 +268,7 @@ namespace OpenMS
     //Now update the references in the PeptideHits
     //TODO double check the PrimaryRunPaths with the initial requested merge
 
-    function<void(PeptideIdentification&)> fun = [&runIDToNewRunIdcs, &newProtIDs](PeptideIdentification& pid)
+    function<void(PeptideIdentification&)> fun = [&runIDToNewRunIdcs, &oldRunID_NewRunIdx_Pair2NewMergeIdxOffset, &newProtIDs](PeptideIdentification& pid)
     {
       const set<Size>& runsToPut = runIDToNewRunIdcs.at(pid.getIdentifier());
       //TODO check that in the beginning until we support it
@@ -272,10 +280,19 @@ namespace OpenMS
         // should only happen in TMT/itraq
       }
 
+      Size oldMergeIdx = 0;
+      //TODO we could lookup the old protein ID and see if there were multiple MSruns. If so, we should fail if not
+      // exist
+      if (pid.metaValueExists("id_merge_idx"))
+      {
+        oldMergeIdx = pid.getMetaValue("id_merge_idx");
+      }
+
       for (const auto& runToPut : runsToPut)
       {
         const ProteinIdentification& newProtIDRun = newProtIDs[runToPut];
         pid.setIdentifier(newProtIDRun.getIdentifier());
+        pid.setMetaValue("id_merge_idx", oldMergeIdx + oldRunID_NewRunIdx_Pair2NewMergeIdxOffset[{pid.getIdentifier(),runToPut}]);
       }
     };
 
@@ -310,12 +327,13 @@ namespace OpenMS
 
     //we do it based on the IDRuns since ID Runs maybe different from quantification in e.g. TMT
     vector<String> mergedOriginFiles{};
-    //set<String> mergedOriginFiles{};
+    map<String,pair<Size,bool>> oldRunID2Offset_Multi_Pair;
     for (const auto& pid : cmap.getProteinIdentifications())
     {
       vector<String> out;
       pid.getPrimaryMSRunPath(out);
       mergedOriginFiles.insert(mergedOriginFiles.end(), out.begin(), out.end());
+      oldRunID2Offset_Multi_Pair.emplace(pid.getIdentifier(), make_pair<Size,bool>(out.size(), out.size() > 1));
     }
     newProtIDRun.setPrimaryMSRunPath(mergedOriginFiles);
 
@@ -343,9 +361,28 @@ namespace OpenMS
     const String& newProtIDRunString = newProtIDRun.getIdentifier();
 
     function<void(PeptideIdentification &)> fun =
-    [&newProtIDRunString](PeptideIdentification& pid) -> void
+    [&newProtIDRunString, &oldRunID2Offset_Multi_Pair](PeptideIdentification& pid) -> void
     {
+      const auto& p = oldRunID2Offset_Multi_Pair[pid.getIdentifier()];
       pid.setIdentifier(newProtIDRunString);
+      Size old = 0;
+      if (pid.metaValueExists("id_merge_idx"))
+      {
+        old = pid.getMetaValue("id_merge_idx");
+        pid.setMetaValue("id_merge_idx", old + p.first);
+      }
+      else
+      {
+        if (p.second)
+        {
+          throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "No id_merge_idx value in a merged ID run."); //TODO add more info about where.
+        }
+      }
+
     };
 
     cmap.applyFunctionOnPeptideIDs(fun);
