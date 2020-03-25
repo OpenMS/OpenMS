@@ -55,42 +55,37 @@ namespace OpenMS
   {
     struct OPENMS_DLLAPI Parameter
     {
-        int minCharge;
-        double minMass;
-        double maxMass;
-        double currentMaxMass;
-        double tolerance;
-        String fileName;// up to here: ordinary user accessible parameters
+      int minCharge;
+      double minMass;
+      double maxMass;
+      double currentMaxMass;
+      DoubleList tolerance;
+      String fileName;// up to here: ordinary user accessible parameters
 
-        double intensityThreshold;// advanced parameters
-        double minIsotopeCosine;
-        double minChargeCosine;
+      double intensityThreshold;// advanced parameters
+      DoubleList minIsotopeCosine;
+      double minChargeCosine;
 
-        double tolerance2;
-        double minIsotopeCosineSpec2;
-        double minChargeCosineSpec2;
+      IntList minContinuousChargePeakCount;
+      int maxIsotopeCount;
+      int maxMassCount;
+      int currentMaxMassCount;
 
-        int minContinuousChargePeakCount2;
-        double minIsotopeCosineSpec;
-        double minChargeCosineSpec;
+      unsigned int maxMSLevel = 0;//maxMSL;
+      unsigned int currentMaxMSLevel = 0;//maxMSL;
 
-        int minContinuousChargePeakCount;
-        int maxIsotopeCount;
-        int maxMassCount;
-        unsigned int maxMSLevel = 1;//maxMSL;
-        //double charg = 1eDistributionScoreThreshold;
-        double RTwindow;
-        double minRTSpan;
-        std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
-        int chargeRange;
-        int currentChargeRange;
-        double binWidth;
-        double binWidth2;
-        int minNumOverLappedScans = 1;
-        int numOverlappedScans = minNumOverLappedScans;
-        int threads = 1;
-        int writeSpecTsv = 0;
-        //int jitter = 0;
+      //double charg = 1eDistributionScoreThreshold;
+      double RTwindow;
+      double minRTSpan;
+      std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
+      int chargeRange;
+      int currentChargeRange;
+      DoubleList binWidth;
+      UInt minNumOverLappedScans = 10;
+      std::vector<UInt> numOverlappedScans;
+      int threads = 1;
+      int writeSpecTsv = 0;
+      //int jitter = 0;
     };
 
     struct OPENMS_DLLAPI PrecalcularedAveragine
@@ -150,8 +145,14 @@ namespace OpenMS
 
       double isotopeCosineScore = .0;
       double chargeCosineScore = .0;
+      double massPpmError = .0;
+
       int massIndex, specIndex, massCntr;
       int maxCharge, minCharge;
+      int maxSNRcharge = 0;
+      double* perChargeNoisePower;
+      double maxSNR = 0;
+      double maxSNRmaxMz, maxSNRminMz;
 
       MSSpectrum *spec;
 

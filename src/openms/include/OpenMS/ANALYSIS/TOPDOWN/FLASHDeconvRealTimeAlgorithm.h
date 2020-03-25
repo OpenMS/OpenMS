@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong $
+// $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -39,65 +39,11 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-//#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
-
-#include "boost/dynamic_bitset.hpp"
-#include <iostream>
-#include <iomanip>
-#include <chrono>
-#include <Eigen/Dense>
-
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h>
 
 namespace OpenMS
 {
-  /** NEED to be modified
-  @brief @ref
-
-  @htmlinclude
-
-  @ingroup Topdown
-*/
-  /** check OPENMS c++ guide **/
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm
+  class OPENMS_DLLAPI FLASHDeconvRealTimeAlgorithm
   {
-public:
-    typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
-    /// default constructor
-    FLASHDeconvAlgorithm(MSExperiment &map, Parameter &param);
-
-
-    /// default destructor
-    ~FLASHDeconvAlgorithm();
-
-    /// copy constructor
-   // FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm &);
-
-    /// assignment operator
-    FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    std::vector<PeakGroup> Deconvolution(int* specCntr, int* qspecCntr, int* massCntr, int& specIndex, int& massIndex, PrecalcularedAveragine &avg);
-
-  protected:
-    MSExperiment &map;
-    Parameter &param;
-    //std::vector<LogMzPeak> logMzPeaks;
-   // double* filter;
-    //double** harmonicFilter;
-    //boost::dynamic_bitset<> massBins;
-    //boost::dynamic_bitset<> mzBins;
-   // PrecalcularedAveragine averagines;
-
-    static int getNominalMass(double &m);
-
-
-  private:
-
-    static void printProgress(float progress);
 
   };
-}// namespace OpenMS
+}

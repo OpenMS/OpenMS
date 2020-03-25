@@ -9,9 +9,11 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+
 namespace OpenMS
 {
-  class OPENMS_DLLAPI PeakGroupScoring{
+  class OPENMS_DLLAPI PeakGroupScoring
+  {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
@@ -33,20 +35,27 @@ namespace OpenMS
                                                            int &offset,
                                                            FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
-    std::vector<PeakGroup> & scoreAndFilterPeakGroups(unsigned int &msLevel, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+    std::vector<PeakGroup> &scoreAndFilterPeakGroups(unsigned int &msLevel,
+                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
 
   protected:
     std::vector<PeakGroup> &peakGroups;
     Parameter &param;
 
+
     void removeOverlappingPeakGroups(double tol);
 
     std::vector<int> updatePerChargeIsotopeIntensity(
-//        double **intensityGrid,
-//        double **intensityGrid2,
+        //        double **intensityGrid,
+        //        double **intensityGrid2,
         double *perIsotopeIntensity,
         double *perChargeIntensity,
         PeakGroup &pg);
+
+    void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
+
+    static double getAvgMassPpmError(PeakGroup &pg);
+
 
     static bool checkChargeDistribution(double *perChargeIntensity, int range, int threshold);
 
@@ -70,8 +79,6 @@ namespace OpenMS
                             double &bNorm,
                             int offset);
   };
-
-
 
 
 }

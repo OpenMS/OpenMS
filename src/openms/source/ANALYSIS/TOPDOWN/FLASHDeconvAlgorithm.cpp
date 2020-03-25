@@ -46,9 +46,9 @@ namespace OpenMS
   {
   }
 
- // FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&)
- // {
- // }
+  // FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&)
+  // {
+  // }
 
   FLASHDeconvAlgorithm& FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm& fd)
   {
@@ -65,8 +65,9 @@ namespace OpenMS
 
 
 
-  std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int &specCntr, int &qspecCntr,
-                                         int &massCntr, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+  std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int* specCntr, int* qspecCntr,
+                                                                                   int* massCntr, int& specIndex, int& massIndex,
+                                                                                   FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     //calculateAveragines(param);
     float prevProgress = .0;
@@ -74,20 +75,48 @@ namespace OpenMS
     allPeakGroups.reserve(200000);
     //to overlap previous mass bins.
 
-    std::vector<std::vector<Size>> prevMassBinMap;
-    std::vector<double> prevMinBinLogMassMap;
+    std::map<UInt, std::vector<std::vector<Size>>> prevMassBinMap;
+    std::map<UInt, std::vector<double>> prevMinBinLogMassMap;
+
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+    std::map<UInt,std::map<double, double>> peakIntMap; // mslevel, mz -> intensity
+    std::map<UInt,std::map<double, double>> peakMassMap; // mslevel, mz -> mass
+
+    param.currentMaxMSLevel = 0;
+    //if(param.currentMaxMSLevel == 0){
+    for (auto it = map.begin(); it != map.end(); ++it)
+    {
+      auto msLevel = it->getMSLevel();
+      param.currentMaxMSLevel = param.currentMaxMSLevel < msLevel? msLevel : param.currentMaxMSLevel;
+    }
+
+    param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
+    //}
+
+    for(UInt j=1;j<=param.currentMaxMSLevel;j++){
+      prevMassBinMap[j] = std::vector<std::vector<Size>>();
+      prevMassBinMap[j].reserve(param.numOverlappedScans[j-1] * 10 );
+      prevMinBinLogMassMap[j] = std::vector<double>();
+      prevMinBinLogMassMap[j].reserve(param.numOverlappedScans[j-1] * 10 );
+
+      peakChargeMap[j] = std::map<double, int>();
+      peakIntMap[j] = std::map<double, double>();
+      peakMassMap[j] = std::map<double, double>();
+    }
+
+    auto prevChargeRanges = new int[param.currentMaxMSLevel];
+    auto prevMaxMasses = new double[param.currentMaxMSLevel];
+
+    std::fill_n(prevChargeRanges, param.currentMaxMSLevel, param.chargeRange);
+    std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       auto msLevel =  it->getMSLevel();
-      if (msLevel> param.maxMSLevel)
+      if (msLevel> param.currentMaxMSLevel)
       {
         continue;
       }
-      //if(qspecCntr > 50){
-      //  break; //
-      //}
 
       float progress = (float) (it - map.begin()) / map.size();
       if (progress > prevProgress + .01)
@@ -96,21 +125,27 @@ namespace OpenMS
         prevProgress = progress;
       }
 
-      specCntr++;
+      specCntr[msLevel-1]++;
 
       auto sd = SpectrumDeconvolution(*it, param);
 
       auto precursorMsLevel = msLevel - 1;
 
       // to find precursor peaks with assigned charges..
-      if (peakChargeMap.find(precursorMsLevel) == peakChargeMap.end())
+      if (msLevel == 1)
       {
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
+        param.currentMaxMassCount = param.maxMassCount;
+
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
+        auto &subPeakIntMap = peakIntMap[precursorMsLevel];
+        auto &subPeakMassMap = peakMassMap[precursorMsLevel];
         int mc = -1;
+        double pint = 0;
         double mm = -1;
+        // auto tmz = 0.0;
         for(auto &pre : it->getPrecursors()){
           auto startMz = pre.getIsolationWindowLowerOffset() > 100.0 ? pre.getIsolationWindowLowerOffset() : -pre.getIsolationWindowLowerOffset() + pre.getMZ();
           auto endMz = pre.getIsolationWindowUpperOffset() > 100.0 ? pre.getIsolationWindowUpperOffset() : pre.getIsolationWindowUpperOffset() + pre.getMZ();
@@ -124,67 +159,97 @@ namespace OpenMS
             if(mz > endMz){
               break;
             }
-            int pc = subPeakChargeMap[mz];
-            mc = mc > pc? mc : pc;
-            double pm = mc * mz;
-            mm = mm > pm ? mm : pm;
+            //tmz=mz;
+            auto &cint = subPeakIntMap[mz];
+            if(pint < cint){
+              cint = pint;
+              mc = subPeakChargeMap[mz];
+              mm = subPeakMassMap[mz];//mc * mz;
+            }
           }
         }
         if(mc > 0){
-          param.currentChargeRange = mc;
-          param.currentMaxMass = mm;
-          //std::cout<<mc<< " " << mm << std::endl;
-         // param.currentChargeRange = param.chargeRange;
-          //param.currentMaxMass = param.maxMass;
+          param.currentChargeRange = mc  - param.minCharge; //
+          param.currentMaxMass = mm + 100; // isotopie margin
+          // std::cout<< mm << " "<< tmz << " "<< it->getRT() <<  std::endl;
 
+          prevChargeRanges[msLevel - 1] = param.currentChargeRange;
+          prevMaxMasses[msLevel-1] =  param.currentMaxMass;
         }else{
-          param.currentChargeRange = param.chargeRange;
-          param.currentMaxMass = param.maxMass;
+          param.currentChargeRange =  prevChargeRanges[msLevel - 1];
+          param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
+        //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
+        //param.currentMaxMassCount = (int)(param.currentMaxMass/110*2);
+
       }
 
-      auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap, prevMinBinLogMassMap ,avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
-
-      auto subPeakChargeMap = std::map<double, int>();
-      for (auto& pg : peakGroups)
-      {
-        for(auto& p : pg.peaks){
-          int mc = p.charge;
-          if (subPeakChargeMap.find(p.mz) == subPeakChargeMap.end()){
-            int pc = subPeakChargeMap[p.mz];
-            mc = mc > pc? mc : pc;
-          }
-          subPeakChargeMap[p.mz] = mc;
-        }
+      if(sd.empty()){
+        continue;
       }
-      peakChargeMap[msLevel] = subPeakChargeMap;
+      auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap[msLevel], prevMinBinLogMassMap[msLevel] ,avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
 
       if (peakGroups.empty())
       {
         continue;
       }
 
-      qspecCntr++;
+      if (msLevel < param.currentMaxMSLevel)
+      {
+        auto& subPeakChargeMap = peakChargeMap[msLevel];//std::map<double, int>();
+        auto& subPeakIntMap = peakIntMap[msLevel];//std::map<double, double>();
+        auto& subPeakMassMap = peakMassMap[msLevel];//std::map<double, double>();
+        subPeakChargeMap.clear();
+        subPeakIntMap.clear();
+        subPeakMassMap.clear();
 
+        for (auto &pg : peakGroups)
+        {
+          //std::cout<< pg.monoisotopicMass <<" "<< it->getRT() <<  std::endl;
+          for (auto &p : pg.peaks)
+          {
+            int mc = p.charge;
+            if (subPeakChargeMap.find(p.mz) != subPeakChargeMap.end())
+            {
+              int pc = subPeakChargeMap[p.mz];
+              mc = mc > pc ? mc : pc;
+            }
+            subPeakChargeMap[p.mz] = mc;
+            subPeakIntMap[p.mz] = p.intensity;
+            subPeakMassMap[p.mz] = pg.monoisotopicMass;
+          }
+        }
+
+        //peakChargeMap[msLevel] = subPeakChargeMap;
+        //peakIntMap[msLevel] = subPeakIntMap;
+        //peakMassMap[msLevel] = subPeakMassMap;
+      }
+      qspecCntr[msLevel-1]++;
+      specIndex++;
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
       for (auto &pg : peakGroups)
       {
-        massCntr++;
+        massCntr[msLevel-1]++;
+        massIndex++;
         pg.spec = &(*it);
-        pg.massIndex = massCntr;
-        pg.specIndex = qspecCntr;
+        pg.massIndex = massIndex;
+        pg.specIndex = specIndex;
         pg.massCntr = (int) peakGroups.size();
         allPeakGroups.push_back(pg);
       }
     }
     printProgress(1); //
+    std::cout<<std::endl;
     //allPeakGroups.shrink_to_fit();
+    delete[] prevChargeRanges;
+    delete[] prevMaxMasses;
+
     return allPeakGroups; //
   }
 
   void FLASHDeconvAlgorithm::printProgress(float progress)
   {
-    //return;
+    //return; //
     int barWidth = 70;
     std::cout << "[";
     int pos = (int) (barWidth * progress);
@@ -208,124 +273,100 @@ namespace OpenMS
   }
 
 
-/*
-  bool FLASHDeconvAlgorithm::checkSpanDistribution(int *mins, int *maxs, int range, int threshold)
-  {
-    int nonZeroStart = -1, nonZeroEnd = 0;
-    int maxSpan = 0;
-
-    for (int i = 0; i < range; i++)
+  /*
+    bool FLASHDeconvAlgorithm::checkSpanDistribution(int *mins, int *maxs, int range, int threshold)
     {
-      if (maxs[i] >= 0)
+      int nonZeroStart = -1, nonZeroEnd = 0;
+      int maxSpan = 0;
+
+      for (int i = 0; i < range; i++)
       {
-        if (nonZeroStart < 0)
+        if (maxs[i] >= 0)
         {
-          nonZeroStart = i;
-        }
-        nonZeroEnd = i;
-        maxSpan = std::max(maxSpan, maxs[i] - mins[i]);
-      }
-    }
-    if (maxSpan <= 0)
-    {
-      return false;
-    }
-
-    int prevCharge = nonZeroStart;
-    int n_r = 0;
-
-    double spanThreshold = maxSpan / 1.5;//
-
-    for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
-    {
-      if (maxs[k] < 0)
-      {
-        continue;
-      }
-
-
-      if (k - prevCharge == 1)
-      {
-        int intersectSpan = std::min(maxs[prevCharge], maxs[k])
-                            - std::max(mins[prevCharge], mins[k]);
-
-        if (spanThreshold <= intersectSpan)
-        { //
-          n_r++;
-        }
-      }
-      prevCharge = k;
-    }
-
-    if (n_r < threshold)
-    {
-      return -100.0;
-    }
-
-    for (int i = 2; i < std::min(12, range); i++)
-    {
-      for (int l = 0; l < i; l++)
-      {
-        int t = 0;
-        prevCharge = nonZeroStart + l;
-        for (int k = prevCharge + i; k <= nonZeroEnd; k += i)
-        {
-          if (maxs[k] < 0)
+          if (nonZeroStart < 0)
           {
-            continue;
+            nonZeroStart = i;
           }
+          nonZeroEnd = i;
+          maxSpan = std::max(maxSpan, maxs[i] - mins[i]);
+        }
+      }
+      if (maxSpan <= 0)
+      {
+        return false;
+      }
+
+      int prevCharge = nonZeroStart;
+      int n_r = 0;
+
+      double spanThreshold = maxSpan / 1.5;//
+
+      for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
+      {
+        if (maxs[k] < 0)
+        {
+          continue;
+        }
 
 
-          if (k - prevCharge == i)
+        if (k - prevCharge == 1)
+        {
+          int intersectSpan = std::min(maxs[prevCharge], maxs[k])
+                              - std::max(mins[prevCharge], mins[k]);
+
+          if (spanThreshold <= intersectSpan)
+          { //
+            n_r++;
+          }
+        }
+        prevCharge = k;
+      }
+
+      if (n_r < threshold)
+      {
+        return -100.0;
+      }
+
+      for (int i = 2; i < std::min(12, range); i++)
+      {
+        for (int l = 0; l < i; l++)
+        {
+          int t = 0;
+          prevCharge = nonZeroStart + l;
+          for (int k = prevCharge + i; k <= nonZeroEnd; k += i)
           {
-            int intersectSpan = std::min(maxs[prevCharge], maxs[k])
-                                - std::max(mins[prevCharge], mins[k]);
-
-            if (spanThreshold <= intersectSpan)
+            if (maxs[k] < 0)
             {
-              t++;
+              continue;
             }
+
+
+            if (k - prevCharge == i)
+            {
+              int intersectSpan = std::min(maxs[prevCharge], maxs[k])
+                                  - std::max(mins[prevCharge], mins[k]);
+
+              if (spanThreshold <= intersectSpan)
+              {
+                t++;
+              }
+            }
+            prevCharge = k;
           }
-          prevCharge = k;
+          if (n_r <= t)
+          {
+            return false;
+          }
         }
-        if (n_r <= t)
-        {
-          return false;
-        }
       }
+
+      return true;
     }
 
-    return true;
-  }
+
+   */
 
 
- */
 
-/*
-  void
-  FLASHDeconvAlgorithm::filterPeakGroupsByIntensity(std::vector<PeakGroup> &peakGroups, std::vector<double> &intensities, const Parameter &param)
-  {
-    if (param.maxMassCount < 0 || intensities.size() <= (Size) param.maxMassCount)
-    {
-      return;
-    }
-    Size mc = (Size) param.maxMassCount;
-    sort(intensities.begin(), intensities.end());
-    auto threshold = intensities[intensities.size() - mc];
-    for (auto pg = peakGroups.begin(); pg != peakGroups.end();)
-    {
-      if (peakGroups.size() <= mc)
-      {
-        break;
-      }
-      if (pg->intensity < threshold)
-      {
-        pg = peakGroups.erase(pg);
-        continue;
-      }
-      ++pg;
-    }
-  }
-*/
 }
 

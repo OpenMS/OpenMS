@@ -8,7 +8,7 @@ namespace OpenMS
 {
 
   void MassFeatureTrace::findFeatures(std::vector<PeakGroup> &peakGroups,
-                                      int &maxSpecIndex,
+                                      int maxSpecIndex,
                                       int &featureCntr,
                                       std::fstream &fsf,
                                       PrecalcularedAveragine &averagines,
@@ -82,7 +82,7 @@ namespace OpenMS
 
     //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
     //                   "Allowed mass deviation (in da).");
-    mtd_param.setValue("mass_error_ppm", param.tolerance * 1e6, "");
+    mtd_param.setValue("mass_error_ppm", param.tolerance[0] * 1e6, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
     mtd_param.setValue("reestimate_mt_sd", "false", "");
@@ -91,7 +91,7 @@ namespace OpenMS
 
     //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
     mtd_param.setValue("min_sample_rate", 0.01, "");
-    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
+    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans[0], "");
     mtd_param.setValue("min_trace_length", param.minRTSpan, "");
     //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);
@@ -166,7 +166,7 @@ namespace OpenMS
                                                                                    perIsotopeIntensity,
                                                                                    param.maxIsotopeCount,
                                                                                    offset, averagines);
-      if (isoScore < param.minIsotopeCosine)
+      if (isoScore < param.minIsotopeCosine[0])
       {
         continue;
       }

@@ -68,6 +68,9 @@ namespace OpenMS
 
     static Size getBinNumber(double v, double minV, double binWidth);
 
+    static void pringMasses(boost::dynamic_bitset<> &massBins, double &minMass, double binWidth);
+
+
     void updateLogMzPeaks();
 
     void updateMzBins(double &mzBinMinValue, Size &binNumber, double binWidth,
@@ -76,7 +79,8 @@ namespace OpenMS
 
     void unionPrevMassBins(double &massBinMinValue,
                            std::vector<std::vector<Size>> &prevMassBinVector,
-                           std::vector<double> &prevMassBinMinValue);
+                           std::vector<double> &prevMassBinMinValue,
+                           UInt msLevel);
 
     Byte **updateMassBins_(boost::dynamic_bitset<> &candidateMassBinsForThisSpectrum,
                            float *massIntensities,
@@ -85,12 +89,13 @@ namespace OpenMS
     );
 
     Byte **updateMassBins(double &massBinMinValue,
+                          double &mzBinMinValue,
                           float *massIntensities,
                           float *mzIntensities,
                           unsigned int &msLevel
     );
 
-    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, unsigned int &msLevel);
+    boost::dynamic_bitset<> getCandidateMassBinsForThisSpectrum(float *massIntensitites, float *mzIntensities, double& mzMinValue, unsigned int &msLevel);
 
     void getCandidatePeakGroups(double &mzBinMinValue,
                                 double &massBinMinValue,
