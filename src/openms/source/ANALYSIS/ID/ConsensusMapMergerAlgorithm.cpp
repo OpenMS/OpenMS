@@ -222,7 +222,6 @@ namespace OpenMS
         // if first time filling this new run:
         //TODO safe to check for empty identifier?
 
-        //TODO create mapping for setting id_merge_idx metavalue
         if (newProtIDs.at(newrunid).getIdentifier().empty())
         {
           //initialize new run
