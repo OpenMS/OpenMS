@@ -1,15 +1,17 @@
 from String cimport *
+from AASequence cimport *
 
 
 
 cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS":
 
     cdef cppclass DecoyGenerator:
+        DecoyGenerator() nogil except +
 
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS::DecoyGenerator":
-        
+
     # static members
     AASequence reverseProtein(const AASequence& protein) nogil except +  # wrap-attach:DecoyGenerator
     
