@@ -21,6 +21,11 @@ set(my_sources
 ## to automate adding the aforementioned find_dependency calls during export.
 find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
+## Same here. This should be made optional somehow. Figure out how to do that.
+if (UNIX)
+  find_package(OpenMP)
+endif()
+
 ## find OpenMS package and register target "OpenMS" (our library)
 ## Note: This is customized to fit the nightly test scenario. In a
 ##       regular build find_package(OpenMS) should be sufficient.
