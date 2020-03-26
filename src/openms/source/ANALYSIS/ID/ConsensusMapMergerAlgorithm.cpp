@@ -239,9 +239,10 @@ namespace OpenMS
         {
           //check consistency and add origins
           it->peptideIDsMergeable(newProtIDs[newrunid], experiment_type);
+          Size offset = newProtIDs[newrunid].nrPrimaryMSRunPaths();
           StringList toFill; it->getPrimaryMSRunPath(toFill); // new ones
           newProtIDs[newrunid].addPrimaryMSRunPath(toFill); //add to previous
-          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair(runIDToNewRunIdcsPair.first, newrunid), toFill.size());
+          oldRunID_NewRunIdx_Pair2NewMergeIdxOffset.emplace(make_pair(runIDToNewRunIdcsPair.first, newrunid), offset);
         }
       }
 
@@ -282,16 +283,16 @@ namespace OpenMS
       Size oldMergeIdx = 0;
       //TODO we could lookup the old protein ID and see if there were multiple MSruns. If so, we should fail if not
       // exist
-      if (pid.metaValueExists("id_merge_idx"))
+      if (pid.metaValueExists("id_merge_index"))
       {
-        oldMergeIdx = pid.getMetaValue("id_merge_idx");
+        oldMergeIdx = pid.getMetaValue("id_merge_index");
       }
 
       for (const auto& runToPut : runsToPut)
       {
         const ProteinIdentification& newProtIDRun = newProtIDs[runToPut];
         pid.setIdentifier(newProtIDRun.getIdentifier());
-        pid.setMetaValue("id_merge_idx", oldMergeIdx + oldRunID_NewRunIdx_Pair2NewMergeIdxOffset[{pid.getIdentifier(),runToPut}]);
+        pid.setMetaValue("id_merge_index", oldMergeIdx + oldRunID_NewRunIdx_Pair2NewMergeIdxOffset[{pid.getIdentifier(),runToPut}]);
       }
     };
 
@@ -331,8 +332,9 @@ namespace OpenMS
     {
       vector<String> out;
       pid.getPrimaryMSRunPath(out);
+      Size offset = mergedOriginFiles.size();
       mergedOriginFiles.insert(mergedOriginFiles.end(), out.begin(), out.end());
-      oldRunID2Offset_Multi_Pair.emplace(pid.getIdentifier(), make_pair<Size,bool>(out.size(), out.size() > 1));
+      oldRunID2Offset_Multi_Pair.emplace(pid.getIdentifier(), make_pair(offset, out.size() > 1));
     }
     newProtIDRun.setPrimaryMSRunPath(mergedOriginFiles);
 
@@ -365,10 +367,9 @@ namespace OpenMS
       const auto& p = oldRunID2Offset_Multi_Pair[pid.getIdentifier()];
       pid.setIdentifier(newProtIDRunString);
       Size old = 0;
-      if (pid.metaValueExists("id_merge_idx"))
+      if (pid.metaValueExists("id_merge_index"))
       {
-        old = pid.getMetaValue("id_merge_idx");
-        pid.setMetaValue("id_merge_idx", old + p.first);
+        old = pid.getMetaValue("id_merge_index");
       }
       else
       {
@@ -378,10 +379,10 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "No id_merge_idx value in a merged ID run."); //TODO add more info about where.
+              "No id_merge_index value in a merged ID run."); //TODO add more info about where.
         }
       }
-
+      pid.setMetaValue("id_merge_index", old + p.first);
     };
 
     cmap.applyFunctionOnPeptideIDs(fun);

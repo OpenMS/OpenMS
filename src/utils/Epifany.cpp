@@ -130,6 +130,8 @@ protected:
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", {"idXML","consensusXML"});
+    registerStringOption_("out_type", "<file>", "", "Output type: auto detected by file extension but can be overwritten here.", false);
+    setValidStrings_("out_type", {"idXML","consensusXML"});
 
     registerStringOption_("protein_fdr",
                           "<option>",
@@ -258,10 +260,12 @@ protected:
     sw.start();
 
     String out_file = getStringOption_("out");
+    String out_type = getStringOption_("out_type");
 
     if (!files.empty() && (in_type == FileTypes::CONSENSUSXML))
     {
-      if (FileHandler::getType(out_file) != FileTypes::CONSENSUSXML)
+      if (FileHandler::getTypeByFileName(out_file) != FileTypes::CONSENSUSXML &&
+          FileTypes::nameToType(out_type) != FileTypes::CONSENSUSXML)
       {
         OPENMS_LOG_FATAL_ERROR << "Error: Running on consensusXML requires output as consensusXML. Please change the "
                                   "output type.\n";
