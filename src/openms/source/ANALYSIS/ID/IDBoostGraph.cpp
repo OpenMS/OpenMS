@@ -142,6 +142,7 @@ namespace OpenMS
                              std::vector<PeptideIdentification>& idedSpectra,
                              Size use_top_psms,
                              bool use_run_info,
+                             bool best_psms_annotated,
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
@@ -152,7 +153,7 @@ namespace OpenMS
     }
     else
     {
-      buildGraph_(proteins, idedSpectra, use_top_psms);
+      buildGraph_(proteins, idedSpectra, use_top_psms, best_psms_annotated);
     }
   }
 
@@ -161,6 +162,7 @@ namespace OpenMS
                              Size use_top_psms,
                              bool use_run_info,
                              bool use_unassigned_ids,
+                             bool best_psms_annotated,
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
@@ -250,14 +252,14 @@ namespace OpenMS
     Size idx(0);
     Size pfg(0);
 
-    if (spectrum.metaValueExists("map_index"))
+    if (spectrum.metaValueExists("id_merge_index"))
     {
-      idx = spectrum.getMetaValue("map_index");
+      idx = spectrum.getMetaValue("id_merge_index");
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Reference (map_index) to non-existing run found at peptide ID."
+            "Reference (id_merge_index) to non-existing run found at peptide ID."
             " Sth went wrong during merging. Aborting.");
       }
       pfg = find_it->second - 1; // Experimental design numbering starts at one
@@ -265,7 +267,7 @@ namespace OpenMS
     else
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Trying to read run information (map_index) but none present at peptide ID."
+        "Trying to read run information (id_merge_index) but none present at peptide ID."
         " Did you annotate runs during merging? Aborting.");
     }
 
@@ -414,7 +416,8 @@ namespace OpenMS
   // on the graph later it needs to be non-const. Overload the next functions or somehow make sure it can be used const.
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
                                 std::vector<PeptideIdentification>& idedSpectra,
-                                Size use_top_psms)
+                                Size use_top_psms,
+                                bool best_psms_annotated)
   {
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
 
@@ -431,9 +434,12 @@ namespace OpenMS
     const String& protRun = proteins.getIdentifier();
     for (auto& spectrum : idedSpectra)
     {
-      if (spectrum.getIdentifier() == protRun)
+      if (!best_psms_annotated || static_cast<int>(spectrum.getMetaValue("best_per_peptide")))
       {
-        addPeptideIDWithAssociatedProteins_(spectrum, vertex_map, accession_map, use_top_psms);
+        if (spectrum.getIdentifier() == protRun)
+        {
+          addPeptideIDWithAssociatedProteins_(spectrum, vertex_map, accession_map, use_top_psms);
+        }
       }
       pl.nextProgress();
     }
@@ -444,7 +450,8 @@ namespace OpenMS
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
                                  ConsensusMap& cmap,
                                  Size use_top_psms,
-                                 bool use_unassigned_ids)
+                                 bool use_unassigned_ids,
+                                 bool best_psms_annotated)
   {
     StringList runs;
     proteins.getPrimaryMSRunPath(runs);
@@ -468,9 +475,12 @@ namespace OpenMS
     {
       for (auto& id : feature.getPeptideIdentifications())
       {
-        if (id.getIdentifier() == protRun)
+        if (!best_psms_annotated || static_cast<int>(id.getMetaValue("best_per_peptide")))
         {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          if (id.getIdentifier() == protRun)
+          {
+            addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          }
         }
       }
       pl.nextProgress();
@@ -479,9 +489,12 @@ namespace OpenMS
     {
       for (auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        if (id.getIdentifier() == protRun)
+        if (!best_psms_annotated || static_cast<int>(id.getMetaValue("best_per_peptide")))
         {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          if (id.getIdentifier() == protRun)
+          {
+            addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          }
         }
         pl.nextProgress();
       }

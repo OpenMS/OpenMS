@@ -451,7 +451,7 @@ public:
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 
-    /// get the number of promary MS runs involve in this ID run
+    /// get the number of primary MS runs involve in this ID run
     Size nrPrimaryMSRunPaths(bool raw = false) const;
 
     /// Checks if this object has inference data. Looks for "InferenceEngine" metavalue.

@@ -551,6 +551,12 @@ namespace OpenMS
                        "Consider only top X PSMs per spectrum. 0 considers all.");
     defaults_.setMinInt("top_PSMs", 0);
 
+    defaults_.setValue("keep_best_PSM_only",
+                       "true",
+                       "Epifany uses the best PSM per peptide for inference. Discard the rest (true) or keep"
+                       "e.g. for quantification/reporting?");
+    defaults_.setValidStrings("keep_best_PSM_only", {"true","false"});
+
     defaults_.setValue("update_PSM_probabilities",
                        "true",
                        "(Experimental:) Update PSM probabilities with their posteriors under consideration of the protein probabilities.");
@@ -771,10 +777,11 @@ namespace OpenMS
           " or run IDPosteriorErrorProbability first.");
     }
 
-
-    //TODO BIG filtering needs to account for run info if used
+    //TODO filtering needs to account for run info if we allow running on a subset.
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
     //TODO BIG filter empty PeptideIDs and proteins afterwards
+
+    bool keep_all_psms = param_.getValue("keep_best_PSM_only").toString() == "false";
     bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
     bool use_unannotated_ids = param_.getValue("use_ids_outside_features").toBool();
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
@@ -787,6 +794,25 @@ namespace OpenMS
     // since inference might change the ranking.
     p.setValue("use_all_hits", "false");
     pepFDR.setParameters(p);
+
+    //TODO allow use unassigned everywhere
+    //TODO actually if we just want to use replicate information, we can still filter for best per run,
+    // but the extended model is currently coupled to multiple charge and mod states (which would be removed)
+    if (!use_run_info)
+    {
+      if (!keep_all_psms)
+      {
+        IDFilter::keepBestPerPeptidePerRun(cmap, true,
+                                           true, static_cast<unsigned int>(nr_top_psms));
+        IDFilter::removeEmptyIdentifications(cmap);
+      }
+      else
+      {
+        IDFilter::annotateBestPerPeptidePerRun(cmap, true,
+                                               true, static_cast<unsigned int>(nr_top_psms));
+      }
+    }
+    IDFilter::removeUnreferencedProteins(cmap, true);
 
     vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
     if (proteinIDs.size() == 1) // could be merged with the general case, but we can save the runid lookup here.
@@ -802,19 +828,22 @@ namespace OpenMS
       }
 
       // TODO try to calc AUC partial only (e.g. up to 5% FDR)
-      OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
+      if (!keep_all_psms)
+        OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
 
       setScoreTypeAndSettings_(proteinIDs[0]);
-      IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, exp_des);
+      IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms, exp_des);
       inferPosteriorProbabilities_(ibg);
       if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
-      OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
+      if (!keep_all_psms)
+        OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
     }
     else if (cmap.getProteinIdentifications().size() > 1)
     {
       for (auto& proteinID : cmap.getProteinIdentifications())
       {
+        //TODO LOG the current processed run
         // Save current scores as priors if requested
         if (user_defined_priors)
         {
@@ -826,14 +855,16 @@ namespace OpenMS
         }
 
         //TODO try to calc AUC partial only (e.g. up to 5% FDR)
-        OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
+        if (!keep_all_psms)
+          OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
 
         setScoreTypeAndSettings_(proteinID);
-        IDBoostGraph ibg(proteinID, cmap, nr_top_psms, use_run_info, use_unannotated_ids);
+        IDBoostGraph ibg(proteinID, cmap, nr_top_psms, use_run_info, use_unannotated_ids, keep_all_psms);
         inferPosteriorProbabilities_(ibg);
         if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
-        OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
+        if (!keep_all_psms)
+          OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
       }
     }
   }
@@ -1002,13 +1033,23 @@ namespace OpenMS
     IDFilter::removeEmptyIdentifications(peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
+    bool keep_all_psms = param_.getValue("keep_best_PSM_only").toString() == "false";
 
     //TODO actually if we just want to use replicate information, we can still filter for best per run,
     // but the extended model is currently coupled to multiple charge and mod states (which would be removed)
     if (!use_run_info)
     {
-      IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true, true, static_cast<unsigned int>(nr_top_psms));
-      IDFilter::removeEmptyIdentifications(peptideIDs);
+      if (!keep_all_psms)
+      {
+        IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true,
+                                           true, static_cast<unsigned int>(nr_top_psms));
+        IDFilter::removeEmptyIdentifications(peptideIDs);
+      }
+      else
+      {
+        IDFilter::annotateBestPerPeptidePerRun(proteinIDs, peptideIDs, true,
+                                           true, static_cast<unsigned int>(nr_top_psms));
+      }
     }
 
     IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
@@ -1031,13 +1072,15 @@ namespace OpenMS
       }
     }
 
-    OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+    if (!keep_all_psms)
+      OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
 
     setScoreTypeAndSettings_(proteinIDs[0]);
-    IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, exp_des);
+    IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, keep_all_psms, exp_des);
     inferPosteriorProbabilities_(ibg);
 
-    OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+    if (!keep_all_psms)
+      OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
   }
 
 }
