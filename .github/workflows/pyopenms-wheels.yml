@@ -412,4 +412,4 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token }}
-        packages_dir: ${{ github.workspace }}
+        packages_dir: ${{ github.workspace }}/${{ runner.os }}-wheels
