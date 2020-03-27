@@ -1,6 +1,6 @@
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
@@ -21,8 +21,8 @@ set(my_sources
 ## to automate adding the aforementioned find_dependency calls during export.
 find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
-## Same here. This should be made optional somehow. Figure out how to do that.
-if (UNIX)
+## Same here. This should be made optional somehow. Figure out how to do that. And figure out, why on macOS it works already.
+if (NOT APPLE)
   find_package(OpenMP)
 endif()
 
