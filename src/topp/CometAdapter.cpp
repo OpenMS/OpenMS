@@ -229,7 +229,7 @@ protected:
 
     registerIntList_("binary_modifications", "<mods>", {}, 
         "List of modification group indices. Indices correspond to the binary modification index used by comet to group individually searched lists of variable modifications.\n" 
-        "Note: if set, both variable_modifications and binary_modifications need to have the same number of entries as the N-th entry corrsponds to N-th variable_modification.\n"
+        "Note: if set, both variable_modifications and binary_modifications need to have the same number of entries as the N-th entry corresponds to the N-th variable_modification.\n"
         "      if left empty (default), all entries are internally set to 0 generating all permutations of modified and unmodified residues.\n"
         "      For a detailed explanation please see the parameter description in the comet help.",
         false);
