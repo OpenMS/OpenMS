@@ -294,8 +294,12 @@ protected:
     String enzyme_name = getStringOption_("enzyme");
     String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
     String second_enzyme_name = getStringOption_("second_enzyme");
-    String enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
-
+    String enzyme2_number = "0";
+    if (!second_enzyme_name.empty())
+    {
+      enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
+    }
+ 
     map<string,int> num_enzyme_termini;
     num_enzyme_termini["semi"] = 1;
     num_enzyme_termini["fully"] = 2;
