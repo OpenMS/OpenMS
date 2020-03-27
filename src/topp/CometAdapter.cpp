@@ -124,7 +124,7 @@ protected:
       // choose the default value according to the platform where it will be executed
       "comet.exe", // this is the name on ALL platforms currently...
       "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2", "comet version: (year,version,revision)", false, false); // required as first line in the param file
+    registerStringOption_("comet_version","<choice>", "2019.01 rev. 4", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -144,13 +144,16 @@ protected:
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
-    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,-1/0/1/2/3,-8/-4/0/4/8"));
+    setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
 
     //Search Enzyme
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
+    registerStringOption_("second_enzyme", "<cleavage site>", "", "The enzyme used for peptide digestion.", false, true);
+    setValidStrings_("second_enzyme", all_enzymes);
+
     registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
     setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
@@ -248,12 +251,15 @@ protected:
 
   void createParamFile_(ostream& os)
   {
-    os << "# comet_version " << getStringOption_("comet_version") << "\n";               //required as first line in the param file
+    os << "# comet_version " << getStringOption_("comet_version") << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
     os << "# Everything following the '#' symbol is treated as a comment.\n";
     os << "database_name = " << getStringOption_("database") << "\n";
-    os << "decoy_search = " << 0 << "\n"; // 0=no (default), 1=concatenated search, 2=separate search
-    os << "num_threads = " << getIntOption_("threads") << "\n";  // 0=poll CPU to set num threads; else specify num threads directly (max 64)
+    os << "decoy_search = " << 0 << "\n";                                               // 0=no (default), 1=concatenated search, 2=separate search
+    os << "peff_format = 0\n";                                                          // 0=no (normal fasta, default), 1=PEFF PSI-MOD, 2=PEFF Unimod
+    os << "peff_obo =\n";                                                               // path to PSI Mod or Unimod OBO file
+
+    os << "num_threads = " << getIntOption_("threads") << "\n";                         // 0=poll CPU to set num threads; else specify num threads directly (max 64)
 
     // masses
     map<String,int> precursor_error_units;
@@ -263,20 +269,24 @@ protected:
 
     map<string,int> isotope_error;
     isotope_error["off"] = 0;
-    isotope_error["-1/0/1/2/3"] = 1;
-    isotope_error["-8/-4/0/4/8"] = 2;
+    isotope_error["0/1"] = 1;
+    isotope_error["0/1/2"] = 2;
+    isotope_error["0/1/2/3"] = 3;
+    isotope_error["-8/-4/0/4/8"] = 4;
 
     os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
-    os << "precursor_tolerance_type = " << 0 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
-    os << "isotope_error = " << isotope_error[getStringOption_(Constants::UserParam::ISOTOPE_ERROR)] << "\n";                      // 0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)
+    os << "precursor_tolerance_type = " << 1 << "\n";            // 0=MH+ (default), 1=precursor m/z; only valid for amu/mmu tolerances
+    os << "isotope_error = " << isotope_error[getStringOption_(Constants::UserParam::ISOTOPE_ERROR)] << "\n";                   // 0=off, 1=0/1 (C13 error), 2=0/1/2, 3=0/1/2/3, 4=-8/-4/0/4/8 (for +4/+8 labeling)
 
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
     String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
+    String second_enzyme_name = getStringOption_("second_enzyme");
+    String enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
 
     map<string,int> num_enzyme_termini;
     num_enzyme_termini["semi"] = 1;
@@ -285,12 +295,13 @@ protected:
     num_enzyme_termini["N-term unspecific"] = 9;
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
-    os << "num_enzyme_termini = " << num_enzyme_termini[getStringOption_("num_enzyme_termini")] << "\n";                  // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
+    os << "search_enzyme2_number = " << enzyme2_number << "\n";              // second enzyme; set to 0 if no second enzyme
+    os << "num_enzyme_termini = " << num_enzyme_termini[getStringOption_("num_enzyme_termini")] << "\n"; // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
     os << "allowed_missed_cleavage = " << getIntOption_("allowed_missed_cleavages") << "\n";             // maximum value is 5; for enzyme search
 
     // Up to 9 variable modifications are supported
-    // format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required>
-    //     e.g. 79.966331 STY 0 3 -1 0 0
+    // # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
+    //     e.g. 79.966331 STY 0 3 -1 0 0 97.976896
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
     vector<ResidueModification> variable_modifications = getModifications_(variable_modifications_names);
     if (variable_modifications.size() > 9)
@@ -348,13 +359,13 @@ protected:
       //TODO support required variable mods
       bool required = false;
 
-      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << binary_group << " " << max_current_mod_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << binary_group << " " << max_current_mod_per_peptide << " " << term_distance << " " << nc_term << " " << required << " " << loss << ""\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
     for (; var_mod_index < 9; ++var_mod_index)
     {
-      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0" << "\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " << "0.0 X 0 3 -1 0 0 0.0" << "\n";
     }
 
     os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
@@ -394,7 +405,6 @@ protected:
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
 
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
-    os << "output_outfiles = " <<  0 << "\n";                    // 0=no, 1=yes  write .out files
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
     os << "num_output_lines = " << getIntOption_("num_hits") << "\n";                    // num peptide results to show
     os << "show_fragment_ions = " << 0 << "\n";                  // 0=no, 1=yes for out files only
@@ -433,10 +443,14 @@ protected:
     os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
+    os << "peptide_length_range = 5 63\n";                       // minimum and maximum peptide length to analyze (default 1 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
+    os << "max_duplicate_proteins = 20\n"                          // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
+    os << "equal_I_and_L = 1\n";
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
+    os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
 
     // spectral processing
     map<string,int> remove_precursor_peak;
@@ -453,7 +467,7 @@ protected:
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
     os << "minimum_intensity = " << getDoubleOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
-    os << "remove_precursor_peak = " << remove_precursor_peak[getStringOption_("remove_precursor_peak")] << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)
+    os << "remove_precursor_peak = " << remove_precursor_peak[getStringOption_("remove_precursor_peak")] << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD), 3=phosphate neutral loss peaks
     os << "remove_precursor_tolerance = " << getDoubleOption_("remove_precursor_tolerance") << "\n";        // +- Da tolerance for precursor removal
     os << "clear_mz_range = " << clear_mz_range_min << " " << clear_mz_range_max << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
 
@@ -473,20 +487,20 @@ protected:
     }
     else
     {
-      for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+      for (const auto& fm : fixed_modifications)
       {
         // check modification (amino acid or terminal)
-        String AA = it->getOrigin(); // X (constructor) or amino acid (e.g. K)
-        String term_specificity = it->getTermSpecificityName(); // N-term, C-term, none
+        String AA = fm.getOrigin(); // X (constructor) or amino acid (e.g. K)
+        String term_specificity = fm.getTermSpecificityName(); // N-term, C-term, none
         if ((AA != "X") && (term_specificity == "none"))
         {
           const Residue* r = ResidueDB::getInstance()->getResidue(AA);
           String name = r->getName();
-          os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << it->getDiffMonoMass() << endl;
+          os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << fm.getDiffMonoMass() << endl;
         }
         else
         {
-          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << fm.getDiffMonoMass() << endl;
         }
       }
     }
