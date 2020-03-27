@@ -359,7 +359,15 @@ protected:
       //TODO support required variable mods
       bool required = false;
 
-      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << binary_group << " " << max_current_mod_per_peptide << " " << term_distance << " " << nc_term << " " << required << " " << loss << ""\n";
+      os << "variable_mod0" << var_mod_index+1 << " = " 
+         << mass << " " << residues << " " 
+         << binary_group << " " 
+         << max_current_mod_per_peptide << " " 
+         << term_distance << " " 
+         << nc_term << " " 
+         << required << " " 
+         << "0.0" // TODO: add neutral losses (from Residue or user defined?)
+         << ""\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
