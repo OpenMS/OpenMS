@@ -226,6 +226,14 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
+
+    registerIntList_("binary_modifications", "<mods>", {}, 
+        "List of modification group indices. Indices correspond to the binary modification index used by comet to group individually searched lists of variable modifications.\n" 
+        "Note: if set, both variable_modifications and binary_modifications need to have the same number of entries as the N-th entry corrsponds to N-th variable_modification.\n"
+        "      if left empty (default), all entries are internally set to 0 generating all permutations of modified and unmodified residues.\n"
+        "      For a detailed explanation please see the parameter description in the comet help.",
+        false);
+
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
@@ -309,6 +317,12 @@ protected:
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
     }
 
+    IntList binary_modifications = getIntList_("binary_modifications");
+    if (binary_modifications.size() != 0 && binary_modifications.size() != variable_modifications.size())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: List of binary modifications needs to have same size as variable modifications.");
+    }
+
     int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
     Size var_mod_index = 0;
 
@@ -318,8 +332,18 @@ protected:
       const ResidueModification mod = variable_modifications[var_mod_index];
       double mass = mod.getDiffMonoMass();
       String residues = mod.getOrigin();
-      //TODO support binary groups, e.g. for SILAC
-      int binary_group = 0;
+
+      // support for binary groups, e.g. for SILAC
+      int binary_group;
+      if (binary_modifications.empty())
+      {
+        binary_group = 0;
+      }
+      else
+      {
+        binary_group = binary_modifications[var_mod_index];
+      }
+
       //TODO support mod-specific limit (default for now is the overall max per peptide)
       int max_current_mod_per_peptide = max_variable_mods_in_peptide;
       //TODO support term-distances?
@@ -367,7 +391,7 @@ protected:
          << nc_term << " " 
          << required << " " 
          << "0.0" // TODO: add neutral losses (from Residue or user defined?)
-         << ""\n";
+         << "\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
@@ -453,7 +477,7 @@ protected:
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
     os << "peptide_length_range = 5 63\n";                       // minimum and maximum peptide length to analyze (default 1 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
-    os << "max_duplicate_proteins = 20\n"                          // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
+    os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "equal_I_and_L = 1\n";
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
