@@ -62,7 +62,7 @@ namespace OpenMS
           each peptide is shuffled @param max_attempts times to minimize sequence identity.
           note: modifications are discarded 
       */
-      static AASequence shufflePeptide(
+      static AASequence shufflePeptides(
             const AASequence& aas,
             const String& protease,
             const int max_attempts = 100,

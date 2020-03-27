@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -54,13 +55,15 @@ START_SECTION((AASequence reverseProtein(const AASequence& protein)))
 END_SECTION
 
 START_SECTION((AASequence reversePeptide(const AASequence& protein, const String& protease)))
-  TEST_EQUAL(DecoyGenerator::reversePeptide(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
-  TEST_EQUAL(DecoyGenerator::reversePeptide(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"EDITPEPTSET")
-  TEST_EQUAL(DecoyGenerator::reversePeptide(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"EDITPEPTSET")
+  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
+  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
+  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
 END_SECTION
 
-START_SECTION((AASequence shufflePeptide(const AASequence& aas, const String& protease, const int max_atempts, int seed)))
-
+START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& protease, const int max_atempts, int seed)))
+  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin", 100, 4711).toString(),"EIEPETTDPTS")
+  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P", 100, 4711).toString(),"ETTSRTPEPREID")
+  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin", 100, 4711).toString(),"ETPPTSTERREID")
 END_SECTION
 
 /////////////////////////////////////////////////////////////
