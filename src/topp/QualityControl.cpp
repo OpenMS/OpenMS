@@ -74,7 +74,7 @@ using namespace std;
 /**
 @page TOPP_QualityControl QualityControl
 
-@brief Generates an mzTab file from various sources of a pipeline (mainly a ConsensusXML) which can be used for QC plots (e.g. via the R package 'PTX-QC').
+@brief Generates an mzTab file from various sources of a pipeline (mainly a ConsensusXML) which can be used for QC plots (e.g. via the R package 'PTXQC').
 
 <CENTER>
 <table>
