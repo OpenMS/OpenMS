@@ -260,11 +260,11 @@ namespace OpenMS
       */
       extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
-      /** User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer with e.g. 1 = subtract (1/charge)*C13C12_MASSDIFF_U from uncorrected precursor_mz).
-
+      /** User parameter name for fragment mz error in ppm
               String
       */
-      extern OPENMS_DLLAPI const std::string   PRECURSOR_ASSIGNMENT_CORRECTION;
+      extern OPENMS_DLLAPI const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM;
+
 
       /** User parameter name for fragment annotations
               String
@@ -285,6 +285,11 @@ namespace OpenMS
               String
       */
       extern OPENMS_DLLAPI const std::string   DELTA_SCORE;
+
+      /** User parameter name to indicate a monoisotopic peak misassignment. Used for precursor correction. (usually an integer x with the correction being -x times C13C12_MASSDIFF_U)
+              String
+      */
+      extern OPENMS_DLLAPI const std::string   ISOTOPE_ERROR;
 
       // Cross-Linking Mass Spectrometry user parameters
       /** Name of OpenPepXL main score (PSI CV term)

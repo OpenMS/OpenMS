@@ -35,7 +35,9 @@
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -45,8 +47,6 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <set>
-
-
 
 using namespace std;
 using namespace OpenMS::Internal;
@@ -70,13 +70,23 @@ namespace OpenMS
         cnt_(0)
     {}
 
-    unsigned long operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int idx) {
       //TODO do quick bruteforce calculation if the cc is really small?
-      cnt_++;
+
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        unsigned long nrEdges = boost::num_edges(fg);
+
+        // avoid critical sections if not needed
+        if (debug_lvl_ > 1)
+        {
+          // we do not need information about file and line so use LOG_INFO instead
+          OPENMS_LOG_INFO << "Running cc " << String(idx) << "...\n";
+          OPENMS_LOG_INFO << "CC " << String(idx) << " has " << String(nrEdges) << " edges.\n";
+        }
+
         bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
@@ -103,7 +113,7 @@ namespace OpenMS
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
         // TODO Can be sped up using directed graph. Needs some restructuring in IDBoostGraph class first tho.
-        std::vector<IDBoostGraph::vertex_t> in{};
+        vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
         //TODO the try section could in theory be slimmed down a little bit. Start at first use of insertDependency maybe.
@@ -184,7 +194,7 @@ namespace OpenMS
           }
 
           // create factor graph for Bayesian network
-          evergreen::InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
+          evergreen::InferenceGraph <IDBoostGraph::vertex_t> ig = bigb.to_graph();
           graph_mp_ownership_acquired = true;
 
           unsigned long maxMessages = param_
@@ -193,22 +203,59 @@ namespace OpenMS
               .getValue("loopy_belief_propagation:dampening_lambda");
           double initConvergenceThreshold = param_.getValue(
               "loopy_belief_propagation:convergence_threshold");
-          unsigned long nrEdges = boost::num_edges(fg);
+          String scheduler_type = param_.getValue(
+              "loopy_belief_propagation:scheduling_type");
 
-          //TODO parametrize the type of scheduler.
-          evergreen::PriorityScheduler<IDBoostGraph::vertex_t> scheduler(initDampeningLambda,
-                                                              initConvergenceThreshold,
-                                                              maxMessages);
-          scheduler.add_ab_initio_edges(ig);
+          evergreen::Scheduler<IDBoostGraph::vertex_t>* scheduler;
+          if (scheduler_type == "priority")
+          {
+             scheduler =
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                     initConvergenceThreshold,
+                                                                     maxMessages);
+          }
+          else if (scheduler_type == "subtree")
+          {
+            scheduler =
+                new evergreen::RandomSubtreeScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                          initConvergenceThreshold,
+                                                                          maxMessages);
+          }
+          else if (scheduler_type == "fifo")
+          {
+            scheduler =
+                new evergreen::FIFOScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                 initConvergenceThreshold,
+                                                                 maxMessages);
+          }
+          else
+          {
+            scheduler =
+                new evergreen::PriorityScheduler<IDBoostGraph::vertex_t>(initDampeningLambda,
+                                                                     initConvergenceThreshold,
+                                                                     maxMessages);
+          }
+          scheduler->add_ab_initio_edges(ig);
 
-          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          evergreen::BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(*scheduler, ig);
 
-          auto posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
-              {
-                  std::make_tuple(std::max<unsigned long>(10000ul, nrEdges*nrEdges*2ul), initDampeningLambda, initConvergenceThreshold),
-                  std::make_tuple(nrEdges*nrEdges, std::min(0.5,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
-                  std::make_tuple(nrEdges*nrEdges/2ul, std::min(0.5,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
-              });
+          vector<evergreen::LabeledPMF<IDBoostGraph::vertex_t>> posteriorFactors;
+          unsigned long nrEdgesSq = nrEdges*nrEdges;
+          if (maxMessages < nrEdgesSq * 3ul)
+          {
+            posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
+            {
+                std::make_tuple(maxMessages, initDampeningLambda, initConvergenceThreshold)});
+          }
+          else
+          {
+            posteriorFactors = bpie.estimate_posteriors_in_steps(posteriorVars,
+            {
+                std::make_tuple(std::max<unsigned long>(10000ul, nrEdgesSq*2ul), initDampeningLambda, initConvergenceThreshold),
+                std::make_tuple(nrEdgesSq, std::min(0.49,initDampeningLambda*10), std::min(0.01,initConvergenceThreshold*10)),
+                std::make_tuple(nrEdgesSq/2ul, std::min(0.49,initDampeningLambda*100), std::min(0.01,initConvergenceThreshold*100))
+            });
+          }
 
           // TODO move the writing of statistics from IDBoostGraph here and write more stats
           //  like nr messages and failure/success
@@ -220,7 +267,7 @@ namespace OpenMS
             IDBoostGraph::SetPosteriorVisitor pv;
             IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
             const evergreen::PMF &pmf = posteriorFactor.pmf();
-            // If Index 0 is in the range of this result PMFFactor is probability is non-zero
+            // If Index 0 is in the range of this result PMFFactor its probability is non-zero
             // and the prob of presence is 1-P(p=0). Important in multi-value factors like protein groups.
             if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0])
             {
@@ -229,6 +276,14 @@ namespace OpenMS
             auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
+
+          // avoid critical sections if not needed
+          if (debug_lvl_ > 1)
+          {
+            // we do not need information about file and line so use LOG_INFO instead
+            OPENMS_LOG_INFO << "Finished cc " << String(idx) << "after " << String(nrMessagesNeeded) << " messages\n";
+          }
+
           //TODO we could write out/save the posteriors here,
           // so we can easily read them later for the best params of the grid search
           return nrMessagesNeeded;
@@ -254,18 +309,19 @@ namespace OpenMS
                 "_b" + String(param_.getValue("model_parameters:pep_spurious_emission")) + "_g" +
                 String(param_.getValue("model_parameters:prot_prior")) + "_c" +
                 String(param_.getValue("model_parameters:pep_prior")) + "_p" + String(pnorm) + "_"
-                + String(cnt_) + ".graphviz"
-                , std::ofstream::out | std::ofstream::app);
+                + String(idx) + ".dot"
+                , std::ofstream::out);
             IDBoostGraph::printGraph(ofs, fg);
+            //TODO print graph with peptide probabilities to see which evidences cause problems with which params
           }
-          std::cout << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+          OPENMS_LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       " inference there." << std::endl;
           return 0;
         }
       }
       else
       {
-        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+        OPENMS_LOG_WARN << "Skipped cc with only one type (proteins or peptides)" << std::endl;
         return 0;
       }
     }
@@ -283,8 +339,9 @@ namespace OpenMS
         param_(param)
     {}
 
-    unsigned long operator() (IDBoostGraph::Graph& fg) {
+    unsigned long operator() (IDBoostGraph::Graph& fg, unsigned int /*idx*/) {
       //TODO do quick bruteforce calculation if the cc is really small
+      //TODO make use of idx
 
       double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
       if (pnorm <= 0)
@@ -445,7 +502,14 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_spurious_emission", beta);
       GraphInferenceFunctor gif {param_, debug_lvl_};
       ibg_.applyFunctorOnCCs(gif);
+
       FalseDiscoveryRate fdr;
+      if (param_.getValue("annotate_group_probabilities").toBool())
+      {
+        ScoreToTgtDecLabelPairs scores_and_tgt_fraction{};
+        ibg_.getProteinGroupScoresAndTgtFraction(scores_and_tgt_fraction);
+        fdr.applyEvaluateProteinIDs(scores_and_tgt_fraction, 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
+      }
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
       fdrparam.setValue("add_decoy_proteins","true");
@@ -478,7 +542,7 @@ namespace OpenMS
 
     defaults_.setValue("psm_probability_cutoff",
                           0.001,
-                          "Remove PSMs with probabilities less than or equal this cutoff");
+                          "Remove PSMs with probabilities less than this cutoff");
     defaults_.setMinFloat("psm_probability_cutoff", 0.0);
     defaults_.setMaxFloat("psm_probability_cutoff", 1.0);
 
@@ -554,8 +618,8 @@ namespace OpenMS
                        "(Not used yet) How to pick the next message:"
                            " priority = based on difference to last message (higher = more important)."
                            " fifo = first in first out."
-                           " random_spanning_tree = message passing follows a random spanning tree in each iteration");
-    defaults_.setValidStrings("loopy_belief_propagation:scheduling_type", {"priority","fifo","random_spanning_tree"});
+                           " subtree = message passing follows a random spanning tree in each iteration");
+    defaults_.setValidStrings("loopy_belief_propagation:scheduling_type", {"priority","fifo","subtree"});
 
     //TODO not yet implemented
 /*    defaults_.setValue("loopy_belief_propagation:message_difference",
@@ -579,7 +643,8 @@ namespace OpenMS
 
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        (1ul<<31)-1,
-                       "(Unused, autodetermined) If not all messages converge, how many iterations should be done at max?");
+                       "(Usually auto-determined by estimated but you can set a hard limit here)."
+                       " If not all messages converge, how many iterations should be done at max per connected component?");
     //I think restricting does not work because it only works for type Int (= int), not unsigned long
     //defaults_.setMinInt("loopy_belief_propagation:max_nr_iterations", 10);
 
@@ -594,7 +659,7 @@ namespace OpenMS
     defaults_.addSection("param_optimize","Settings for the parameter optimization.");
     defaults_.setValue("param_optimize:aucweight",
                        0.3,
-                       "How important is AUC vs calibration of the posteriors?"
+                       "How important is target decoy AUC vs calibration of the posteriors?"
                        " 0 = maximize calibration only,"
                        " 1 = maximize AUC only,"
                        " between = convex combination.");
@@ -605,6 +670,11 @@ namespace OpenMS
                           "true",
                           "Use (D+1)/(T) instead of (D+1)/(T+D) for parameter estimation.");
     defaults_.setValidStrings("param_optimize:conservative_fdr", {"true","false"});
+
+    defaults_.setValue("param_optimize:regularized_fdr",
+                       "true",
+                       "Use a regularized FDR for proteins without unique peptides.");
+    defaults_.setValidStrings("param_optimize:regularized_fdr", {"true","false"});
 
 
     // write defaults into Param object param_
@@ -642,7 +712,7 @@ namespace OpenMS
       //{
       String score_l = pep_id.getScoreType();
       score_l = score_l.toLower();
-      if (score_l == "pep" || score_l == "posterior error probability")
+      if (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493")
       {
         for (auto &pep_hit : pep_id.getHits())
         {
@@ -654,7 +724,7 @@ namespace OpenMS
         //TODO remove hits "on-the-go"?
         IDFilter::removeMatchingItems(pep_id.getHits(),
                                       [&probability_cutoff](PeptideHit &hit)
-                                      { return hit.getScore() <= probability_cutoff; });
+                                      { return hit.getScore() < probability_cutoff; });
       }
       else
       {
@@ -682,11 +752,29 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       ConsensusMap& cmap,
+      bool greedy_group_resolution, // TODO probably better to add it as a Param
       boost::optional<const ExperimentalDesign> exp_des)
   {
+    IDScoreSwitcherAlgorithm switcher;
+    Size counter(0);
+    try
+    {
+      switcher.switchToGeneralScoreType(cmap, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
+    }
+    catch (OpenMS::Exception::MissingInformation& e)
+    {
+      throw OpenMS::Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Epifany needs Posterior Error Probabilities in the Peptide Hits. Use Percolator with PEP score"
+          " or run IDPosteriorErrorProbability first.");
+    }
+
+
     //TODO BIG filtering needs to account for run info if used
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
-    //TODO BIG filter empty PeptideIDs afterwards
+    //TODO BIG filter empty PeptideIDs and proteins afterwards
     bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
     bool use_unannotated_ids = param_.getValue("use_ids_outside_features").toBool();
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
@@ -701,7 +789,7 @@ namespace OpenMS
     pepFDR.setParameters(p);
 
     vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
-    if (proteinIDs.size() == 1)
+    if (proteinIDs.size() == 1) // could be merged with the general case, but we can save the runid lookup here.
     {
       // Save current scores as priors if requested
       if (user_defined_priors)
@@ -716,9 +804,10 @@ namespace OpenMS
       // TODO try to calc AUC partial only (e.g. up to 5% FDR)
       OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
 
+      setScoreTypeAndSettings_(proteinIDs[0]);
       IDBoostGraph ibg(proteinIDs[0], cmap, nr_top_psms, use_run_info, use_unannotated_ids, exp_des);
       inferPosteriorProbabilities_(ibg);
-      setScoreTypeAndSettings_(proteinIDs[0]);
+      if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
     }
@@ -742,6 +831,7 @@ namespace OpenMS
         setScoreTypeAndSettings_(proteinID);
         IDBoostGraph ibg(proteinID, cmap, nr_top_psms, use_run_info, use_unannotated_ids);
         inferPosteriorProbabilities_(ibg);
+        if (greedy_group_resolution) ibg.resolveGraphPeptideCentric(true);
 
         OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
       }
@@ -902,12 +992,14 @@ namespace OpenMS
                          "the first will be processed for now." << std::endl;
     }
 
+    // groups will be reannotated
+    proteinIDs[0].getIndistinguishableProteins().clear();
+
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
 
-    //TODO BIG filtering needs to account for run info if used
+    //TODO BIG filtering needs to account for run info if only a subset is to be processed!
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
-    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     Size nr_top_psms = static_cast<Size>(param_.getValue("top_PSMs"));
 
@@ -918,6 +1010,8 @@ namespace OpenMS
       IDFilter::keepBestPerPeptidePerRun(proteinIDs, peptideIDs, true, true, static_cast<unsigned int>(nr_top_psms));
       IDFilter::removeEmptyIdentifications(peptideIDs);
     }
+
+    IDFilter::removeUnreferencedProteins(proteinIDs, peptideIDs);
 
     FalseDiscoveryRate pepFDR;
     Param p = pepFDR.getParameters();

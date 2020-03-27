@@ -37,7 +37,7 @@
 
 #include <vector>
 #include <string>
-#include <ostream>
+#include <iosfwd>
 
 #include <OpenMS/CONCEPT/Exception.h>
 

@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 #include <functional>
 #include <set>
@@ -204,13 +205,16 @@ public:
     //@}
 
 protected:
-    double score_;        ///< the score of the protein hit
+    double score_;       ///< the score of the protein hit
     UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
     std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
+
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit);
 
 } // namespace OpenMS
 

@@ -114,6 +114,7 @@ namespace OpenMS
     /// Loops over all runs in the ConsensusMaps' protein IDs. (experimental)
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
+        bool greedy_group_resolution,
         boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
 
   private:

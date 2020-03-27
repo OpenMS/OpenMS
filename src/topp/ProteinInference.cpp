@@ -181,6 +181,8 @@ protected:
     OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
     sw.reset();
 
+    // groups will be reannotated or scores will not make sense anymore -> delete
+    inferred_protein_ids[0].getIndistinguishableProteins().clear();
 
     OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
     BasicProteinInferenceAlgorithm pi;
@@ -206,7 +208,7 @@ protected:
       ibg.computeConnectedComponents();
       OPENMS_LOG_INFO << "Splitting into connected components took " << sw.toString() << std::endl;
       sw.clear();
-      ibg.annotateIndistProteins(true);
+      ibg.calculateAndAnnotateIndistProteins(true);
     }
 
     OPENMS_LOG_INFO << "Storing output..." << std::endl;
