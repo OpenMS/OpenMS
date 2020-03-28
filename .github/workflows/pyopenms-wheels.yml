@@ -306,7 +306,7 @@ jobs:
               # libcrypto and libssl, lets go and fix it ...
               yum install -y zip
               pushd wheelhouse
-                for whl in pyopenms-*.whl
+                for whl in pyopenms*.whl
                 do
                   mkdir -p fix
                   cp $whl fix/fix.zip
