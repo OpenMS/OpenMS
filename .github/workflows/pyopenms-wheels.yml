@@ -246,16 +246,6 @@ jobs:
 
     - name: Build on manylinux2014 
       run: |
-            # Apply a patches / fixes
-            # 1. Updated readme (due to pypi.org not displaying markdown)
-            # 2. Updated version number
-            # 3. Patch init (since the linked libraries are all in .lib)
-            cd OpenMS
-            wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
-            patch -p0 src/pyOpenMS/pyopenms/__init__.py < src/pyOpenMS/dist-scripts/manylinux.patch
-            patch -p0 src/pyOpenMS/setup.py < src/pyOpenMS/dist-scripts/manylinux.patch2 ## somehow required to link against regex boost lib
-            cd /
-
             # fixes some issues with empty pxd files
             rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
 
