@@ -401,5 +401,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
-        password: ${{ secrets.pypi_api_token }}
+        password: ${{ secrets.test_pypi_api_token }}
+        repository_url: https://test.pypi.org/legacy/
         packages_dir: ${{ github.workspace }}/${{ runner.os }}-wheels
