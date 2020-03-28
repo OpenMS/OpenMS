@@ -9,10 +9,10 @@
 			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 				<UserParam type="string" name="InferenceEngine" value="Epifany"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.5.0-feature-mergeIdx-2020-03-26"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.5.0-feature-mergeIdx-2020-03-27"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="M" score="0.816072237345445" sequence="">
+			<ProteinHit id="PH_0" accession="M" score="0.295758932828903" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -24,11 +24,11 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="I" score="0.999999465841042" sequence="">
+			<ProteinHit id="PH_3" accession="I" score="0.995345539062979" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="H" score="0.971887737993133" sequence="">
+			<ProteinHit id="PH_4" accession="H" score="0.837758476225889" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -36,7 +36,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="G" score="0.938007945766453" sequence="">
+			<ProteinHit id="PH_6" accession="G" score="0.837758476225889" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -44,19 +44,19 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_8" accession="A" score="0.813720544055979" sequence="">
+			<ProteinHit id="PH_8" accession="A" score="0.823050426961284" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="D" score="0.943274505595538" sequence="">
+			<ProteinHit id="PH_9" accession="D" score="0.843042994587241" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="C" score="0.972247710711039" sequence="">
+			<ProteinHit id="PH_10" accession="C" score="0.843042994587241" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="B" score="0.900619416915983" sequence="">
+			<ProteinHit id="PH_11" accession="B" score="0.823050426961284" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -506,7 +506,7 @@
 				<element map="2" id="11778419696830806" rt="3578.446344532850162" mz="631.327314293929021" it="3.98143e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="631.326599121094" RT="3585.0573" spectrum_reference="controllerType=0 controllerNumber=1 scan=6120" >
-				<PeptideHit score="0.88863510949384" sequence="DNDLGVNITTAK" charge="2" aa_before="R R" aa_after="Q Q" start="534 534" end="545 545" protein_refs="PH_8 PH_11">
+				<PeptideHit score="0.879254762462348" sequence="DNDLGVNITTAK" charge="2" aa_before="R R" aa_after="Q Q" start="534 534" end="545 545" protein_refs="PH_8 PH_11">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="27.399999999999999"/>
 					<UserParam type="float" name="nextscore" value="22.199999999999999"/>
@@ -740,7 +740,7 @@
 				<element map="7" id="7410134131394980595" rt="3483.492389074080165" mz="451.751186182321987" it="2.65339e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
-				<PeptideHit score="0.976446613737065" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
+				<PeptideHit score="0.968085013462512" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="32.899999999999999"/>
 					<UserParam type="float" name="nextscore" value="18.899999999999999"/>
@@ -762,7 +762,7 @@
 				<UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
-				<PeptideHit score="0.976446613737065" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
+				<PeptideHit score="0.999424294761082" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="32.899999999999999"/>
 					<UserParam type="float" name="nextscore" value="18.899999999999999"/>
@@ -784,7 +784,7 @@
 				<UserParam type="int" name="id_merge_index" value="3"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
-				<PeptideHit score="0.973134408214858" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_4 PH_0">
+				<PeptideHit score="0.999424294761082" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_4 PH_0">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="32.899999999999999"/>
 					<UserParam type="float" name="nextscore" value="18.899999999999999"/>
@@ -806,7 +806,7 @@
 				<UserParam type="int" name="id_merge_index" value="5"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
-				<PeptideHit score="0.976446613737065" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
+				<PeptideHit score="0.999424294761082" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_6 PH_4">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="32.899999999999999"/>
 					<UserParam type="float" name="nextscore" value="18.899999999999999"/>

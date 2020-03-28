@@ -1302,7 +1302,7 @@ protected:
 
       if (groups)
       {
-        IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids,0,false};
+        IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 0, false, false};
         ibg.computeConnectedComponents();
         ibg.calculateAndAnnotateIndistProteins(true);
       }
