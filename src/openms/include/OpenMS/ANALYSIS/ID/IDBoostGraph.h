@@ -506,7 +506,7 @@ namespace OpenMS
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
-    /// @param best_psms_annotated Are the best psms annotated with the "best_per_peptide" meta value. Otherwise all are
+    /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
     ///  taken into account.
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
@@ -526,7 +526,8 @@ namespace OpenMS
         PeptideIdentification& spectrum,
         std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
         const std::unordered_map<std::string, ProteinHit*>& accession_map,
-        Size use_top_psms);
+        Size use_top_psms,
+        bool best_psms_annotated);
 
     void addPeptideAndAssociatedProteinsWithRunInfo_(
         PeptideIdentification& spectrum,
