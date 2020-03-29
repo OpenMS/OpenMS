@@ -42,11 +42,11 @@ import shutil
 import time
 from datetime import datetime
 
-if OPEN_MS_GIT_BRANCH == "nightly" or OPEN_MS_GIT_BRANCH == "pyomslnxwheel":
+if OPEN_MS_GIT_BRANCH == "nightly":
     now = datetime.now()
-    now_string = now.strftime("%Y%m%d%H")
+    now_string = now.strftime("%Y%m%d")
     package_name = "pyopenms_nightly"
-    package_version = OPEN_MS_VERSION + "." + now_string
+    package_version = OPEN_MS_VERSION + ".dev" + now_string
 else:
     package_name = "pyopenms"
     package_version = OPEN_MS_VERSION
