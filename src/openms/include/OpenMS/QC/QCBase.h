@@ -255,7 +255,6 @@ namespace OpenMS
       }
       return false;
     }
-
   };
 
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
