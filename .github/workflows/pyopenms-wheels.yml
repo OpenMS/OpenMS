@@ -95,6 +95,10 @@ jobs:
             cp pyOpenMS/dist/*.whl pyopenms_whls/
             # clean up
             conda remove --name pyoms-bld-$py --all
+
+            # clean previous pyopenms libs
+            find . -name "pyopenms*.so" -exec rm -rf {} \;
+
           done
           
     - uses: actions/upload-artifact@v1
@@ -219,6 +223,9 @@ jobs:
             # clean up
             conda remove --name pyoms-bld-$py --all
 
+            # clean previous pyopenms libs
+            find . -name "pyopenms*.so" -exec rm -rf {} \;
+
           done
 
     - uses: actions/upload-artifact@v1
@@ -280,6 +287,7 @@ jobs:
                 # remove the libraries as auditwheel will take care of linked libs
                 rm -rf pyopenms/lib*
                 rm -rf build/lib*/pyopenms/lib*
+                find . -name "pyopenms*.so" -exec rm -rf {} \; # not sure if that works here?! 
                 # create wheel without libraries
                 "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
               popd
