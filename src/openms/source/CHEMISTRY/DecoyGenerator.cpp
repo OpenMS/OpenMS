@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
+#include <random>
 #include <boost/range.hpp>
 #include <boost/range/algorithm.hpp>  // needed for portable shuffle
 
