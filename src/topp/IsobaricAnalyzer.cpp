@@ -314,6 +314,8 @@ protected:
       column.second.filename = in;
     }
 
+    const auto empty_feat = [](const ConsensusFeature& c){return c.getPeptideIdentifications().empty() && c.metaValueExists("all_empty") && c.getMetaValue("all_empty") == "true";};
+    consensus_map_quant.erase(remove_if(consensus_map_quant.begin(), consensus_map_quant.end(), empty_feat), consensus_map_quant.end());
     consensus_map_quant.ensureUniqueId();
     ConsensusXMLFile().store(out, consensus_map_quant);
 
