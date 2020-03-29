@@ -405,10 +405,32 @@ jobs:
 
         done
         
+# Upload the wheels (the action only runs on ubuntu slaves)
+  publish:
+    needs: [test] # doesn't really NEED it but we want the tests to pass first
+    runs-on: ubuntu-latest
+    steps:
+    # haha github is just ridiculous.. not getting their actions to do basic stuff for years
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: Linux-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: Windows-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: macOS-wheels
+
+    - name: Merge all artifacts
+      run: mkdir wheels; cp -lr *-wheels/* wheels
+
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
         password: ${{ secrets.test_pypi_api_token }}
         repository_url: https://test.pypi.org/legacy/
-        packages_dir: ${{ github.workspace }}/${{ runner.os }}-wheels
+        packages_dir: wheels
