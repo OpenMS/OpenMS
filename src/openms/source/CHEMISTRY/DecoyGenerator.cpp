@@ -37,7 +37,8 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <random>
+#include <boost/range.hpp>
+#include <boost/range/algorithm.hpp>  // needed for portable shuffle
 
 using namespace OpenMS;
 
@@ -101,7 +102,8 @@ AASequence DecoyGenerator::shufflePeptides(
     String lowest_identity_string(peptide_string_shuffled);
     for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
     {
-      std::shuffle(std::begin(peptide_string_shuffled), last, rng);
+      boost::range::random_shuffle(make_iterator_range(peptide_string_shuffled.begin(), last), rng);
+
       double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
       if (identity < lowest_identity)
       {
@@ -120,7 +122,7 @@ AASequence DecoyGenerator::shufflePeptides(
   String lowest_identity_string(peptide_string_shuffled);
   for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
   {
-    std::shuffle(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled), rng);
+    boost::range::random_shuffle(peptide_string_shuffled, rng);
     double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
     if (identity < lowest_identity)
     {
