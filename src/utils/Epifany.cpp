@@ -310,6 +310,21 @@ protected:
         }
       }
 
+      for (auto& run : cmap.getProteinIdentifications())
+      {
+        std::sort(run.getHits().begin(), run.getHits().end(),
+                  [](const ProteinHit& f,
+                     const ProteinHit& g)
+                  {return f.getAccession() < g.getAccession();});
+        //sort for output because they might have been added in a different order
+        std::sort(
+            run.getIndistinguishableProteins().begin(),
+            run.getIndistinguishableProteins().end(),
+            [](const ProteinIdentification::ProteinGroup& f,
+               const ProteinIdentification::ProteinGroup& g)
+            {return f.accessions < g.accessions;});
+      }
+
       bool calc_protFDR = getStringOption_("protein_fdr") == "true";
       if (calc_protFDR)
       {
