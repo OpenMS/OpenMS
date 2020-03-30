@@ -172,12 +172,11 @@ protected:
     ConsensusXMLFile().load(in_cm, cmap);
 
     std::vector<FeatureMap> fmaps;
-    bool is_labeled_cmap {false};
     if (in_postFDR.empty())
     {
-      fmaps = cmap.split(ConsensusMap::SplitMeta::COPY_ALL);
-      is_labeled_cmap = QCBase::isLabeledExperiment(cmap);
       status |= QCBase::Requires::POSTFDRFEAT;
+      fmaps = cmap.split(ConsensusMap::SplitMeta::COPY_ALL);
+      bool is_labeled_cmap = QCBase::isLabeledExperiment(cmap);
       if (is_labeled_cmap) // for labeled input (e.g. iTRAQ/TMT/SILAC)
       {
         OPENMS_LOG_INFO << "Labeled data detected!" << std::endl;
