@@ -2384,6 +2384,10 @@ add_test("TOPP_MzTabExporter_3" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_
 add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_3_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_3")
 
+add_test("TOPP_MzTabExporter_4" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/Epifany_2_out.consensusXML -out MzTabExporter_4_output.tmp)
+add_test("TOPP_MzTabExporter_4_out" ${DIFF} -in1 MzTabExporter_4_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_4_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_4_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_4")
+
 #------------------------------------------------------------------------------
 # OpenPepXL test
 add_test("TOPP_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
@@ -2719,3 +2723,9 @@ set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_R
 add_test("UTILS_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_1_out.tmp)
 add_test("UTILS_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_1_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
 set_tests_properties("UTILS_Epifany_1_out" PROPERTIES DEPENDS "UTILS_Epifany_1")
+add_test("UTILS_Epifany_2" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_2_out.tmp -out_type consensusXML)
+add_test("UTILS_Epifany_2_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_2_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_2_out.consensusXML)
+set_tests_properties("UTILS_Epifany_2_out" PROPERTIES DEPENDS "UTILS_Epifany_2")
+add_test("UTILS_Epifany_3" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:keep_best_PSM_only false -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_3_out.tmp -out_type consensusXML)
+add_test("UTILS_Epifany_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_3_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML)
+set_tests_properties("UTILS_Epifany_3_out" PROPERTIES DEPENDS "UTILS_Epifany_3")
