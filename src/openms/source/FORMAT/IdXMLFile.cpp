@@ -493,7 +493,7 @@ namespace OpenMS
 
       optionalAttributeAsString_(param_.taxonomy, attributes, "taxonomy");
       param_.charges = attributeAsString_(attributes, "charges");
-      optionalAttributeAsUInt_(param_.missed_cleavages, attributes, "missed_cleavages");
+      optionalAttributeAsInt_(param_.missed_cleavages, attributes, "missed_cleavages");
       param_.fragment_mass_tolerance = attributeAsDouble_(attributes, "peak_mass_tolerance");
 
       String peak_unit;
