@@ -109,11 +109,11 @@ public:
     using privvec::empty;
     using privvec::reserve;
     using privvec::operator[];
-    using privvec::at; // UniqueIdIndexer
-    using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
-
+    using privvec::at;
+    using privvec::back;
     using privvec::push_back;
     using privvec::emplace_back;
+    using privvec::erase;
 
     enum class SplitMeta
     {
