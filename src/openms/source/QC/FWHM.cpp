@@ -32,8 +32,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
-
 #include <OpenMS/QC/FWHM.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 

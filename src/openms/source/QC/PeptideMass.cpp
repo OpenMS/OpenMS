@@ -33,8 +33,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
-
 #include <OpenMS/QC/PeptideMass.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 

@@ -36,15 +36,11 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/QC/FragmentMassError.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/QC/FragmentMassError.h>
-#include <vector>
 //////////////////////////
 
 using namespace OpenMS;
