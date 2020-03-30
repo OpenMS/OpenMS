@@ -50,20 +50,39 @@ START_TEST(DecoyGenerator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
+DecoyGenerator* dg = nullptr;
+DecoyGenerator* nullPointer = nullptr;
+
+START_SECTION((DecoyGenerator()))
+{
+  dg = new DecoyGenerator();
+  TEST_NOT_EQUAL(dg, nullPointer)
+}
+END_SECTION
+
+START_SECTION((~DecoyGenerator()))
+{
+  delete dg;
+}
+END_SECTION
+
+dg = new DecoyGenerator();
+dg->setSeed(4711);
+
 START_SECTION((AASequence reverseProtein(const AASequence& protein)))
-  TEST_EQUAL(DecoyGenerator::reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
+  TEST_EQUAL(dg->reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
 END_SECTION
 
 START_SECTION((AASequence reversePeptide(const AASequence& protein, const String& protease)))
-  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
-  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
-  TEST_EQUAL(DecoyGenerator::reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
+  TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
+  TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
+  TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")
 END_SECTION
 
 START_SECTION((AASequence shufflePeptides(const AASequence& aas, const String& protease, const int max_atempts, int seed)))
-  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin", 100, 4711).toString(),"EIEPETTDPTS")
-  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P", 100, 4711).toString(),"ETTSRTPEPREID")
-  TEST_EQUAL(DecoyGenerator::shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin", 100, 4711).toString(),"ETPPTSTERREID")
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"IPDEESEPTTT")
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"STTERTPEPREID")
+  TEST_EQUAL(dg->shufflePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"PPRETTTESRDEI")
 END_SECTION
 
 /////////////////////////////////////////////////////////////

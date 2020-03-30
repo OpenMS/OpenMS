@@ -6,15 +6,10 @@ from AASequence cimport *
 cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS":
 
     cdef cppclass DecoyGenerator:
-        DecoyGenerator() nogil except +
+        void setSeed(UInt64) nogil except +
 
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS::DecoyGenerator":
-
-    # static members
-    AASequence reverseProtein(const AASequence& protein) nogil except +  # wrap-attach:DecoyGenerator
+        AASequence reverseProtein(const AASequence& protein) nogil except +
     
-    AASequence reversePeptides(const AASequence& protein, const String& protease) nogil except +  # wrap-attach:DecoyGenerator
+        AASequence reversePeptides(const AASequence& protein, const String& protease) nogil except +
 
-    AASequence shufflePeptide(const AASequence& aas, const String& protease, const int max_attempts, int seed) nogil except +  # wrap-attach:DecoyGenerator
+        AASequence shufflePeptide(const AASequence& aas, const String& protease, const int max_attempts, int seed) nogil except +

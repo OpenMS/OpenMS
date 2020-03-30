@@ -34,6 +34,13 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/range/algorithm/random_shuffle.hpp>
+
 namespace OpenMS
 {
   class AASequence;
@@ -45,31 +52,46 @@ namespace OpenMS
   class OPENMS_DLLAPI DecoyGenerator
   {
     public:
+      // initalizes random generator
+      DecoyGenerator();
+
+      // destructor
+      ~DecoyGenerator();
+
+       // random seed for shuffling
+      void setSeed(UInt64 seed);
+
       /* 
          @brief reverses the protein sequence. 
          note: modifications are discarded
       */
-      static AASequence reverseProtein(const AASequence& protein);
+      AASequence reverseProtein(const AASequence& protein) const;
     
       /* 
           @brief reverses the protein's peptide sequences between enzymatic cutting positions. 
           note: modifications are discarded
       */
-      static AASequence reversePeptides(const AASequence& protein, const String& protease);
+      AASequence reversePeptides(const AASequence& protein, const String& protease) const;
 
       /* 
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @param max_attempts times to minimize sequence identity.
           note: modifications are discarded 
       */
-      static AASequence shufflePeptides(
+      AASequence shufflePeptides(
             const AASequence& aas,
             const String& protease,
-            const int max_attempts = 100,
-            int seed = -1
+            const int max_attempts = 100
             );
     
-    protected:
-      static double SequenceIdentity_(const String& decoy, const String& target);                  
+    private:
+      // sequence identity by matching AAs
+      static double SequenceIdentity_(const String& decoy, const String& target);
+
+      UInt64 seed_;
+      boost::mt19937_64* rng_;
+      boost::uniform_int<UInt64>* distribution_;
+      boost::variate_generator<boost::mt19937_64&, boost::uniform_int<UInt64> >* generator_;
   };
 }
+

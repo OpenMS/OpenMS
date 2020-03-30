@@ -467,12 +467,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
 
+      DecoyGenerator decoy_generator;
+
       // append decoy proteins
       const size_t old_size = fasta_db.size();
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
-        e.sequence = DecoyGenerator::reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }
