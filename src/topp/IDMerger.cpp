@@ -289,9 +289,10 @@ protected:
 
     if (type == FileTypes::OMS)
     {
-      if (annotate_file_origin || pepxml_protxml || merge_proteins_add_PSMs)
+      if (!add_to.empty() || annotate_file_origin || pepxml_protxml ||
+          merge_proteins_add_PSMs)
       {
-        writeLog_("Options (other than 'add_to') are currently not supported when merging .oms files. Aborting!");
+        writeLog_("Options are currently not supported when merging .oms files. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -299,22 +300,13 @@ protected:
       OMSFile oms_file;
       // load first file (others will be merged in):
       IdentificationData data;
-      Size index = 1;
-      if (add_to.empty())
-      {
-        oms_file.load(file_names[0], data);
-      }
-      else
-      {
-        oms_file.load(add_to, data);
-        index = 0;
-      }
+      oms_file.load(file_names[0], data);
       // merge in other files:
-      for (; index < file_names.size(); ++index)
+      for (Size index = 1; index < file_names.size(); ++index)
       {
         IdentificationData more_data;
         oms_file.load(file_names[index], more_data);
-        data.merge(more_data, !add_to.empty());
+        data.merge(more_data);
       }
 
       oms_file.store(out, data);
