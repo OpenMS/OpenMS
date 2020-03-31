@@ -142,6 +142,7 @@ namespace OpenMS
                              std::vector<PeptideIdentification>& idedSpectra,
                              Size use_top_psms,
                              bool use_run_info,
+                             bool best_psms_annotated,
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
@@ -152,7 +153,7 @@ namespace OpenMS
     }
     else
     {
-      buildGraph_(proteins, idedSpectra, use_top_psms);
+      buildGraph_(proteins, idedSpectra, use_top_psms, best_psms_annotated);
     }
   }
 
@@ -161,6 +162,7 @@ namespace OpenMS
                              Size use_top_psms,
                              bool use_run_info,
                              bool use_unassigned_ids,
+                             bool best_psms_annotated,
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
@@ -172,7 +174,7 @@ namespace OpenMS
     }
     else
     {
-      buildGraph_(proteins, cmap, use_top_psms, use_unassigned_ids);
+      buildGraph_(proteins, cmap, use_top_psms, use_unassigned_ids, best_psms_annotated);
     }
   }
 
@@ -209,7 +211,8 @@ namespace OpenMS
       PeptideIdentification& spectrum,
       unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
       const unordered_map<string, ProteinHit*>& accession_map,
-      Size use_top_psms)
+      Size use_top_psms,
+      bool best_psms_annotated)
   {
     //TODO add psm regularizer nodes here optionally if using multiple psms (i.e. forcing them, so that only 1 or maybe 2 are present per spectrum)
     auto pepIt = spectrum.getHits().begin();
@@ -217,25 +220,28 @@ namespace OpenMS
     auto pepItEnd = (use_top_psms == 0 || (spectrum.getHits().size() <= use_top_psms)) ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
     for (; pepIt != pepItEnd; ++pepIt)
     {
-      IDPointer pepPtr(&(*pepIt));
-      vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
-
-      for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
+      if (!best_psms_annotated || static_cast<int>(pepIt->getMetaValue("best_per_peptide")))
       {
-        // assumes protein is present
-        auto accToPHit = accession_map.find(std::string(proteinAcc));
-        if (accToPHit == accession_map.end())
-        {
-         OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
-          continue;
-        }
-        //TODO consider/calculate missing digests. Probably not here though!
-        //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-        //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+        IDPointer pepPtr(&(*pepIt));
+        vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
 
-        IDPointer prot(accToPHit->second);
-        vertex_t protV = addVertexWithLookup_(prot, vertex_map);
-        boost::add_edge(protV, pepV, g);
+        for (auto const &proteinAcc : pepIt->extractProteinAccessionsSet())
+        {
+          // assumes protein is present
+          auto accToPHit = accession_map.find(std::string(proteinAcc));
+          if (accToPHit == accession_map.end())
+          {
+            OPENMS_LOG_WARN << "Warning: Building graph: skipping pep that maps to a non existent protein accession.\n";
+            continue;
+          }
+          //TODO consider/calculate missing digests. Probably not here though!
+          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
+          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+
+          IDPointer prot(accToPHit->second);
+          vertex_t protV = addVertexWithLookup_(prot, vertex_map);
+          boost::add_edge(protV, pepV, g);
+        }
       }
     }
   }
@@ -250,14 +256,14 @@ namespace OpenMS
     Size idx(0);
     Size pfg(0);
 
-    if (spectrum.metaValueExists("map_index"))
+    if (spectrum.metaValueExists("id_merge_index"))
     {
-      idx = spectrum.getMetaValue("map_index");
+      idx = spectrum.getMetaValue("id_merge_index");
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Reference (map_index) to non-existing run found at peptide ID."
+            "Reference (id_merge_index) to non-existing run found at peptide ID."
             " Sth went wrong during merging. Aborting.");
       }
       pfg = find_it->second - 1; // Experimental design numbering starts at one
@@ -265,7 +271,7 @@ namespace OpenMS
     else
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Trying to read run information (map_index) but none present at peptide ID."
+        "Trying to read run information (id_merge_index) but none present at peptide ID."
         " Did you annotate runs during merging? Aborting.");
     }
 
@@ -414,7 +420,8 @@ namespace OpenMS
   // on the graph later it needs to be non-const. Overload the next functions or somehow make sure it can be used const.
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
                                 std::vector<PeptideIdentification>& idedSpectra,
-                                Size use_top_psms)
+                                Size use_top_psms,
+                                bool best_psms_annotated)
   {
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
 
@@ -433,7 +440,7 @@ namespace OpenMS
     {
       if (spectrum.getIdentifier() == protRun)
       {
-        addPeptideIDWithAssociatedProteins_(spectrum, vertex_map, accession_map, use_top_psms);
+        addPeptideIDWithAssociatedProteins_(spectrum, vertex_map, accession_map, use_top_psms, best_psms_annotated);
       }
       pl.nextProgress();
     }
@@ -444,7 +451,8 @@ namespace OpenMS
   void IDBoostGraph::buildGraph_(ProteinIdentification& proteins,
                                  ConsensusMap& cmap,
                                  Size use_top_psms,
-                                 bool use_unassigned_ids)
+                                 bool use_unassigned_ids,
+                                 bool best_psms_annotated)
   {
     StringList runs;
     proteins.getPrimaryMSRunPath(runs);
@@ -470,7 +478,7 @@ namespace OpenMS
       {
         if (id.getIdentifier() == protRun)
         {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms, best_psms_annotated);
         }
       }
       pl.nextProgress();
@@ -481,7 +489,7 @@ namespace OpenMS
       {
         if (id.getIdentifier() == protRun)
         {
-          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms);
+          addPeptideIDWithAssociatedProteins_(id, vertex_map, accession_map, use_top_psms, best_psms_annotated);
         }
         pl.nextProgress();
       }

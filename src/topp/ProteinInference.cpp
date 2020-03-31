@@ -201,7 +201,7 @@ protected:
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
       // but it is quite fast right now.
       IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 1
-                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false};
+                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, false};
       sw.start();
       //TODO allow computation without splitting into components. Might be worthwhile in some cases
       OPENMS_LOG_INFO << "Splitting into connected components..." << std::endl;

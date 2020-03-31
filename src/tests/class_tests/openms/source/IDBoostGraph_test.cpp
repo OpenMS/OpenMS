@@ -49,7 +49,7 @@ START_TEST(IDBoostGraph, "$Id$")
       vector<PeptideIdentification> peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
-      IDBoostGraph idb{prots[0], peps, 1, false};
+      IDBoostGraph idb{prots[0], peps, 1, false, false};
       TEST_EQUAL(idb.getNrConnectedComponents(), 0)
       // 6 proteins (1 unmatched and omitted since we build the graph psm-centric) plus 4 peptides (top per psm).
       TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
@@ -102,7 +102,7 @@ START_TEST(IDBoostGraph, "$Id$")
           vector<PeptideIdentification> peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
-          IDBoostGraph idb{prots[0], peps, 0, false};
+          IDBoostGraph idb{prots[0], peps, 0, false, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 14)
           idb.computeConnectedComponents();
@@ -124,7 +124,7 @@ START_TEST(IDBoostGraph, "$Id$")
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("IDBoostGraph_test_in.idXML"),prots,peps);
 
-          IDBoostGraph idb{prots[0], peps, 1, true};
+          IDBoostGraph idb{prots[0], peps, 1, true, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 8)
           idb.computeConnectedComponents();
@@ -149,7 +149,7 @@ START_TEST(IDBoostGraph, "$Id$")
           vector<PeptideIdentification> peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
-          IDBoostGraph idb{prots[0], peps, 1, false};
+          IDBoostGraph idb{prots[0], peps, 1, false, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
           idb.computeConnectedComponents();

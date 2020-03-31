@@ -582,6 +582,16 @@ public:
       removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
     }
 
+    template <class MapType, class Predicate>
+    static void removeMatchingPeptideIdentifications(MapType& prot_and_pep_ids, Predicate& pred)
+    {
+      for (auto& feat : prot_and_pep_ids)
+      {
+        removeMatchingItems(feat.getPeptideIdentifications(), pred);
+      }
+      removeMatchingItems(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
+    }
+
     ///@}
 
 
@@ -1128,7 +1138,8 @@ public:
     template <class MapType>
     static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
     {
-      removeMatchingPeptideHits(prot_and_pep_ids, HasNoHits<PeptideHit>());
+      const auto pred = HasNoHits<PeptideIdentification>();
+      removeMatchingPeptideIdentifications(prot_and_pep_ids, pred);
     }
 
     /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
@@ -1146,8 +1157,9 @@ public:
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
+    //TODO allow skipping unassigned?
     template <class MapType>
-    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    static void annotateBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       const auto& prot_ids = prot_and_pep_ids.getProteinIdentifications();
 
@@ -1163,7 +1175,12 @@ public:
       }
 
       annotateBestPerPeptidePerRunWithData(best_peps_per_run, prot_and_pep_ids.getUnassignedPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
+    }
 
+    template <class MapType>
+    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      annotateBestPerPeptidePerRun(prot_and_pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
       HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
       keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
     }
