@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -217,6 +217,8 @@ namespace OpenMS
         float precursor_mass;
         unsigned int alpha_index;
         unsigned int beta_index;
+        String alpha_seq;
+        String beta_seq;
       };
 
       // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass
@@ -268,6 +270,7 @@ namespace OpenMS
         double peptide_mass;
         AASequence peptide_seq;
         PeptidePosition position;
+        String unmodified_seq;
       };
 
       /**
@@ -277,15 +280,15 @@ namespace OpenMS
        */
       struct AASeqWithMassComparator
       {
-        bool operator() (const AASeqWithMass a, const AASeqWithMass b) const
+        bool operator() (const AASeqWithMass& a, const AASeqWithMass& b) const
         {
           return a.peptide_mass < b.peptide_mass;
         }
-        bool operator() (const AASeqWithMass a, const double b) const
+        bool operator() (const AASeqWithMass& a, const double& b) const
         {
           return a.peptide_mass < b;
         }
-        bool operator() (const double a, const AASeqWithMass b) const
+        bool operator() (const double& a, const AASeqWithMass& b) const
         {
           return a < b.peptide_mass;
         }

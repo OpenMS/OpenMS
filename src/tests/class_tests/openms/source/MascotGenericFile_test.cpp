@@ -1,8 +1,8 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -10,23 +10,23 @@
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Andreas Bertsch, Chris Bielow $
@@ -82,7 +82,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 {
   PeakMap exp;
   ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
-  
+
   // handling of modifications:
   Param params = ptr->getParameters();
   params.setValue("fixed_modifications", ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
@@ -94,7 +94,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 
   vector<String> strings;
   strings.push_back("BEGIN IONS\n"
-                    "TITLE=1998.0_25.379000000000001_index=0_test\n" // different from input!
+                    "TITLE=Testtitle_index=0\n" // different from input!
                     "PEPMASS=1998.0\n"
                     "RTINSECONDS=25.379000000000001\n"
                     "SCANS=0");
@@ -117,6 +117,36 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   for (Size i = 0; i < strings.size(); ++i)
   {
     TEST_EQUAL(mgf_file.hasSubstring(strings[i]), true)
+  }
+
+  // test of making default TITLE
+  exp[0].removeMetaValue("TITLE");
+  stringstream ss2;
+  ptr->store(ss2, "test", exp);
+  vector<String> strings2;
+  strings2.push_back("BEGIN IONS\n"
+                    "TITLE=1998.0_25.379000000000001_index=0_test\n" // different from input!
+                    "PEPMASS=1998.0\n"
+                    "RTINSECONDS=25.379000000000001\n"
+                    "SCANS=0");
+  strings2.push_back("1.0 1.0\n"
+                    "2.0 4.0\n"
+                    "3.0 9.0\n"
+                    "4.0 16.0\n"
+                    "5.0 25.0\n"
+                    "6.0 36.0\n"
+                    "7.0 49.0\n"
+                    "8.0 64.0\n"
+                    "9.0 81.0\n"
+                    "END IONS\n");
+  strings2.push_back("MODS=Carbamidomethyl (C)\n");
+  strings2.push_back("MODS=Phospho (ST)\n");
+  strings2.push_back("IT_MODS=Deamidated (NQ)");
+  strings2.push_back("IT_MODS=Oxidation (M)");
+  String mgf_file2(ss2.str());
+  for (Size i = 0; i < strings2.size(); ++i)
+  {
+    TEST_EQUAL(mgf_file2.hasSubstring(strings2[i]), true)
   }
 
   ptr->setParameters(ptr->getDefaults()); // reset parameters

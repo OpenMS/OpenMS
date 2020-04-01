@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,6 +66,7 @@ public:
     enum MT_QUANTMETHOD {
       MT_QUANT_AREA = 0,  ///< quantify by area
       MT_QUANT_MEDIAN,    ///< quantify by median of intensities
+      MT_QUANT_HEIGHT,    ///< quantify by peak height
       SIZE_OF_MT_QUANTMETHOD
     };
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];

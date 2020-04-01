@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@ $install_name_tool=`which install_name_tool`.strip
 $DEBUG = false
 $currentIndent=0
 $executableId="@executable_path/"
+$EXTRACTFW = false
 
 ###############################################################################
 def debug(message)
@@ -71,8 +72,9 @@ def fixable(name, path)
   else
     filename = "#{path}/#{name}"
     debug filename.to_s
-    `otool -L #{filename} 2> /dev/null`
-    return ($? >> 8) == 0
+    otool_out=`otool -L #{filename}`
+    ## Otool returns exit code 0 even if it is not an object file -> check output
+    return !( otool_out =~ /.*object file.*/ )
   end
 end
 
@@ -120,8 +122,11 @@ def handleDependencies(otool_out, targetPath, currentLib)
     # (\/usr\/lib|\/System)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
-    elsif fix_lib.start_with?($executableId)
-      puts "Ignoring libs that were already relinked (#{fix_lib})"
+    elsif fix_lib.start_with?("@")
+      puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+      if not fix_lib.start_with?($executableId)
+        puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+      end
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
       debug "we do not fix libs which are in the same directory #{fix_lib}"
     else
@@ -178,20 +183,41 @@ end
 ###############################################################################
 def copyFramework(frameworkPath, targetPath)
   # get framework path (name of dir containing .framework)
-  frameworkDir=frameworkPath.gsub(/(.*\.framework).*/,'\1')
-  frameworkName=frameworkDir.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
+  frameworkDir=frameworkPath.to_s.gsub(/(.*\.framework).*/,'\1')
+  frameworkName=frameworkDir.to_s.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
 
   # the actual lib name
-  internFrameworkDir=frameworkPath.gsub(/(.*\.framework)\/(.*)/,'\2')
+  internFrameworkDir=frameworkPath.to_s.gsub(/(.*\.framework)\/(.*)/,'\2')
   libname=frameworkName+'/'+internFrameworkDir
   # the new path
   newFrameworkPath="#{targetPath}/#{libname}"
 
   if not File.exist?(targetPath + frameworkName)
     debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
-    `cp -r #{frameworkDir} #{targetPath}`
+    # preserve symlinks
+    `cp -R #{frameworkDir} #{targetPath}`
     # adjust rights
-    `chmod u+rw #{newFrameworkPath}`
+    `chmod -R u+rwX #{newFrameworkPath}`
+  else
+    debug "fw #{frameworkName} already exists in #{targetPath}"
+  end
+
+  return newFrameworkPath, libname
+end
+
+###############################################################################
+def copyLibFromFramework(frameworkPath, targetPath)
+  libname=File.basename(frameworkPath)
+
+  # the new path
+  newFrameworkPath="#{targetPath}/#{libname}"
+
+  if not File.exist?(targetPath + libname)
+    debug "Copy fw #{frameworkName} from #{frameworkDir} to #{targetPath}"
+    # preserve symlinks
+    `cp #{frameworkPath} #{newFrameworkPath}`
+    # adjust rights
+    `chmod u+rwX #{newFrameworkPath}`
   else
     debug "fw #{frameworkName} already exists in #{targetPath}"
   end
@@ -203,8 +229,12 @@ end
 def handleFramework(frameworkPath, targetPath)
   $currentIndent+=1
 
-  # copy framework to target directory
-  newFrameWorkPath, libname=copyFramework(frameworkPath, targetPath)
+  if $EXTRACTFW
+    newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)
+  else
+    # copy framework to target directory
+    newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
+  end
 
   if not $handledLibraries.include?(libname)
     # run otool
@@ -295,7 +325,8 @@ opts = GetoptLong.new(
   [ '--install-name-tool', '-i', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--bin-path', '-b', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--extract-from-framework', '-f', GetoptLong::NO_ARGUMENT]
 )
 
 usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STORE-LIBRARIES
@@ -311,6 +342,8 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
   the path were optional plugin libraries like from QT5 are located
 -e, --path-prefix:
   the prefix that is added to the new install_name (default: @executable_path/)
+-f, --extract-from-framework:
+  extract the linked libraries from their Framework folder. CAUTION: this does not copy Headers and Resources. Not tested with already present frameworks.
 -v, --verbose:
   increase verbosity
 "
@@ -330,6 +363,8 @@ opts.each do |opt, arg|
       $plugin_dir = Pathname.new(arg).realpath
     when '--path-prefix'
       $executableId = arg
+    when '--extract-from-framework'
+      $EXTRACTFW = true
     when '--verbose'
       $DEBUG = true
   end
@@ -348,15 +383,21 @@ end
 
 debug "HANDLING LIB DIR"
 # fix libraries contained in lib-path
-for content in Dir.entries($lib_dir)
-  if fixable(content, $lib_dir)
-    if isFramework(content)
-#      handleFramework($lib_dir + content, $lib_dir)
-    elsif (content.end_with?(".dylib") or content.end_with?(".so"))
-      handleDyLib($lib_dir + content, $lib_dir)
+# recurse two-levels to capture the libraries inside the frameworks
+Dir.chdir($lib_dir.to_s) do
+  lib_files = Dir.glob(["*","*/*"])
+  for content in lib_files
+    if fixable(content, $lib_dir)
+      if isFramework(content)
+        handleFramework($lib_dir + content, $lib_dir)
+      elsif (content.end_with?(".dylib") or content.end_with?(".so"))
+        handleDyLib($lib_dir + content, $lib_dir)
+      else
+        debug "Skipped #{$lib_dir + content} -- No lib or framework?"
+      end
+    else
+      debug "Skipped #{$lib_dir + content} -- Otool not executable on it."
     end
-  else
-    debug "Skipped #{$lib_dir + content}. No binary or object?"
   end
 end
 
@@ -373,7 +414,7 @@ if !$bin_dir.nil?
         handleBinary($bin_dir + content)
       end
     else
-      debug "Skipped #{$bin_dir + content}. No binary or object?"
+      debug "Skipped #{$bin_dir + content} -- No binary or object?"
     end
   end
 end

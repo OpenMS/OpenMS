@@ -84,6 +84,8 @@ namespace OpenMS
       // if d'tor doesn't get called, DB connection (db_name_) doesn't get
       // removed, but that shouldn't be a big problem
     }
+
+    // configure database settings:
     QSqlQuery query(db);
     // foreign key constraints are disabled by default - turn them on:
     // @TODO: performance impact? (seems negligible, but should be tested more)
@@ -92,9 +94,6 @@ namespace OpenMS
       raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error configuring database");
     }
-    // @TODO: could also try disabling checks ("PRAGMA ignore_check_constraints
-    // = ON"), but limited testing has shown no apparent performance benefit
-
     // disable synchronous filesystem access and the rollback journal to greatly
     // increase write performance - since we write a new output file every time,
     // we don't have to worry about database consistency:

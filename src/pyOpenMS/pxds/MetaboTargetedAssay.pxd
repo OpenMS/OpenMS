@@ -23,12 +23,16 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                                                                        double& precursor_mz_distance,
                                                                        double& cosine_sim_threshold,
                                                                        double& transition_threshold,
+                                                                       double& min_fragment_mz,
+                                                                       double& max_fragment_mz,
                                                                        bool& method_consensus_spectrum,
                                                                        bool& exclude_ms2_precursor,
                                                                        unsigned int& file_counter) nogil except +
 
        libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssayFragmentAnnotation(libcpp_vector[ MetaboTargetedAssay_CompoundSpectrumPair ]& v_cmp_spec,
                                                                                          double& transition_threshold,
+                                                                                         double& min_fragment_mz,
+                                                                                         double& max_fragment_mz,
                                                                                          bool& use_exact_mass,
                                                                                          bool& exclude_ms2_precursor,
                                                                                          unsigned int& file_counter) nogil except +

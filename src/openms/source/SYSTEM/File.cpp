@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -679,7 +679,7 @@ namespace OpenMS
 
   bool File::findExecutable(OpenMS::String& exe_filename)
   {
-    if (exists(exe_filename)) return true;
+    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
 
     StringList paths = getPathLocations();
     StringList exe_filenames = { exe_filename };
@@ -697,7 +697,7 @@ namespace OpenMS
     {
       for (const String& fn : exe_filenames)
       {
-        if (exists(p + fn))
+        if (exists(p + fn) && !isDirectory(p + fn))
         {
           exe_filename = p + fn;
           return true;

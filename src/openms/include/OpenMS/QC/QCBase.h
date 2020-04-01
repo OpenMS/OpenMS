@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,7 +79,7 @@ namespace OpenMS
       SpectraMap() = default;
 
       /// CTor which allows immediate indexing of an MSExperiment
-      SpectraMap(const MSExperiment& exp);
+      explicit SpectraMap(const MSExperiment& exp);
 
       /// Destructor
       ~SpectraMap() = default;
@@ -125,7 +125,7 @@ namespace OpenMS
       Status() : value_(0)
       {}
 
-      Status(const Requires& req)
+      explicit Status(const Requires& req)
       {
         value_ = getPow_(req);
       }
@@ -232,30 +232,11 @@ namespace OpenMS
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
-    
 
-    /**
-     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
-     *
-     * The Lambda may or may not change the PeptideIdentification
-     */
 
-    template <typename MAP, typename T>
-    static void iterateFeatureMap(MAP& fmap, T lambda)
-    {
-      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
-      {
-        lambda(pep_id);
-      }
-
-      for (auto& features : fmap)
-      {
-        for (auto& pep_id : features.getPeptideIdentifications())
-        {
-          lambda(pep_id);
-        }
-      }
-    }
+    /// tests if a metric has the required input files
+    /// gives a warning with the name of the metric that can not be performed
+    bool isRunnable(const Status& s) const;
   };
 
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)

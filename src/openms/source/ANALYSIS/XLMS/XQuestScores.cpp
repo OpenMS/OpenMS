@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ namespace OpenMS
 
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    match_odds = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
@@ -165,7 +165,7 @@ namespace OpenMS
 
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    match_odds = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
@@ -209,7 +209,7 @@ namespace OpenMS
     double log_occu_prob = 0;
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    log_occu_prob = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    log_occu_prob = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen, if cfd = 0, then -log( 1 + <double>::min() ) < 0
     if (log_occu_prob >= 0.0)

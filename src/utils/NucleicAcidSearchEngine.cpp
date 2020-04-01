@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -296,7 +296,7 @@ protected:
       {
         mod = db_ptr->getRibonucleotide(m);
       }
-      catch (Exception::ElementNotFound& e)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         // commas between numbers were removed - try reinserting them:
         m = boost::regex_replace(m, double_digits, "$&,");
