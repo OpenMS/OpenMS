@@ -206,6 +206,7 @@ namespace OpenMS
       query_matches_(std::move(other.query_matches_)),
       query_match_groups_(std::move(other.query_match_groups_)),
       current_step_ref_(std::move(other.current_step_ref_)),
+      no_checks_(std::move(other.no_checks_)),
       // look-up tables:
       data_query_lookup_(std::move(other.data_query_lookup_)),
       parent_molecule_lookup_(std::move(other.parent_molecule_lookup_)),
@@ -486,6 +487,13 @@ namespace OpenMS
     /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepRef current_step_ref_;
 
+    /*!
+      @brief Suppress validity checks in @p register... calls?
+
+      This is useful in situations where validity is already guaranteed (e.g. copying).
+    */
+    bool no_checks_;
+
     // look-up tables for fast checking of reference validity:
     AddressLookup data_query_lookup_;
     AddressLookup parent_molecule_lookup_;
@@ -494,13 +502,6 @@ namespace OpenMS
     AddressLookup identified_compound_lookup_;
     AddressLookup identified_oligo_lookup_;
     AddressLookup query_match_lookup_;
-
-    /*!
-      @brief Suppress validity checks in @p register... calls?
-
-      This is useful in situations where validity is already guaranteed (e.g. copying).
-    */
-    bool no_checks_;
 
     /// Helper function to check if all score types are valid
     void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
