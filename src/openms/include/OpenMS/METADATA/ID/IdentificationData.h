@@ -185,9 +185,13 @@ namespace OpenMS
     {
     }
 
-    /// Copy constructor - not allowed, as references would be invalidated
-    IdentificationData(const IdentificationData& other) = delete;
-    // @TODO: implement copy c'tor using deep copy
+    /*!
+      @brief Copy constructor
+
+      Copy-constructing is expensive due to the necessary "rewiring" of references.
+      Use the move constructor where possible.
+    */
+    IdentificationData(const IdentificationData& other);
 
     /// Move constructor
     IdentificationData(IdentificationData&& other):
@@ -460,9 +464,10 @@ namespace OpenMS
       @brief Merge in data from another instance.
 
       @param other Instance to merge in.
-      @param new_ids_only Only add identified molecules (and data related to them) that aren't present yet?
+
+      @return Equivalent to the current processing step in @p other after merging
     */
-    void merge(const IdentificationData& other);
+    ProcessingStepRef merge(const IdentificationData& other);
 
   protected:
 

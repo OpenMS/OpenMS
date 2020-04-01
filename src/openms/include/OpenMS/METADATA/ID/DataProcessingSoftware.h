@@ -43,8 +43,7 @@ namespace OpenMS
   {
     /** @brief Information about software used for data processing.
 
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
+      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the software information only once.
     */
     struct DataProcessingSoftware: public Software
     {
@@ -65,6 +64,7 @@ namespace OpenMS
       }
     };
 
+    // ordering is done using "operator<" inherited from "Software":
     typedef std::set<DataProcessingSoftware> DataProcessingSoftwares;
     typedef IteratorWrapper<DataProcessingSoftwares::iterator> ProcessingSoftwareRef;
 

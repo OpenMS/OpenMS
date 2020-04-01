@@ -874,7 +874,8 @@ namespace OpenMS
   }
 
 
-  void IdentificationData::merge(const IdentificationData& other)
+  IdentificationData::ProcessingStepRef
+  IdentificationData::merge(const IdentificationData& other)
   {
     no_checks_ = true;
     // input files:
@@ -1059,6 +1060,22 @@ namespace OpenMS
       registerParentMoleculeGrouping(copy);
     }
     no_checks_ = false;
+
+    // this is only needed for reusing "merge" in the copy c'tor:
+    if (other.current_step_ref_ == other.processing_steps_.end())
+    {
+      return processing_steps_.end();
+    }
+    return step_refs[other.current_step_ref_];
   }
 
+
+  IdentificationData::IdentificationData(const IdentificationData& other):
+    MetaInfoInterface(other)
+  {
+    // don't add a processing step during merging:
+    current_step_ref_ = processing_steps_.end();
+    current_step_ref_ = merge(other);
+    no_checks_ = other.no_checks_;
+  }
 } // end namespace OpenMS
