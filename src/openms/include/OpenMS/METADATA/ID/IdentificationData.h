@@ -119,6 +119,9 @@ namespace OpenMS
     using ScoreTypes = IdentificationDataInternal::ScoreTypes;
     using ScoreTypeRef = IdentificationDataInternal::ScoreTypeRef;
 
+    using ScoredProcessingResult =
+      IdentificationDataInternal::ScoredProcessingResult;
+
     using AppliedProcessingStep =
       IdentificationDataInternal::AppliedProcessingStep;
     using AppliedProcessingSteps =
@@ -178,7 +181,7 @@ namespace OpenMS
 
     /// Default constructor
     IdentificationData():
-      current_step_ref_(processing_steps_.end())
+      current_step_ref_(processing_steps_.end()), no_checks_(false)
     {
     }
 
@@ -452,6 +455,14 @@ namespace OpenMS
     /// Return whether the data structure is empty (no data)
     bool empty() const;
 
+    /*!
+      @brief Merge in data from another instance.
+
+      @param other Instance to merge in.
+      @param new_ids_only Only add identified molecules (and data related to them) that aren't present yet?
+    */
+    void merge(const IdentificationData& other);
+
   protected:
 
     // containers:
@@ -484,6 +495,13 @@ namespace OpenMS
     AddressLookup identified_oligo_lookup_;
     AddressLookup query_match_lookup_;
 
+    /*!
+      @brief Suppress validity checks in @p register... calls?
+
+      This is useful in situations where validity is already guaranteed (e.g. copying).
+    */
+    bool no_checks_;
+
     /// Helper function to check if all score types are valid
     void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
 
@@ -494,6 +512,12 @@ namespace OpenMS
     /// Helper function to check if all parent matches are valid
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type) const;
+
+    /// Helper function to merge scored processing results while updating references (to processing steps and score types)
+    void mergeScoredProcessingResults_(
+      ScoredProcessingResult& result, const ScoredProcessingResult& other,
+      const std::map<ProcessingStepRef, ProcessingStepRef>& step_refs,
+      const std::map<ScoreTypeRef, ScoreTypeRef>& score_refs);
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
