@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/range/algorithm/random_shuffle.hpp>
 
@@ -88,10 +87,17 @@ namespace OpenMS
       // sequence identity by matching AAs
       static double SequenceIdentity_(const String& decoy, const String& target);
 
-      UInt64 seed_;
+      template <class RandomAccessIterator>
+        void shuffle_ (RandomAccessIterator first, RandomAccessIterator last)
+      {
+        for (auto i = (last-first)-1; i > 0; --i) 
+        {
+          boost::uniform_int<decltype(i)> d(0, i);
+          std::swap(first[i], first[d(*rng_)]);
+        }
+      }
+
       boost::mt19937_64* rng_;
-      boost::uniform_int<UInt64>* distribution_;
-      boost::variate_generator<boost::mt19937_64&, boost::uniform_int<UInt64> >* generator_;
   };
 }
 

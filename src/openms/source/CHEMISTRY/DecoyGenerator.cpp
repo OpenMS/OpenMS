@@ -53,26 +53,18 @@ DecoyGenerator::DecoyGenerator()
   // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
   // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
   boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
-  seed_ = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
-  rng_ = new boost::mt19937_64 (seed_);
-  distribution_ = new boost::uniform_int<UInt64> (0, std::numeric_limits<UInt64>::max());
-  generator_ = new boost::variate_generator<boost::mt19937_64&, boost::uniform_int<UInt64> >(*rng_, *distribution_);
+  UInt64 seed = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+  rng_ = new boost::mt19937_64 (t.time_of_day().ticks());
 }
 
 DecoyGenerator::~DecoyGenerator()
 {
   delete rng_;
-  delete distribution_;
-  delete generator_;
 }
 
 void DecoyGenerator::setSeed(UInt64 seed)
 {
-  seed_ = seed;
-  rng_->seed(seed_);
-  distribution_->reset();
-  delete(generator_);
-  generator_ = new boost::variate_generator<boost::mt19937_64&, boost::uniform_int<UInt64> >(*rng_, *distribution_);
+  rng_->seed(seed);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
@@ -131,7 +123,7 @@ AASequence DecoyGenerator::shufflePeptides(
     String lowest_identity_string(peptide_string_shuffled);
     for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
     {
-      std::shuffle(std::begin(peptide_string_shuffled), last, *generator_);
+      shuffle_(std::begin(peptide_string_shuffled), last);
 
       double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
       if (identity < lowest_identity)
@@ -151,7 +143,7 @@ AASequence DecoyGenerator::shufflePeptides(
   String lowest_identity_string(peptide_string_shuffled);
   for (int i = 0; i < max_attempts; ++i) // try to find sequence with low identity
   {
-    std::shuffle(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled), *generator_);
+    shuffle_(std::begin(peptide_string_shuffled), std::end(peptide_string_shuffled));
     double identity = SequenceIdentity_(peptide_string_shuffled, peptide_string);
     if (identity < lowest_identity)
     {
@@ -175,4 +167,5 @@ double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& targ
   double identity = (double) match / target.size();
   return identity;
 }
- 
+
+
