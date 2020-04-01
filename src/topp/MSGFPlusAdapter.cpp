@@ -729,6 +729,11 @@ protected:
       {
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
 
+        // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
+        for (auto& pid : protein_ids)
+        {
+          pid.getSearchParameters().missed_cleavages = 1000; // use a high value (1000 was used in previous MSGF+ version)
+        }
         // set the MS-GF+ spectral e-value as new peptide identification score
         for (auto& pep : peptide_ids) { switchScores_(pep); }
 
