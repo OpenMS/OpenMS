@@ -53,8 +53,8 @@ DecoyGenerator::DecoyGenerator()
   // leading to identical random numbers (e.g. feature-IDs) in two or more distinct files.
   // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
   boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
-  UInt64 seed = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
-  rng_ = new boost::mt19937_64 (t.time_of_day().ticks());
+  const UInt64 seed = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+  rng_ = new boost::mt19937_64(seed);
 }
 
 DecoyGenerator::~DecoyGenerator()
