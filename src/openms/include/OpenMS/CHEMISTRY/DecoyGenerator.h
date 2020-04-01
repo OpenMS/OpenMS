@@ -90,7 +90,7 @@ namespace OpenMS
       template <class RandomAccessIterator>
         void shuffle_ (RandomAccessIterator first, RandomAccessIterator last)
       {
-        for (auto i = (last-first)-1; i > 0; --i) 
+        for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE 
         {
           boost::uniform_int<decltype(i)> d(0, i);
           std::swap(first[i], first[d(*rng_)]);
