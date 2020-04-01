@@ -12,4 +12,4 @@ cdef extern from "<OpenMS/CHEMISTRY/DecoyGenerator.h>" namespace "OpenMS":
     
         AASequence reversePeptides(const AASequence& protein, const String& protease) nogil except +
 
-        AASequence shufflePeptide(const AASequence& aas, const String& protease, const int max_attempts, int seed) nogil except +
+        AASequence shufflePeptide(const AASequence& aas, const String& protease, const int max_attempts) nogil except +
