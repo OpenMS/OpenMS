@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -263,7 +264,7 @@ protected:
     }
     for (const String& file_name : file_names)
     {
-      FileTypes::Type current_type = FileHandler::getTypes(file_name);
+      FileTypes::Type current_type = FileHandler::getType(file_name);
       if ((type == FileTypes::UNKNOWN) && (current_type != FileTypes::UNKNOWN))
       {
         type = current_type; // determine output file type from input
