@@ -425,7 +425,11 @@ jobs:
           name: macOS-wheels
 
     - name: Merge all artifacts
-      run: mkdir wheels; cp -lr *-wheels/* wheels
+      run: |
+            mkdir wheels
+            cp -lr *-wheels/* wheels/
+            pwd
+            ls -la wheels/
 
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@master
