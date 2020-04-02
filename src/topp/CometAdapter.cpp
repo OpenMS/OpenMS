@@ -159,6 +159,12 @@ protected:
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
+
+    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
+    setMinInt_("min_peptide_length", 5);
+    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
+    setMinInt_("max_peptide_length", 63);
+
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance", 0.01);
@@ -479,7 +485,7 @@ protected:
     os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
-    os << "peptide_length_range = 5 63\n";                       // minimum and maximum peptide length to analyze (default 1 63; max length 63)
+    os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
