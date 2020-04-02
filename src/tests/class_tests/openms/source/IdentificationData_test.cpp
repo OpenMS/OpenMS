@@ -519,6 +519,34 @@ START_SECTION((void cleanup(bool require_query_match = true, bool require_identi
 }
 END_SECTION
 
+START_SECTION((ProcessingStepRef merge(const IdentificationData& other)))
+{
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  data.merge(data); // self-merge shouldn't change anything
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  IdentificationData other;
+  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("MASSSPEC"));
+  other.registerIdentifiedPeptide(peptide);
+  data.merge(other);
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+  TEST_EQUAL(data.getParentMolecules().size(), 2);
+}
+END_SECTION
+
+START_SECTION((IdentificationData(const IdentificationData& other)))
+{
+  IdentificationData copy(data);
+  TEST_EQUAL(copy.getIdentifiedPeptides().size(), 2);
+  TEST_EQUAL(copy.getIdentifiedOligos().size(), 1);
+  TEST_EQUAL(copy.getParentMolecules().size(), 2);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
