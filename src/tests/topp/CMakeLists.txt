@@ -197,8 +197,8 @@ add_test("TOPP_IDMerger_5" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/
 add_test("TOPP_IDMerger_5_out1" ${DIFF} -in1 IDMerger_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_5_output.idXML )
 set_tests_properties("TOPP_IDMerger_5_out1" PROPERTIES DEPENDS "TOPP_IDMerger_5")
 # .oms (SQLite) files (see MapAlignerIdentification test 7 for details on input files):
-add_test("TOPP_IDMerger_6" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_6_input1.oms ${DATA_DIR_TOPP}/IDMerger_6_input2.oms -out IDMerger_6_output1.tmp)
-add_test("TOPP_IDMerger_6_out1" IDFileConverter -in IDMerger_6_output1.tmp -out IDMerger_6_output2.temp -out_type idXML)
+add_test("TOPP_IDMerger_6" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_6_input1.oms ${DATA_DIR_TOPP}/IDMerger_6_input2.oms -out IDMerger_6_output1.oms)
+add_test("TOPP_IDMerger_6_out1" IDFileConverter -in IDMerger_6_output1.oms -out IDMerger_6_output2.tmp -out_type idXML)
 set_tests_properties("TOPP_IDMerger_6_out1" PROPERTIES DEPENDS "TOPP_IDMerger_6")
 add_test("TOPP_IDMerger_6_out2" ${DIFF} -in1 IDMerger_6_output2.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_6_output.idXML)
 set_tests_properties("TOPP_IDMerger_6_out2" PROPERTIES DEPENDS "TOPP_IDMerger_6_out1")
