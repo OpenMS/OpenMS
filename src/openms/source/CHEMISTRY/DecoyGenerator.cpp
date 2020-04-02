@@ -45,17 +45,12 @@ using namespace OpenMS;
 DecoyGenerator::DecoyGenerator()
 {
   const UInt64 seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-  rng_ = new boost::mt19937_64(seed);
-}
-
-DecoyGenerator::~DecoyGenerator()
-{
-  delete rng_;
+  rng_ = boost::mt19937_64(seed);
 }
 
 void DecoyGenerator::setSeed(UInt64 seed)
 {
-  rng_->seed(seed);
+  rng_.seed(seed);
 }
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
