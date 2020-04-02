@@ -263,7 +263,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
     bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
 
-#pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide, annotation_precursor_error_ppm, annotation_fragment_error_ppm, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)
+#pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
