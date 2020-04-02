@@ -1034,6 +1034,7 @@ namespace OpenMS
         }
         copy.peak_annotations[opt_ref] = pair.second;
       }
+      mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       match_refs[other_ref] = registerMoleculeQueryMatch(copy);
     }
     // parent molecule groupings:
