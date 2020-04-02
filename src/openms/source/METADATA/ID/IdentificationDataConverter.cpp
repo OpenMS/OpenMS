@@ -428,18 +428,7 @@ namespace OpenMS
       }
     }
 
-    using StepOpt = boost::optional<IdentificationData::ProcessingStepRef>;
-    // functor for ordering 'StepOpt' (by date of the steps, if available):
-    struct StepOptCompare
-    {
-      bool operator()(const StepOpt& left, const StepOpt& right) const
-      {
-        // @TODO: should runs without associated step go first or last?
-        if (!left) return bool(right);
-        if (!right) return false;
-        return **left < **right;
-      }
-    };
+    // order steps by date, if available:
     set<StepOpt, StepOptCompare> steps;
 
     for (const auto& psm : psm_data)
@@ -466,6 +455,8 @@ namespace OpenMS
       peptides.push_back(peptide);
       steps.insert(psm.first.second);
     }
+    // sort peptide IDs by RT and m/z to improve reproducibility:
+    sort(peptides.begin(), peptides.end(), PepIDCompare());
 
     map<StepOpt, pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>>
       prot_data;
