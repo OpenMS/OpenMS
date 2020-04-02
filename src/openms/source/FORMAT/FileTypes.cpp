@@ -145,6 +145,7 @@ namespace OpenMS
     targetMap[FileTypes::RAW] = "raw";
     targetMap[FileTypes::OMS] = "oms";
     targetMap[FileTypes::EXE] = "exe";
+    targetMap[FileTypes::SQLITE] = "db";
 
     return targetMap;
   }
