@@ -162,8 +162,10 @@ protected:
 
     registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
     setMinInt_("min_peptide_length", 5);
+    setMaxInt_("min_peptide_length", 63);
     registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
-    setMinInt_("max_peptide_length", 63);
+    setMinInt_("max_peptide_length", 5);
+    setMaxInt_("max_peptide_length", 63);
 
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
