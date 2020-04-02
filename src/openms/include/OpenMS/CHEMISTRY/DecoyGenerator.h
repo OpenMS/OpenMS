@@ -38,11 +38,12 @@
 
 #include <boost/random/uniform_int.hpp>
 
+class boost::mt19937_64;
+
 namespace OpenMS
 {
   class AASequence;
   class DigestionEnzymeProtein;
-  class boost::mt19937_64;
 
   /**
      @brief Methods to generate isobaric decoy sequences for DDA target-decoy searches.
