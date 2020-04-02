@@ -134,7 +134,7 @@ namespace OpenMS
     defaults_.setValidStrings("decoys", {"true","false"} );
 
     defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", StringList{"median_fragment_error_ppm","precursor_error_ppm"});
+    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -260,8 +260,8 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), "precursor_error_ppm") !=  annotate_psm_.end();
-    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), "median_fragment_error_ppm") != annotate_psm_.end();
+    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
 
 #pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide, annotation_precursor_error_ppm, annotation_fragment_error_ppm)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -317,14 +317,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             }
             double median_ppm_error(0);
             if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
-            ph.setMetaValue("median_fragment_error_ppm", median_ppm_error);
+            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
           }
 
           if (annotation_precursor_error_ppm)
           {
             double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
-            ph.setMetaValue("precursor_error_ppm", ppm_difference);
+            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_MEDIAN_PPM_USERPARAM, ppm_difference);
           }
           // store PSM
           phs.push_back(ph);

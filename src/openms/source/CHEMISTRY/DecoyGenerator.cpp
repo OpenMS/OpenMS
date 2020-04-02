@@ -37,18 +37,14 @@
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <boost/date_time/posix_time/posix_time_types.hpp>
-
+#include <chrono>
 #include <algorithm>
 
 using namespace OpenMS;
 
 DecoyGenerator::DecoyGenerator()
 {
-  // find a seed:
-  // C++11 note: C++ build-in alternative once C++11 can be presumed: 'std::chrono::high_resolution_clock'
-  boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time() );
-  const UInt64 seed = t.time_of_day().ticks();  // independent of implementation; as opposed to nanoseconds(), which need not be available on every platform
+  const UInt64 seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
   rng_ = new boost::mt19937_64(seed);
 }
 

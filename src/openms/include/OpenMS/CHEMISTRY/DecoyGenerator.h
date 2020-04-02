@@ -36,14 +36,13 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
-#include <boost/range/algorithm/random_shuffle.hpp>
 
 namespace OpenMS
 {
   class AASequence;
   class DigestionEnzymeProtein;
+  class boost::mt19937_64;
 
   /**
      @brief Methods to generate isobaric decoy sequences for DDA target-decoy searches.
