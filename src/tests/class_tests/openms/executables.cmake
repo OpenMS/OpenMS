@@ -383,6 +383,7 @@ set(chemistry_executables_list
   AASequence_test
   CoarseIsotopeDistribution_test
   CrossLinksDB_test
+  DecoyGenerator_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
