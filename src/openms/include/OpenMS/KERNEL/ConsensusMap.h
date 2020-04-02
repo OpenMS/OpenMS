@@ -111,8 +111,9 @@ public:
     using privvec::operator[];
     using privvec::at; // UniqueIdIndexer
     using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
-
     using privvec::push_back;
+    using privvec::emplace_back;
+    using privvec::erase;
 
     /// Description of the columns in a consensus map
     struct OPENMS_DLLAPI ColumnHeader :

@@ -332,6 +332,7 @@ namespace OpenMS
                 std::vector<PeptideIdentification>& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
+                bool best_psms_annotated,
                 const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
     IDBoostGraph(ProteinIdentification& proteins,
@@ -339,6 +340,7 @@ namespace OpenMS
                 Size use_top_psms,
                 bool use_run_info,
                 bool use_unassigned_ids,
+                bool best_psms_annotated,
                 const boost::optional<const ExperimentalDesign>& ed = boost::optional<const ExperimentalDesign>());
 
 
@@ -504,23 +506,28 @@ namespace OpenMS
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
+    /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
+    ///  taken into account.
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraph_(ProteinIdentification& proteins,
                     std::vector<PeptideIdentification>& idedSpectra,
-                    Size use_top_psms);
+                    Size use_top_psms,
+                    bool best_psms_annotated = false);
 
     void buildGraph_(ProteinIdentification& proteins,
                     ConsensusMap& cmap,
                     Size use_top_psms,
-                    bool use_unassigned_ids);
+                    bool use_unassigned_ids,
+                    bool best_psms_annotated = false);
 
     /// Used during building
     void addPeptideIDWithAssociatedProteins_(
         PeptideIdentification& spectrum,
         std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map,
         const std::unordered_map<std::string, ProteinHit*>& accession_map,
-        Size use_top_psms);
+        Size use_top_psms,
+        bool best_psms_annotated);
 
     void addPeptideAndAssociatedProteinsWithRunInfo_(
         PeptideIdentification& spectrum,

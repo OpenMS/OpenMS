@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" id="MS-GF+" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2017-01-30T12:53:48">
-<cvList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
+<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.1" id="MS-GF+" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://www.psidev.info/files/mzIdentML1.1.0.xsd" creationDate="2020-03-27T18:44:04">
+<cvList>
   <cv fullName="PSI-MS" version="3.30.0" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" id="PSI-MS"/>
   <cv fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo" id="UNIMOD"/>
   <cv fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" id="UO"/>
 </cvList>
-<AnalysisSoftwareList xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
-  <AnalysisSoftware version="Release (v2017.01.13)" id="ID_software" name="MS-GF+">
+<AnalysisSoftwareList>
+  <AnalysisSoftware version="Release (v2020.03.14)" id="ID_software" name="MS-GF+">
     <SoftwareName>
       <cvParam cvRef="PSI-MS" accession="MS:1002048" name="MS-GF+"/>
     </SoftwareName>
   </AnalysisSoftware>
 </AnalysisSoftwareList>
-<SequenceCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
+<SequenceCollection>
   <DBSequence length="46" searchDatabase_ref="SearchDB_1" accession="BSA2" id="DBSeq399">
     <cvParam cvRef="PSI-MS" accession="MS:1001088" name="protein description" value="BSA2 ##2"/>
   </DBSequence>
@@ -38,13 +38,13 @@
   <PeptideEvidence dBSequence_ref="DBSeq446" peptide_ref="Pep_RPGADSDIGGFGGLFDLAQAGFR" start="1" end="23" pre="-" post="A" isDecoy="false" id="PepEv_446_RPGADSDIGGFGGLFDLAQAGFR_1"/>
   <PeptideEvidence dBSequence_ref="DBSeq363" peptide_ref="Pep_DFASSGGYVLHLHR" start="1" end="14" pre="-" post="E" isDecoy="false" id="PepEv_363_DFASSGGYVLHLHR_1"/>
 </SequenceCollection>
-<AnalysisCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
+<AnalysisCollection>
   <SpectrumIdentification spectrumIdentificationProtocol_ref="SearchProtocol_1" spectrumIdentificationList_ref="SI_LIST_1" id="SpecIdent_1">
     <InputSpectra spectraData_ref="SID_1"/>
     <SearchDatabaseRef searchDatabase_ref="SearchDB_1"/>
   </SpectrumIdentification>
 </AnalysisCollection>
-<AnalysisProtocolCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
+<AnalysisProtocolCollection>
   <SpectrumIdentificationProtocol analysisSoftware_ref="ID_software" id="SearchProtocol_1">
     <SearchType>
       <cvParam cvRef="PSI-MS" accession="MS:1001083" name="ms-ms search"/>
@@ -73,7 +73,7 @@
       </SearchModification>
     </ModificationParams>
     <Enzymes>
-      <Enzyme semiSpecific="false" missedCleavages="1000" id="Tryp">
+      <Enzyme semiSpecific="false" missedCleavages="-1" id="Tryp">
         <EnzymeName>
           <cvParam cvRef="PSI-MS" accession="MS:1001251" name="Trypsin"/>
         </EnzymeName>
@@ -88,9 +88,9 @@
     </Threshold>
   </SpectrumIdentificationProtocol>
 </AnalysisProtocolCollection>
-<DataCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
+<DataCollection>
   <Inputs>
-    <SearchDatabase numDatabaseSequences="10" location="/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" id="SearchDB_1">
+    <SearchDatabase numDatabaseSequences="10" location="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" id="SearchDB_1">
       <FileFormat>
         <cvParam cvRef="PSI-MS" accession="MS:1001348" name="FASTA format"/>
       </FileFormat>
@@ -98,7 +98,7 @@
         <userParam name="proteins.fasta"/>
       </DatabaseName>
     </SearchDatabase>
-    <SpectraData location="/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML" id="SID_1" name="spectra.mzML">
+    <SpectraData location="/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML" id="SID_1" name="spectra.mzML">
       <FileFormat>
         <cvParam cvRef="PSI-MS" accession="MS:1000584" name="mzML file"/>
       </FileFormat>
@@ -117,10 +117,10 @@
       <SpectrumIdentificationResult spectrumID="spectrum=1" spectraData_ref="SID_1" id="SIR_2">
         <SpectrumIdentificationItem chargeState="3" experimentalMassToCharge="1063.2098388671875" calculatedMassToCharge="1063.2093505859375" peptide_ref="Pep_IALSRPNVEVVALNDPFITNDYAAYM+16FK" rank="1" passThreshold="true" id="SII_2_1">
           <PeptideEvidenceRef peptideEvidence_ref="PepEv_399_IALSRPNVEVVALNDPFITNDYAAYM+16FK_1"/>
-          <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="163"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="164"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="199"/>
-          <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="3.864406E-26"/>
-          <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="1.5921352E-23"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="2.3492372E-26"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="9.678857E-24"/>
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
@@ -131,8 +131,8 @@
           <PeptideEvidenceRef peptideEvidence_ref="PepEv_446_RPGADSDIGGFGGLFDLAQAGFR_1"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="151"/>
           <cvParam cvRef="PSI-MS" accession="MS:1002050" name="MS-GF:DeNovoScore" value="188"/>
-          <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.7573099E-19"/>
-          <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="7.0468125E-17"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002052" name="MS-GF:SpecEValue" value="1.6242718E-19"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002053" name="MS-GF:EValue" value="6.5133293E-17"/>
           <userParam name="IsotopeError" value="0"/>
           <userParam name="AssumedDissociationMethod" value="HCD"/>
         </SpectrumIdentificationItem>
