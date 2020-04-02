@@ -85,7 +85,6 @@ namespace OpenMS
 
     if (basename.hasSuffix(".spec.xml"))
       return FileTypes::SPECXML;
-
     try
     {
       tmp = basename.suffix('.');
@@ -233,13 +232,6 @@ namespace OpenMS
     }
     //std::cerr << "\n Line1:\n" << first_line << "\nLine2-5:\n" << two_five << "\nall:\n" << all_simple << "\n\n";
 
-    // PNG file (to be really correct, the first eight bytes of the file would
-    // have to be checked; see e.g. the Wikipedia article)
-    if (first_line.substr(1, 3) == "PNG")
-      return FileTypes::PNG;
-
-    if (first_line.hasPrefix("SQLite format 3"))
-      return FileTypes::SQLITE;
 
     //mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML"))
@@ -336,6 +328,11 @@ namespace OpenMS
       if (bigger_than > 0)
         return FileTypes::FASTA;
     }
+
+    // PNG file (to be really correct, the first eight bytes of the file would
+    // have to be checked; see e.g. the Wikipedia article)
+    if (first_line.substr(1, 3) == "PNG")
+      return FileTypes::PNG;
 
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)

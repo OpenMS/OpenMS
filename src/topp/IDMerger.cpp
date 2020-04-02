@@ -265,8 +265,6 @@ protected:
     for (const String& file_name : file_names)
     {
       FileTypes::Type current_type = FileHandler::getType(file_name);
-      // if an SQLite file is found by content, assume .oms format:
-      if (current_type == FileTypes::SQLITE) current_type = FileTypes::OMS;
       if ((type == FileTypes::UNKNOWN) && (current_type != FileTypes::UNKNOWN))
       {
         type = current_type; // determine output file type from input

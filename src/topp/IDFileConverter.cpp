@@ -574,8 +574,6 @@ protected:
       }
       break;
 
-      case FileTypes::SQLITE:
-        // fall through to OMS case
       case FileTypes::OMS:
       {
         IdentificationData id_data;

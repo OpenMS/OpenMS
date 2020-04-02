@@ -115,7 +115,6 @@ namespace OpenMS
       RAW,                ///< Thermo Raw File (.raw)
       OMS,                ///< OpenMS database file
       EXE,                ///< Executable (.exe)
-      SQLITE,             ///< SQLite 3 file (could be OMS or SQMASS)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -144,3 +143,4 @@ private:
   };
 
 } //namespace OpenMS
+
