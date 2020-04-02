@@ -69,6 +69,61 @@ namespace OpenMS
 
   protected:
 
+    using StepOpt = boost::optional<IdentificationData::ProcessingStepRef>;
+
+    /// Functor for ordering @p StepOpt (by date of the steps, if available):
+    struct StepOptCompare
+    {
+      bool operator()(const StepOpt& left, const StepOpt& right) const
+      {
+        // @TODO: should runs without associated step go first or last?
+        if (!left) return bool(right);
+        if (!right) return false;
+        return **left < **right;
+      }
+    };
+
+    /// Functor for ordering peptide IDs by RT and m/z (if available)
+    struct PepIDCompare
+    {
+      bool operator()(const PeptideIdentification& left,
+                      const PeptideIdentification& right) const
+      {
+        // @TODO: should IDs without RT go first or last?
+        if (left.hasRT())
+        {
+          if (right.hasRT())
+          {
+            if (right.getRT() != left.getRT())
+            {
+              return left.getRT() < right.getRT();
+            } // else: compare by m/z (below)
+          }
+          else
+          {
+            return false;
+          }
+        }
+        else if (right.hasRT())
+        {
+          return true;
+        }
+        // no RTs or same RTs -> try to compare by m/z:
+        if (left.hasMZ())
+        {
+          if (right.hasMZ())
+          {
+              return left.getMZ() < right.getMZ();
+          }
+          else
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+    };
+
     /// Export a parent molecule (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
     static void exportParentMoleculeToMzTab_(
