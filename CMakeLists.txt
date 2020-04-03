@@ -33,6 +33,13 @@
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+
+# Handle default build type
+get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+endif()
+
 project("OpenMS_host")
 
 # required for cmake < 3.13 if ccache is used
@@ -178,14 +185,6 @@ if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 else()
 	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
 	message(STATUS "Architecture: 32 bit")
-endif()
-
-#------------------------------------------------------------------------------
-# Handle build type
-#------------------------------------------------------------------------------
-# Set default build type (if not set by user on command line)
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Force build type into the cache (needs to be set beforehand)
