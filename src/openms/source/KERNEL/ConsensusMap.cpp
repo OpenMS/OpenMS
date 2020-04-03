@@ -747,7 +747,9 @@ OPENMS_THREAD_CRITICAL(oms_log)
       for (const FeatureHandle& fh : cf.getFeatures())
       {
         UInt64 index = fh.getMapIndex();
-        new_feats.emplace(index, fh);
+        // GCC-OPT 4.8 does not compile with:  new_feats.emplace(index, fh);
+        // , thus we use:
+        new_feats[index] = BaseFeature(fh);
         min_index = std::min(index, min_index);
       }
 
