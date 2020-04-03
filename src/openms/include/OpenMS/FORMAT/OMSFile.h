@@ -54,6 +54,12 @@ namespace OpenMS
   {
   public:
 
+    /// Constructor (with option to set log type)
+    explicit OMSFile(LogType log_type = LogType::NONE)
+    {
+      setLogType(log_type);
+    }
+
     /** @brief Write out an IdentificationData object to SQL-based OMS file
      *
      * @param filename The output file
