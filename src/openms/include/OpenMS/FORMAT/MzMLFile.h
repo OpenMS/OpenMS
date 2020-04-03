@@ -69,7 +69,7 @@ public:
     const PeakFileOptions& getOptions() const;
 
     /// set options for loading/storing
-    void setOptions(const PeakFileOptions &);
+    void setOptions(const PeakFileOptions&);
 
     /**
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
@@ -193,5 +193,3 @@ private:
   };
 
 } // namespace OpenMS
-
-

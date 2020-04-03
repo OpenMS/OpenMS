@@ -582,7 +582,7 @@ namespace OpenMS
     {
       vector<IdentificationData::QueryMatchRef> best_matches =
           id_data.getBestMatchPerQuery(score_ref);
-      for (auto match_ref : best_matches) // NOTE: performs copy, should not be necessary?
+      for (auto match_ref : best_matches)
       {
         handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
@@ -608,8 +608,8 @@ namespace OpenMS
     IdentificationData::ScoreTypeRef fdr_ref =
         id_data.registerScoreType(fdr_score);
     for (IdentificationData::MoleculeQueryMatches::iterator it =
-        id_data.getMoleculeQueryMatches().begin(); it !=
-                                                   id_data.getMoleculeQueryMatches().end(); ++it)
+           id_data.getMoleculeQueryMatches().begin(); it !=
+           id_data.getMoleculeQueryMatches().end(); ++it)
     {
       if (!include_decoys)
       {
@@ -619,10 +619,6 @@ namespace OpenMS
       auto pos = match_to_score.find(it);
       if (pos == match_to_score.end()) continue;
       double fdr = score_to_fdr.at(pos->second);
-      // @TODO: find a more efficient way to add a score
-      // IdentificationData::MoleculeQueryMatch copy(*it);
-      // copy.scores.push_back(make_pair(fdr_ref, fdr));
-      // id_data.registerMoleculeQueryMatch(copy);
       id_data.addScore(it, fdr_ref, fdr);
     }
     return fdr_ref;
