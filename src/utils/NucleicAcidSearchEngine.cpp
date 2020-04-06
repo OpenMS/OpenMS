@@ -1408,6 +1408,11 @@ protected:
     id_data.calculateCoverages();
 
     // store results
+    if (!db_out.empty())
+    {
+      OMSFile(log_type_).store(db_out, id_data);
+    }
+
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
@@ -1421,17 +1426,24 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
+      if (!digest.empty())
+      {
+        // RNA seqs. were imported from a previous search run - need to "tag"
+        // them with the current processing step so they get exported properly:
+        for (IdentificationData::ParentMoleculeRef ref =
+               id_data.getParentMolecules().begin(); ref !=
+               id_data.getParentMolecules().end(); ++ref)
+        {
+          // @TODO: find a way to avoid the copying (modify in place?):
+          IdentificationData::ParentMolecule copy = *ref;
+          copy.addProcessingStep(id_data.getCurrentProcessingStep());
+          id_data.registerParentMolecule(copy);
+        }
+      }
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
-      // proteins[0].setDateTime(DateTime::now());
-      // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
-    }
-
-    if (!db_out.empty())
-    {
-      OMSFile(log_type_).store(db_out, id_data);
     }
 
     if (!lfq_out.empty())

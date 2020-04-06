@@ -774,22 +774,30 @@ namespace OpenMS
     map<IdentificationData::ScoreTypeRef, Size>& score_map)
   {
     vector<MzTabParameter> search_engines;
+    set<IdentificationData::ProcessingSoftwareRef> sw_refs;
     for (const IdentificationData::AppliedProcessingStep& applied :
            steps_and_scores)
     {
-      MzTabParameter param;
       if (applied.processing_step_opt)
       {
         IdentificationData::ProcessingSoftwareRef sw_ref =
           (*applied.processing_step_opt)->software_ref;
-        param.setName(sw_ref->getName());
-        param.setValue(sw_ref->getVersion());
+        // mention each search engine only once:
+        if (!sw_refs.count(sw_ref))
+        {
+          MzTabParameter param;
+          param.setName(sw_ref->getName());
+          param.setValue(sw_ref->getVersion());
+          search_engines.push_back(param);
+          sw_refs.insert(sw_ref);
+        }
       }
       else
       {
+        MzTabParameter param;
         param.setName("unknown");
+        search_engines.push_back(param);
       }
-      search_engines.push_back(param);
 
       for (const pair<IdentificationData::ScoreTypeRef, double>& score_pair :
              applied.getScoresInOrder())
