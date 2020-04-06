@@ -220,6 +220,66 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
 }
 END_SECTION
 
+START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors() const))
+  const auto lfac = labelfree_unfractionated_design.getSampleSection().getFactors();
+  const auto lfacst = labelfree_unfractionated_single_table_design.getSampleSection().getFactors();
+  const auto facplex = fourplex_fractionated_design.getSampleSection().getFactors();
+  const auto facplexst = fourplex_fractionated_single_table_design.getSampleSection().getFactors();
+
+  TEST_EQUAL(lfac, lfacst)
+  TEST_EQUAL(facplex, facplexst)
+
+  auto l = lfac.begin()
+  TEST_EQUAL(*l++, "test")
+  TEST_EQUAL(*l++, "a")
+  TEST_EQUAL(*l++, "b")
+  TEST_EQUAL(*l++, "c")
+
+  l = facplex.begin()
+  TEST_EQUAL(*l++, "test")
+  TEST_EQUAL(*l++, "a")
+  TEST_EQUAL(*l++, "b")
+  TEST_EQUAL(*l++, "c")
+END_SECTION
+
+
+START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const String &factor) const))
+  const auto lf = labelfree_unfractionated_design.getNumberOfSamples();
+  const auto lfst = labelfree_unfractionated_single_table_design.getNumberOfSamples();
+  const auto fplex = fourplex_fractionated_design.getNumberOfSamples();
+  const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfSamples();
+
+  // Note: Factors are the same (correctness tested in ExperimentalDesign::SampleSection::getFactors())
+
+  // 12 samples (see getNumberOfSamples test)
+  for (const auto& ns : lf)
+  {
+    for (size_t sample = 0; sample != ns; ++sample)
+    {
+      for (const auto& factor : labelfree_unfractionated_design.getSampleSection().getFactors())
+      {
+        // check if single table and two table design agree          
+        TEST_EQUAL(labelfree_unfractionated_design.getFactorValue(sample, factor), labelfree_unfractionated_single_table_design.getFactorValue(sample, factor));
+      }
+    }    
+  }
+
+  // 8 samples (see getNumberOfSamples test)
+  for (const auto& ns : { fplex, fplexst})
+  {
+    for (size_t sample = 0; sample != ns; ++sample)
+    {
+      for (const auto& factor : fourplex_fractionated_design.getSampleSection().getFactors())
+      {
+        // check if single table and two table design agree
+        TEST_EQUAL(fourplex_fractionated_design.getFactorValue(sample, factor), fourplex_fractionated_single_table_design.getFactorValue(sample, factor));
+      }
+    }      
+    TEST_EQUAL(ns, 8);
+  }
+
+END_SECTION
+
 START_SECTION((unsigned getNumberOfSamples() const ))
 {
   const auto lf = labelfree_unfractionated_design.getNumberOfSamples();
