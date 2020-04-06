@@ -11,6 +11,7 @@ namespace OpenMS
                                       int maxSpecIndex,
                                       int &featureCntr,
                                       std::fstream &fsf,
+                                      std::fstream &fsp,
                                       PrecalcularedAveragine &averagines,
                                       Param &mtd_param,
                                       Parameter &param)
@@ -107,12 +108,18 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
-      if (mt.getSize() < 3)
-      {
-        //  continue;
-      }
+      //if (mt.getSize() < 3)
+      //{
+      //  continue;
+      //}
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
+
+      int minScanNum = map.size() + 1000;
+      int maxScanNum = 0;
+
+      int repScan = 0, repCharge = 0;
+      double maxIntensity = 0;
       boost::dynamic_bitset<> charges(param.chargeRange + param.minCharge + 1);
       std::fill_n(perChargeIntensity, param.chargeRange + param.minCharge + 1, 0);
       std::fill_n(perChargeMaxIntensity, param.chargeRange + param.minCharge + 1, 0);
@@ -125,8 +132,18 @@ namespace OpenMS
         int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[specIndex];
         auto &pg = pgMap[(float) p2.getMZ()];
+
         minCharge = minCharge < pg.minCharge ? minCharge : pg.minCharge;
         maxCharge = maxCharge > pg.maxCharge ? maxCharge : pg.maxCharge;
+
+        minScanNum = minScanNum < pg.scanNumber ? minScanNum : pg.scanNumber;
+        maxScanNum = maxScanNum > pg.scanNumber ? maxScanNum : pg.scanNumber;
+
+        if (pg.intensity > maxIntensity)
+        {
+          maxIntensity = pg.intensity;
+          repScan = pg.scanNumber;
+        }
 
         //std::cout<<2<<std::endl;
         for (auto &p : pg.peaks)
@@ -206,7 +223,50 @@ namespace OpenMS
           << charges.count() << "\t"
           << isoScore << "\t"
           << chargeScore << "\n";
+
+
+      if(param.promexOut){
+
+        // int specIndex = rtSpecMap[(float) p2.getRT()];
+        //        auto &pgMap = peakGroupMap[specIndex];
+        //        auto &pg = pgMap[(float) p2.getMZ()];
+
+        double maxChargeIntensity = 0;
+        for (int c = 0; c < param.chargeRange + param.minCharge + 1; c++)
+        {
+          if (perChargeIntensity[c] > maxChargeIntensity)
+          {
+            maxChargeIntensity = perChargeIntensity[c];
+            repCharge = c;
+          }
+        }
+        auto apex = mt[mt.findMaxByIntPeak()];
+        int si = rtSpecMap[(float) apex.getRT()];
+        auto &spgMap = peakGroupMap[si];
+        auto &spg = spgMap[(float) apex.getMZ()];
+
+        fsp << featureCntr << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minCharge << "\t"
+            << maxCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
+            << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
+            << spg.scanNumber << "\t" << spg.intensity << "\t"
+            << mt.begin()->getRT()/60.0 << "\t"
+            << mt.rbegin()->getRT()/60.0 << "\t"
+            << mt.getTraceLength()/60.0 << "\t";
+
+
+        for (int j = 0; j < param.maxIsotopeCount; ++j)
+        {
+          if (perIsotopeIntensity[j] <= 0)
+          {
+            continue;
+          }
+          fsp << j << "," << perIsotopeIntensity[j] << ";";
+        }
+        fsp << "\t"<<isoScore<<"\n";
+        fsp << std::setprecision(0);
+      }
     }
+
     delete[] perIsotopeIntensity;
     delete[] perChargeMz;
     delete[] perChargeMaxIntensity;

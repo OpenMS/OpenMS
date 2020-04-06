@@ -39,6 +39,7 @@ namespace OpenMS
                                         int maxSpecIndex,
                                         int &featureCntr,
                                         std::fstream &fsf,
+                                        std::fstream &fsp,
                                         PrecalcularedAveragine &averagines,
                                                Param &mtd_param,
                                                Parameter &param);

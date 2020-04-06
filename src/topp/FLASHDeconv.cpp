@@ -130,6 +130,7 @@ protected:
                        false,
                        true);
 
+    registerIntOption_("promexOutput", "", 0, "if set, promexoutput (*_FD.ms1ft) is generated", false, true);
     registerIntOption_("maxMSL", "", 2, "maximum MS-level (inclusive) for deconvolution", false, true);
 
     // parameters for MSn
@@ -172,7 +173,8 @@ protected:
     param.writeDetail = getIntOption_("writeDetail");
     //param.jitter = getIntOption_("jitter");
     param.maxMSLevel = getIntOption_("maxMSL");
-
+    param.promexOut = getIntOption_("promexOutput");
+    //std::cout<<param.promexOut<<std::endl;
     return param;
   }
 
@@ -216,7 +218,7 @@ protected:
 
     int specIndex = 0, massIndex = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
-    fstream fs, fsf, fsm;
+    fstream fs, fsf, fsm, fsp;
 
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
@@ -254,7 +256,10 @@ protected:
 
 
       fsf.open(outfilePath + ".tsv", fstream::out);
-
+      if (param.promexOut){
+        fsp.open(outfilePath + "_FD.ms1ft", fstream::out);
+        writePromexHeader(fsp);
+      }
       //  }
 
       writeHeader(fs, fsf, param.writeDetail);
@@ -341,6 +346,10 @@ protected:
 
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
 
+        if (param.promexOut){
+          fsp.open(outfilePath + outfileName + "_FD.ms1ft", fstream::out);
+          writePromexHeader(fsp);
+        }
 
         // fsm.open(outfilePath + outfileName + "Annotated.m", fstream::out); //
         writeHeader(fs, fsf, param.writeDetail);
@@ -377,7 +386,7 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
 
-        MassFeatureTrace::findFeatures(peakGroups, specIndex, featureCntr, fsf, avgine, mtd_param, param); //
+        MassFeatureTrace::findFeatures(peakGroups, specIndex, featureCntr, fsf, fsp, avgine, mtd_param, param); //
       }
       //cout <<2 <<endl;
       //OPENMS_LOG_INFO << " Done" <<endl;
@@ -505,14 +514,15 @@ protected:
         //   fsm << "];";
         //   fsm.close();
         //   fsp.close();
-        if (param.writeDetail > 0)
-        {
-          fs.close();
-          fsm.close();
-        }
+
+        fs.close();
+        fsm.close();
+
 
         fsf.close();
-
+        if (param.promexOut){
+          fsp.close();
+        }
         //fsm.close();
         for (int j = 0; j < param.maxMSLevel; j++)
         {
@@ -604,12 +614,15 @@ protected:
       // fsm << "];";
       //  fsm.close();
       //  fsp.close();
-      if (param.writeDetail > 0)
-      {
+
         fs.close();
         fsm.close();
-      }
+
       fsf.close();
+      if (param.promexOut){
+        fsp.close();
+      }
+
     }
 
     return EXECUTION_OK;
@@ -766,7 +779,7 @@ protected:
     {
       fs << "N/A\n";
     }
-
+    fs<< setprecision(0);
 
     /*
     //cout<<1<<endl;

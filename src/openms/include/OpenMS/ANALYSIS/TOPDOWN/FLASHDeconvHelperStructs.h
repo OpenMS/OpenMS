@@ -85,6 +85,7 @@ namespace OpenMS
       std::vector<UInt> numOverlappedScans;
       int threads = 1;
       int writeDetail = 0;
+      bool promexOut = false;
       //int jitter = 0;
     };
 
@@ -147,7 +148,7 @@ namespace OpenMS
       double chargeCosineScore = .0;
       double massPpmError = .0;
 
-      int massIndex, specIndex, massCntr;
+      int massIndex, specIndex, massCntr, scanNumber;
       int maxCharge, minCharge;
       int maxSNRcharge = 0;
       double* perChargeNoisePower;

@@ -108,8 +108,10 @@ namespace OpenMS
     std::fill_n(prevChargeRanges, param.currentMaxMSLevel, param.chargeRange);
     std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
 
+    int scanNumber = 0;
     for (auto it = map.begin(); it != map.end(); ++it)
     {
+      ++scanNumber;
       auto msLevel =  it->getMSLevel();
       if (msLevel> param.currentMaxMSLevel)
       {
@@ -232,6 +234,7 @@ namespace OpenMS
         pg.spec = &(*it);
         pg.massIndex = massIndex;
         pg.specIndex = specIndex;
+        pg.scanNumber = scanNumber;
         pg.massCntr = (int) peakGroups.size();
         allPeakGroups.push_back(pg);
       }
