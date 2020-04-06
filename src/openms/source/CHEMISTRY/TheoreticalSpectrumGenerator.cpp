@@ -385,7 +385,7 @@ namespace OpenMS
         losses.push_back( formula.getMonoWeight() );
         if (add_metainfo) 
         {
-          losses_names.push_back(std::move(formula.toString()));
+          losses_names.emplace_back(formula.toString());
         }
       }
     }

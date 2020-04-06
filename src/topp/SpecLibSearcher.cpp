@@ -528,7 +528,7 @@ protected:
             DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
             hit.setMetaValue("lib:RT", RT);
             hit.setMetaValue("lib:MZ", MZ);
-            hit.setMetaValue("isotope_error", iso);
+            hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, iso);
             hit.setScore(score);
             PeptideEvidence pe;
             pe.setProteinAccession(pr_hit.getAccession());

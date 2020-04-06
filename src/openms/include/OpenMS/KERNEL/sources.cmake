@@ -30,6 +30,7 @@ RangeManager.h
 RangeUtils.h
 RichPeak2D.h
 StandardTypes.h
+StandardDeclarations.h
 SpectrumHelper.h
 )
 

@@ -159,11 +159,27 @@ private:
                          vector<TransformationDescription>& transformations,
                          Int reference_index)
   {
-    algorithm.align(data, transformations, reference_index);
-
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
     String model_type = model_params.getValue("type");
+
+    try
+    {
+      algorithm.align(data, transformations, reference_index);
+    }
+    catch (Exception::MissingInformation& err)
+    {
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_ERROR
+          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "\nSince 'force' is set, processing will continue using 'identity' transformations."
+          << endl;
+        model_type = "identity";
+      }
+      else throw(err);
+    }
+
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
@@ -392,7 +408,9 @@ private:
           applyTransformations_(fraction_maps, fraction_transformations);
 
           // copy into transformations and feature maps
-          transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+          transformations.insert(transformations.end(),
+                                 fraction_transformations.begin(),
+                                 fraction_transformations.end());
 
           Size f = 0;
           for (size_t feature_map_index = 0; feature_map_index != n_fractions;

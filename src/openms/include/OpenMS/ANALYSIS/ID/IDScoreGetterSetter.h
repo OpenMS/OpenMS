@@ -51,9 +51,9 @@ namespace OpenMS
   /// target decoy annotation as second member of the pair. Target = true.
   /// Target+decoy for peptides = target. Protein groups with at least one target = target.
   struct ScoreToTgtDecLabelPairs // Not a typedef to allow forward declaration.
-      : public std::vector<std::pair<double, bool>>
+      : public std::vector<std::pair<double, double>>
   {
-    typedef std::vector<std::pair<double, bool>> Base;
+    typedef std::vector<std::pair<double, double>> Base;
     using Base::Base;
   };
 

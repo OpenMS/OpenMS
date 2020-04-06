@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
+#include <fstream>
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
