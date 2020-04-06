@@ -85,7 +85,7 @@
 #include <cmath>
 
 using namespace std;
-  
+
 namespace OpenMS
 {
 
@@ -173,7 +173,7 @@ namespace OpenMS
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
-    registerFlag_("force", "Overwrite tool specific checks.", true);
+    registerFlag_("force", "Override tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
@@ -306,7 +306,7 @@ namespace OpenMS
           writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
           param_common_ = param_inifile_.copy("common:", true);
           writeDebug_("Parameters from common section without tool name:", param_common_, 2);
-        
+
           // set type on command line if given in .ini file
           if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
             param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
@@ -381,8 +381,8 @@ namespace OpenMS
   #ifdef ENABLE_UPDATE_CHECK
       // disable collection of usage statistics if environment variable is present
       char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
- 
-      // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
+
+      // only perform check if variable is not set or explicitly enabled by setting it to "OFF"
       if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
       {
         UpdateCheck::run(tool_name_, version_, debug_level_);
@@ -1283,7 +1283,7 @@ namespace OpenMS
         else
         {
           writeLog_("Input file '" + param_value + "' could not be found (by searching on PATH). "
-                    "Either provide a full filepath or fix your PATH environment!" + 
+                    "Either provide a full filepath or fix your PATH environment!" +
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
                     "argument to prevent it's usage (this might limit the usability of the tool)."));
           throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
@@ -1305,7 +1305,7 @@ namespace OpenMS
         if (!ListUtils::contains(p.valid_strings, param_value))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" + 
+            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" +
             ListUtils::concatenate(p.valid_strings, "', '") + "'.");
         }
         break;
@@ -1546,7 +1546,7 @@ namespace OpenMS
     {
       OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
-    } 
+    }
 
     bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
     if (debug_level_ >= 4 || any_failure)
@@ -2206,7 +2206,7 @@ namespace OpenMS
       }
     }
   }
-  
+
   void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
   {
     map.getDataProcessing().push_back(dp);
@@ -2293,7 +2293,7 @@ namespace OpenMS
       lines.insert(4, QString("<citations>"));
       lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
-      for (const Citation& c : citations_) 
+      for (const Citation& c : citations_)
       {
         lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
       }
