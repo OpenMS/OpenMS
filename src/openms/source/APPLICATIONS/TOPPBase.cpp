@@ -173,7 +173,7 @@ namespace OpenMS
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
-    registerFlag_("force", "Override tool-specific checks", true);
+    registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
