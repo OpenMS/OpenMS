@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -167,6 +167,7 @@ namespace OpenMS
       chromatogram.sortByPosition();
 
       tmp_chromatograms.push_back(chromatogram);
+
     }
     return tmp_chromatograms;
   }
@@ -316,6 +317,11 @@ namespace OpenMS
     defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
 
+    defaults_.setValue("mz_scoring_by_elements", "false", "Use the m/z range of the assumed elements to detect isotope peaks. A expected m/z range is computed from the isotopes of the assumed elements. If enabled, this ignores 'mz_scoring_13C'");
+    defaults_.setValidStrings("mz_scoring_by_elements", ListUtils::create<String>("false,true"));
+
+    defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -346,6 +352,21 @@ namespace OpenMS
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
 
     remove_single_traces_ = param_.getValue("remove_single_traces").toBool();
+
+    use_mz_scoring_by_element_range_ = param_.getValue("mz_scoring_by_elements").toBool();
+    std::string elements_list_ = param_.getValue("elements");
+    elements_ = elementsFromString_(elements_list_);
+  }
+
+
+  std::vector<const Element*> FeatureFindingMetabo::elementsFromString_(const std::string& elements_string) const
+  {
+    std::vector<const Element*> elements;
+    for (const auto& element_with_amount : EmpiricalFormula(elements_string))
+    {
+      elements.push_back(element_with_amount.first);
+    }
+    return elements;
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
@@ -504,19 +525,8 @@ namespace OpenMS
     }
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge, Range isotope_window) const
   {
-    double mu, sd;
-    if (use_mz_scoring_C13_)
-    { // this reflects some data better (at least all Orbitrap)
-      mu = (Constants::C13C12_MASSDIFF_U * iso_pos) / charge; // using '1.0033548378'
-      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
-    }
-    else
-    { // original implementation from Kenar et al.;
-      mu = (1.000857 * iso_pos + 0.001091) / charge;
-      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
-    }
 
     double mz1(tr1.getCentroidMZ());
     double mz2(tr2.getCentroidMZ());
@@ -532,23 +542,86 @@ namespace OpenMS
 
     // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
+    double mz_score(0.0);
+
+    if (use_mz_scoring_by_element_range_)
+    {
+      mz_score = scoreMZByExpectedRange_(charge, diff_mz, mt_variances, isotope_window);
+    }
+    else
+    {
+      mz_score = scoreMZByExpectedMean_(iso_pos, charge, diff_mz, mt_variances);
+    }
+
+    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+
+    return mz_score;
+  }
+
+  double FeatureFindingMetabo::scoreMZByExpectedMean_(Size iso_pos, Size charge, const double diff_mz, double mt_variances) const
+  {
+    double mu, sd;
+    if (use_mz_scoring_C13_)
+    { // this reflects some data better (at least all Orbitrap)
+      mu = (Constants::C13C12_MASSDIFF_U * iso_pos) / charge; // using '1.0033548378'
+      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
+    }
+    else
+    { // original implementation from Kenar et al.;
+      mu = (1.000857 * iso_pos + 0.001091) / charge;
+      sd = (0.0016633 * iso_pos - 0.0004751) / charge;
+    }
+
+    double sigma_mult(3.0);
+    double mz_score(0.0);
+
+    //standard deviation including the estimated isotope deviation
     double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
 
     // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << std::endl;
-
-    double sigma_mult(3.0);
-
-    double mz_score(0.0);
-
 
     if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
       double tmp_exponent((diff_mz - mu) / score_sigma);
       mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
-
     }
+    return mz_score;
+  }
 
-    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+  double FeatureFindingMetabo::scoreMZByExpectedRange_(Size charge, const double diff_mz, double mt_variances, Range isotope_window) const
+  {
+    //This isotope picking using m/z differences of elements' isotopes is based on the approach used in SIRIUS
+    double sigma_mult(3.0);
+    double mz_score(0.0);
+
+    //standard deviation of m/z distance between the 2 mass traces
+    double mt_sigma(std::sqrt(mt_variances));
+
+    double max_allowed_deviation = mt_sigma * sigma_mult;
+
+    double lbound = isotope_window.left_boundary / charge;
+    double rbound = isotope_window.right_boundary / charge;
+
+    if ((diff_mz < rbound) && (diff_mz > lbound))
+    {
+      //isotope masstrace lies in the expected range
+      mz_score = 1.0;
+    }
+    else if ((diff_mz < rbound + max_allowed_deviation) && (diff_mz > lbound - max_allowed_deviation))
+    {
+      //score only the m/z difference which cannot explained by the elements m/z ranges
+      double tmp_exponent;
+      if (diff_mz < lbound)
+      {
+        tmp_exponent = (lbound - diff_mz) / mt_sigma;
+      }
+      else
+      {
+        tmp_exponent = (diff_mz - rbound) / mt_sigma;
+      }
+      mz_score = std::exp(-0.5 * tmp_exponent * tmp_exponent);
+    }
+    //else mz_score stays 0
 
     return mz_score;
   }
@@ -628,6 +701,38 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
+  Range FeatureFindingMetabo::getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const
+  {
+    if (peakOffset < 1) throw std::invalid_argument("Expect a peak offset of at least 1");
+
+    double minmz = std::numeric_limits<double>::infinity();
+    double maxmz = -std::numeric_limits<double>::infinity();
+
+    for (const Element* e : alphabet) {
+      IsotopeDistribution iso = e->getIsotopeDistribution();
+      for (unsigned int k = 1; k < iso.size(); ++k) {
+        const double mz_mono = iso[0].getMZ();
+        const double mz_iso = iso[k].getMZ();
+
+        const int integer_mz_mono =  (int)round(mz_mono);
+        const int integer_mz_iso =  (int)round(mz_iso);
+        const int i = integer_mz_iso - integer_mz_mono;
+
+        if (i > peakOffset) break;
+        const double mz_diff_iso_mono = mz_iso - mz_mono;
+        double diff = mz_diff_iso_mono - i;
+        diff *= (peakOffset / i);
+        minmz = std::min(minmz, diff);
+        maxmz = std::max(maxmz, diff);
+      }
+    }
+
+    Range range = Range();
+    range.left_boundary = peakOffset + minmz;
+    range.right_boundary = peakOffset + maxmz;
+    return range;
+  }
+
   double FeatureFindingMetabo::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
@@ -680,7 +785,8 @@ namespace OpenMS
       Size iso_pos_max(static_cast<Size>(std::floor(charge * local_mz_range_)));
       for (Size iso_pos = 1; iso_pos <= iso_pos_max; ++iso_pos)
       {
-
+        //estimate expected m/z window for iso_pos
+        Range isotope_window = getTheoreticIsotopicMassWindow_(elements_, iso_pos);
         // Find mass trace that best agrees with current hypothesis of charge
         // and isotopic position
         double best_so_far(0.0);
@@ -698,7 +804,7 @@ namespace OpenMS
 
           // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
-          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
+          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge, isotope_window));
 
           // disable intensity scoring for now...
           double int_score(1.0);
@@ -762,6 +868,15 @@ namespace OpenMS
 
   void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms)
   {
+
+    if (use_mz_scoring_by_element_range_ && isotope_filtering_model_ != "none")
+    {
+      OPENMS_LOG_WARN << "Isotope filtering is not supported, when using the mz scoring by elements.\n"
+                      << "The parameter isotope_filtering_model will be set to 'none'."
+                      << std::endl;
+      isotope_filtering_model_ = "none";
+    }
+
     output_featmap.clear();
     output_chromatograms.clear();
 
@@ -941,10 +1056,11 @@ namespace OpenMS
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       output_featmap.push_back(f);
 
-      if (report_chromatograms_)
+      if (report_chromatograms_ && f.getIntensity() != 0)
       {
         output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms(f.getUniqueId()));
       }
+
       // add used traces to exclusion map
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {

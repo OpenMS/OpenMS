@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -181,6 +181,8 @@ protected:
     OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
     sw.reset();
 
+    // groups will be reannotated or scores will not make sense anymore -> delete
+    inferred_protein_ids[0].getIndistinguishableProteins().clear();
 
     OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
     BasicProteinInferenceAlgorithm pi;
@@ -206,7 +208,7 @@ protected:
       ibg.computeConnectedComponents();
       OPENMS_LOG_INFO << "Splitting into connected components took " << sw.toString() << std::endl;
       sw.clear();
-      ibg.annotateIndistProteins(true);
+      ibg.calculateAndAnnotateIndistProteins(true);
     }
 
     OPENMS_LOG_INFO << "Storing output..." << std::endl;

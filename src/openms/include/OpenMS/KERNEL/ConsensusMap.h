@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <map>
@@ -82,7 +83,8 @@ namespace OpenMS
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<ConsensusMap>
+    public UniqueIdIndexer<ConsensusMap>,
+    public MapUtilities<ConsensusMap>
   {
 
 public:
@@ -302,18 +304,6 @@ public:
     /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
-    /// applies a function on all PeptideHits or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned = true);
-
-    /// applies a function on all PeptideIDs or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned = true);
-
-    /// applies a const function on all PeptideHits or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>&, bool include_unassigned = true) const;
-
-    /// applies a const function on all PeptideIDs or only assigned ones
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned = true) const;
-
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
 
@@ -389,15 +379,6 @@ protected:
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
 
-private:
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const;
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(const std::vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const;
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideIDs_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f);
-
-    OPENMS_DLLAPI void applyFunctionOnPeptideHits_(std::vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f);
   };
 
   ///Print the contents of a ConsensusMap to a stream.

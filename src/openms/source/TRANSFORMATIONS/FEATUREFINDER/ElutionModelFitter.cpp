@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,6 +61,9 @@ ElutionModelFitter::ElutionModelFitter():
   defaults_.setValue("no_imputation", "false", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", advanced);
   defaults_.setValidStrings("no_imputation", truefalse);
 
+  defaults_.setValue("each_trace", "false", "Fit elution model to each individual mass trace", advanced);
+  defaults_.setValidStrings("each_trace", truefalse);
+
   defaults_.setValue("check:min_area", 1.0, "Lower bound for the area under the curve of a valid elution model", advanced);
   defaults_.setMinFloat("check:min_area", 0.0);
 
@@ -68,10 +71,10 @@ ElutionModelFitter::ElutionModelFitter():
   defaults_.setMinFloat("check:boundaries", 0.0);
   defaults_.setMaxFloat("check:boundaries", 1.0);
 
-  defaults_.setValue("check:width", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", advanced);
+  defaults_.setValue("check:width", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores. '0' to disable. Not applied to individual mass traces (parameter 'each_trace').", advanced);
   defaults_.setMinFloat("check:width", 0.0);
 
-  defaults_.setValue("check:asymmetry", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", advanced);
+  defaults_.setValue("check:asymmetry", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores. '0' to disable. Not applied to individual mass traces (parameter 'each_trace').", advanced);
   defaults_.setMinFloat("check:asymmetry", 0.0);
 
   defaults_.setSectionDescription("check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
@@ -89,13 +92,13 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double mre = 0.0;
   double total_weights = 0.0;
   double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
-  double rt_end = min(fitter->getUpperRTBound(), 
+  double rt_end = min(fitter->getUpperRTBound(),
                       traces[0].peaks.back().first);
 
   for (MassTraces::const_iterator tr_it = traces.begin();
        tr_it != traces.end(); ++tr_it)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
+    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
            tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
     {
       double rt = p_it->first;
@@ -113,16 +116,97 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
 }
 
 
+void ElutionModelFitter::fitAndValidateModel_(
+  TraceFitter* fitter, MassTraces& traces, Feature& feature,
+  double region_start, double region_end, bool asymmetric,
+  double area_limit, double check_boundaries)
+{
+  bool fit_success = true;
+  try
+  {
+    fitter->fit(traces);
+  }
+  catch (Exception::UnableToFit& except)
+  {
+    OPENMS_LOG_ERROR << "Error fitting model to feature '"
+                     << feature.getUniqueId() << "': " << except.getName()
+                     << " - " << except.getMessage() << endl;
+    fit_success = false;
+  }
+
+  // record model parameters:
+  double center = fitter->getCenter(), height = fitter->getHeight();
+  feature.setMetaValue("model_height", height);
+  feature.setMetaValue("model_FWHM", fitter->getFWHM());
+  feature.setMetaValue("model_center", center);
+  feature.setMetaValue("model_lower", fitter->getLowerRTBound());
+  feature.setMetaValue("model_upper", fitter->getUpperRTBound());
+  if (asymmetric)
+  {
+    EGHTraceFitter* egh = static_cast<EGHTraceFitter*>(fitter);
+    double sigma = egh->getSigma();
+    double tau = egh->getTau();
+    feature.setMetaValue("model_EGH_tau", tau);
+    feature.setMetaValue("model_EGH_sigma", sigma);
+    // see implementation of "EGHTraceFitter::getArea":
+    double width = sigma * 0.6266571 + abs(tau);
+    feature.setMetaValue("model_width", width);
+    double asymmetry = abs(tau) / sigma;
+    feature.setMetaValue("model_asymmetry", asymmetry);
+  }
+  else
+  {
+    GaussTraceFitter* gauss = static_cast<GaussTraceFitter*>(fitter);
+    double sigma = gauss->getSigma();
+    feature.setMetaValue("model_Gauss_sigma", sigma);
+    feature.setMetaValue("model_width", sigma); // yes, this is redundant
+  }
+
+  // goodness of fit:
+  double mre = -1.0; // mean relative error
+  if (fit_success)
+  {
+    mre = calculateFitQuality_(fitter, traces);
+  }
+  feature.setMetaValue("model_error", mre);
+
+  // check model validity:
+  double area = fitter->getArea();
+  feature.setMetaValue("model_area", area);
+  if ((area != area) || (area <= area_limit)) // x != x: test for NaN
+  {
+    feature.setMetaValue("model_status", "1 (invalid area)");
+  }
+  else if ((center <= region_start) || (center >= region_end))
+  {
+    feature.setMetaValue("model_status", "2 (center out of bounds)");
+  }
+  else if (fitter->getValue(region_start) > check_boundaries * height)
+  {
+    feature.setMetaValue("model_status", "3 (left side out of bounds)");
+  }
+  else if (fitter->getValue(region_end) > check_boundaries * height)
+  {
+    feature.setMetaValue("model_status", "4 (right side out of bounds)");
+  }
+  else
+  {
+    feature.setMetaValue("model_status", "0 (valid)");
+  }
+}
+
+
 void ElutionModelFitter::fitElutionModels(FeatureMap& features)
 {
   bool asymmetric = param_.getValue("asymmetric").toBool();
   double add_zeros = param_.getValue("add_zeros");
   bool weighted = !param_.getValue("unweighted_fit").toBool();
   bool impute = !param_.getValue("no_imputation").toBool();
+  bool each_trace = param_.getValue("each_trace").toBool();
   double check_boundaries = param_.getValue("check:boundaries");
   double area_limit = param_.getValue("check:min_area");
   double width_limit = param_.getValue("check:width");
-  double asym_limit = (asymmetric ? 
+  double asym_limit = (asymmetric ?
                        double(param_.getValue("check:asymmetry")) : 0.0);
 
   TraceFitter* fitter;
@@ -138,24 +222,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     fitter->setParameters(params);
   }
 
-  // store model parameters to find outliers later; store values redundantly -
-  // once aligned with the features in the map, once only for successful models:
-  vector<double> widths_all, widths_good, asym_all, asym_good;
-  if (width_limit > 0)
-  {
-    widths_all.resize(features.size(), numeric_limits<double>::quiet_NaN());
-    widths_good.reserve(features.size());
-  }
-  if (asym_limit > 0)
-  {
-    asym_all.resize(features.size(), numeric_limits<double>::quiet_NaN());
-    asym_good.reserve(features.size());
-  }
-
   // collect peaks that constitute mass traces:
   OPENMS_LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
     // OPENMS_LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
@@ -186,9 +256,8 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     {
       MassTrace trace;
       trace.peaks.reserve(points_per_hull);
-      trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
       const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-      for (ConvexHull2D::PointArrayTypeConstIterator point_it = 
+      for (ConvexHull2D::PointArrayTypeConstIterator point_it =
              hull.getHullPoints().begin(); point_it !=
              hull.getHullPoints().end(); ++point_it)
       {
@@ -203,7 +272,18 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
         }
       }
       trace.updateMaximum();
-      if (!trace.peaks.empty()) traces.push_back(trace);
+      if (trace.peaks.empty()) continue;
+      if (each_trace)
+      {
+        MassTraces temp;
+        trace.theoretical_int = 1.0;
+        temp.push_back(trace);
+        temp.max_trace = 0;
+        fitAndValidateModel_(fitter, temp, *sub_it, region_start, region_end,
+                             asymmetric, area_limit, check_boundaries);
+      }
+      trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
+      traces.push_back(trace);
     }
 
     // find the trace with maximal intensity:
@@ -236,157 +316,83 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     }
 
     // fit the model:
-    bool fit_success = true;
-    try
-    {
-      fitter->fit(traces);
-    }
-    catch (Exception::UnableToFit& except)
-    {
-      OPENMS_LOG_ERROR << "Error fitting model to feature '" << feat_it->getUniqueId()
-                << "': " << except.getName() << " - " << except.getMessage()
-                << endl;
-      fit_success = false;
-    }
-
-    // record model parameters:
-    double center = fitter->getCenter(), height = fitter->getHeight();
-    feat_it->setMetaValue("model_height", height);
-    feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
-    feat_it->setMetaValue("model_center", center);
-    feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
-    feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
-    if (asymmetric)
-    {
-      EGHTraceFitter* egh = static_cast<EGHTraceFitter*>(fitter);
-      feat_it->setMetaValue("model_EGH_tau", egh->getTau());
-      feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
-    }
-    else
-    {
-      GaussTraceFitter* gauss = static_cast<GaussTraceFitter*>(fitter);
-      feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
-    }
-
-    // goodness of fit:
-    double mre = -1.0; // mean relative error
-    if (fit_success)
-    {
-      mre = calculateFitQuality_(fitter, traces);
-    }
-    feat_it->setMetaValue("model_error", mre);
-
-    // check model validity:
-    double area = fitter->getArea();
-    feat_it->setMetaValue("model_area", area);
-    if ((area != area) || (area <= area_limit)) // x != x: test for NaN
-    {
-      feat_it->setMetaValue("model_status", "1 (invalid area)");
-    }
-    else if ((center <= region_start) || (center >= region_end))
-    {
-      feat_it->setMetaValue("model_status", "2 (center out of bounds)");
-    }
-    else if (fitter->getValue(region_start) > check_boundaries * height)
-    {
-      feat_it->setMetaValue("model_status", "3 (left side out of bounds)");
-    }
-    else if (fitter->getValue(region_end) > check_boundaries * height)
-    {
-      feat_it->setMetaValue("model_status", "4 (right side out of bounds)");
-    }
-    else
-    {
-      feat_it->setMetaValue("model_status", "0 (valid)");
-      // store model parameters to find outliers later:
-      if (asymmetric)
-      {
-        double sigma = feat_it->getMetaValue("model_EGH_sigma");
-        double abs_tau = fabs(double(feat_it->getMetaValue("model_EGH_tau")));
-        if (width_limit > 0)
-        {
-          // see implementation of "EGHTraceFitter::getArea":
-          double width = sigma * 0.6266571 + abs_tau;
-          widths_all[index] = width;
-          widths_good.push_back(width);
-        }
-        if (asym_limit > 0)
-        {
-          double asymmetry = abs_tau / sigma;
-          asym_all[index] = asymmetry;
-          asym_good.push_back(asymmetry);
-        }
-      }
-      else if (width_limit > 0)
-      {
-        double width = feat_it->getMetaValue("model_Gauss_sigma");
-        widths_all[index] = width;
-        widths_good.push_back(width);
-      }
-    }
+    fitAndValidateModel_(fitter, traces, *feat_it, region_start, region_end,
+                         asymmetric, area_limit, check_boundaries);
   }
   delete fitter;
 
   // find outliers in model parameters:
   if (width_limit > 0)
   {
-    double median_width = Math::median(widths_good.begin(), widths_good.end());
-    vector<double> abs_diffs(widths_good.size());
-    for (Size i = 0; i < widths_good.size(); ++i)
+    vector<double> widths;
+    for (Feature& feature : features)
     {
-      abs_diffs[i] = fabs(widths_good[i] - median_width);
+      if (feature.getMetaValue("model_status") == "0 (valid)")
+      {
+        widths.push_back(feature.getMetaValue("model_width"));
+      }
+    }
+    double median_width = Math::median(widths.begin(), widths.end());
+    vector<double> abs_diffs(widths.size());
+    for (Size i = 0; i < widths.size(); ++i)
+    {
+      abs_diffs[i] = fabs(widths[i] - median_width);
     }
     // median absolute deviation (constant factor to approximate std. dev.):
-    double mad_width = 1.4826 * Math::median(abs_diffs.begin(), 
+    double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
                                              abs_diffs.end());
 
-    for (Size i = 0; i < features.size(); ++i)
+    for (Feature& feature : features)
     {
-      double width = widths_all[i];
-      if (width != width) continue; // NaN (failed model)
-      double z_width = (width - median_width) / mad_width; // mod. z-score
-      if (z_width > width_limit)
+      if (feature.getMetaValue("model_status") == "0 (valid)")
       {
-        features[i].setMetaValue("model_status", "5 (width too large)");
-        if (asym_limit > 0) // skip asymmetry check below
+        double width = feature.getMetaValue("model_width");
+        double z_width = (width - median_width) / mad_width; // mod. z-score
+        if (z_width > width_limit)
         {
-          asym_all[i] = numeric_limits<double>::quiet_NaN();
+          feature.setMetaValue("model_status", "5 (width too large)");
         }
-      }
-      else if (z_width < -width_limit)
-      {
-        features[i].setMetaValue("model_status", "6 (width too small)");
-        if (asym_limit > 0) // skip asymmetry check below
+        else if (z_width < -width_limit)
         {
-          asym_all[i] = numeric_limits<double>::quiet_NaN();
+          feature.setMetaValue("model_status", "6 (width too small)");
         }
       }
     }
   }
   if (asym_limit > 0)
   {
-    double median_asym = Math::median(asym_good.begin(), asym_good.end());
-    vector<double> abs_diffs(asym_good.size());
-    for (Size i = 0; i < asym_good.size(); ++i)
+    vector<double> asyms;
+    for (Feature& feature : features)
     {
-      abs_diffs[i] = fabs(asym_good[i] - median_asym);
+      if (feature.getMetaValue("model_status") == "0 (valid)")
+      {
+        asyms.push_back(feature.getMetaValue("model_asymmetry"));
+      }
+    }
+    double median_asym = Math::median(asyms.begin(), asyms.end());
+    vector<double> abs_diffs(asyms.size());
+    for (Size i = 0; i < asyms.size(); ++i)
+    {
+      abs_diffs[i] = fabs(asyms[i] - median_asym);
     }
     // median absolute deviation (constant factor to approximate std. dev.):
     double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
                                             abs_diffs.end());
 
-    for (Size i = 0; i < features.size(); ++i)
+    for (Feature& feature : features)
     {
-      double asym = asym_all[i];
-      if (asym != asym) continue; // NaN (failed model)
-      double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
-      if (z_asym > asym_limit)
+      if (feature.getMetaValue("model_status") == "0 (valid)")
       {
-        features[i].setMetaValue("model_status", "7 (asymmetry too high)");
-      }
-      else if (z_asym < -asym_limit) // probably shouldn't happen in practice
-      {
-        features[i].setMetaValue("model_status", "8 (asymmetry too low)");
+        double asym = feature.getMetaValue("model_asymmetry");
+        double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
+        if (z_asym > asym_limit)
+        {
+          feature.setMetaValue("model_status", "7 (asymmetry too high)");
+        }
+        else if (z_asym < -asym_limit) // probably shouldn't happen in practice
+        {
+          feature.setMetaValue("model_status", "8 (asymmetry too low)");
+        }
       }
     }
   }
@@ -397,7 +403,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   vector<FeatureMap::Iterator> failed_models;
   Size model_successes = 0, model_failures = 0;
 
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
     feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -414,7 +420,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       { // apply log-transform to weight down high outliers:
         double raw_intensity = feat_it->getIntensity();
         OPENMS_LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
-                  << area << "; log(x) = " << log(raw_intensity) 
+                  << area << "; log(x) = " << log(raw_intensity)
                   << ", log(y) = " << log(area) << endl;
         quant_values.push_back(make_pair(log(raw_intensity), log(area)));
       }

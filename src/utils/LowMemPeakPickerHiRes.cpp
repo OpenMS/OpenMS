@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,9 +83,9 @@ using namespace std;
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_LowMemPeakPickerHiRes.cli
+  @verbinclude UTILS_LowMemPeakPickerHiRes.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_LowMemPeakPickerHiRes.html
+  @htmlinclude UTILS_LowMemPeakPickerHiRes.html
 
   For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -231,6 +231,37 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 
     gen.setThreshold(1e-5);
     TEST_EQUAL(gen.run(EmpiricalFormula("C2048")).size(), 44)
+  }
+}
+END_SECTION
+
+START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const ))
+{
+  EmpiricalFormula ef ("C6H12O6");
+
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
+  }
+
+  ef.setCharge(2);
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 3)
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
+
+    TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
   }
 }
 END_SECTION

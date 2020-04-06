@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,29 +46,30 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_DTAExtractor DTAExtractor
+@page TOPP_DTAExtractor DTAExtractor
 
-    @brief Extracts scans of an mzML file to several files in DTA format.
+@brief Extracts scans of an mzML file to several files in DTA format.
 <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+    </tr>
+</table>
 </center>
-    The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
-    You can limit the exported spectra by m/z range, retention time range or MS level.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_DTAExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_DTAExtractor.html
+The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
+You can limit the exported spectra by m/z range, retention time range or MS level.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DTAExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DTAExtractor.html
 */
 
 // We do not want this class to show up in the docu:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -72,18 +73,13 @@ class TOPPIDScoreSwitcher :
 public:
 
   TOPPIDScoreSwitcher() :
-    TOPPBase("IDScoreSwitcher", "Switches between different scores of peptide or protein hits in identification data", false), tolerance_(1e-6)
+    TOPPBase("IDScoreSwitcher", "Switches between different scores of peptide or protein hits in identification data", false)
   {
   }
 
 protected:
 
-  /// relative tolerance for score comparisons:
-  const double tolerance_;
-
-  String new_score_, new_score_type_, old_score_; // tool parameters
-  bool higher_better_; // for the new scores, are higher ones better?
-
+  IDScoreSwitcherAlgorithm switcher_{};
 
   void registerOptionsAndFlags_() override
   {
@@ -91,81 +87,15 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-
-    registerStringOption_("new_score", "<name>", "", "Name of the meta value to use as the new score");
-    registerStringOption_("new_score_orientation", "<choice>", "", "Orientation of the new score (are higher or lower values better?)");
-    setValidStrings_("new_score_orientation", ListUtils::create<String>("lower_better,higher_better"));
-    registerStringOption_("new_score_type", "<name>", "", "Name to use as the type of the new score (default: same as 'new_score')", false);
-    registerStringOption_("old_score", "<name>", "", "Name to use for the meta value storing the old score (default: old score type)", false);
     registerFlag_("proteins", "Apply to protein scores instead of PSM scores");
+    registerFullParam_(switcher_.getParameters());
   }
-
-
-  String describeHit_(const PeptideHit& hit)
-  {
-    return "peptide hit with sequence '" + hit.getSequence().toString() +
-      "', charge " + String(hit.getCharge()) + ", score " + 
-      String(hit.getScore());
-  }
-
-
-  String describeHit_(const ProteinHit& hit)
-  {
-    return "protein hit with accession '" + hit.getAccession() + "', score " +
-      String(hit.getScore());
-  }
-
-
-  template <typename IDType>
-  void switchScores_(IDType& id, Size& counter)
-  {
-    for (typename vector<typename IDType::HitType>::iterator hit_it = id.getHits().begin();
-         hit_it != id.getHits().end(); ++hit_it, ++counter)
-    {
-      if (!hit_it->metaValueExists(new_score_))
-      {
-        String msg = "Meta value '" + new_score_ + "' not found for " + 
-          describeHit_(*hit_it);
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      String old_score_meta = (old_score_.empty() ? id.getScoreType() : 
-                               old_score_);
-      DataValue dv = hit_it->getMetaValue(old_score_meta);
-      if (!dv.isEmpty()) // meta value for old score already exists
-      {
-        if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
-                 (double(dv) + hit_it->getScore())) > tolerance_)
-        {
-          String msg = "Meta value '" + old_score_meta + "' already exists "
-            "with a conflicting value for " + describeHit_(*hit_it);
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        msg, dv.toString());
-        } // else: values match, nothing to do
-      }
-      else
-      {
-        hit_it->setMetaValue(old_score_meta, hit_it->getScore());
-      }
-      hit_it->setScore(hit_it->getMetaValue(new_score_));
-    }
-    id.setScoreType(new_score_type_);
-    id.setHigherScoreBetter(higher_better_);
-  }
-
 
   ExitCodes main_(int, const char**) override
   {
+    switcher_.setParameters(getParam_().copySubset(switcher_.getParameters()));
     String in = getStringOption_("in"), out = getStringOption_("out");
-    bool do_proteins = getFlag_("proteins");
-    new_score_ = getStringOption_("new_score");
-    new_score_type_ = getStringOption_("new_score_type");
-    old_score_ = getStringOption_("old_score");
-    higher_better_ = (getStringOption_("new_score_orientation") == 
-                      "higher_better");
-
-    if (new_score_type_.empty()) new_score_type_ = new_score_;
+    bool do_proteins_ = getFlag_("proteins");
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
@@ -173,27 +103,25 @@ protected:
     IdXMLFile().load(in, proteins, peptides);
 
     Size counter = 0;
-    if (do_proteins)
+    if (do_proteins_)
     {
-      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-           prot_it != proteins.end(); ++prot_it)
+      for (auto& pid : proteins)
       {
-        switchScores_<ProteinIdentification>(*prot_it, counter);
+        switcher_.switchScores<ProteinIdentification>(pid, counter);
       }
     }
     else
     {
-      for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-           pep_it != peptides.end(); ++pep_it)
+      for (auto& pepid : peptides)
       {
-        switchScores_<PeptideIdentification>(*pep_it, counter);
+        switcher_.switchScores<PeptideIdentification>(pepid, counter);
       }
     }
 
     IdXMLFile().store(out, proteins, peptides);
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
-             << (do_proteins ? "protein" : "PSM") << " scores." << endl;
+             << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;
 
     return EXECUTION_OK;
   }

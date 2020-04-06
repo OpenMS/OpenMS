@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,50 +164,50 @@ public:
     */
     void resolveID(std::vector<PeptideIdentification> & peptide_identifications);
 
-    /**
-      @brief NOT IMPLEMENTED YET
+    // /**
+      // @brief NOT IMPLEMENTED YET
 
-      @param protein_nodes
-      @param peptide_nodes
-      @param reindexed_proteins
-      @param reindexed_peptides
-      @param peptide_identifications
-      @param output
-    */
+      // @param protein_nodes
+      // @param peptide_nodes
+      // @param reindexed_proteins
+      // @param reindexed_peptides
+      // @param peptide_identifications
+      // @param output
+    // */
     // void writeProteinsAndPeptidesmzTab(std::vector<ProteinEntry>& protein_nodes, std::vector<PeptideEntry>& peptide_nodes, std::vector<Size>& reindexed_proteins, std::vector<Size>& reindexed_peptides, std::vector<PeptideIdentification>& peptide_identifications, String& output  );
-    /**
-      @brief Writing peptide table into text file
+    // /**
+      // @brief Writing peptide table into text file
 
-      @param peptides
-      @param reindexed_peptides
-      @param identifications
-      @param output_file
-    */
+      // @param peptides
+      // @param reindexed_peptides
+      // @param identifications
+      // @param output_file
+    // */
     // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, std::vector<PeptideIdentification> & identifications, String & output_file); // not implemented
-    /**
-      @brief Writing peptide table into text file
+    // /**
+      // @brief Writing peptide table into text file
 
-      @param peptides
-      @param reindexed_peptides
-      @param consensus
-      @param output
-    */
+      // @param peptides
+      // @param reindexed_peptides
+      // @param consensus
+      // @param output
+    // */
     // void writePeptideTable(std::vector<PeptideEntry> & peptides, std::vector<Size> & reindexed_peptides, ConsensusMap & consensus, String & output_file); // not implemented
-    /**
-      @brief Writing protein table into text file
+    // /**
+      // @brief Writing protein table into text file
 
-      @param proteins
-      @param reindexed_proteins
-      @param output_file
-    */
+      // @param proteins
+      // @param reindexed_proteins
+      // @param output_file
+    // */
     // void writeProteinTable(std::vector<ProteinEntry> & proteins, std::vector<Size> & reindexed_proteins, String & output_file); // not implemented
-    /**
-      @brief Writing protein groups into text file
+    // /**
+      // @brief Writing protein groups into text file
 
-      @param isd_groups ISD groups
-      @param msd_groups MSD groups
-      @param output_file Path of output file
-    */
+      // @param isd_groups ISD groups
+      // @param msd_groups MSD groups
+      // @param output_file Path of output file
+    // */
     // void writeProteinGroups(std::vector<ISDGroup> & isd_groups, std::vector<MSDGroup> & msd_groups, String & output_file); // not implemented
 
     /**

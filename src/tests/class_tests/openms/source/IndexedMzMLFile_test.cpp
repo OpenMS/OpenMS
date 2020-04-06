@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+///////////////////////////
+
 #include <OpenMS/FORMAT/FileTypes.h>
 
 // for comparison
@@ -58,18 +59,18 @@ START_TEST(IndexedMzMLHandler, "$Id$")
 IndexedMzMLHandler* ptr = nullptr;
 IndexedMzMLHandler* nullPointer = nullptr;
 START_SECTION((IndexedMzMLHandler(String filename) ))
-	ptr = new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~IndexedMzMLHandler()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION((IndexedMzMLHandler() ))
-	ptr = new IndexedMzMLHandler();
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
+  ptr = new IndexedMzMLHandler();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION((IndexedMzMLHandler(const IndexedMzMLHandler &source)))
@@ -150,8 +151,8 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 {
   IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	PeakMap exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
 
@@ -172,18 +173,110 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 }
 END_SECTION
 
+START_SECTION(( OpenMS::MSSpectrum getMSSpectrumById(int id)  ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
+
+  OpenMS::MSSpectrum spec = file.getMSSpectrumById(0);
+  TEST_EQUAL(spec.size(), exp.getSpectra()[0].size() )
+  // TEST_EQUAL(spec.getNativeID(), exp.getSpectra()[0].getNativeID() )
+
+  // Test Exceptions
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumById(-1));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumById( file.getNrSpectra()+1));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::ParseError,file.getMSSpectrumById( 0 ));
+  }
+}
+END_SECTION
+
+START_SECTION(( void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
+
+  OpenMS::MSSpectrum spec;
+  file.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1", spec);
+  TEST_EQUAL(spec.size(), exp.getSpectra()[0].size() )
+  TEST_EQUAL(spec.getNativeID(), exp.getSpectra()[0].getNativeID() )
+
+  // Test Exceptions
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumByNativeId("TEST", spec));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSSpectrumByNativeId( "TEST", spec ));
+  }
+}
+END_SECTION
+
 START_SECTION(( OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id) ))
 {
   IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	PeakMap exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
 
   OpenMS::Interfaces::ChromatogramPtr chrom = file.getChromatogramById(0);
   TEST_EQUAL(chrom->getTimeArray()->data.size(), exp.getChromatograms()[0].size() )
   TEST_EQUAL(chrom->getIntensityArray()->data.size(), exp.getChromatograms()[0].size() )
+}
+END_SECTION
+
+START_SECTION(( OpenMS::MSChromatogram getMSChromatogramById(int id) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
+
+  OpenMS::MSChromatogram chrom = file.getMSChromatogramById(0);
+  TEST_EQUAL(chrom.size(), exp.getChromatograms()[0].size() )
+  TEST_EQUAL(chrom.getNativeID(), exp.getChromatograms()[0].getNativeID() )
+}
+END_SECTION
+
+START_SECTION(( void getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
+
+  OpenMS::MSChromatogram chrom;
+  file.getMSChromatogramByNativeId("TIC", chrom);
+  TEST_EQUAL(chrom.size(), exp.getChromatograms()[0].size() )
+  TEST_EQUAL(chrom.getNativeID(), exp.getChromatograms()[0].getNativeID() )
+
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSChromatogramByNativeId("TEST", chrom));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSChromatogramByNativeId( "TEST", chrom ));
+  }
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,6 +213,15 @@ START_SECTION((String(float f, bool full_precision = true)))
   TEST_EQUAL(s,"17.0123")
   String s2(float(17.0123), false);
   TEST_EQUAL(s2, "17.012")
+END_SECTION
+
+START_SECTION((String(float f)))
+  float f = 50254.199219;
+  double d = f;
+  String s(f);
+  TEST_EQUAL(s,"50254.199219")
+  String s2(d);
+  TEST_EQUAL(s2, "50254.19921875")
 END_SECTION
 
 START_SECTION((String(double d, bool full_precision = true)))

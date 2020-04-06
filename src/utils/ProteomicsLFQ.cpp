@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,7 +93,7 @@ using Internal::IDBoostGraph;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ProteomicsLFQ
+  @page UTILS_ProteomicsLFQ ProteomicsLFQ
 
   // experiments TODO:
   // - change percentage of missingness in ID transfer
@@ -107,11 +107,14 @@ using Internal::IDBoostGraph;
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
  **/
 
-class UTILProteomicsLFQ :
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
+class ProteomicsLFQ :
   public TOPPBase
 {
 public:
-  UTILProteomicsLFQ() :
+  ProteomicsLFQ() :
     TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.", false)
   {
   }
@@ -125,9 +128,11 @@ protected:
       "Identifications filtered at PSM level (e.g., q-value < 0.01)."
       "And annotated with PEP as main score.\n"
       "We suggest using:\n"
-      "1. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
-      "2. FalseDiscoveryRate (FDR:PSM = 0.01)\n"
-      "3. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type)\n"
+      "1. PeptideIndexer to annotate target and decoy information.\n"
+      "2. PSMFeatureExtractor to annotate percolator features.\n"
+      "3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
+      "4. IDFilter (pep:score = 0.01)\n"
+      "5. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type pep)\n"
       "To obtain well calibrated PEPs and an inital reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
@@ -149,13 +154,19 @@ protected:
 
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
-    setMaxFloat_("proteinFDR", 1.0);    
+    setMaxFloat_("proteinFDR", 1.0);
+
+    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "PSM FDR threshold (e.g. 0.05=5%)."
+                          " If Bayesian inference was chosen, it is equivalent with a peptide FDR", false);
+    setMinFloat_("psmFDR", 0.0);
+    setMaxFloat_("psmFDR", 1.0);
 
     //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
     registerStringOption_("protein_inference", "<option>", "aggregation",
       "Infer proteins:\n" 
       "aggregation  = aggregates all peptide scores across a protein (by calculating the maximum) \n"
-      "bayesian     = computes a posterior probability for every protein based on a Bayesian network",
+      "bayesian     = computes a posterior probability for every protein based on a Bayesian network.\n"
+      "               Note: 'bayesian' only uses and reports the best PSM per peptide.",
       false, true);
     setValidStrings_("protein_inference", ListUtils::create<String>("aggregation,bayesian"));
 
@@ -168,31 +179,69 @@ protected:
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
 
-    registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
+    registerStringOption_("targeted_only", "<option>", "false", 
+      "true: Only ID based quantification.\n"
+      "false: include unidentified features so they can be linked to identified ones (=match between runs).", false, false);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("transfer_ids", "<option>", "false", "Requantification.", false, true);
-    setValidStrings_("transfer_ids", ListUtils::create<String>("false,merged,SVM"));
+    // TODO: support transfer with SVM if we figure out a computational efficient way to do it.
+    registerStringOption_("transfer_ids", "<option>", "false", 
+      "Requantification using mean of aligned RTs of a peptide feature.\n"
+      "Only applies to peptides that were quantified in more than 50% of all runs (of a fraction).", false, false);
+    setValidStrings_("transfer_ids", ListUtils::create<String>("false,mean"));
 
-    registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
+    registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
 
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
+    for (const auto& s : {"report_FWHM", "report_FWHM_unit", "SignalToNoise:win_len", "SignalToNoise:bin_count", "SignalToNoise:min_required_elements", "SignalToNoise:write_log_messages"} )
+    {
+      pp_defaults.addTag(s, "advanced");
+    }
+
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
+    ffi_defaults.setValue("svm:samples", 10000); // restrict number of samples for training
+    ffi_defaults.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
+    ffi_defaults.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
+    ffi_defaults.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
+    // hide entries
+    for (const auto& s : {"svm:samples", "svm:log2_C", "svm:log2_gamma", "svm:min_prob", "svm:no_selection", "svm:xval_out", "svm:kernel", "svm:xval", "candidates_out", "extract:n_isotopes", "model:type"} )
+    {
+      ffi_defaults.addTag(s, "advanced");
+    }
+    ffi_defaults.remove("detect:peak_width"); // set from data
+
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     ma_defaults.setValue("max_rt_shift", 0.1);
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
 
+    // hide entries
+    for (const auto& s : {"use_unassigned_peptides", "use_feature_rt", "score_cutoff", "min_score"} )
+    {
+      ma_defaults.addTag(s, "advanced");
+    }
+
     //Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+    fl_defaults.setValue("distance_MZ:max_difference", 10.0);
+    fl_defaults.setValue("distance_MZ:unit", "ppm");
+    fl_defaults.setValue("distance_MZ:weight", 5.0);
+    fl_defaults.setValue("distance_intensity:weight", 0.1); 
+    fl_defaults.setValue("use_identifications", "true"); 
+    fl_defaults.remove("distance_RT:max_difference"); // estimated from data
+    for (const auto& s : {"distance_MZ:weight", "distance_intensity:weight", "use_identifications", "ignore_charge", "ignore_adduct"} )
+    {
+      fl_defaults.addTag(s, "advanced");
+    }
 
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     pq_defaults.setValue("include_all", "true"); 
+    pq_defaults.addTag("include_all", "advanced");
 
     // combine parameters of the individual algorithms
     Param combined;
@@ -411,7 +460,7 @@ protected:
     p.setValue("algorithm:labels", "");
     p.setValue("algorithm:charge", "2:5");
     p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-    p.setValue("algorithm:rt_band", median_fwhm);
+    p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces
     p.setValue("algorithm:rt_min", median_fwhm * 0.5);
     p.setValue("algorithm:spectrum_type", "centroid");
     algorithm.setParameters(p);
@@ -537,19 +586,15 @@ protected:
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-    fl_param.setValue("distance_MZ:max_difference", 10.0);
-    fl_param.setValue("distance_MZ:unit", "ppm");
-    fl_param.setValue("distance_MZ:weight", 5.0);
-    fl_param.setValue("distance_intensity:weight", 0.1); 
-    fl_param.setValue("use_identifications", "true"); 
+    linker.setParameters(fl_param);      
 /*
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-*/
     linker.setParameters(fl_param);      
+*/
     linker.group(feature_maps, consensus_fraction);
     OPENMS_LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
     assert(!consensus_fraction.empty());
@@ -734,6 +779,7 @@ protected:
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
+      IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
@@ -756,6 +802,7 @@ protected:
         // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
         for (PeptideHit & ph : pid.getHits())
         {
+          // TODO: keep target_decoy information for QC
           ph.clearMetaInfo();
         }
       }
@@ -843,14 +890,7 @@ protected:
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-          if (getStringOption_("transfer_ids") == "merged" )
-          {
-            peptide_ids.push_back(it->second);
-          }
-          else if (getStringOption_("transfer_ids") == "SVM" )
-          {
-            ext_peptide_ids.push_back(it->second);
-          }
+          peptide_ids.push_back(it->second);
         }
       }
 
@@ -896,10 +936,6 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-      ffi_param.setValue("svm:samples", 10000); // restrict number of samples for training
-      ffi_param.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
-      ffi_param.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
-      ffi_param.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
@@ -911,8 +947,11 @@ protected:
         tmp,
         seeds);
 
+      // TODO: consider moving this to FFid
+      // free parts of feature map not needed for further processing (e.g., subfeatures...)
       for (auto & f : tmp)
       {
+        //TODO keep FWHM meta value for QC
         f.clearMetaInfo();
         f.setSubordinates({});
         f.setConvexHulls({});
@@ -924,7 +963,6 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
-      // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       ++fraction_group;
     }
 
@@ -1189,6 +1227,8 @@ protected:
       vector<PeptideIdentification> peptide_ids;
       f.load(idfile, protein_ids, peptide_ids);
 
+      IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
+
       // reannotate MS run if not present
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
@@ -1269,7 +1309,7 @@ protected:
     }
     else // if (bayesian)
     {
-      if (groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
+      if (!groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
       {
         throw OpenMS::Exception::InvalidParameter(
           __FILE__,
@@ -1278,10 +1318,9 @@ protected:
           "Inference = Bayes currently automatically groups proteins and does not allow for"
           " strictly_unique_peptides during quantification.");
       }
-      //should be okay if we filter the hits here. protein quantifier
-      //uses the annotations in the consensusXML anyway
-      IDFilter::keepBestPerPeptide(inferred_peptide_ids, true, true, 1);
-      IDFilter::removeEmptyIdentifications(inferred_peptide_ids);
+      // Important Note: BayesianProteinInference by default keeps only the best
+      // PSM per peptide!
+      // TODO maybe allow otherwise!
       BayesianProteinInferenceAlgorithm bayes;
       //bayesian inference automatically annotates groups
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
@@ -1306,6 +1345,11 @@ protected:
       PeptideProteinResolution ppr{};
       ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
       ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
+      // TODO maybe move the removal as an option into the PPResolution class
+      // TODO add an option to calculate FDR including those "second best protein hits"?
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
       if (debug_level_ >= 666)
       {
         IdXMLFile().store("debug_mergedIDsGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1315,22 +1359,48 @@ protected:
     //-------------------------------------------------------------
     // Protein (and additional peptide?) FDR
     //-------------------------------------------------------------
-    const double maxFDR = getDoubleOption_("proteinFDR");
+    const double max_fdr = getDoubleOption_("proteinFDR");
+    // Note: actually, when Bayesian inference was performed, only one (best) PSM
+    // is left per peptide, so the calculated PSM FDR is equal to a Peptide FDR
+    const double max_psm_fdr = getDoubleOption_("psmFDR");
     FalseDiscoveryRate fdr;
-    //fdr.applyBasic(inferred_peptide_ids); TODO: what if we do both?
     fdr.applyBasic(inferred_protein_ids[0]);
+    if (max_psm_fdr < 1.)
+    {
+      fdr.applyBasic(inferred_peptide_ids);
+    }
 
     if (debug_level_ >= 666)
     {
+      // This is needed because we throw out decoy proteins during FDR
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+
       IdXMLFile().store("debug_mergedIDsGreedyResolvedFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     // FDR filtering
-    //IDFilter::filterHitsByScore(inferred_peptide_ids, maxFDR); // probably not required but shouldn't hurt
-    IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
-    IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
-    //IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids); // if we dont filter peptides for now, we dont need this
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+    if (max_psm_fdr < 1.)
+    {
+      IDFilter::filterHitsByScore(inferred_peptide_ids, max_psm_fdr);
+    }
+    if (max_fdr < 1.)
+    {
+      IDFilter::filterHitsByScore(inferred_protein_ids, max_fdr);
+      IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+    }
+    if (max_psm_fdr < 1.)
+    {
+      IDFilter::removeUnreferencedProteins(inferred_protein_ids,
+                                           inferred_peptide_ids);
+    }
+    if (max_fdr < 1. || max_psm_fdr < 1.)
+    {
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+      IDFilter::updateProteinGroups(inferred_protein_ids[0].getProteinGroups(), inferred_protein_ids[0].getHits());
+    }
 
     if (inferred_protein_ids[0].getHits().empty())
     {
@@ -1358,12 +1428,6 @@ protected:
         IdXMLFile().store("debug_mergedIDsFDRFilteredStrictlyUniqueResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
       }
     }
-
-    // filter decoy proteins, update groups so decoy proteins are also removed there, and remove PSMs that mapped to them.
-    //TODO shouldnt be needed since FDR calculation by default filters decoys
-    IDFilter::removeDecoyHits(inferred_protein_ids);
-    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
-    IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
 
     // compute coverage (sequence was annotated during PeptideIndexing)
     inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
@@ -1591,7 +1655,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  UTILProteomicsLFQ tool;
+  ProteomicsLFQ tool;
   return tool.main(argc, argv);
 }
 
