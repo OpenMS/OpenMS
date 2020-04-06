@@ -2723,11 +2723,20 @@ set_tests_properties("UTILS_ProteomicsLFQ_1_out_1" PROPERTIES DEPENDS "UTILS_Pro
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
-add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -db_out NucleicAcidSearchEngine_13_out.tmp -digest_out NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
 add_test("UTILS_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 NucleicAcidSearchEngine_11_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("UTILS_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 NucleicAcidSearchEngine_12_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_13_out.tmp)
 set_tests_properties("UTILS_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
 set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
+# use pre-digested sequence data:
+add_test("UTILS_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_21_out.tmp -out NucleicAcidSearchEngine_22_out.tmp -db_out NucleicAcidSearchEngine_23_out.tmp -digest NucleicAcidSearchEngine_1_digest.oms)
+set_tests_properties("UTILS_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1")
+add_test("UTILS_NucleicAcidSearchEngine_21_out" ${DIFF} -in1 NucleicAcidSearchEngine_21_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("UTILS_NucleicAcidSearchEngine_22_out" ${DIFF} -in1 NucleicAcidSearchEngine_22_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_23_out.tmp)
+set_tests_properties("UTILS_NucleicAcidSearchEngine_21_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_2")
+set_tests_properties("UTILS_NucleicAcidSearchEngine_22_out" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_2")
 
 #------------------------------------------------------------------------------
 # RNAMassCalculator:
