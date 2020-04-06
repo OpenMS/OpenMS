@@ -123,10 +123,10 @@ protected:
     registerDoubleOption_("minIT", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
-    registerIntOption_("writeSpecDeconv",
+    registerIntOption_("writeDetail",
                        "<1:true 0:false>",
                        0,
-                       "to write per spectrum deconvoluted masses or not. If set, [prefix]PerSpecMasses.tsv is generated",
+                       "to write per spectrum deconvoluted masses in detail or not in [prefix]PerSpecMasses.tsv. If set, all peak information per mass is reported.",
                        false,
                        true);
 
@@ -169,7 +169,7 @@ protected:
     param.RTwindow = getDoubleOption_("RTwindow");
     param.minRTSpan = getDoubleOption_("minRTspan");
     param.threads = getIntOption_("threads");
-    param.writeSpecTsv = getIntOption_("writeSpecDeconv");
+    param.writeDetail = getIntOption_("writeDetail");
     //param.jitter = getIntOption_("jitter");
     param.maxMSLevel = getIntOption_("maxMSL");
 
@@ -244,11 +244,11 @@ protected:
 
     if (!isOutPathDir)
     {
-      if (param.writeSpecTsv > 0)
-      {
+      //if (param.writeDetail > 0)
+      //{
         fs.open(outfilePath + "PerSpecMasses.tsv", fstream::out);
         fsm.open(outfilePath + "PerSpecMasses.m", fstream::out);
-      }
+      //}
       // if (param.RTwindow > 0)
       // {
 
@@ -257,7 +257,7 @@ protected:
 
       //  }
 
-      writeHeader(fs, fsf, true);
+      writeHeader(fs, fsf, param.writeDetail);
       //  fsm.open(outfilePath + ".m", fstream::out);
       //  fsm << "m=[";
 
@@ -333,17 +333,17 @@ protected:
         std::size_t found = outfileName.find_last_of(".");
         outfileName = outfileName.substr(0, found);
 
-        if (param.writeSpecTsv > 0)
-        {
+        //if (param.writeDetail > 0)
+        //{
           fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
           fsm.open(outfilePath + outfileName + "PerSpecMasses.m", fstream::out);
-        }
+      //  }
 
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
 
 
         // fsm.open(outfilePath + outfileName + "Annotated.m", fstream::out); //
-        writeHeader(fs, fsf, true);
+        writeHeader(fs, fsf, param.writeDetail);
 
         //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
         //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -383,17 +383,46 @@ protected:
       //OPENMS_LOG_INFO << " Done" <<endl;
       //cout<< "after running" << endl;
 
-      if (param.writeSpecTsv)
-      {
+      //if (param.writeDetail)
+      //{
         OPENMS_LOG_INFO << "writing per spec deconvolution results ...";
         OPENMS_LOG_INFO.flush();
         for (auto &pg : peakGroups)
         {
-          writePeakGroup(pg, param, fs);
+          writePeakGroup(pg, param, fs, param.writeDetail);
         }
 
         OPENMS_LOG_INFO << "done" << endl;
 
+        fsm<<"sp=[";
+        for (auto it = map.begin(); it != map.end(); ++it)
+        {
+          if (it->getMSLevel() > 1)
+          {
+            for (auto &pc : it->getPrecursors())
+            {
+              fsm<< it->getMSLevel() << " " << pc.getIntensity()<<";";
+            }
+          }else
+          {
+            double min = 1e60;
+            double max = 0;
+            for(auto &p : *it){
+              auto i = p.getIntensity();
+              if (i<=0){
+                continue;
+              }
+              min = min<i? min : i;
+              max = max>i? max : i;
+            }
+
+            fsm << it->getMSLevel() << " " <<min<< ";";
+            fsm << it->getMSLevel() << " " <<max<< ";";
+          }
+        }
+        fsm<<"];";
+
+        /*
         fsm << "monomasses=[";
 
         auto rtMassMap = std::map<double, vector<PeakGroup>>();
@@ -455,8 +484,8 @@ protected:
 
         fsm << "];\n";
 
-
-      }
+*/
+      //}
 
       // cout<<4.5<<endl;
       if (isOutPathDir)
@@ -476,7 +505,7 @@ protected:
         //   fsm << "];";
         //   fsm.close();
         //   fsp.close();
-        if (param.writeSpecTsv > 0)
+        if (param.writeDetail > 0)
         {
           fs.close();
           fsm.close();
@@ -575,7 +604,7 @@ protected:
       // fsm << "];";
       //  fsm.close();
       //  fsp.close();
-      if (param.writeSpecTsv > 0)
+      if (param.writeDetail > 0)
       {
         fs.close();
         fsm.close();
@@ -652,7 +681,7 @@ protected:
 
   }
 
-  static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
+  static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, bool detail)//, fstream &fsm, fstream &fsp)
   {
     //return;//
     if (pg.peaks.empty())
@@ -684,44 +713,50 @@ protected:
        << "\t" << pg.peaks.size() << "\t";
 
     fs << pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz <<  "\t";
-    fs << fixed << setprecision(2);
-    for (auto &p : pg.peaks)
-    {
-      fs << p.mz << ";";
-    }
-    fs << "\t";
-    for (auto &p : pg.peaks)
-    {
-      fs << p.charge << ";";
-    }
-    fs << "\t";
-    for (auto &p : pg.peaks)
-    {
-      fs << p.getUnchargedMass() << ";";
-    }
-    fs << "\t";
-    for (auto &p : pg.peaks)
-    {
-      fs << p.isotopeIndex << ";";
-    }
-    fs << "\t";
 
-    for (auto &p : pg.peaks)
+    if(detail)
     {
-      auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-      auto diff = tm / p.charge + Constants::PROTON_MASS_U - p.mz;
+      fs << fixed << setprecision(2);
+      for (auto &p : pg.peaks)
+      {
+        fs << p.mz << ";";
+      }
+      fs << "\t";
+      for (auto &p : pg.peaks)
+      {
+        fs << p.charge << ";";
+      }
+      fs << "\t";
+      for (auto &p : pg.peaks)
+      {
+        fs << p.getUnchargedMass() << ";";
+      }
+      fs << "\t";
+      for (auto &p : pg.peaks)
+      {
+        fs << p.isotopeIndex << ";";
+      }
+      fs << "\t";
 
-      fs << 100 * diff << ";";
-    }
-    fs << "\t";
+      for (auto &p : pg.peaks)
+      {
+        auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
+        auto diff = tm / p.charge + Constants::PROTON_MASS_U - p.mz;
 
-    fs << fixed << setprecision(1);
-    for (auto &p : pg.peaks)
-    {
-      fs << p.intensity << ";";
+        fs << 100 * diff << ";";
+      }
+      fs << "\t";
+
+      fs << fixed << setprecision(1);
+      for (auto &p : pg.peaks)
+      {
+        fs << p.intensity << ";";
+      }
+      fs << "\t";
     }
+
     fs << fixed << setprecision(3);
-    fs << "\t" << pg.isotopeCosineScore
+    fs << pg.isotopeCosineScore
        << "\t";
     if (pg.spec->getMSLevel() == 1)
     {
@@ -853,24 +888,43 @@ protected:
     delete[] dist;
   }
 
-  static void writeHeader(fstream &fs, fstream &fsf, bool featureOut = false)
+  static void writeHeader(fstream &fs, fstream &fsf,  bool detail)
   {
-    fs
-        << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
-           "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-           "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
-           "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
-           "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
-    if (!featureOut)
+    if (detail)
     {
-      return;
+      fs
+          << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+             "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+             "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+             "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+             "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+    }else{
+      fs
+          << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+             "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+             "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+             //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+             //"PeakIntensities\t"
+             "IsotopeCosineScore\tChargeIntensityCosineScore\n";
     }
     //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
-
+//MinScan	MaxScan	 RepScan	RepCharge	RepMz ApexScanNum    Envelope
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
            "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
-           "\tPeakGroupMasses\tPeakGroupRTs\n";
+           //"\tPeakGroupMasses\tPeakGroupRTs"
+           "\n";
+  }
+
+  static void writePromexHeader(fstream &fs)
+  {
+    //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
+    //MinScan	MaxScan	 RepScan	RepCharge	RepMz ApexScanNum    Envelope
+    fs << "FeatureID\tMinScan\tMaxScan\tMinCharge\tMaxCharge\t"
+          "MonoMass\tRepScan\tRepCharge\tRepMz\tAbundance\tApexScanNum\tApexIntensity\tMinElutionTime\tMaxElutionTime\t"
+          "ElutionLength\tEnvelope\tLikelihoodRatio"
+           //"\tPeakGroupMasses\tPeakGroupRTs"
+           "\n";
   }
 
 };

@@ -84,7 +84,7 @@ namespace OpenMS
       UInt minNumOverLappedScans = 10;
       std::vector<UInt> numOverlappedScans;
       int threads = 1;
-      int writeSpecTsv = 0;
+      int writeDetail = 0;
       //int jitter = 0;
     };
 

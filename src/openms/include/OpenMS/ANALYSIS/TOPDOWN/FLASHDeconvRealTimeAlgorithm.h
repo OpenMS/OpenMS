@@ -40,10 +40,67 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <queue>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI FLASHDeconvRealTimeAlgorithm
-  {
+  {/*
+    struct OPENMS_DLLAPI MzRange
+    {
+      double mz1, mz2;
+      int nominalMass;
+      double rt;
+      MzRange();
+      ~MzRange();
+      explicit MzRange(double mz1, double mz2, double rt, int mass);
+    };
 
+    struct OPENMS_DLLAPI ShortMassTrace
+    {
+      double lastRt;
+      std::queue<double> intensities; // keep the length to 3 // last rt -rt >30 -> reset
+      char color; // 'r' ''b' 'g' 'x'
+
+      ShortMassTrace();
+      ~ShortMassTrace();
+      explicit ShortMassTrace(double rt);
+
+      void setColor(char c);
+      void updateColor();
+      void addIntensity(double intensity);
+      void trim();
+    };
+
+  public:
+    typedef FLASHDeconvHelperStructs::Parameter Parameter;
+    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
+    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+
+    typedef FLASHDeconvRealTimeAlgorithm::MzRange mzRange;
+    typedef FLASHDeconvRealTimeAlgorithm::ShortMassTrace ShortMassTrace;
+
+    FLASHDeconvRealTimeAlgorithm(MSSpectrum &s, std::vector<int> greenMasses, Parameter &p);
+    ~FLASHDeconvRealTimeAlgorithm();
+
+    std::vector<MzRange>& Deconvolution(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+
+  protected:
+    MSSpectrum &spec;
+    Parameter &param;
+
+  private:
+    //std::queue<mzRange> mzQueue;
+    bool compareIntensity(const FLASHDeconvHelperStructs::PeakGroup &pg1,
+                          const FLASHDeconvHelperStructs::PeakGroup &pg2);
+
+    static std::map<int, ShortMassTrace> massMemory; // static TODO
+    double deltaRtForMassMemory;
+    double deltaRtForQueue;
+*/
   };
 }

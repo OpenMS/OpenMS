@@ -40,5 +40,117 @@
 
 namespace OpenMS
 {
+/*
+  FLASHDeconvRealTimeAlgorithm::mzRange::MzRange(double mz1, double mz2, double rt, int mass): mz1(mz1), mz2(mz2), rt(rt), nominalMass(mass)
+  {
+  }
+
+
+  FLASHDeconvRealTimeAlgorithm::ShortMassTrace::ShortMassTrace(double rt): lastRt(rt), color('x')
+  {
+    intensities = std::queue<double>();
+  }
+
+  void FLASHDeconvRealTimeAlgorithm::ShortMassTrace::setColor(char c)
+  {
+    color = c;
+  }
+
+  void FLASHDeconvRealTimeAlgorithm::ShortMassTrace::updateColor(){
+    if(intensities.size() < 3){
+      return;
+    }
+
+  }
+
+  void FLASHDeconvRealTimeAlgorithm::ShortMassTrace::addIntensity(double intensity)
+  {
+    intensities.push(intensity);
+  }
+
+  void FLASHDeconvRealTimeAlgorithm::ShortMassTrace::trim()
+  {
+    while(intensities.size()>=3){
+      intensities.pop();
+    }
+  }
+
+
+  FLASHDeconvRealTimeAlgorithm::FLASHDeconvRealTimeAlgorithm(MSSpectrum &s, std::vector<int> greenMasses, Parameter &p): spec(s), param(p)
+  {
+    for (auto iter = massMemory.begin(); iter != massMemory.cend();)
+    {
+      auto v = iter->second;
+      if(v.lastRt > spec.getRT() - deltaRtForMassMemory){// no delete
+        v.trim();
+        ++iter;
+        continue;
+      }
+      massMemory.erase(iter++);
+    }
+
+    for (auto& m : greenMasses)
+    {
+      if(massMemory.find(m) == massMemory.end()){ // no mass
+        auto mt = ShortMassTrace(spec.getRT());
+        mt.setColor('g');
+        //mt.addIntensity(0); //
+        massMemory[m] = mt;
+      }else{
+        auto& mt= massMemory[m];
+        mt.setColor('g');
+      }
+    }
+  }
+
+  FLASHDeconvRealTimeAlgorithm::~FLASHDeconvRealTimeAlgorithm(){
+
+  }
+
+  bool FLASHDeconvRealTimeAlgorithm::compareIntensity(const FLASHDeconvHelperStructs::PeakGroup &pg1,
+                                                      const FLASHDeconvHelperStructs::PeakGroup &pg2)
+  {
+    if(pg1.intensity == pg2.intensity)
+      return pg1.monoisotopicMass < pg2.monoisotopicMass;
+    return pg1.intensity  < pg2.intensity ;
+  }
+
+
+
+  std::vector<FLASHDeconvRealTimeAlgorithm::MzRange>& FLASHDeconvRealTimeAlgorithm::Deconvolution(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg){
+    auto sd = SpectrumDeconvolution(spec, param);
+
+    std::vector<std::vector<Size>> prevMassBinMap;
+    std::vector<double> prevMinBinLogMassMap;
+    UInt msLevel = 1;
+    auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap, prevMinBinLogMassMap, avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+    //std::sort(peakGroups.begin(),peakGroups.end(), &FLASHDeconvRealTimeAlgorithm::compareIntensity);
+
+    auto mzRanges = std::vector<FLASHDeconvRealTimeAlgorithm::MzRange>();
+    for (auto &pg : peakGroups)
+    {
+      auto nominalMass = FLASHDeconvAlgorithm::getNominalMass(pg.monoisotopicMass);
+      ShortMassTrace mt;
+      if(massMemory.find(nominalMass) != massMemory.end()){ // mass found
+        mt = massMemory[nominalMass];
+        mt.addIntensity(pg.intensity);
+      }else{
+        mt = ShortMassTrace(spec.getRT());
+      }
+      if(mt.color == 'g'){
+        continue;
+      }
+
+
+
+
+
+
+    }
+
+
+  }
+*/
+
 
 }

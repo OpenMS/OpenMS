@@ -81,6 +81,7 @@ public:
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
     std::vector<PeakGroup> Deconvolution(int* specCntr, int* qspecCntr, int* massCntr, int& specIndex, int& massIndex, PrecalcularedAveragine &avg);
+    static int getNominalMass(double &m);
 
   protected:
     MSExperiment &map;
@@ -92,7 +93,7 @@ public:
     //boost::dynamic_bitset<> mzBins;
    // PrecalcularedAveragine averagines;
 
-    static int getNominalMass(double &m);
+
 
 
   private:

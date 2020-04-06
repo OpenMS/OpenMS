@@ -63,8 +63,6 @@ namespace OpenMS
     return (int) (m * 0.999497 + .5);
   }
 
-
-
   std::vector<FLASHDeconvAlgorithm::PeakGroup> FLASHDeconvAlgorithm::Deconvolution(int* specCntr, int* qspecCntr,
                                                                                    int* massCntr, int& specIndex, int& massIndex,
                                                                                    FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
