@@ -2884,7 +2884,7 @@ namespace OpenMS
       }
       else // only report all scores if user provided at least one
       {
-        const MzTabPeptideSectionRows psr = mz_tab.getPeptideSectionRows();
+        const MzTabPeptideSectionRows& psr = mz_tab.getPeptideSectionRows();
         bool has_ms_run_level_scores = false;
         for (Size i = 0; i != psr.size(); ++i)
         {

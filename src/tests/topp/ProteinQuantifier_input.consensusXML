@@ -8,6 +8,7 @@
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="Protein" score="0" sequence="">
 			</ProteinHit>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9097144245,PH_0"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="3">
