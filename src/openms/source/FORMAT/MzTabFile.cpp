@@ -2866,7 +2866,8 @@ namespace OpenMS
       Size n_best_search_engine_score = mz_tab.getMetaData().protein_search_engine_score.size();
 
       // add header
-      out.push_back(generateMzTabProteinHeader_(protein_section[0], n_best_search_engine_score, mz_tab.getProteinOptionalColumnNames()));
+      // use the last element as a reference row, since they contain group abundance data if set
+      out.push_back(generateMzTabProteinHeader_(protein_section.back(), n_best_search_engine_score, mz_tab.getProteinOptionalColumnNames()));
 
       // add section
       generateMzTabSection_(protein_section, mz_tab.getProteinOptionalColumnNames(), out);

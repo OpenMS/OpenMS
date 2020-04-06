@@ -811,12 +811,14 @@ protected:
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
+      bool inference_in_cxml = false;
       // protein inference results in the consensusXML?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
           (!consensus.getProteinIdentifications()[0].getHits().empty()))
       {
         proteins_ = consensus.getProteinIdentifications()[0];
+        inference_in_cxml = true;
       }
 
       quantifier.readQuantData(consensus, ed);
@@ -829,9 +831,16 @@ protected:
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
-        vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
-        proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
-        consensus.setProteinIdentifications(proteins);
+        if (!inference_in_cxml)
+        {
+          vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
+          proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
+          consensus.setProteinIdentifications(proteins);
+        }
+        else
+        {
+          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        }
 /*
  *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
