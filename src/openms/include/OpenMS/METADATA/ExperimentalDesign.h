@@ -56,27 +56,29 @@ namespace OpenMS
     Experimental designs can be provided in two formats: the one-table format and the two-table format
     The one-table format is simpler but slightly more redundant.
 
-    The one-table format consists of mandatory (file columns) and optional sample meta data (sample columns).
+    The one-table format consists of mandatory (file columns) and optional sample metadata (sample columns).
 
     The mandatory file columns are Fraction_Group, Fraction, Spectra_Filepath and Label.
-    These columns capture the mapping of quantitative values files for label-free and multiplexed experiments
-    and enables fraction aware data processing.
+    These columns capture the mapping of quantitative values to files for label-free and multiplexed experiments
+    and enables fraction-aware data processing.
 
-    Fraction_Group: numeric identifier that indicates which fractions are grouped together.
-    Fraction: numeric identifier that indicates which fraction was measured in this file. 
-              In the case of unfractionated data the fraction identifier is 1 for all samples.
-    Label: numeric identifier for the label. 1 for label-free, 1 and 2 for SILAC light/heavy, e.g., 1-10 for TMT10Plex
-    Spectra_Filepath: Filename or path as string representation (e.g., SILAC_file.mzML)
+    Fraction_Group: a numeric identifier that indicates which fractions are grouped together.
+    Fraction: a numeric identifier that indicates which fraction was measured in this file. 
+              In the case of unfractionated data, the fraction identifier is 1 for all samples.
+    Label: a numeric identifier for the label. 1 for label-free, 1 and 2 for SILAC light/heavy, e.g., 1-10 for TMT10Plex
+    Spectra_Filepath: a filename or path as string representation (e.g., SILAC_file.mzML)
 
     The optional sample columns are typically MSstats_Condition and MSstats_BioReplicate.
     They capture the experimental factors and conditions associated with a sample.
 
-    MSstats_Condition: String that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats.
-    MSstats_BioReplicate: An numeric identifier to indicate replication. MSstats requires that there are no duplicate entries. 
-                          E.g., if MSstats_Condition, Fraction_Group group and Fraction number are the same - 
+    MSstats_Condition: a string that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats and 
+                       can then be used to specify test contrasts.
+    MSstats_BioReplicate: a numeric identifier to indicate replication. MSstats requires that there are no duplicate entries. 
+                          E.g., if MSstats_Condition, Fraction_Group group, and Fraction number are the same - 
                           as in the case of biological or technical replication, 
                           one uses the MSstats_BioReplicate to make entries non-unique)
-    For details on the MSstats columns please refer to the MSstats manual for details.
+    For details on the MSstats columns please refer to the MSstats manual for details
+    (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).
 
     <table>
     <tr>
@@ -145,7 +147,8 @@ namespace OpenMS
     </tr>
     </table>
 
-    Alternativly, the experimental design can be specified in two tables:
+    Alternatively, the experimental design can be specified with a file consisting of two tables whose headers are separated
+    by a blank line. The two tables are:
     The file section table and the sample section table.
     The file section consists of columns Fraction_Group, Fraction, Spectra_Filepath, Label and Sample
     The sample section consists of columns Sample, MSstats_Condition and MSstats_BioReplicate
