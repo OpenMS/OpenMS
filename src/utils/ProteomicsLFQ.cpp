@@ -99,11 +99,6 @@ using Internal::IDBoostGraph;
   // - change percentage of missingness in ID transfer
   // - disable elution peak fit
 
-  // TODO:
-     - check experimental design at startup
-     - run R script directly from tool?
-     - add test for the scripts
-
 Potential scripts to perform the search can be found under src/tests/topp/ProteomicsLFQTestScripts
  **/
 
@@ -177,7 +172,6 @@ protected:
       "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
       "shared_peptides = use shared peptides only for its best group (by inference score)", false, true);
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
-
 
     registerStringOption_("targeted_only", "<option>", "false", 
       "true: Only ID based quantification.\n"
