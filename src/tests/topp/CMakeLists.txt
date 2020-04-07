@@ -2704,6 +2704,40 @@ add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
 add_test("UTILS_ProteomicsLFQ_1_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_1_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
 
+# regression test
+add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids mean
+         -mass_recalibration false
+         -out_cxml BSA.consensusXML.tmp
+         -out_msstats BSA.csv.tmp
+         -out BSA.mzTab.tmp
+         -threads 4
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_2_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
+
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
 add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
