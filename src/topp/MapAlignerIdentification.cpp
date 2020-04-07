@@ -177,7 +177,7 @@ private:
         model_type = "identity";
         transformations.resize(data.size());
       }
-      else throw(err);
+      else throw;
     }
 
     if (model_type != "none")
