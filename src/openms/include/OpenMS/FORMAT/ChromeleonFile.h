@@ -37,8 +37,6 @@
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <boost/regex.hpp>
-#include <fstream>
 
 namespace OpenMS
 {

@@ -915,7 +915,7 @@ add_test("TOPP_IDFileConverter_14_out1" ${DIFF} -in1 IDFileConverter_14_output.t
 set_tests_properties("TOPP_IDFileConverter_14_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_14")
 # mzIdentML to idXML with RT look-up in mzML:
 add_test("TOPP_IDFileConverter_15" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_15_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML)
-add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=" "spectra_data")
+add_test("TOPP_IDFileConverter_15_out1" ${DIFF} -in1 IDFileConverter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_15_output.idXML -whitelist "IdentificationRun date" "db=" "spectra_data" "IsotopeError")
 set_tests_properties("TOPP_IDFileConverter_15_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_15")
 # pepXML (from iProphet) to idXML:
 add_test("TOPP_IDFileConverter_16" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_16_input.pepXML -out IDFileConverter_16_output.tmp -out_type idXML)
@@ -944,7 +944,7 @@ add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 IDFileConverter_21_output.t
 set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_21")
 # Testing add_ionmatch_annotation
 add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
-add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" )
+add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" "IsotopeError" "id" "spectra_data")
 set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_22")
 # Crux mzid
 add_test("TOPP_IDFileConverter_23" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_23_input.mzid -out IDFileConverter_23_output.tmp -out_type idXML)
@@ -1197,10 +1197,10 @@ set_tests_properties("TOPP_MetaProSIP_1_out2" PROPERTIES DEPENDS "TOPP_MetaProSI
 
 #------------------------------------------------------------------------------
 # MascotAdapter tests
-add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -test -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
+add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -test -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData -out MascotAdapter_1_output.tmp -out_type mgf)
 add_test("TOPP_MascotAdapter_1_out1" ${DIFF} -in1 MascotAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_1_output.mascot_in )
 set_tests_properties("TOPP_MascotAdapter_1_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_1")
-add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_DIR_TOPP}/MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
+add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_DIR_TOPP}/MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -out_type idXML)
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML )
 set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_2")
 
@@ -2384,6 +2384,10 @@ add_test("TOPP_MzTabExporter_3" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_
 add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
 set_tests_properties("TOPP_MzTabExporter_3_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_3")
 
+add_test("TOPP_MzTabExporter_4" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/Epifany_2_out.consensusXML -out MzTabExporter_4_output.tmp)
+add_test("TOPP_MzTabExporter_4_out" ${DIFF} -in1 MzTabExporter_4_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_4_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_4_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_4")
+
 #------------------------------------------------------------------------------
 # OpenPepXL test
 add_test("TOPP_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
@@ -2719,3 +2723,9 @@ set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_R
 add_test("UTILS_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_1_out.tmp)
 add_test("UTILS_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_1_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
 set_tests_properties("UTILS_Epifany_1_out" PROPERTIES DEPENDS "UTILS_Epifany_1")
+add_test("UTILS_Epifany_2" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_2_out.tmp -out_type consensusXML)
+add_test("UTILS_Epifany_2_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_2_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_2_out.consensusXML)
+set_tests_properties("UTILS_Epifany_2_out" PROPERTIES DEPENDS "UTILS_Epifany_2")
+add_test("UTILS_Epifany_3" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/Epifany_2_input.consensusXML -algorithm:keep_best_PSM_only false -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_3_out.tmp -out_type consensusXML)
+add_test("UTILS_Epifany_3_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_3_out.tmp -in2 ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML)
+set_tests_properties("UTILS_Epifany_3_out" PROPERTIES DEPENDS "UTILS_Epifany_3")

@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MRMFeaturePickerFile.h>
+#include <boost/regex.hpp>
+#include <iostream>
 
 namespace OpenMS
 {

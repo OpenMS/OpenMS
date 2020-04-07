@@ -455,7 +455,7 @@ namespace OpenMS
     String meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
-      for (const String& filename : s)
+      for (const String &filename : s)
       {
         FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
@@ -473,6 +473,13 @@ namespace OpenMS
   void ProteinIdentification::addPrimaryMSRunPath(const String& s, bool raw)
   {
     addPrimaryMSRunPath(StringList({s}), raw);
+  }
+
+  Size ProteinIdentification::nrPrimaryMSRunPaths(bool raw) const
+  {
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
+    return spectra_data.size();
   }
 
   //TODO find a more robust way to figure that out. CV Terms?

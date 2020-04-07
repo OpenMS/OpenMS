@@ -872,7 +872,7 @@ namespace OpenMS
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK, DataValue(i + 1));
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, alpha_term);
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, beta_term);
-      ph_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION, top_csms_spectrum[i].precursor_correction);
+      ph_alpha.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, top_csms_spectrum[i].precursor_correction);
 
       if (scan_index_heavy != scan_index)
       {
@@ -1198,7 +1198,7 @@ namespace OpenMS
     feature_set
       << Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM
       << Constants::UserParam::OPENPEPXL_SCORE
-      << Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION
+      << Constants::UserParam::ISOTOPE_ERROR
       << "OpenPepXL:xquest_score"
       << "OpenPepXL:xcorr xlink"
       << "OpenPepXL:xcorr common"

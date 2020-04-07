@@ -231,8 +231,9 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 }
 
 
-void SimpleSVM::scaleData_(PredictorMap& predictors) const
+void SimpleSVM::scaleData_(PredictorMap& predictors)
 {
+  scaling_.clear();
   for (PredictorMap::iterator pred_it = predictors.begin();
        pred_it != predictors.end(); ++pred_it)
   {
@@ -253,9 +254,14 @@ void SimpleSVM::scaleData_(PredictorMap& predictors) const
     {
       *val_begin = (*val_begin - vmin) / range;
     }
+    scaling_[pred_it->first] = make_pair(vmin, vmax); // store old range
   }
 }
 
+const SimpleSVM::ScaleMap& SimpleSVM::getScaling() const
+{
+  return scaling_;
+}
 
 void SimpleSVM::convertData_(const PredictorMap& predictors)
 {
