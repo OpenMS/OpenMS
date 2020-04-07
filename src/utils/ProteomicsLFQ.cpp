@@ -1095,7 +1095,7 @@ protected:
 
     // Map between mzML file and corresponding id file
     // Here we currently assume that these are provided in the exact same order.
-    // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
+    // TODO: we should warn or reorder them based on the annotated primaryMSRunPath in the ID file.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
     map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
