@@ -1277,8 +1277,6 @@ protected:
     // Protein inference
     //-------------------------------------------------------------
     // TODO: Think about ProteinInference on IDs only merged per condition
-    // TODO: Output coverage on protein (and group level?)
-    // TODO: Expose algorithm choice and their parameters
     bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
     bool bayesian = getStringOption_("protein_inference") == "bayesian";
     if (!bayesian) // simple aggregation
