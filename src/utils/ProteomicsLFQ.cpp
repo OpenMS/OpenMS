@@ -1521,16 +1521,11 @@ protected:
     PeptideAndProteinQuant quantifier;
     quantifier.setParameters(pq_param);
     quantifier.readQuantData(consensus, design);
-
-    // TODO: @timo, Check this. inferred_peptide_ids will hold a superset of the IDs
-    //  in the consensusXML. Should always work. No worries as soon as ID stuff works on ConsensusMaps
     quantifier.quantifyPeptides(inferred_peptide_ids);
 
     //-------------------------------------------------------------
     // Protein quantification
     //-------------------------------------------------------------
-
-    // TODO: @timo: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)?
 
     // Should always be there by now, even if just singletons (TODO a bit of a waste then, though)
     if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
@@ -1558,21 +1553,8 @@ protected:
     //-------------------------------------------------------------
 
     // Annotate quants to protein(groups) for easier export in mzTab
-    /*
-    if (debug_level_ >= 666)
-    {
-      for (const auto& r : quantifier.getProteinResults())
-      {
-        std::cout << "Accession:" << r.first << "\n";
-        for (const auto& s : r.second.total_abundances)
-        {
-          std::cout << s.second << "\t"; 
-        }
-        std::cout << "\n";
-      }
-    }*/
-
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
+
     if (debug_level_ >= 666)
     {
       IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1584,20 +1566,13 @@ protected:
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
     // e.g. by removing them with a Filter beforehand.
 
-    consensus.resolveUniqueIdConflicts(); // TODO: @timo: find out why this is needed to get proper UIDs in consensus
+    consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
     if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
-      // Note: consensusXML currently doesn't support writing out inference data (TODO: it does not?)
       // (they are neverless stored and passed to mzTab for proper export)
       //IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
       ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
-    }
-
-    if (debug_level_ >= 666)
-    {
-      //TODO @timo: What changed in the IDs up to the last write? Commented out for now.
-      //IdXMLFile().store("debug_keepUnique2.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
@@ -1617,7 +1592,6 @@ protected:
     {
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
-
 
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);
