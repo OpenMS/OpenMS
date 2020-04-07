@@ -126,7 +126,7 @@ protected:
     registerIntOption_("writeDetail",
                        "<1:true 0:false>",
                        0,
-                       "to write per spectrum deconvoluted masses in detail or not in [prefix]PerSpecMasses.tsv. If set, all peak information per mass is reported.",
+                       "to write per spectrum deconvoluted masses in detail or not in [prefix]_MSn_spec.tsv files. If set, all peak information per mass is reported.",
                        false,
                        true);
 
@@ -221,8 +221,8 @@ protected:
 
     int specIndex = 0, massIndex = 0;
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
-    fstream fs, fsf, fsm, fsp, fsfd;
-
+    fstream fsf, fsm, fsp, fsfd;
+    auto fs = new fstream[param.maxMSLevel];
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
     //-------------------------------------------------------------
@@ -251,8 +251,14 @@ protected:
     {
       //if (param.writeDetail > 0)
       //{
-      fs.open(outfilePath + "PerSpecMasses.tsv", fstream::out);
-      fsm.open(outfilePath + "PerSpecMasses.m", fstream::out);
+      for (int n = 1; n <= param.maxMSLevel; ++n)
+      {
+        fs[n - 1].open(outfilePath + "_MS" + n + "_spec.tsv", fstream::out);
+        writeHeader(fs[n - 1], n, param.writeDetail);
+      }
+      writeFeatureHeader(fsf);
+
+      fsm.open(outfilePath + ".m", fstream::out);
       //}
       // if (param.RTwindow > 0)
       // {
@@ -272,7 +278,7 @@ protected:
       }
       //  }
 
-      writeHeader(fs, fsf, param.writeDetail);
+
       //  fsm.open(outfilePath + ".m", fstream::out);
       //  fsm << "m=[";
 
@@ -341,16 +347,23 @@ protected:
 
       }
       delete[] msCntr;
+      std::string outfileName(param.fileName);
 
       if (isOutPathDir)
       {
-        std::string outfileName(param.fileName);
         std::size_t found = outfileName.find_last_of(".");
         outfileName = outfileName.substr(0, found);
 
         //if (param.writeDetail > 0)
-        //{
-        fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
+
+        for (int n = 1; n <= param.maxMSLevel; ++n)
+        {
+          fs[n - 1].open(outfilePath + outfileName + "_MS" + n + "_spec.tsv", fstream::out);
+          writeHeader(fs[n - 1], n, param.writeDetail);
+        }
+        writeFeatureHeader(fsf);
+
+        // fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
         fsm.open(outfilePath + outfileName + "PerSpecMasses.m", fstream::out);
         //  }
 
@@ -369,7 +382,7 @@ protected:
         }
 
         // fsm.open(outfilePath + outfileName + "Annotated.m", fstream::out); //
-        writeHeader(fs, fsf, param.writeDetail);
+        // writeHeader(fs, fsf, param.writeDetail);
 
         //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '_'), outfileName.end());
         //outfileName.erase(std::remove(outfileName.begin(), outfileName.end(), '-'), outfileName.end());
@@ -413,20 +426,26 @@ protected:
       //{
       OPENMS_LOG_INFO << "writing per spec deconvolution results ...";
       OPENMS_LOG_INFO.flush();
-      for (auto &pg : peakGroups)
+      for (int n = 1; n <= param.maxMSLevel; ++n)
       {
-        writePeakGroup(pg, param, fs, param.writeDetail);
+        for (auto &pg : peakGroups)
+        {
+          if(pg.spec->getMSLevel() != n){
+            continue;
+          }
+          writePeakGroup(pg, param, fs[n - 1], n, param.writeDetail);
+        }
       }
 
       OPENMS_LOG_INFO << "done" << endl;
 
-      if(param.topfdOut)
+      if (param.topfdOut)
       {
         for (auto &pg : peakGroups)
         {
           writePeakGroupTopFD(pg, fsfd);
         }
-        fsfd<<"END IONS\n";
+        fsfd << "END IONS\n";
       }
 
       fsm << "sp=[";
@@ -543,8 +562,16 @@ protected:
         //   fsm << "];";
         //   fsm.close();
         //   fsp.close();
-
-        fs.close();
+        for (int n = 1; n <= param.maxMSLevel; ++n)
+        {
+          fs[n - 1].close();
+          if (specCntr[n - 1] == 0)
+          {
+            QString filename = QString::fromStdString(outfilePath + outfileName + "_MS" + n + "_spec.tsv");
+            QFile file(filename);
+            file.remove();
+          }
+        }
         fsm.close();
 
 
@@ -649,10 +676,18 @@ protected:
       // fsm << "];";
       //  fsm.close();
       //  fsp.close();
+      for (int n = 1; n <= param.maxMSLevel; ++n)
+      {
+        fs[n - 1].close();
+        if (specCntr[n - 1] == 0)
+        {
+          QString filename = QString::fromStdString(outfilePath + "_MS" + n + "_spec.tsv");
+          QFile file(filename);
+          file.remove();
+        }
+      }
 
-      fs.close();
       fsm.close();
-
       fsf.close();
       if (param.promexOut)
       {
@@ -663,9 +698,7 @@ protected:
       {
         fsfd.close();
       }
-
     }
-
     return EXECUTION_OK;
   }
 
@@ -735,7 +768,11 @@ protected:
 
   }
 
-  static void writePeakGroup(PeakGroup &pg, Parameter &param, fstream &fs, bool detail)//, fstream &fsm, fstream &fsp)
+  static void writePeakGroup(PeakGroup &pg,
+                             Parameter &param,
+                             fstream &fs,
+                             int &n,
+                             bool detail)//, fstream &fsm, fstream &fsp)
   {
     //return;//
     if (pg.peaks.empty())
@@ -768,16 +805,11 @@ protected:
     fs << fixed << setprecision(2);
     fs << pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz << "\t";
     fs << fixed << setprecision(-1);
-    if (pg.precursorScanNumber >= 0)
+    if (n > 1 && pg.precursorScanNumber >= 0)
     {
       fs << pg.precursorSpecIndex << "\t" << pg.precursorMz << "\t" << pg.precursorCharge << "\t"
          << pg.precursorMonoMass << "\t" << pg.precursorIntensity << "\t";
     }
-    else
-    {
-      fs << "N/A\tN/A\tN/A\tN/A\tN/A\t";
-    }
-    //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMass\tPrecursorIntensity\t"//
 
     if (detail)
     {
@@ -823,31 +855,12 @@ protected:
     fs << fixed << setprecision(3);
     fs << pg.isotopeCosineScore
        << "\t";
-    if (pg.spec->getMSLevel() == 1)
+    if (n == 1)
     {
-      fs << pg.chargeCosineScore << "\n";
+      fs << pg.chargeCosineScore;
     }
-    else
-    {
-      fs << "N/A\n";
-    }
-    fs << setprecision(-1);
 
-    /*
-    //cout<<1<<endl;
-
-            fsp << "pg" << (int) (pg.monoisotopicMass * 10) << "rt" << (int) (pg.spec->getRT())
-                << "=[";
-
-            for (auto &p : pg.peaks) {
-                fsp << p.charge << "," << p.isotopeIndex << "," << p.orgPeak->getIntensity() << ";";
-            }
-
-            fsp << "];\n";
-            //cout<<3<<endl;
- */
-    //fsm << m << "," << nm << "," << intensity << "," << pg.spec->getRT() << "\n";
-    //cout<<4<<endl;
+    fs << "\n" << setprecision(-1);
 
 
   }
@@ -872,11 +885,12 @@ protected:
     //cout<<1<<endl;
     if (pg.scanNumber != prevScanNumber)
     {
-      if(prevScanNumber >= 0){
-        fs<<"END IONS\n\n";
+      if (prevScanNumber >= 0)
+      {
+        fs << "END IONS\n\n";
       }
       prevScanNumber = pg.scanNumber;
-      fs<<fixed<<setprecision(2);
+      fs << fixed << setprecision(2);
       fs << "BEGIN IONS\n"
          << "ID=" << 1 << "\n"
          << "SCANS=" << pg.scanNumber << "\n"
@@ -893,11 +907,11 @@ protected:
          << "PRECURSOR_CHARGE=" << pg.precursorCharge << "\n"
          << "PRECURSOR_MASS=" << std::to_string(pg.precursorMonoMass) << "\n"
          << "PRECURSOR_INTENSITY=" << pg.precursorIntensity << "\n";
-      fs<<setprecision(-1);
+      fs << setprecision(-1);
     }
-    fs<<fixed<<setprecision(2);
-    fs<<std::to_string(pg.monoisotopicMass)<<"\t"<<pg.intensity<<"\t"<<pg.maxSNRcharge<<"\n";
-    fs<<setprecision(-1);
+    fs << fixed << setprecision(2);
+    fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge << "\n";
+    fs << setprecision(-1);
   }
 
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
@@ -1000,36 +1014,70 @@ protected:
     delete[] dist;
   }
 
-  static void writeHeader(fstream &fs, fstream &fsf, bool detail)
+  static void writeFeatureHeader(fstream &fsf)
   {
-    if (detail)
-    {
-      fs
-          << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
-             "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-             "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
-             "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
-             "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
-             "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
-    }
-    else
-    {
-      fs
-          << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
-             "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-             "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
-             "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
-             //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
-             //"PeakIntensities\t"
-             "IsotopeCosineScore\tChargeIntensityCosineScore\n";
-    }
-    //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
-    //MinScan	MaxScan	 RepScan	RepCharge	RepMz ApexScanNum    Envelope
     fsf << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
            "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
            "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
            //"\tPeakGroupMasses\tPeakGroupRTs"
            "\n";
+  }
+
+  static void writeHeader(fstream &fs, int &n, bool detail)
+  {
+    if (detail)
+    {
+      if (n == 1)
+      {
+        fs
+            << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+               "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+               "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+               //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+      }
+      else
+      {
+        fs
+            << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+               "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+               "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               "PeakIntensities\tIsotopeCosineScore\n";
+      }
+
+    }
+    else
+    {
+      if (n == 1)
+      {
+        fs
+            << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+               "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+               "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+               //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               //"PeakIntensities\t"
+               "IsotopeCosineScore\tChargeIntensityCosineScore\n";
+      }
+      else
+      {
+        fs
+            << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
+               "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
+               "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
+               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               //"PeakIntensities\t"
+               "IsotopeCosineScore\n";
+      }
+
+    }
+    //pg.maxSNRcharge << "\t" << pg.maxSNR << "\t" << pg.maxSNRminMz << "\t" << pg.maxSNRmaxMz
+    //MinScan	MaxScan	 RepScan	RepCharge	RepMz ApexScanNum    Envelope
+
   }
 
   static void writePromexHeader(fstream &fs)
