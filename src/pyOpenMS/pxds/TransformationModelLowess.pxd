@@ -13,4 +13,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" nam
         TransformationModelLowess(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
 
         double evaluate(double value) nogil except +
-        void getDefaultParameters(Param& params) nogil except +
+     
+    void getDefaultParameters(Param& params) nogil except + #wrap-attach:TransformationModelLowess
