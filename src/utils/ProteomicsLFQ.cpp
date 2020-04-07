@@ -755,12 +755,6 @@ protected:
       ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
       if (e != EXECUTION_OK) { return e; }
 
-      // writing picked mzML files for data submission
-      // annotate output with data processing info
-      // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
-      // TODO: overwrite primaryMSRun with picked mzML name (for submission)
-      // mzML_file.store(OUTPUTFILENAME, ms_centroided);
-
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
