@@ -371,7 +371,6 @@ namespace OpenMS
       y_scrollbar_->setVisible(y_visible);
       pixmap.save(file_name);
     }
-    delete sel_filter;
   }
 
 } //namespace
