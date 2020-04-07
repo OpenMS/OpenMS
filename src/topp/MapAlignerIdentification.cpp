@@ -175,6 +175,7 @@ private:
           << "\nSince 'force' is set, processing will continue using 'identity' transformations."
           << endl;
         model_type = "identity";
+        transformations.resize(data.size());
       }
       else throw(err);
     }
