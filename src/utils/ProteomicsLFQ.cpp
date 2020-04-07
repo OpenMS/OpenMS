@@ -1240,9 +1240,7 @@ protected:
       IdXMLFile().store("debug_mergedIDs.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
-    //TODO We currently do not assume that each of the ID files are correctly indexed
-    //re-index
-    //TODO since we re-index, we could delete all the proteins after loading an idXML
+    // since we don't require an index as input but need to calculate e.g., coverage we reindex here (fast)
     if (!in_db.empty())
     {
       PeptideIndexing indexer;
