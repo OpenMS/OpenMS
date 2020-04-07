@@ -80,7 +80,11 @@ namespace OpenMS
     std::map<UInt,std::map<double, double>> peakIntMap; // mslevel, mz -> intensity
     std::map<UInt,std::map<double, double>> peakMassMap; // mslevel, mz -> mass
 
+    std::map<UInt, int> scanNumberMap;
+    std::map<UInt, int> specIndexMap;
+
     param.currentMaxMSLevel = 0;
+
     //if(param.currentMaxMSLevel == 0){
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -109,6 +113,7 @@ namespace OpenMS
     std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
 
     int scanNumber = 0;
+    double massMargin = 100.0;
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       ++scanNumber;
@@ -128,16 +133,17 @@ namespace OpenMS
       specCntr[msLevel-1]++;
 
       auto sd = SpectrumDeconvolution(*it, param);
-
       auto precursorMsLevel = msLevel - 1;
 
       // to find precursor peaks with assigned charges..
+      double preMz = -1.0, preMass=-1.0, preInt=-1.0;
+      int preCharge = -1;
+
       if (msLevel == 1)
       {
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
         param.currentMaxMassCount = param.maxMassCount;
-
       }else{
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
         auto &subPeakIntMap = peakIntMap[precursorMsLevel];
@@ -162,16 +168,19 @@ namespace OpenMS
             //tmz=mz;
             auto &cint = subPeakIntMap[mz];
             if(pint < cint){
-              cint = pint;
+              pint = cint;
               mc = subPeakChargeMap[mz];
               mm = subPeakMassMap[mz];//mc * mz;
+              preMz = mz;
+              preMass = mm;
+              preInt = cint;
+              preCharge = mc;
             }
           }
         }
         if(mc > 0){
           param.currentChargeRange = mc  - param.minCharge; //
-          param.currentMaxMass = mm + 100; // isotopie margin
-          // std::cout<< mm << " "<< tmz << " "<< it->getRT() <<  std::endl;
+          param.currentMaxMass = mm + massMargin; // isotopie margin
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
           prevMaxMasses[msLevel-1] =  param.currentMaxMass;
@@ -179,9 +188,6 @@ namespace OpenMS
           param.currentChargeRange =  prevChargeRanges[msLevel - 1];
           param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
-        //std::cout <<it->getPrecursors()[0].getMZ() << " " << param.currentChargeRange << std::endl;
-        //param.currentMaxMassCount = (int)(param.currentMaxMass/110*2);
-
       }
 
       if(sd.empty()){
@@ -192,6 +198,32 @@ namespace OpenMS
       if (peakGroups.empty())
       {
         continue;
+      }
+
+      qspecCntr[msLevel-1]++;
+      specIndex++;
+
+      for (auto &pg : peakGroups)
+      {
+        massCntr[msLevel-1]++;
+        massIndex++;
+        pg.spec = &(*it);
+        pg.massIndex = massIndex;
+        pg.specIndex = specIndex;
+        pg.scanNumber = scanNumber;
+        pg.massCntr = (int) peakGroups.size();
+
+        if (preMz > 0)
+        {
+          pg.precursorCharge = preCharge;
+          pg.precursorMonoMass = preMass;
+          pg.precursorIntensity = preInt;
+          pg.precursorMz = preMz;
+          pg.precursorSpecIndex = specIndexMap[msLevel-1];
+          pg.precursorScanNumber = scanNumberMap[msLevel -1];
+        }
+
+        allPeakGroups.push_back(pg);
       }
 
       if (msLevel < param.currentMaxMSLevel)
@@ -205,7 +237,6 @@ namespace OpenMS
 
         for (auto &pg : peakGroups)
         {
-          //std::cout<< pg.monoisotopicMass <<" "<< it->getRT() <<  std::endl;
           for (auto &p : pg.peaks)
           {
             int mc = p.charge;
@@ -219,25 +250,15 @@ namespace OpenMS
             subPeakMassMap[p.mz] = pg.monoisotopicMass;
           }
         }
-
+        specIndexMap[msLevel] = specIndex;
+        scanNumberMap[msLevel] = scanNumber;
         //peakChargeMap[msLevel] = subPeakChargeMap;
         //peakIntMap[msLevel] = subPeakIntMap;
         //peakMassMap[msLevel] = subPeakMassMap;
       }
-      qspecCntr[msLevel-1]++;
-      specIndex++;
+
       //allPeakGroups.reserve(allPeakGroups.size() + peakGroups.size());
-      for (auto &pg : peakGroups)
-      {
-        massCntr[msLevel-1]++;
-        massIndex++;
-        pg.spec = &(*it);
-        pg.massIndex = massIndex;
-        pg.specIndex = specIndex;
-        pg.scanNumber = scanNumber;
-        pg.massCntr = (int) peakGroups.size();
-        allPeakGroups.push_back(pg);
-      }
+
     }
     printProgress(1); //
     std::cout<<std::endl;

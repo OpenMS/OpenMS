@@ -86,6 +86,7 @@ namespace OpenMS
       int threads = 1;
       int writeDetail = 0;
       bool promexOut = false;
+      bool topfdOut = false;
       //int jitter = 0;
     };
 
@@ -154,6 +155,9 @@ namespace OpenMS
       double* perChargeNoisePower;
       double maxSNR = 0;
       double maxSNRmaxMz, maxSNRminMz;
+
+      int precursorSpecIndex=-1, precursorScanNumber=-1, precursorCharge=-1;
+      double precursorMz=-1.0, precursorMonoMass=-1.0, precursorIntensity=-1.0;
 
       MSSpectrum *spec;
 
