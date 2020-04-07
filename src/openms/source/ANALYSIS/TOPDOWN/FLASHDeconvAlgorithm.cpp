@@ -200,6 +200,10 @@ namespace OpenMS
         continue;
       }
 
+      if (msLevel > 1 && preMz < 0){
+        continue;
+      }
+
       qspecCntr[msLevel-1]++;
       specIndex++;
 

@@ -865,6 +865,7 @@ protected:
       return;
     }
 
+
     //<< std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
     //       << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
     //       << std::to_string(pg.spec->getRT())
@@ -875,7 +876,7 @@ protected:
         fs<<"END IONS\n\n";
       }
       prevScanNumber = pg.scanNumber;
-
+      fs<<fixed<<setprecision(2);
       fs << "BEGIN IONS\n"
          << "ID=" << 1 << "\n"
          << "SCANS=" << pg.scanNumber << "\n"
@@ -891,10 +892,11 @@ protected:
          << std::to_string(pg.precursorMz) << "\n"
          << "PRECURSOR_CHARGE=" << pg.precursorCharge << "\n"
          << "PRECURSOR_MASS=" << std::to_string(pg.precursorMonoMass) << "\n"
-         << "PRECURSOR_INTENSITY=" << std::to_string(pg.precursorIntensity) << "\n";
+         << "PRECURSOR_INTENSITY=" << pg.precursorIntensity << "\n";
+      fs<<setprecision(-1);
     }
     fs<<fixed<<setprecision(2);
-    fs<<pg.monoisotopicMass<<"\t"<<pg.intensity<<"\t"<<pg.maxSNRcharge<<"\n";
+    fs<<std::to_string(pg.monoisotopicMass)<<"\t"<<pg.intensity<<"\t"<<pg.maxSNRcharge<<"\n";
     fs<<setprecision(-1);
   }
 
