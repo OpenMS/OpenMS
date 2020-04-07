@@ -610,16 +610,10 @@ protected:
 
       transform_(feature_maps, transformations);
 
-      addDataProcessing_(consensus_fraction,
-        getProcessingInfo_(DataProcessing::ALIGNMENT));
-
       link_(feature_maps, 
         median_fwhm, 
         max_alignment_diff, 
         consensus_fraction);
-
-      addDataProcessing_(consensus_fraction,
-        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
     }
     else // only one feature map
     {
@@ -878,7 +872,9 @@ protected:
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto& it = range.first; it != range.second; ++it)
         {
-          peptide_ids.push_back(it->second);
+           PeptideIdentification trans = it->second;
+           trans.setIdentifier(protein_ids[0].getIdentifier());
+           peptide_ids.push_back(trans);
         }
       }
 
@@ -971,6 +967,15 @@ protected:
         median_fwhm,
         max_alignment_diff,
         consensus_fraction);
+    }
+
+    // add dataprocessing
+    if (feature_maps.size() > 1)
+    {
+      addDataProcessing_(consensus_fraction,
+        getProcessingInfo_(DataProcessing::ALIGNMENT));
+      addDataProcessing_(consensus_fraction,
+        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
     }
 
     const StringList & mz_files(ms_files.second);

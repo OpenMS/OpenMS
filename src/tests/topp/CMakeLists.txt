@@ -2728,14 +2728,14 @@ add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -targeted_only true
          -transfer_ids mean
          -mass_recalibration false
-         -out_cxml BSA.consensusXML.tmp
+         -out_cxml BSA_2.consensusXML.tmp
          -out_msstats BSA.csv.tmp
          -out BSA.mzTab.tmp
          -threads 4
          -proteinFDR 0.3
          -test
          )
-add_test("UTILS_ProteomicsLFQ_2_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.consensusXML )
+add_test("UTILS_ProteomicsLFQ_2_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA_2.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
 
 #------------------------------------------------------------------------------
