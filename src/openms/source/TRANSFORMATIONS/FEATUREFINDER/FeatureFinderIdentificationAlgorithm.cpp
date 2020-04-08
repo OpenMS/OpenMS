@@ -1184,7 +1184,6 @@ namespace OpenMS
     if (peptide.getHits().empty()) return;
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
-    if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy") { return; }
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
