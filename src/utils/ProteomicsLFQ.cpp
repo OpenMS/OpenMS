@@ -1331,6 +1331,8 @@ protected:
         IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 0, false, false};
         ibg.computeConnectedComponents();
         ibg.calculateAndAnnotateIndistProteins(true);
+        auto & ipg = inferred_protein_ids[0].getIndistinguishableProteins();
+        std::sort(std::begin(ipg), std::end(ipg));
       }
     }
     else // if (bayesian)
