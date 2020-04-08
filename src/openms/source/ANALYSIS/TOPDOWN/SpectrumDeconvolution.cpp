@@ -790,11 +790,13 @@ namespace OpenMS
       }
 
       PeakGroup pg;
+      pg.perChargeSNR = new float[chargeRange];
+
       pg.reserve(chargeRange * 30);
 
       Size rightIndex = avg.getRightIndex(mass);
       Size leftIndex = avg.getLeftIndex(mass);
-      auto perChargeNoisePower = new double[chargeRange];
+      //auto perChargeNoisePower = new float[chargeRange];
 
       for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
@@ -840,7 +842,7 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz;
 
-        double &np = perChargeNoisePower[j];
+        auto &np = pg.perChargeSNR[j];
         np = 0;
 
         int pi = 0;
@@ -933,7 +935,7 @@ namespace OpenMS
           //double snr = sp-np;// / (np + 1);
 
         }
-        //perChargeNoisePower[j] = np;
+        //perChargeSNR[j] = np;
       }
 
       if (!pg.peaks.empty())
@@ -972,7 +974,7 @@ namespace OpenMS
         }
 
         pg.massBinIndex = massBinIndex;
-        pg.perChargeNoisePower = perChargeNoisePower;
+        //pg.perChargeSNR = perChargeNoisePower;
         peakGroups.push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);

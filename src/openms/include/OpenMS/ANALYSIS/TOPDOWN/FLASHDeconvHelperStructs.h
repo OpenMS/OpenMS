@@ -152,15 +152,17 @@ namespace OpenMS
       int massIndex, specIndex, massCntr, scanNumber;
       int maxCharge, minCharge;
       int maxSNRcharge = 0;
-      double* perChargeNoisePower;
-      double maxSNR = 0;
+      float* perChargeSNR;
+      float maxSNR = 0;
       double maxSNRmaxMz, maxSNRminMz;
 
       int precursorSpecIndex=-1, precursorScanNumber=-1, precursorCharge=-1;
       double precursorMz=-1.0, precursorMonoMass=-1.0, precursorIntensity=-1.0;
+      float precursorSNR = -1.0f;
 
       MSSpectrum *spec;
 
+      //explicit PeakGroup(int maxCharge);
       ~PeakGroup();
       void push_back(LogMzPeak &p);
       void reserve(Size n);

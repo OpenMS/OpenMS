@@ -79,6 +79,7 @@ namespace OpenMS
     std::map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
     std::map<UInt,std::map<double, double>> peakIntMap; // mslevel, mz -> intensity
     std::map<UInt,std::map<double, double>> peakMassMap; // mslevel, mz -> mass
+    std::map<UInt,std::map<double, float>> peakSNRMap; // mslevel, mz -> snr
 
     std::map<UInt, int> scanNumberMap;
     std::map<UInt, int> specIndexMap;
@@ -104,6 +105,7 @@ namespace OpenMS
       peakChargeMap[j] = std::map<double, int>();
       peakIntMap[j] = std::map<double, double>();
       peakMassMap[j] = std::map<double, double>();
+      peakSNRMap[j] = std::map<double, float>();
     }
 
     auto prevChargeRanges = new int[param.currentMaxMSLevel];
@@ -137,6 +139,7 @@ namespace OpenMS
 
       // to find precursor peaks with assigned charges..
       double preMz = -1.0, preMass=-1.0, preInt=-1.0;
+      float preSNR = -1.0;
       int preCharge = -1;
 
       if (msLevel == 1)
@@ -148,6 +151,8 @@ namespace OpenMS
         auto &subPeakChargeMap = peakChargeMap[precursorMsLevel];
         auto &subPeakIntMap = peakIntMap[precursorMsLevel];
         auto &subPeakMassMap = peakMassMap[precursorMsLevel];
+        auto &subPeakSNRMap = peakSNRMap[precursorMsLevel];
+
         int mc = -1;
         double pint = 0;
         double mm = -1;
@@ -171,6 +176,7 @@ namespace OpenMS
               pint = cint;
               mc = subPeakChargeMap[mz];
               mm = subPeakMassMap[mz];//mc * mz;
+              preSNR = subPeakSNRMap[mz];
               preMz = mz;
               preMass = mm;
               preInt = cint;
@@ -225,6 +231,7 @@ namespace OpenMS
           pg.precursorMz = preMz;
           pg.precursorSpecIndex = specIndexMap[msLevel-1];
           pg.precursorScanNumber = scanNumberMap[msLevel -1];
+          pg.precursorSNR = preSNR;
         }
 
         allPeakGroups.push_back(pg);
@@ -235,9 +242,12 @@ namespace OpenMS
         auto& subPeakChargeMap = peakChargeMap[msLevel];//std::map<double, int>();
         auto& subPeakIntMap = peakIntMap[msLevel];//std::map<double, double>();
         auto& subPeakMassMap = peakMassMap[msLevel];//std::map<double, double>();
+        auto& subPeakSNRMap = peakSNRMap[msLevel];
+
         subPeakChargeMap.clear();
         subPeakIntMap.clear();
         subPeakMassMap.clear();
+        subPeakSNRMap.clear();
 
         for (auto &pg : peakGroups)
         {
@@ -252,6 +262,7 @@ namespace OpenMS
             subPeakChargeMap[p.mz] = mc;
             subPeakIntMap[p.mz] = p.intensity;
             subPeakMassMap[p.mz] = pg.monoisotopicMass;
+            subPeakSNRMap[p.mz] = pg.perChargeSNR[mc];
           }
         }
         specIndexMap[msLevel] = specIndex;

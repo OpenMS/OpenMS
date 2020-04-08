@@ -420,7 +420,7 @@ namespace OpenMS
     {
       if (pg.intensity < threshold)
       {
-        delete[] pg.perChargeNoisePower;
+        //delete[] pg.perChargeSNR;
         continue; //
       }
 
@@ -436,7 +436,7 @@ namespace OpenMS
         if (pg.peaks.empty() ||
             pg.chargeCosineScore <= param.minChargeCosine)
         {
-          delete[] pg.perChargeNoisePower;
+         // delete[] pg.perChargeSNR;
           continue;
         }
 
@@ -446,7 +446,7 @@ namespace OpenMS
 
         if (!isChargeWellDistributed)
         {
-          delete[] pg.perChargeNoisePower;
+          //delete[] pg.perChargeSNR;
           continue;
         }
 
@@ -455,7 +455,7 @@ namespace OpenMS
       {
         if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)
         {
-          delete[] pg.perChargeNoisePower;
+         // delete[] pg.perChargeSNR;
           continue;
         }
       }
@@ -470,7 +470,7 @@ namespace OpenMS
       if (pg.peaks.empty() ||
           (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
-        delete[] pg.perChargeNoisePower;
+        //delete[] pg.perChargeSNR;
         continue;
       }
 
@@ -525,11 +525,11 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
-        double snr = cos2 * sp / ((1- cos2) * sp + pg.perChargeNoisePower[j] + 1);
+        pg.perChargeSNR[j] = cos2 * sp / ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
 
-        if(snr > maxSNR){
-          maxSNR = snr;
-          pg.maxSNR = snr;
+        if(pg.perChargeSNR[j] > maxSNR){
+          maxSNR = pg.perChargeSNR[j];
+          pg.maxSNR = pg.perChargeSNR[j];
           pg.maxSNRcharge = charge;
           pg.maxSNRminMz = minMz;
           pg.maxSNRmaxMz = maxMz;
@@ -537,7 +537,7 @@ namespace OpenMS
 
         delete[] perIsotopeIntensities;
       }
-      delete[] pg.perChargeNoisePower;
+      //delete[] pg.perChargeSNR;
       filteredPeakGroups.push_back(pg);
     }
 

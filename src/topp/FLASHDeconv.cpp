@@ -443,9 +443,10 @@ protected:
 
       if (param.topfdOut)
       {
+        int id = 0;
         for (auto &pg : peakGroups)
         {
-          writePeakGroupTopFD(pg, fsfd);
+          writePeakGroupTopFD(pg, fsfd, id);
         }
         fsfd << "END IONS\n";
       }
@@ -810,7 +811,7 @@ protected:
     if (n > 1 && pg.precursorScanNumber >= 0)
     {
       fs << pg.precursorSpecIndex << "\t" << pg.precursorMz << "\t" << pg.precursorCharge << "\t"
-         << pg.precursorMonoMass << "\t" << pg.precursorIntensity << "\t";
+         << pg.precursorMonoMass << "\t" << pg.precursorIntensity << "\t" << pg.precursorSNR << "\t";
     }
 
     if (detail)
@@ -855,20 +856,18 @@ protected:
     }
 
     fs << fixed << setprecision(3);
-    fs << pg.isotopeCosineScore
-       << "\t";
+    fs << pg.isotopeCosineScore;
+
     if (n == 1)
     {
-      fs << pg.chargeCosineScore;
+      fs << "\t" << pg.chargeCosineScore;
     }
 
     fs << "\n" << setprecision(-1);
-
-
   }
 
   static void writePeakGroupTopFD(PeakGroup &pg,
-                                  fstream &fs)//, fstream &fsm, fstream &fsp)
+                                  fstream &fs, int& id)//, fstream &fsm, fstream &fsp)
   {
     static int prevScanNumber = -1;
     if (pg.peaks.empty())
@@ -894,7 +893,7 @@ protected:
       prevScanNumber = pg.scanNumber;
       fs << fixed << setprecision(2);
       fs << "BEGIN IONS\n"
-         << "ID=" << 1 << "\n"
+         << "ID=" << id++ << "\n"
          << "SCANS=" << pg.scanNumber << "\n"
          << "RETENTION_TIME=" << pg.spec->getRT() / 60.0 << "\n";
       for (auto &a :  pg.spec->getPrecursors()[0].getActivationMethods())
@@ -1045,7 +1044,7 @@ protected:
             << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
                "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
-               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorSNR\t"
                "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
                "PeakIntensities\tIsotopeCosineScore\n";
       }
@@ -1070,7 +1069,7 @@ protected:
             << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
                "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
-               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
+               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorSNR\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
                //"PeakIntensities\t"
                "IsotopeCosineScore\n";

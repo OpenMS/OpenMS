@@ -204,8 +204,10 @@ namespace OpenMS
     return this->logMz >= a.logMz;
   }
 
+
   FLASHDeconvHelperStructs::PeakGroup::~PeakGroup()
   {
+   // delete[] perChargeSNR;
     std::vector<LogMzPeak>().swap(peaks);
   }
 
