@@ -87,7 +87,7 @@ protected:
 
     registerDoubleList_("tol",
                         "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively",
-                        {10.0, 5.0},
+                        {10.0, 10.0},
                         "ppm tolerance for MS1, 2, ...",
                         false);
 
@@ -99,7 +99,7 @@ protected:
 
     registerDoubleList_("minIC",
                         "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
-                        {.75, .8},
+                        {.75, .75},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...",
                         false,
                         true);
@@ -895,9 +895,10 @@ protected:
       fs << "BEGIN IONS\n"
          << "ID=" << id++ << "\n"
          << "SCANS=" << pg.scanNumber << "\n"
-         << "RETENTION_TIME=" << pg.spec->getRT() / 60.0 << "\n";
+         << "RETENTION_TIME=" << pg.spec->getRT() << "\n";
       for (auto &a :  pg.spec->getPrecursors()[0].getActivationMethods())
       {
+        auto act = Precursor::NamesOfActivationMethodShort[a];
         fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[a] << "\n";
       }
 

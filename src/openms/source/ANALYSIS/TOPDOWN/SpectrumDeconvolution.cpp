@@ -791,6 +791,7 @@ namespace OpenMS
 
       PeakGroup pg;
       pg.perChargeSNR = new float[chargeRange];
+      std::fill_n(pg.perChargeSNR, chargeRange, 0);
 
       pg.reserve(chargeRange * 30);
 
