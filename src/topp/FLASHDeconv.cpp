@@ -256,15 +256,16 @@ protected:
         fs[n - 1].open(outfilePath + "_MS" + n + "_spec.tsv", fstream::out);
         writeHeader(fs[n - 1], n, param.writeDetail);
       }
-      writeFeatureHeader(fsf);
+
 
       fsm.open(outfilePath + ".m", fstream::out);
       //}
       // if (param.RTwindow > 0)
       // {
 
-
       fsf.open(outfilePath + ".tsv", fstream::out);
+      writeFeatureHeader(fsf);
+
       if (param.promexOut)
       {
         fsp.open(outfilePath + "_FD.ms1ft", fstream::out);
@@ -361,13 +362,14 @@ protected:
           fs[n - 1].open(outfilePath + outfileName + "_MS" + n + "_spec.tsv", fstream::out);
           writeHeader(fs[n - 1], n, param.writeDetail);
         }
-        writeFeatureHeader(fsf);
+
 
         // fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
         fsm.open(outfilePath + outfileName + "PerSpecMasses.m", fstream::out);
         //  }
 
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
+        writeFeatureHeader(fsf);
 
         if (param.promexOut)
         {
