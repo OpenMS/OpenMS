@@ -816,7 +816,7 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     IdentificationData::ScoreTypeRef score_ref =
-      id_data.findScoreType("hyperscore").first;
+      id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");

@@ -474,17 +474,17 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::ScoreTypeRef, bool>
+  IdentificationData::ScoreTypeRef
   IdentificationData::findScoreType(const String& score_name) const
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
       if (it->cv_term.getName() == score_name)
       {
-        return make_pair(it, true);
+        return it;
       }
     }
-    return make_pair(score_types_.end(), false);
+    return score_types_.end();
   }
 
 

@@ -133,59 +133,35 @@ namespace OpenMS
     return false;
   }
 
-  IdentificationData::ScoreTypeRef MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
+  IdentificationData::ScoreTypeRef
+  MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
   {
     IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
     if (score_type_.empty()) // choose a score type
     {
-      Size n_multiple_scores = 0;
-      // just find the first molecule-query match that has a score:
-      for (const IdentificationData::MoleculeQueryMatch& match :
-             id_data.getMoleculeQueryMatches())
-      {
-        if (match.getNumberOfScores() > 1) ++n_multiple_scores;
-        if (score_type_.empty())
-        {
-          auto score_info = match.getMostRecentScore();
-          if (get<2>(score_info)) // check success indicator
-          {
-            score_ref = *get<1>(score_info); // unpack the option
-            // make sure to use the same score type from now on:
-            score_type_ = score_ref->cv_term.getName();
-          }
-        }
-      }
-      if (score_type_.empty())
+      score_ref = id_data.pickScoreType(id_data.getMoleculeQueryMatches());
+      if (score_ref == id_data.getScoreTypes().end())
       {
         String msg = "no scores found";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      if (n_multiple_scores)
-      {
-        bool all_multiple_scores = (n_multiple_scores ==
-                                    id_data.getMoleculeQueryMatches().size());
-        OPENMS_LOG_WARN
-          << "Warning: no score type (parameter 'score_type') defined and "
-          << (all_multiple_scores ? "all" : "some")
-          << " hits have multiple scores." << endl;
-      }
+      score_type_ = score_ref->cv_term.getName();
       OPENMS_LOG_INFO << "Using score type: " << score_type_ << endl;
     }
     else
     {
-      pair<IdentificationData::ScoreTypeRef, bool> score_found =
-        id_data.findScoreType(score_type_);
-      if (!score_found.second)
+      score_ref = id_data.findScoreType(score_type_);
+      if (score_ref == id_data.getScoreTypes().end())
       {
         String msg = "score type '" + score_type_ + "' not found";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      score_ref = score_found.first;
     }
     return score_ref;
   }
+
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
     IdentificationData& id_data, SeqToList& rt_data)

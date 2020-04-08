@@ -433,9 +433,9 @@ namespace OpenMS
     /*!
       @brief Look up a score type by name.
 
-      @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
+      @return Reference to the score type, if found; otherwise @p getScoreTypes().end()
     */
-    std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
+    ScoreTypeRef findScoreType(const String& score_name) const;
 
     /// Calculate sequence coverages of parent molecules
     void calculateCoverages(bool check_molecule_length = false);
@@ -468,6 +468,59 @@ namespace OpenMS
       @return Equivalent to the current processing step in @p other after merging
     */
     ProcessingStepRef merge(const IdentificationData& other);
+
+    /*!
+      Pick a score type for operations (e.g. filtering) on a container of scored processing results (e.g. molecule-query matches, identified peptides, ...).
+
+      If @p all_elements is false, only the first element with a score will be considered (which is sufficient if all elements were processed in the same way).
+      If @p all_elements is true, the score type supported by the highest number of elements will be chosen.
+
+      If @p any_score is false, only the primary score from the most recent processing step (that assigned a score) is taken into account.
+      If @p any_score is true, all score types assigned across all elements are considered (this implies @p all_elements = true).
+
+      @param container Container with elements derived from @p ScoredProcessingResult
+      @param all_elements Consider all elements?
+      @param any_score Consider any score (or just primary/most recent ones)?
+
+      @return Reference to the chosen score type (or @p getScoreTypes().end() if there were no scores)
+    */
+    template <class ScoredProcessingResults>
+    ScoreTypeRef pickScoreType(const ScoredProcessingResults& container,
+                               bool all_elements = false, bool any_score = false) const
+    {
+      std::map<ScoreTypeRef, Size> score_counts;
+
+      if (any_score)
+      {
+        for (const auto& element : container)
+        {
+          for (const auto& step : element.steps_and_scores)
+          {
+            for (const auto& pair : step.scores)
+            {
+              score_counts[pair.first]++;
+            }
+          }
+        }
+      }
+      else
+      {
+        for (const auto& element : container)
+        {
+          auto score_info = element.getMostRecentScore();
+          if (std::get<2>(score_info)) // check success indicator
+          {
+            ScoreTypeRef score_ref = *std::get<1>(score_info); // unpack the option
+            if (!all_elements) return score_ref;
+            score_counts[score_ref]++; // elements are zero-initialized
+          }
+        }
+      }
+      if (score_counts.empty()) return score_types_.end();
+      auto pos = max_element(score_counts.begin(), score_counts.end());
+      // @TODO: break ties according to some criterion
+      return pos->first;
+    }
 
   protected:
 

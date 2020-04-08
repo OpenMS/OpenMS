@@ -477,14 +477,12 @@ START_SECTION((vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref
 }
 END_SECTION
 
-START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const))
+START_SECTION((ScoreTypeRef findScoreType(const String& score_name) const))
 {
   // non-existent score:
-  TEST_EQUAL(data.findScoreType("fake_score").second, false);
+  TEST_EQUAL(data.findScoreType("fake_score") == data.getScoreTypes().end(), true);
   // registered score:
-  auto result = data.findScoreType("test_score");
-  TEST_EQUAL(result.first == score_ref, true);
-  TEST_EQUAL(result.second, true);
+  TEST_EQUAL(data.findScoreType("test_score") == score_ref, true);
 }
 END_SECTION
 
