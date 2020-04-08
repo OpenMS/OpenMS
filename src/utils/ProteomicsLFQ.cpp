@@ -977,6 +977,9 @@ protected:
         f.setSubordinates({});
         f.setConvexHulls({});
       }
+
+      IDConflictResolverAlgorithm::resolve(tmp, false); // keep only best peptide per feature 
+
       feature_maps.push_back(tmp);
       
       if (debug_level_ > 666)
