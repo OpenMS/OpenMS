@@ -60,7 +60,9 @@ namespace OpenMS
     class BK_PrecPolicy : public boost::spirit::karma::real_policies<T>
     {
     public:
-      static unsigned int precision(T) { return writtenDigits<T>(T()); }
+        static unsigned int precision(T n) {
+          return BK_PrecPolicy<T>::floatfield(n) ? std::numeric_limits<T>::max_digits10 - (floor(log10(n)) + 1) : std::numeric_limits<T>::max_digits10 - 1;
+        }
     };
     typedef boost::spirit::karma::real_generator<float, BK_PrecPolicy<float> > BK_PrecPolicyFloat_type;
     const BK_PrecPolicyFloat_type BK_PrecPolicyFloat;
