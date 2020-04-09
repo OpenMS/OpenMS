@@ -634,12 +634,12 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    for (const auto& s : exp[0])
+    for (const auto& s : exp)
     {
-        if (exp[0].getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
-        {
-            throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-        }
+      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
+      {
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+      }
     }
 
     //-------------------------------------------------------------
