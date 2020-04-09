@@ -113,7 +113,7 @@ protected:
 
     registerIntList_("minCP",
                      "ms1_min_continuous_charge_peaks ms2_min_continuous_charge_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
-                     {3, 2},
+                     {3, 1},
                      "minimum number of peaks of continuous charges",
                      false,
                      true);
@@ -330,7 +330,7 @@ protected:
         msCntr[it->getMSLevel()]++;
       }
 
-      for (int j = 1; j <= param.maxMSLevel; j++)
+      for (int j = 1; j <= 1; j++)
       {
         double rtDelta = rtDuration / msCntr[j];
 
@@ -342,10 +342,14 @@ protected:
         //OPENMS_LOG_INFO << rtDuration << " " << rtDelta << " " << rw <<  endl;
 
         auto count = max(param.minNumOverLappedScans, (UInt) (.5 + rw / rtDelta));
-        param.numOverlappedScans.push_back(count);
         OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << rw
                         << " sec)" << endl;
 
+
+      }
+      for (int j = 2; j <= param.maxMSLevel; j++)
+      {
+        param.numOverlappedScans.push_back(0);
       }
       delete[] msCntr;
       std::string outfileName(param.fileName);
@@ -841,9 +845,9 @@ protected:
       for (auto &p : pg.peaks)
       {
         auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-        auto diff = tm / p.charge + Constants::PROTON_MASS_U - p.mz;
+        auto diff = (tm / p.charge + Constants::PROTON_MASS_U - p.mz)/p.mz;
 
-        fs << 100 * diff << ";";
+        fs << 1e6* diff << ";";
       }
       fs << "\t";
 
@@ -878,7 +882,9 @@ protected:
     {
       return;
     }
-
+    if ( pg.maxSNR < .2){
+      return; // TODO
+    }
 
     //<< std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
     //       << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
@@ -912,7 +918,9 @@ protected:
       fs << setprecision(-1);
     }
     fs << fixed << setprecision(2);
-    fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge << "\n";
+    fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge
+    << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR
+    <<  "\n";
     fs << setprecision(-1);
   }
 
@@ -1036,7 +1044,7 @@ protected:
                "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
                //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
-               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
       }
       else
@@ -1046,7 +1054,7 @@ protected:
                "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
                "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorSNR\t"
-               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
+               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PeakIntensities\tIsotopeCosineScore\n";
       }
 

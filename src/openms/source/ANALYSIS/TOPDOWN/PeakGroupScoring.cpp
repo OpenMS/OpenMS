@@ -182,7 +182,7 @@ namespace OpenMS
   {
     double n = .0, d1 = .0;
     int c = 0;
-    for (int j = aStart; j < aEnd; j++)
+    for (int j = aStart; j <= aEnd; j++)
     {
       d1 += a[j] * a[j];
       int i = j - offset;
@@ -283,7 +283,7 @@ namespace OpenMS
       //return 0;
     }
 
-    for (int f = -isoSize + minIsotopeIndex; f <= maxIsotopeIndex; f++)
+    for (int f = -isoSize - minIsotopeIndex; f <= maxIsotopeIndex; f++)
     {
       auto cos = PeakGroupScoring::getCosine(perIsotopeIntensities,
                                              minIsotopeIndex,
@@ -453,7 +453,7 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)
+        if (pg.peaks.empty()|| pg.chargeCosineScore < 0.1)//
         {
          // delete[] pg.perChargeSNR;
           continue;
@@ -513,6 +513,9 @@ namespace OpenMS
         double sp = .0;
         for (int k = minIsotopeIndex; k <=maxIsotopeIndex ; ++k)
         {
+          if(k>isoSize){
+            break;
+          }
           sp += perIsotopeIntensities[k] * perIsotopeIntensities[k];
         }
 
@@ -538,7 +541,10 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
       //delete[] pg.perChargeSNR;
-      filteredPeakGroups.push_back(pg);
+      if(pg.maxSNR>0)
+      {
+        filteredPeakGroups.push_back(pg);
+      }
     }
 
     //std::cout<<filteredPeakGroups.size();

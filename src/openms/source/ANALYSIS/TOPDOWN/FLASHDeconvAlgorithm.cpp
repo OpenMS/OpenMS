@@ -115,7 +115,7 @@ namespace OpenMS
     std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
 
     int scanNumber = 0;
-    double massMargin = 100.0;
+    double massMargin = 1000.0;
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       ++scanNumber;
@@ -154,7 +154,7 @@ namespace OpenMS
         auto &subPeakSNRMap = peakSNRMap[precursorMsLevel];
 
         int mc = -1;
-        double pint = 0;
+        float pint = 0;
         double mm = -1;
         // auto tmz = 0.0;
         for(auto &pre : it->getPrecursors()){
@@ -185,7 +185,7 @@ namespace OpenMS
           }
         }
         if(mc > 0){
-          param.currentChargeRange = mc  - param.minCharge; //
+          param.currentChargeRange = mc  - param.minCharge + 1; //
           param.currentMaxMass = mm + massMargin; // isotopie margin
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
@@ -254,10 +254,12 @@ namespace OpenMS
           for (auto &p : pg.peaks)
           {
             int mc = p.charge;
-            if (subPeakChargeMap.find(p.mz) != subPeakChargeMap.end())
+            if (subPeakSNRMap.find(p.mz) != subPeakSNRMap.end())
             {
-              int pc = subPeakChargeMap[p.mz];
-              mc = mc > pc ? mc : pc;
+              float csnr = pg.perChargeSNR[mc];
+              if (csnr < subPeakSNRMap[p.mz]){
+                continue;
+              }
             }
             subPeakChargeMap[p.mz] = mc;
             subPeakIntMap[p.mz] = p.intensity;
