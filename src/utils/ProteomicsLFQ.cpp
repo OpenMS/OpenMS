@@ -84,6 +84,16 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 
+#include <OpenMS/QC/Contaminants.h>
+#include <OpenMS/QC/FragmentMassError.h>
+#include <OpenMS/QC/MissedCleavages.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
+#include <OpenMS/QC/MzCalibration.h>
+#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/QC/RTAlignment.h>
+#include <OpenMS/QC/TIC.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
+
 using namespace OpenMS;
 using namespace std;
 using Internal::IDBoostGraph;
@@ -246,6 +256,75 @@ protected:
     combined.insert("ProteinQuantification:", pq_defaults);
 
     registerFullParam_(combined);
+  }
+
+  //TODO the next two methods are copied from QualitControl TOPP tool. Refactor as well.
+  // fills a multimap from custom IDs to pointers of PepIDs from PepIDs in consensusmap features
+  void fillConsensusPepIDMap_(vector<PeptideIdentification>& cpep_ids,
+                              const map<String, StringList>& identifier_to_msrunpath,
+                              multimap<String, PeptideIdentification*>& customID_to_cpepID) const
+  {
+    for (PeptideIdentification& cpep_id : cpep_ids)
+    {
+      if (!cpep_id.metaValueExists("spectrum_reference"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum reference missing at PeptideIdentification.");
+      }
+      const auto& ms_run_path = identifier_to_msrunpath.at(cpep_id.getIdentifier());
+
+      String UID; //< unique ID to identify the PepID
+      if (ms_run_path.size() == 1)
+      {
+        UID = ms_run_path[0] + cpep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else if (cpep_id.metaValueExists("map_index"))
+      {
+        UID = cpep_id.getMetaValue("map_index").toString() + cpep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
+      customID_to_cpepID.insert(make_pair(UID, &cpep_id));
+    }
+  }
+
+  void copyPepIDMetaValues_(const vector<PeptideIdentification>& f_pep_ids,
+                            const multimap<String, PeptideIdentification*>& customID_to_pepID,
+                            const map<String, StringList>& fidentifier_to_msrunpath) const
+  {
+    for (const PeptideIdentification& f_pep_id : f_pep_ids)
+    {
+      // for empty PIs which were created by a metric
+      if (f_pep_id.getHits().empty()) continue;
+
+      String UID;
+      const auto& ms_run_path = fidentifier_to_msrunpath.at(f_pep_id.getIdentifier());
+      if (ms_run_path.size() == 1)
+      {
+        UID = ms_run_path[0] + f_pep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else if (f_pep_id.metaValueExists("map_index"))
+      {
+        UID = f_pep_id.getMetaValue("map_index").toString() + f_pep_id.getMetaValue("spectrum_reference").toString();
+      }
+      else
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files in a run, but no map_index in PeptideIdentification found.");
+      }
+
+      const auto range = customID_to_pepID.equal_range(UID);
+
+      for (auto it_pep = range.first; it_pep != range.second; ++it_pep) // OMS_CODING_TEST_EXCLUDE
+      {
+        // copy all MetaValues that are at PepID level
+        it_pep->second->addMetaValues(f_pep_id);
+
+        // copy all MetaValues that are at best Hit level
+        //TODO check if first = best assumption is met!
+        (it_pep->second)->getHits()[0].addMetaValues(f_pep_id.getHits()[0]);
+      }
+    }
   }
 
   // Map between mzML file and corresponding id file
@@ -733,6 +812,8 @@ protected:
     const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription> & transformations,
+    TIC & qc_tic,
+    Ms2IdentificationRate & qc_ms2ir,
     double& max_alignment_diff,
     set<String>& fixed_modifications,
     set<String>& variable_modifications)
@@ -767,6 +848,7 @@ protected:
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
+      //TODO target-decoy QC statistics will need decoys as well
       IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
@@ -790,8 +872,11 @@ protected:
         // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
         for (PeptideHit & ph : pid.getHits())
         {
-          // TODO: keep target_decoy information for QC
+          // keep target_decoy information for QC. Since we run PeptideIndexer here,
+          // it should exist.
+          //String td = ph.getMetaValue("target_decoy");
           ph.clearMetaInfo();
+          //ph.setMetaValue("target_decoy", td);
         }
       }
 
@@ -939,10 +1024,14 @@ protected:
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
       for (auto & f : tmp)
       {
-        //TODO keep FWHM meta value for QC
+        //keep FWHM meta value for QC
+        double fwhm = static_cast<double>(f.getMetaValue("model_FWHM"));
         f.clearMetaInfo();
         f.setSubordinates({});
         f.setConvexHulls({});
+        // QC tools will create a FWHM metavalue as a copy anyway,
+        // so save it as FWHM right away
+        f.setMetaValue("FWHM", fwhm);
       }
       feature_maps.push_back(tmp);
       
@@ -1002,10 +1091,143 @@ protected:
       writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
     }
 
+
+    //------------------ QC on CMap of fraction -------------------
+    //-------------------------------------------------------------
+    // prot/pepID-identifier -->  ms-run-path
+    //-------------------------------------------------------------
+    ProteinIdentification::Mapping mp_c(consensus_fraction.getProteinIdentifications());
+
+    //-------------------------------------------------------------
+    // Build a PepID Map to later find the corresponding PepID in the CMap
+    //-------------------------------------------------------------
+    multimap<String, PeptideIdentification*> customID_to_cpepID; // multimap is required because a PepID could be duplicated by IDMapper and appear >=1 in a featureMap
+    for (Size i = 0; i < consensus_fraction.size(); ++i)
+    {
+      fillConsensusPepIDMap_(consensus_fraction[i].getPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+      // connect CF with its peptides (they might get separated later...)
+      consensus_fraction[i].setMetaValue("cf_id", i);
+      for (auto& pep_id : consensus_fraction[i].getPeptideIdentifications()) pep_id.setMetaValue("cf_id", i);
+    }
+    fillConsensusPepIDMap_(consensus_fraction.getUnassignedPeptideIdentifications(), mp_c.identifier_to_msrunpath, customID_to_cpepID);
+    for (auto& pep_id : consensus_fraction.getUnassignedPeptideIdentifications()) pep_id.setMetaValue("cf_id", -1);
+
+    // Instantiate the QC metrics
+    //Contaminants qc_contaminants;
+    FragmentMassError qc_frag_mass_err;
+    MissedCleavages qc_missed_cleavages;
+    MzCalibration qc_mz_calibration;
+    RTAlignment qc_rt_alignment;
+    Ms2SpectrumStats qc_ms2stats;
+
+    //-------------------------------------------------------------
+    // calculations
+    //-------------------------------------------------------------
+
+    //TODO load a contaminants file from somewhere
+    /*if (qc_contaminants.isRunnable(status))
+    {
+      qc_contaminants.compute(fmap, contaminants);
+    }*/
+
+    vector<PeptideIdentification> all_new_upep_ids;
+    for (Size i = 0; i < ms_files.second.size(); ++i)
+    {
+      const String& mzml_filename = ms_files.second[i];
+      //TODO somehow avoid loading mzML again?
+      MzMLFile mzml_file;
+      PeakMap exp;
+      QCBase::SpectraMap spec_map;
+      mzml_file.load(mzml_filename, exp);
+      spec_map.calculateMap(exp);
+      FeatureMap& fmap = feature_maps[i];
+      ProteinIdentification::Mapping mp_f;
+      mp_f.create(fmap.getProteinIdentifications());
+      TransformationDescription& trafo_descr = transformations[i];
+
+      // We know here which QC calculations should work, so we probably do not need to check QC statuses
+      //TODO check that AUTO should always work!
+      qc_frag_mass_err.compute(fmap, exp, spec_map, FragmentMassError::ToleranceUnit::AUTO, 0.);
+
+      //if we force fdr we can omit the TD metavalue, since we filtered for decoys already -> everything is target
+      // TODO But: Do you really want an ID-rate after FDR? Hmm..
+      qc_ms2ir.compute(fmap, exp, true);
+
+      qc_mz_calibration.compute(fmap, exp, spec_map);
+
+      // after qc_mz_calibration, because it calculates 'mass' metavalue
+
+      qc_missed_cleavages.compute(fmap);
+      // add metavalues rt_raw & rt_align to all PepIDs
+      qc_rt_alignment.compute(fmap, trafo_descr);
+
+      qc_tic.compute(exp);
+
+      // copies FWHM metavalue to PepIDs as well
+      vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, fmap, spec_map);
+      // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
+      const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
+      const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
+      if (ptr_cmap == mp_c.runpath_to_identifier.end())
+      {
+        OPENMS_LOG_ERROR << "FeatureXML (MS run '" << ListUtils::concatenate(f_runpath, ", ") << "') does not correspond to ConsensusXML (run not found). Check input!\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      for (PeptideIdentification& pep_id : new_upep_ids)
+      {
+        pep_id.setIdentifier(ptr_cmap->second);
+      }
+
+      // annotate the RT alignment
+      qc_rt_alignment.compute(new_upep_ids, trafo_descr);
+
+      // save the just calculated IDs for appending to Cmap later (not now, because the vector might resize and invalidate our PepID*).
+      all_new_upep_ids.insert(all_new_upep_ids.end(), new_upep_ids.begin(), new_upep_ids.end());
+
+      //-------------------------------------------------------------
+      // Annotate calculated meta values from FeatureMap to given ConsensusMap
+      //-------------------------------------------------------------
+
+      // copy MetaValues of unassigned PepIDs
+      copyPepIDMetaValues_(fmap.getUnassignedPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+
+      // copy MetaValues of assigned PepIDs
+      for (Feature& feature : fmap)
+      {
+        copyPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath);
+      }
+    }
+
     //-------------------------------------------------------------
     // ID conflict resolution
     //-------------------------------------------------------------
     IDConflictResolverAlgorithm::resolve(consensus_fraction, true);
+
+
+    //TODO check if needed. I think if we do the correct things here, it should be fine.
+    // check if all PepIDs of ConsensusMap appeared in a FeatureMap
+    bool incomplete_features {false};
+    auto f =
+        [&incomplete_features](const PeptideIdentification& pep_id)
+        {
+          if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
+          {
+            OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
+                             << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
+                             << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
+            incomplete_features = true;
+          }
+        };
+    consensus_fraction.applyFunctionOnPeptideIDs(f, true);
+    if (incomplete_features) return ILLEGAL_PARAMETERS;
+
+    // add new PeptideIdentifications (for unidentified MS2 spectra)
+    consensus_fraction.getUnassignedPeptideIdentifications().insert(consensus_fraction.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
+
+    //TODO probably best to fill a vector of those objects given to this function and add it to mzTab in the final result
+    MzTabMetaData meta{};
+    qc_tic.addMetaDataMetricsToMzTab(meta);
+    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
 
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
@@ -1138,8 +1360,11 @@ protected:
     double median_fwhm(0);
 
     set<String> fixed_modifications, variable_modifications;
+    TIC qc_tic{};
+    Ms2IdentificationRate qc_ms2ir{};
+
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
-    {      
+    {
       ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
       vector<TransformationDescription> transformations; // filled by RT alignment
       double max_alignment_diff(0.0);
@@ -1151,6 +1376,8 @@ protected:
         multimap<Size, PeptideIdentification>(),
         consensus_fraction, 
         transformations,  // transformations are empty, will be filled by alignment
+        qc_tic,
+        qc_ms2ir,
         max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
         fixed_modifications, 
         variable_modifications);
@@ -1174,6 +1401,8 @@ protected:
           transfered_ids, 
           consensus_fraction, 
           transformations,  // transformations as determined by alignment
+          qc_tic,
+          qc_ms2ir,
           max_alignment_diff, // max_alignment_error as determined by alignment
           fixed_modifications,
           variable_modifications);
@@ -1191,7 +1420,6 @@ protected:
     {
       ConsensusXMLFile().store("debug_after_normalization.consensusXML", consensus);
     }
-
 
     //-------------------------------------------------------------
     // ID related algorithms
@@ -1586,6 +1814,12 @@ protected:
       report_unidentified_features, 
       report_unmapped,
       "Export from ProteomicsLFQ workflow in OpenMS.");
+
+    MzTabMetaData meta = m.getMetaData();
+    qc_tic.addMetaDataMetricsToMzTab(meta);
+    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
+    m.setMetaData(meta);
+
     MzTabFile().store(out, m);
 
     if (!out_msstats.empty())

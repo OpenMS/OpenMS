@@ -104,8 +104,8 @@ namespace OpenMS
     //function of QCBase, which iterates through all PeptideIdentifications of a given FeatureMap and applies the given lambda function
     fmap.applyFunctionOnPeptideIDs(l);
 
-
     /// add FWHM to peptides (a bit unrelated)
+    //TODO actually quite unrelated
     for (auto& f : fmap)
     {
       if (f.metaValueExists("FWHM")) // from FF-Centroided
@@ -115,6 +115,9 @@ namespace OpenMS
           pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
         }
       }
+      // TODO for FFID there is also "width_at_50" which is also there when fitting a model fails
+      // however it seems as if failed fitting results in deletion of the feature anyway, so this
+      // should be fine
       else if (f.metaValueExists("model_FWHM")) // from FF-Identification
       {
         for (auto& pi : f.getPeptideIdentifications())
