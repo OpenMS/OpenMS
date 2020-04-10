@@ -87,7 +87,7 @@ protected:
 
     registerDoubleList_("tol",
                         "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively",
-                        {10.0, 10.0},
+                        {10.0, 5.0},
                         "ppm tolerance for MS1, 2, ...",
                         false);
 
@@ -882,7 +882,7 @@ protected:
     {
       return;
     }
-    if ( pg.maxSNR < .2){
+    if ( pg.maxSNR < .1){
       return; // TODO
     }
 

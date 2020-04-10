@@ -278,10 +278,7 @@ namespace OpenMS
         minIsotopeIndex = i;
       }
     }
-    if (isotopeLength < 2)
-    {
-      //return 0;
-    }
+
 
     for (int f = -isoSize - minIsotopeIndex; f <= maxIsotopeIndex; f++)
     {

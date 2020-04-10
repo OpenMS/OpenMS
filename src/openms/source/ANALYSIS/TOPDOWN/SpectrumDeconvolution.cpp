@@ -60,9 +60,7 @@ namespace OpenMS
       for (int i = 0; i < param.chargeRange; i++)
       {
         //auto r = ((float) rand()) / (float) RAND_MAX - .5;log(1.0 / (i + n / hc + param.minCharge));
-        harmonicFilter[k][i] = log(
-            1.0 / (i - n / hc +
-                   param.minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0))
+        harmonicFilter[k][i] = log(1.0 / (i + n / hc + param.minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) // TODO
       }
     }
   }
@@ -146,7 +144,29 @@ namespace OpenMS
           mzBinIntensities[bi - 1] += p.intensity;
         }
       }
+
+
+
     }
+
+    /*
+    if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+    {
+      Size pbi = 0;
+      for (auto &p : logMzPeaks)
+      {
+        Size bi = getBinNumber(p.logMz, mzBinMinValue, binWidth);
+        if (p.mz > 740 && p.mz < 742)
+        { //
+          if (pbi != bi)
+          {
+            std::cout << bi << " " << p.mz << " " << mzBinIntensities[bi] << "\n";
+            pbi = bi;
+          }
+        }
+      }
+      std::cout << std::endl;
+    }*/
   }
 
   void SpectrumDeconvolution::unionPrevMassBins(double &massBinMinValue,
@@ -239,6 +259,7 @@ namespace OpenMS
           break;
         }
 
+
         //auto cd = prevCharges[massBinIndex] - j;
         auto &prevIntensity = prevIntensities[massBinIndex];
         float minInt = std::min(intensity, prevIntensity);
@@ -253,7 +274,7 @@ namespace OpenMS
         //   candidateMassBinsForThisSpectrum[massBinIndex] = true;
         // }
         auto charge = j + param.minCharge;
-        if (msLevel > 1 && charge <= 3)
+        if (msLevel > 1 && charge <= 2)
         {
           auto binWidth = param.binWidth[msLevel - 1];
           auto mz = exp(getBinValue(mzBinIndex, mzMinValue, binWidth));
@@ -264,8 +285,10 @@ namespace OpenMS
 
           if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && (intensity > mzIntensities[nextIsoBin]))
           {
-            continuousChargePeakPairCount[massBinIndex]++; // TODO
-            //massIntensitites[massBinIndex] += mzIntensities[nextIsoBin];
+            //continuousChargePeakPairCount[massBinIndex]++; //
+            candidateMassBinsForThisSpectrum[massBinIndex] =
+                (++continuousChargePeakPairCount[massBinIndex] >= minContinuousChargePeakCount);//
+            massIntensitites[massBinIndex] += mzIntensities[nextIsoBin];
           //  candidateMassBinsForThisSpectrum[massBinIndex] = true;//
           }
 
@@ -311,7 +334,20 @@ namespace OpenMS
                 maxHcharge = k;
               }
             }
+
+            /*
+            if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+            {
+              if(mzBinIndex ==30688){
+                std::cout<<mzBinIndex << " * " << maxHcharge << " " << massIntensitites[massBinIndex] << " " << (int) j << std::endl; //
+                //std::cout<<mzBinIndex << " " << maxIndex << " " << (int) charge << std::endl; //
+              }
+            }*/
+
+
           }
+
+
 
           if (maxHcharge >= 0) //
           {
@@ -367,9 +403,17 @@ namespace OpenMS
             }
           }
         }
+
+
+
+
         prevIntensity = intensity;
         prevCharges[massBinIndex] = j;
       }
+
+
+
+
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
     auto mindex = candidateMassBinsForThisSpectrum.find_first();
@@ -442,12 +486,24 @@ namespace OpenMS
         {
           break;
         }
+
         if (toSkip[massBinIndex])
         {
           continue;
         }
 
         auto &t = massIntensities[massBinIndex];// + noneContinuousChargePeakPairCount[massBinIndex];//
+
+        /*if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+        {
+          if(mzBinIndex ==30688){
+            std::cout<<mzBinIndex << " " << t << " " << (int) j << std::endl; //
+            //std::cout<<mzBinIndex << " " << maxIndex << " " << (int) charge << std::endl; //
+          }
+        }
+*/
+
+
         if (t == 0)
         { // no signal
           continue;
@@ -462,6 +518,8 @@ namespace OpenMS
 
       if (maxIndex > binStart && maxIndex < binEnd)
       {
+
+
         {
           maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], charge);
           minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], charge);
@@ -504,10 +562,10 @@ namespace OpenMS
                                                                  mzBinMinValue,
                                                                  msLevel);
 
-    if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+   // if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
     {
 
-      pringMasses(candidateMassBins, massBinMinValue,  binWidth); // TODO
+      //pringMasses(candidateMassBins, massBinMinValue,  binWidth); // TODO
     }
 
     auto perMassChargeRanges = updateMassBins_(candidateMassBins,
@@ -516,9 +574,9 @@ namespace OpenMS
                                                binThresholdMaxMass,
                                                msLevel);
 
-    if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+    //if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
     {
-       pringMasses(massBinsForThisSpectrum, massBinMinValue,  binWidth); // TODO
+      // pringMasses(massBins, massBinMinValue,  binWidth); // TODO
     }
 
     //if(msLevel>1)

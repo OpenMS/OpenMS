@@ -115,7 +115,7 @@ namespace OpenMS
     std::fill_n(prevMaxMasses, param.currentMaxMSLevel, param.maxMass);
 
     int scanNumber = 0;
-    double massMargin = 1000.0;
+    double massMargin = 100.0;
     for (auto it = map.begin(); it != map.end(); ++it)
     {
       ++scanNumber;
