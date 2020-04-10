@@ -60,8 +60,37 @@ namespace OpenMS
     class BK_PrecPolicy : public boost::spirit::karma::real_policies<T>
     {
     public:
-        static unsigned int precision(T n) {
-          return BK_PrecPolicy<T>::floatfield(n) ? std::numeric_limits<T>::max_digits10 - (floor(log10(n)) + 1) : std::numeric_limits<T>::max_digits10 - 1;
+        static unsigned precision(T n) 
+        {
+            if (BK_PrecPolicy::floatfield(n))
+            {
+                T abs_n = boost::spirit::traits::get_absolute_value(n);
+                if (abs_n >= 1)
+                {
+                    return std::numeric_limits<T>::max_digits10 - (floor(log10(abs_n)) + 1);
+                }
+                else
+                {
+                    return std::numeric_limits<T>::max_digits10 - (floor(log10(abs_n)));
+                }  
+            }
+            else
+            {
+                return std::numeric_limits<T>::max_digits10 - 1;
+            }
+        }
+        
+        //  we want the numbers always to be in scientific format
+        static unsigned floatfield(T n)
+        {
+            if (boost::spirit::traits::test_zero(n))
+                return base_policy_type::fmtflags::fixed;
+
+            T abs_n = boost::spirit::traits::get_absolute_value(n);
+            // this is due to a bug in downstream thirdparty tools that only can read
+            // up to 19 digits. https://github.com/OpenMS/OpenMS/issues/4627
+            return (abs_n >= 1e5 || abs_n < 1e-2) 
+                ? base_policy_type::fmtflags::scientific : base_policy_type::fmtflags::fixed;
         }
     };
     typedef boost::spirit::karma::real_generator<float, BK_PrecPolicy<float> > BK_PrecPolicyFloat_type;
