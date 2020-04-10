@@ -199,6 +199,7 @@ namespace OpenMS
       if(sd.empty()){
         continue;
       }
+
       auto & peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap[msLevel], prevMinBinLogMassMap[msLevel] ,avg, msLevel);// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
 
       if (peakGroups.empty())

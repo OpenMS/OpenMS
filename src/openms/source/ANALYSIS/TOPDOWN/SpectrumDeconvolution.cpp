@@ -179,7 +179,6 @@ namespace OpenMS
     {
       return;
     }
-
     for (Size i = 0; i < prevMassBinVector.size(); i++)
     {
       auto &pmb = prevMassBinVector[i];
@@ -203,7 +202,6 @@ namespace OpenMS
         massBins[j] = true;
       }
     }
-
   }
 
 
@@ -274,7 +272,7 @@ namespace OpenMS
         //   candidateMassBinsForThisSpectrum[massBinIndex] = true;
         // }
         auto charge = j + param.minCharge;
-        if (msLevel > 1 && charge <= 2)
+        if (msLevel > 1)// && &&charge <= 10
         {
           auto binWidth = param.binWidth[msLevel - 1];
           auto mz = exp(getBinValue(mzBinIndex, mzMinValue, binWidth));
@@ -1136,6 +1134,7 @@ namespace OpenMS
     {
       unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
     }
+
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
 
@@ -1148,6 +1147,7 @@ namespace OpenMS
 
     if (msLevel == 1)
     {
+      //std::cout<<param.numOverlappedScans[msLevel - 1] << " " << prevMassBinVector.size() << std::endl;
       if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans[msLevel - 1])//
       {
         prevMassBinVector.erase(prevMassBinVector.begin());
@@ -1171,6 +1171,7 @@ namespace OpenMS
       prevMassBinVector.shrink_to_fit();
       prevMinBinLogMassVector.shrink_to_fit();
     }
+
     for (int i = 0; i < 3; i++)
     {
       delete[] perMassChargeRanges[i]; // delete array within matrix

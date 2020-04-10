@@ -538,7 +538,11 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
       //delete[] pg.perChargeSNR;
-      if(pg.maxSNR>0)
+      // if ( pg.maxSNR < .1){
+      //      return; //
+      //    }
+
+      if(pg.maxSNR>0.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }

@@ -345,7 +345,7 @@ protected:
         OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << rw
                         << " sec)" << endl;
 
-
+        param.numOverlappedScans.push_back(count);
       }
       for (int j = 2; j <= param.maxMSLevel; j++)
       {
@@ -881,9 +881,6 @@ protected:
     if (pg.spec->getMSLevel() == 1)
     {
       return;
-    }
-    if ( pg.maxSNR < .1){
-      return; // TODO
     }
 
     //<< std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
