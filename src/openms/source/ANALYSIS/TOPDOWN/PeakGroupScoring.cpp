@@ -450,7 +450,7 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty()|| pg.chargeCosineScore < 0.1)//
+        if (pg.peaks.empty())//|| pg.chargeCosineScore < 0.1
         {
          // delete[] pg.perChargeSNR;
           continue;

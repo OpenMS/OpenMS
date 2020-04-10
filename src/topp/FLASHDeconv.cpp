@@ -99,7 +99,7 @@ protected:
 
     registerDoubleList_("minIC",
                         "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
-                        {.75, .75},
+                        {.75, .8},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...",
                         false,
                         true);

@@ -236,11 +236,14 @@ namespace OpenMS
       noise[k] = new float[massBins.size()];
       std::fill_n(noise[k], massBins.size(), 0);
     }
+    auto binWidth = param.binWidth[msLevel - 1];
 
     float factor = 4.0;
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
+      double mz=-1.0, logMz = 0;
+
       for (Byte j = 0; j < chargeRange; j++)
       {
         long massBinIndex = mzBinIndex + binOffsets[j];
@@ -272,16 +275,30 @@ namespace OpenMS
         //   candidateMassBinsForThisSpectrum[massBinIndex] = true;
         // }
         auto charge = j + param.minCharge;
-        if (msLevel > 1)// && &&charge <= 10
+        //if (msLevel > 1)// &&
         {
-          auto binWidth = param.binWidth[msLevel - 1];
-          auto mz = exp(getBinValue(mzBinIndex, mzMinValue, binWidth));
+          if(mz<=0){
+            logMz = getBinValue(mzBinIndex, mzMinValue, binWidth);
+            mz = exp(logMz);
+          }
+          double diff = Constants::ISOTOPE_MASSDIFF_55K_U / charge/ mz;
 
-          auto nextIsoMz = log(mz + Constants::C13C12_MASSDIFF_U / charge);
+          //  double logM = getBinValue(massBinIndex, massBinMinValue, binWidth);
+          //      double mass = exp(logM);
+          //      if (msLevel == 1)
+          //      {
+          //
+          //        double isoLogM1 = logM - diff;
+          //        double isoLogM2 = logM + diff;
+          //
+          //        auto b1 = getBinNumber(isoLogM1, massBinMinValue, binWidth);
+
+
+          auto nextIsoMz = logMz + diff;//log(mz + Constants::C13C12_MASSDIFF_U / charge);
 
           auto nextIsoBin = getBinNumber(nextIsoMz, mzMinValue, binWidth);
 
-          if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && (intensity > mzIntensities[nextIsoBin]))
+          if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && intensity > mzIntensities[nextIsoBin] )
           {
             //continuousChargePeakPairCount[massBinIndex]++; //
             candidateMassBinsForThisSpectrum[massBinIndex] =
@@ -302,7 +319,7 @@ namespace OpenMS
           noise[hChargeSize][massBinIndex] += minInt;
         }
 
-        if (msLevel == 1 && (out || id > factor)) // TODO + per peak charge ?
+        if (out || id > factor) // TODO + per peak charge ?
         {
           //if (msLevel == 1){
           continuousChargePeakPairCount[massBinIndex] = 0;
@@ -1153,7 +1170,6 @@ namespace OpenMS
         prevMassBinVector.erase(prevMassBinVector.begin());
         prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());
       }
-
 
       std::vector<Size> mb;
       mb.reserve(peakGroups.size());
