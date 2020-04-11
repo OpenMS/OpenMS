@@ -65,36 +65,36 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
-START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
-{
-  MRMFeatureFilter mrmff;
-  // tests
-  TEST_EQUAL(mrmff.checkRange(2.0, 1.0, 2.0), true);
-  TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
-  TEST_EQUAL(mrmff.checkRange(0, 1, 2), false);
-  TEST_EQUAL(mrmff.checkRange(3, 1, 2), false);
-}
-END_SECTION
-
-START_SECTION(template <typename T> void updateRange(T const& value, T & value_l, T & value_u))
-{
-  MRMFeatureFilter mrmff;
-  double value_l = 0;
-  double value_u = 12;
-  // tests
-  mrmff.updateRange(6.0, value_l, value_u);
-  TEST_EQUAL(value_l, 0);
-  TEST_EQUAL(value_u, 12);
-  mrmff.updateRange(13.0, value_l, value_u);
-  TEST_EQUAL(value_l, 0);
-  TEST_EQUAL(value_u, 13);
-  mrmff.updateRange(-1.0, value_l, value_u);
-  TEST_EQUAL(value_l, -1);
-  TEST_EQUAL(value_u, 13);
-}
-END_SECTION
+//START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
+//{
+//  MRMFeatureFilter mrmff;
+//  // tests
+//  TEST_EQUAL(mrmff.checkRange(2.0, 1.0, 2.0), true);
+//  TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
+//  TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
+//  TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
+//  TEST_EQUAL(mrmff.checkRange(0, 1, 2), false);
+//  TEST_EQUAL(mrmff.checkRange(3, 1, 2), false);
+//}
+//END_SECTION
+//
+//START_SECTION(template <typename T> void updateRange(T const& value, T & value_l, T & value_u))
+//{
+//  MRMFeatureFilter mrmff;
+//  double value_l = 0;
+//  double value_u = 12;
+//  // tests
+//  mrmff.updateRange(6.0, value_l, value_u);
+//  TEST_EQUAL(value_l, 0);
+//  TEST_EQUAL(value_u, 12);
+//  mrmff.updateRange(13.0, value_l, value_u);
+//  TEST_EQUAL(value_l, 0);
+//  TEST_EQUAL(value_u, 13);
+//  mrmff.updateRange(-1.0, value_l, value_u);
+//  TEST_EQUAL(value_l, -1);
+//  TEST_EQUAL(value_u, 13);
+//}
+//END_SECTION
 
 START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
 {
@@ -995,6 +995,14 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
 END_SECTION
 
 START_SECTION(void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions))
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC & filter_template))
 {
   MRMFeatureFilter mrmff;
   //TODO

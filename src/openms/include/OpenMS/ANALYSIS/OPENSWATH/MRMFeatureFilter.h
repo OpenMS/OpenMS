@@ -127,8 +127,9 @@ public:
       @param[in, out] perc_rsd A consensus FeatureMap of %RSD values.
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
         to estimate the %RSD for
+      @param transitions transitions from a TargetedExperiment
     */
-    void EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap& perc_rsd, MRMFeatureQC& filter_template);
+    void EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap& perc_rsd, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
     /**
       @brief Estimate the background interference level from Blank samples.
@@ -140,8 +141,9 @@ public:
       @param[in, out] background A consensus feature map of background intensity values.
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
         to estimate the %RSD for
+      @param transitions transitions from a TargetedExperiment
     */
-    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& blanks, FeatureMap& background, MRMFeatureQC& filter_template);
+    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& blanks, FeatureMap& background, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
     /**
       @brief Calculates the ion ratio between two transitions

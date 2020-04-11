@@ -453,18 +453,22 @@ namespace OpenMS
   {
     // Iterate through the quantitation method and update the MetaValue for `calculated_concentration` in the filter_template
     for (const AbsoluteQuantitationMethod& quant_method : quantitation_method) {
-      if (quant_method.getLLOQ == 0 && quant_method.getULOQ == 0) continue;
+      if (quant_method.getLLOQ() == 0 && quant_method.getULOQ() == 0) continue;
 
       // iterate through feature/sub-feature QCs/filters
       for (size_t c_qc_it = 0; c_qc_it < filter_template.component_qcs.size(); ++c_qc_it) {
         if (filter_template.component_qcs.at(c_qc_it).component_name == quant_method.getComponentName()) {
 
           // update the lower/upper bound for the `calculated_concentration` metaValue
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first == quant_method.getLLOQ;
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second == quant_method.getULOQ;
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first == quant_method.getLLOQ();
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second == quant_method.getULOQ();
         }
       }
     }
+  }
+
+  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap & perc_rsd, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
+  {
   }
 
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
@@ -600,6 +604,7 @@ namespace OpenMS
     }
     else
     {
+      key_exists = false;
       OPENMS_LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
     }
   }
