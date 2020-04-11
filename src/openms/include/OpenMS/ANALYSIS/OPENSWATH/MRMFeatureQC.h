@@ -64,10 +64,10 @@ public:
 
     //@{
     /// Constructor
-    MRMFeatureQC();
+    MRMFeatureQC() = default;
 
     /// Destructor
-    ~MRMFeatureQC();
+    ~MRMFeatureQC() = default;
     //@}
 
     // Members
