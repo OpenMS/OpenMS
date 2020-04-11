@@ -231,14 +231,13 @@ public:
     */
     StringList getUniqueSorted(const StringList& messages) const;
 
-private:
     template <typename T>
     bool checkRange(const T& value, const T& value_l, const T& value_u) const;
     template <typename T>
     void updateRange(const T& value, T& value_l, T& value_u) const;
 
+private:
     // Members
-
     /// flag or filter (i.e., remove) features that do not pass the QC
     String flag_or_filter_;
     /// whether to use intensity or calculated concentration for background interference estimation and filtering
