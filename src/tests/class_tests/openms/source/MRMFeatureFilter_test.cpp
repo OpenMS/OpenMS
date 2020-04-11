@@ -994,7 +994,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
 }
 END_SECTION
 
-START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
+START_SECTION(void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions))
 {
   MRMFeatureFilter mrmff;
   //TODO

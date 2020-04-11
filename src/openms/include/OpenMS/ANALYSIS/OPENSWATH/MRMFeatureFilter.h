@@ -109,11 +109,11 @@ public:
       @brief Transfer the lower and upper bound values for the calculated concentrations
         based off of the AbsoluteQuantitationMethod
 
-      @param[in] quantitation_method The absolute quantitation method that has been determined for each component
+      @param[in] quantitation_methods The absolute quantitation methods that has been determined for each component
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
         MRMFeatureQC::ComponentQCs.calculated_concetration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
     */
-    void TransferLLOQAndULOQToCalculatedConcentrationBounds(const AbsoluteQuantitationMethod& quantitation_method, MRMFeatureQC& filter_template);
+    void TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC& filter_template);
 
     /**
       @brief Estimate the feature variability from multiple pooled QC samples

@@ -449,6 +449,24 @@ namespace OpenMS
     }
   }
 
+  void MRMFeatureFilter::TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC & filter_template)
+  {
+    // Iterate through the quantitation method and update the MetaValue for `calculated_concentration` in the filter_template
+    for (const AbsoluteQuantitationMethod& quant_method : quantitation_method) {
+      if (quant_method.getLLOQ == 0 && quant_method.getULOQ == 0) continue;
+
+      // iterate through feature/sub-feature QCs/filters
+      for (size_t c_qc_it = 0; c_qc_it < filter_template.component_qcs.size(); ++c_qc_it) {
+        if (filter_template.component_qcs.at(c_qc_it).component_name == quant_method.getComponentName()) {
+
+          // update the lower/upper bound for the `calculated_concentration` metaValue
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first == quant_method.getLLOQ;
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second == quant_method.getULOQ;
+        }
+      }
+    }
+  }
+
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
     const TargetedExperiment & transitions)
