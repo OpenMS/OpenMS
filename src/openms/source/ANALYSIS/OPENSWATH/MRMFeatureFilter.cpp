@@ -467,8 +467,295 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap & perc_rsd, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
+  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
   {
+    std::vector<MRMFeatureQC> filter_values;
+    // iterature through each sample and accumulate the values in the samples in the filter_values
+    for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
+      MRMFeatureQC filter_value = filter_template;
+
+      // iterate through each component_group/feature
+      for (size_t feature_it = 0; feature_it < samples.at(sample_it).size(); ++feature_it)
+      {
+        String component_group_name = (String)samples.at(sample_it).at(feature_it).getMetaValue("PeptideRef");
+        std::map<String, int> labels_and_transition_types = countLabelsAndTransitionTypes(samples.at(sample_it).at(feature_it), transitions);
+
+        // iterate through each component/sub-feature
+        for (size_t sub_it = 0; sub_it < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it)
+        {
+          String component_name = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+
+          // iterate through multi-feature/multi-sub-feature QCs/filters
+          // iterate through component_groups
+          for (size_t cg_qc_it = 0; cg_qc_it < filter_value.component_group_qcs.size(); ++cg_qc_it)
+          {
+            if (filter_value.component_group_qcs.at(cg_qc_it).component_group_name == component_group_name)
+            {
+              const double rt = samples.at(sample_it).at(feature_it).getRT();
+              setRange(rt,
+                filter_value.component_group_qcs.at(cg_qc_it).retention_time_l,
+                filter_value.component_group_qcs.at(cg_qc_it).retention_time_u);
+
+              const double intensity = samples.at(sample_it).at(feature_it).getIntensity();
+              setRange(intensity,
+                filter_value.component_group_qcs.at(cg_qc_it).intensity_l,
+                filter_value.component_group_qcs.at(cg_qc_it).intensity_u);
+
+              const double quality = samples.at(sample_it).at(feature_it).getOverallQuality();
+              setRange(quality,
+                filter_value.component_group_qcs.at(cg_qc_it).overall_quality_l,
+                filter_value.component_group_qcs.at(cg_qc_it).overall_quality_u);
+
+              // labels and transition counts QC
+              setRange(labels_and_transition_types["n_heavy"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_heavy_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_heavy_u);
+              setRange(labels_and_transition_types["n_light"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_light_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_light_u);
+              setRange(labels_and_transition_types["n_detecting"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_detecting_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_detecting_u);
+              setRange(labels_and_transition_types["n_quantifying"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_quantifying_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_quantifying_u);
+              setRange(labels_and_transition_types["n_identifying"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_identifying_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_identifying_u);
+              setRange(labels_and_transition_types["n_transitions"],
+                filter_value.component_group_qcs.at(cg_qc_it).n_transitions_l,
+                filter_value.component_group_qcs.at(cg_qc_it).n_transitions_u);
+
+              // ion ratio QC
+              for (size_t sub_it2 = 0; sub_it2 < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it2)
+              {
+                String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
+                // find the ion ratio pair
+                if (filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
+                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
+                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
+                {
+                  double ion_ratio = calculateIonRatio(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2), filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
+
+                  setRange(ion_ratio,
+                    filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_l,
+                    filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_u);
+                }
+              }
+
+              for (auto& kv : filter_value.component_group_qcs.at(cg_qc_it).meta_value_qc)
+              {
+                bool metavalue_exists{ false };
+                setMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+              }
+            }
+          }
+
+          // iterate through feature/sub-feature QCs/filters
+          for (size_t c_qc_it = 0; c_qc_it < filter_value.component_qcs.size(); ++c_qc_it)
+          {
+            if (filter_value.component_qcs.at(c_qc_it).component_name == component_name)
+            {
+              // RT check
+              const double rt = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getRT();
+              setRange(rt,
+                filter_value.component_qcs.at(c_qc_it).retention_time_l,
+                filter_value.component_qcs.at(c_qc_it).retention_time_u);
+
+              // intensity check
+              double intensity = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getIntensity();
+              setRange(intensity,
+                filter_value.component_qcs.at(c_qc_it).intensity_l,
+                filter_value.component_qcs.at(c_qc_it).intensity_u);
+
+              // overall quality check getQuality
+              double quality = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getOverallQuality();
+              setRange(quality,
+                filter_value.component_qcs.at(c_qc_it).overall_quality_l,
+                filter_value.component_qcs.at(c_qc_it).overall_quality_u);
+
+              // metaValue checks
+              for (auto& kv : filter_value.component_qcs.at(c_qc_it).meta_value_qc)
+              {
+                bool metavalue_exists{ false };
+                setMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+              }
+            }
+          }
+        }
+      }
+      filter_values.push_back(filter_value);
+    }
+
+    // Create a zero filter template for subsequent AVE and STD calculations
+    MRMFeatureQC filter_zeros = filter_template;
+    for (size_t cg_qc_it = 0; cg_qc_it < filter_zeros.component_group_qcs.size(); ++cg_qc_it) {
+      filter_zeros.component_group_qcs.at(cg_qc_it).retention_time_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).retention_time_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).intensity_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).intensity_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).overall_quality_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).overall_quality_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_heavy_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_heavy_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_light_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_light_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_detecting_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_detecting_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_quantifying_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_quantifying_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_identifying_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_identifying_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_transitions_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).n_transitions_u = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).ion_ratio_l = 0;
+      filter_zeros.component_group_qcs.at(cg_qc_it).ion_ratio_u = 0;
+      for (auto& kv : filter_zeros.component_group_qcs.at(cg_qc_it).meta_value_qc) {
+        kv.second.first = 0;
+        kv.second.second = 0;
+      }
+    }
+    for (size_t c_qc_it = 0; c_qc_it < filter_zeros.component_qcs.size(); ++c_qc_it) {
+      filter_zeros.component_qcs.at(c_qc_it).retention_time_l = 0;
+      filter_zeros.component_qcs.at(c_qc_it).retention_time_u = 0;
+      filter_zeros.component_qcs.at(c_qc_it).intensity_l = 0;
+      filter_zeros.component_qcs.at(c_qc_it).intensity_u = 0;
+      filter_zeros.component_qcs.at(c_qc_it).overall_quality_l = 0;
+      filter_zeros.component_qcs.at(c_qc_it).overall_quality_u = 0;
+      for (auto& kv : filter_zeros.component_qcs.at(c_qc_it).meta_value_qc) {
+        kv.second.first = 0;
+        kv.second.second = 0;
+      }
+    }
+
+    // Determine the AVE for each filter_template value
+    MRMFeatureQC filter_ave = filter_zeros;
+    for (const MRMFeatureQC& filter : filter_values) { // Accumulate the sum and divide by the size
+      for (size_t cg_qc_it = 0; cg_qc_it < filter_ave.component_group_qcs.size(); ++cg_qc_it) {
+        filter_ave.component_group_qcs.at(cg_qc_it).retention_time_l += filter.component_group_qcs.at(cg_qc_it).retention_time_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).retention_time_u += filter.component_group_qcs.at(cg_qc_it).retention_time_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).intensity_l += filter.component_group_qcs.at(cg_qc_it).intensity_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).intensity_u += filter.component_group_qcs.at(cg_qc_it).intensity_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_l += filter.component_group_qcs.at(cg_qc_it).overall_quality_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_u += filter.component_group_qcs.at(cg_qc_it).overall_quality_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_l += filter.component_group_qcs.at(cg_qc_it).n_heavy_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_u += filter.component_group_qcs.at(cg_qc_it).n_heavy_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_light_l += filter.component_group_qcs.at(cg_qc_it).n_light_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_light_u += filter.component_group_qcs.at(cg_qc_it).n_light_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_l += filter.component_group_qcs.at(cg_qc_it).n_detecting_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_u += filter.component_group_qcs.at(cg_qc_it).n_detecting_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_l += filter.component_group_qcs.at(cg_qc_it).n_quantifying_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_u += filter.component_group_qcs.at(cg_qc_it).n_quantifying_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_l += filter.component_group_qcs.at(cg_qc_it).n_identifying_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_u += filter.component_group_qcs.at(cg_qc_it).n_identifying_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_l += filter.component_group_qcs.at(cg_qc_it).n_transitions_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_u += filter.component_group_qcs.at(cg_qc_it).n_transitions_u / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_l += filter.component_group_qcs.at(cg_qc_it).ion_ratio_l / filter_values.size();
+        filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_u += filter.component_group_qcs.at(cg_qc_it).ion_ratio_u / filter_values.size();
+        for (auto& kv : filter_ave.component_group_qcs.at(cg_qc_it).meta_value_qc) {
+          kv.second.first += filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first / filter_values.size();
+          kv.second.second += filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second / filter_values.size();
+        }
+      }
+      for (size_t c_qc_it = 0; c_qc_it < filter_ave.component_qcs.size(); ++c_qc_it) {
+        filter_ave.component_qcs.at(c_qc_it).retention_time_l += filter.component_qcs.at(c_qc_it).retention_time_l / filter_values.size();
+        filter_ave.component_qcs.at(c_qc_it).retention_time_u += filter.component_qcs.at(c_qc_it).retention_time_u / filter_values.size();
+        filter_ave.component_qcs.at(c_qc_it).intensity_l += filter.component_qcs.at(c_qc_it).intensity_l / filter_values.size();
+        filter_ave.component_qcs.at(c_qc_it).intensity_u += filter.component_qcs.at(c_qc_it).intensity_u / filter_values.size();
+        filter_ave.component_qcs.at(c_qc_it).overall_quality_l += filter.component_qcs.at(c_qc_it).overall_quality_l / filter_values.size();
+        filter_ave.component_qcs.at(c_qc_it).overall_quality_u += filter.component_qcs.at(c_qc_it).overall_quality_u / filter_values.size();
+        for (auto& kv : filter_ave.component_qcs.at(c_qc_it).meta_value_qc) {
+          kv.second.first += filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first / filter_values.size();
+          kv.second.second += filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second / filter_values.size();
+        }
+      }
+    }
+
+    // Determine the STD for each filter_template value
+    MRMFeatureQC filter_std = filter_zeros;
+    for (const MRMFeatureQC& filter : filter_values) { // Accumulate the squared sum of the difference from the mean divided by the size
+      for (size_t cg_qc_it = 0; cg_qc_it < filter_std.component_group_qcs.size(); ++cg_qc_it) {
+        filter_std.component_group_qcs.at(cg_qc_it).retention_time_l += std::pow(filter.component_group_qcs.at(cg_qc_it).retention_time_l - filter_ave.component_group_qcs.at(cg_qc_it).retention_time_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).retention_time_u += std::pow(filter.component_group_qcs.at(cg_qc_it).retention_time_u - filter_ave.component_group_qcs.at(cg_qc_it).retention_time_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).intensity_l += std::pow(filter.component_group_qcs.at(cg_qc_it).intensity_l - filter_ave.component_group_qcs.at(cg_qc_it).intensity_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).intensity_u += std::pow(filter.component_group_qcs.at(cg_qc_it).intensity_u - filter_ave.component_group_qcs.at(cg_qc_it).intensity_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).overall_quality_l += std::pow(filter.component_group_qcs.at(cg_qc_it).overall_quality_l - filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).overall_quality_u += std::pow(filter.component_group_qcs.at(cg_qc_it).overall_quality_u - filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_heavy_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_heavy_l - filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_heavy_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_heavy_u - filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_light_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_light_l - filter_ave.component_group_qcs.at(cg_qc_it).n_light_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_light_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_light_u - filter_ave.component_group_qcs.at(cg_qc_it).n_light_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_detecting_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_detecting_l - filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_detecting_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_detecting_u - filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_quantifying_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_quantifying_l - filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_quantifying_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_quantifying_u - filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_identifying_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_identifying_l - filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_identifying_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_identifying_u - filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_transitions_l += std::pow(filter.component_group_qcs.at(cg_qc_it).n_transitions_l - filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).n_transitions_u += std::pow(filter.component_group_qcs.at(cg_qc_it).n_transitions_u - filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_u, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).ion_ratio_l += std::pow(filter.component_group_qcs.at(cg_qc_it).ion_ratio_l - filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_l, 2) / filter_values.size();
+        filter_std.component_group_qcs.at(cg_qc_it).ion_ratio_u += std::pow(filter.component_group_qcs.at(cg_qc_it).ion_ratio_u - filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_u, 2) / filter_values.size();
+        for (auto& kv : filter_std.component_group_qcs.at(cg_qc_it).meta_value_qc) {
+          kv.second.first += std::pow(filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first - filter_ave.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first, 2) / filter_values.size();
+          kv.second.second += std::pow(filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second - filter_ave.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second, 2) / filter_values.size();
+        }
+      }
+      for (size_t c_qc_it = 0; c_qc_it < filter_std.component_qcs.size(); ++c_qc_it) {
+        filter_std.component_qcs.at(c_qc_it).retention_time_l += std::pow(filter.component_qcs.at(c_qc_it).retention_time_l - filter_ave.component_qcs.at(c_qc_it).retention_time_l, 2) / filter_values.size();
+        filter_std.component_qcs.at(c_qc_it).retention_time_u += std::pow(filter.component_qcs.at(c_qc_it).retention_time_u - filter_ave.component_qcs.at(c_qc_it).retention_time_u, 2) / filter_values.size();
+        filter_std.component_qcs.at(c_qc_it).intensity_l += std::pow(filter.component_qcs.at(c_qc_it).intensity_l - filter_ave.component_qcs.at(c_qc_it).intensity_l, 2) / filter_values.size();
+        filter_std.component_qcs.at(c_qc_it).intensity_u += std::pow(filter.component_qcs.at(c_qc_it).intensity_u - filter_ave.component_qcs.at(c_qc_it).intensity_u, 2) / filter_values.size();
+        filter_std.component_qcs.at(c_qc_it).overall_quality_l += std::pow(filter.component_qcs.at(c_qc_it).overall_quality_l - filter_ave.component_qcs.at(c_qc_it).overall_quality_l, 2) / filter_values.size();
+        filter_std.component_qcs.at(c_qc_it).overall_quality_u += std::pow(filter.component_qcs.at(c_qc_it).overall_quality_u - filter_ave.component_qcs.at(c_qc_it).overall_quality_u, 2) / filter_values.size();
+        for (auto& kv : filter_std.component_qcs.at(c_qc_it).meta_value_qc) {
+          kv.second.first += std::pow(filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first - filter_ave.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first, 2) / filter_values.size();
+          kv.second.second += std::pow(filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second - filter_ave.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second, 2) / filter_values.size();
+        }
+      }
+    }
+
+    // Determine the %RSD for each filter_template value
+    for (const MRMFeatureQC& filter : filter_values) {
+      for (size_t cg_qc_it = 0; cg_qc_it < filter_template.component_group_qcs.size(); ++cg_qc_it) {
+        filter_template.component_group_qcs.at(cg_qc_it).retention_time_l = (filter_ave.component_group_qcs.at(cg_qc_it).retention_time_l != 0)? std::sqrt(filter_std.component_group_qcs.at(cg_qc_it).retention_time_l)/ filter_ave.component_group_qcs.at(cg_qc_it).retention_time_l*100: 0;
+        filter_template.component_group_qcs.at(cg_qc_it).retention_time_u = std::pow(filter.component_group_qcs.at(cg_qc_it).retention_time_u - filter_ave.component_group_qcs.at(cg_qc_it).retention_time_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).intensity_l = std::pow(filter.component_group_qcs.at(cg_qc_it).intensity_l - filter_ave.component_group_qcs.at(cg_qc_it).intensity_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).intensity_u = std::pow(filter.component_group_qcs.at(cg_qc_it).intensity_u - filter_ave.component_group_qcs.at(cg_qc_it).intensity_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l = std::pow(filter.component_group_qcs.at(cg_qc_it).overall_quality_l - filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u = std::pow(filter.component_group_qcs.at(cg_qc_it).overall_quality_u - filter_ave.component_group_qcs.at(cg_qc_it).overall_quality_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_heavy_l - filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_heavy_u - filter_ave.component_group_qcs.at(cg_qc_it).n_heavy_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_light_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_light_l - filter_ave.component_group_qcs.at(cg_qc_it).n_light_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_light_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_light_u - filter_ave.component_group_qcs.at(cg_qc_it).n_light_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_detecting_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_detecting_l - filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_detecting_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_detecting_u - filter_ave.component_group_qcs.at(cg_qc_it).n_detecting_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_quantifying_l - filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_quantifying_u - filter_ave.component_group_qcs.at(cg_qc_it).n_quantifying_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_identifying_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_identifying_l - filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_identifying_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_identifying_u - filter_ave.component_group_qcs.at(cg_qc_it).n_identifying_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_transitions_l = std::pow(filter.component_group_qcs.at(cg_qc_it).n_transitions_l - filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).n_transitions_u = std::pow(filter.component_group_qcs.at(cg_qc_it).n_transitions_u - filter_ave.component_group_qcs.at(cg_qc_it).n_transitions_u, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l = std::pow(filter.component_group_qcs.at(cg_qc_it).ion_ratio_l - filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_l, 2) / filter_values.size();
+        filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u = std::pow(filter.component_group_qcs.at(cg_qc_it).ion_ratio_u - filter_ave.component_group_qcs.at(cg_qc_it).ion_ratio_u, 2) / filter_values.size();
+        for (auto& kv : filter_template.component_group_qcs.at(cg_qc_it).meta_value_qc) {
+          kv.second.first = std::pow(filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first - filter_ave.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first, 2) / filter_values.size();
+          kv.second.second = std::pow(filter.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second - filter_ave.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second, 2) / filter_values.size();
+        }
+      }
+      for (size_t c_qc_it = 0; c_qc_it < filter_template.component_qcs.size(); ++c_qc_it) {
+        filter_template.component_qcs.at(c_qc_it).retention_time_l = std::pow(filter.component_qcs.at(c_qc_it).retention_time_l - filter_ave.component_qcs.at(c_qc_it).retention_time_l, 2) / filter_values.size();
+        filter_template.component_qcs.at(c_qc_it).retention_time_u = std::pow(filter.component_qcs.at(c_qc_it).retention_time_u - filter_ave.component_qcs.at(c_qc_it).retention_time_u, 2) / filter_values.size();
+        filter_template.component_qcs.at(c_qc_it).intensity_l = std::pow(filter.component_qcs.at(c_qc_it).intensity_l - filter_ave.component_qcs.at(c_qc_it).intensity_l, 2) / filter_values.size();
+        filter_template.component_qcs.at(c_qc_it).intensity_u = std::pow(filter.component_qcs.at(c_qc_it).intensity_u - filter_ave.component_qcs.at(c_qc_it).intensity_u, 2) / filter_values.size();
+        filter_template.component_qcs.at(c_qc_it).overall_quality_l = std::pow(filter.component_qcs.at(c_qc_it).overall_quality_l - filter_ave.component_qcs.at(c_qc_it).overall_quality_l, 2) / filter_values.size();
+        filter_template.component_qcs.at(c_qc_it).overall_quality_u = std::pow(filter.component_qcs.at(c_qc_it).overall_quality_u - filter_ave.component_qcs.at(c_qc_it).overall_quality_u, 2) / filter_values.size();
+        for (auto& kv : filter_template.component_qcs.at(c_qc_it).meta_value_qc) {
+          kv.second.first = std::pow(filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first - filter_ave.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first, 2) / filter_values.size();
+          kv.second.second = std::pow(filter.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second - filter_ave.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second, 2) / filter_values.size();
+        }
+      }
+    }
   }
 
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
@@ -609,6 +896,21 @@ namespace OpenMS
     }
   }
 
+  void MRMFeatureFilter::setMetaValue(const Feature & component, const String & meta_value_key, double & meta_value_l, double & meta_value_u, bool & key_exists) const
+  {
+    if (component.metaValueExists(meta_value_key))
+    {
+      key_exists = true;
+      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      setRange(meta_value, meta_value_l, meta_value_u);
+    }
+    else
+    {
+      key_exists = false;
+      OPENMS_LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+    }
+  }
+
   StringList MRMFeatureFilter::getUniqueSorted(const StringList& messages) const
   {
     StringList unique {messages};
@@ -627,6 +929,18 @@ namespace OpenMS
   {
     if (value < value_l) value_l = value;
     if (value > value_u) value_u = value;
+  }
+  template<typename T>
+  void MRMFeatureFilter::setRange(const T & value, T & value_l, T & value_u) const
+  {
+    if (value >= T(0)) {
+      value_l = T(0);
+      value_u = value;
+    }
+    else {
+      value_l = value;
+      value_u = T(0);
+    }
   }
 }
 

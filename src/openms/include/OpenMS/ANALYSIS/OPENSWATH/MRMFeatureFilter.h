@@ -116,34 +116,32 @@ public:
     void TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC& filter_template);
 
     /**
-      @brief Estimate the feature variability from multiple pooled QC samples
+      @brief Estimate the feature variability as measured by %RSD from multiple pooled QC samples
         or replicate Unknown samples.  The returned map can then be used by
         `FilterFeatureMap` in order to filter on either the 
         `MRMFeatureQC::ComponentQCs.perc_rsd_qc` and `MRMFeatureQC::ComponentGroupQCs.perc_rsd_qc`
         or `MRMFeatureQC::ComponentQCs.perc_rsd_rep` members based on the
         position of the returned map in the arguments list to `FilterFeatureMap`
 
-      @param[in] qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
-      @param[in, out] perc_rsd A consensus FeatureMap of %RSD values.
+      @param[in] samples multiple pooled QC samples or replicate Unknown samples FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
-        to estimate the %RSD for
+        to estimate the %RSD for.  The %RSD values will be stored in the upper bound parameter of the filter_template
       @param transitions transitions from a TargetedExperiment
     */
-    void EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap& perc_rsd, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
+    void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
     /**
-      @brief Estimate the background interference level from Blank samples.
+      @brief Estimate the background interference level based on the average values from Blank samples.
         The returned map can then be used by `FilterFeatureMap` in order to filter on the `MRMFeatureQC::ComponentQCs.perc_background`
         or the `MRMFeatureQC::ComponentGroupQCs.perc_background` members based on the
         position of the returned map in the arguments list to `FilterFeatureMap`
 
-      @param[in] qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
-      @param[in, out] background A consensus feature map of background intensity values.
+      @param[in] samples multiple Blank samples to estimate the background intensity values FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
-        to estimate the %RSD for
+        to estimate the %interference.  The average values will be stored in the upper bound parameter of the filter_template
       @param transitions transitions from a TargetedExperiment
     */
-    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& blanks, FeatureMap& background, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
+    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
     /**
       @brief Calculates the ion ratio between two transitions
@@ -197,7 +195,7 @@ public:
     ) const;
 
     /**
-      @brief Checks if the metaValue is within the user specified range
+      @brief Updates the metaValue ranges based on the value given
 
       @param[in] component component of the numerator
       @param[in] meta_value_key Name of the metaValue
@@ -206,6 +204,23 @@ public:
       @param[out] key_exists true if the given key is found, false otherwise
     */
     void updateMetaValue(
+      const Feature & component,
+      const String & meta_value_key,
+      double & meta_value_l,
+      double & meta_value_u,
+      bool & key_exists
+    ) const;
+
+    /**
+      @brief Uses the supplied value to set the metaValue ranges
+
+      @param[in] component component of the numerator
+      @param[in] meta_value_key Name of the metaValue
+      @param[in, out] meta_value_l Lower bound (inclusive) for the metaValue range
+      @param[in, out] meta_value_u Upper bound (inclusive) for the metaValue range
+      @param[out] key_exists true if the given key is found, false otherwise
+    */
+    void setMetaValue(
       const Feature & component,
       const String & meta_value_key,
       double & meta_value_l,
@@ -237,6 +252,8 @@ public:
     bool checkRange(const T& value, const T& value_l, const T& value_u) const;
     template <typename T>
     void updateRange(const T& value, T& value_l, T& value_u) const;
+    template <typename T>
+    void setRange(const T& value, T& value_l, T& value_u) const;
 
 private:
     // Members
