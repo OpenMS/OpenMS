@@ -94,15 +94,6 @@ public:
       const TargetedExperiment & transitions);
 
     /**
-      @brief Converts a FeatureMap to a qcMLFile::Attachment
-
-      @param features FeatureMap to flag or filter
-      @param attachment qcML Attachment
-
-    */
-    void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
-
-    /**
       @brief Calculates the ion ratio between two transitions
 
       @param component_1 component of the numerator
@@ -181,20 +172,6 @@ private:
 
     /// flag or filter (i.e., remove) features that do not pass the QC
     String flag_or_filter_;
-    /// include the data points for the extracted ion chromatogram (XIC) in the attachment
-    bool report_xic_;
-    /// include the data points for the total ion chromatogram (TIC) in the attachment
-    bool report_tic_;
-    /// qcMLFile Attachment
-    QcMLFile::Attachment attachment_;
-    /// FeatureMap
-    FeatureMap features_;
-    /// component group/peptide/compound QCs
-    std::map<String,std::vector<QcMLFile::QualityParameter>> component_group_qc_report_;
-    /// component/transition QCs
-    std::map<String,std::vector<QcMLFile::QualityParameter>> component_qc_report_;
-    /// multi transition QCs
-    std::map<std::vector<String>,std::vector<QcMLFile::QualityParameter>> multi_component_group_qc_report_;
   };
 }
 
