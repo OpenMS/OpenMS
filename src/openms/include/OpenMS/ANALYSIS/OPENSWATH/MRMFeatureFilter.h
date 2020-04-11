@@ -36,6 +36,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -92,6 +93,54 @@ public:
     */
     void FilterFeatureMap(FeatureMap& features, const MRMFeatureQC& filter_criteria,
       const TargetedExperiment & transitions);
+
+    /**
+      @brief Estimate the lower and upper bound values for the MRMFeatureQC class based on a
+        user supplied template.
+
+      @param[in] samples Samples (typically Standards) from which to estimate the lower and upper bound values for the MRMFeatureQC members
+      @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to fill in the estimated lower and upper values.
+        A "template" is needed so that the MRMFeatureQC::meta_value_qc parameters that the FeatureMap::MetaValues that user would like estimated are known.
+    */
+    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template);
+
+    /**
+      @brief Transfer the lower and upper bound values for the calculated concentrations
+        based off of the AbsoluteQuantitationMethod
+
+      @param[in] quantitation_method The absolute quantitation method that has been determined for each component
+      @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to fill in the 
+        MRMFeatureQC::ComponentQCs.calculated_concetration bounds based on the LLOQ and ULOQ values given in the quantitation_method.
+    */
+    void TransferLLOQAndULOQToCalculatedConcentrationBounds(const AbsoluteQuantitationMethod& quantitation_method, MRMFeatureQC& filter_template);
+
+    /**
+      @brief Estimate the feature variability from multiple pooled QC samples
+        or replicate Unknown samples.  The returned map can then be used by
+        `FilterFeatureMap` in order to filter on either the 
+        `MRMFeatureQC::ComponentQCs.perc_rsd_qc` and `MRMFeatureQC::ComponentGroupQCs.perc_rsd_qc`
+        or `MRMFeatureQC::ComponentQCs.perc_rsd_rep` members based on the
+        position of the returned map in the arguments list to `FilterFeatureMap`
+
+      @param qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
+      @param[in, out] perc_rsd A consensus FeatureMap of %RSD values.
+      @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
+        to estimate the %RSD for
+    */
+    void EstimatePercRSD(const std::vector<FeatureMap>& qc_or_reps, FeatureMap& perc_rsd, MRMFeatureQC& filter_template);
+
+    /**
+      @brief Estimate the background interference level from Blank samples.
+        The returned map can then be used by `FilterFeatureMap` in order to filter on the `MRMFeatureQC::ComponentQCs.perc_background`
+        or the `MRMFeatureQC::ComponentGroupQCs.perc_background` members based on the
+        position of the returned map in the arguments list to `FilterFeatureMap`
+
+      @param[in] qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
+      @param[in, out] background A consensus feature map of background intensity values.
+      @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
+        to estimate the %RSD for
+    */
+    void EstimateBackgroundInterferences(const std::vector<FeatureMap>& blanks, FeatureMap& background, MRMFeatureQC& filter_template);
 
     /**
       @brief Calculates the ion ratio between two transitions
@@ -172,6 +221,10 @@ private:
 
     /// flag or filter (i.e., remove) features that do not pass the QC
     String flag_or_filter_;
+    /// whether to use intensity or calculated concentration for background interference estimation and filtering
+    bool use_calculated_concentration_background_;
+    /// whether to use intensity or calculated concentration for %RSD estimation and filtering
+    bool use_calculated_concentration_rsd_;
   };
 }
 

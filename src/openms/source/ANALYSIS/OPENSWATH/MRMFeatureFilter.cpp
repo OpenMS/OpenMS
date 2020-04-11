@@ -350,6 +350,14 @@ namespace OpenMS
     }
   }
 
+  void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC & filter_template)
+  {
+  }
+
+  void MRMFeatureFilter::TransferLLOQAndULOQToCalculatedConcentrationBounds(const AbsoluteQuantitationMethod & quantitation_method, MRMFeatureQC & filter_template)
+  {
+  }
+
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
     const TargetedExperiment & transitions)

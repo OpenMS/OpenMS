@@ -83,7 +83,7 @@ public:
       /// name of the component
       String component_name;
 
-      // Feature members (Expected to be found in the FeatureMap)
+      // Feature members
       /// retention time lower bound
       double retention_time_l { 0.0 };
       /// retention time upper bound
@@ -96,24 +96,6 @@ public:
       double overall_quality_l { 0.0 };
       /// overall quality upper bound
       double overall_quality_u { 1e12 };
-
-      // Feature members (Expected to be found in the FeatureMap MetaValues if present)
-      /// calculated concentration lower bound
-      double calculated_concentration_l{ 0.0 };
-      /// calculated concentration upper bound
-      double calculated_concentration_u{ 1e12 };
-      /// %RSD as determined by pooled QC samples lower bound
-      double perc_rsd_qc_l{ 0.0 };
-      /// %RSD as determined by pooled QC samples upper bound
-      double perc_rsd_qc_u{ 1e12 };
-      /// %RSD as determined by replicate Unknown samples lower bound
-      double perc_rsd_rep_l{ 0.0 };
-      /// %RSD as determined by replicate Unknown samples upper bound
-      double perc_rsd_rep_u{ 1e12 };
-      /// %Background Interference as determined by Blank samples lower bound
-      double perc_background_l{ 0.0 };
-      /// %Background Interference as determined by Blank samples upper bound
-      double perc_background_u{ 1e12 };
 
       /// Feature MetaValues
       std::map<String,std::pair<double,double>> meta_value_qc;
