@@ -797,6 +797,17 @@ protected:
         OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
+      
+      for (const ProteinIdentification& p : protein_ids)
+      {
+        StringList run_paths;
+        p.getPrimaryMSRunPath(run_paths);
+        if (run_paths.size() != 1)
+        {        
+            OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
+            return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+        }
+      }
 
       IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
