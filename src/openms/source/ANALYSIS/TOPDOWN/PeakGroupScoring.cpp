@@ -450,7 +450,7 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty())//|| pg.chargeCosineScore < 0.1
+        if (pg.peaks.empty()|| pg.chargeCosineScore < 0.1)//
         {
          // delete[] pg.perChargeSNR;
           continue;
@@ -553,8 +553,9 @@ namespace OpenMS
 
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
-    //filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
     removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
+
+    filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount); //
 
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
@@ -568,6 +569,7 @@ namespace OpenMS
     {
       return;
     }
+
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
     for (auto &pg : peakGroups)
