@@ -101,8 +101,9 @@ public:
       @param[in] samples Samples (typically Standards) from which to estimate the lower and upper bound values for the MRMFeatureQC members
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to fill in the estimated lower and upper values.
         A "template" is needed so that the MRMFeatureQC::meta_value_qc parameters that the FeatureMap::MetaValues that user would like estimated are known.
+      @param transitions transitions from a TargetedExperiment
     */
-    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template);
+    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
     /**
       @brief Transfer the lower and upper bound values for the calculated concentrations
@@ -122,7 +123,7 @@ public:
         or `MRMFeatureQC::ComponentQCs.perc_rsd_rep` members based on the
         position of the returned map in the arguments list to `FilterFeatureMap`
 
-      @param qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
+      @param[in] qc_or_reps multiple pooled QC samples or replicate Unknown samples FeatureMaps
       @param[in, out] perc_rsd A consensus FeatureMap of %RSD values.
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
         to estimate the %RSD for
@@ -194,6 +195,23 @@ public:
     ) const;
 
     /**
+      @brief Checks if the metaValue is within the user specified range
+
+      @param[in] component component of the numerator
+      @param[in] meta_value_key Name of the metaValue
+      @param[in, out] meta_value_l Lower bound (inclusive) for the metaValue range
+      @param[in, out] meta_value_u Upper bound (inclusive) for the metaValue range
+      @param[out] key_exists true if the given key is found, false otherwise
+    */
+    void updateMetaValue(
+      const Feature & component,
+      const String & meta_value_key,
+      double & meta_value_l,
+      double & meta_value_u,
+      bool & key_exists
+    ) const;
+
+    /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
       @param component component_group with subordinates
@@ -216,6 +234,8 @@ public:
 private:
     template <typename T>
     bool checkRange(const T& value, const T& value_l, const T& value_u) const;
+    template <typename T>
+    void updateRange(const T& value, T& value_l, T& value_u) const;
 
     // Members
 
