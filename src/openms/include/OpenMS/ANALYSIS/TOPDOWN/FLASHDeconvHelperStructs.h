@@ -154,6 +154,7 @@ namespace OpenMS
       int maxSNRcharge = 0;
       float* perChargeSNR;
       float maxSNR = 0;
+      float totalSNR = 0;
       double maxSNRmaxMz, maxSNRminMz;
 
       int precursorSpecIndex=-1, precursorScanNumber=-1, precursorCharge=-1;

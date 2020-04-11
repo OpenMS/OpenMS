@@ -868,7 +868,7 @@ protected:
       fs << "\t" << pg.chargeCosineScore;
     }
 
-    fs << "\n" << setprecision(-1);
+    fs << "\t"<< pg.totalSNR<<  "\n" << setprecision(-1);
   }
 
   static void writePeakGroupTopFD(PeakGroup &pg,
@@ -917,7 +917,7 @@ protected:
     }
     fs << fixed << setprecision(2);
     fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge
-    //<< "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR
+    << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR
     <<  "\n";
     fs << setprecision(-1);
   }
@@ -1043,7 +1043,7 @@ protected:
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
                //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
                "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\n";
+               "PeakIntensities\tIsotopeCosineScore\tChargeIntensityCosineScore\tTotalSNR\n";
       }
       else
       {
@@ -1053,7 +1053,7 @@ protected:
                "RetentionTime\tPeakCount\tMaxSNRCharge\tMaxSNR\tMaxSNRMinMz\tMaxSNRMaxMz\t"
                "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorSNR\t"
                "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
-               "PeakIntensities\tIsotopeCosineScore\n";
+               "PeakIntensities\tIsotopeCosineScore\tTotalSNR\n";
       }
 
     }
@@ -1068,7 +1068,7 @@ protected:
                //"PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
                //"PeakIntensities\t"
-               "IsotopeCosineScore\tChargeIntensityCosineScore\n";
+               "IsotopeCosineScore\tChargeIntensityCosineScore\tTotalSNR\n";
       }
       else
       {
@@ -1079,7 +1079,7 @@ protected:
                "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorSNR\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakMzErrors\t"
                //"PeakIntensities\t"
-               "IsotopeCosineScore\n";
+               "IsotopeCosineScore\tTotalSNR\n";
       }
 
     }

@@ -473,10 +473,14 @@ namespace OpenMS
 
       pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
 
+
+
+
       //// TODO test codes..
       auto iso = avg.get(pg.monoisotopicMass);
       auto isoNorm = avg.getNorm(pg.monoisotopicMass);
       int isoSize = (int) iso.size();
+      float totalNoise = .0;
 
       double maxSNR = 0;
       for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
@@ -525,6 +529,7 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
+        totalNoise += pg.perChargeSNR[j];
         pg.perChargeSNR[j] = cos2 * sp / ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
 
         if(pg.perChargeSNR[j] > maxSNR){
@@ -537,12 +542,24 @@ namespace OpenMS
 
         delete[] perIsotopeIntensities;
       }
+
+      auto tcos2 =  pg.isotopeCosineScore *  pg.isotopeCosineScore;
+      float tsp = 0;
+      for (int k = 0; k <=param.maxIsotopeCount ; ++k)
+      {
+        if(k>isoSize){
+          break;
+        }
+        tsp += perIsotopeIntensity[k] * perIsotopeIntensity[k];
+      }
+
+      pg.totalSNR =  tcos2 * tsp / ((1- tcos2) * tsp + totalNoise + 1);
       //delete[] pg.perChargeSNR;
       // if ( pg.maxSNR < .1){
       //      return; //
       //    }
 
-      if(pg.maxSNR>0.1) // TODO
+      if(pg.totalSNR>0.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }
