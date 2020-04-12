@@ -1321,7 +1321,7 @@ START_SECTION(void EstimateBackgroundInterferences(const std::vector<FeatureMap>
   subordinate.setIntensity(5000);
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType", "Light");
-  subordinate.setMetaValue("peak_apex_int", 500); //should fail
+  subordinate.setMetaValue("peak_apex_int", 500);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("PeptideRef", "component_group1");
   component_1.setSubordinates(subordinates);
@@ -1458,67 +1458,332 @@ START_SECTION(void EstimateBackgroundInterferences(const std::vector<FeatureMap>
   // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0);
-  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 1);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0);
-  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_u, 2);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_l, 0);
-  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_u, 3);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_l, 0);
-  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_u, 2);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_l, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_u, 0);
   TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_l, 0);
-  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_u, 3);
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_1, "component1.1.Light");
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_2, "component1.2.Light");
   TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_u, 10);
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_feature_name, "peak_apex_int");
   // transition 1
   TEST_STRING_EQUAL(filter_zeros.component_qcs.at(0).component_name, "component1.1.Heavy");
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_u, 2.5);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_u, 5000);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_u, 100);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 5000);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 500);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 4e6);
   // transition 2
   TEST_STRING_EQUAL(filter_zeros.component_qcs.at(1).component_name, "component1.1.Light");
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).retention_time_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).retention_time_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).retention_time_u, 2.5);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).intensity_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).intensity_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).intensity_u, 5000);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).overall_quality_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).overall_quality_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).overall_quality_u, 100);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_apex_int"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_apex_int"].second, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_area"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_area"].second, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_apex_int"].second, 5000);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_area"].first, 500);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(1).meta_value_qc["peak_area"].second, 4e6);
   // transition 3
   TEST_STRING_EQUAL(filter_zeros.component_qcs.at(2).component_name, "component1.2.Light");
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).retention_time_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).retention_time_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).retention_time_u, 2.5);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).intensity_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).intensity_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).intensity_u, 5000);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).overall_quality_l, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).overall_quality_u, 0);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).overall_quality_u, 100);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_apex_int"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_apex_int"].second, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_area"].first, 0);
-  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_area"].second, 0);
-
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_apex_int"].second, 500);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_area"].first, 500);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(2).meta_value_qc["peak_area"].second, 4e6);
 }
 END_SECTION
 
 START_SECTION(void accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const)
 {
   MRMFeatureFilter mrmff;
-  //TODO
 
+  //make the FeatureMap
+  std::vector<FeatureMap> samples;
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // sample 1
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 500);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+  samples.push_back(components);
+  components.clear();
+  // sample 2
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 500);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+  samples.push_back(components);
+  components.clear();
+  // sample 3
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 500);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+  samples.push_back(components);
+  components.clear();
+
+  // make the targeted experiment
+  TargetedExperiment transitions;
+  ReactionMonitoringTransition transition;
+  // transition group 1
+  // transition 1
+  transition.setNativeID("component1.1.Heavy");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 2
+  transition.setNativeID("component1.1.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 3
+  transition.setNativeID("component1.2.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(false);
+  transitions.addTransition(transition);
+
+  // make the expected QCs values
+  std::vector<MRMFeatureQC> filter_values;
+  MRMFeatureQC qc_criteria1, qc_criteria2, qc_criteria3;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.n_heavy_l = 0;
+  cgqcs.n_heavy_u = 1;
+  cgqcs.n_light_l = 1;
+  cgqcs.n_light_u = 2;
+  cgqcs.n_detecting_l = 2;
+  cgqcs.n_detecting_u = 3;
+  cgqcs.n_quantifying_l = 2;
+  cgqcs.n_quantifying_u = 2;
+  cgqcs.n_identifying_l = 0;
+  cgqcs.n_identifying_u = 3;
+  cgqcs.n_transitions_l = 3;
+  cgqcs.n_transitions_u = 3;
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0.5;
+  cgqcs.ion_ratio_u = 2;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1;
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 2;
+  cqcs.retention_time_u = 3;
+  cqcs.intensity_l = 500;
+  cqcs.intensity_u = 4.00E+06;
+  cqcs.overall_quality_l = 100;
+  cqcs.overall_quality_u = 500;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(500, 4e6);
+  cqcs.meta_value_qc["peak_area"] = std::make_pair(500, 4e6);
+  qc_criteria1.component_group_qcs.push_back(cgqcs);
+  qc_criteria1.component_qcs.push_back(cqcs);
+  filter_values.push_back(qc_criteria1);
+  // transition group 1;
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.n_heavy_l = 1;
+  cgqcs.n_heavy_u = 1;
+  cgqcs.n_light_l = 2;
+  cgqcs.n_light_u = 3;
+  cgqcs.n_detecting_l = 2;
+  cgqcs.n_detecting_u = 6;
+  cgqcs.n_quantifying_l = 2;
+  cgqcs.n_quantifying_u = 2;
+  cgqcs.n_identifying_l = 0;
+  cgqcs.n_identifying_u = 3;
+  cgqcs.n_transitions_l = 1;
+  cgqcs.n_transitions_u = 2;
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0.25;
+  cgqcs.ion_ratio_u = 3;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1;
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 1;
+  cqcs.retention_time_u = 2;
+  cqcs.intensity_l = 400;
+  cqcs.intensity_u = 5.00E+05;
+  cqcs.overall_quality_l = 50;
+  cqcs.overall_quality_u = 700;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(400, 5e5);
+  cqcs.meta_value_qc["peak_area"] = std::make_pair(400, 5e5);
+  qc_criteria2.component_group_qcs.push_back(cgqcs);
+  qc_criteria2.component_qcs.push_back(cqcs);
+  filter_values.push_back(qc_criteria2);
+  // transition group 1;
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.n_heavy_l = 1;
+  cgqcs.n_heavy_u = 2;
+  cgqcs.n_light_l = 1;
+  cgqcs.n_light_u = 2;
+  cgqcs.n_detecting_l = 2;
+  cgqcs.n_detecting_u = 3;
+  cgqcs.n_quantifying_l = 2;
+  cgqcs.n_quantifying_u = 4;
+  cgqcs.n_identifying_l = 1;
+  cgqcs.n_identifying_u = 3;
+  cgqcs.n_transitions_l = 0;
+  cgqcs.n_transitions_u = 4;
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0.4;
+  cgqcs.ion_ratio_u = 2;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1;
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 1;
+  cqcs.retention_time_u = 4;
+  cqcs.intensity_l = 500;
+  cqcs.intensity_u = 3.00E+06;
+  cqcs.overall_quality_l = 10;
+  cqcs.overall_quality_u = 600;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(500, 3e6);
+  cqcs.meta_value_qc["peak_area"] = std::make_pair(500, 3e6);
+  qc_criteria3.component_group_qcs.push_back(cgqcs);
+  qc_criteria3.component_qcs.push_back(cqcs);
+  filter_values.push_back(qc_criteria3);
+
+  // Test calculateFilterValuesMean
+  std::vector<MRMFeatureQC> filter_values_test;
+  mrmff.accumulateFilterValues(filter_values_test, samples, qc_criteria1, transitions);
+  for (int i = 0; i < filter_values.size(); ++i) {
+    // transition group 1
+    TEST_STRING_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).component_group_name, "component_group1");
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_heavy_l, 0.666666667);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_heavy_u, 1.333333333);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_light_l, 1.333333333);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_light_u, 2.333333333);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_detecting_l, 2);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_detecting_u, 4);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_quantifying_l, 2);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_quantifying_u, 2.666666667);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_identifying_l, 0.333333333);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_identifying_u, 3);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_transitions_l, 1.333333333);
+    TEST_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).n_transitions_u, 3);
+    TEST_STRING_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).ion_ratio_pair_name_1, "component1.1.Light");
+    TEST_STRING_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).ion_ratio_pair_name_2, "component1.2.Light");
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_group_qcs.at(0).ion_ratio_l, 0.383333333);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_group_qcs.at(0).ion_ratio_u, 2.333333333);
+    TEST_STRING_EQUAL(filter_values_test.at(i).component_group_qcs.at(0).ion_ratio_feature_name, "peak_apex_int");
+    // transition 1
+    TEST_STRING_EQUAL(filter_values_test.at(i).component_qcs.at(0).component_name, "component1.1.Heavy");
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).retention_time_l, 1.333333333);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).retention_time_u, 3);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).intensity_l, 466.6666667);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).intensity_u, 2500000);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).overall_quality_l, 53.33333333);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).overall_quality_u, 600);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).meta_value_qc["peak_apex_int"].first, 466.6666667);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 2500000);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).meta_value_qc["peak_area"].first, 466.6666667);
+    TEST_REAL_SIMILAR(filter_values_test.at(i).component_qcs.at(0).meta_value_qc["peak_area"].second, 2500000);
+  }
 }
 END_SECTION
 
