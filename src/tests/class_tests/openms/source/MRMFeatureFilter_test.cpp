@@ -1166,7 +1166,7 @@ START_SECTION(void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeature
 END_SECTION
 
 START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_template) const)
-{
+{ // Test Mean, Var, and PercRSD
   MRMFeatureFilter mrmff;
 
   //make the QCs
@@ -1272,6 +1272,7 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   qc_criteria3.component_qcs.push_back(cqcs);
   filter_values.push_back(qc_criteria3);
 
+  // Test calculateFilterValuesMean
   MRMFeatureQC filter_zeros;
   mrmff.calculateFilterValuesMean(filter_zeros, filter_values, qc_criteria1);  // transition group 1
   TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
@@ -1305,22 +1306,76 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 466.6666667);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 2500000);
 
-}
-END_SECTION
+  // Test calculateFilterValuesVar
+  MRMFeatureQC filter_means = filter_zeros;
+  mrmff.calculateFilterValuesVar(filter_zeros, filter_values, filter_means, qc_criteria1);
+  // transition group 1
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 1);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0.333333333);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_u, 0.333333333);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_u, 3);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_u, 2);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_l, 0.333333333);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_l, 2.333333333);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_u, 1);
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_1, "component1.1.Light");
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_2, "component1.2.Light");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_l, 0.015833333);
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_u, 0.333333333);
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_feature_name, "peak_apex_int");
+  // transition 1
+  TEST_STRING_EQUAL(filter_zeros.component_qcs.at(0).component_name, "component1.1.Heavy");
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_l, 0.333333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_u, 1);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_l, 3333.333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_u, 3.25e12);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_l, 2033.333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_u, 10000);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].first, 3333.333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 3.25e12);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 3333.333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 3.25e12);
 
-START_SECTION(void calculateFilterValuesVar(MRMFeatureQC& filter_var, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_template) const)
-{
-  MRMFeatureFilter mrmff;
-  //TODO
+  // Test calculateFilterValuesPercRSD
+  MRMFeatureQC filter_vars = filter_zeros;
+  mrmff.calculateFilterValuesPercRSD(filter_zeros, filter_means, filter_vars);
 
-}
-END_SECTION
-
-START_SECTION(calculateFilterValuesPercRSD(MRMFeatureQC& filter_rsd, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_var) const)
-{
-  MRMFeatureFilter mrmff;
-  //TODO
-
+  // transition group 1
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).component_group_name, "component_group1");
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_heavy_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_light_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_detecting_u, 43.30127019);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_quantifying_u, 70);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_l, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_identifying_u, 0);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_l, 141);
+  TEST_EQUAL(filter_zeros.component_group_qcs.at(0).n_transitions_u, 33.33333333);
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_1, "component1.1.Light");
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_pair_name_2, "component1.2.Light");
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_l, 32.82536711);
+  TEST_REAL_SIMILAR(filter_zeros.component_group_qcs.at(0).ion_ratio_u, 24.74358297);
+  TEST_STRING_EQUAL(filter_zeros.component_group_qcs.at(0).ion_ratio_feature_name, "peak_apex_int");
+  // transition 1
+  TEST_STRING_EQUAL(filter_zeros.component_qcs.at(0).component_name, "component1.1.Heavy");
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_l, 43.30127019);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).retention_time_u, 33.33333333);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_l, 12.37179148);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).intensity_u, 72.11102551);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_l, 84.54843287);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).overall_quality_u, 16.66666667);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].first, 12.37179148);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 72.11102551);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 12.37179148);
+  TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 72.11102551);
 }
 END_SECTION
 

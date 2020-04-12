@@ -950,41 +950,41 @@ namespace OpenMS
       }
     }
     for (size_t cg_qc_it = 0; cg_qc_it < filter_var.component_group_qcs.size(); ++cg_qc_it) {// Divide by the size (performed seperately due to int types...)
-      filter_var.component_group_qcs.at(cg_qc_it).retention_time_l = filter_var.component_group_qcs.at(cg_qc_it).retention_time_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).retention_time_u = filter_var.component_group_qcs.at(cg_qc_it).retention_time_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).intensity_l = filter_var.component_group_qcs.at(cg_qc_it).intensity_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).intensity_u = filter_var.component_group_qcs.at(cg_qc_it).intensity_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).overall_quality_l = filter_var.component_group_qcs.at(cg_qc_it).overall_quality_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).overall_quality_u = filter_var.component_group_qcs.at(cg_qc_it).overall_quality_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_heavy_l = filter_var.component_group_qcs.at(cg_qc_it).n_heavy_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_heavy_u = filter_var.component_group_qcs.at(cg_qc_it).n_heavy_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_light_l = filter_var.component_group_qcs.at(cg_qc_it).n_light_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_light_u = filter_var.component_group_qcs.at(cg_qc_it).n_light_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_detecting_l = filter_var.component_group_qcs.at(cg_qc_it).n_detecting_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_detecting_u = filter_var.component_group_qcs.at(cg_qc_it).n_detecting_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_l = filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_u = filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_identifying_l = filter_var.component_group_qcs.at(cg_qc_it).n_identifying_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_identifying_u = filter_var.component_group_qcs.at(cg_qc_it).n_identifying_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_transitions_l = filter_var.component_group_qcs.at(cg_qc_it).n_transitions_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).n_transitions_u = filter_var.component_group_qcs.at(cg_qc_it).n_transitions_u / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_l = filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_l / filter_values.size();
-      filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_u = filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_u / filter_values.size();
+      filter_var.component_group_qcs.at(cg_qc_it).retention_time_l = filter_var.component_group_qcs.at(cg_qc_it).retention_time_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).retention_time_u = filter_var.component_group_qcs.at(cg_qc_it).retention_time_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).intensity_l = filter_var.component_group_qcs.at(cg_qc_it).intensity_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).intensity_u = filter_var.component_group_qcs.at(cg_qc_it).intensity_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).overall_quality_l = filter_var.component_group_qcs.at(cg_qc_it).overall_quality_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).overall_quality_u = filter_var.component_group_qcs.at(cg_qc_it).overall_quality_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_heavy_l = filter_var.component_group_qcs.at(cg_qc_it).n_heavy_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_heavy_u = filter_var.component_group_qcs.at(cg_qc_it).n_heavy_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_light_l = filter_var.component_group_qcs.at(cg_qc_it).n_light_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_light_u = filter_var.component_group_qcs.at(cg_qc_it).n_light_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_detecting_l = filter_var.component_group_qcs.at(cg_qc_it).n_detecting_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_detecting_u = filter_var.component_group_qcs.at(cg_qc_it).n_detecting_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_l = filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_u = filter_var.component_group_qcs.at(cg_qc_it).n_quantifying_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_identifying_l = filter_var.component_group_qcs.at(cg_qc_it).n_identifying_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_identifying_u = filter_var.component_group_qcs.at(cg_qc_it).n_identifying_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_transitions_l = filter_var.component_group_qcs.at(cg_qc_it).n_transitions_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).n_transitions_u = filter_var.component_group_qcs.at(cg_qc_it).n_transitions_u / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_l = filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_l / (filter_values.size() - 1);
+      filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_u = filter_var.component_group_qcs.at(cg_qc_it).ion_ratio_u / (filter_values.size() - 1);
       for (auto& kv : filter_var.component_group_qcs.at(cg_qc_it).meta_value_qc) {
-        kv.second.first = filter_var.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first / filter_values.size();
-        kv.second.second = filter_var.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second / filter_values.size();
+        kv.second.first = filter_var.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).first / (filter_values.size() - 1);
+        kv.second.second = filter_var.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second / (filter_values.size() - 1);
       }
     }
     for (size_t c_qc_it = 0; c_qc_it < filter_var.component_qcs.size(); ++c_qc_it) {
-      filter_var.component_qcs.at(c_qc_it).retention_time_l = filter_var.component_qcs.at(c_qc_it).retention_time_l / filter_values.size();
-      filter_var.component_qcs.at(c_qc_it).retention_time_u = filter_var.component_qcs.at(c_qc_it).retention_time_u / filter_values.size();
-      filter_var.component_qcs.at(c_qc_it).intensity_l = filter_var.component_qcs.at(c_qc_it).intensity_l / filter_values.size();
-      filter_var.component_qcs.at(c_qc_it).intensity_u = filter_var.component_qcs.at(c_qc_it).intensity_u / filter_values.size();
-      filter_var.component_qcs.at(c_qc_it).overall_quality_l = filter_var.component_qcs.at(c_qc_it).overall_quality_l / filter_values.size();
-      filter_var.component_qcs.at(c_qc_it).overall_quality_u = filter_var.component_qcs.at(c_qc_it).overall_quality_u / filter_values.size();
+      filter_var.component_qcs.at(c_qc_it).retention_time_l = filter_var.component_qcs.at(c_qc_it).retention_time_l / (filter_values.size() - 1);
+      filter_var.component_qcs.at(c_qc_it).retention_time_u = filter_var.component_qcs.at(c_qc_it).retention_time_u / (filter_values.size() - 1);
+      filter_var.component_qcs.at(c_qc_it).intensity_l = filter_var.component_qcs.at(c_qc_it).intensity_l / (filter_values.size() - 1);
+      filter_var.component_qcs.at(c_qc_it).intensity_u = filter_var.component_qcs.at(c_qc_it).intensity_u / (filter_values.size() - 1);
+      filter_var.component_qcs.at(c_qc_it).overall_quality_l = filter_var.component_qcs.at(c_qc_it).overall_quality_l / (filter_values.size() - 1);
+      filter_var.component_qcs.at(c_qc_it).overall_quality_u = filter_var.component_qcs.at(c_qc_it).overall_quality_u / (filter_values.size() - 1);
       for (auto& kv : filter_var.component_qcs.at(c_qc_it).meta_value_qc) {
-        kv.second.first = filter_var.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first / filter_values.size();
-        kv.second.second = filter_var.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second / filter_values.size();
+        kv.second.first = filter_var.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).first / (filter_values.size() - 1);
+        kv.second.second = filter_var.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second / (filter_values.size() - 1);
       }
     }
   }
