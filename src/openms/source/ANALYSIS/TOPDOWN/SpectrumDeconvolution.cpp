@@ -340,6 +340,23 @@ namespace OpenMS
               }
 
               /*
+              auto waterLossMz = log(mz - 18.010565 / charge); // 17.026549
+              auto waterLossBin = getBinNumber(waterLossMz, mzMinValue, binWidth);
+
+              lossIntensity = .0;
+
+              if (waterLossBin >=0 && waterLossBin < mzBins.size() && mzBins[waterLossBin])
+              {
+                lossIntensity = mzIntensities[waterLossBin];
+              }
+
+              if (lossIntensity > 0 && lossIntensity < intensity)
+              {
+                isoIntensity += lossIntensity;
+                hcheck = true;
+              }
+
+
               auto complimentaryMz = log(param.currentMaxMass / charge - mz + 2 * Constants::PROTON_MASS_U);
               auto complimentaryBin = getBinNumber(complimentaryMz, mzMinValue, binWidth);
 

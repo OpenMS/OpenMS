@@ -612,6 +612,38 @@ namespace OpenMS
     }
   }
 
+  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
+  {
+    if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    {
+      return;
+    }
+
+    Size mc = (Size) currentMaxMassCount;
+    std::vector<double> scores;
+    for (auto &pg : peakGroups)
+    {
+      scores.push_back(pg.totalSNR);
+    }
+
+    sort(scores.begin(), scores.end());
+
+    auto threshold = scores[scores.size() - mc];
+    for (auto pg = peakGroups.begin(); pg != peakGroups.end();)
+    {
+      if (peakGroups.size() <= mc)
+      {
+        break;
+      }
+      if (pg->totalSNR < threshold)
+      {
+        pg = peakGroups.erase(pg);
+        continue;
+      }
+      ++pg;
+    }
+  }
+
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
   { // pgs are sorted
     //return;
