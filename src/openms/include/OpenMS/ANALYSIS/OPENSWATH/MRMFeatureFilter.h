@@ -153,7 +153,7 @@ public:
 
       @return The ratio.
     */
-    double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name);
+    double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) const;
 
     /**
       @brief Calculates the retention time difference between two features
@@ -163,7 +163,7 @@ public:
 
       @return The difference.
     */
-    double calculateRTDifference(Feature & component_1, Feature & component_2);
+    double calculateRTDifference(Feature & component_1, Feature & component_2) const;
 
     /**
       @brief Calculates the resolution between two features
@@ -173,7 +173,7 @@ public:
 
       @return The difference.
     */
-    double calculateResolution(Feature & component_1, Feature & component_2);
+    double calculateResolution(Feature & component_1, Feature & component_2) const;
 
     /**
       @brief Checks if the metaValue is within the user specified range
@@ -237,7 +237,7 @@ public:
       @return Map of labels/transition types and their corresponding number.
     */
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-      const TargetedExperiment & transitions);
+      const TargetedExperiment & transitions) const;
 
     /**
       @brief Sorts the messages and returns a copy without duplicates

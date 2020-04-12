@@ -497,7 +497,7 @@ namespace OpenMS
 
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
-    const TargetedExperiment & transitions)
+    const TargetedExperiment & transitions) const
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
     std::map<String,int> output;
@@ -552,7 +552,7 @@ namespace OpenMS
     return output;
   }
 
-  double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
+  double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) const
   {
     double ratio = 0.0;
     // member feature_name access

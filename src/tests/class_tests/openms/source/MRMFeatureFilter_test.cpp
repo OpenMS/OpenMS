@@ -95,8 +95,28 @@ END_SECTION
 //  TEST_EQUAL(value_u, 13);
 //}
 //END_SECTION
+//
+//START_SECTION(template <typename T> void setRange(T const& value, T & value_l, T & value_u))
+//{
+//  MRMFeatureFilter mrmff;
+//  double value_l = 2;
+//  double value_u = 12;
+//  // tests
+//  mrmff.setRange(6.0, value_l, value_u);
+//  TEST_EQUAL(value_l, 0);
+//  TEST_EQUAL(value_u, 6);
+//  value_l = 2;
+//  value_u = 12;
+//  mrmff.setRange(13.0, value_l, value_u);
+//  TEST_EQUAL(value_l, 2);
+//  TEST_EQUAL(value_u, 13);
+//  mrmff.setRange(-1.0, value_l, value_u);
+//  TEST_EQUAL(value_l, -1);
+//  TEST_EQUAL(value_u, 0);
+//}
+//END_SECTION
 
-START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
+START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) const)
 {
   MRMFeatureFilter mrmff;
   String feature_name = "peak_apex_int";
@@ -207,7 +227,48 @@ START_SECTION(void updateMetaValue(
 }
 END_SECTION
 
-START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions)))
+START_SECTION(void setMetaValue(
+  const Feature & component,
+  const String & meta_value_key,
+  double & meta_value_l,
+  double & meta_value_u,
+  bool & key_exists
+) const)
+{
+  MRMFeatureFilter mrmff;
+  bool metavalue_exists;
+
+  //make test feature
+  String feature_name = "peak_apex_int";
+  OpenMS::Feature component_1;
+  component_1.setMetaValue(feature_name, 5.0);
+  component_1.setMetaValue("native_id", "component1");
+
+  // test parameters
+  double meta_value_l(4.0), meta_value_u(6.0);
+  mrmff.setMetaValue(component_1, feature_name, meta_value_l, meta_value_u, metavalue_exists);
+  TEST_EQUAL(meta_value_l, 0);
+  TEST_EQUAL(meta_value_u, 5);
+  TEST_EQUAL(metavalue_exists, true);
+  component_1.setMetaValue(feature_name, 7.0);
+  meta_value_l = 4.0; meta_value_u = 6.0;
+  mrmff.setMetaValue(component_1, feature_name, meta_value_l, meta_value_u, metavalue_exists);
+  TEST_EQUAL(meta_value_l, 0);
+  TEST_EQUAL(meta_value_u, 7);
+  TEST_EQUAL(metavalue_exists, true);
+  component_1.setMetaValue(feature_name, -1.0);
+  mrmff.setMetaValue(component_1, feature_name, meta_value_l, meta_value_u, metavalue_exists);
+  TEST_EQUAL(meta_value_l, -1);
+  TEST_EQUAL(meta_value_u, 0);
+  TEST_EQUAL(metavalue_exists, true);
+  mrmff.setMetaValue(component_1, "peak_area", meta_value_l, meta_value_u, metavalue_exists);
+  TEST_EQUAL(meta_value_l, -1); // no change case
+  TEST_EQUAL(meta_value_u, 0); // no change case
+  TEST_EQUAL(metavalue_exists, false); // not found case
+}
+END_SECTION
+
+START_SECTION(std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions) const)
 {
   MRMFeatureFilter mrmff;
 
