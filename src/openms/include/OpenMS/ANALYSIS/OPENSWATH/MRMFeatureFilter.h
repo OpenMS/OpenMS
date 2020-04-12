@@ -126,7 +126,7 @@ public:
       @param[in] samples multiple pooled QC samples or replicate Unknown samples FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
         to estimate the %RSD for.  The %RSD values will be stored in the upper bound parameter of the filter_template
-      @param transitions transitions from a TargetedExperiment
+      @param[in] transitions transitions from a TargetedExperiment
     */
     void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
@@ -139,7 +139,7 @@ public:
       @param[in] samples multiple Blank samples to estimate the background intensity values FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
         to estimate the %interference.  The average values will be stored in the upper bound parameter of the filter_template
-      @param transitions transitions from a TargetedExperiment
+      @param[in] transitions transitions from a TargetedExperiment
     */
     void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
 
@@ -248,10 +248,61 @@ public:
     */
     StringList getUniqueSorted(const StringList& messages) const;
 
+    /**
+      @brief Accumulate feature values from a list of FeatureMaps
+
+      @param[out] filter_values A list of MRMFeatureQC objects filled with the values determined by the filter_template from the samples
+      @param[in] samples A list of feature maps
+      @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values derived from the sample feature maps
+      @param[in] transitions transitions from a TargetedExperiment
+    */
+    void accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const;
+
+    /**
+      @brief Set all members in MRMFeatureQC to zero 
+
+      @param[out] filter_zero A MRMFeatureQC object whose members have been set to 0
+      @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
+    */
+    void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const;
+
+    /**
+      @brief Calculate the mean of each MRMFeatureQC parameter from a list of MRMFeatureQC classes
+
+      @param[out] filter_mean A MRMFeatureQC object whose members will be replaced by the mean values
+      @param[in] filter_values A list of MRMFeatureQC objects
+      @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
+    */
+    void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_template) const;
+
+    /**
+      @brief Calculate the var of each MRMFeatureQC parameter from a list of MRMFeatureQC classes
+
+      @param[out] filter_var A MRMFeatureQC object whose members will be replaced by the variance of the values
+      @param[in] filter_values A list of MRMFeatureQC objects
+      @param[in] filter_mean A MRMFeatureQC object with the mean values of the filter_values
+      @param[in] filter_template A MRMFeatureQC object that will be used as a template to fill in values
+    */
+    void calculateFilterValuesVar(MRMFeatureQC& filter_var, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_template) const;
+
+    /**
+      @brief Calculate the relative standard deviation (%RSD) of each MRMFeatureQC parameter from pre-computed mean and variance values
+
+      @param[out] filter_rsd A MRMFeatureQC object whose members will be replaced by %RSD
+      @param[in] filter_var A MRMFeatureQC object with the variance
+      @param[in] filter_mean A MRMFeatureQC object with the mean
+    */
+    void calculateFilterValuesPercRSD(MRMFeatureQC& filter_rsd, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_var) const;
+
+    /// Checks that the range of value is bracketed by value_l and value_u
     template <typename T>
     bool checkRange(const T& value, const T& value_l, const T& value_u) const;
+
+    /// Updates value_l and value_u according to whether value is greater than value_u or less than value_l
     template <typename T>
     void updateRange(const T& value, T& value_l, T& value_u) const;
+
+    /// Sets value_l and value_u to bracket the range 0 to value or value to 0 depending on if value is >0
     template <typename T>
     void setRange(const T& value, T& value_l, T& value_u) const;
 
@@ -259,10 +310,6 @@ private:
     // Members
     /// flag or filter (i.e., remove) features that do not pass the QC
     String flag_or_filter_;
-    /// whether to use intensity or calculated concentration for background interference estimation and filtering
-    bool use_calculated_concentration_background_;
-    /// whether to use intensity or calculated concentration for %RSD estimation and filtering
-    bool use_calculated_concentration_rsd_;
   };
 }
 
