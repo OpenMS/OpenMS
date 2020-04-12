@@ -485,6 +485,16 @@ namespace OpenMS
     calculateFilterValuesPercRSD(filter_template, filter_mean, filter_var);
   }
 
+  void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
+  {
+    // iterature through each sample and accumulate the values in the filter_values
+    std::vector<MRMFeatureQC> filter_values;
+    accumulateFilterValues(filter_values, samples, filter_template, transitions);
+
+    // Determine the AVE for each filter_template value
+    calculateFilterValuesMean(filter_template, filter_values, filter_template);
+  }
+
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
     const TargetedExperiment & transitions)

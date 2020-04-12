@@ -1002,7 +1002,55 @@ START_SECTION(void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMa
 }
 END_SECTION
 
-START_SECTION(void TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC & filter_template))
+START_SECTION(void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions))
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions))
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const)
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const)
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_template) const)
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(void calculateFilterValuesVar(MRMFeatureQC& filter_var, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_template) const)
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(calculateFilterValuesPercRSD(MRMFeatureQC& filter_rsd, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_var) const)
 {
   MRMFeatureFilter mrmff;
   //TODO
