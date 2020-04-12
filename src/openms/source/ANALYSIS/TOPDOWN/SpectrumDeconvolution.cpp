@@ -61,11 +61,13 @@ namespace OpenMS
       {
         //auto r = ((float) rand()) / (float) RAND_MAX - .5;log(1.0 / (i + n / hc + param.minCharge));
         double factor = -1;
-        if(i+param.minCharge == 1){
+        if (i + param.minCharge == 1)
+        {
           factor = 1;
         }
 
-        harmonicFilter[k][i] = log(1.0 / (i + factor * n / hc + param.minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) // TODO
+        harmonicFilter[k][i] = log(1.0 / (i + factor * n / hc + param
+            .minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) // TODO
         //std::cout<<i<<" " << log(1.0 / (i + factor * n / hc + param.minCharge)) << std::endl;
       }
     }
@@ -150,7 +152,6 @@ namespace OpenMS
           mzBinIntensities[bi - 1] += p.intensity;
         }
       }
-
 
 
     }
@@ -248,7 +249,7 @@ namespace OpenMS
     while (mzBinIndex != mzBins.npos)
     {
       auto &intensity = mzIntensities[mzBinIndex];
-      double mz=-1.0, logMz = 0;
+      double mz = -1.0, logMz = 0;
 
       for (Byte j = 0; j < chargeRange; j++)
       {
@@ -285,7 +286,7 @@ namespace OpenMS
         if (msLevel > 1)// && //
         {
           auto charge = j + param.minCharge;
-          if (charge <=6)
+          if (charge <= 6)
           {
             if (mz <= 0)
             {
@@ -318,11 +319,44 @@ namespace OpenMS
               //  candidateMassBinsForThisSpectrum[massBinIndex] = true;//
             }
 
-            //          auto waterAddMz = log(mz + 18.010565 / charge); // 17.031
-            //          auto waterAddBin = getBinNumber(waterAddMz, mzMinValue, binWidth);
-            //          if (waterAddBin < mzBins.size() && mzBins[waterAddBin]){
-            //            continuousChargePeakPairCount[massBinIndex]++; //
-            //          }
+            if (hcheck)
+            {
+              //auto mz = exp(getBinValue(mzBinIndex, mzMinValue, binWidth));
+
+              auto waterAddMz = log(mz + 18.010565 / charge); // 17.026549
+              auto waterAddBin = getBinNumber(waterAddMz, mzMinValue, binWidth);
+
+              float lossIntensity = .0;
+
+              if (waterAddBin < mzBins.size() && mzBins[waterAddBin])
+              {
+                lossIntensity = mzIntensities[waterAddBin];
+              }
+
+              if (lossIntensity > 0 && lossIntensity < intensity)
+              {
+                isoIntensity += lossIntensity;
+                hcheck = true;
+              }
+
+              /*
+              auto complimentaryMz = log(param.currentMaxMass / charge - mz + 2 * Constants::PROTON_MASS_U);
+              auto complimentaryBin = getBinNumber(complimentaryMz, mzMinValue, binWidth);
+
+              float complimentaryIntensity = .0;
+              if (complimentaryBin < mzBins.size() && mzBins[complimentaryBin])
+              {
+                complimentaryIntensity = mzIntensities[complimentaryBin];
+              }
+
+              if (complimentaryIntensity > 0 && complimentaryIntensity < intensity)
+              {
+                isoIntensity += complimentaryIntensity;
+                hcheck = true;
+              }
+              */
+
+            }
           }
         }
 
@@ -349,7 +383,7 @@ namespace OpenMS
           //auto charge = j + param.minCharge;
           //auto currentMaxCharge = j + param.currentChargeRange;
           auto highThreshold = intensity * factor;
-          auto lowThreshold = intensity * (1-1.0/factor);// / factor;
+          auto lowThreshold = intensity * (1 - 1.0 / factor);// / factor;
           for (auto k = 0; k < hChargeSize; k++)
           {
             auto hmzBinIndex = massBinIndex - hBinOffsets[k][j];
@@ -378,7 +412,8 @@ namespace OpenMS
           }
           else
           {
-            if (continuousChargePeakPairCount[massBinIndex] == 0){
+            if (continuousChargePeakPairCount[massBinIndex] == 0)
+            {
               massIntensitites[massBinIndex] += prevIntensity;
             }
 
@@ -543,7 +578,7 @@ namespace OpenMS
           maxChargeRanges[maxIndex] = std::max(maxChargeRanges[maxIndex], charge);
           minChargeRanges[maxIndex] = std::min(minChargeRanges[maxIndex], charge);
           massBinsForThisSpectrum[maxIndex] = candidateMassBinsForThisSpectrum[maxIndex];
-          if(msLevel==1)
+          if (msLevel == 1)
           {
             mzChargeRanges[mzBinIndex] = charge;//minChargeRanges[maxIndex];//...
           }
@@ -584,7 +619,7 @@ namespace OpenMS
                                                                  mzBinMinValue,
                                                                  msLevel);
 
-   // if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
+    // if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
     {
 
       //pringMasses(candidateMassBins, massBinMinValue,  binWidth); //

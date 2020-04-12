@@ -186,7 +186,8 @@ namespace OpenMS
         }
         if(mc > 0){
           param.currentChargeRange = mc  - param.minCharge + 1; //
-          param.currentMaxMass = mm + massMargin; // isotopie margin
+
+          param.currentMaxMass = mm + avg.getAverageMassDelta(mm); // isotopie margin
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
           prevMaxMasses[msLevel-1] =  param.currentMaxMass;
