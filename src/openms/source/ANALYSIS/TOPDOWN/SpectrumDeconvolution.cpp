@@ -1107,7 +1107,6 @@ namespace OpenMS
           //double snr = sp-np;// / (np + 1);
 
         }
-        //perChargeSNR[j] = np;
       }
 
       if (!pg.peaks.empty())
@@ -1146,7 +1145,6 @@ namespace OpenMS
         }
 
         pg.massBinIndex = massBinIndex;
-        //pg.perChargeSNR = perChargeNoisePower;
         peakGroups.push_back(pg); //
       }
       massBinIndex = massBins.find_next(massBinIndex);

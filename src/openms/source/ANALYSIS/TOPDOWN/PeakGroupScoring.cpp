@@ -530,7 +530,7 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
-        if(pg.perChargeSNR.find(j) != pg.perChargeSNR.end()){
+        if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
           pg.perChargeSNR[j] = 0;
         }
         auto dno = ((1- cos2) * sp + pg.perChargeSNR[j] + 1);

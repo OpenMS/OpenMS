@@ -225,7 +225,6 @@ namespace OpenMS
         std::unordered_map<double,double>().swap(peakMassMap[msLevel]);
         std::unordered_map<double,float>().swap(peakSNRMap[msLevel]);
 
-
         for (auto &pg : peakGroups)
         {
           for (auto &p : pg.peaks)
@@ -410,4 +409,5 @@ namespace OpenMS
 
 
 }
+
 
