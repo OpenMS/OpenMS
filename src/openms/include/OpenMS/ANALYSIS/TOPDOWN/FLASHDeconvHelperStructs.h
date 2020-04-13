@@ -145,20 +145,20 @@ namespace OpenMS
       Size massBinIndex = 0;
       // double chargeDistributionScore = .0;
 
-      double isotopeCosineScore = .0;
-      double chargeCosineScore = .0;
-      double massPpmError = .0;
+      float isotopeCosineScore = .0;
+      float chargeCosineScore = .0;
 
       int massIndex, specIndex, massCntr, scanNumber;
       int maxCharge, minCharge;
       int maxSNRcharge = 0;
-      float* perChargeSNR;
+      std::unordered_map<int, float> perChargeSNR;
       float maxSNR = 0;
       float totalSNR = 0;
       double maxSNRmaxMz, maxSNRminMz;
 
       int precursorSpecIndex=-1, precursorScanNumber=-1, precursorCharge=-1;
-      double precursorMz=-1.0, precursorMonoMass=-1.0, precursorIntensity=-1.0;
+      double precursorMz=-1.0, precursorMonoMass=-1.0;
+      float precursorIntensity=-1.0;
       float precursorSNR = -1.0f;
 
       MSSpectrum *spec;

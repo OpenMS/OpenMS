@@ -557,6 +557,9 @@ protected:
       {
         for (int j = 0; j < param.maxMSLevel; j++)
         {
+          if(specCntr[j] == 0){
+            continue;
+          }
           OPENMS_LOG_INFO << "In this run, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
                           << " MS" << (j + 1) << " spectra out of "
                           << specCntr[j] << endl;
@@ -606,6 +609,9 @@ protected:
       {
         for (int j = 0; j < param.maxMSLevel; j++)
         {
+          if(specCntr[j] == 0){
+            continue;
+          }
           OPENMS_LOG_INFO << "So far, FLASHDeconv found " << massCntr[j] << " masses in " << qspecCntr[j]
                           << " MS" << (j + 1) << " spectra out of "
                           << specCntr[j] << endl;
@@ -917,7 +923,7 @@ protected:
     }
     fs << fixed << setprecision(2);
     fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge
-    << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR
+    //<< "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR
     <<  "\n";
     fs << setprecision(-1);
   }

@@ -481,10 +481,11 @@ namespace OpenMS
       auto isoNorm = avg.getNorm(pg.monoisotopicMass);
       int isoSize = (int) iso.size();
       float totalNoise = .0;
+      float totalSignal = .0;
 
       double maxSNR = 0;
       for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
-        auto j = charge - param.minCharge;
+        int j = charge - param.minCharge;
         auto perIsotopeIntensities = new double[param.maxIsotopeCount];
         std::fill_n(perIsotopeIntensities,param.maxIsotopeCount,.0);
 
@@ -529,8 +530,15 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
-        totalNoise += pg.perChargeSNR[j];
-        pg.perChargeSNR[j] = cos2 * sp / ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
+        if(pg.perChargeSNR.find(j) != pg.perChargeSNR.end()){
+          pg.perChargeSNR[j] = 0;
+        }
+        auto dno = ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
+        auto no = cos2 * sp;
+
+        pg.perChargeSNR[j] = no / dno;
+        totalNoise += dno;
+        totalSignal += no;
 
         if(pg.perChargeSNR[j] > maxSNR){
           maxSNR = pg.perChargeSNR[j];
@@ -543,17 +551,7 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
 
-      auto tcos2 =  pg.isotopeCosineScore *  pg.isotopeCosineScore;
-      float tsp = 0;
-      for (int k = 0; k <=param.maxIsotopeCount ; ++k)
-      {
-        if(k>isoSize){
-          break;
-        }
-        tsp += perIsotopeIntensity[k] * perIsotopeIntensity[k];
-      }
-
-      pg.totalSNR =  tcos2 * tsp / ((1- tcos2) * tsp + totalNoise + 1);
+      pg.totalSNR =  totalSignal / totalNoise;
       //delete[] pg.perChargeSNR;
       // if ( pg.maxSNR < .1){
       //      return; //

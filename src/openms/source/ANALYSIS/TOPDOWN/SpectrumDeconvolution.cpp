@@ -956,8 +956,8 @@ namespace OpenMS
       }
 
       PeakGroup pg;
-      pg.perChargeSNR = new float[chargeRange];
-      std::fill_n(pg.perChargeSNR, chargeRange, 0);
+      //pg.perChargeSNR = new float[chargeRange];
+      //std::fill_n(pg.perChargeSNR, chargeRange, 0);
 
       pg.reserve(chargeRange * 30);
 
@@ -965,7 +965,7 @@ namespace OpenMS
       Size leftIndex = avg.getLeftIndex(mass);
       //auto perChargeNoisePower = new float[chargeRange];
 
-      for (auto j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
+      for (int j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
         long &binOffset = binOffsets[j];
         auto bi = massBinIndex - binOffset;
@@ -1009,6 +1009,9 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz * 2; // TODO
 
+        if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
+          pg.perChargeSNR[j] = .0f;
+        }
         auto &np = pg.perChargeSNR[j];
         //np = 0;
 
