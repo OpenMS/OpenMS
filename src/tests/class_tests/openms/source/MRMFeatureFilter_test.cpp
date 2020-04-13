@@ -311,7 +311,7 @@ START_SECTION(void initMetaValue(
 }
 END_SECTION
 
-START_SECTION(std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions) const)
+START_SECTION(countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions) const)
 {
   MRMFeatureFilter mrmff;
 

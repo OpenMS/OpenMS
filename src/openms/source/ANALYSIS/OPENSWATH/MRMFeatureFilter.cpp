@@ -855,8 +855,8 @@ namespace OpenMS
         if (filter_template.component_qcs.at(c_qc_it).component_name == quant_method.getComponentName()) {
 
           // update the lower/upper bound for the `calculated_concentration` metaValue
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first == quant_method.getLLOQ();
-          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second == quant_method.getULOQ();
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").first = quant_method.getLLOQ();
+          filter_template.component_qcs.at(c_qc_it).meta_value_qc.at("calculated_concentration").second = quant_method.getULOQ();
         }
       }
     }
