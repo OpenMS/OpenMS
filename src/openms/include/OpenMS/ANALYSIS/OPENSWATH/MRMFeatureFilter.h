@@ -95,6 +95,35 @@ public:
       const TargetedExperiment & transitions);
 
     /**
+      @brief Flags or filters features and subordinates in a FeatureMap based on a user
+        defined set of filter values derived from calling `EstimatePercRSD`.  The user supplied
+        filter_criteria represents the bounds on acceptable %RSD values.
+        NOTE that flagging nor filtering will be done on the labels and transitions type counts.
+
+      @param features FeatureMap to flag or filter
+      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of the %RSD
+        where %RSD = (value std dev)/(value mean)*100%
+      @param filter_values MRMFeatureQC class filled with bounds representing the %RSD found in e.g., pooled QC samples or replicate Unknown samples
+
+    */
+    void FilterFeatureMapPercRSD(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
+
+    /**
+      @brief Flags or filters features and subordinates in a FeatureMap based on a user
+        defined set of filter values derived from calling `EstimateBackgroundInterferences`.  The user supplied
+        filter_criteria represents the bounds on acceptable %BackgroundInterference values.
+        NOTE that filtering is only done on the `Intensity` member.
+
+
+      @param features FeatureMap to flag or filter
+      @param filter_criteria MRMFeatureQC class defining QC parameters defining the acceptable limits of %BackgroundInterference
+        where %BackgroundInterference = (value Sample)/(value Blank)*100%
+      @param filter_values MRMFeatureQC class filled with bounds representing the average values found in e.g., pooled QC samples or replicate Unknown samples
+
+    */
+    void FilterFeatureMapBackgroundInterference(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values);
+
+    /**
       @brief Estimate the lower and upper bound values for the MRMFeatureQC class based on a
         user supplied template.  The template can either be initialized from the first sample 
         (meaning all initial template values are over written) or not (meaning the initial template
@@ -120,11 +149,8 @@ public:
 
     /**
       @brief Estimate the feature variability as measured by %RSD from multiple pooled QC samples
-        or replicate Unknown samples.  The returned map can then be used by
-        `FilterFeatureMap` in order to filter on either the 
-        `MRMFeatureQC::ComponentQCs.perc_rsd_qc` and `MRMFeatureQC::ComponentGroupQCs.perc_rsd_qc`
-        or `MRMFeatureQC::ComponentQCs.perc_rsd_rep` members based on the
-        position of the returned map in the arguments list to `FilterFeatureMap`
+        or replicate Unknown samples.  The returned filter_template can then be used by
+        `FilterFeatureMapPercRSD` in order to filter based on the %RSD user defined limits.
 
       @param[in] samples multiple pooled QC samples or replicate Unknown samples FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values
@@ -135,9 +161,8 @@ public:
 
     /**
       @brief Estimate the background interference level based on the average values from Blank samples.
-        The returned map can then be used by `FilterFeatureMap` in order to filter on the `MRMFeatureQC::ComponentQCs.perc_background`
-        or the `MRMFeatureQC::ComponentGroupQCs.perc_background` members based on the
-        position of the returned map in the arguments list to `FilterFeatureMap`
+        The returned filter_template can then be used by `FilterFeatureMapBackgroundInterference` 
+        in order to filter on the `Intensity` members of MRMFeatureQC::ComponentGroupQCs and MRMFeatureQC::ComponentQCs.
 
       @param[in] samples multiple Blank samples to estimate the background intensity values FeatureMaps
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to determine what FeatureMap values

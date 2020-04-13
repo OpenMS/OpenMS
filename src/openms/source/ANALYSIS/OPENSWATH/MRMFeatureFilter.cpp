@@ -330,6 +330,199 @@ namespace OpenMS
     }
   }
 
+  void MRMFeatureFilter::FilterFeatureMapPercRSD(FeatureMap & features, const MRMFeatureQC & filter_criteria, const MRMFeatureQC & filter_values)
+  {
+    // initialize QC variables
+    FeatureMap features_filtered;
+
+    // iterate through each component_group/feature
+    for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
+    {
+      String component_group_name = (String)features.at(feature_it).getMetaValue("PeptideRef");
+
+      // initialize the new feature and subordinates
+      std::vector<Feature> subordinates_filtered;
+      bool cg_qc_pass = true;
+      StringList cg_qc_fail_message_vec;
+      UInt cg_tests_count{ 0 };
+
+      // iterate through each component/sub-feature
+      for (size_t sub_it = 0; sub_it < features.at(feature_it).getSubordinates().size(); ++sub_it)
+      {
+        String component_name = (String)features.at(feature_it).getSubordinates().at(sub_it).getMetaValue("native_id");
+        bool c_qc_pass = true;
+        StringList c_qc_fail_message_vec;
+
+        // iterate through multi-feature/multi-sub-feature QCs/filters
+        // iterate through component_groups
+        for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs.size(); ++cg_qc_it)
+        {
+          if (filter_criteria.component_group_qcs.at(cg_qc_it).component_group_name == component_group_name)
+          {
+            if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).retention_time_u,
+              filter_criteria.component_group_qcs.at(cg_qc_it).retention_time_l,
+              filter_criteria.component_group_qcs.at(cg_qc_it).retention_time_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("retention_time");
+            }
+
+            if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).intensity_u,
+              filter_criteria.component_group_qcs.at(cg_qc_it).intensity_l,
+              filter_criteria.component_group_qcs.at(cg_qc_it).intensity_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("intensity");
+            }
+
+            if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).overall_quality_u,
+              filter_criteria.component_group_qcs.at(cg_qc_it).overall_quality_l,
+              filter_criteria.component_group_qcs.at(cg_qc_it).overall_quality_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("overall_quality");
+            }
+
+            cg_tests_count += 3;
+
+            // ion ratio QC
+            if (filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
+              && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != "") {
+              if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).ion_ratio_u,
+                filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_l,
+                filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_u))
+              {
+                cg_qc_pass = false;
+                cg_qc_fail_message_vec.push_back("ion_ratio_pair[" + filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 + "/" + filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 + "]");
+              }
+              ++cg_tests_count;
+            }
+
+            for (const std::pair<String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
+            {
+              if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second,
+                kv.second.first,
+                kv.second.second))
+              {
+                cg_qc_pass = false;
+                cg_qc_fail_message_vec.push_back(kv.first);
+              }
+              ++cg_tests_count;
+            }
+          }
+        }
+
+        UInt c_tests_count{ 0 };
+        // iterate through feature/sub-feature QCs/filters
+        for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs.size(); ++c_qc_it)
+        {
+          if (filter_criteria.component_qcs.at(c_qc_it).component_name == component_name)
+          {
+            // RT check
+            if (!checkRange(filter_values.component_qcs.at(c_qc_it).retention_time_u,
+              filter_criteria.component_qcs.at(c_qc_it).retention_time_l,
+              filter_criteria.component_qcs.at(c_qc_it).retention_time_u))
+            {
+              c_qc_pass = false;
+              c_qc_fail_message_vec.push_back("retention_time");
+            }
+
+            // intensity check
+            if (!checkRange(filter_values.component_qcs.at(c_qc_it).intensity_u,
+              filter_criteria.component_qcs.at(c_qc_it).intensity_l,
+              filter_criteria.component_qcs.at(c_qc_it).intensity_u))
+            {
+              c_qc_pass = false;
+              c_qc_fail_message_vec.push_back("intensity");
+            }
+
+            // overall quality check getQuality
+            if (!checkRange(filter_values.component_qcs.at(c_qc_it).overall_quality_u,
+              filter_criteria.component_qcs.at(c_qc_it).overall_quality_l,
+              filter_criteria.component_qcs.at(c_qc_it).overall_quality_u))
+            {
+              c_qc_pass = false;
+              c_qc_fail_message_vec.push_back("overall_quality");
+            }
+
+            c_tests_count += 3;
+
+            // metaValue checks
+            for (auto const& kv : filter_criteria.component_qcs.at(c_qc_it).meta_value_qc)
+            {
+              if (!checkRange(filter_values.component_qcs.at(c_qc_it).meta_value_qc.at(kv.first).second,
+                kv.second.first,
+                kv.second.second))
+              {
+                c_qc_pass = false;
+                c_qc_fail_message_vec.push_back(kv.first);
+              }
+              ++c_tests_count;
+            }
+          }
+        }
+
+        const double c_score = c_tests_count ? 1.0 - c_qc_fail_message_vec.size() / (double)c_tests_count : 1.0;
+        features.at(feature_it).getSubordinates().at(sub_it).setMetaValue("QC_transition_%RSD_score", c_score);
+
+        // Copy or Flag passing/failing subordinates
+        if (c_qc_pass && flag_or_filter_ == "filter")
+        {
+          subordinates_filtered.push_back(features.at(feature_it).getSubordinates().at(sub_it));
+        }
+        else if (c_qc_pass && flag_or_filter_ == "flag")
+        {
+          features.at(feature_it).getSubordinates().at(sub_it).setMetaValue("QC_transition_%RSD_pass", true);
+          features.at(feature_it).getSubordinates().at(sub_it).setMetaValue("QC_transition_%RSD_message", StringList());
+        }
+        else if (!c_qc_pass && flag_or_filter_ == "filter")
+        {
+          // do nothing
+        }
+        else if (!c_qc_pass && flag_or_filter_ == "flag")
+        {
+          features.at(feature_it).getSubordinates().at(sub_it).setMetaValue("QC_transition_%RSD_pass", false);
+          features.at(feature_it).getSubordinates().at(sub_it).setMetaValue("QC_transition_%RSD_message", getUniqueSorted(c_qc_fail_message_vec));
+        }
+      }
+
+      const double cg_score = cg_tests_count ? 1.0 - cg_qc_fail_message_vec.size() / (double)cg_tests_count : 1.0;
+      features.at(feature_it).setMetaValue("QC_transition_group_%RSD_score", cg_score);
+
+      // Copy or Flag passing/failing Features
+      if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      {
+        Feature feature_filtered(features.at(feature_it));
+        feature_filtered.setSubordinates(subordinates_filtered);
+        features_filtered.push_back(feature_filtered);
+      }
+      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
+      {
+        // do nothing
+      }
+      else if (cg_qc_pass && flag_or_filter_ == "flag")
+      {
+        features.at(feature_it).setMetaValue("QC_transition_group_%RSD_pass", true);
+        features.at(feature_it).setMetaValue("QC_transition_group_%RSD_message", StringList());
+      }
+      else if (!cg_qc_pass && flag_or_filter_ == "filter")
+      {
+        // do nothing
+      }
+      else if (!cg_qc_pass && flag_or_filter_ == "flag")
+      {
+        features.at(feature_it).setMetaValue("QC_transition_group_%RSD_pass", false);
+        features.at(feature_it).setMetaValue("QC_transition_group_%RSD_message", getUniqueSorted(cg_qc_fail_message_vec));
+      }
+    }
+
+    // replace with the filtered featureMap
+    if (flag_or_filter_ == "filter")
+    {
+      features = features_filtered;
+    }
+  }
+
   void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values)
   {
     // iterature through each sample and accumulate the min/max values in the samples in the filter_template

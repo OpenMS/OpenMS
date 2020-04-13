@@ -624,7 +624,6 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
 
   TEST_EQUAL(components.size(), 1);
   TEST_EQUAL(components[0].getSubordinates().size(), 2);
-
 }
 END_SECTION
 
@@ -1094,7 +1093,6 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
-
 }
 END_SECTION
 
@@ -1383,7 +1381,7 @@ START_SECTION(void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFe
   subordinate.setIntensity(5000);
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType", "Light");
-  subordinate.setMetaValue("peak_apex_int", 500); //should fail
+  subordinate.setMetaValue("peak_apex_int", 500);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("PeptideRef", "component_group1");
   component_1.setSubordinates(subordinates);
@@ -2373,6 +2371,624 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_apex_int"].second, 72.11102551);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].first, 12.37179148);
   TEST_REAL_SIMILAR(filter_zeros.component_qcs.at(0).meta_value_qc["peak_area"].second, 72.11102551);
+}
+END_SECTION
+
+
+
+START_SECTION(void FilterFeatureMapPercRSD(FeatureMap& features, MRMFeatureQC& filter_criteria, const MRMFeatureQC & filter_values))
+{
+  /** FilterFeatureMap Test 1: basic ability to flag or filter transitions or transition groups */
+
+  MRMFeatureFilter mrmff;
+
+  //make the FeatureMap
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 500); //should fail
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+  // transition group 2
+  // transition 1
+  subordinate.setMetaValue("native_id", "component2.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 1000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component2.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 1000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group2");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+
+  //make the %RSD filter criteria and %RSD calculated values
+  MRMFeatureQC qc_criteria, qc_rsd_values;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+  // %RSD filter criteria (30% RSD for all values)
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
+  // transition group 2
+  cgqcs.component_group_name = "component_group2";
+  cgqcs.ion_ratio_pair_name_1 = "component2.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component2.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component2.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 2
+  cqcs.component_name = "component2.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
+  // Calculated %RSD values
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0; 
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 100.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  // transition group 2
+  cgqcs.component_group_name = "component_group2";
+  cgqcs.ion_ratio_pair_name_1 = "component2.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component2.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 40.0; // should fail
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component2.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 2
+  cqcs.component_name = "component2.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 10.0; 
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+
+  //test flag mode
+  Param params;
+  params.setValue("flag_or_filter", "flag");
+  mrmff.setParameters(params);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList()[0], "peak_apex_int");
+  TEST_EQUAL(components[1].getMetaValue("QC_transition_group_%RSD_pass"), false);
+  TEST_EQUAL(components[1].getMetaValue("QC_transition_group_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[1].getMetaValue("QC_transition_group_%RSD_message").toStringList()[0], "ion_ratio_pair[component2.1.Light/component2.2.Light]");
+  TEST_EQUAL(components[1].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[1].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 0.75);
+  TEST_REAL_SIMILAR(components[1].getMetaValue("QC_transition_group_%RSD_score"), 0.75);
+  TEST_REAL_SIMILAR(components[1].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[1].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+
+  //test filter mode
+  params.setValue("flag_or_filter", "filter");
+  mrmff.setParameters(params);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+
+  TEST_EQUAL(components.size(), 1);
+  TEST_EQUAL(components[0].getSubordinates().size(), 2);
+}
+END_SECTION
+
+START_SECTION(void FilterFeatureMapPercRSD(FeatureMap& features, MRMFeatureQC& filter_criteria, const MRMFeatureQC & filter_values))
+{
+  /** FilterFeatureMap Test 2: tests for individual checks on each transition and transition group */
+  MRMFeatureFilter mrmff;
+
+  //make the FeatureMap
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+
+  //make the %RSD filter criteria and %RSD calculated values
+  MRMFeatureQC qc_criteria, qc_rsd_values;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+  // %RSD filter criteria (30% RSD for all values)
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
+  // Calculated %RSD values
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 1.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+
+  //test all possible comparisons
+  Param params;
+  params.setValue("flag_or_filter", "flag");
+  mrmff.setParameters(params);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+
+  // control
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 1.0);
+
+  // RT
+  qc_rsd_values.component_group_qcs.clear();
+  qc_rsd_values.component_qcs.clear();
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 80.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 1.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList()[0], "retention_time");
+
+  // Intensity
+  qc_rsd_values.component_group_qcs.clear();
+  qc_rsd_values.component_qcs.clear();
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 100.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 1.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList()[0], "intensity");
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 0.75);
+
+  // OverallQuality
+  qc_rsd_values.component_group_qcs.clear();
+  qc_rsd_values.component_qcs.clear();
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 300.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 1.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList()[0], "overall_quality");
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 0.75);
+
+  // MetaValue
+  qc_rsd_values.component_group_qcs.clear();
+  qc_rsd_values.component_qcs.clear();
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 30.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 100.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_message").toStringList()[0], "peak_apex_int");
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 0.75);
+
+  // ion_ratio_pair
+  qc_rsd_values.component_group_qcs.clear();
+  qc_rsd_values.component_qcs.clear();
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.ion_ratio_pair_name_1 = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2 = "component1.2.Light";
+  cgqcs.ion_ratio_l = 0;
+  cgqcs.ion_ratio_u = 50.0;
+  cgqcs.ion_ratio_feature_name = "peak_apex_int";
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 20.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 10.0);
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 10.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 20.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 30.0);
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.retention_time_l = 0;
+  cqcs.retention_time_u = 30.0;
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10.0;
+  cqcs.overall_quality_l = 0;
+  cqcs.overall_quality_u = 30.0;
+  cqcs.meta_value_qc["peak_apex_int"] = std::make_pair(0, 1.0);
+  qc_rsd_values.component_group_qcs.push_back(cgqcs);
+  qc_rsd_values.component_qcs.push_back(cqcs);
+  mrmff.FilterFeatureMapPercRSD(components, qc_criteria, qc_rsd_values);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_pass"), false);
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getMetaValue("QC_transition_group_%RSD_message").toStringList()[0], "ion_ratio_pair[component1.1.Light/component1.2.Light]");
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_pass"), true);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%RSD_score"), 0.75);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 1.0);
 }
 END_SECTION
 
