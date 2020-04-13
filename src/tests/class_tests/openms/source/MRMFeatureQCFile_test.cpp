@@ -284,6 +284,10 @@ START_SECTION(void store(const String& filename, MRMFeatureQC& mrmfqc, const boo
   for (size_t i = 0; i < mrmfqc.component_qcs.size(); ++i) {
     TEST_EQUAL(mrmfqc.component_qcs.at(i) == mrmfqc_test.component_qcs.at(i), true);
   }
+  TEST_EQUAL(mrmfqc.component_group_qcs.size(), mrmfqc_test.component_group_qcs.size());
+  for (size_t i = 0; i < mrmfqc.component_group_qcs.size(); ++i) {
+    TEST_EQUAL(mrmfqc.component_group_qcs.at(i) == mrmfqc_test.component_group_qcs.at(i), true);
+  }
 }
 END_SECTION
 

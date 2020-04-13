@@ -101,6 +101,7 @@ public:
           );
         auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+        return members_eq && meta_values_eq;
       }
       bool operator!=(const ComponentQCs& other) const
       {
@@ -146,7 +147,24 @@ public:
             intensity_l,
             intensity_u,
             overall_quality_l,
-            overall_quality_u
+            overall_quality_u,
+            n_heavy_l,
+            n_heavy_u,
+            n_light_l,
+            n_light_u,
+            n_detecting_l,
+            n_detecting_u,
+            n_quantifying_l,
+            n_quantifying_u,
+            n_identifying_l,
+            n_identifying_u,
+            n_transitions_l,
+            n_transitions_u,
+            ion_ratio_pair_name_1,
+            ion_ratio_pair_name_2,
+            ion_ratio_l,
+            ion_ratio_u,
+            ion_ratio_feature_name
           ) == std::tie(
             other.component_group_name,
             other.retention_time_l,
@@ -154,10 +172,28 @@ public:
             other.intensity_l,
             other.intensity_u,
             other.overall_quality_l,
-            other.overall_quality_u
+            other.overall_quality_u,
+            other.n_heavy_l,
+            other.n_heavy_u,
+            other.n_light_l,
+            other.n_light_u,
+            other.n_detecting_l,
+            other.n_detecting_u,
+            other.n_quantifying_l,
+            other.n_quantifying_u,
+            other.n_identifying_l,
+            other.n_identifying_u,
+            other.n_transitions_l,
+            other.n_transitions_u,
+            other.ion_ratio_pair_name_1,
+            other.ion_ratio_pair_name_2,
+            other.ion_ratio_l,
+            other.ion_ratio_u,
+            other.ion_ratio_feature_name
           );
         auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+        return members_eq && meta_values_eq;
       }
       bool operator!=(const ComponentGroupQCs& other) const
       {
