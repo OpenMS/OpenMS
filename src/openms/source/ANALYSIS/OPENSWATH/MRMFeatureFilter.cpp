@@ -330,7 +330,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
+  void MRMFeatureFilter::EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values)
   {
     // iterature through each sample and accumulate the min/max values in the samples in the filter_template
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
@@ -353,7 +353,7 @@ namespace OpenMS
             if (filter_template.component_group_qcs.at(cg_qc_it).component_group_name == component_group_name)
             {
               const double rt = samples.at(sample_it).at(feature_it).getRT();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(rt,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
@@ -365,7 +365,7 @@ namespace OpenMS
               }
 
               const double intensity = samples.at(sample_it).at(feature_it).getIntensity();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(intensity,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
@@ -377,7 +377,7 @@ namespace OpenMS
               }
 
               const double quality = samples.at(sample_it).at(feature_it).getOverallQuality();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(quality,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
@@ -389,7 +389,7 @@ namespace OpenMS
               }
 
               // labels and transition counts QC
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(labels_and_transition_types["n_heavy"],
                   filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l,
                   filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u);
@@ -441,7 +441,7 @@ namespace OpenMS
                   && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
                   double ion_ratio = calculateIonRatio(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2), filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
-                  if (sample_it == 0) {
+                  if (sample_it == 0 && init_template_values) {
                     initRange(ion_ratio,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
@@ -457,7 +457,7 @@ namespace OpenMS
               for (auto& kv : filter_template.component_group_qcs.at(cg_qc_it).meta_value_qc)
               {
                 bool metavalue_exists{ false };
-                if (sample_it == 0) {
+                if (sample_it == 0 && init_template_values) {
                   updateMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
                 }
                 else {
@@ -474,7 +474,7 @@ namespace OpenMS
             {
               // RT check
               const double rt = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getRT();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(rt,
                   filter_template.component_qcs.at(c_qc_it).retention_time_l,
                   filter_template.component_qcs.at(c_qc_it).retention_time_u);
@@ -487,7 +487,7 @@ namespace OpenMS
 
               // intensity check
               double intensity = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getIntensity();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(intensity,
                   filter_template.component_qcs.at(c_qc_it).intensity_l,
                   filter_template.component_qcs.at(c_qc_it).intensity_u);
@@ -500,7 +500,7 @@ namespace OpenMS
 
               // overall quality check getQuality
               double quality = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getOverallQuality();
-              if (sample_it == 0) {
+              if (sample_it == 0 && init_template_values) {
                 initRange(quality,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_l,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_u);
@@ -515,7 +515,7 @@ namespace OpenMS
               for (auto& kv : filter_template.component_qcs.at(c_qc_it).meta_value_qc)
               {
                 bool metavalue_exists{ false };
-                if (sample_it == 0) {
+                if (sample_it == 0 && init_template_values) {
                   initMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
                 }
                 else {

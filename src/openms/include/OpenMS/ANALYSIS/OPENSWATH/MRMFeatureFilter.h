@@ -96,14 +96,17 @@ public:
 
     /**
       @brief Estimate the lower and upper bound values for the MRMFeatureQC class based on a
-        user supplied template.
+        user supplied template.  The template can either be initialized from the first sample 
+        (meaning all initial template values are over written) or not (meaning the initial template
+        values will be updated if the ranges are found to be too narrow)
 
       @param[in] samples Samples (typically Standards) from which to estimate the lower and upper bound values for the MRMFeatureQC members
       @param[in, out] filter_template A MRMFeatureQC class that will be used as a template to fill in the estimated lower and upper values.
         A "template" is needed so that the MRMFeatureQC::meta_value_qc parameters that the FeatureMap::MetaValues that user would like estimated are known.
-      @param transitions transitions from a TargetedExperiment
+      @param [in] transitions transitions from a TargetedExperiment
+      @param [in] init_template_values Boolean indicating whether to initialize the template values based on the first sample
     */
-    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions);
+    void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions, const bool& init_template_values);
 
     /**
       @brief Transfer the lower and upper bound values for the calculated concentrations
