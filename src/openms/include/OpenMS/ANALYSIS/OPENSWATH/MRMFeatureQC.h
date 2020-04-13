@@ -99,7 +99,7 @@ public:
             other.overall_quality_l,
             other.overall_quality_u
           );
-        auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
         return members_eq && meta_values_eq;
       }
@@ -191,7 +191,7 @@ public:
             other.ion_ratio_u,
             other.ion_ratio_feature_name
           );
-        auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
         bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
         return members_eq && meta_values_eq;
       }
