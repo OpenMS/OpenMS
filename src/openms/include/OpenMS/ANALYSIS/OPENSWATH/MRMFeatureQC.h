@@ -80,6 +80,33 @@ public:
     */
     struct ComponentQCs
     {
+      bool operator==(const ComponentQCs& other) const {
+        bool members_eq = 
+          std::tie(
+            component_name,
+            retention_time_l,
+            retention_time_u,
+            intensity_l,
+            intensity_u,
+            overall_quality_l,
+            overall_quality_u
+          ) == std::tie(
+            other.component_name,
+            other.retention_time_l,
+            other.retention_time_u,
+            other.intensity_l,
+            other.intensity_u,
+            other.overall_quality_l,
+            other.overall_quality_u
+          );
+        auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+      }
+      bool operator!=(const ComponentQCs& other) const
+      {
+        return !(*this == other);
+      }
+
       /// name of the component
       String component_name;
 
@@ -110,6 +137,32 @@ public:
     */
     struct ComponentGroupQCs
     {
+      bool operator==(const ComponentGroupQCs& other) const {
+        bool members_eq =
+          std::tie(
+            component_group_name,
+            retention_time_l,
+            retention_time_u,
+            intensity_l,
+            intensity_u,
+            overall_quality_l,
+            overall_quality_u
+          ) == std::tie(
+            other.component_group_name,
+            other.retention_time_l,
+            other.retention_time_u,
+            other.intensity_l,
+            other.intensity_u,
+            other.overall_quality_l,
+            other.overall_quality_u
+          );
+        auto compare_maps = [](auto lhs, auto rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+      }
+      bool operator!=(const ComponentGroupQCs& other) const
+      {
+        return !(*this == other);
+      }
       /// name of the component group
       String component_group_name;
 
