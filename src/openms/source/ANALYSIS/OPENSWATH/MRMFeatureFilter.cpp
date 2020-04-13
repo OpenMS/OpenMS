@@ -353,39 +353,82 @@ namespace OpenMS
             if (filter_template.component_group_qcs.at(cg_qc_it).component_group_name == component_group_name)
             {
               const double rt = samples.at(sample_it).at(feature_it).getRT();
-              updateRange(rt,
-                filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
-                filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
+              if (sample_it == 0) {
+                initRange(rt,
+                  filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
+              }
+              else {
+                updateRange(rt,
+                  filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
+              }
 
               const double intensity = samples.at(sample_it).at(feature_it).getIntensity();
-              updateRange(intensity,
-                filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
-                filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
+              if (sample_it == 0) {
+                initRange(intensity,
+                  filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
+              }
+              else {
+                updateRange(intensity,
+                  filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
+              }
 
               const double quality = samples.at(sample_it).at(feature_it).getOverallQuality();
-              updateRange(quality,
-                filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
-                filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
+              if (sample_it == 0) {
+                initRange(quality,
+                  filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
+              }
+              else {
+                updateRange(quality,
+                  filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
+              }
 
               // labels and transition counts QC
-              updateRange(labels_and_transition_types["n_heavy"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u);
-              updateRange(labels_and_transition_types["n_light"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_light_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_light_u);
-              updateRange(labels_and_transition_types["n_detecting"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_detecting_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_detecting_u);
-              updateRange(labels_and_transition_types["n_quantifying"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_u);
-              updateRange(labels_and_transition_types["n_identifying"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_identifying_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_identifying_u);
-              updateRange(labels_and_transition_types["n_transitions"],
-                filter_template.component_group_qcs.at(cg_qc_it).n_transitions_l,
-                filter_template.component_group_qcs.at(cg_qc_it).n_transitions_u);
+              if (sample_it == 0) {
+                initRange(labels_and_transition_types["n_heavy"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u);
+                initRange(labels_and_transition_types["n_light"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_light_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_light_u);
+                initRange(labels_and_transition_types["n_detecting"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_detecting_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_detecting_u);
+                initRange(labels_and_transition_types["n_quantifying"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_u);
+                initRange(labels_and_transition_types["n_identifying"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_identifying_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_identifying_u);
+                initRange(labels_and_transition_types["n_transitions"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_transitions_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_transitions_u);
+              }
+              else {
+                updateRange(labels_and_transition_types["n_heavy"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u);
+                updateRange(labels_and_transition_types["n_light"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_light_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_light_u);
+                updateRange(labels_and_transition_types["n_detecting"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_detecting_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_detecting_u);
+                updateRange(labels_and_transition_types["n_quantifying"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_quantifying_u);
+                updateRange(labels_and_transition_types["n_identifying"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_identifying_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_identifying_u);
+                updateRange(labels_and_transition_types["n_transitions"],
+                  filter_template.component_group_qcs.at(cg_qc_it).n_transitions_l,
+                  filter_template.component_group_qcs.at(cg_qc_it).n_transitions_u);
+              }
 
               // ion ratio QC
               for (size_t sub_it2 = 0; sub_it2 < samples.at(sample_it).at(feature_it).getSubordinates().size(); ++sub_it2)
@@ -398,17 +441,28 @@ namespace OpenMS
                   && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
                   double ion_ratio = calculateIonRatio(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2), filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
-
-                  updateRange(ion_ratio,
-                    filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
-                    filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
+                  if (sample_it == 0) {
+                    initRange(ion_ratio,
+                      filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
+                      filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
+                  }
+                  else {
+                    updateRange(ion_ratio,
+                      filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
+                      filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
+                  }
                 }
               }
 
               for (auto& kv : filter_template.component_group_qcs.at(cg_qc_it).meta_value_qc)
               {
                 bool metavalue_exists{ false };
-                updateMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                if (sample_it == 0) {
+                  updateMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                }
+                else {
+                  initMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                }
               }
             }
           }
@@ -420,27 +474,53 @@ namespace OpenMS
             {
               // RT check
               const double rt = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getRT();
-              updateRange(rt,
-                filter_template.component_qcs.at(c_qc_it).retention_time_l,
-                filter_template.component_qcs.at(c_qc_it).retention_time_u);
+              if (sample_it == 0) {
+                initRange(rt,
+                  filter_template.component_qcs.at(c_qc_it).retention_time_l,
+                  filter_template.component_qcs.at(c_qc_it).retention_time_u);
+              }
+              else {
+                updateRange(rt,
+                  filter_template.component_qcs.at(c_qc_it).retention_time_l,
+                  filter_template.component_qcs.at(c_qc_it).retention_time_u);
+              }
 
               // intensity check
               double intensity = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getIntensity();
-              updateRange(intensity,
-                filter_template.component_qcs.at(c_qc_it).intensity_l,
-                filter_template.component_qcs.at(c_qc_it).intensity_u);
+              if (sample_it == 0) {
+                initRange(intensity,
+                  filter_template.component_qcs.at(c_qc_it).intensity_l,
+                  filter_template.component_qcs.at(c_qc_it).intensity_u);
+              }
+              else {
+                updateRange(intensity,
+                  filter_template.component_qcs.at(c_qc_it).intensity_l,
+                  filter_template.component_qcs.at(c_qc_it).intensity_u);
+              }
 
               // overall quality check getQuality
               double quality = samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it).getOverallQuality();
-              updateRange(quality,
-                filter_template.component_qcs.at(c_qc_it).overall_quality_l,
-                filter_template.component_qcs.at(c_qc_it).overall_quality_u);
+              if (sample_it == 0) {
+                initRange(quality,
+                  filter_template.component_qcs.at(c_qc_it).overall_quality_l,
+                  filter_template.component_qcs.at(c_qc_it).overall_quality_u);
+              }
+              else {
+                updateRange(quality,
+                  filter_template.component_qcs.at(c_qc_it).overall_quality_l,
+                  filter_template.component_qcs.at(c_qc_it).overall_quality_u);
+              }
 
               // metaValue checks
               for (auto& kv : filter_template.component_qcs.at(c_qc_it).meta_value_qc)
               {
                 bool metavalue_exists{ false };
-                updateMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                if (sample_it == 0) {
+                  initMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                }
+                else {
+                  updateMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
+                }
               }
             }
           }
@@ -640,6 +720,21 @@ namespace OpenMS
       key_exists = true;
       const double meta_value = (double)component.getMetaValue(meta_value_key);
       setRange(meta_value, meta_value_l, meta_value_u);
+    }
+    else
+    {
+      key_exists = false;
+      OPENMS_LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+    }
+  }
+
+  void MRMFeatureFilter::initMetaValue(const Feature & component, const String & meta_value_key, double & meta_value_l, double & meta_value_u, bool & key_exists) const
+  {
+    if (component.metaValueExists(meta_value_key))
+    {
+      key_exists = true;
+      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      initRange(meta_value, meta_value_l, meta_value_u);
     }
     else
     {
@@ -1054,5 +1149,11 @@ namespace OpenMS
       value_l = value;
       value_u = T(0);
     }
+  }
+  template<typename T>
+  void MRMFeatureFilter::initRange(const T & value, T & value_l, T & value_u) const
+  {
+    value_l = value;
+    value_u = value;
   }
 }

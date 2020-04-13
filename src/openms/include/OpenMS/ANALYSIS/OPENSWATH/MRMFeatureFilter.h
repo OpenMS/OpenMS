@@ -229,6 +229,23 @@ public:
     ) const;
 
     /**
+      @brief Uses the supplied value to initilaize the metaValue ranges to the same value
+
+      @param[in] component component of the numerator
+      @param[in] meta_value_key Name of the metaValue
+      @param[in, out] meta_value_l Lower bound (inclusive) for the metaValue range
+      @param[in, out] meta_value_u Upper bound (inclusive) for the metaValue range
+      @param[out] key_exists true if the given key is found, false otherwise
+    */
+    void initMetaValue(
+      const Feature & component,
+      const String & meta_value_key,
+      double & meta_value_l,
+      double & meta_value_u,
+      bool & key_exists
+    ) const;
+
+    /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
       @param component component_group with subordinates
@@ -305,6 +322,10 @@ public:
     /// Sets value_l and value_u to bracket the range 0 to value or value to 0 depending on if value is >0
     template <typename T>
     void setRange(const T& value, T& value_l, T& value_u) const;
+
+    /// Sets value_l and value_u to value
+    template <typename T>
+    void initRange(const T& value, T& value_l, T& value_u) const;
 
 private:
     // Members
