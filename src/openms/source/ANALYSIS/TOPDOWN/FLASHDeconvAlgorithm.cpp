@@ -76,7 +76,7 @@ namespace OpenMS
     std::vector<std::vector<Size>> prevMassBinMap;
     std::vector<double> prevMinBinLogMassMap;
 
-    std::unordered_map<UInt,std::unordered_map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge
+    std::unordered_map<UInt,std::map<double, int>> peakChargeMap; // mslevel, mz -> maxCharge should be ordered
     std::unordered_map<UInt,std::unordered_map<double, double>> peakIntMap; // mslevel, mz -> intensity
     std::unordered_map<UInt,std::unordered_map<double, double>> peakMassMap; // mslevel, mz -> mass
     std::unordered_map<UInt,std::unordered_map<double, float>> peakSNRMap; // mslevel, mz -> snr
@@ -103,7 +103,7 @@ namespace OpenMS
     for(UInt j=1;j<=param.currentMaxMSLevel;j++){
       //prevMassBinMap[j] = std::vector<std::vector<Size>>();
 
-      peakChargeMap[j] = std::unordered_map<double, int>();
+      peakChargeMap[j] = std::map<double, int>();
       peakIntMap[j] = std::unordered_map<double, double>();
       peakMassMap[j] = std::unordered_map<double, double>();
       peakSNRMap[j] = std::unordered_map<double, float>();
@@ -187,7 +187,6 @@ namespace OpenMS
         }
         if(mc > 0){
           param.currentChargeRange = mc  - param.minCharge + 1; //
-
           param.currentMaxMass = mm + avg.getAverageMassDelta(mm); // isotopie margin
 
           prevChargeRanges[msLevel - 1] = param.currentChargeRange;
@@ -215,12 +214,12 @@ namespace OpenMS
 
       if (msLevel < param.currentMaxMSLevel)
       {
-        auto subPeakChargeMap = std::unordered_map<double,int>();
+        auto subPeakChargeMap = std::map<double,int>();
         auto subPeakIntMap = std::unordered_map<double,double>();
         auto subPeakMassMap = std::unordered_map<double,double>();
         auto subPeakSNRMap = std::unordered_map<double,float>();
 
-        std::unordered_map<double,int>().swap(peakChargeMap[msLevel]);
+        std::map<double,int>().swap(peakChargeMap[msLevel]);
         std::unordered_map<double,double>().swap(peakIntMap[msLevel]);
         std::unordered_map<double,double>().swap(peakMassMap[msLevel]);
         std::unordered_map<double,float>().swap(peakSNRMap[msLevel]);
@@ -264,6 +263,7 @@ namespace OpenMS
 
         if (msLevel > 1)
         {
+          //std::cout<<preCharge<<std::endl;
           pg.precursorCharge = preCharge;
           pg.precursorMonoMass = preMass;
           pg.precursorIntensity = preInt;
