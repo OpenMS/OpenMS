@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,68 +29,47 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/QC/TIC.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FORMAT/MzTab.h>
-
-using namespace std;
+#include <OpenMS/QC/FWHM.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
-  /// Reset
-  void TIC::clear()
+  void FWHM::compute(FeatureMap& features)
   {
-    results_.clear();
-  }
-  void TIC::compute(const MSExperiment &exp, float bin_size)
-  {
-    results_.push_back(exp.getTIC(bin_size));
+    for (auto& f : features)
+    {
+      if (f.metaValueExists("FWHM")) // from FF-Centroided
+      {
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("FWHM"));
+        }
+      }
+      else if (f.metaValueExists("model_FWHM")) // from FF-Identification
+      {
+        for (auto& pi : f.getPeptideIdentifications())
+        {
+          pi.setMetaValue("FWHM", f.getMetaValue("model_FWHM")); // use 'FWHM' as target to make the name unique for downstream processing
+        }
+      }
+      else
+      {
+        //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
+      }
+    }
   }
 
-  /// Returns the name of the metric
-  const String& TIC::getName() const
+  const String& FWHM::getName() const
   {
-    return name_;
+    static const String& name = "FWHM";
+    return name;
   }
   
-  /// Returns all results calculated with compute.
-  const std::vector<MSChromatogram>& TIC::getResults() const
+  QCBase::Status FWHM::requires() const
   {
-    return results_;
-  }
-
-  /// Returns required file input i.e. MzML.
-  /// This is encoded as a bit in a Status object.
-  QCBase::Status TIC::requires() const
-  {
-    return QCBase::Status(QCBase::Requires::RAWMZML);
-  }
-
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
-  {
-    // Adding TIC information to meta data
-    const auto& tics = this->getResults();
-    for (Size i = 0; i < tics.size(); ++i)
-    {
-      if (tics[i].empty()) continue; // no MS1 spectra
-
-      MzTabParameter tic{};
-      tic.setCVLabel("total ion current");
-      tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
-      {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
-      }
-      value += "]";
-      tic.setValue(value);
-      meta.custom[meta.custom.size()] = tic;
-    }
+    return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
 }

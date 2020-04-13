@@ -39,9 +39,9 @@
 
         @section TOPP_example_qualitycontrol_section Quality Control
 
-        @b Goal: Check the quality of the data (currently, on label-free workflow data is supported).
+        @b Goal: Check the quality of the data (supports label-free workflows and @ref TOPP_IsobaricAnalyzer output).
 
-        The QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
+        The @ref TOPP_QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
         Depending on the given input data this tool collects data for metrics (see section 'Metrics' below).
         New metavalues will be added to existing data and the information will be written out in mzTab format.
         This mzTab file can then be processed using your custom scripts or
@@ -53,7 +53,8 @@
         @image latex TOPP_qualitycontrol.png "" width=10cm
         
         An example workflow can be found in OpenMS/share/OpenMS/examples/TOPPAS/QualityControl.toppas.
-
+				
+		For data from @ref TOPP_IsobaricAnalyzer, just provide the consensusXML as input to @ref TOPP_QualityControl. No FeatureXMLs or TrafoXMLs are required. The mzML raw file can be added as input though.
 
         @section  TOPP_example_qualitycontrol_section3 Metrics
         This Table shows what each of the included metrics does, what they need to be executed and what they add to

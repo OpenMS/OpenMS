@@ -1,8 +1,9 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,68 +30,32 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/QC/TIC.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FORMAT/MzTab.h>
-
-using namespace std;
+#include <OpenMS/QC/PeptideMass.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
-  /// Reset
-  void TIC::clear()
+  void PeptideMass::compute(FeatureMap& features)
   {
-    results_.clear();
-  }
-  void TIC::compute(const MSExperiment &exp, float bin_size)
-  {
-    results_.push_back(exp.getTIC(bin_size));
-  }
-
-  /// Returns the name of the metric
-  const String& TIC::getName() const
-  {
-    return name_;
-  }
-  
-  /// Returns all results calculated with compute.
-  const std::vector<MSChromatogram>& TIC::getResults() const
-  {
-    return results_;
-  }
-
-  /// Returns required file input i.e. MzML.
-  /// This is encoded as a bit in a Status object.
-  QCBase::Status TIC::requires() const
-  {
-    return QCBase::Status(QCBase::Requires::RAWMZML);
-  }
-
-  void TIC::addMetaDataMetricsToMzTab(OpenMS::MzTabMetaData& meta)
-  {
-    // Adding TIC information to meta data
-    const auto& tics = this->getResults();
-    for (Size i = 0; i < tics.size(); ++i)
+    features.applyFunctionOnPeptideIDs([](PeptideIdentification& pi)
     {
-      if (tics[i].empty()) continue; // no MS1 spectra
+      if (pi.getHits().empty()) return;
+      auto& hit = pi.getHits()[0];
+      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
+    }, true);
+  }
 
-      MzTabParameter tic{};
-      tic.setCVLabel("total ion current");
-      tic.setAccession("MS:1000285");
-      tic.setName("TIC_" + String(i + 1));
-      String value("[");
-      value += String(tics[i][0].getRT(), false) + ", " + String((UInt64)tics[i][0].getIntensity());
-      for (Size j = 1; j < tics[i].size(); ++j)
-      {
-        value += ", " + String(tics[i][j].getRT(), false) + ", " + String((UInt64)tics[i][j].getIntensity());
-      }
-      value += "]";
-      tic.setValue(value);
-      meta.custom[meta.custom.size()] = tic;
-    }
+  const String& PeptideMass::getName() const
+  {
+    static const String& name = "PeptideMass";
+    return name;
+  }
+
+  QCBase::Status PeptideMass::requires() const
+  {
+    return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
 }
