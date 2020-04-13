@@ -587,6 +587,7 @@ namespace OpenMS
 
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
+    scores.reserve(peakGroups.size());
     for (auto &pg : peakGroups)
     {
       scores.push_back(pg.isotopeCosineScore);
@@ -594,20 +595,23 @@ namespace OpenMS
 
     sort(scores.begin(), scores.end());
 
+    auto newPeakGroups = std::vector<PeakGroup>();
+    newPeakGroups.reserve(peakGroups.size());
     auto threshold = scores[scores.size() - mc];
-    for (auto pg = peakGroups.begin(); pg != peakGroups.end();)
+    for (auto& pg : peakGroups)
     {
-      if (peakGroups.size() <= mc)
+      if (newPeakGroups.size() > mc)
       {
         break;
       }
-      if (pg->isotopeCosineScore < threshold)
+
+      if (pg.isotopeCosineScore >= threshold)
       {
-        pg = peakGroups.erase(pg);
-        continue;
+        newPeakGroups.push_back(pg);
       }
-      ++pg;
     }
+    std::vector<PeakGroup>().swap(peakGroups);
+    newPeakGroups.swap(peakGroups);
   }
 
   void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
