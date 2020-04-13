@@ -2374,8 +2374,6 @@ START_SECTION(void calculateFilterValuesMean(MRMFeatureQC& filter_mean, const st
 }
 END_SECTION
 
-
-
 START_SECTION(void FilterFeatureMapPercRSD(FeatureMap& features, MRMFeatureQC& filter_criteria, const MRMFeatureQC & filter_values))
 {
   /** FilterFeatureMap Test 1: basic ability to flag or filter transitions or transition groups */
@@ -2989,6 +2987,175 @@ START_SECTION(void FilterFeatureMapPercRSD(FeatureMap& features, MRMFeatureQC& f
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%RSD_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%RSD_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%RSD_score"), 1.0);
+}
+END_SECTION
+
+START_SECTION(void FilterFeatureMapBackgroundInterference(FeatureMap& features, MRMFeatureQC& filter_criteria, const MRMFeatureQC & filter_values))
+{
+  /** FilterFeatureMap Test 1: basic ability to flag or filter transitions or transition groups */
+
+  MRMFeatureFilter mrmff;
+
+  //make the FeatureMap
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id", "component1.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component1.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id", "component1.2.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 500); //should fail
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group1");
+  component_1.setIntensity(5000);
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+  // transition group 2
+  // transition 1
+  subordinate.setMetaValue("native_id", "component2.1.Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Heavy");
+  subordinate.setMetaValue("peak_apex_int", 1000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id", "component2.1.Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType", "Light");
+  subordinate.setMetaValue("peak_apex_int", 1000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("PeptideRef", "component_group2");
+  component_1.setIntensity(5000);
+  component_1.setSubordinates(subordinates);
+  components.push_back(component_1);
+  subordinates.clear();
+
+  //make the %BackgroundInterference filter criteria and %BackgroundInterference calculated values
+  MRMFeatureQC qc_criteria, qc_background_values;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+  // %BackgroundInterference filter criteria (30% BackgroundInterference for all values)
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.intensity_l = 0;
+  cgqcs.intensity_u = 30;
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
+  // transition group 2
+  cgqcs.component_group_name = "component_group2";
+  cgqcs.intensity_l = 0;
+  cgqcs.intensity_u = 30;
+  // transition 1
+  cqcs.component_name = "component2.1.Heavy";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  // transition 2
+  cqcs.component_name = "component2.1.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 30.0;
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
+  // Calculated %BackgroundInterference values
+  // transition group 1
+  cgqcs.component_group_name = "component_group1";
+  cgqcs.intensity_l = 0;
+  cgqcs.intensity_u = 0;
+  // transition 1
+  cqcs.component_name = "component1.1.Heavy";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 0.0;
+  // transition 2
+  cqcs.component_name = "component1.1.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 0.0;
+  // transition 3
+  cqcs.component_name = "component1.2.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 10000.0;
+  qc_background_values.component_group_qcs.push_back(cgqcs);
+  qc_background_values.component_qcs.push_back(cqcs);
+  // transition group 2
+  cgqcs.component_group_name = "component_group2";
+  cgqcs.intensity_l = 0;
+  cgqcs.intensity_u = 10000;
+  // transition 1
+  cqcs.component_name = "component2.1.Heavy";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 0;
+  // transition 2
+  cqcs.component_name = "component2.1.Light";
+  cqcs.intensity_l = 0;
+  cqcs.intensity_u = 0;
+  qc_background_values.component_group_qcs.push_back(cgqcs);
+  qc_background_values.component_qcs.push_back(cqcs);
+
+  //test flag mode
+  Param params;
+  params.setValue("flag_or_filter", "flag");
+  mrmff.setParameters(params);
+  mrmff.FilterFeatureMapBackgroundInterference(components, qc_criteria, qc_background_values);
+
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_%BackgroundInterference_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_%BackgroundInterference_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_%BackgroundInterference_pass"), true);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%BackgroundInterference_pass"), false);
+  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%BackgroundInterference_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_%BackgroundInterference_message").toStringList()[0], "intensity");
+  TEST_EQUAL(components[1].getMetaValue("QC_transition_group_%BackgroundInterference_pass"), false);
+  TEST_EQUAL(components[1].getMetaValue("QC_transition_group_%BackgroundInterference_message").toStringList().size(), 1);
+  TEST_STRING_EQUAL(components[1].getMetaValue("QC_transition_group_%BackgroundInterference_message").toStringList()[0], "intensity");
+  TEST_EQUAL(components[1].getSubordinates()[0].getMetaValue("QC_transition_%BackgroundInterference_pass"), true);
+  TEST_EQUAL(components[1].getSubordinates()[1].getMetaValue("QC_transition_%BackgroundInterference_pass"), true);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_%BackgroundInterference_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_%BackgroundInterference_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_%BackgroundInterference_score"), 1.0);
+  TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_%BackgroundInterference_score"), 0.0);
+  TEST_REAL_SIMILAR(components[1].getMetaValue("QC_transition_group_%BackgroundInterference_score"), 0.0);
+  TEST_REAL_SIMILAR(components[1].getSubordinates()[0].getMetaValue("QC_transition_%BackgroundInterference_score"), 1.0);
+  TEST_REAL_SIMILAR(components[1].getSubordinates()[1].getMetaValue("QC_transition_%BackgroundInterference_score"), 1.0);
+
+  //test filter mode
+  params.setValue("flag_or_filter", "filter");
+  mrmff.setParameters(params);
+  mrmff.FilterFeatureMapBackgroundInterference(components, qc_criteria, qc_background_values);
+
+  TEST_EQUAL(components.size(), 1);
+  TEST_EQUAL(components[0].getSubordinates().size(), 2);
 }
 END_SECTION
 
