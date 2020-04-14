@@ -54,6 +54,9 @@ namespace OpenMS
 
     void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
     void filterPeakGroupsByTotalSNR(int currentMaxMassCount);
+    void filterPeakGroupsByIntensity(int currentMaxMassCount);
+
+
 
     static double getAvgMassPpmError(PeakGroup &pg);
 

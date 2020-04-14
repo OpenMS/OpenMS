@@ -433,7 +433,7 @@ namespace OpenMS
         if (pg.peaks.empty() ||
             pg.chargeCosineScore <= param.minChargeCosine)
         {
-         // delete[] pg.perChargeSNR;
+          // delete[] pg.perChargeSNR;
           continue;
         }
 
@@ -452,7 +452,7 @@ namespace OpenMS
       {
         if (pg.peaks.empty()|| pg.chargeCosineScore < 0.1)//
         {
-         // delete[] pg.perChargeSNR;
+          // delete[] pg.perChargeSNR;
           continue;
         }
       }
@@ -481,7 +481,6 @@ namespace OpenMS
       auto isoNorm = avg.getNorm(pg.monoisotopicMass);
       int isoSize = (int) iso.size();
       float totalNoise = .0;
-      float totalSignal = .0;
 
       double maxSNR = 0;
       for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
@@ -533,12 +532,8 @@ namespace OpenMS
         if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
           pg.perChargeSNR[j] = 0;
         }
-        auto dno = ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
-        auto no = cos2 * sp;
-
-        pg.perChargeSNR[j] = no / dno;
-        totalNoise += dno;
-        totalSignal += no;
+        totalNoise += pg.perChargeSNR[j];
+        pg.perChargeSNR[j] = cos2 * sp / ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
 
         if(pg.perChargeSNR[j] > maxSNR){
           maxSNR = pg.perChargeSNR[j];
@@ -551,13 +546,23 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
 
-      pg.totalSNR =  totalSignal / totalNoise;
+      auto tcos2 =  pg.isotopeCosineScore *  pg.isotopeCosineScore;
+      float tsp = 0;
+      for (int k = 0; k <=param.maxIsotopeCount ; ++k)
+      {
+        if(k>isoSize){
+          break;
+        }
+        tsp += perIsotopeIntensity[k] * perIsotopeIntensity[k];
+      }
+
+      pg.totalSNR =  tcos2 * tsp / ((1- tcos2) * tsp + totalNoise + 1);
       //delete[] pg.perChargeSNR;
       // if ( pg.maxSNR < .1){
       //      return; //
       //    }
 
-      if(pg.totalSNR>0.1) // TODO
+      if(pg.totalSNR>.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }
@@ -613,6 +618,44 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(peakGroups);
     newPeakGroups.swap(peakGroups);
   }
+
+  void PeakGroupScoring::filterPeakGroupsByIntensity(int currentMaxMassCount)
+  {
+    if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    {
+      return;
+    }
+
+    Size mc = (Size) currentMaxMassCount;
+    std::vector<double> scores;
+    scores.reserve(peakGroups.size());
+    for (auto &pg : peakGroups)
+    {
+      scores.push_back(pg.intensity);
+    }
+
+    sort(scores.begin(), scores.end());
+
+    auto newPeakGroups = std::vector<PeakGroup>();
+    newPeakGroups.reserve(peakGroups.size());
+    auto threshold = scores[scores.size() - mc];
+    for (auto& pg : peakGroups)
+    {
+      if (newPeakGroups.size() > mc)
+      {
+        break;
+      }
+
+      if (pg.intensity >= threshold)
+      {
+        newPeakGroups.push_back(pg);
+      }
+    }
+    std::vector<PeakGroup>().swap(peakGroups);
+    newPeakGroups.swap(peakGroups);
+  }
+
+
 
   void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
   {

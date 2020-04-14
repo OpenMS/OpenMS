@@ -93,7 +93,7 @@ protected:
 
     //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minC", "<min_charge>", 1, "minimum charge state", false, false);
-    registerIntOption_("maxC", "<max_charge>", 100, "maximum charge state", false, false);
+    registerIntOption_("maxC", "<max_charge>", 120, "maximum charge state", false, false);
     registerDoubleOption_("minM", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxM", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
@@ -121,7 +121,7 @@ protected:
     registerIntOption_("maxMC", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minIT", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 1% total gradient time)", false, true);
+    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 10 seconds)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeDetail",
                        "<1:true 0:false>",
@@ -330,6 +330,7 @@ protected:
         msCntr[it->getMSLevel()]++;
       }
 
+      param.numOverlappedScans.clear();
       for (int j = 1; j <= 1; j++)
       {
         double rtDelta = rtDuration / msCntr[j];
@@ -337,11 +338,11 @@ protected:
         auto rw = param.RTwindow;
         if (rw <= 0)
         {
-          rw = std::max(10.0, rtDuration * .01);
+          rw = 10.0;
         }
         //OPENMS_LOG_INFO << rtDuration << " " << rtDelta << " " << rw <<  endl;
 
-        auto count = max(param.minNumOverLappedScans, (UInt) (.5 + rw / rtDelta));
+        auto count = (UInt) (.5 + rw / rtDelta);
         OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << rw
                         << " sec)" << endl;
 
