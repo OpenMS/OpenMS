@@ -121,7 +121,7 @@ protected:
     registerIntOption_("maxMC", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minIT", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 10 seconds)", false, true);
+    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 10 MS1 spectra within RT window)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeDetail",
                        "<1:true 0:false>",
@@ -336,14 +336,11 @@ protected:
         double rtDelta = rtDuration / msCntr[j];
 
         auto rw = param.RTwindow;
-        if (rw <= 0)
-        {
-          rw = 10.0;
-        }
+
         //OPENMS_LOG_INFO << rtDuration << " " << rtDelta << " " << rw <<  endl;
 
-        auto count = (UInt) (.5 + rw / rtDelta);
-        OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << rw
+        auto count = max(param.minNumOverLappedScans, (UInt) (.5 + rw / rtDelta));
+        OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << (rtDelta*count) //
                         << " sec)" << endl;
 
         param.numOverlappedScans.push_back(count);
@@ -675,6 +672,9 @@ protected:
     {
       for (int j = 0; j < param.maxMSLevel; j++)
       {
+        if (total_specCntr[j] == 0){
+          continue;
+        }
         OPENMS_LOG_INFO << "In total, FLASHDeconv found " << total_massCntr[j] << " masses in " << total_qspecCntr[j]
                         << " MS" << (j + 1) << " spectra out of "
                         << total_specCntr[j] << endl;
