@@ -1276,7 +1276,7 @@ namespace OpenMS
     {
       for (String t : param_value)
       {
-        inputFileReadable_(t, param_name);
+        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
 
         // check restrictions
         if (p.valid_strings.empty()) continue;
