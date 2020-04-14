@@ -55,12 +55,12 @@ namespace OpenMS
       {
         // @TODO: return true or false for the empty set?
         if (query_match_refs.size() <= 1) return true;
-        const IdentifiedMoleculeRef ref =
-          (*query_match_refs.begin())->identified_molecule_ref;
+        const IdentifiedMolecule var =
+          (*query_match_refs.begin())->identified_molecule_var;
         for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
              ++it)
         {
-          if (!((*it)->identified_molecule_ref == ref)) return false;
+          if (!((*it)->identified_molecule_var == var)) return false;
         }
         return true;
       }

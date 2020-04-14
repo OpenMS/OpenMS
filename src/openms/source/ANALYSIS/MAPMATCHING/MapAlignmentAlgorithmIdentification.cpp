@@ -189,7 +189,7 @@ namespace OpenMS
       }
       if (include)
       {
-        String molecule = hit->getMoleculeAsString();
+        String molecule = hit->identified_molecule_var.getMoleculeAsString();
         rt_data[molecule].push_back(hit->data_query_ref->rt);
       }
     }

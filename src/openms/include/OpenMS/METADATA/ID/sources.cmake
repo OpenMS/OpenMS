@@ -11,6 +11,7 @@ DataQuery.h
 IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedCompound.h
+IdentifiedMolecule.h
 IdentifiedSequence.h
 InputFile.h
 MetaData.h
@@ -33,4 +34,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\METADATA\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

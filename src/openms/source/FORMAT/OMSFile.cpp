@@ -1141,16 +1141,18 @@ namespace OpenMS
       if (!match.peak_annotations.empty()) any_peak_annotations = true;
       query.bindValue(":id", Key(&match)); // use address as primary key
       Key molecule_id;
-      switch (match.getMoleculeType())
+      const ID::IdentifiedMolecule& molecule_var =
+        match.identified_molecule_var;
+      switch (molecule_var.getMoleculeType())
       {
       case ID::MoleculeType::PROTEIN:
-        molecule_id = Key(&(*match.getIdentifiedPeptideRef()));
+        molecule_id = Key(&(*molecule_var.getIdentifiedPeptideRef()));
         break;
       case ID::MoleculeType::COMPOUND:
-        molecule_id = Key(&(*match.getIdentifiedCompoundRef()));
+        molecule_id = Key(&(*molecule_var.getIdentifiedCompoundRef()));
         break;
       case ID::MoleculeType::RNA:
-        molecule_id = Key(&(*match.getIdentifiedOligoRef()));
+        molecule_id = Key(&(*molecule_var.getIdentifiedOligoRef()));
         break;
       default:
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -1858,7 +1860,7 @@ namespace OpenMS
       }
       ID::IdentifiedCompoundRef ref =
         id_data_.registerIdentifiedCompound(compound);
-      identified_molecule_refs_[id] = ref;
+      identified_molecule_vars_[id] = ref;
     }
   }
 
@@ -1942,7 +1944,7 @@ namespace OpenMS
       }
       ID::IdentifiedPeptideRef ref =
         id_data_.registerIdentifiedPeptide(peptide);
-      identified_molecule_refs_[id] = ref;
+      identified_molecule_vars_[id] = ref;
     }
 
     // load RNA oligos:
@@ -1970,7 +1972,7 @@ namespace OpenMS
         handleQueryParentMatch_(subquery_parent, oligo.parent_matches, id);
       }
       ID::IdentifiedOligoRef ref = id_data_.registerIdentifiedOligo(oligo);
-      identified_molecule_refs_[id] = ref;
+      identified_molecule_vars_[id] = ref;
     }
   }
 
@@ -2039,7 +2041,7 @@ namespace OpenMS
       Key id = query.value("id").toLongLong();
       Key molecule_id = query.value("identified_molecule_id").toLongLong();
       Key query_id = query.value("data_query_id").toLongLong();
-      ID::MoleculeQueryMatch match(identified_molecule_refs_[molecule_id],
+      ID::MoleculeQueryMatch match(identified_molecule_vars_[molecule_id],
                                    data_query_refs_[query_id],
                                    query.value("charge").toInt());
       if (have_meta_info)

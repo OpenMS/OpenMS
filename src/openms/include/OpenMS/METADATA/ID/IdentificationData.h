@@ -152,9 +152,9 @@ namespace OpenMS
     using IdentifiedOligos = IdentificationDataInternal::IdentifiedOligos;
     using IdentifiedOligoRef = IdentificationDataInternal::IdentifiedOligoRef;
 
+    using IdentifiedMolecule = IdentificationDataInternal::IdentifiedMolecule;
+ 
     using PeakAnnotations = IdentificationDataInternal::PeakAnnotations;
-    using IdentifiedMoleculeRef =
-      IdentificationDataInternal::IdentifiedMoleculeRef;
 
     using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
     using MoleculeQueryMatches =

@@ -1038,8 +1038,7 @@ protected:
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerDataProcessingSoftware(software);
     // @TODO: add suitable data processing action
-    IdentificationData::DataProcessingStep step(
-      software_ref, vector<IdentificationData::InputFileRef>(1, file_ref));
+    IdentificationData::DataProcessingStep step(software_ref, {file_ref});
     IdentificationData::ProcessingStepRef step_ref;
 
     // get digested sequences:

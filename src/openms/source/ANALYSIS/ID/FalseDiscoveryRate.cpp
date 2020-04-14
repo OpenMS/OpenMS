@@ -567,7 +567,7 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
     vector<double> target_scores, decoy_scores;
-    map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
+    map<IdentificationData::IdentifiedMolecule, bool> molecule_to_decoy;
     map<IdentificationData::QueryMatchRef, double> match_to_score;
     if (use_all_hits)
     {
@@ -613,7 +613,7 @@ namespace OpenMS
     {
       if (!include_decoys)
       {
-        auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
+        auto pos = molecule_to_decoy.find(it->identified_molecule_var);
         if ((pos != molecule_to_decoy.end()) && pos->second) continue;
       }
       auto pos = match_to_score.find(it);
@@ -629,11 +629,13 @@ namespace OpenMS
     IdentificationData::QueryMatchRef match_ref,
     IdentificationData::ScoreTypeRef score_ref,
     vector<double>& target_scores, vector<double>& decoy_scores,
-    map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+    map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
     map<IdentificationData::QueryMatchRef, double>& match_to_score) const
   {
+    const IdentificationData::IdentifiedMolecule& molecule_var =
+      match_ref->identified_molecule_var;
     IdentificationData::MoleculeType molecule_type =
-      match_ref->getMoleculeType();
+      molecule_var.getMoleculeType();
     if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
     {
       return; // compounds don't have parents with target/decoy status
@@ -641,21 +643,19 @@ namespace OpenMS
     pair<double, bool> score = match_ref->getScore(score_ref);
     if (!score.second) return; // no score of this type
     match_to_score[match_ref] = score.first;
-    IdentificationData::IdentifiedMoleculeRef molecule_ref =
-      match_ref->identified_molecule_ref;
-    auto pos = molecule_to_decoy.find(molecule_ref);
+    auto pos = molecule_to_decoy.find(molecule_var);
     bool is_decoy;
     if (pos == molecule_to_decoy.end()) // new molecule
     {
       if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
       {
-        is_decoy = match_ref->getIdentifiedPeptideRef()->allParentsAreDecoys();
+        is_decoy = molecule_var.getIdentifiedPeptideRef()->allParentsAreDecoys();
       }
       else // if (molecule_type == IdentificationData::MoleculeType::RNA)
       {
-        is_decoy = match_ref->getIdentifiedOligoRef()->allParentsAreDecoys();
+        is_decoy = molecule_var.getIdentifiedOligoRef()->allParentsAreDecoys();
       }
-      molecule_to_decoy[molecule_ref] = is_decoy;
+      molecule_to_decoy[molecule_var] = is_decoy;
     }
     else
     {

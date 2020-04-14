@@ -372,7 +372,7 @@ namespace OpenMS
     if (!no_checks_)
     {
       if (const IdentifiedPeptideRef* ref_ptr =
-          boost::get<IdentifiedPeptideRef>(&match.identified_molecule_ref))
+          boost::get<IdentifiedPeptideRef>(&match.identified_molecule_var))
       {
         if (!isValidHashedReference_(*ref_ptr, identified_peptide_lookup_))
         {
@@ -382,7 +382,7 @@ namespace OpenMS
         }
       }
       else if (const IdentifiedCompoundRef* ref_ptr =
-               boost::get<IdentifiedCompoundRef>(&match.identified_molecule_ref))
+               boost::get<IdentifiedCompoundRef>(&match.identified_molecule_var))
       {
         if (!isValidHashedReference_(*ref_ptr, identified_compound_lookup_))
         {
@@ -392,7 +392,7 @@ namespace OpenMS
         }
       }
       else if (const IdentifiedOligoRef* ref_ptr =
-               boost::get<IdentifiedOligoRef>(&match.identified_molecule_ref))
+               boost::get<IdentifiedOligoRef>(&match.identified_molecule_var))
       {
         if (!isValidHashedReference_(*ref_ptr, identified_oligo_lookup_))
         {
@@ -673,25 +673,25 @@ namespace OpenMS
     }
 
     // remove molecule-query matches based on identified molecules:
-    set<IdentifiedMoleculeRef> id_refs;
-    for (auto it = identified_peptides_.begin();
+    set<IdentifiedMolecule> id_vars;
+    for (IdentifiedPeptideRef it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
-    for (auto it = identified_compounds_.begin();
+    for (IdentifiedCompoundRef it = identified_compounds_.begin();
          it != identified_compounds_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
-    for (auto it = identified_oligos_.begin();
+    for (IdentifiedOligoRef it = identified_oligos_.begin();
          it != identified_oligos_.end(); ++it)
     {
-      id_refs.insert(it);
+      id_vars.insert(it);
     }
     removeFromSetIf_(query_matches_, [&](MoleculeQueryMatches::iterator it)
                      {
-                       return !id_refs.count(it->identified_molecule_ref);
+                       return !id_vars.count(it->identified_molecule_var);
                      });
 
     // remove molecule-query matches based on query match groups:
@@ -720,19 +720,20 @@ namespace OpenMS
       for (const auto& match : query_matches_)
       {
         data_query_lookup_.insert(match.data_query_ref);
-        IdentificationData::MoleculeType molecule_type =
-          match.getMoleculeType();
-        if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+        const IdentifiedMolecule& molecule_var = match.identified_molecule_var;
+        switch (molecule_var.getMoleculeType())
         {
-          identified_peptide_lookup_.insert(match.getIdentifiedPeptideRef());
-        }
-        else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
-        {
-          identified_compound_lookup_.insert(match.getIdentifiedCompoundRef());
-        }
-        else if (molecule_type == IdentificationData::MoleculeType::RNA)
-        {
-          identified_oligo_lookup_.insert(match.getIdentifiedOligoRef());
+          case IdentificationData::MoleculeType::PROTEIN:
+            identified_peptide_lookup_.insert(molecule_var.getIdentifiedPeptideRef());
+            break;
+          case IdentificationData::MoleculeType::COMPOUND:
+            identified_compound_lookup_.insert(molecule_var.getIdentifiedCompoundRef());
+            break;
+          case IdentificationData::MoleculeType::RNA:
+            identified_oligo_lookup_.insert(molecule_var.getIdentifiedOligoRef());
+            break;
+          default: // shouldn't happen
+            break;
         }
       }
       removeFromSetIfNotHashed_(data_queries_, data_query_lookup_);
@@ -1008,23 +1009,24 @@ namespace OpenMS
     for (QueryMatchRef other_ref = other.getMoleculeQueryMatches().begin();
          other_ref != other.getMoleculeQueryMatches().end(); ++other_ref)
     {
-      IdentifiedMoleculeRef molecule_ref;
-      switch (other_ref->getMoleculeType())
+      IdentifiedMolecule molecule_var;
+      const IdentifiedMolecule& other_var = other_ref->identified_molecule_var;
+      switch (other_var.getMoleculeType())
       {
         case MoleculeType::PROTEIN:
-          molecule_ref = peptide_refs[other_ref->getIdentifiedPeptideRef()];
+          molecule_var = peptide_refs[other_var.getIdentifiedPeptideRef()];
           break;
         case MoleculeType::COMPOUND:
-          molecule_ref = compound_refs[other_ref->getIdentifiedCompoundRef()];
+          molecule_var = compound_refs[other_var.getIdentifiedCompoundRef()];
           break;
         case MoleculeType::RNA:
-          molecule_ref = oligo_refs[other_ref->getIdentifiedOligoRef()];
+          molecule_var = oligo_refs[other_var.getIdentifiedOligoRef()];
           break;
         default: // avoid compiler warning
           break;
       }
       DataQueryRef query_ref = query_refs[other_ref->data_query_ref];
-      MoleculeQueryMatch copy(molecule_ref, query_ref, other_ref->charge);
+      MoleculeQueryMatch copy(molecule_var, query_ref, other_ref->charge);
       for (const auto& pair : other_ref->peak_annotations)
       {
         boost::optional<ProcessingStepRef> opt_ref;

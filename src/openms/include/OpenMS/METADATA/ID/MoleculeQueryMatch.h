@@ -34,15 +34,14 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/ID/DataQuery.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
-#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
-#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
+#include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
-#include <boost/variant.hpp>
 
 namespace OpenMS
 {
@@ -53,13 +52,10 @@ namespace OpenMS
     typedef std::map<boost::optional<ProcessingStepRef>,
                      PeakAnnotations> PeakAnnotationSteps;
 
-    typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
-                           IdentifiedOligoRef> IdentifiedMoleculeRef;
-
     /// Representation of a search hit (e.g. peptide-spectrum match).
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
-      IdentifiedMoleculeRef identified_molecule_ref;
+      IdentifiedMolecule identified_molecule_var;
 
       DataQueryRef data_query_ref;
 
@@ -70,87 +66,18 @@ namespace OpenMS
       PeakAnnotationSteps peak_annotations;
 
       explicit MoleculeQueryMatch(
-        IdentifiedMoleculeRef identified_molecule_ref,
+        IdentifiedMolecule identified_molecule_var,
         DataQueryRef data_query_ref, Int charge = 0,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
-        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()
-      )
-        : ScoredProcessingResult(steps_and_scores),
-          identified_molecule_ref(identified_molecule_ref),
-          data_query_ref(data_query_ref), charge(charge),
-          peak_annotations(peak_annotations)
+        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
+        ScoredProcessingResult(steps_and_scores),
+        identified_molecule_var(identified_molecule_var),
+        data_query_ref(data_query_ref), charge(charge),
+        peak_annotations(peak_annotations)
       {
       }
 
       MoleculeQueryMatch(const MoleculeQueryMatch&) = default;
-
-      MoleculeType getMoleculeType() const
-      {
-        if (boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
-        {
-          return MoleculeType::PROTEIN;
-        }
-        if (boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
-        {
-          return MoleculeType::COMPOUND;
-        }
-        if (boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
-        {
-          return MoleculeType::RNA;
-        }
-        return MoleculeType::SIZE_OF_MOLECULETYPE; // this shouldn't happen
-      }
-
-      IdentifiedPeptideRef getIdentifiedPeptideRef() const
-      {
-        if (const IdentifiedPeptideRef* ref_ptr =
-            boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not a peptide";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      IdentifiedCompoundRef getIdentifiedCompoundRef() const
-      {
-        if (const IdentifiedCompoundRef* ref_ptr =
-            boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not a compound";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      IdentifiedOligoRef getIdentifiedOligoRef() const
-      {
-        if (const IdentifiedOligoRef* ref_ptr =
-            boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
-        {
-          return *ref_ptr;
-        }
-        String msg = "matched molecule is not an oligonucleotide";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-
-      String getMoleculeAsString() const
-      {
-        switch (getMoleculeType())
-        {
-        case MoleculeType::PROTEIN:
-          return getIdentifiedPeptideRef()->sequence.toString();
-        case MoleculeType::COMPOUND:
-          return getIdentifiedCompoundRef()->identifier; // or use "name"?
-        case MoleculeType::RNA:
-          return getIdentifiedOligoRef()->sequence.toString();
-        default:
-          return "";
-        }
-      }
 
       MoleculeQueryMatch& operator+=(const MoleculeQueryMatch& other)
       {
@@ -172,9 +99,10 @@ namespace OpenMS
             boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
                                        &MoleculeQueryMatch::data_query_ref>,
             boost::multi_index::member<
-              MoleculeQueryMatch, IdentifiedMoleculeRef,
-              &MoleculeQueryMatch::identified_molecule_ref>>>>
+              MoleculeQueryMatch, IdentifiedMolecule,
+              &MoleculeQueryMatch::identified_molecule_var>>>>
       > MoleculeQueryMatches;
+
     typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
 
   }

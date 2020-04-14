@@ -191,7 +191,7 @@ private:
         IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores,
         std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+        std::map<IdentificationData::IdentifiedMolecule, bool>& molecule_to_decoy,
         std::map<IdentificationData::QueryMatchRef, double>& match_to_score) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
@@ -217,4 +217,3 @@ private:
   };
 
 } // namespace OpenMS
-

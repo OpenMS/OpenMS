@@ -271,7 +271,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
       std::unordered_map<Key, IdentificationData::DataQueryRef> data_query_refs_;
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
-      std::unordered_map<Key, IdentificationData::IdentifiedMoleculeRef> identified_molecule_refs_;
+      std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::QueryMatchRef> query_match_refs_;
     };
 
