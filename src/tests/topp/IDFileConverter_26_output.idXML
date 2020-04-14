@@ -87,7 +87,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.0554089e-08"/>
 				<UserParam type="float" name="MS:1002053" value="0.22233067"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="451.259857177734"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1626"/>
@@ -103,7 +103,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.3762788e-08"/>
 				<UserParam type="float" name="MS:1002053" value="0.2952743"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="689.852661132812"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="94"/>
@@ -119,7 +119,7 @@
 				<UserParam type="float" name="MS:1002052" value="2.7136423e-07"/>
 				<UserParam type="float" name="MS:1002053" value="5.716513"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="499.252014160156"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="18"/>
@@ -135,7 +135,7 @@
 				<UserParam type="float" name="MS:1002052" value="8.2252217e-07"/>
 				<UserParam type="float" name="MS:1002053" value="16.240004"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="387.197540283203"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="448"/>
@@ -151,7 +151,7 @@
 				<UserParam type="float" name="MS:1002052" value="8.476001e-07"/>
 				<UserParam type="float" name="MS:1002053" value="17.61635"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="433.723114013672"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="177"/>
@@ -167,7 +167,7 @@
 				<UserParam type="float" name="MS:1002052" value="8.7567236e-07"/>
 				<UserParam type="float" name="MS:1002053" value="18.199797"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="410.692626953125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="41"/>
@@ -183,7 +183,7 @@
 				<UserParam type="float" name="MS:1002052" value="8.780003e-07"/>
 				<UserParam type="float" name="MS:1002053" value="18.495808"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="471.747406005859"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="37"/>
@@ -199,7 +199,7 @@
 				<UserParam type="float" name="MS:1002052" value="9.174196e-07"/>
 				<UserParam type="float" name="MS:1002053" value="19.591503"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="575.804321289062"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="438"/>
@@ -215,7 +215,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.293976e-06"/>
 				<UserParam type="float" name="MS:1002053" value="27.47222"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="557.303771972656"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="332"/>
@@ -231,7 +231,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.3071013e-06"/>
 				<UserParam type="float" name="MS:1002053" value="28.043257"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="646.85400390625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1981"/>
@@ -247,7 +247,7 @@
 				<UserParam type="float" name="MS:1002052" value="2.3158323e-06"/>
 				<UserParam type="float" name="MS:1002053" value="48.784935"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="522.249389648438"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1415"/>
@@ -263,7 +263,7 @@
 				<UserParam type="float" name="MS:1002052" value="4.096956e-06"/>
 				<UserParam type="float" name="MS:1002053" value="86.9819"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="542.828491210938"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="361"/>
@@ -279,7 +279,7 @@
 				<UserParam type="float" name="MS:1002052" value="4.1651015e-06"/>
 				<UserParam type="float" name="MS:1002053" value="86.56663"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="457.19775390625"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="1358"/>
@@ -295,7 +295,7 @@
 				<UserParam type="float" name="MS:1002052" value="4.1952444e-06"/>
 				<UserParam type="float" name="MS:1002053" value="89.06864"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="536.234008789062"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="37"/>
@@ -311,7 +311,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.0327638e-05"/>
 				<UserParam type="float" name="MS:1002053" value="221.57472"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="717.789733886719"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="709"/>
@@ -327,7 +327,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.2744677e-05"/>
 				<UserParam type="float" name="MS:1002053" value="264.88278"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="466.219879150391"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="488"/>
@@ -340,7 +340,7 @@
 				<UserParam type="float" name="MS:1002052" value="1.2744677e-05"/>
 				<UserParam type="float" name="MS:1002053" value="251.63284"/>
 				<UserParam type="string" name="AssumedDissociationMethod" value="CID"/>
-				<UserParam type="string" name="IsotopeError" value="0"/>
+				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="float" name="calcMZ" value="466.217956542969"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="241"/>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,6 +77,12 @@ namespace OpenMS
     /// Calculate quality of model fit (mean relative error)
     double calculateFitQuality_(const TraceFitter* fitter, 
                                 const MassTraces& traces);
+
+    /// Helper function to fit (and validate) a model for one set of mass traces
+    void fitAndValidateModel_(TraceFitter* fitter, MassTraces& traces,
+                              Feature& feature, double region_start,
+                              double region_end, bool asymmetric,
+                              double area_limit, double check_boundaries);
   };
 }
 

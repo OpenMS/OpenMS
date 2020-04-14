@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -117,7 +117,7 @@ macro(add_mac_app_bundle _name)
 			## Note: Signing identity has to be unique, and present in any of the keychains in search list
 			## which needs to be unlocked. Play around with keychain argument otherwise.
                    install(CODE "
-execute_process(COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+execute_process(COMMAND codesign --deep --force --options runtime --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
 message('\${sign_out}')" COMPONENT BApplications)
 
                    install(CODE "

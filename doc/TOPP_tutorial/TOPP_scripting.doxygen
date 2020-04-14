@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,9 @@
 
         @section TOPP_example_qualitycontrol_section Quality Control
 
-        @b Goal: Check the quality of the data (currently, on label-free workflow data is supported).
+        @b Goal: Check the quality of the data (supports label-free workflows and @ref TOPP_IsobaricAnalyzer output).
 
-        The QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
+        The @ref TOPP_QualityControl TOPP tool computes and collects data which allow to compute QC metrics to check the quality of LC-MS data.
         Depending on the given input data this tool collects data for metrics (see section 'Metrics' below).
         New metavalues will be added to existing data and the information will be written out in mzTab format.
         This mzTab file can then be processed using your custom scripts or
@@ -53,7 +53,8 @@
         @image latex TOPP_qualitycontrol.png "" width=10cm
         
         An example workflow can be found in OpenMS/share/OpenMS/examples/TOPPAS/QualityControl.toppas.
-
+				
+		For data from @ref TOPP_IsobaricAnalyzer, just provide the consensusXML as input to @ref TOPP_QualityControl. No FeatureXMLs or TrafoXMLs are required. The mzML raw file can be added as input though.
 
         @section  TOPP_example_qualitycontrol_section3 Metrics
         This Table shows what each of the included metrics does, what they need to be executed and what they add to
@@ -206,7 +207,7 @@
                    <ul>
                    <li>Number of PeptideIdentifications</li>
                    <li>Number of MS2 spectra</li>
-                   <li>Ratio of #pepID/#MS2</li>
+                   <li>Ratio of \#pepID/\#MS2</li>
                    </ul>
               </TD>
         </TR>
@@ -461,6 +462,12 @@
 	whose name did not change into the new version by using our @subpage UTILS_INIUpdater tool by
 	calling it with (a list of) outdated INI and/or TOPPAS files. See the INIUpdater tool description for details.
 	This will remove invalid parameters and	add new parameters (if available) while retaining values for unchanged parameters.
+  As an alternative to the INIUpdater, you can use the commandline by calling the TOPP tool from which the ini originated and combining '-write_ini' and '-ini'. 
+  E.g.
+		@code
+FileInfo -ini old_fi.ini -write_ini fi.ini
+		@endcode
+  This will transfer all values of parameters from 'old_fi.ini' which are still valid  to the 'fi.ini'.
 
 		@subsection TOPP_parameter_structure General structure of an INI file
 		

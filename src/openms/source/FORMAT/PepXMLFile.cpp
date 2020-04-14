@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -272,7 +272,7 @@ namespace OpenMS
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
         PeptideHit h = *hit;
-        AASequence seq = h.getSequence();
+        const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
         int scan_index = count;

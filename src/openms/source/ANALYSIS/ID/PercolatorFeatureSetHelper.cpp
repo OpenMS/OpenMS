@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 
 using namespace std;
@@ -46,7 +47,7 @@ namespace OpenMS
       feature_set.push_back("MSGF:ScoreRatio");
       feature_set.push_back("MSGF:Energy");
       feature_set.push_back("MSGF:lnEValue");
-      feature_set.push_back("IsotopeError"); // unchanged IsotopeError
+      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
       feature_set.push_back("MSGF:lnExplainedIonCurrentRatio");
       feature_set.push_back("MSGF:lnNTermIonCurrentRatio");
       feature_set.push_back("MSGF:lnCTermIonCurrentRatio");

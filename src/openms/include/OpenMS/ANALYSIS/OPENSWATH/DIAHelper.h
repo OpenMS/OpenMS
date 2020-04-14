@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ namespace OpenMS
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, 
+                                         std::vector<std::pair<double, double> >& isotopesSpec,
                                          const double charge = 1.,
                                          const int nr_isotopes = 4,
                                          const double mannmass = 1.00048);

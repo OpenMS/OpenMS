@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -325,13 +325,16 @@ namespace OpenMS
 
   void Spectrum1DWidget::saveAsImage()
   {
-    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)");
+    QString filter = "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)";
+    QString sel_filter;
+    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", filter, &sel_filter);
+    
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
     y_scrollbar_->hide();
 
-    if (file_name.contains(".svg", Qt::CaseInsensitive)) // svg vector format
+    if (sel_filter.contains(".svg", Qt::CaseInsensitive)) // svg vector format
     {
       QSvgGenerator generator;
       generator.setFileName(file_name);

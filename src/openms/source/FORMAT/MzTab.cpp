@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -2495,14 +2495,14 @@ Not sure how to handle these:
       }
       else
       {
-        if (it->metaValueExists("map_index"))
+        if (it->metaValueExists("id_merge_index"))
         {
-          msfile_index = map_run_fileidx_2_msfileidx[{run_index, it->getMetaValue("map_index")}];
+          msfile_index = map_run_fileidx_2_msfileidx[{run_index, it->getMetaValue("id_merge_index")}];
         }
         else
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                              "Multiple files in a run, but no map_index in PeptideIdentification found.");
+                                              "Multiple files in a run, but no id_merge_index in PeptideIdentification found.");
         }
       }
 
@@ -3084,7 +3084,7 @@ Not sure how to handle these:
           StringList filenames;
           prot_ids[spec_run_index].getPrimaryMSRunPath(filenames);
           size_t msfile_index(0);
-          size_t map_index(0);
+          size_t id_merge_index(0);
           //TODO synchronize information from ID structures and quant structures somehow.
           // e.g. this part of the code now parses the ID information.
           // This is done because in IsobaricLabelling there is only one ID Run for the different labels
@@ -3094,15 +3094,15 @@ Not sure how to handle these:
           }
           else
           {
-            if (pep.metaValueExists("map_index"))
+            if (pep.metaValueExists("id_merge_index"))
             {
-              map_index = pep.getMetaValue("map_index");
-              msfile_index = map_run_fileidx_2_msfileidx[{spec_run_index, map_index}];
+              id_merge_index = pep.getMetaValue("id_merge_index");
+              msfile_index = map_run_fileidx_2_msfileidx[{spec_run_index, id_merge_index}];
             }
             else
             {
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Multiple files in a run, but no map_index in PeptideIdentification found.");
+                                                  "Multiple files in a run, but no id_merge_index in PeptideIdentification found.");
             }
           }
 

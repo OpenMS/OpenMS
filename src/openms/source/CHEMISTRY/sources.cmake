@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY)
 set(sources_list
 AASequence.cpp
 CrossLinksDB.cpp
+DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -613,7 +613,18 @@ protected:
     
     for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
-      Size scan_idx = lookup.findByRT(pep_id->getRT());
+      Size scan_idx;
+      const String& ID_native_ids = pep_id->getMetaValue("spectrum_reference");
+      try
+      {
+        scan_idx = lookup.findByNativeID(ID_native_ids);
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        // fall-back if native ids are missing
+        writeLog_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
+        scan_idx = lookup.findByRT(pep_id->getRT());
+      }
 
       vector<PeptideHit> scored_peptides;
       if (!pep_id->getHits().empty())
@@ -670,3 +681,5 @@ int main(int argc, const char** argv)
   LuciphorAdapter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

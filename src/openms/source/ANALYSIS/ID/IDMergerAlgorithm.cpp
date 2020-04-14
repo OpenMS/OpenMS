@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -204,14 +204,14 @@ namespace OpenMS
         */
       }
 
-      bool annotated = pid.metaValueExists("map_index");
+      bool annotated = pid.metaValueExists("id_merge_index");
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("map_index");
+          oldFileIdx = pid.getMetaValue("id_merge_index");
         }
         else if (origins.size() > 1)
         {
@@ -221,9 +221,9 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
-              "no old map_index present");
+              "no old id_merge_index present");
         }
 
         if (oldFileIdx >= origins.size())
@@ -232,11 +232,11 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("map_index", file_origin_to_idx_[origins[oldFileIdx]]);
+        pid.setMetaValue("id_merge_index", file_origin_to_idx_[origins[oldFileIdx]]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector
@@ -348,13 +348,13 @@ namespace OpenMS
 
       }
 
-      bool annotated = pid.metaValueExists("map_index");
+      bool annotated = pid.metaValueExists("id_merge_index");
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("map_index");
+          oldFileIdx = pid.getMetaValue("id_merge_index");
         }
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
@@ -364,11 +364,11 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
-              "no old map_index present");
+              "no old id_merge_index present");
         }
-        pid.setMetaValue("map_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
+        pid.setMetaValue("id_merge_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       for (auto &phit : pid.getHits())
@@ -405,73 +405,19 @@ namespace OpenMS
 
   bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const
   {
-    const String& engine = ref.getSearchEngine();
-    const String& version = ref.getSearchEngineVersion();
-    ProteinIdentification::SearchParameters params = ref.getSearchParameters();
-    set<String> fixed_mods(params.fixed_modifications.begin(), params.fixed_modifications.end());
-    set<String> var_mods(params.variable_modifications.begin(), params.variable_modifications.end());
-    bool ok = false;
-    unsigned runID = 0;
-    //TODO if one equals the ref, continue
+    bool ok = true;
     for (const auto& idRun : protRuns)
     {
-      ok = true;
-      if (idRun.getSearchEngine() != engine || idRun.getSearchEngineVersion() != version)
-      {
-        ok = false;
-       OPENMS_LOG_WARN << "Search engine " + idRun.getSearchEngine() + " from IDRun " + String(runID) + " does not match "
-        "with the others. You probably do not want to merge the results with this tool." << std::endl;
-        break;
-      }
-      const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
-      if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
-          params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
-          params.db != sp.db ||
-          params.db_version != sp.db_version ||
-          params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
-          params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
-          params.charges != sp.charges ||
-          params.digestion_enzyme != sp.digestion_enzyme ||
-          params.taxonomy != sp.taxonomy)
-      {
-        ok = false;
-       OPENMS_LOG_WARN << "Searchengine settings from IDRun " + String(runID) + " does not match with the others."
-        " You probably do not want to merge the results with this tool if they differ significantly." << std::endl;
-        break;
-      }
-
-      set<String> curr_fixed_mods(sp.fixed_modifications.begin(), sp.fixed_modifications.end());
-      set<String> curr_var_mods(sp.variable_modifications.begin(), sp.variable_modifications.end());
-      if (fixed_mods != curr_fixed_mods ||
-          var_mods != curr_var_mods)
-      {
-        if (experiment_type != "labeled_MS1")
-        {
-          ok = false;
-         OPENMS_LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
-          " Since the experiment is not annotated as MS1-labeled "
-          "you probably do not want to merge the results with this tool." << std::endl;
-          break;
-        }
-        else
-        {
-          //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
-          //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
-          //TODO actually you would probably need an experimental design here, because
-          //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
-         OPENMS_LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
-          " Although it seems to be an MS1-labeled experiment,"
-          " check carefully that only non-labelling mods differ." << std::endl;
-        }
-      }
+      // collect warnings and throw at the end if at least one failed
+      ok = ok && ref.peptideIDsMergeable(idRun, experiment_type);
     }
     if (!ok /*&& TODO and no force flag*/)
     {
       throw Exception::MissingInformation(__FILE__,
-                                     __LINE__,
-                                     OPENMS_PRETTY_FUNCTION,
-                                     "Search settings are not matching across IdentificationRuns. "
-                                     "See warnings. Aborting..");
+                                          __LINE__,
+                                          OPENMS_PRETTY_FUNCTION,
+                                          "Search settings are not matching across IdentificationRuns. "
+                                          "See warnings. Aborting..");
     }
     return ok;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -647,7 +647,6 @@ protected:
           number_features += nfeatures;
           number_features_with_id += csize * nc_with_id;
           number_cons_features_with_id += nc_with_id;
-          number_cons_features_with_id += i->first * nc_with_id;
 
           os << "  of size " << setw(field_width) << csize << ": " << i->second 
              << "\t (features: " << nfeatures << " )"

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 
+
 // #define DEBUG_READER
 
 namespace OpenMS
@@ -56,12 +57,26 @@ namespace Internal
       parsing_success_ = false;
       return;
     }
-    int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets_, chromatograms_offsets_);
+
+
+    // typedef std::vector< std::pair<std::string, std::streampos> > OffsetVector;
+    IndexedMzMLDecoder::OffsetVector spectra_offsets, chromatograms_offsets;
+    int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets, chromatograms_offsets);
+    for (const auto& off : spectra_offsets)
+    {
+      spectra_native_ids_.emplace(off.first, spectra_offsets_.size());
+      spectra_offsets_.push_back(off.second);
+    }
+    for (const auto& off : chromatograms_offsets)
+    {
+      chromatograms_native_ids_.emplace(off.first, chromatograms_offsets_.size());
+      chromatograms_offsets_.push_back(off.second);
+    }
 
     spectra_before_chroms_ = true;
     if (!spectra_offsets_.empty() && !chromatograms_offsets_.empty())
     {
-      if (spectra_offsets_[0].second < chromatograms_offsets_[0].second) spectra_before_chroms_ = true;
+      if (spectra_offsets_[0] < chromatograms_offsets_[0]) spectra_before_chroms_ = true;
       else spectra_before_chroms_ = false;
     }
 
@@ -151,7 +166,7 @@ namespace Internal
 
     if (chromToGet == int(getNrChromatograms() - 1))
     {
-      startidx = chromatograms_offsets_[chromToGet].second;
+      startidx = chromatograms_offsets_[chromToGet];
       if (spectra_offsets_.empty() || spectra_before_chroms_)
       {
         // just take everything until the index starts
@@ -160,13 +175,13 @@ namespace Internal
       else
       {
         // just take everything until the chromatograms start
-        endidx = spectra_offsets_[0].second;
+        endidx = spectra_offsets_[0];
       }
     }
     else
     {
-      startidx = chromatograms_offsets_[chromToGet].second;
-      endidx = chromatograms_offsets_[chromToGet + 1].second;
+      startidx = chromatograms_offsets_[chromToGet];
+      endidx = chromatograms_offsets_[chromToGet + 1];
     }
 
     std::streampos readl = endidx - startidx;
@@ -211,7 +226,7 @@ namespace Internal
 
     if (spectrumToGet == int(getNrSpectra() - 1))
     {
-      startidx = spectra_offsets_[spectrumToGet].second;
+      startidx = spectra_offsets_[spectrumToGet];
       if (chromatograms_offsets_.empty() || !spectra_before_chroms_)
       {
         // just take everything until the index starts
@@ -220,13 +235,13 @@ namespace Internal
       else
       {
         // just take everything until the chromatograms start
-        endidx = chromatograms_offsets_[0].second;
+        endidx = chromatograms_offsets_[0];
       }
     }
     else
     {
-      startidx = spectra_offsets_[spectrumToGet].second;
-      endidx = spectra_offsets_[spectrumToGet + 1].second;
+      startidx = spectra_offsets_[spectrumToGet];
+      endidx = spectra_offsets_[spectrumToGet + 1];
     }
 
     std::streampos readl = endidx - startidx;
@@ -260,6 +275,16 @@ namespace Internal
     return s;
   }
 
+  void IndexedMzMLHandler::getMSSpectrumByNativeId(std::string id, MSSpectrum& s)
+  {
+    if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String( "Could not find spectrum id " + String(id) ));
+    }
+    getMSSpectrumById(spectra_native_ids_[id], s);
+  }
+
   void IndexedMzMLHandler::getMSSpectrumById(int id, MSSpectrum& s)
   {
     std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
@@ -280,6 +305,17 @@ namespace Internal
     getMSChromatogramById(id, c);
     return c;
   }
+
+  void IndexedMzMLHandler::getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c)
+  {
+    if (chromatograms_native_ids_.find(id) == chromatograms_native_ids_.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String( "Could not find chromatogram id " + String(id) ));
+    }
+    getMSChromatogramById(chromatograms_native_ids_[id], c);
+  }
+  // const OpenMS::MSChromatogram IndexedMzMLHandler::getMSChromatogramById(int id)
 
   void IndexedMzMLHandler::getMSChromatogramById(int id, MSChromatogram& c)
   {
