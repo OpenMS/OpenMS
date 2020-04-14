@@ -1269,6 +1269,35 @@ namespace OpenMS
     return tmp;
   }
 
+  void TOPPBase::fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const
+  {
+    // check if all input files are readable
+    if (p.type == ParameterInformation::INPUT_FILE_LIST)
+    {
+      for (String t : param_value)
+      {
+        inputFileReadable_(t, param_name);
+
+        // check restrictions
+        if (p.valid_strings.empty()) continue;
+
+        // determine file type as string
+        FileTypes::Type f_type = FileHandler::getType(t);
+        // unknown ending is 'ok'
+        if (f_type == FileTypes::UNKNOWN)
+        {
+          writeLog_("Warning: Could not determine format of input file '" + t + "'!");
+        }
+        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Input file '" + t + "' has invalid format '") + FileTypes::typeToName(f_type) +
+            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+        }
+      }
+    }
+  }
+
   void TOPPBase::fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
@@ -1366,13 +1395,14 @@ namespace OpenMS
     for (String& tmp : tmp_list)
     {
       writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-
-      // if required or set by user, do some validity checks
-      if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
-      {
-        fileParamValidityCheck_(tmp, name, p);
-      }
     }
+
+    // if required or set by user, do some validity checks
+    if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
+    {
+      fileParamValidityCheck_(tmp_list, name, p);
+    }
+
     return tmp_list;
   }
 
