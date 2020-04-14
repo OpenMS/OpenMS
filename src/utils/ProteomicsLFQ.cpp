@@ -286,10 +286,40 @@ protected:
   }
 
   // Map between mzML file and corresponding id file
-  // Here we currently assume that these are provided in the exact same order.
-  // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
+  // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
   {
+    if (in.size() != in_ids.size())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
+    }
+    
+    // Detect the common case that ID files have same names as spectra files
+    {
+      // Collect unique set of basenames
+      set<String> in_bns;
+      set<String> id_bns;
+      bool bn_differ = false;
+      for (Size i = 0; i != in.size(); ++i)
+      {
+        const String& in_bn = File::removeExtension(File::basename(in[i]));
+        const String& id_bn = File::removeExtension(File::basename(in_ids[i]));
+        in_bns.insert(in_bn);
+        id_bns.insert(id_bn);
+        if (in_bn != id_bn) { bn_differ = true; }
+      }
+      bool same_basenames = (in_bns == id_bns); // check if the sets of basenames are identical
+
+      // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
+      if (same_basenames && bn_differ) 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
+      }
+    }
+    // TODO: another sanity check could be to compare primaryMSRunPaths
+
     map<String, String> mzfile2idfile;
     for (Size i = 0; i != in.size(); ++i)
     {
@@ -1094,24 +1124,11 @@ protected:
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
 
-    // TODO: move these checks to TOPPBase?
-    for (auto & s : in) 
-    { 
-      if (!File::exists(s)) 
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s);
-    }
-
-    for (auto & s : in_ids) 
-    { 
-      if (!File::exists(s)) 
-        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s);
-    }
-
     // Validate parameters
     if (in.size() != in_ids.size())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Number of id and spectra files don't match.");
+      throw Exception::FileNotFound(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
 
     //-------------------------------------------------------------
@@ -1121,9 +1138,47 @@ protected:
     if (!design_file.empty())
     { // load from file
       design = ExperimentalDesignFile::load(design_file, false);
+      // some sanity checks
+      if (design.getNumberOfLabels() != 1)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Experimental design is not label-free as it contains multiple labels.");          
+      }
+      if (!design.sameNrOfMSFilesPerFraction())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Different number of fractions for different samples provided. This is currently not supported by ProteomicsLFQ.");          
+      }
+      
+      // extract basenames from experimental design and input files
+      const auto& pl2fg = design.getPathLabelToFractionGroupMapping(true);      
+      set<String> ed_basenames;
+      for (const auto& p : pl2fg)
+      {
+        const String& filename = p.first.first;
+        ed_basenames.insert(filename);
+      }
+
+      set<String> in_basenames;
+      for (Size i = 0; i != in.size(); ++i)
+      {
+        const String& in_bn = File::basename(in[i]);
+        in_basenames.insert(in_bn);
+      }
+
+      if (ed_basenames != in_basenames)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Spectra files provided as input need to match the ones in the experimental design file.");          
+      }
     }
     else
-    {  // default to unfractionated design
+    { 
+      OPENMS_LOG_INFO << "No experimental design file provided.\n"
+                      << "Assuming a label-free experiment without fractionation.\n"
+                      << endl;
+
+      // default to unfractionated design
       ExperimentalDesign::MSFileSection msfs;
       Size count{1};
       for (String & s : in)
@@ -1151,7 +1206,6 @@ protected:
 
     // Map between mzML file and corresponding id file
     // Here we currently assume that these are provided in the exact same order.
-    // TODO: we should warn or reorder them based on the annotated primaryMSRunPath in the ID file.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
     map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
