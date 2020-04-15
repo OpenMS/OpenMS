@@ -204,13 +204,8 @@ protected:
         }
 
 
-        std::vector<MSSpectrum>& exp_spectra = exp.getSpectra();
         ThresholdMower threshold_mower;
-
-        for (Size i = 0; i < exp_spectra.size(); ++i) {
-            threshold_mower.filterSpectrum(exp_spectra[i]);
-        }
-
+        threshold_mower.filterPeakMap(exp);
 
 
         //load seeds
