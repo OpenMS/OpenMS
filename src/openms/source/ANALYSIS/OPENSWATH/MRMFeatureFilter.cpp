@@ -672,8 +672,7 @@ namespace OpenMS
                 initRange(rt,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
-              }
-              else {
+              } else {
                 updateRange(rt,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_l,
                   filter_template.component_group_qcs.at(cg_qc_it).retention_time_u);
@@ -684,8 +683,7 @@ namespace OpenMS
                 initRange(intensity,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
-              }
-              else {
+              } else {
                 updateRange(intensity,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_l,
                   filter_template.component_group_qcs.at(cg_qc_it).intensity_u);
@@ -696,8 +694,7 @@ namespace OpenMS
                 initRange(quality,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
-              }
-              else {
+              } else {
                 updateRange(quality,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_l,
                   filter_template.component_group_qcs.at(cg_qc_it).overall_quality_u);
@@ -723,8 +720,7 @@ namespace OpenMS
                 initRange(labels_and_transition_types["n_transitions"],
                   filter_template.component_group_qcs.at(cg_qc_it).n_transitions_l,
                   filter_template.component_group_qcs.at(cg_qc_it).n_transitions_u);
-              }
-              else {
+              } else {
                 updateRange(labels_and_transition_types["n_heavy"],
                   filter_template.component_group_qcs.at(cg_qc_it).n_heavy_l,
                   filter_template.component_group_qcs.at(cg_qc_it).n_heavy_u);
@@ -760,8 +756,7 @@ namespace OpenMS
                     initRange(ion_ratio,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
-                  }
-                  else {
+                  } else {
                     updateRange(ion_ratio,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_l,
                       filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_u);
@@ -774,8 +769,7 @@ namespace OpenMS
                 bool metavalue_exists{ false };
                 if (sample_it == 0 && init_template_values) {
                   updateMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
-                }
-                else {
+                } else {
                   initMetaValue(samples.at(sample_it).at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
                 }
               }
@@ -793,8 +787,7 @@ namespace OpenMS
                 initRange(rt,
                   filter_template.component_qcs.at(c_qc_it).retention_time_l,
                   filter_template.component_qcs.at(c_qc_it).retention_time_u);
-              }
-              else {
+              } else {
                 updateRange(rt,
                   filter_template.component_qcs.at(c_qc_it).retention_time_l,
                   filter_template.component_qcs.at(c_qc_it).retention_time_u);
@@ -806,8 +799,7 @@ namespace OpenMS
                 initRange(intensity,
                   filter_template.component_qcs.at(c_qc_it).intensity_l,
                   filter_template.component_qcs.at(c_qc_it).intensity_u);
-              }
-              else {
+              } else {
                 updateRange(intensity,
                   filter_template.component_qcs.at(c_qc_it).intensity_l,
                   filter_template.component_qcs.at(c_qc_it).intensity_u);
@@ -819,8 +811,7 @@ namespace OpenMS
                 initRange(quality,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_l,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_u);
-              }
-              else {
+              } else {
                 updateRange(quality,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_l,
                   filter_template.component_qcs.at(c_qc_it).overall_quality_u);
@@ -832,8 +823,7 @@ namespace OpenMS
                 bool metavalue_exists{ false };
                 if (sample_it == 0 && init_template_values) {
                   initMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
-                }
-                else {
+                } else {
                   updateMetaValue(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), kv.first, kv.second.first, kv.second.second, metavalue_exists);
                 }
               }
@@ -916,8 +906,7 @@ namespace OpenMS
       if (label_type == "Heavy")
       {
         ++n_heavy;
-      }
-      else if (label_type == "Light")
+      } else if (label_type == "Light")
       {
         ++n_light;
       }
@@ -999,14 +988,11 @@ namespace OpenMS
   ) const
   {
     bool check = true;
-    if (component.metaValueExists(meta_value_key))
-    {
+    if (component.metaValueExists(meta_value_key)) {
       key_exists = true;
       const double meta_value = (double)component.getMetaValue(meta_value_key);
       check = checkRange(meta_value, meta_value_l, meta_value_u);
-    }
-    else
-    {
+    } else {
       key_exists = false;
       OPENMS_LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
     }
@@ -1459,8 +1445,7 @@ namespace OpenMS
     if (value >= T(0)) {
       value_l = T(0);
       value_u = value;
-    }
-    else {
+    } else {
       value_l = value;
       value_u = T(0);
     }

@@ -264,8 +264,7 @@ namespace OpenMS
       }
 
       CsvFile::store(filename);
-    }
-    else {
+    } else {
       // Store the ComponentQCs
       clear(); // clear the buffer_
 
