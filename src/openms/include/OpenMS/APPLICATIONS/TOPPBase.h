@@ -769,6 +769,18 @@ protected:
     void checkParam_(const Param& param, const String& filename, const String& location) const;
 
     /**
+      @brief checks if files of an input file list exist
+
+      Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
+      
+      @param param_value As given via commandline/ini/default
+      @param param_name Name of the parameter (key)
+      @param p All meta information for this param
+
+    */
+    void fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const;
+
+    /**
       @brief checks if an input file exists (respecting the flags)
 
       Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
@@ -778,12 +790,12 @@ protected:
       
       For OutputFile(s), it checks if the file is writeable.
 
-      @param filename ...as given via commandline/ini/default
+      @param param_value As given via commandline/ini/default
       @param param_name Name of the parameter (key)
       @param p All meta information for this param
 
     */
-    void fileParamValidityCheck_(String& filename, const String& param_name, const ParameterInformation& p) const;
+    void fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool
