@@ -549,13 +549,26 @@ protected:
       MapAlignmentAlgorithmIdentification aligner;
       aligner.setLogType(log_type_);
       aligner.setParameters(ma_param);
-      aligner.align(feature_maps, transformations, reference_index);
 
-      // find model parameters:
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type");
       model_params = model_params.copy(model_type + ":", true);
-      
+
+      try
+      {
+        aligner.align(feature_maps, transformations, reference_index);
+      }
+      catch (Exception::MissingInformation& err)
+      {
+        OPENMS_LOG_ERROR
+          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "\nProcessing will continue using 'identity' transformations."
+          << endl;
+        model_type = "identity";
+        transformations.resize(feature_maps.size());
+      }
+
+      // find model parameters (if model_type == "identity" the fit is a NOP):
       vector<TransformationDescription::TransformationStatistics> alignment_stats;
       for (TransformationDescription & t : transformations)
       {
