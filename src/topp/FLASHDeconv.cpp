@@ -121,7 +121,7 @@ protected:
     registerIntOption_("maxMC", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
     registerDoubleOption_("minIT", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
-    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 10 MS1 spectra within RT window)", false, true);
+    registerDoubleOption_("RTwindow", "<seconds>", 0.0, "RT window (if 0, 15 MS1 spectra within RT window)", false, true);
     registerDoubleOption_("minRTspan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeDetail",
                        "<1:true 0:false>",

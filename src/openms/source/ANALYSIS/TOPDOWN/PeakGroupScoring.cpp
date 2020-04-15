@@ -181,7 +181,7 @@ namespace OpenMS
                               int offset)
   {
     double n = .0, d1 = .0;
-    int c = 0;
+    //int c = 0;
     for (int j = aStart; j <= aEnd; j++)
     {
       d1 += a[j] * a[j];
@@ -190,13 +190,13 @@ namespace OpenMS
       {
         continue;
       }
-      c++;
+      //c++;
       n += a[j] * b[i].getIntensity(); //
     }
-    if (c < 2)
-    {
-      return 0;
-    }
+    //if (c < 2)
+    //{
+   //   return 0;
+    //}
     double d = (d1 * bNorm);
     if (d <= 0)
     {
@@ -536,7 +536,25 @@ namespace OpenMS
         auto dno = ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
         auto no = cos2 * sp;
 
+
+        /*if (no / dno<=0){
+          if (cos2 <=0){
+            for (int k = minIsotopeIndex; k <=maxIsotopeIndex ; ++k)
+            {
+              if (k > isoSize)
+              {
+                break;
+              }
+              std::cout<<perIsotopeIntensities[k]<<std::endl;
+            }
+            std::cout<<minIsotopeIndex << " * " << maxIsotopeIndex << std::endl;
+          }
+        }*/
+
         pg.perChargeSNR[j] = no / dno;
+
+
+
         totalNoise += dno;
         totalSignal += no;
 
@@ -557,7 +575,7 @@ namespace OpenMS
       //      return; //
       //    }
 
-      if(pg.totalSNR>0.1) //
+      if(pg.totalSNR>0.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }
@@ -570,8 +588,8 @@ namespace OpenMS
 
     removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
 
-    //(param.currentMaxMassCount); //
-    filterPeakGroupsByTotalSNR(param.currentMaxMassCount);
+    filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount); //
+
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
 
@@ -615,10 +633,14 @@ namespace OpenMS
   }
 
   double PeakGroupScoring::getPeakGroupScore(PeakGroup &pg){
-      return 0.0761 * log10(pg.intensity)
-       + 1.1278 * pg.isotopeCosineScore -0.002 *pg.maxSNRcharge +
-       0.2382 * log10(pg.maxSNR) +
-       -0.1794 * log10(pg.totalSNR);
+      return pg.isotopeCosineScore;
+
+
+
+     // 0.0761 * log10(pg.intensity)
+     //  + 1.1278 * pg.isotopeCosineScore -0.002 *pg.maxSNRcharge +
+    //   0.2382 * log10(pg.maxSNR) +
+    //   -0.1794 * log10(pg.totalSNR);
   }
 
   void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)

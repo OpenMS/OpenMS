@@ -81,7 +81,7 @@ namespace OpenMS
       int chargeRange;
       int currentChargeRange;
       DoubleList binWidth;
-      UInt minNumOverLappedScans = 10;
+      UInt minNumOverLappedScans = 15;
       std::vector<UInt> numOverlappedScans;
       int threads = 1;
       int writeDetail = 0;

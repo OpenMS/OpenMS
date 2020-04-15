@@ -237,7 +237,7 @@ namespace OpenMS
     auto *prevIntensities = new float[massBins.size()];
     std::fill_n(prevIntensities, massBins.size(), 1);
 
-    auto noise = new float *[hChargeSize];
+    auto noise = new float *[hChargeSize + 1];
     for (auto k = 0; k < hChargeSize + 1; k++)
     {
       noise[k] = new float[massBins.size()];
@@ -274,10 +274,9 @@ namespace OpenMS
         bool out = prevCharges[massBinIndex] - j != 1;
         bool hcheck = false;
 
-        if (msLevel != 1)
-        {
+        if (msLevel > 1){
           auto charge = j + param.minCharge;
-          //if (charge <= 6)
+          if (charge <= 8)
           {
             if (mz <= 0)
             {
@@ -291,6 +290,7 @@ namespace OpenMS
             if (nextIsoBin < mzBins.size() && mzBins[nextIsoBin] && intensity > mzIntensities[nextIsoBin])
             {
               isoIntensity = mzIntensities[nextIsoBin];
+              //continuousChargePeakPairCount[massBinIndex]++;
               hcheck = true;
             }
 
@@ -305,18 +305,19 @@ namespace OpenMS
                 lossIntensity = mzIntensities[waterAddBin];
               }
 
-              if (lossIntensity < intensity)
+              if (lossIntensity > 0 && lossIntensity < intensity)
               {
+                //continuousChargePeakPairCount[massBinIndex]++;
                 isoIntensity += lossIntensity;
               }
             }
           }
         }
 
-       // if (prevCharges[massBinIndex] < chargeRange && out && id < factor)
-       // {
-         // noise[hChargeSize][massBinIndex] += intensity;
-      //  }
+        if (prevCharges[massBinIndex] < chargeRange && out && id < factor)
+        {
+          noise[hChargeSize][massBinIndex] += intensity;
+        }
 
         if (out || id > factor)
         {
@@ -331,7 +332,7 @@ namespace OpenMS
         {
           int maxHcharge = -1;
           float maxHint = .0;
-         // auto highThreshold = intensity * factor;
+          auto highThreshold = intensity * factor;
           auto lowThreshold = intensity * factor2;// / factor;
           for (auto k = 0; k < hChargeSize; k++)
           {
@@ -340,8 +341,8 @@ namespace OpenMS
             {
               auto &hintensity = mzIntensities[hmzBinIndex];
               if (hintensity > lowThreshold
-               //   &&
-               //   hintensity < highThreshold
+                  &&
+                  hintensity < highThreshold
                   )
               {
                 if (hintensity < maxHint)
@@ -386,7 +387,7 @@ namespace OpenMS
       auto &s = massIntensitites[mindex];
       // auto msnr = s / (noise[0][mindex]);
       float maxNoise = .0;
-      for (auto k = 0; k < hChargeSize; k++)
+      for (auto k = 0; k <= hChargeSize; k++)
       {
         maxNoise = std::max(maxNoise, noise[k][mindex]);
         // msnr = min(snr, msnr);
@@ -397,7 +398,7 @@ namespace OpenMS
 
     delete[] prevIntensities;
     delete[] prevCharges;
-    for (auto k = 0; k < hChargeSize; k++)
+    for (auto k = 0; k <= hChargeSize; k++)
     {
       delete[] noise[k];
     }

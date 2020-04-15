@@ -263,7 +263,6 @@ namespace OpenMS
 
         if (msLevel > 1)
         {
-          //std::cout<<preCharge<<std::endl;
           pg.precursorCharge = preCharge;
           pg.precursorMonoMass = preMass;
           pg.precursorIntensity = preInt;
