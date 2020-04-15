@@ -812,7 +812,7 @@ protected:
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     set<String> id_basenames;
     set<String> in_basenames; 
-    bool different_basename = false;
+    bool different_basename_at_input_position = false;
 
     // for each MS file of current fraction
     Size fraction_group{1};
@@ -903,7 +903,7 @@ protected:
       // store basename of MS run stored in ID file for later comparison
       const String& id_primaryMSRun_bn = File::removeExtension(File::basename(id_msfile_ref[0]));
       id_basenames.insert(id_primaryMSRun_bn);
-      if (id_primaryMSRun_bn != in_bn) different_basename = true;
+      if (id_primaryMSRun_bn != in_bn) different_basename_at_input_position = true;
   
       // fix other problems like missing MS run path annotations
       if (id_msfile_ref.empty())
@@ -1083,7 +1083,7 @@ protected:
     // Check for common mistake that order of input files have been switched.
     // This is the case if basenames are identical but the order does not match.
     bool same_basenames = (id_basenames == in_basenames);
-    if (same_basenames && different_basename)
+    if (same_basenames && different_basename_at_input_position)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
