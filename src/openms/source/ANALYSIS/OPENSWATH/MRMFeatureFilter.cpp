@@ -906,7 +906,8 @@ namespace OpenMS
       if (label_type == "Heavy")
       {
         ++n_heavy;
-      } else if (label_type == "Light")
+      } 
+      else if (label_type == "Light")
       {
         ++n_light;
       }
