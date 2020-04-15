@@ -902,7 +902,7 @@ protected:
     }
     fs << fixed << setprecision(2);
     fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge
-    << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR << "\t" << PeakGroupScoring::getPeakGroupScore(pg)
+   // << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR << "\t" << PeakGroupScoring::getPeakGroupScore(pg)
     <<  "\n";
     fs << setprecision(-1);
   }

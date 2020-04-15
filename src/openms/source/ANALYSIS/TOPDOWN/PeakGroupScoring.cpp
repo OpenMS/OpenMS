@@ -557,7 +557,7 @@ namespace OpenMS
       //      return; //
       //    }
 
-     // if(pg.totalSNR>0.1) // TODO
+      if(pg.totalSNR>0.1) //
       {
         filteredPeakGroups.push_back(pg);
       }
