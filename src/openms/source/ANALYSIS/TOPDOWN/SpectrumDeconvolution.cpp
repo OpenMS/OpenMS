@@ -277,7 +277,7 @@ namespace OpenMS
         if (msLevel != 1)
         {
           auto charge = j + param.minCharge;
-          if (charge <= 6)
+          //if (charge <= 6)
           {
             if (mz <= 0)
             {

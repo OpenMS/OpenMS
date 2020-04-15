@@ -258,7 +258,9 @@ protected:
       }
 
 
-      fsm.open(outfilePath + ".m", fstream::out);
+      fsm.open(outfilePath + ".csv", fstream::out);
+      writeAttCsvHeader(fsm);
+
       //}
       // if (param.RTwindow > 0)
       // {
@@ -367,8 +369,9 @@ protected:
 
 
         // fs.open(outfilePath + outfileName + "PerSpecMasses.tsv", fstream::out);
-        fsm.open(outfilePath + outfileName + "PerSpecMasses.m", fstream::out);
+        fsm.open(outfilePath + outfileName + "PerSpecMasses.csv", fstream::out);
         //  }
+        writeAttCsvHeader(fsm);
 
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
         writeFeatureHeader(fsf);
@@ -453,38 +456,13 @@ protected:
         }
         fsfd << "END IONS\n";
       }
-
-      fsm << "sp=[";
-      for (auto it = map.begin(); it != map.end(); ++it)
+      for (auto &pg : peakGroups)
       {
-        if (it->getMSLevel() > 1)
-        {
-          for (auto &pc : it->getPrecursors())
-          {
-            fsm << it->getMSLevel() << " " << pc.getIntensity() << ";";
-          }
+        if (pg.spec->getMSLevel()==1){
+          continue;
         }
-        else
-        {
-          double min = 1e60;
-          double max = 0;
-          for (auto &p : *it)
-          {
-            auto i = p.getIntensity();
-            if (i <= 0)
-            {
-              continue;
-            }
-            min = min < i ? min : i;
-            max = max > i ? max : i;
-          }
-
-          fsm << it->getMSLevel() << " " << min << ";";
-          fsm << it->getMSLevel() << " " << max << ";";
-        }
+        writePeakGroupAttCSVfile(pg, fsm);
       }
-      fsm << "];";
-
       /*
       fsm << "monomasses=[";
 
@@ -924,9 +902,27 @@ protected:
     }
     fs << fixed << setprecision(2);
     fs << std::to_string(pg.monoisotopicMass) << "\t" << pg.intensity << "\t" << pg.maxSNRcharge
-    //<< "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR
+    << "\t" << pg.isotopeCosineScore << "\t" << pg.maxSNR << "\t" << pg.totalSNR << "\t" << PeakGroupScoring::getPeakGroupScore(pg)
     <<  "\n";
     fs << setprecision(-1);
+  }
+
+  static void writePeakGroupAttCSVfile(PeakGroup &pg, fstream &fs)//, fstream &fsm, fstream &fsp)
+  {
+    if (pg.peaks.empty())//
+    {
+      return;
+    }
+    //Mass	LogMass	Intensity LogIntensity Cos		MaxSNRCharge	PreCharge	Pintensity	LogPIntensity	Pmass	MaxSNR PSNR	TSNR
+
+    sort(pg.peaks.begin(), pg.peaks.end());
+
+    fs << pg.monoisotopicMass << ","<< log10(pg.monoisotopicMass)
+        << ","<< pg.intensity<< ","<<log10(pg.intensity+1e-10) << ","<<pg.isotopeCosineScore
+       << ","<<pg.maxSNRcharge<< ","<<pg.precursorCharge<< ","<<pg.precursorIntensity
+        << ","<<log10(pg.precursorIntensity+1e-10)<< ","<< pg.precursorMonoMass << ","<<pg.maxSNR<< "," <<pg.precursorSNR<< ","<<pg.totalSNR
+        << ","<<log10(pg.maxSNR+1e-10)<< "," <<log10(pg.precursorSNR+1e-10)<< ","<<log10(pg.totalSNR+1e-10)<<",0\n";
+
   }
 
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
@@ -1038,7 +1034,13 @@ protected:
            "\n";
   }
 
-  static void writeHeader(fstream &fs, int &n, bool detail)
+  ///Mass	LogMass	Intensity LogIntensity Cos		MaxSNRCharge	PreCharge	Pintensity	LogPIntensity	Pmass	MaxSNR PSNR	TSNR
+  static void writeAttCsvHeader(fstream &fs)
+  {
+    fs<<"Mass,LogMass,Intensity,LogIntensity,Cos,MaxSNRCharge,PreCharge,Pintensity,LogPIntensity,Pmass,MaxSNR,PSNR,TSNR,LogMaxSNR,LogPSNR,LogTSNR,Class\n";
+  }
+
+    static void writeHeader(fstream &fs, int &n, bool detail)
   {
     if (detail)
     {

@@ -195,7 +195,7 @@ namespace OpenMS
           param.currentChargeRange =  prevChargeRanges[msLevel - 1];
           param.currentMaxMass = prevMaxMasses[msLevel - 1];
         }
-        param.currentMaxMassCount = 500;
+        param.currentMaxMassCount = 400;
       }
 
       if(sd.empty()){

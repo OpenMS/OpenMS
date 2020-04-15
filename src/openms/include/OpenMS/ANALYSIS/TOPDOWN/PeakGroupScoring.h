@@ -82,6 +82,8 @@ namespace OpenMS
                             int &bSize,
                             double &bNorm,
                             int offset);
+  public:
+    static double getPeakGroupScore(PeakGroup &pg);
   };
 
 

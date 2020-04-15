@@ -481,6 +481,7 @@ namespace OpenMS
       auto isoNorm = avg.getNorm(pg.monoisotopicMass);
       int isoSize = (int) iso.size();
       float totalNoise = .0;
+      float totalSignal = .0;
 
       double maxSNR = 0;
       for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
@@ -532,8 +533,12 @@ namespace OpenMS
         if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
           pg.perChargeSNR[j] = 0;
         }
-        totalNoise += pg.perChargeSNR[j];
-        pg.perChargeSNR[j] = cos2 * sp / ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
+        auto dno = ((1- cos2) * sp + pg.perChargeSNR[j] + 1);
+        auto no = cos2 * sp;
+
+        pg.perChargeSNR[j] = no / dno;
+        totalNoise += dno;
+        totalSignal += no;
 
         if(pg.perChargeSNR[j] > maxSNR){
           maxSNR = pg.perChargeSNR[j];
@@ -546,23 +551,13 @@ namespace OpenMS
         delete[] perIsotopeIntensities;
       }
 
-      auto tcos2 =  pg.isotopeCosineScore *  pg.isotopeCosineScore;
-      float tsp = 0;
-      for (int k = 0; k <=param.maxIsotopeCount ; ++k)
-      {
-        if(k>isoSize){
-          break;
-        }
-        tsp += perIsotopeIntensity[k] * perIsotopeIntensity[k];
-      }
-
-      pg.totalSNR =  tcos2 * tsp / ((1- tcos2) * tsp + totalNoise + 1);
+      pg.totalSNR =  totalSignal / totalNoise;
       //delete[] pg.perChargeSNR;
       // if ( pg.maxSNR < .1){
       //      return; //
       //    }
 
-      if(pg.totalSNR>.1) // TODO
+     // if(pg.totalSNR>0.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }
@@ -575,8 +570,8 @@ namespace OpenMS
 
     removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
 
-    filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount); //
-
+    //(param.currentMaxMassCount); //
+    filterPeakGroupsByTotalSNR(param.currentMaxMassCount);
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
 
@@ -619,23 +614,35 @@ namespace OpenMS
     newPeakGroups.swap(peakGroups);
   }
 
-  void PeakGroupScoring::filterPeakGroupsByIntensity(int currentMaxMassCount)
+  double PeakGroupScoring::getPeakGroupScore(PeakGroup &pg){
+      return 0.0761 * log10(pg.intensity)
+       + 1.1278 * pg.isotopeCosineScore -0.002 *pg.maxSNRcharge +
+       0.2382 * log10(pg.maxSNR) +
+       -0.1794 * log10(pg.totalSNR);
+  }
+
+  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
   {
     if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
     {
       return;
     }
+    //  0.0761 * LogIntensity +
+    //      1.1278 * Cos +
+    //     -0.002  * MaxSNRCharge +
+    //      0.2382 * LogMaxSNR +
+    //     -0.1794 * LogTSNR +
 
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
-    scores.reserve(peakGroups.size());
     for (auto &pg : peakGroups)
     {
-      scores.push_back(pg.intensity);
+      auto score =   getPeakGroupScore(pg);
+
+      scores.push_back(score);
     }
 
     sort(scores.begin(), scores.end());
-
     auto newPeakGroups = std::vector<PeakGroup>();
     newPeakGroups.reserve(peakGroups.size());
     auto threshold = scores[scores.size() - mc];
@@ -645,48 +652,14 @@ namespace OpenMS
       {
         break;
       }
-
-      if (pg.intensity >= threshold)
+      auto score = getPeakGroupScore(pg);
+      if (score >= threshold)
       {
         newPeakGroups.push_back(pg);
       }
     }
     std::vector<PeakGroup>().swap(peakGroups);
     newPeakGroups.swap(peakGroups);
-  }
-
-
-
-  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
-  {
-    if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
-    {
-      return;
-    }
-
-    Size mc = (Size) currentMaxMassCount;
-    std::vector<double> scores;
-    for (auto &pg : peakGroups)
-    {
-      scores.push_back(pg.totalSNR);
-    }
-
-    sort(scores.begin(), scores.end());
-
-    auto threshold = scores[scores.size() - mc];
-    for (auto pg = peakGroups.begin(); pg != peakGroups.end();)
-    {
-      if (peakGroups.size() <= mc)
-      {
-        break;
-      }
-      if (pg->totalSNR < threshold)
-      {
-        pg = peakGroups.erase(pg);
-        continue;
-      }
-      ++pg;
-    }
   }
 
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
