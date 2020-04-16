@@ -288,37 +288,14 @@ protected:
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
-  {
-    if (in.size() != in_ids.size())
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
-    }
-    
+  {    
     // Detect the common case that ID files have same names as spectra files
+    if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
     {
-      // Collect unique set of basenames
-      set<String> in_bns;
-      set<String> id_bns;
-      bool bn_differ = false;
-      for (Size i = 0; i != in.size(); ++i)
-      {
-        const String& in_bn = File::removeExtension(File::basename(in[i]));
-        const String& id_bn = File::removeExtension(File::basename(in_ids[i]));
-        in_bns.insert(in_bn);
-        id_bns.insert(id_bn);
-        if (in_bn != id_bn) { bn_differ = true; }
-      }
-      bool same_basenames = (in_bns == id_bns); // check if the sets of basenames are identical
-
       // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
-      if (same_basenames && bn_differ) 
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
-      }
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
     }
-    // TODO: another sanity check could be to compare primaryMSRunPaths
 
     map<String, String> mzfile2idfile;
     for (Size i = 0; i != in.size(); ++i)
@@ -327,17 +304,6 @@ protected:
       const String& id_abs_path = File::absolutePath(in_ids[i]);
       mzfile2idfile[in_abs_path] = id_abs_path;      
       writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
-      if (!File::exists(in[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
-      }
-
-      if (!File::exists(in_ids[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
-      }    
     }
     return mzfile2idfile;
   }
@@ -824,6 +790,10 @@ protected:
     writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
     for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
+    // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
+    StringList id_MS_run_ref;
+    StringList in_MS_run = ms_files.second; 
+
     // for each MS file of current fraction
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
@@ -855,13 +825,30 @@ protected:
             return ExitCodes::INCOMPATIBLE_INPUT_DATA;
         }
       }
+      
+      // Check of score types are valid. TODO 
+      String overall_score_type = "";      
+      if (!peptide_ids.empty())
+      {
+        overall_score_type = peptide_ids[0].getScoreType(); //TODO check all pep IDs? this assumes equality
+      }
+
+      bool pep_scores = (overall_score_type == "Posterior Error Probability" // from IDPEP
+        || overall_score_type != "pep" // from Percolator
+        || overall_score_type != "MS:1001493"); // from Percolator
+
+      if (!pep_scores)
+      {        
+        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects Posterior Error Probabilities as main score. ID file: " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }   
 
       IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-
+   
       // add to the (global) set of fixed and variable modifications
       for (auto & p : protein_ids)
       {
@@ -885,18 +872,36 @@ protected:
       }
 
       // annotate experimental design
+
+      // check and reannotate mzML file in ID
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+      id_MS_run_ref.push_back(id_msfile_ref[0]);
+  
+      // fix other problems like missing MS run path annotations
       if (id_msfile_ref.empty())
       {
-        OPENMS_LOG_DEBUG << "MS run path not set in ID file." << endl;
+        OPENMS_LOG_WARN  << "MS run path not set in ID file: " << id_file_abs_path << endl
+                         << "Resetting reference to MS file provided at same input position." << endl;
+      }
+      else if (id_msfile_ref.size() == 1)
+      {
+        // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
+        const String& in_bn = File::removeExtension(File::basename(mz_file_abs_path));
+        const String& id_primaryMSRun_bn = File::removeExtension(File::basename(id_msfile_ref[0]));
+
+        if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
+        {
+          OPENMS_LOG_WARN << "MS run path referenced from ID file does not match MS file at same input position: " << id_file_abs_path << endl
+                          << "Resetting reference to MS file provided at same input position." << endl;
+        }
       }
       else
       {
-        // TODO: we could add a check (e.g., matching base name) here
-        id_msfile_ref.clear();
-      }                
-      id_msfile_ref.push_back(mz_file);
+        OPENMS_LOG_WARN << "Multiple MS files referenced from ID file: " << id_file_abs_path << endl
+                        << "Resetting reference to MS file provided at same input position." << endl;      
+      }
+      id_msfile_ref = StringList{mz_file};
       protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
       protein_ids[0].setMetaValue("fraction_group", fraction_group);
       protein_ids[0].setMetaValue("fraction", fraction);
@@ -1046,6 +1051,14 @@ protected:
       }
 
       ++fraction_group;
+    }
+
+    // Check for common mistake that order of input files have been switched.
+    // This is the case if basenames are identical but the order does not match.
+    if (!File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true, false)) // only basenames, without extension, only order
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
     }
 
     //-------------------------------------------------------------
