@@ -298,17 +298,30 @@ namespace OpenMS
             {
               auto waterAddMz = log(mz + 18.010565 / charge); // 17.026549
               auto waterAddBin = getBinNumber(waterAddMz, mzMinValue, binWidth);
-              float lossIntensity = .0;
+              float waterAddIntensity = .0;
 
               if (waterAddBin < mzBins.size() && mzBins[waterAddBin])
               {
-                lossIntensity = mzIntensities[waterAddBin];
+                waterAddIntensity = mzIntensities[waterAddBin];
               }
 
-              if (lossIntensity > 0 && lossIntensity < intensity)
+              if (waterAddIntensity > 0 && waterAddIntensity < intensity)
               {
-                //continuousChargePeakPairCount[massBinIndex]++;
-                isoIntensity += lossIntensity;
+                isoIntensity += waterAddIntensity;
+              }
+
+              auto amoniaLossMz = log(mz - 17.026549 / charge); // 17.026549
+              auto amoniaLossBin = getBinNumber(amoniaLossMz, mzMinValue, binWidth);
+              float amoniaLossntensity = .0;
+
+              if (amoniaLossBin >= 0 && mzBins[amoniaLossBin])
+              {
+                amoniaLossntensity = mzIntensities[amoniaLossBin];
+              }
+
+              if (amoniaLossntensity > 0 && amoniaLossntensity < intensity)
+              {
+                isoIntensity += amoniaLossntensity;
               }
             }
           }

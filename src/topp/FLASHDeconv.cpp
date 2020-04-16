@@ -445,14 +445,15 @@ protected:
       }
 
       OPENMS_LOG_INFO << "done" << endl;
-
+      bool renew = true;
       if (param.topfdOut)
       {
         int id = 0;
 
         for (auto &pg : peakGroups)
         {
-          writePeakGroupTopFD(pg, fsfd, id);
+          writePeakGroupTopFD(pg, fsfd, id,renew);
+          renew = false;
         }
         fsfd << "END IONS\n";
       }
@@ -857,9 +858,13 @@ protected:
   }
 
   static void writePeakGroupTopFD(PeakGroup &pg,
-                                  fstream &fs, int& id)//, fstream &fsm, fstream &fsp)
+                                  fstream &fs, int& id, bool renew)//, fstream &fsm, fstream &fsp)
   {
     static int prevScanNumber = -1;
+    if(renew){
+      prevScanNumber = -1;
+    }
+
     if (pg.peaks.empty())
     {
       return;

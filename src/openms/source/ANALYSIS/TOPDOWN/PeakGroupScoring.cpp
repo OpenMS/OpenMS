@@ -553,8 +553,6 @@ namespace OpenMS
 
         pg.perChargeSNR[j] = no / dno;
 
-
-
         totalNoise += dno;
         totalSignal += no;
 
@@ -575,7 +573,7 @@ namespace OpenMS
       //      return; //
       //    }
 
-      if(pg.totalSNR>0.1) // TODO
+      if(msLevel ==1 || pg.totalSNR>0.1) // TODO
       {
         filteredPeakGroups.push_back(pg);
       }
