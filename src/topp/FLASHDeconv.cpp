@@ -457,6 +457,8 @@ protected:
         }
         fsfd << "END IONS\n";
       }
+
+
       for (auto &pg : peakGroups)
       {
         if (pg.spec->getMSLevel()==1){
@@ -914,6 +916,14 @@ protected:
 
   static void writePeakGroupAttCSVfile(PeakGroup &pg, fstream &fs)//, fstream &fsm, fstream &fsp)
   {
+    static int prevScanNumber = -1;
+    if (pg.scanNumber == prevScanNumber){
+      return;
+    }
+    prevScanNumber = pg.scanNumber;
+
+    fs << pg.scanNumber << "," << log10(1+pg.precursorSNR) << "," << log10(1+pg.precursorIntensity) << "," << pg.precursorMonoMass <<",0\n";
+    /*
     if (pg.peaks.empty())//
     {
       return;
@@ -927,7 +937,7 @@ protected:
        << ","<<pg.maxSNRcharge<< ","<<pg.precursorCharge<< ","<<pg.precursorIntensity
         << ","<<log10(pg.precursorIntensity+1e-10)<< ","<< pg.precursorMonoMass << ","<<pg.maxSNR<< "," <<pg.precursorSNR<< ","<<pg.totalSNR
         << ","<<log10(pg.maxSNR+1e-10)<< "," <<log10(pg.precursorSNR+1e-10)<< ","<<log10(pg.totalSNR+1e-10)<<",0\n";
-
+*/
   }
 
   static void writePeakGroupMfile(PeakGroup &pg, Parameter &param, fstream &fs)//, fstream &fsm, fstream &fsp)
@@ -1039,10 +1049,13 @@ protected:
            "\n";
   }
 
-  ///Mass	LogMass	Intensity LogIntensity Cos		MaxSNRCharge	PreCharge	Pintensity	LogPIntensity	Pmass	MaxSNR PSNR	TSNR
+  //Mass	LogMass	Intensity LogIntensity Cos		MaxSNRCharge	PreCharge	Pintensity	LogPIntensity	Pmass	MaxSNR PSNR	TSNR
   static void writeAttCsvHeader(fstream &fs)
   {
-    fs<<"Mass,LogMass,Intensity,LogIntensity,Cos,MaxSNRCharge,PreCharge,Pintensity,LogPIntensity,Pmass,MaxSNR,PSNR,TSNR,LogMaxSNR,LogPSNR,LogTSNR,Class\n";
+    //fs << pg.scanNumber << "," << pg.precursorSNR << "," << pg.precursorIntensity << "," << pg.precursorMonoMass <<",f;\n";
+    fs<<"ScanNumber,PrecursorSNR,PrecursorIntensity,PrecursorMonomass,Class\n";
+
+    //fs<<"Mass,LogMass,Intensity,LogIntensity,Cos,MaxSNRCharge,PreCharge,Pintensity,LogPIntensity,Pmass,MaxSNR,PSNR,TSNR,LogMaxSNR,LogPSNR,LogTSNR,Class\n";
   }
 
     static void writeHeader(fstream &fs, int &n, bool detail)
