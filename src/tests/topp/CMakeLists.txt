@@ -1206,13 +1206,14 @@ set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_Mascot
 
 #------------------------------------------------------------------------------
 # MetaboliteAdductDecharger tests
-add_test("TOPP_MetaboliteAdductDecharger_1" ${TOPP_BIN_PATH}/MetaboliteAdductDecharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -out MetaboliteAdductDecharger_1_output.tmp -out_type featureXML)
-add_test("TOPP_MetaboliteAdductDecharger_1_out1" ${DIFF} -in1 MetaboliteAdductDecharger_1_output.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_1_output.featureXML)
+add_test("TOPP_MetaboliteAdductDecharger_1" ${TOPP_BIN_PATH}/MetaboliteAdductDecharger -test -in ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_input.featureXML -out_fm MetaboliteAdductDecharger_1_output.tmp)
+add_test("TOPP_MetaboliteAdductDecharger_1_out1" ${DIFF} -in1 MetaboliteAdductDecharger_1_output.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_1_output.featureXML -whitelist "xml-stylesheet" "consensusXML version=" "consensusElement id=" "<UserParam type=" "<dataProcessing completion_time=" "<software name=")
 set_tests_properties("TOPP_MetaboliteAdductDecharger_1_out1" PROPERTIES DEPENDS "TOPP_MetaboliteAdductDecharger_1")
-add_test("TOPP_MetaboliteAdductDecharger_2" ${TOPP_BIN_PATH}/MetaboliteAdductDecharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -out MetaboliteAdductDecharger_2_output_1.tmp -out_type consensusXML -outpairs MetaboliteAdductDecharger_2_output_2.tmp)
-add_test("TOPP_MetaboliteAdductDecharger_2_out1" ${DIFF} -in1 MetaboliteAdductDecharger_2_output_1.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_2_output_1.consensusXML)
-add_test("TOPP_MetaboliteAdductDecharger_2_out2" ${DIFF} -in1 MetaboliteAdductDecharger_2_output_2.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_2_output_2.consensusXML)
+add_test("TOPP_MetaboliteAdductDecharger_2" ${TOPP_BIN_PATH}/MetaboliteAdductDecharger -test -in ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_input.featureXML -out_cm MetaboliteAdductDecharger_2_output_1.tmp -outpairs MetaboliteAdductDecharger_2_output_2.tmp)
+add_test("TOPP_MetaboliteAdductDecharger_2_out1" ${DIFF} -in1 MetaboliteAdductDecharger_2_output_1.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_2_output_1.consensusXML  -whitelist "xml-stylesheet" "consensusXML version=" "consensusElement id=" "<UserParam type=" "<dataProcessing completion_time=" "<software name=")
+add_test("TOPP_MetaboliteAdductDecharger_2_out2" ${DIFF} -in1 MetaboliteAdductDecharger_2_output_2.tmp -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_2_output_2.consensusXML  -whitelist "xml-stylesheet" "consensusXML version=" "consensusElement id=" "<UserParam type=" "<dataProcessing completion_time=" "<software name=")
 set_tests_properties("TOPP_MetaboliteAdductDecharger_2_out1" PROPERTIES DEPENDS "TOPP_MetaboliteAdductDecharger_2")
+set_tests_properties("TOPP_MetaboliteAdductDecharger_2_out2" PROPERTIES DEPENDS "TOPP_MetaboliteAdductDecharger_2")
 
 #------------------------------------------------------------------------------
 # MSstatsConverter tests
