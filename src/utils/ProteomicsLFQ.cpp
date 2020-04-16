@@ -560,12 +560,16 @@ protected:
       }
       catch (Exception::MissingInformation& err)
       {
-        OPENMS_LOG_ERROR
-          << "Error: alignment failed. Details:\n" << err.getMessage()
-          << "\nProcessing will continue using 'identity' transformations."
-          << endl;
-        model_type = "identity";
-        transformations.resize(feature_maps.size());
+        if (getFlag_("force"))
+        {
+          OPENMS_LOG_ERROR
+            << "Error: alignment failed. Details:\n" << err.getMessage()
+            << "\nProcessing will continue using 'identity' transformations."
+            << endl;
+          model_type = "identity";
+          transformations.resize(feature_maps.size());
+        }
+        else throw;
       }
 
       // find model parameters (if model_type == "identity" the fit is a NOP):
