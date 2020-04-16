@@ -833,9 +833,8 @@ protected:
         PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
         if (!inference_in_cxml)
         {
-          vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
-          proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
-          consensus.setProteinIdentifications(proteins);
+          auto& prots = consensus.getProteinIdentifications();
+          prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
         }
         else
         {
