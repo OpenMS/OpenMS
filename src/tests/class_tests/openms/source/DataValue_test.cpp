@@ -700,7 +700,7 @@ START_SECTION((String toString(bool full_precision) const))
   TEST_EQUAL(a.toString(), "47.109999999999999")
   TEST_EQUAL(a.toString(false), "47.11")
   a = DataValue(-23456.78);
-  TEST_EQUAL(a.toString(), "-23456.779999999998836")
+  TEST_EQUAL(a.toString(), "-2.345678e04")
   a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));

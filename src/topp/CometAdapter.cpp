@@ -623,7 +623,8 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
+    mzml_file.getOptions().setFillData(false); // only load metadata for spectra
+    mzml_file.getOptions().setMSLevels({2}); // only load MS2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -633,11 +634,9 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    for (const auto& s : exp)
     {
-      if (!getFlag_("force"))
+      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
       {
         throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
       }

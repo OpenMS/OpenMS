@@ -29,19 +29,21 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Authors: Chris Bielow, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <iostream>
+
+#include <ostream>
 #include <map>
 
 namespace OpenMS
 {
   class MSExperiment;
+  class ConsensusMap;
 
   /**
    * @brief This class serves as an abstract base class for all QC classes.
@@ -58,7 +60,7 @@ namespace OpenMS
     enum class Requires 
       : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
     {
-      FAIL,         //< default, does not encode for anything
+      NOTHING,      //< default, does not require anything
       RAWMZML,      //< mzML file is required
       POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
       PREFDRFEAT,   //< Features with unfiltered pepIDs
@@ -237,6 +239,22 @@ namespace OpenMS
     /// tests if a metric has the required input files
     /// gives a warning with the name of the metric that can not be performed
     bool isRunnable(const Status& s) const;
+
+    /// check if the IsobaricAnalyzer TOPP tool was used to create this ConsensusMap
+    static bool isLabeledExperiment(const ConsensusMap& cm);
+
+    /// does the container have a PeptideIdentification in its members or as unassignedPepID ?
+    template <typename MAP>
+    static bool hasPepID(const MAP& fmap)
+    {
+      if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
+
+      for (const auto& features : fmap)
+      {
+        if (!features.getPeptideIdentifications().empty()) return true;
+      }
+      return false;
+    }
   };
 
   inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)

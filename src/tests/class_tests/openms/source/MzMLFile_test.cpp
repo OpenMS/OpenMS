@@ -1088,9 +1088,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36604)
+    TEST_EQUAL(out.size(), 36606)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36604 - 99, 36604 - 1), "</indexList>\n<indexListOffset>36156</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(36606 - 99, 36606 - 1), "</indexList>\n<indexListOffset>36158</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

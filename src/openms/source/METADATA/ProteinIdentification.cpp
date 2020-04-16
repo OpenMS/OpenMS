@@ -555,11 +555,11 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
     }
     else
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
     }
   }
 

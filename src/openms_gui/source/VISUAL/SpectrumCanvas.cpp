@@ -394,7 +394,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.setPeakData(map);
     new_layer.setOnDiscPeakData(od_map);
 
@@ -433,7 +433,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getFeatureMap() = map;
     new_layer.type = LayerData::DT_FEATURE;
 
@@ -452,7 +452,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getConsensusMap() = map;
     new_layer.type = LayerData::DT_CONSENSUS;
 
@@ -472,7 +472,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.peptides.swap(peptides);
     new_layer.type = LayerData::DT_IDENT;
 
