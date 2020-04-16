@@ -102,7 +102,12 @@ namespace OpenMS
 
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
-    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::vector<String>& optional_columns) const;
+    /// Needs a reference row to get the collected optional columns from the MetaValues
+    /// TODO refactor this behaviour by e.g. storing it in the MzTab object
+    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row,
+        const Size n_best_search_engine_scores,
+        const std::vector<String>& optional_columns,
+        const MzTabMetaData& meta) const;
 
     String generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns, const MzTabMetaData& meta) const;
 

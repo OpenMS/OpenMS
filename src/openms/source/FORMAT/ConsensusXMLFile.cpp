@@ -817,11 +817,10 @@ namespace OpenMS
       // add ProteinGroup info to metavalues (hack)
       MetaInfoInterface meta = current_prot_id;
       addProteinGroups_(meta, current_prot_id.getProteinGroups(),
-                        "protein_group", accession_to_id_, STORE);
+                        "protein_group", accession_to_id_, current_prot_id.getIdentifier(), STORE);
       addProteinGroups_(meta, current_prot_id.getIndistinguishableProteins(),
-                        "indistinguishable_proteins", accession_to_id_, STORE);
+                        "indistinguishable_proteins", accession_to_id_, current_prot_id.getIdentifier(), STORE);
       writeUserParam_("UserParam", os, meta, 3);
-      //writeUserParam_("UserParam", os, current_prot_id, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -1031,7 +1030,7 @@ namespace OpenMS
 
   void ConsensusXMLFile::addProteinGroups_(
       MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-      const String& group_name, const std::unordered_map<string, UInt>& accession_to_id,
+      const String& group_name, const std::unordered_map<string, UInt>& accession_to_id, const String& runid,
       XMLHandler::ActionMode mode)
   {
     for (Size g = 0; g < groups.size(); ++g)
@@ -1047,7 +1046,7 @@ namespace OpenMS
       {
         if (acc_it != groups[g].accessions.begin())
           accessions += ",";
-        const auto pos = accession_to_id.find(*acc_it);
+        const auto pos = accession_to_id.find(runid + "_" + *acc_it);
         if (pos != accession_to_id.end())
         {
           accessions += "PH_" + String(pos->second);

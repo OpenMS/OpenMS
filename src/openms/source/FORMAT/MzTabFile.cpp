@@ -2013,7 +2013,11 @@ namespace OpenMS
   sl.push_back(String("\n"));
   }
 
-  String MzTabFile::generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::vector<String>& optional_columns) const
+  String MzTabFile::generateMzTabProteinHeader_(
+      const MzTabProteinSectionRow& reference_row,
+      const Size n_best_search_engine_scores,
+      const std::vector<String>& optional_columns,
+      const MzTabMetaData& meta) const
   {
   Size n_search_engine_scores = reference_row.search_engine_score_ms_run.size();
 
@@ -2079,16 +2083,16 @@ namespace OpenMS
 
   header.push_back("protein_coverage");
 
-  for (std::map<Size, MzTabDouble>::const_iterator it = reference_row.protein_abundance_assay.begin(); it != reference_row.protein_abundance_assay.end(); ++it)
+  for (const auto& a : meta.assay)
   {
-    header.push_back(String("protein_abundance_assay[") + String(it->first) + String("]"));
+    header.push_back(String("protein_abundance_assay[") + String(a.first) + String("]"));
   }
 
-  for (std::map<Size, MzTabDouble>::const_iterator it = reference_row.protein_abundance_study_variable.begin(); it != reference_row.protein_abundance_study_variable.end(); ++it)
+  for (const auto& s : meta.study_variable)
   {
-    header.push_back(String("protein_abundance_study_variable[") + String(it->first) + String("]"));
-    header.push_back(String("protein_abundance_stdev_study_variable[") + String(it->first) + String("]"));
-    header.push_back(String("protein_abundance_std_error_study_variable[") + String(it->first) + String("]"));
+    header.push_back(String("protein_abundance_study_variable[") + String(s.first) + String("]"));
+    header.push_back(String("protein_abundance_stdev_study_variable[") + String(s.first) + String("]"));
+    header.push_back(String("protein_abundance_std_error_study_variable[") + String(s.first) + String("]"));
   }
 
   std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
@@ -2873,7 +2877,7 @@ namespace OpenMS
       {
         if (column_entries[i].first == *it)
         {
-            output.push_back(column_entries[i].second.toCellString());
+          output.push_back(column_entries[i].second.toCellString());
           found = true;
           break;
         }
@@ -2908,8 +2912,12 @@ namespace OpenMS
       Size n_best_search_engine_score = mz_tab.getMetaData().protein_search_engine_score.size();
 
       // add header
-      // use the last element as a reference row, since they contain group abundance data if set
-      out.push_back(generateMzTabProteinHeader_(protein_section.back(), n_best_search_engine_score, mz_tab.getProteinOptionalColumnNames()));
+      // use the first row as a reference row to get the optional cols from meta values
+      // TODO this is very fragile!
+      out.push_back(generateMzTabProteinHeader_(protein_section[0],
+          n_best_search_engine_score,
+          mz_tab.getProteinOptionalColumnNames(),
+          mz_tab.getMetaData()));
 
       // add section
       generateMzTabSection_(protein_section, mz_tab.getProteinOptionalColumnNames(), mz_tab.getMetaData(), out);

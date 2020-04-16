@@ -429,6 +429,12 @@ namespace OpenMS
     void getDownstreamNodesNonRecursive(std::queue<vertex_t>& q, const Graph& graph, int lvl,
                                         bool stop_at_first, std::vector<vertex_t>& result);
 
+    /// Gets the scores from the proteins included in the graph.
+    /// The difference to querying the underlying ProteinIdentification structure is that not all
+    /// proteins might be included in the graph due to using only the best psm per peptide
+    void getProteinScores_(ScoreToTgtDecLabelPairs& scores_and_tgt);
+    /// Gets the scores and target decoy fraction from groups and score + binary values for singleton
+    /// proteins. This function is usually used to create input for FDR calculations
     void getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
     void getProteinGroupScoresAndHitchhikingTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction);
 

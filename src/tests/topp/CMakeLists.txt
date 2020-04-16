@@ -2700,7 +2700,7 @@ add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -out_cxml BSA.consensusXML.tmp
          -out_msstats BSA.csv.tmp
          -out BSA.mzTab.tmp
-         -threads 4
+         -threads 1
          -proteinFDR 0.3
          -test
          )

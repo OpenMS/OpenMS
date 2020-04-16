@@ -1587,12 +1587,12 @@ protected:
         std::cout << "\n";
       }
     }*/
-
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
     if (debug_level_ >= 666)
     {
       IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
+
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
 
@@ -1604,16 +1604,8 @@ protected:
     if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
-      // Note: consensusXML currently doesn't support writing out inference data (TODO: it does not?)
       // (they are neverless stored and passed to mzTab for proper export)
-      //IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
       ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
-    }
-
-    if (debug_level_ >= 666)
-    {
-      //TODO @timo: What changed in the IDs up to the last write? Commented out for now.
-      //IdXMLFile().store("debug_keepUnique2.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
@@ -1633,7 +1625,6 @@ protected:
     {
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
-
 
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);

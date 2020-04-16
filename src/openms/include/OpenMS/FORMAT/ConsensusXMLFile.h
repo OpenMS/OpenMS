@@ -112,7 +112,8 @@ protected:
     /// Since it can be used during load and store, it needs to take a param for the current mode (LOAD/STORE)
     /// to throw appropriate warnings/errors
     void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
-                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id, XMLHandler::ActionMode mode);
+                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id,
+                           const String& runid, XMLHandler::ActionMode mode);
 
     /// Read and store ProteinGroup data
     void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
