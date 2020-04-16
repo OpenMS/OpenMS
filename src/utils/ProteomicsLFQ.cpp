@@ -288,37 +288,14 @@ protected:
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
-  {
-    if (in.size() != in_ids.size())
-    {
-      throw Exception::FileNotFound(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
-    }
-    
+  {    
     // Detect the common case that ID files have same names as spectra files
+    if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
     {
-      // Collect unique set of basenames
-      set<String> in_bns;
-      set<String> id_bns;
-      bool bn_differ = false;
-      for (Size i = 0; i != in.size(); ++i)
-      {
-        const String& in_bn = File::removeExtension(File::basename(in[i]));
-        const String& id_bn = File::removeExtension(File::basename(in_ids[i]));
-        in_bns.insert(in_bn);
-        id_bns.insert(id_bn);
-        if (in_bn != id_bn) { bn_differ = true; }
-      }
-      bool same_basenames = (in_bns == id_bns); // check if the sets of basenames are identical
-
       // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
-      if (same_basenames && bn_differ) 
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, 
-        OPENMS_PRETTY_FUNCTION, "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
-      }
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
     }
-    // TODO: another sanity check could be to compare primaryMSRunPaths
 
     map<String, String> mzfile2idfile;
     for (Size i = 0; i != in.size(); ++i)
@@ -327,17 +304,6 @@ protected:
       const String& id_abs_path = File::absolutePath(in_ids[i]);
       mzfile2idfile[in_abs_path] = id_abs_path;      
       writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
-      if (!File::exists(in[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
-      }
-
-      if (!File::exists(in_ids[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
-      }    
     }
     return mzfile2idfile;
   }
@@ -803,24 +769,18 @@ protected:
 
     const bool is_already_aligned = !transformations.empty();
 
-
-
     // debug output
     writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
     for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
-    set<String> id_basenames;
-    set<String> in_basenames; 
-    bool different_basename_at_input_position = false;
+    StringList id_MS_run_ref;
+    StringList in_MS_run = ms_files.second; 
 
     // for each MS file of current fraction
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
     { 
-      const String& in_bn = File::removeExtension(File::basename(mz_file));
-      in_basenames.insert(in_bn);
-
       // centroid spectra (if in profile mode) and correct precursor masses
       MSExperiment ms_centroided;    
       ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
@@ -899,11 +859,7 @@ protected:
       // check and reannotate mzML file in ID
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
-
-      // store basename of MS run stored in ID file for later comparison
-      const String& id_primaryMSRun_bn = File::removeExtension(File::basename(id_msfile_ref[0]));
-      id_basenames.insert(id_primaryMSRun_bn);
-      if (id_primaryMSRun_bn != in_bn) different_basename_at_input_position = true;
+      id_MS_run_ref.push_back(id_msfile_ref[0]);
   
       // fix other problems like missing MS run path annotations
       if (id_msfile_ref.empty())
@@ -1082,8 +1038,7 @@ protected:
 
     // Check for common mistake that order of input files have been switched.
     // This is the case if basenames are identical but the order does not match.
-    bool same_basenames = (id_basenames == in_basenames);
-    if (same_basenames && different_basename_at_input_position)
+    if (!File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true, false)) // only basenames, without extension, only order
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
