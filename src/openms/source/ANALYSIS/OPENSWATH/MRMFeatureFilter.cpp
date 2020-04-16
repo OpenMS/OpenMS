@@ -77,7 +77,7 @@ namespace OpenMS
 
   void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features,
     const MRMFeatureQC& filter_criteria,
-    const TargetedExperiment & transitions
+    const TargetedExperiment& transitions
   )
   {
     // initialize QC variables
@@ -187,9 +187,9 @@ namespace OpenMS
               String component_name2 = (String)features.at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
               // find the ion ratio pair
               if (filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-                && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
-                && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
-                && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
+               && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+               && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
+               && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
               {
                 double ion_ratio = calculateIonRatio(features.at(feature_it).getSubordinates().at(sub_it), features.at(feature_it).getSubordinates().at(sub_it2), filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
 
@@ -330,7 +330,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::FilterFeatureMapPercRSD(FeatureMap & features, const MRMFeatureQC & filter_criteria, const MRMFeatureQC & filter_values)
+  void MRMFeatureFilter::FilterFeatureMapPercRSD(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values)
   {
     // initialize QC variables
     FeatureMap features_filtered;
@@ -387,7 +387,7 @@ namespace OpenMS
 
             // ion ratio QC
             if (filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-              && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != "") {
+             && filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != "") {
               if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).ion_ratio_u,
                 filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_l,
                 filter_criteria.component_group_qcs.at(cg_qc_it).ion_ratio_u))
@@ -523,7 +523,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::FilterFeatureMapBackgroundInterference(FeatureMap & features, const MRMFeatureQC & filter_criteria, const MRMFeatureQC & filter_values)
+  void MRMFeatureFilter::FilterFeatureMapBackgroundInterference(FeatureMap& features, const MRMFeatureQC& filter_criteria, const MRMFeatureQC& filter_values)
   {
     // initialize QC variables
     FeatureMap features_filtered;
@@ -747,9 +747,9 @@ namespace OpenMS
                 String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
                 // find the ion ratio pair
                 if (filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-                  && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
-                  && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
-                  && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
+                 && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+                 && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
+                 && filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
                   double ion_ratio = calculateIonRatio(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2), filter_template.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
                   if (sample_it == 0 && init_template_values) {
@@ -834,7 +834,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC & filter_template)
+  void MRMFeatureFilter::TransferLLOQAndULOQToCalculatedConcentrationBounds(const std::vector<AbsoluteQuantitationMethod>& quantitation_method, MRMFeatureQC& filter_template)
   {
     // Iterate through the quantitation method and update the MetaValue for `calculated_concentration` in the filter_template
     for (const AbsoluteQuantitationMethod& quant_method : quantitation_method) {
@@ -852,7 +852,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
+  void MRMFeatureFilter::EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
   {
     // iterature through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
@@ -870,7 +870,7 @@ namespace OpenMS
     calculateFilterValuesPercRSD(filter_template, filter_mean, filter_var);
   }
 
-  void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC & filter_template, const TargetedExperiment & transitions)
+  void MRMFeatureFilter::EstimateBackgroundInterferences(const std::vector<FeatureMap>& samples, MRMFeatureQC& filter_template, const TargetedExperiment& transitions)
   {
     // iterature through each sample and accumulate the values in the filter_values
     std::vector<MRMFeatureQC> filter_values;
@@ -881,8 +881,8 @@ namespace OpenMS
   }
 
   std::map<String, int> MRMFeatureFilter::countLabelsAndTransitionTypes(
-    const Feature & component_group,
-    const TargetedExperiment & transitions) const
+    const Feature& component_group,
+    const TargetedExperiment& transitions) const
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
     std::map<String, int> output;
@@ -937,13 +937,13 @@ namespace OpenMS
     return output;
   }
 
-  double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name) const
+  double MRMFeatureFilter::calculateIonRatio(const Feature& component_1, const Feature& component_2, const String& feature_name) const
   {
     double ratio = 0.0;
     // member feature_name access
     if (feature_name == "intensity")
     {
-      if (component_1.metaValueExists("native_id") && component_2.metaValueExists("native_id"))
+      if (component_1.metaValueExists("native_id")&& component_2.metaValueExists("native_id"))
       {
         const double feature_1 = component_1.getIntensity();
         const double feature_2 = component_2.getIntensity();
@@ -959,7 +959,7 @@ namespace OpenMS
     // metaValue feature_name access
     else
     {
-      if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+      if (component_1.metaValueExists(feature_name)&& component_2.metaValueExists(feature_name))
       {
         const double feature_1 = component_1.getMetaValue(feature_name);
         const double feature_2 = component_2.getMetaValue(feature_name);
@@ -981,11 +981,11 @@ namespace OpenMS
   }
 
   bool MRMFeatureFilter::checkMetaValue(
-    const Feature & component,
-    const String & meta_value_key,
-    const double & meta_value_l,
-    const double & meta_value_u,
-    bool & key_exists
+    const Feature& component,
+    const String& meta_value_key,
+    const double& meta_value_l,
+    const double& meta_value_u,
+    bool& key_exists
   ) const
   {
     bool check = true;
@@ -1000,7 +1000,7 @@ namespace OpenMS
     return check;
   }
 
-  void MRMFeatureFilter::updateMetaValue(const Feature & component, const String & meta_value_key, double & meta_value_l, double & meta_value_u, bool & key_exists) const
+  void MRMFeatureFilter::updateMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
@@ -1015,7 +1015,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::setMetaValue(const Feature & component, const String & meta_value_key, double & meta_value_l, double & meta_value_u, bool & key_exists) const
+  void MRMFeatureFilter::setMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
@@ -1030,7 +1030,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::initMetaValue(const Feature & component, const String & meta_value_key, double & meta_value_l, double & meta_value_u, bool & key_exists) const
+  void MRMFeatureFilter::initMetaValue(const Feature& component, const String& meta_value_key, double& meta_value_l, double& meta_value_u, bool& key_exists) const
   {
     if (component.metaValueExists(meta_value_key))
     {
@@ -1053,7 +1053,7 @@ namespace OpenMS
     return unique;
   }
 
-  void MRMFeatureFilter::accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC & filter_template, const TargetedExperiment & transitions) const
+  void MRMFeatureFilter::accumulateFilterValues(std::vector<MRMFeatureQC>& filter_values, const std::vector<FeatureMap>& samples, const MRMFeatureQC& filter_template, const TargetedExperiment& transitions) const
   {
     // iterature through each sample and accumulate the values in the filter_values
     for (size_t sample_it = 0; sample_it < samples.size(); sample_it++) {
@@ -1117,9 +1117,9 @@ namespace OpenMS
                 String component_name2 = (String)samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2).getMetaValue("native_id");
                 // find the ion ratio pair
                 if (filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 != ""
-                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
-                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
-                  && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
+                 && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 != ""
+                 && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_1 == component_name
+                 && filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_pair_name_2 == component_name2)
                 {
                   double ion_ratio = calculateIonRatio(samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it), samples.at(sample_it).at(feature_it).getSubordinates().at(sub_it2), filter_value.component_group_qcs.at(cg_qc_it).ion_ratio_feature_name);
 
@@ -1174,7 +1174,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::zeroFilterValues(MRMFeatureQC & filter_zeros, const MRMFeatureQC & filter_template) const
+  void MRMFeatureFilter::zeroFilterValues(MRMFeatureQC& filter_zeros, const MRMFeatureQC& filter_template) const
   {
     // Create a zero filter template for subsequent AVE and STD calculations
     filter_zeros = filter_template;
@@ -1218,7 +1218,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::calculateFilterValuesMean(MRMFeatureQC & filter_mean, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_template) const
+  void MRMFeatureFilter::calculateFilterValuesMean(MRMFeatureQC& filter_mean, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_template) const
   {
     // Determine the AVE for each filter_template value
     zeroFilterValues(filter_mean, filter_template);
@@ -1302,7 +1302,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::calculateFilterValuesVar(MRMFeatureQC & filter_var, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC & filter_mean, const MRMFeatureQC& filter_template) const
+  void MRMFeatureFilter::calculateFilterValuesVar(MRMFeatureQC& filter_var, const std::vector<MRMFeatureQC>& filter_values, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_template) const
   {
     // Determine the STD for each filter_template value
     zeroFilterValues(filter_var, filter_template);
@@ -1386,7 +1386,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFilter::calculateFilterValuesPercRSD(MRMFeatureQC & filter_rsd, const MRMFeatureQC & filter_mean, const MRMFeatureQC & filter_var) const
+  void MRMFeatureFilter::calculateFilterValuesPercRSD(MRMFeatureQC& filter_rsd, const MRMFeatureQC& filter_mean, const MRMFeatureQC& filter_var) const
   {
     // Determine the %RSD for each filter_rsd value
     for (size_t cg_qc_it = 0; cg_qc_it < filter_rsd.component_group_qcs.size(); ++cg_qc_it) {
@@ -1432,16 +1432,16 @@ namespace OpenMS
   template <typename T>
   bool MRMFeatureFilter::checkRange(const T& value, const T& value_l, const T& value_u) const
   {
-    return value >= value_l && value <= value_u;
+    return value >= value_l&& value <= value_u;
   }
   template<typename T>
-  void MRMFeatureFilter::updateRange(const T & value, T & value_l, T & value_u) const
+  void MRMFeatureFilter::updateRange(const T& value, T& value_l, T& value_u) const
   {
     if (value < value_l) value_l = value;
     if (value > value_u) value_u = value;
   }
   template<typename T>
-  void MRMFeatureFilter::setRange(const T & value, T & value_l, T & value_u) const
+  void MRMFeatureFilter::setRange(const T& value, T& value_l, T& value_u) const
   {
     if (value >= T(0)) {
       value_l = T(0);
@@ -1452,7 +1452,7 @@ namespace OpenMS
     }
   }
   template<typename T>
-  void MRMFeatureFilter::initRange(const T & value, T & value_l, T & value_u) const
+  void MRMFeatureFilter::initRange(const T& value, T& value_l, T& value_u) const
   {
     value_l = value;
     value_u = value;

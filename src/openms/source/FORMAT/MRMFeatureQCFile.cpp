@@ -215,20 +215,19 @@ namespace OpenMS
       clear(); // clear the buffer_
 
       // Make the ComponentGroupQCs headers
-      String headers = "component_group_name,retention_time_l,retention_time_u,intensity_l,intensity_u,overall_quality_l,overall_quality_u";
-      headers = headers + ",n_heavy_l,n_heavy_u,n_light_l,n_light_u,n_detecting_l,n_detecting_u,n_quantifying_l,n_quantifying_u,n_identifying_l,n_identifying_u,n_transitions_l,n_transitions_u";
-      headers = headers + ",ion_ratio_pair_name_1,ion_ratio_pair_name_2,ion_ratio_l,ion_ratio_u,ion_ratio_feature_name";
+      StringList headers = { "component_group_name", "retention_time_l", "retention_time_u", "intensity_l", "intensity_u", "overall_quality_l", "overall_quality_u",
+        "n_heavy_l", "n_heavy_u", "n_light_l", "n_light_u", "n_detecting_l", "n_detecting_u", "n_quantifying_l", "n_quantifying_u", "n_identifying_l", "n_identifying_u", "n_transitions_l", "n_transitions_u",
+        "ion_ratio_pair_name_1", "ion_ratio_pair_name_2", "ion_ratio_l", "ion_ratio_u", "ion_ratio_feature_name" };
       for (const auto& meta_data : mrmfqc.component_group_qcs.at(0).meta_value_qc) {
-        headers = headers + ",metaValue_" + meta_data.first + "_l,metaValue_" + meta_data.first + "_u";
+        headers.push_back("metaValue_" + meta_data.first + "_l");
+        headers.push_back("metaValue_" + meta_data.first + "_u");
       }
-      StringList split_headers;
-      headers.split(',', split_headers);
-      addRow(split_headers);
+      addRow(headers);
 
       // Make the ComponentGroupQCs rows
       for (const auto& component_qc : mrmfqc.component_group_qcs)
       {
-        StringList row(split_headers.size());
+        StringList row(headers.size());
         row[0] = component_qc.component_group_name;
         row[1] = component_qc.retention_time_l;
         row[2] = component_qc.retention_time_u;
@@ -269,18 +268,17 @@ namespace OpenMS
       clear(); // clear the buffer_
 
       // Make the ComponentQCs headers
-      String headers = "component_name,retention_time_l,retention_time_u,intensity_l,intensity_u,overall_quality_l,overall_quality_u";
+      StringList headers = { "component_name","retention_time_l","retention_time_u","intensity_l","intensity_u","overall_quality_l","overall_quality_u" };
       for (const auto& meta_data : mrmfqc.component_qcs.at(0).meta_value_qc) {
-        headers = headers + ",metaValue_" + meta_data.first + "_l,metaValue_" + meta_data.first + "_u";
+        headers.push_back("metaValue_" + meta_data.first + "_l");
+        headers.push_back("metaValue_" + meta_data.first + "_u");
       }
-      StringList split_headers;
-      headers.split(',', split_headers);
-      addRow(split_headers);
+      addRow(headers);
 
       // Make the ComponentQCs rows
       for (const auto& component_qc : mrmfqc.component_qcs)
       {
-        StringList row(split_headers.size());
+        StringList row(headers.size());
         row[0] = component_qc.component_name;
         row[1] = component_qc.retention_time_l;
         row[2] = component_qc.retention_time_u;

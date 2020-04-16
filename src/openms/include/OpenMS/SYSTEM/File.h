@@ -238,7 +238,7 @@ public:
       Note: this does not require the file to have executable permission set (this is not tested)
       The returned content of @p exe_filename is only valid if true is returned.
 
-      @param [in/out] exe_filename The executable to search for.
+      @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
     static bool findExecutable(OpenMS::String& exe_filename);
