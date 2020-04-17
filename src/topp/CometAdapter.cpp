@@ -631,7 +631,7 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
 
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
@@ -646,6 +646,8 @@ protected:
     auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
     if (index_offset == (std::streampos)-1)
     {
+      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
       // write mzML with index again
       auto tmp_file = File::getTemporaryFile();
       mzml_file.store(tmp_file, exp);
