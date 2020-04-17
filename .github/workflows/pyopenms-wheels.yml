@@ -32,7 +32,7 @@ jobs:
       shell: bash # uses git bash on windows
       run: |
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
 
     - name: Configure x64 environment
@@ -131,7 +131,7 @@ jobs:
       shell: bash
       run: |
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
 
     - name: Setup conda paths
@@ -335,15 +335,15 @@ jobs:
       run: |
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
           fi
 
