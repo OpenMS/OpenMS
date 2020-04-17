@@ -1522,9 +1522,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="0"/>
-		<UserParam type="float" name="FWHM" value="19.022241740206976"/>
 		<UserParam type="float" name="rt_align" value="1326.45984461804369"/>
 		<UserParam type="float" name="rt_raw" value="1308.330322265630002"/>
+		<UserParam type="float" name="FWHM" value="19.022241740206976"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="1.425496e06"/>
@@ -1559,9 +1559,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="2"/>
 		<UserParam type="int" name="cf_id" value="0"/>
-		<UserParam type="float" name="FWHM" value="29.115197494565169"/>
 		<UserParam type="float" name="rt_align" value="1341.644135232154895"/>
 		<UserParam type="float" name="rt_raw" value="1341.626586914059999"/>
+		<UserParam type="float" name="FWHM" value="29.115197494565169"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="6.479014375e05"/>
@@ -1596,9 +1596,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="1"/>
-		<UserParam type="float" name="FWHM" value="10.592152715830633"/>
 		<UserParam type="float" name="rt_align" value="1371.569382885473033"/>
 		<UserParam type="float" name="rt_raw" value="1380.053100585940001"/>
+		<UserParam type="float" name="FWHM" value="10.592152715830633"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="6.599338125e05"/>
@@ -1633,9 +1633,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="1"/>
-		<UserParam type="float" name="FWHM" value="10.06670774196458"/>
 		<UserParam type="float" name="rt_align" value="1343.882423404761767"/>
 		<UserParam type="float" name="rt_raw" value="1323.2109375"/>
+		<UserParam type="float" name="FWHM" value="10.06670774196458"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="36891.88671875"/>
@@ -1670,9 +1670,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="1"/>
-		<UserParam type="float" name="FWHM" value="10.06670774196458"/>
 		<UserParam type="float" name="rt_align" value="1358.160168917149576"/>
 		<UserParam type="float" name="rt_raw" value="1353.990356445309999"/>
+		<UserParam type="float" name="FWHM" value="10.06670774196458"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="1.62933109375e05"/>
@@ -1707,9 +1707,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="2"/>
 		<UserParam type="int" name="cf_id" value="1"/>
-		<UserParam type="float" name="FWHM" value="22.109897616872296"/>
 		<UserParam type="float" name="rt_align" value="1353.857109443969421"/>
 		<UserParam type="float" name="rt_raw" value="1346.239135742190001"/>
+		<UserParam type="float" name="FWHM" value="22.109897616872296"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="81324.2421875"/>
@@ -1744,9 +1744,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="2"/>
-		<UserParam type="float" name="FWHM" value="10.079136274737174"/>
 		<UserParam type="float" name="rt_align" value="1372.790859872858846"/>
 		<UserParam type="float" name="rt_raw" value="1382.961791992190001"/>
+		<UserParam type="float" name="FWHM" value="10.079136274737174"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="40553.2421875"/>
@@ -1781,9 +1781,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="3"/>
-		<UserParam type="float" name="FWHM" value="18.200168769514313"/>
 		<UserParam type="float" name="rt_align" value="1309.582049075959731"/>
 		<UserParam type="float" name="rt_raw" value="1300.879150390630002"/>
+		<UserParam type="float" name="FWHM" value="18.200168769514313"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="1.56452296875e05"/>
@@ -1818,9 +1818,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="4"/>
-		<UserParam type="float" name="FWHM" value="12.294924197037492"/>
 		<UserParam type="float" name="rt_align" value="1363.586638061958183"/>
 		<UserParam type="float" name="rt_raw" value="1384.77294921875"/>
+		<UserParam type="float" name="FWHM" value="12.294924197037492"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="1.1663040625e05"/>
@@ -1855,9 +1855,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="5"/>
-		<UserParam type="float" name="FWHM" value="11.719468527791332"/>
 		<UserParam type="float" name="rt_align" value="1365.863900657271188"/>
 		<UserParam type="float" name="rt_raw" value="1371.34814453125"/>
+		<UserParam type="float" name="FWHM" value="11.719468527791332"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="42807.28125"/>
@@ -1892,9 +1892,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="5"/>
-		<UserParam type="float" name="FWHM" value="10.19565796189929"/>
 		<UserParam type="float" name="rt_align" value="1339.867860745402822"/>
 		<UserParam type="float" name="rt_raw" value="1340.226806640630002"/>
+		<UserParam type="float" name="FWHM" value="10.19565796189929"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="35046.140625"/>
@@ -1929,9 +1929,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="6"/>
-		<UserParam type="float" name="FWHM" value="27.283188161665883"/>
 		<UserParam type="float" name="rt_align" value="1341.495160385824192"/>
 		<UserParam type="float" name="rt_raw" value="1351.60009765625"/>
+		<UserParam type="float" name="FWHM" value="27.283188161665883"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="63086.61328125"/>
@@ -1966,9 +1966,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="7"/>
-		<UserParam type="float" name="FWHM" value="18.885139001815126"/>
 		<UserParam type="float" name="rt_align" value="1351.140419460772137"/>
 		<UserParam type="float" name="rt_raw" value="1359.358764648440001"/>
+		<UserParam type="float" name="FWHM" value="18.885139001815126"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="31124.029296875"/>
@@ -2003,9 +2003,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="7"/>
-		<UserParam type="float" name="FWHM" value="33.801800536276524"/>
 		<UserParam type="float" name="rt_align" value="1368.32625170374854"/>
 		<UserParam type="float" name="rt_raw" value="1374.754516601559999"/>
+		<UserParam type="float" name="FWHM" value="33.801800536276524"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="41212.31640625"/>
@@ -2040,9 +2040,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="8"/>
-		<UserParam type="float" name="FWHM" value="23.035222900873357"/>
 		<UserParam type="float" name="rt_align" value="1356.0351670867758"/>
 		<UserParam type="float" name="rt_raw" value="1362.913940429690001"/>
+		<UserParam type="float" name="FWHM" value="23.035222900873357"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="2.403740625e05"/>
@@ -2077,9 +2077,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="8"/>
-		<UserParam type="float" name="FWHM" value="18.764607310204816"/>
 		<UserParam type="float" name="rt_align" value="1335.929117389654948"/>
 		<UserParam type="float" name="rt_raw" value="1313.453369140630002"/>
+		<UserParam type="float" name="FWHM" value="18.764607310204816"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="2.13776734375e05"/>
@@ -2114,9 +2114,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="9"/>
-		<UserParam type="float" name="FWHM" value="11.855606100049148"/>
 		<UserParam type="float" name="rt_align" value="1368.809036701253717"/>
 		<UserParam type="float" name="rt_raw" value="1375.125"/>
+		<UserParam type="float" name="FWHM" value="11.855606100049148"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="2.58283703125e05"/>
@@ -2151,9 +2151,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="9"/>
-		<UserParam type="float" name="FWHM" value="11.638347881510148"/>
 		<UserParam type="float" name="rt_align" value="1358.628774345035026"/>
 		<UserParam type="float" name="rt_raw" value="1354.288818359380002"/>
+		<UserParam type="float" name="FWHM" value="11.638347881510148"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="46151.78515625"/>
@@ -2188,9 +2188,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="10"/>
-		<UserParam type="float" name="FWHM" value="28.369337712227459"/>
 		<UserParam type="float" name="rt_align" value="1350.608456491314655"/>
 		<UserParam type="float" name="rt_raw" value="1349.329467773440001"/>
+		<UserParam type="float" name="FWHM" value="28.369337712227459"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="75378.2890625"/>
@@ -2225,9 +2225,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="11"/>
-		<UserParam type="float" name="FWHM" value="11.115132990897449"/>
 		<UserParam type="float" name="rt_align" value="1331.329117018078023"/>
 		<UserParam type="float" name="rt_raw" value="1322.941040039059999"/>
+		<UserParam type="float" name="FWHM" value="11.115132990897449"/>
 		<UserParam type="int" name="ScanEventNumber" value="2"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="31345.287109375"/>
@@ -2262,9 +2262,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="12"/>
-		<UserParam type="float" name="FWHM" value="37.626652173150205"/>
 		<UserParam type="float" name="rt_align" value="1368.860797965554184"/>
 		<UserParam type="float" name="rt_raw" value="1373.316528320309999"/>
+		<UserParam type="float" name="FWHM" value="37.626652173150205"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="4.35400625e05"/>
@@ -2299,9 +2299,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="1"/>
 		<UserParam type="int" name="cf_id" value="13"/>
-		<UserParam type="float" name="FWHM" value="11.271826367309416"/>
 		<UserParam type="float" name="rt_align" value="1359.658449656977609"/>
 		<UserParam type="float" name="rt_raw" value="1354.955688476559999"/>
+		<UserParam type="float" name="FWHM" value="11.271826367309416"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="96004.3125"/>
@@ -2336,9 +2336,9 @@
 		<UserParam type="string" name="FFId_category" value="internal"/>
 		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="int" name="cf_id" value="23"/>
-		<UserParam type="float" name="FWHM" value="11.238176732321396"/>
 		<UserParam type="float" name="rt_align" value="1335.416987061908912"/>
 		<UserParam type="float" name="rt_raw" value="1340.117919921880002"/>
+		<UserParam type="float" name="FWHM" value="11.238176732321396"/>
 		<UserParam type="int" name="ScanEventNumber" value="1"/>
 		<UserParam type="int" name="identified" value="1"/>
 		<UserParam type="float" name="total_ion_count" value="65986.8515625"/>
@@ -6469,9 +6469,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="0"/>
-				<UserParam type="float" name="FWHM" value="34.608987643258935"/>
 				<UserParam type="float" name="rt_align" value="1340.063645186759913"/>
 				<UserParam type="float" name="rt_raw" value="1350.101318359380002"/>
+				<UserParam type="float" name="FWHM" value="34.608987643258935"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="4.865988e06"/>
@@ -6516,9 +6516,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="1"/>
-				<UserParam type="float" name="FWHM" value="10.592152715830633"/>
 				<UserParam type="float" name="rt_align" value="1339.883200302231217"/>
 				<UserParam type="float" name="rt_raw" value="1349.895751953130002"/>
+				<UserParam type="float" name="FWHM" value="10.592152715830633"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="1.184895703125e05"/>
@@ -6562,9 +6562,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="2"/>
-				<UserParam type="float" name="FWHM" value="13.384653461780705"/>
 				<UserParam type="float" name="rt_align" value="1360.334233316696782"/>
 				<UserParam type="float" name="rt_raw" value="1355.403442382809999"/>
+				<UserParam type="float" name="FWHM" value="13.384653461780705"/>
 				<UserParam type="int" name="ScanEventNumber" value="3"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="33791.00390625"/>
@@ -6608,9 +6608,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="3"/>
-				<UserParam type="float" name="FWHM" value="14.070216008690339"/>
 				<UserParam type="float" name="rt_align" value="1326.498875208710388"/>
 				<UserParam type="float" name="rt_raw" value="1315.557006835940001"/>
+				<UserParam type="float" name="FWHM" value="14.070216008690339"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="2.69727e05"/>
@@ -6654,9 +6654,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="4"/>
-				<UserParam type="float" name="FWHM" value="17.053721190328179"/>
 				<UserParam type="float" name="rt_align" value="1332.241489266449207"/>
 				<UserParam type="float" name="rt_raw" value="1324.727661132809999"/>
+				<UserParam type="float" name="FWHM" value="17.053721190328179"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="92244.546875"/>
@@ -6700,9 +6700,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="5"/>
-				<UserParam type="float" name="FWHM" value="11.719468527791332"/>
 				<UserParam type="float" name="rt_align" value="1335.573521154457694"/>
 				<UserParam type="float" name="rt_raw" value="1340.982299804690001"/>
+				<UserParam type="float" name="FWHM" value="11.719468527791332"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="8.848173125000001e05"/>
@@ -6746,9 +6746,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="6"/>
-				<UserParam type="float" name="FWHM" value="14.791779518349699"/>
 				<UserParam type="float" name="rt_align" value="1342.998368909386954"/>
 				<UserParam type="float" name="rt_raw" value="1327.033935546880002"/>
+				<UserParam type="float" name="FWHM" value="14.791779518349699"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="50933.8671875"/>
@@ -6792,9 +6792,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="7"/>
-				<UserParam type="float" name="FWHM" value="33.801800536276524"/>
 				<UserParam type="float" name="rt_align" value="1343.325555567897027"/>
 				<UserParam type="float" name="rt_raw" value="1344.216186523440001"/>
+				<UserParam type="float" name="FWHM" value="33.801800536276524"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="87084.1640625"/>
@@ -6838,9 +6838,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="8"/>
-				<UserParam type="float" name="FWHM" value="23.035222900873357"/>
 				<UserParam type="float" name="rt_align" value="1334.525320668798031"/>
 				<UserParam type="float" name="rt_raw" value="1332.26171875"/>
+				<UserParam type="float" name="FWHM" value="23.035222900873357"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="3.6063059375e05"/>
@@ -6884,9 +6884,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="9"/>
-				<UserParam type="float" name="FWHM" value="11.855606100049148"/>
 				<UserParam type="float" name="rt_align" value="1336.711504239545775"/>
 				<UserParam type="float" name="rt_raw" value="1344.832153320309999"/>
+				<UserParam type="float" name="FWHM" value="11.855606100049148"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="51737.265625"/>
@@ -6930,9 +6930,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="10"/>
-				<UserParam type="float" name="FWHM" value="13.3963864847114"/>
 				<UserParam type="float" name="rt_align" value="1329.671519123335656"/>
 				<UserParam type="float" name="rt_raw" value="1320.139770507809999"/>
+				<UserParam type="float" name="FWHM" value="13.3963864847114"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="2.259707e06"/>
@@ -6976,9 +6976,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="11"/>
-				<UserParam type="float" name="FWHM" value="10.640166869860778"/>
 				<UserParam type="float" name="rt_align" value="1319.454846770930317"/>
 				<UserParam type="float" name="rt_raw" value="1305.121459960940001"/>
+				<UserParam type="float" name="FWHM" value="10.640166869860778"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="30562.65625"/>
@@ -7022,9 +7022,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="12"/>
-				<UserParam type="float" name="FWHM" value="12.764106366350712"/>
 				<UserParam type="float" name="rt_align" value="1373.084785036938911"/>
 				<UserParam type="float" name="rt_raw" value="1383.747680664059999"/>
+				<UserParam type="float" name="FWHM" value="12.764106366350712"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="1.563189125e06"/>
@@ -7068,9 +7068,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="13"/>
-				<UserParam type="float" name="FWHM" value="12.161534730827714"/>
 				<UserParam type="float" name="rt_align" value="1368.146557833337738"/>
 				<UserParam type="float" name="rt_raw" value="1374.17578125"/>
+				<UserParam type="float" name="FWHM" value="12.161534730827714"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="3.2510103125e05"/>
@@ -7113,9 +7113,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="14"/>
-				<UserParam type="float" name="FWHM" value="8.723310607010971"/>
 				<UserParam type="float" name="rt_align" value="1373.139313009529133"/>
 				<UserParam type="float" name="rt_raw" value="1383.897216796880002"/>
+				<UserParam type="float" name="FWHM" value="8.723310607010971"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="63918.95703125"/>
@@ -7158,9 +7158,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="15"/>
-				<UserParam type="float" name="FWHM" value="14.166971727359718"/>
 				<UserParam type="float" name="rt_align" value="1372.733814391756823"/>
 				<UserParam type="float" name="rt_raw" value="1382.813232421880002"/>
+				<UserParam type="float" name="FWHM" value="14.166971727359718"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="90166.234375"/>
@@ -7203,9 +7203,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="16"/>
-				<UserParam type="float" name="FWHM" value="13.72878030239437"/>
 				<UserParam type="float" name="rt_align" value="1342.483923639960494"/>
 				<UserParam type="float" name="rt_raw" value="1352.536499023440001"/>
+				<UserParam type="float" name="FWHM" value="13.72878030239437"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="79474.25"/>
@@ -7248,9 +7248,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="17"/>
-				<UserParam type="float" name="FWHM" value="14.248695934639889"/>
 				<UserParam type="float" name="rt_align" value="1335.68121990901318"/>
 				<UserParam type="float" name="rt_raw" value="1341.498657226559999"/>
+				<UserParam type="float" name="FWHM" value="14.248695934639889"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="53423.546875"/>
@@ -7293,9 +7293,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="18"/>
-				<UserParam type="float" name="FWHM" value="9.183672525030508"/>
 				<UserParam type="float" name="rt_align" value="1370.840944700018099"/>
 				<UserParam type="float" name="rt_raw" value="1378.563598632809999"/>
+				<UserParam type="float" name="FWHM" value="9.183672525030508"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="25518.5625"/>
@@ -7338,9 +7338,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="19"/>
-				<UserParam type="float" name="FWHM" value="11.469419233551031"/>
 				<UserParam type="float" name="rt_align" value="1336.296029554648158"/>
 				<UserParam type="float" name="rt_raw" value="1343.724853515630002"/>
+				<UserParam type="float" name="FWHM" value="11.469419233551031"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="53927.765625"/>
@@ -7383,9 +7383,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="20"/>
-				<UserParam type="float" name="FWHM" value="14.8885812137659"/>
 				<UserParam type="float" name="rt_align" value="1370.255468685805909"/>
 				<UserParam type="float" name="rt_raw" value="1377.476318359380002"/>
+				<UserParam type="float" name="FWHM" value="14.8885812137659"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="45611.77734375"/>
@@ -7428,9 +7428,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="21"/>
-				<UserParam type="float" name="FWHM" value="11.020001402634543"/>
 				<UserParam type="float" name="rt_align" value="1334.845315468827948"/>
 				<UserParam type="float" name="rt_raw" value="1335.079345703130002"/>
+				<UserParam type="float" name="FWHM" value="11.020001402634543"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="40647.09765625"/>
@@ -7473,9 +7473,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="22"/>
-				<UserParam type="float" name="FWHM" value="13.125201167049472"/>
 				<UserParam type="float" name="rt_align" value="1334.968049348767181"/>
 				<UserParam type="float" name="rt_raw" value="1336.395263671880002"/>
+				<UserParam type="float" name="FWHM" value="13.125201167049472"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="52123.20703125"/>
@@ -7518,9 +7518,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="23"/>
-				<UserParam type="float" name="FWHM" value="11.238176732321396"/>
 				<UserParam type="float" name="rt_align" value="1321.796503511388437"/>
 				<UserParam type="float" name="rt_raw" value="1309.482543945309999"/>
+				<UserParam type="float" name="FWHM" value="11.238176732321396"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="97399.5859375"/>
@@ -7563,9 +7563,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="24"/>
-				<UserParam type="float" name="FWHM" value="9.369755402785149"/>
 				<UserParam type="float" name="rt_align" value="1373.88691582190495"/>
 				<UserParam type="float" name="rt_raw" value="1386.057495117190001"/>
+				<UserParam type="float" name="FWHM" value="9.369755402785149"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="63281.61328125"/>
@@ -7608,9 +7608,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="25"/>
-				<UserParam type="float" name="FWHM" value="55.57512082257584"/>
 				<UserParam type="float" name="rt_align" value="1343.966264244477316"/>
 				<UserParam type="float" name="rt_raw" value="1353.84130859375"/>
+				<UserParam type="float" name="FWHM" value="55.57512082257584"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="35966.91015625"/>
@@ -7653,9 +7653,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="26"/>
-				<UserParam type="float" name="FWHM" value="11.526443730094821"/>
 				<UserParam type="float" name="rt_align" value="1342.812269446430491"/>
 				<UserParam type="float" name="rt_raw" value="1352.83447265625"/>
+				<UserParam type="float" name="FWHM" value="11.526443730094821"/>
 				<UserParam type="int" name="ScanEventNumber" value="3"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="40523.0390625"/>
@@ -7698,9 +7698,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="27"/>
-				<UserParam type="float" name="FWHM" value="11.166805182652702"/>
 				<UserParam type="float" name="rt_align" value="1317.000803990632448"/>
 				<UserParam type="float" name="rt_raw" value="1303.42919921875"/>
+				<UserParam type="float" name="FWHM" value="11.166805182652702"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="40632.64453125"/>
@@ -7743,9 +7743,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="0"/>
 				<UserParam type="int" name="cf_id" value="28"/>
-				<UserParam type="float" name="FWHM" value="20.712996930619507"/>
 				<UserParam type="float" name="rt_align" value="1334.481564268415923"/>
 				<UserParam type="float" name="rt_raw" value="1331.964111328130002"/>
+				<UserParam type="float" name="FWHM" value="20.712996930619507"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="1.965055625e05"/>
@@ -7788,9 +7788,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="29"/>
-				<UserParam type="float" name="FWHM" value="10.760517135077333"/>
 				<UserParam type="float" name="rt_align" value="1367.627629215822026"/>
 				<UserParam type="float" name="rt_raw" value="1361.740112304690001"/>
+				<UserParam type="float" name="FWHM" value="10.760517135077333"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="68701.484375"/>
@@ -7833,9 +7833,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="30"/>
-				<UserParam type="float" name="FWHM" value="23.947428242391013"/>
 				<UserParam type="float" name="rt_align" value="1340.986298937499896"/>
 				<UserParam type="float" name="rt_raw" value="1331.251953125"/>
+				<UserParam type="float" name="FWHM" value="23.947428242391013"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="19846.349609375"/>
@@ -7878,9 +7878,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="31"/>
-				<UserParam type="float" name="FWHM" value="5.308392397062852e05"/>
 				<UserParam type="float" name="rt_align" value="1369.167341146946228"/>
 				<UserParam type="float" name="rt_raw" value="1364.584106445309999"/>
+				<UserParam type="float" name="FWHM" value="5.308392397062852e05"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="62601.1953125"/>
@@ -7923,9 +7923,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="32"/>
-				<UserParam type="float" name="FWHM" value="11.236026778915786"/>
 				<UserParam type="float" name="rt_align" value="1366.160929978110062"/>
 				<UserParam type="float" name="rt_raw" value="1379.48291015625"/>
+				<UserParam type="float" name="FWHM" value="11.236026778915786"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="1.27761140625e05"/>
@@ -7968,9 +7968,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="33"/>
-				<UserParam type="float" name="FWHM" value="9.006311955387515"/>
 				<UserParam type="float" name="rt_align" value="1341.151465721603472"/>
 				<UserParam type="float" name="rt_raw" value="1317.4931640625"/>
+				<UserParam type="float" name="FWHM" value="9.006311955387515"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="39477.78515625"/>
@@ -8013,9 +8013,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="34"/>
-				<UserParam type="float" name="FWHM" value="14.674233177593932"/>
 				<UserParam type="float" name="rt_align" value="1367.077198653794994"/>
 				<UserParam type="float" name="rt_raw" value="1377.581909179690001"/>
+				<UserParam type="float" name="FWHM" value="14.674233177593932"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="35014.78125"/>
@@ -8058,9 +8058,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="35"/>
-				<UserParam type="float" name="FWHM" value="9.401733921594454"/>
 				<UserParam type="float" name="rt_align" value="1339.588599639186214"/>
 				<UserParam type="float" name="rt_raw" value="1334.591796875"/>
+				<UserParam type="float" name="FWHM" value="9.401733921594454"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="82797.203125"/>
@@ -8103,9 +8103,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="36"/>
-				<UserParam type="float" name="FWHM" value="10.747240306669006"/>
 				<UserParam type="float" name="rt_align" value="1339.203378378562547"/>
 				<UserParam type="float" name="rt_raw" value="1338.115600585940001"/>
+				<UserParam type="float" name="FWHM" value="10.747240306669006"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="30826.111328125"/>
@@ -8148,9 +8148,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="37"/>
-				<UserParam type="float" name="FWHM" value="13.159276685824052"/>
 				<UserParam type="float" name="rt_align" value="1369.606365386797961"/>
 				<UserParam type="float" name="rt_raw" value="1366.143188476559999"/>
+				<UserParam type="float" name="FWHM" value="13.159276685824052"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="25236.453125"/>
@@ -8193,9 +8193,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="38"/>
-				<UserParam type="float" name="FWHM" value="22.557614567216504"/>
 				<UserParam type="float" name="rt_align" value="1366.936132652851484"/>
 				<UserParam type="float" name="rt_raw" value="1377.879028320309999"/>
+				<UserParam type="float" name="FWHM" value="22.557614567216504"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="39280.9375"/>
@@ -8238,9 +8238,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="1"/>
 				<UserParam type="int" name="cf_id" value="39"/>
-				<UserParam type="float" name="FWHM" value="12.049799108372635"/>
 				<UserParam type="float" name="rt_align" value="1362.755588959432316"/>
 				<UserParam type="float" name="rt_raw" value="1386.480712890630002"/>
+				<UserParam type="float" name="FWHM" value="12.049799108372635"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="78477.8125"/>
@@ -8283,9 +8283,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="40"/>
-				<UserParam type="float" name="FWHM" value="12.598074094769345"/>
 				<UserParam type="float" name="rt_align" value="2466.867733796053926"/>
 				<UserParam type="float" name="rt_raw" value="1387.679809570309999"/>
+				<UserParam type="float" name="FWHM" value="12.598074094769345"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="3.9486503125e05"/>
@@ -8328,9 +8328,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="41"/>
-				<UserParam type="float" name="FWHM" value="15.123018283987754"/>
 				<UserParam type="float" name="rt_align" value="2418.637183753698992"/>
 				<UserParam type="float" name="rt_raw" value="1385.949462890630002"/>
+				<UserParam type="float" name="FWHM" value="15.123018283987754"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="77204.9296875"/>
@@ -8373,9 +8373,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="42"/>
-				<UserParam type="float" name="FWHM" value="14.782359573333674"/>
 				<UserParam type="float" name="rt_align" value="1452.100363408510248"/>
 				<UserParam type="float" name="rt_raw" value="1351.2734375"/>
+				<UserParam type="float" name="FWHM" value="14.782359573333674"/>
 				<UserParam type="int" name="ScanEventNumber" value="3"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="34950.4296875"/>
@@ -8418,9 +8418,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="43"/>
-				<UserParam type="float" name="FWHM" value="20.438186713965965"/>
 				<UserParam type="float" name="rt_align" value="1347.541357714359492"/>
 				<UserParam type="float" name="rt_raw" value="1347.324951171880002"/>
+				<UserParam type="float" name="FWHM" value="20.438186713965965"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="91546.484375"/>
@@ -8463,9 +8463,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="44"/>
-				<UserParam type="float" name="FWHM" value="13.55221786939784"/>
 				<UserParam type="float" name="rt_align" value="2516.329991712930678"/>
 				<UserParam type="float" name="rt_raw" value="1389.454345703130002"/>
+				<UserParam type="float" name="FWHM" value="13.55221786939784"/>
 				<UserParam type="int" name="ScanEventNumber" value="2"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="6.95983375e05"/>
@@ -8508,9 +8508,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="45"/>
-				<UserParam type="float" name="FWHM" value="10.120284163665303"/>
 				<UserParam type="float" name="rt_align" value="1820.500105543083464"/>
 				<UserParam type="float" name="rt_raw" value="1364.490356445309999"/>
+				<UserParam type="float" name="FWHM" value="10.120284163665303"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="3.5062359375e05"/>
@@ -8553,9 +8553,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="46"/>
-				<UserParam type="float" name="FWHM" value="16.924723598114447"/>
 				<UserParam type="float" name="rt_align" value="2436.456117832846758"/>
 				<UserParam type="float" name="rt_raw" value="1386.588745117190001"/>
+				<UserParam type="float" name="FWHM" value="16.924723598114447"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="2.1894440625e05"/>
@@ -8598,9 +8598,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="47"/>
-				<UserParam type="float" name="FWHM" value="11.076211295306717"/>
 				<UserParam type="float" name="rt_align" value="2103.435653253166493"/>
 				<UserParam type="float" name="rt_raw" value="1374.64111328125"/>
+				<UserParam type="float" name="FWHM" value="11.076211295306717"/>
 				<UserParam type="int" name="ScanEventNumber" value="5"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="26639.0234375"/>
@@ -8643,9 +8643,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="48"/>
-				<UserParam type="float" name="FWHM" value="9.686313626991714"/>
 				<UserParam type="float" name="rt_align" value="1854.549002493836952"/>
 				<UserParam type="float" name="rt_raw" value="1365.7119140625"/>
+				<UserParam type="float" name="FWHM" value="9.686313626991714"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="96741.2578125"/>
@@ -8688,9 +8688,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="49"/>
-				<UserParam type="float" name="FWHM" value="15.318896749317419"/>
 				<UserParam type="float" name="rt_align" value="2646.077826970222304"/>
 				<UserParam type="float" name="rt_raw" value="1394.109252929690001"/>
+				<UserParam type="float" name="FWHM" value="15.318896749317419"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="7.603294e06"/>
@@ -8733,9 +8733,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="50"/>
-				<UserParam type="float" name="FWHM" value="13.729326321911684"/>
 				<UserParam type="float" name="rt_align" value="2335.854165585264127"/>
 				<UserParam type="float" name="rt_raw" value="1382.9794921875"/>
+				<UserParam type="float" name="FWHM" value="13.729326321911684"/>
 				<UserParam type="int" name="ScanEventNumber" value="3"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="1.0509862e07"/>
@@ -8778,9 +8778,9 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 				<UserParam type="int" name="map_index" value="2"/>
 				<UserParam type="int" name="cf_id" value="51"/>
-				<UserParam type="float" name="FWHM" value="16.747860831034977"/>
 				<UserParam type="float" name="rt_align" value="1359.536602133666747"/>
 				<UserParam type="float" name="rt_raw" value="1339.605346679690001"/>
+				<UserParam type="float" name="FWHM" value="16.747860831034977"/>
 				<UserParam type="int" name="ScanEventNumber" value="1"/>
 				<UserParam type="int" name="identified" value="1"/>
 				<UserParam type="float" name="total_ion_count" value="35730.8671875"/>

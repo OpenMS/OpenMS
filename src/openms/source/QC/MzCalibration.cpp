@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
   MzCalibration::MzCalibration() :
-      mz_raw_{}, mz_ref_{}, no_mzml_(false), name_("MzCalibration")
+      mz_raw_{}, mz_ref_{}, no_mzml_(false)
   {
   }
 
@@ -159,6 +159,7 @@ namespace OpenMS
 
   const String &MzCalibration::getName() const
   {
-    return name_;
+    static const String& name = "MzCalibration";
+    return name;
   }
 }

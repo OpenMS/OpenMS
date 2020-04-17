@@ -183,7 +183,7 @@ jobs:
           mkdir bld
           pushd bld
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-          cmake -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS SuperHirn
 
           # Search for the latest 3 main python versions in the repository pkgs/main
@@ -273,7 +273,7 @@ jobs:
 
             mkdir openms-build
             cd openms-build
-            cmake -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+            cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
             make -j4 OpenMS SuperHirn
 
             # compile and configure OpenMS
@@ -425,7 +425,11 @@ jobs:
           name: macOS-wheels
 
     - name: Merge all artifacts
-      run: mkdir wheels; cp -lr *-wheels/* wheels
+      run: |
+            mkdir wheels
+            cp -lr *-wheels/* wheels/
+            pwd
+            ls -la wheels/
 
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@master

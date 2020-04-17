@@ -1131,6 +1131,12 @@ set_tests_properties("TOPP_MapAlignerIdentification_5_out2" PROPERTIES DEPENDS "
 add_test("TOPP_MapAlignerIdentification_6" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -trafo_out MapAlignerIdentification_6_output1.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML)
 add_test("TOPP_MapAlignerIdentification_6_out1" ${DIFF} -in1 MapAlignerIdentification_6_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_6_output1.trafoXML )
 set_tests_properties("TOPP_MapAlignerIdentification_6_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_6")
+# "force" option (not enough RT data):
+add_test("TOPP_MapAlignerIdentification_7" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input1.idXML -out MapAlignerIdentification_7_output1.tmp -trafo_out MapAlignerIdentification_7_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input2.idXML -force)
+add_test("TOPP_MapAlignerIdentification_7_out1" ${DIFF} -in1 MapAlignerIdentification_7_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input1.idXML)
+add_test("TOPP_MapAlignerIdentification_7_out2" ${DIFF} -in1 MapAlignerIdentification_7_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_output2.trafoXML -whitelist "TrafoXML version=")
+set_tests_properties("TOPP_MapAlignerIdentification_7_out1" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
+set_tests_properties("TOPP_MapAlignerIdentification_7_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7")
 
 #------------------------------------------------------------------------------
 # MapAlignerSpectrum tests:
@@ -2551,7 +2557,7 @@ add_test("UTILS_IDSplitter_1_out2" ${DIFF} -in1 IDSplitter_1_output2.tmp -in2 ${
 set_tests_properties("UTILS_IDSplitter_1_out2" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
 
 # MassCalculator:
-add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.txt -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)
+add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.tsv -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)
 add_test("UTILS_MassCalculator_1_out1" ${DIFF} -in1 MassCalculator_1_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_1_output.csv )
 set_tests_properties("UTILS_MassCalculator_1_out1" PROPERTIES DEPENDS "UTILS_MassCalculator_1")
 add_test("UTILS_MassCalculator_2" ${TOPP_BIN_PATH}/MassCalculator -test -in_seq "LDQWLC(Carbamidomethyl)EKL" "(Glu->pyro-Glu)EAM(Oxidation)APKHK" "RANVM(Oxidation)DYR" "FGVEQDVDMVFASFIR" -out MassCalculator_2_output.tmp -charge 1 2 3)
@@ -2703,6 +2709,85 @@ add_test("UTILS_ProteomicsLFQ_1" ${TOPP_BIN_PATH}/ProteomicsLFQ
          )
 add_test("UTILS_ProteomicsLFQ_1_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_1_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
+add_test("UTILS_ProteomicsLFQ_1_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_1_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
+add_test("UTILS_ProteomicsLFQ_1_out_3" ${DIFF} -whitelist "software" "location" -in1 BSA.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_1_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_1_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_1")
+
+# regression test
+add_test("UTILS_ProteomicsLFQ_2" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only true
+         -transfer_ids mean
+         -mass_recalibration false
+         -out_cxml BSA_plusTransfer.consensusXML.tmp
+         -out_msstats BSA_plusTransfer.csv.tmp
+         -out BSA_plusTransfer.mzTab.tmp
+         -threads 4
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_2_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA_plusTransfer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
+add_test("UTILS_ProteomicsLFQ_2_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_plusTransfer.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
+add_test("UTILS_ProteomicsLFQ_2_out_3" ${DIFF}  -whitelist "software" "location" -in1 BSA_plusTransfer.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_2_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_2")
+
+add_test("UTILS_ProteomicsLFQ_3" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -Alignment:max_rt_shift 0
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -targeted_only false
+         -transfer_ids mean
+         -mass_recalibration false
+         -out_cxml BSA_plusSeeds_plusTransfer.consensusXML.tmp
+         -out_msstats BSA_plusSeeds_plusTransfer.csv.tmp
+         -out BSA_plusSeeds_plusTransfer.mzTab.tmp
+         -threads 4
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_3_out_1" ${DIFF} -whitelist "spectra_data" "map id=" -in1 BSA_plusSeeds_plusTransfer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_3_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
+add_test("UTILS_ProteomicsLFQ_3_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_plusSeeds_plusTransfer.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.csv )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
+add_test("UTILS_ProteomicsLFQ_3_out_3" ${DIFF}  -whitelist "software" "location" -in1 BSA_plusSeeds_plusTransfer.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:

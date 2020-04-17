@@ -50,33 +50,111 @@ namespace OpenMS
 {
   /**
 
-  @brief Representation of the Experimental Design in OpenMS. Instances can be loaded via
+  @brief Representation of an experimental design in OpenMS. Instances can be loaded with
          the ExperimentalDesignFile class.
 
-  The experimental design in OpenMS consists of two sections:
-    1. FileSection captures the mapping of quantitative values to files and, optionally, to samples.
-    2. SampleSection captures the experimental factors and conditions associated with a sample.
+    Experimental designs can be provided in two formats: the one-table format and the two-table format
+    The one-table format is simpler but slightly more redundant.
 
-  The FileSection is mandatory while the SampleSection is optional and only required for downstream analysis.
+    The one-table format consists of mandatory (file columns) and optional sample metadata (sample columns).
 
-  Details on the FileSection:
+    The mandatory file columns are Fraction_Group, Fraction, Spectra_Filepath and Label.
+    These columns capture the mapping of quantitative values to files for label-free and multiplexed experiments
+    and enables fraction-aware data processing.
 
-  To unambiguously map a single quantitative value we need to define:
-    a. the label (e.g., label = 2 in the case of a heavy peptide in a light/heavy experiment)
-    b. which spectra file did produce the result (e.g., path = "/data/SILAC_file.mzML")  
-    c. which fraction the file corresponds to (e.g., fraction = 1)
-    d. a fraction group identifier that groups fractions (e.g., fraction_group = 1)
-       Note: in the case of label-free data, the fraction group identifier has 
-             the same cardinality as the sample identifier.
-   (e.) optionally, the sample that has been measured (e.g., sample = 1)
+    Fraction_Group: a numeric identifier that indicates which fractions are grouped together.
+    Fraction: a numeric identifier that indicates which fraction was measured in this file. 
+              In the case of unfractionated data, the fraction identifier is 1 for all samples.
+    Label: a numeric identifier for the label. 1 for label-free, 1 and 2 for SILAC light/heavy, e.g., 1-10 for TMT10Plex
+    Spectra_Filepath: a filename or path as string representation (e.g., SILAC_file.mzML)
 
-   This information is defined in the FileSection and enables fraction aware data processing.
+    The optional sample columns are typically MSstats_Condition and MSstats_BioReplicate.
+    They capture the experimental factors and conditions associated with a sample.
 
-  Details on the SampleSection:
-  
-  To map a sample to conditions / factors we need to define:
-    a. the sample ( e.g., sample = 1)
-    b. multiple columns containing conditions / factors
+    MSstats_Condition: a string that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats and 
+                       can then be used to specify test contrasts.
+    MSstats_BioReplicate: a numeric identifier to indicate replication. MSstats requires that there are no duplicate entries. 
+                          E.g., if MSstats_Condition, Fraction_Group group, and Fraction number are the same - 
+                          as in the case of biological or technical replication, 
+                          one uses the MSstats_BioReplicate to make entries non-unique)
+    For details on the MSstats columns please refer to the MSstats manual for details
+    (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).
+
+    <table>
+    <tr>
+        <th>Fraction_Group</th>
+        <th>Fraction</th>
+        <th>Spectra_Filepath</th>
+        <th>Label</th>
+        <th>MSstats_Condition</th>
+        <th>MSstats_BioReplicate</th>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>1</td>
+        <td>UPS1_12500amol_R1.mzML</td>
+        <td>1</td>
+        <td>12500 amol</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>1</td>
+        <td>UPS1_12500amol_R2.mzML</td>
+        <td>1</td>
+        <td>12500 amol</td>
+        <td>2</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>1</td>
+        <td>UPS1_12500amol_R3.mzML</td>
+        <td>1</td>
+        <td>12500 amol</td>
+        <td>3</td>
+    </tr>
+    <tr>
+        <td>...</td>
+        <td>...<br></td>
+        <td>...</td>
+        <td>...<br></td>
+        <td>...<br></td>
+        <td>...<br></td>
+    </tr>
+    <tr>
+        <td>22</td>
+        <td>1</td>
+        <td>UPS1_500amol_R1.mzML</td>
+        <td>1</td>
+        <td>500 amol</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>23</td>
+        <td>1</td>
+        <td>UPS1_500amol_R2.mzML</td>
+        <td>1</td>
+        <td>500 amol</td>
+        <td>2</td>
+    </tr>
+    <tr>
+        <td>24</td>
+        <td>1</td>
+        <td>UPS1_500amol_R3.mzML</td>
+        <td>1</td>
+        <td>500 amol</td>
+        <td>3</td>
+    </tr>
+    </table>
+
+    Alternatively, the experimental design can be specified with a file consisting of two tables whose headers are separated
+    by a blank line. The two tables are:
+    The file section table and the sample section table.
+    The file section consists of columns Fraction_Group, Fraction, Spectra_Filepath, Label and Sample
+    The sample section consists of columns Sample, MSstats_Condition and MSstats_BioReplicate
+
+    The content is the same as described for the one table format, except that the additional numeric sample column
+    allows referencing between file and sample section.
 
   @ingroup Metadata
 

@@ -109,12 +109,19 @@ public:
     using privvec::empty;
     using privvec::reserve;
     using privvec::operator[];
-    using privvec::at; // UniqueIdIndexer
-    using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
+    using privvec::at;
+    using privvec::back;
     using privvec::push_back;
     using privvec::emplace_back;
     using privvec::erase;
 
+    enum class SplitMeta
+    {
+      DISCARD,                 ///< do not copy any meta values
+      COPY_ALL,               ///< copy all meta values to all feature maps
+      COPY_FIRST              ///< copy all meta values to first feature map
+    };
+    
     /// Description of the columns in a consensus map
     struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
@@ -361,7 +368,22 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+    OPENMS_DLLAPI bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+
+    /**
+     @brief splits ConsensusMap into its original FeatureMaps
+
+     If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
+     provided by the map index.
+     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are seperated. All PeptideIdentifications
+     (assigned and unassigned) are added to the first FeatureMap.
+
+     MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
+
+     @param mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
+     @return FeatureMaps
+    */
+    OPENMS_DLLAPI std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
 protected:
 

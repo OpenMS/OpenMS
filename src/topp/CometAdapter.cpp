@@ -159,6 +159,14 @@ protected:
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
+
+    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
+    setMinInt_("min_peptide_length", 5);
+    setMaxInt_("min_peptide_length", 63);
+    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
+    setMinInt_("max_peptide_length", 5);
+    setMaxInt_("max_peptide_length", 63);
+
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance", 0.01);
@@ -478,7 +486,7 @@ protected:
     os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
-    os << "peptide_length_range = 5 63\n";                       // minimum and maximum peptide length to analyze (default 1 63; max length 63)
+    os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
@@ -621,7 +629,8 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
+    mzml_file.getOptions().setFillData(false); // only load metadata for spectra
+    mzml_file.getOptions().setMSLevels({2}); // only load MS2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -631,11 +640,9 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    for (const auto& s : exp)
     {
-      if (!getFlag_("force"))
+      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
       {
         throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
       }
@@ -648,6 +655,8 @@ protected:
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+      mzml_file.getOptions().setFillData(true); // load all data
+      mzml_file.load(inputfile_name, exp);
       // write mzML with index again
       auto tmp_file = File::getTemporaryFile();
       mzml_file.store(tmp_file, exp);
