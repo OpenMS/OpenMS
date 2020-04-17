@@ -17,10 +17,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-    - name: set timezone # https://github.com/marketplace/actions/setup-timezone
-      uses: zcong1993/setup-timezone@master
-      with:
-        timezone: Europa/Berlin
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
@@ -30,6 +27,7 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
+
     - name: Install Miniconda
       shell: bash # uses git bash on windows
       run: |
@@ -118,11 +116,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
-
-    - name: set timezone # https://github.com/marketplace/actions/setup-timezone
-      uses: zcong1993/setup-timezone@master
-      with:
-        timezone: Europa/Berlin
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
@@ -242,11 +235,6 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
-      
-    - name: set timezone # https://github.com/marketplace/actions/setup-timezone
-      uses: zcong1993/setup-timezone@master
-      with:
-        timezone: Europa/Berlin
 
     - name: Build on manylinux2014 
       run: |

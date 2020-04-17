@@ -41,9 +41,10 @@ import re
 import shutil
 import time
 from datetime import datetime
+from pytz import timezone
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    now = datetime.now()
+    now = timezone('Europe/Berlin').localize(datetime.now())
     now_string = now.strftime("%Y%m%d")
     package_name = "pyopenms_nightly"
     package_version = OPEN_MS_VERSION + ".dev" + now_string
