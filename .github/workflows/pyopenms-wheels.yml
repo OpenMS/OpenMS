@@ -6,7 +6,7 @@ name: pyopenms-wheels
 # events but only for the master branch
 on:
   push:
-    branches: [ nightly ]
+    branches: [ nightly, fix/pyomsnightly ] # fix/pyomsnightly added for debugging
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -400,8 +400,7 @@ jobs:
           # clean up
           conda remove --name pyoms-bld-$py --all
 
-        done
-        
+        done        
 # Upload the wheels (the action only runs on ubuntu slaves)
   publish:
     needs: [test] # doesn't really NEED it but we want the tests to pass first
