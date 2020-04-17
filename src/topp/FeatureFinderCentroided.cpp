@@ -136,181 +136,180 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureFinderCentroided :
-        public TOPPBase
+  public TOPPBase
 {
 public:
-    TOPPFeatureFinderCentroided() :
-            TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
-    {}
+  TOPPFeatureFinderCentroided() :
+    TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
+  {}
 
 protected:
 
-    void registerOptionsAndFlags_() override
+  void registerOptionsAndFlags_() override
+  {
+    registerInputFile_("in", "<file>", "", "input file");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
+    setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
+
+    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
+    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
+
+    addEmptyLine_();
+
+    registerSubsection_("algorithm", "Algorithm section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+  }
+
+  ExitCodes main_(int, const char**) override
+  {
+    //input file names
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String out_mzq = getStringOption_("out_mzq");
+
+    //prevent loading of fragment spectra
+    PeakFileOptions options;
+    options.setMSLevels(vector<Int>(1, 1));
+
+    //reading input data
+    MzMLFile f;
+    f.getOptions() = options;
+    f.setLogType(log_type_);
+
+    PeakMap exp;
+    f.load(in, exp);
+    exp.updateRanges();
+
+    if (exp.getSpectra().empty())
     {
-        registerInputFile_("in", "<file>", "", "input file");
-        setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file>", "", "output file");
-        setValidFormats_("out", ListUtils::create<String>("featureXML"));
-        registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
-        setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
-
-        registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-        setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
-
-        addEmptyLine_();
-
-        registerSubsection_("algorithm", "Algorithm section");
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
 
-    Param getSubsectionDefaults_(const String& /*section*/) const override
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
-        return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
+      }
+    }
+    
+    // Filter out peaks with a intensity below 0.05
+    ThresholdMower threshold_mower;
+    threshold_mower.filterPeakMap(exp);
+
+    //load seeds
+    FeatureMap seeds;
+    if (getStringOption_("seeds") != "")
+    {
+      FeatureXMLFile().load(getStringOption_("seeds"), seeds);
     }
 
-    ExitCodes main_(int, const char**) override
+    //setup of FeatureFinder
+    FeatureFinder ff;
+    ff.setLogType(log_type_);
+
+    // A map for the resulting features
+    FeatureMap features;
+
+    if (getFlag_("test"))
     {
-        //input file names
-        String in = getStringOption_("in");
-        String out = getStringOption_("out");
-        String out_mzq = getStringOption_("out_mzq");
-
-        //prevent loading of fragment spectra
-        PeakFileOptions options;
-        options.setMSLevels(vector<Int>(1, 1));
-
-        //reading input data
-        MzMLFile f;
-        f.getOptions() = options;
-        f.setLogType(log_type_);
-
-        PeakMap exp;
-        f.load(in, exp);
-        exp.updateRanges();
-
-        if (exp.getSpectra().empty())
-        {
-            throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
-        }
-
-        // determine type of spectral data (profile or centroided)
-        SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
-
-        if (spectrum_type == SpectrumSettings::PROFILE)
-        {
-            if (!getFlag_("force"))
-            {
-                throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
-            }
-        }
-
-
-        ThresholdMower threshold_mower;
-        threshold_mower.filterPeakMap(exp);
-
-
-        //load seeds
-        FeatureMap seeds;
-        if (getStringOption_("seeds") != "")
-        {
-            FeatureXMLFile().load(getStringOption_("seeds"), seeds);
-        }
-
-        //setup of FeatureFinder
-        FeatureFinder ff;
-        ff.setLogType(log_type_);
-
-        // A map for the resulting features
-        FeatureMap features;
-
-        if (getFlag_("test"))
-        {
-            // if test mode set, add file without path so we can compare it
-            features.setPrimaryMSRunPath({"file://" + File::basename(in)}, exp);
-        }
-        else
-        {
-            features.setPrimaryMSRunPath({in}, exp);
-        }
-
-        // get parameters specific for the feature finder
-        Param feafi_param = getParam_().copy("algorithm:", true);
-        writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
-
-        // Apply the feature finder
-        ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
-        features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-        // DEBUG
-        if (debug_level_ > 10)
-        {
-            FeatureMap::Iterator it;
-            for (it = features.begin(); it != features.end(); ++it)
-            {
-                if (!it->isMetaEmpty())
-                {
-                    vector<String> keys;
-                    it->getKeys(keys);
-                    OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
-                    for (Size i = 0; i < keys.size(); i++)
-                    {
-                        OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
-                    }
-                }
-            }
-        }
-
-        //-------------------------------------------------------------
-        // writing files
-        //-------------------------------------------------------------
-
-        //annotate output with data processing info
-        addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
-
-        // write features to user specified output file
-        FeatureXMLFile map_file;
-
-        // Remove detailed convex hull information and subordinate features
-        // (unless requested otherwise) to reduce file size of feature files
-        // unless debugging is turned on.
-        if (debug_level_ < 5)
-        {
-            FeatureMap::Iterator it;
-            for (it = features.begin(); it != features.end(); ++it)
-            {
-                it->getConvexHull().expandToBoundingBox();
-                for (Size i = 0; i < it->getConvexHulls().size(); ++i)
-                {
-                    it->getConvexHulls()[i].expandToBoundingBox();
-                }
-                it->getSubordinates().clear();
-            }
-        }
-
-        map_file.store(out, features);
-
-        if (!out_mzq.trim().empty())
-        {
-            std::vector<DataProcessing> tmp;
-            for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
-            {
-                tmp.push_back(*exp[0].getDataProcessing()[i].get());
-            }
-            MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
-            msq.assignUIDs();
-            MzQuantMLFile file;
-            file.store(out_mzq, msq);
-        }
-
-        return EXECUTION_OK;
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)}, exp);
     }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, exp);
+    }    
+    
+    // get parameters specific for the feature finder
+    Param feafi_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
+
+    // Apply the feature finder
+    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
+    features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // DEBUG
+    if (debug_level_ > 10)
+    {
+      FeatureMap::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        if (!it->isMetaEmpty())
+        {
+          vector<String> keys;
+          it->getKeys(keys);
+          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          for (Size i = 0; i < keys.size(); i++)
+          {
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------
+    // writing files
+    //-------------------------------------------------------------
+
+    //annotate output with data processing info
+    addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
+
+    // write features to user specified output file
+    FeatureXMLFile map_file;
+
+    // Remove detailed convex hull information and subordinate features
+    // (unless requested otherwise) to reduce file size of feature files
+    // unless debugging is turned on.
+    if (debug_level_ < 5)
+    {
+      FeatureMap::Iterator it;
+      for (it = features.begin(); it != features.end(); ++it)
+      {
+        it->getConvexHull().expandToBoundingBox();
+        for (Size i = 0; i < it->getConvexHulls().size(); ++i)
+        {
+          it->getConvexHulls()[i].expandToBoundingBox();
+        }
+        it->getSubordinates().clear();
+      }
+    }
+
+    map_file.store(out, features);
+
+    if (!out_mzq.trim().empty())
+    {
+      std::vector<DataProcessing> tmp;
+      for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
+      {
+        tmp.push_back(*exp[0].getDataProcessing()[i].get());
+      }
+      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
+      msq.assignUIDs();
+      MzQuantMLFile file;
+      file.store(out_mzq, msq);
+    }
+
+    return EXECUTION_OK;
+  }
 
 };
 
 
 int main(int argc, const char** argv)
 {
-    TOPPFeatureFinderCentroided tool;
-    return tool.main(argc, argv);
+  TOPPFeatureFinderCentroided tool;
+  return tool.main(argc, argv);
 }
 
 /// @endcond
