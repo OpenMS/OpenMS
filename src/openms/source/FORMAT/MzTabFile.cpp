@@ -2317,7 +2317,7 @@ namespace OpenMS
   }
 
   String MzTabFile::generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const vector<String>& optional_columns,
-                                             const MzTabMetaData& meta) const
+                                             const MzTabMetaData& /*meta*/) const
   {
   StringList s;
   s.push_back("PEP");
@@ -2382,7 +2382,7 @@ namespace OpenMS
   }
 
   String MzTabFile::generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns,
-                                             const MzTabMetaData& meta) const
+                                             const MzTabMetaData& /*meta*/) const
   {
     StringList s;
     s.push_back("PSM");
@@ -2500,7 +2500,7 @@ namespace OpenMS
   String MzTabFile::generateMzTabSectionRow_(
       const MzTabSmallMoleculeSectionRow& row,
       const std::vector<String>& optional_columns,
-      const MzTabMetaData& meta) const
+      const MzTabMetaData& /*meta*/) const
   {
   StringList s;
   s.push_back("SML");
@@ -2635,7 +2635,7 @@ namespace OpenMS
   String MzTabFile::generateMzTabSectionRow_(
       const MzTabNucleicAcidSectionRow& row,
       const vector<String>& optional_columns,
-      const MzTabMetaData& meta) const
+      const MzTabMetaData& /*meta*/) const
   {
     StringList s;
     s.push_back("NUC");
@@ -2749,7 +2749,7 @@ namespace OpenMS
   String MzTabFile::generateMzTabSectionRow_(
       const MzTabOligonucleotideSectionRow& row,
       const vector<String>& optional_columns,
-      const MzTabMetaData& meta) const
+      const MzTabMetaData& /*meta*/) const
   {
     StringList s;
     s.push_back("OLI");
@@ -2833,7 +2833,7 @@ namespace OpenMS
   String MzTabFile::generateMzTabSectionRow_(
       const MzTabOSMSectionRow& row,
       const vector<String>& optional_columns,
-      const MzTabMetaData& meta) const
+      const MzTabMetaData& /*meta*/) const
   {
     StringList s;
     s.push_back("OSM");
