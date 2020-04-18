@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -124,7 +125,6 @@ protected:
       // choose the default value according to the platform where it will be executed
       "comet.exe", // this is the name on ALL platforms currently...
       "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerStringOption_("comet_version","<choice>", "2019.01 rev. 4", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -133,7 +133,7 @@ protected:
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
     setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
-    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using 'comet.exe -p'", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
     //Masses
@@ -247,27 +247,26 @@ protected:
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
   }
 
-  vector<ResidueModification> getModifications_(StringList modNames)
+  vector<ResidueModification> getModifications_(const StringList& modNames)
   {
     vector<ResidueModification> modifications;
 
     // iterate over modification names and add to vector
-    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    for (const auto& modification : modNames)
     {
-      if (mod_it->empty())
+      if (modNames.empty())
       {
         continue;
       }
-      String modification(*mod_it);
       modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
   }
 
-  void createParamFile_(ostream& os)
+  void createParamFile_(ostream& os, const String& comet_version)
   {
-    os << "# comet_version " << getStringOption_("comet_version") << "\n";              // required as first line in the param file
+    os << comet_version << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
     os << "# Everything following the '#' symbol is treated as a comment.\n";
     os << "database_name = " << getStringOption_("database") << "\n";
@@ -573,9 +572,17 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_param = File::getTemporaryFile();
-    writeLog_("Comet is writing the default parameter file...");
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str());
+    String tmp_dir = makeAutoRemoveTempDirectory_();
+
+    writeDebug_("Comet is writing the default parameter file...", 1);
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());
+    // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
+    String comet_version; 
+    {
+      std::ifstream ifs(tmp_dir + "/comet.params.new");
+      getline(ifs, comet_version);
+    }
+    writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
 
     String inputfile_name = getStringOption_("in");
     String out = getStringOption_("out");
@@ -602,7 +609,6 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -613,7 +619,7 @@ protected:
     {
         tmp_file = tmp_dir + "param.txt";
         ofstream os(tmp_file.c_str());
-        createParamFile_(os);
+        createParamFile_(os, comet_version);
         os.close();
     }
     else
@@ -624,7 +630,7 @@ protected:
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().setFillData(false); // only load metadata for spectra
-    mzml_file.getOptions().setMSLevels({2}); // only load MS2
+    mzml_file.getOptions().setMSLevels({2, 3}); // only load MS2 and MS3
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -642,13 +648,28 @@ protected:
       }
     }
 
+    // check for mzML index (comet requires one)
+    String input_file_with_index = inputfile_name;
+    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
+    if (index_offset == (std::streampos)-1)
+    {
+      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+      mzml_file.getOptions().setFillData(true); // load all data
+      mzml_file.load(inputfile_name, exp);
+      // write mzML with index again
+      auto tmp_file = File::getTemporaryFile();
+      mzml_file.store(tmp_file, exp);
+      input_file_with_index = tmp_file;
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
     QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
 
     //-------------------------------------------------------------
     // run comet
