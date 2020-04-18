@@ -656,6 +656,7 @@ protected:
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
       mzml_file.getOptions().setFillData(true); // load all data
+      mzml_file.getOptions().setMSLevels({ 2, 3 }); // only load MS2 and MS3
       mzml_file.load(inputfile_name, exp);
       // write mzML with index again
       auto tmp_file = File::getTemporaryFile();
