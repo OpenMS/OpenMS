@@ -85,6 +85,7 @@ jobs:
             pip install -U nose
             pip install -U numpy
             pip install -U wheel
+            pip install -U pytz
 
             conda deactivate
 
@@ -193,6 +194,7 @@ jobs:
             pip install -U nose
             pip install -U numpy
             pip install -U wheel
+            pip install pytz
 
             conda deactivate
 
@@ -249,6 +251,7 @@ jobs:
               "$PYBIN/bin/pip" install -U numpy
               "$PYBIN/bin/pip" install -U nose
               "$PYBIN/bin/pip" install -U autowrap==0.18.1
+              "$PYBIN/bin/pip" install -U pytz
             done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
