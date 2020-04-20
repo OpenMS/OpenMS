@@ -48,7 +48,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    ///Preferences dialog for Spectrum3DWidget
+    /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
     class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
     {
         Q_OBJECT

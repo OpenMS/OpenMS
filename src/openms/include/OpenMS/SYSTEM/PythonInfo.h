@@ -58,7 +58,7 @@ namespace OpenMS
 
       @param python_executable Path to Python executable. Can be absolute, relative or just a filename
       @param error_msg On error, contains detailed error description (e.g. 
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
+      @return Returns false if Python executable can not be called; true if Python executable can be executed
     **/
     static bool canRun(String& python_executable, String& error_msg);
 

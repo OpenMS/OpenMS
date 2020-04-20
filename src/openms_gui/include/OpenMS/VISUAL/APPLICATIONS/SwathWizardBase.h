@@ -67,9 +67,8 @@ namespace Ui
 namespace OpenMS
 {
   /**
-    @brief Main window of the TOPPAS tool
+    @brief Main window of the SwathWizard tool
 
-    @ingroup TOPPAS_elements
   */
   class OPENMS_GUI_DLLAPI SwathWizardBase :
     public QMainWindow,
@@ -102,6 +101,7 @@ protected:
     String tmp_path_;
 
   private slots:
+    // names created by QtCreator. Do not change them.
     void on_actionExit_triggered();
     void on_actionVisit_OpenSwath_homepage_triggered();
     void on_actionReport_new_issue_triggered();

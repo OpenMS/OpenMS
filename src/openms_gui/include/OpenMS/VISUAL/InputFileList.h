@@ -47,12 +47,18 @@ namespace OpenMS
 {
   namespace Internal
   {
+    /**
+      @brief A widget shows a list of input files (i.e. existing files on a mounted drive),
+             which allows adding/removing files and supports drag'n'drop from the window manager.
+
+    */
     class InputFileList : public QWidget
     {
         Q_OBJECT
 
     public:
-        explicit InputFileList(QWidget *parent = nullptr);
+        /// C'tor
+        explicit InputFileList(QWidget* parent = nullptr);
         ~InputFileList();
         /// support drag'n'drop of files from OS window manager
         void dragEnterEvent(QDragEnterEvent* e) override;
@@ -86,8 +92,7 @@ namespace OpenMS
 
 
     protected:
-      /// current working dir, i.e. the last position a file was added from
-      QString cwd_;
+      QString cwd_; ///< current working dir, i.e. the last position a file was added from
 
     private:
       Ui::InputFileList *ui_;
