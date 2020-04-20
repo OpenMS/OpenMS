@@ -77,9 +77,9 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    ///Constructor
+    /// Constructor
     SwathWizardBase(QWidget* parent = nullptr);
-    ///Destructor
+    /// Destructor
     ~SwathWizardBase() override;
  
     void showAboutDialog();

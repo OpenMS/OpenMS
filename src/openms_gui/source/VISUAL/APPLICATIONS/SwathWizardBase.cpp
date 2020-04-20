@@ -69,7 +69,6 @@ namespace OpenMS
 
     SwathTabWidget* cw_swath = new SwathTabWidget(this);
     setCentralWidget(cw_swath);
-
   }
 
 
