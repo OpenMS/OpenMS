@@ -152,7 +152,9 @@ jobs:
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
-    - name: Fix contrib install names 
+    - name: Fix contrib install names
+      shell: bash 
+      run: |
           for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
           do
             install_name_tool -id $lib $lib
