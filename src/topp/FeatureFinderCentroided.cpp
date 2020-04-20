@@ -176,14 +176,15 @@ protected:
     String out = getStringOption_("out");
     String out_mzq = getStringOption_("out_mzq");
 
-    //prevent loading of fragment spectra
+    // prevent loading of fragment spectra
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
 
+    // filter out zero (and negative) intensities
     using RP_TYPE = DRange<1>::PositionType;
-    options.setIntensityRange({std::numeric_limits<RP_TYPE>::epsilon(), RP_TYPE::maxPositive()});
+    options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
 
-    //reading input data
+    // reading input data
     MzMLFile f;
     f.getOptions() = options;
     f.setLogType(log_type_);
