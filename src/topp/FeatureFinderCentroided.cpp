@@ -42,7 +42,6 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
 #include <limits>
 
