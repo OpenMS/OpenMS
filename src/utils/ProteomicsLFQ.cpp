@@ -848,6 +848,12 @@ protected:
       IDFilter::removeDecoyHits(protein_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+         
+      if (peptide_ids.empty())
+      {
+        OPENMS_LOG_FATAL_ERROR << "No peptide identifications present after removing decoys " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
    
       // add to the (global) set of fixed and variable modifications
       for (auto & p : protein_ids)
