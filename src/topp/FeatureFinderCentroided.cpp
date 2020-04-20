@@ -44,6 +44,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -178,6 +180,9 @@ protected:
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
 
+    using RP_TYPE = DRange<1>::PositionType;
+    options.setIntensityRange({std::numeric_limits<RP_TYPE>::epsilon(), RP_TYPE::maxPositive()});
+
     //reading input data
     MzMLFile f;
     f.getOptions() = options;
@@ -202,10 +207,6 @@ protected:
         throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
-    
-    // Filter out peaks with a intensity below 0.05
-    ThresholdMower threshold_mower;
-    threshold_mower.filterPeakMap(exp);
 
     //load seeds
     FeatureMap seeds;
