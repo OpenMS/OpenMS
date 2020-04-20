@@ -882,10 +882,10 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      if (prot_ids_->size() == 0)
+      if (prot_ids_->empty())
       {
         // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
-        prot_ids_->push_back(prot_id_);
+        prot_ids_->emplace_back(std::move(prot_id_));
       }
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
@@ -899,9 +899,9 @@ namespace OpenMS
     //PEPTIDES
     else if (tag == "PeptideIdentification")
     {
-      pep_ids_->push_back(pep_id_);
+      pep_ids_->emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
-      last_meta_  = nullptr;
+      last_meta_ = nullptr;
     }
     else if (tag == "PeptideHit")
     {

@@ -680,7 +680,8 @@ namespace OpenMS
   void PeptideAndProteinQuant::annotateQuantificationsToProteins(
     const ProteinQuant& protein_quants, 
     ProteinIdentification& proteins,
-    const UInt n_samples)
+    const UInt n_samples,
+    bool remove_unquantified)
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
 
@@ -740,11 +741,14 @@ namespace OpenMS
       } 
     }
 
-   // remove all protein groups that have not been quantified
-   auto notQuantified = [] (const ProteinIdentification::ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); }; 
-   id_groups.erase(
-     remove_if(id_groups.begin(), id_groups.end(), notQuantified), 
-     id_groups.end());
+    if (remove_unquantified)
+    {
+      // remove all protein groups that have not been quantified
+      auto notQuantified = [] (const ProteinIdentification::ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); };
+      id_groups.erase(
+          remove_if(id_groups.begin(), id_groups.end(), notQuantified),
+          id_groups.end());
+    }
   } 
 
 }

@@ -288,12 +288,12 @@ protected:
   // Map between mzML file and corresponding id file
   // Warn if the primaryMSRun indicates that files were provided in the wrong order.
   map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
-  {    
+  {
     // Detect the common case that ID files have same names as spectra files
     if (!File::validateMatchingFileNames(in, in_ids, true, true, false)) // only basenames, without extension, only order
     {
       // Spectra and id files have the same set of basenames but appear in different order. -> this is most likely an error
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
     }
 
@@ -792,7 +792,7 @@ protected:
 
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     StringList id_MS_run_ref;
-    StringList in_MS_run = ms_files.second; 
+    StringList in_MS_run = ms_files.second;
 
     // for each MS file of current fraction
     Size fraction_group{1};
@@ -814,20 +814,20 @@ protected:
         OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
-      
+
       for (const ProteinIdentification& p : protein_ids)
       {
         StringList run_paths;
         p.getPrimaryMSRunPath(run_paths);
         if (run_paths.size() != 1)
-        {        
+        {
             OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
             return ExitCodes::INCOMPATIBLE_INPUT_DATA;
         }
       }
-      
-      // Check of score types are valid. TODO 
-      String overall_score_type = "";      
+
+      // Check of score types are valid. TODO
+      String overall_score_type = "";
       if (!peptide_ids.empty())
       {
         overall_score_type = peptide_ids[0].getScoreType(); //TODO check all pep IDs? this assumes equality
@@ -838,17 +838,17 @@ protected:
         || overall_score_type != "MS:1001493"); // from Percolator
 
       if (!pep_scores)
-      {        
+      {
         OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects Posterior Error Probabilities as main score. ID file: " << id_file_abs_path << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-      }   
+      }
 
       IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
       IDFilter::removeDecoyHits(peptide_ids);
       IDFilter::removeDecoyHits(protein_ids);
       IDFilter::removeEmptyIdentifications(peptide_ids);
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-         
+
       if (peptide_ids.empty())
       {
         OPENMS_LOG_FATAL_ERROR << "No peptide identifications present after removing decoys " << id_file_abs_path << endl;
@@ -883,7 +883,7 @@ protected:
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
-  
+
       // fix other problems like missing MS run path annotations
       if (id_msfile_ref.empty())
       {
@@ -905,7 +905,7 @@ protected:
       else
       {
         OPENMS_LOG_WARN << "Multiple MS files referenced from ID file: " << id_file_abs_path << endl
-                        << "Resetting reference to MS file provided at same input position." << endl;      
+                        << "Resetting reference to MS file provided at same input position." << endl;
       }
       id_msfile_ref = StringList{mz_file};
       protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
@@ -1047,7 +1047,7 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp, false); // keep only best peptide per feature 
+      IDConflictResolverAlgorithm::resolve(tmp, false); // keep only best peptide per feature
 
       feature_maps.push_back(tmp);
       
@@ -1063,7 +1063,7 @@ protected:
     // This is the case if basenames are identical but the order does not match.
     if (!File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true, false)) // only basenames, without extension, only order
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, 
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
         OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
     }
 
@@ -1204,12 +1204,12 @@ protected:
 
       if (ed_basenames != in_basenames)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Spectra files provided as input need to match the ones in the experimental design file.");          
+        throw Exception::InvalidParameter(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION, "Spectra files provided as input need to match the ones in the experimental design file.");
       }
     }
     else
-    { 
+    {
       OPENMS_LOG_INFO << "No experimental design file provided.\n"
                       << "Assuming a label-free experiment without fractionation.\n"
                       << endl;
@@ -1719,7 +1719,6 @@ protected:
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are neverless stored and passed to mzTab for proper export)
-      //IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
       ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
     }
 

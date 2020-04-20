@@ -615,10 +615,7 @@ namespace OpenMS
 
   }
 
-  MzTab::~MzTab()
-  {
-
-  }
+  MzTab::~MzTab() = default;
 
   const MzTabMetaData& MzTab::getMetaData() const
   {

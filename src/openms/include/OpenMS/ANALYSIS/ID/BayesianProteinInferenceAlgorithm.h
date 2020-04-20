@@ -133,6 +133,13 @@ namespace OpenMS
     /// set score type and settings for every ProteinID run processed
     void setScoreTypeAndSettings_(ProteinIdentification& proteinIDs);
 
+    /// reset all protein scores to 0.0, save old ones as Prior MetaValue if requested
+    // TODO double-check if -1 is maybe the better option
+    //  to distinguish between "untouched/unused/unreferenced" (e.g. if somehow
+    //  not removed/filtered) and an inferred probability of 0.0. But it might give
+    //  problems in FDR algorithms if not ignored/removed correctly
+    void resetProteinScores_(ProteinIdentification& protein_id, bool keep_old_as_prior);
+
     /// function initialized based on the algorithm parameters that is used to filter PeptideHits
     /// @todo extend to allow filtering only for the current run
     std::function<void(PeptideIdentification&/*, const String& run_id*/)> checkConvertAndFilterPepHits_;
