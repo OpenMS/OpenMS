@@ -1517,7 +1517,7 @@ namespace OpenMS
             //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
             if (graph[*ui].which() == 0) // protein
             {
-                ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
+                const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt.emplace_back(
                     ph->getScore(),
                     static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
@@ -1555,7 +1555,7 @@ namespace OpenMS
               }
               if (!part_of_group)
               {
-                ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
+                const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
                 scores_and_tgt_fraction.emplace_back(
                     ph->getScore(),
                     static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
@@ -1610,7 +1610,7 @@ namespace OpenMS
               {
                 if (fg[prot].which() == 0) //protein
                 {
-                  ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
+                  const ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
                   // target = 1/penalty; decoy = 0;
                   target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
                   target_fraction /= target_contribution_penalty;
