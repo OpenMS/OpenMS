@@ -70,7 +70,6 @@ using namespace std;
 #   include <Windows.h>
 #endif
 
-
 //-------------------------------------------------------------
 // command line name of this tool
 //-------------------------------------------------------------
@@ -153,5 +152,4 @@ int main(int argc, const char** argv)
   int result = a.exec();
 
   return result;
-
 }

@@ -53,7 +53,6 @@ namespace OpenMS
       ui_(new Ui::PythonModuleRequirement)
     {
       ui_->setupUi(this);
-
     }
 
     // slot

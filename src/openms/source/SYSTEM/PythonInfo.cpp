@@ -46,8 +46,6 @@ using namespace std;
 
 namespace OpenMS
 {
- // python --version
-
   bool PythonInfo::canRun(String& python_executable, String& error_msg)
   {
     stringstream ss;
@@ -86,15 +84,13 @@ namespace OpenMS
     {
       if (qp.error() == QProcess::Timedout)
       {
-        ss
-          << "  Python was found at '" << python_executable << "' but the process timed out (can happen on very busy systems).\n"
-          << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check.\n";
+        ss << "  Python was found at '" << python_executable << "' but the process timed out (can happen on very busy systems).\n"
+           << "  Please free some resources or if you want to run the TOPP tool nevertheless set the TOPP tools 'force' flag in order to avoid this check.\n";
       }
       else if (qp.error() == QProcess::FailedToStart)
       {
-        ss
-          << "  Python found at '" << python_executable << "' but failed to run!\n"
-          << "  Make sure you have the rights to execute this binary file.\n";
+        ss << "  Python found at '" << python_executable << "' but failed to run!\n"
+           << "  Make sure you have the rights to execute this binary file.\n";
       }
       else
       {
@@ -123,7 +119,8 @@ namespace OpenMS
     bool success = qp.waitForFinished();
     if (success && qp.exitStatus() == QProcess::ExitStatus::NormalExit && qp.exitCode() == 0)
     {
-      v = qp.readAllStandardOutput().toStdString();
+      v = qp.readAllStandardOutput().toStdString(); // some pythons report is on stdout
+      v += qp.readAllStandardError().toStdString();  // ... some on stderr
       v.trim(); // remove '\n'
     }
     return v;

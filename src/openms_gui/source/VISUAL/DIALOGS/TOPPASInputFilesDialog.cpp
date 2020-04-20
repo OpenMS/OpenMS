@@ -64,7 +64,6 @@ namespace OpenMS
     ifl_->getFilenames(files);
     if (ui_->flag_sort_list->isChecked())
       files.sort();
-
   }
 
   const QString& TOPPASInputFilesDialog::getCWD() const

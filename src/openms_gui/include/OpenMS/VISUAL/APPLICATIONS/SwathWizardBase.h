@@ -77,7 +77,6 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-
     ///Constructor
     SwathWizardBase(QWidget* parent = nullptr);
     ///Destructor
@@ -89,7 +88,6 @@ protected slots:
 
 
 protected:
-
     /// Log output window
     //TOPPASLogWindow* log_;
 
@@ -112,4 +110,3 @@ protected:
   }; //class
 
 } //namespace
-
