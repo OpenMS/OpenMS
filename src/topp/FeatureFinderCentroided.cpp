@@ -43,6 +43,8 @@
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <limits>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -173,11 +175,15 @@ protected:
     String out = getStringOption_("out");
     String out_mzq = getStringOption_("out_mzq");
 
-    //prevent loading of fragment spectra
+    // prevent loading of fragment spectra
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
 
-    //reading input data
+    // filter out zero (and negative) intensities
+    using RP_TYPE = DRange<1>::PositionType;
+    options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
+
+    // reading input data
     MzMLFile f;
     f.getOptions() = options;
     f.setLogType(log_type_);
