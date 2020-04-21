@@ -180,7 +180,7 @@ namespace OpenMS
 
     if (param_.getValue("isotopic_pattern:abundance_12C") != defaults_.getValue("isotopic_pattern:abundance_12C"))
     {
-      max_isotopes += 1000;
+      max_isotopes += 1000; // Why?
       IsotopeDistribution isotopes;
       isotopes.insert(12, abundance_12C / 100.0);
       isotopes.insert(13, 1.0 - (abundance_12C / 100.0));
@@ -192,7 +192,7 @@ namespace OpenMS
 
     if (param_.getValue("isotopic_pattern:abundance_14N") != defaults_.getValue("isotopic_pattern:abundance_14N"))
     {
-      max_isotopes += 1000;
+      max_isotopes += 1000; // Why?
       IsotopeDistribution isotopes;
       isotopes.insert(14, abundance_14N / 100.0);
       isotopes.insert(15, 1.0 - (abundance_14N / 100.0));
@@ -325,52 +325,45 @@ namespace OpenMS
       for (Size s = min_spectra_; s < end_iteration; ++s)
       {
         ff_->setProgress(s);
-        const SpectrumType& spectrum = map_[s];
+        SpectrumType& spectrum = map_[s];
         //iterate over all peaks of the scan
         for (Size p = 0; p < spectrum.size(); ++p)
         {
-          std::vector<double> scores;
-          scores.reserve(2 * min_spectra_);
+          double trace_score = 0.0;
 
           double pos = spectrum[p].getMZ();
-          float inte = spectrum[p].getIntensity();
+          float intensity = spectrum[p].getIntensity();
 
           //if(debug_) log_ << std::endl << "Peak: " << pos << std::endl;
           bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
           for (Size i = 1; i <= min_spectra_; ++i)
           {
-            if (!map_[s + i].empty())
+            SpectrumType& next_spectrum = map_[s + i];
+            if (!next_spectrum.empty()) // There are peaks in the spectrum
             {
-              Size spec_index = map_[s + i].findNearest(pos);
-              double position_score = positionScore_(pos, map_[s + i][spec_index].getMZ(), trace_tolerance_);
-              if (position_score > 0 && map_[s + i][spec_index].getIntensity() > inte) is_max_peak = false;
-              scores.push_back(position_score);
-            }
-            else //no peaks in the spectrum
-            {
-              scores.push_back(0.0);
+              Size spec_index = next_spectrum.findNearest(pos);
+              double position_score = positionScore_(pos, next_spectrum[spec_index].getMZ(), trace_tolerance_);
+              if (position_score > 0 && next_spectrum[spec_index].getIntensity() > intensity) is_max_peak = false;
+              trace_score += position_score;
             }
           }
           for (Size i = 1; i <= min_spectra_; ++i)
           {
-            if (!map_[s - i].empty())
+            SpectrumType& next_spectrum = map_[s - i];
+            if (!next_spectrum.empty()) // There are peaks in the spectrum
             {
-              Size spec_index = map_[s - i].findNearest(pos);
-              double position_score = positionScore_(pos, map_[s - i][spec_index].getMZ(), trace_tolerance_);
-              if (position_score > 0 && map_[s - i][spec_index].getIntensity() > inte) is_max_peak = false;
-              scores.push_back(position_score);
-            }
-            else //no peaks in the spectrum
-            {
-              scores.push_back(0.0);
+              Size spec_index = next_spectrum.findNearest(pos);
+              double position_score = positionScore_(pos, next_spectrum[spec_index].getMZ(), trace_tolerance_);
+              if (position_score > 0 && next_spectrum[spec_index].getIntensity() > intensity) is_max_peak = false;
+              trace_score += position_score;
             }
           }
           //Calculate a consensus score out of the scores calculated before
-          double trace_score = std::accumulate(scores.begin(), scores.end(), 0.0) / scores.size();
+          trace_score /= 2 * min_spectra_;
 
           //store final score for later use
-          map_[s].getFloatDataArrays()[0][p] = trace_score;
-          map_[s].getFloatDataArrays()[2][p] = is_max_peak;
+          spectrum.getFloatDataArrays()[0][p] = trace_score;
+          spectrum.getFloatDataArrays()[2][p] = is_max_peak;
         }
       }
       ff_->endProgress();
