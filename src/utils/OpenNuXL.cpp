@@ -716,7 +716,7 @@ protected:
     OPENMS_PRECONDITION(intensity_sum.size() == b_ions.size(), "Sum array needs to be of same size as b-ion array");
     OPENMS_PRECONDITION(intensity_sum.size() == y_ions.size(), "Sum array needs to be of same size as y-ion array");
     OPENMS_PRECONDITION(peak_matched.size() == exp_spectrum.size(), "Peak matched needs to be of same size as experimental spectrum");
-    OPENMS_PRECONDITION(std::count_if(peak_matched.begin(), peak_matched.end(), [](bool b){return b == true;}) == 0;, "Peak matched must be initialized to false");
+    OPENMS_PRECONDITION(std::count_if(peak_matched.begin(), peak_matched.end(), [](bool b){return b == true;}) == 0, "Peak matched must be initialized to false");
 
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size();
@@ -4779,8 +4779,8 @@ static void scoreXLIons_(
     progresslogger.startProgress(0, 1, "localization...");
 
 
-    assert(exp.size() == annotated_XLss.size());
-    assert(exp.size() == annotated_peptides.size());
+    assert(spectra.size() == annotated_XLs.size());
+    assert(spectra.size() == annotated_peptides.size());
 
     // remove all but top n scoring for localization (usually all but the first one)
     filterTopNAnnotations_(annotated_XLs, report_top_hits);
@@ -5452,6 +5452,8 @@ variable_modifications  -0.0944707
         perc_out.substitute(".idXML", "_perc.idXML");
         String weights_out = out_idxml;
         weights_out.substitute(".idXML", ".weights");
+        String pin = out_idxml;
+        pin.substitute(".idXML", ".tsv");
 
         QStringList process_params;
         process_params << "-in" << out_idxml.toQString()
@@ -5463,11 +5465,10 @@ variable_modifications  -0.0944707
                        << "-post-processing-tdc"
 //                       << "-nested-xval-bins" << "3"
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
-                       << "-weights" << weights_out.toQString();
-#if DEBUG_OpenNuXL
-        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
-#endif
-                       ;
+                       << "-weights" << weights_out.toQString()
+                       << "-out_pin" << pin.toQString();
+//        process_params << "-out_pout_target" << "merged_target.tab" << "-out_pout_decoy" << "merged_decoy.tab";
+
         TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
 
         if (exit_code != EXECUTION_OK) 
