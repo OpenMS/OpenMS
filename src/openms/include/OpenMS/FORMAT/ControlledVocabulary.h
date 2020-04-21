@@ -156,6 +156,7 @@ public:
     */
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
+    bool containsTermRecursively(const String& parent, const String& search) const;
     /**
         @brief Returns if @p child is a child of @p parent
 
