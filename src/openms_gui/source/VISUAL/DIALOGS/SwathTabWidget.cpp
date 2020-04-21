@@ -28,38 +28,53 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
+#include <ui_SwathTabWidget.h>
 
-#include <OpenMS/config.h>
+#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+
+using namespace std;
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
-
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  namespace Internal
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    SwathTabWidget::SwathTabWidget(QWidget *parent) :
+        QTabWidget(parent),
+        ui(new Ui::SwathTabWidget)
+    {
+        ui->setupUi(this);
+        
+        auto py_selector = (PythonSelector*)ui->py_selector;
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+        auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
+        py_pyprophet->setRequiredModules({"pyprophet", "stats"});
+        py_pyprophet->setFreeText("In order to run PyProphet after OpenSWATH, the above modules need to be installed\n" \
+                                  "Once they are available, the 'pyProphet' tab will become active and configurable.");
+        py_pyprophet->setTitle("External: PyProphet tool");
+        connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
+        
+        // call once to update py_pyprophet canvas 
+        // alternative: load latest data from .ini and set py_selector (will update py_pyprophet via above signal/slot)
+        py_pyprophet->validate(py_selector->getLastPython().toQString());
+    }
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
+    SwathTabWidget::~SwathTabWidget()
+    {
+        delete ui;
+    }
 
-}
+    void SwathTabWidget::on_pushButton_clicked()
+    {
+        TOPPASInputFilesDialog tifd({}, "", 0);
+        tifd.exec();
+    }
+  }   //namespace Internal
+} //namspace OpenMS
+
 

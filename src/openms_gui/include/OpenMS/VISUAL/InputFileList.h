@@ -28,59 +28,77 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtWidgets/QDialog>
+#include <QWidget>
 
 namespace Ui
 {
-  class TOPPASInputFilesDialogTemplate;
+  class InputFileList;
 }
 
 namespace OpenMS
 {
   namespace Internal
   {
-    class InputFileList;
-  }
+    /**
+      @brief A widget shows a list of input files (i.e. existing files on a mounted drive),
+             which allows adding/removing files and supports drag'n'drop from the window manager.
 
-  /**
-      @brief Dialog which allows to specify a list of input files
+    */
+    class InputFileList : public QWidget
+    {
+        Q_OBJECT
 
-      @ingroup TOPPAS_elements
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog :
-    public QDialog
-  {
-    Q_OBJECT
+    public:
+        /// C'tor
+        explicit InputFileList(QWidget* parent = nullptr);
+        ~InputFileList();
+        /// support drag'n'drop of files from OS window manager
+        void dragEnterEvent(QDragEnterEvent* e) override;
+        /// support drag'n'drop of files from OS window manager
+        void dropEvent(QDropEvent* e) override;
+        void dragMoveEvent(QDragMoveEvent* pEvent) override;
+        
+        /// Stores the list of all filenames in the list widget in @p files
+        void getFilenames(QStringList& files) const;
+        /// Set the list of all filenames in the list widget
+        void setFilenames(const QStringList& files);
 
-public:
-    /// Constructor
-    TOPPASInputFilesDialog(QWidget* parent)
-     : TOPPASInputFilesDialog(QStringList(), "", parent) {}
-    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent = 0);
-    ~TOPPASInputFilesDialog();
+        /// get the CWD (according to most recently added file)
+        const QString& getCWD() const;
+        /// set the current working directory (for opening files) 
+        void setCWD(const QString& cwd);
 
-    void getFilenames(QStringList& files) const;
+        /// support Ctrl+C to copy currently selected items to clipboard
+        void keyPressEvent(QKeyEvent* e) override;
 
-    const QString& getCWD() const;
+    public slots:
+
+      /// Lets the user select files via a file dialog
+      void showFileDialog();
+      /// Removes all currently selected files from the list
+      void removeSelected();
+      /// Removes all files from the list
+      void removeAll();
+      /// Shows a TOPPASInputFileDialog which edits the current item
+      void editCurrentItem();
 
 
-private:
-    Ui::TOPPASInputFilesDialogTemplate* ui_;
-    Internal::InputFileList* ifl_;
-  };
-  
-}
+    protected:
+      QString cwd_; ///< current working dir, i.e. the last position a file was added from
 
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
-using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
+    private:
+      Ui::InputFileList *ui_;
+    };
+  } // ns Internal
+} // ns OpenMS
 
+// this is required to allow parent widgets (auto UIC'd from .ui) to have a InputFileList member
+using InputFileList = OpenMS::Internal::InputFileList;

@@ -28,59 +28,83 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/DIALOGS/PythonSelector.h>
+#include <ui_PythonSelector.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/PythonInfo.h>
 
-#include <QtWidgets/QDialog>
+#include <QString>
+#include <QtWidgets/QFileDialog>
+#include <QMessageBox>
 
-namespace Ui
-{
-  class TOPPASInputFilesDialogTemplate;
-}
+using namespace std;
 
 namespace OpenMS
 {
   namespace Internal
   {
-    class InputFileList;
-  }
+    PythonSelector::PythonSelector(QWidget* parent) :
+    QWidget(parent),
+    ui_(new Ui::PythonSelector)
+    {
+      ui_->setupUi(this);
+      
+      connect(ui_->btn_browse, SIGNAL(clicked()), this, SLOT(showFileDialog_()));
+      connect(ui_->line_edit, SIGNAL(editingFinished()), this, SLOT(validate_()));
 
-  /**
-      @brief Dialog which allows to specify a list of input files
+      // load/update UI
+      ui_->line_edit->setText(last_known_python_exe_.toQString());
 
-      @ingroup TOPPAS_elements
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog :
-    public QDialog
-  {
-    Q_OBJECT
+      // internally check
+      validate_();
+    }
 
-public:
-    /// Constructor
-    TOPPASInputFilesDialog(QWidget* parent)
-     : TOPPASInputFilesDialog(QStringList(), "", parent) {}
-    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent = 0);
-    ~TOPPASInputFilesDialog();
+    PythonSelector::~PythonSelector()
+    {
+      delete ui_;
+      // TODO: store UI to INI?
+    }
 
-    void getFilenames(QStringList& files) const;
+    
+    void PythonSelector::showFileDialog_()
+    {
+      QString file_name = QFileDialog::getOpenFileName(this, tr("Specify Python executable"), tr(""), tr(/*valid formats*/ ""));
+      if (!file_name.isEmpty())
+      {
+        ui_->line_edit->setText(file_name); // will not trigger the validator
+        emit ui_->line_edit->editingFinished(); // simulate loosing focus or pressing return (to trigger validate_())
+      }
+    }
 
-    const QString& getCWD() const;
+    void PythonSelector::validate_()
+    {
+      String exe = ui_->line_edit->text();
+      
+      String error;
+      bool success = PythonInfo::canRun(exe, error);
+      if (success)
+      {
+        last_known_python_exe_ = exe;
+        ui_->label->setText(PythonInfo::getVersion(exe).toQString());
+        currently_valid_ = true;
+      }
+      else
+      {
+        QMessageBox::warning(0, QString("Python not found"), error.toQString());
+        // no need to currently_valid_=false, since we will revert to 'last_known_python_exe_'
+      }
+
+      // reset to last known
+      ui_->line_edit->setText(last_known_python_exe_.toQString());
+
+      emit valueChanged(last_known_python_exe_.toQString(), currently_valid_);
+    }
 
 
-private:
-    Ui::TOPPASInputFilesDialogTemplate* ui_;
-    Internal::InputFileList* ifl_;
-  };
-  
-}
-
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
-using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
-
+  }   //namespace Internal
+} //namspace OpenMS

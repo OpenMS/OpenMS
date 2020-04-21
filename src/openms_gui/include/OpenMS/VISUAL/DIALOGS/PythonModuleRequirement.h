@@ -28,38 +28,67 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/config.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+#include <QWidget>
+
+namespace Ui
+{
+  class PythonModuleRequirement;
+}
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
-
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  namespace Internal
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    /// Given a list of python modules which are required, this widget checks them and
+    /// displays the current status
+    class OPENMS_GUI_DLLAPI PythonModuleRequirement : public QWidget
+    {
+      Q_OBJECT
+      
+    public:
+      explicit PythonModuleRequirement(QWidget* parent = nullptr);
+      ~PythonModuleRequirement();
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+      /// change the label of the surrounding box
+      void setTitle(const QString& title);
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
+      /// a list of python modules required for a certain functionality/script
+      void setRequiredModules(const QStringList& m);
 
-}
+      /// some arbitrary description for the user to display statically
+      void setFreeText(const QString& text);
 
+      /// are all modules present?
+      bool isReady() { return is_ready_;};
+
+
+    signals:
+      /// emitted whenever the requirement check was executed...
+      void valueChanged(QStringList& valid_modules, QStringList& missing_modules);
+
+
+    public slots:
+      /// re-evaluate the presence of modules, based on a new python version
+      void validate(const QString& python_exe);
+
+    private:
+      QStringList required_modules_; ///< list of modules which are needed (order might be important -- know your Python...)
+      QString info_text_; ///< additional text to display for the user
+      bool is_ready_; ///< all modules are present and the app is good to go
+
+      Ui::PythonModuleRequirement* ui_;
+    };
+
+  } // ns Internal
+} // ns OpenMS
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonModuleRequirement member
+using PythonModuleRequirement = OpenMS::Internal::PythonModuleRequirement;

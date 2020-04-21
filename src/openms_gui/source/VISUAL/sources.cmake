@@ -12,15 +12,15 @@ EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
+InputFileList.cpp
+InputFileList.ui
 LayerData.cpp
 ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
-
 ParamEditor.cpp
 ParamEditor.ui
-
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp

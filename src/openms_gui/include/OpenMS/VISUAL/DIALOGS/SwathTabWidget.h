@@ -28,38 +28,41 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+#include <QTabWidget>
+
+namespace Ui
+{
+  class SwathTabWidget;
+}
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
-
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  namespace Internal
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
+    class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
+    {
+        Q_OBJECT
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+    public:
+        explicit SwathTabWidget(QWidget *parent = nullptr);
+        ~SwathTabWidget();
+    
+    private slots:
+      void on_pushButton_clicked();
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
+    private:
+        Ui::SwathTabWidget *ui;
+    };
 
+  }
 }
-

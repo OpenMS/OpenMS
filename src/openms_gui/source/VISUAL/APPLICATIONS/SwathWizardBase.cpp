@@ -28,38 +28,87 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
+#include <ui_SwathWizardBase.h>
 
-#include <OpenMS/config.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
+
+//Qt
+#include <QtCore/QDir>
+#include <QDesktopServices>
+#include <QMessageBox>
+#include <QSettings>
+
+using namespace std;
+using namespace OpenMS;
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
+  using namespace Internal;
 
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  SwathWizardBase::SwathWizardBase(QWidget* parent) :
+    QMainWindow(parent),
+    DefaultParamHandler("SwathWizardBase"),
+    //clipboard_scene_(nullptr),
+    ui(new Ui::SwathWizardBase)
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    ui->setupUi(this);
+    QSettings settings("OpenMS", "SwathWizard");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+    setWindowTitle("SwathWizard");
+    setWindowIcon(QIcon(":/SwathWizard.png"));
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+    SwathTabWidget* cw_swath = new SwathTabWidget(this);
+    setCentralWidget(cw_swath);
+  }
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
 
-}
+  SwathWizardBase::~SwathWizardBase()
+  {
+    delete ui;
+  }
+
+
+  void SwathWizardBase::showAboutDialog()
+  {
+    QApplicationTOPP::showAboutDialog(this, "SwathWizard");
+  }
+
+  void OpenMS::SwathWizardBase::on_actionExit_triggered()
+  {
+      QApplicationTOPP::exit();
+  }
+
+  void OpenMS::SwathWizardBase::on_actionVisit_OpenSwath_homepage_triggered()
+  {
+    const char* url = "http://openswath.org";
+    if (!QDesktopServices::openUrl(QUrl(url)))
+    {
+      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+    }
+  }
+
+  void OpenMS::SwathWizardBase::on_actionReport_new_issue_triggered()
+  {
+    const char* url = "https://github.com/OpenMS/OpenMS/issues";
+    if (!QDesktopServices::openUrl(QUrl(url)))
+    {
+      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+    }
+  }
+
+} //namespace OpenMS
+
+
+
+
 

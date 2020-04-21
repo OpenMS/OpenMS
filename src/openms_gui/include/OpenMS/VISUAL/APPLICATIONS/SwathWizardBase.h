@@ -28,38 +28,85 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+//OpenMS
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+//QT
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QButtonGroup>
+#include <QtCore/QProcess>
+#include <QtWidgets/QSplashScreen>
+#include <QtNetwork/QNetworkReply>
+
+class QToolBar;
+class QListWidget;
+class QTextEdit;
+class QMdiArea;
+class QLabel;
+class QWidget;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QWebView;
+class QNetworkAccessManager;
+
+namespace Ui
+{
+  class SwathWizardBase;
+}
 
 namespace OpenMS
 {
-  class String;
   /**
-    @brief Detect Java and retrieve information.
+    @brief Main window of the SwathWizard tool
 
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
   */
-  class OPENMS_DLLAPI JavaInfo
+  class OPENMS_GUI_DLLAPI SwathWizardBase :
+    public QMainWindow,
+    public DefaultParamHandler
   {
+    Q_OBJECT
+
 public:
-    /**
-      @brief Determine if Java is installed and reachable
+    /// Constructor
+    SwathWizardBase(QWidget* parent = nullptr);
+    /// Destructor
+    ~SwathWizardBase() override;
+ 
+    void showAboutDialog();
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+protected slots:
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
 
-}
+protected:
+    /// Log output window
+    //TOPPASLogWindow* log_;
 
+    /// The current path (used for loading and storing).
+    /// Depending on the preferences this is static or changes with the current window/layer.
+    String current_path_;
+
+    /// The path for temporary files
+    String tmp_path_;
+
+  private slots:
+    // names created by QtCreator. Do not change them.
+    void on_actionExit_triggered();
+    void on_actionVisit_OpenSwath_homepage_triggered();
+    void on_actionReport_new_issue_triggered();
+
+  private:
+    Ui::SwathWizardBase* ui;
+    
+  }; //class
+
+} //namespace

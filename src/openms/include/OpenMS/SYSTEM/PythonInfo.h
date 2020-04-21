@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -40,25 +40,51 @@ namespace OpenMS
 {
   class String;
   /**
-    @brief Detect Java and retrieve information.
+    @brief Detect Python and retrieve information.
 
-    Similar classes exist for other external tools, e.g. PythonInfo .
+    Similar classes exist for other external tools, e.g. JavaInfo .
 
     @ingroup System
   */
-  class OPENMS_DLLAPI JavaInfo
+  class OPENMS_DLLAPI PythonInfo
   {
-public:
+  public:
     /**
-      @brief Determine if Java is installed and reachable
+      @brief Determine if Python is installed and executable
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+      The call fails if either Python is not installed or if a relative location is given and Python is not on the search PATH.
+      If Python is found, the executable name will be modified to the absolute path.
+      If Python is not found, an error message will be put into @p error_msg
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
+      @param python_executable Path to Python executable. Can be absolute, relative or just a filename
+      @param error_msg On error, contains detailed error description (e.g. 
+      @return Returns false if Python executable can not be called; true if Python executable can be executed
     **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
+    static bool canRun(String& python_executable, String& error_msg);
+
+
+    /**
+     @brief Determine if the Python given in @p python_executable has the package @p package_name already installed
+
+     If Python cannot be found, the function will just return false.
+     Thus, make sure that PythonInfo::canRun() succeeds before calling this function.
+
+     @param python_executable As determined by canRun()...
+     @param package_name The package you want to test (mind lower/upper case!)
+     @return true if package is installed
+    */
+    static bool isPackageInstalled(const String& python_executable, const String& package_name);
+
+    /**
+     @brief Determine the version of Python given in @p python_executable by calling '--version'
+
+     If Python cannot be found, the function will return the empty string.
+     Thus, make sure that PythonInfo::canRun() succeeds before calling this function.
+
+     @param python_executable As determined by canRun()...
+     @return the output of 'python --version'
+    */
+    static String getVersion(const String& python_executable);
   };
 
 }

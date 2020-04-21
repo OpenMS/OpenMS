@@ -28,38 +28,72 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
+#include <ui_PythonModuleRequirement.h>
 
-#include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/PythonInfo.h>
+
+#include <QString>
+#include <QtWidgets/QFileDialog>
+#include <QMessageBox>
+
+using namespace std;
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
-
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  namespace Internal
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    PythonModuleRequirement::PythonModuleRequirement(QWidget* parent) :
+      QWidget(parent),
+      ui_(new Ui::PythonModuleRequirement)
+    {
+      ui_->setupUi(this);
+    }
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+    // slot
+    void PythonModuleRequirement::validate(const QString& python_exe)
+    {
+      QStringList valid_modules;
+      QStringList missing_modules;
+      ui_->lbl_modules->setText(" ... updating ... ");
+      for (const auto& s : required_modules_)
+      {
+        if (PythonInfo::isPackageInstalled(python_exe, s)) valid_modules.push_back(s);
+        else missing_modules.push_back(s);
+      }
+      emit valueChanged(valid_modules, missing_modules);
+      ui_->lbl_modules->setText(QString("<ul><li> [<code style = \"color: red\">%1</code>] missing"\
+                                        "    <li> [<code style = \"color: green\">%2</code>] present"\
+                                        "</ul>").arg(valid_modules.join(", "), missing_modules.join(", ")));
+    }
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
+    PythonModuleRequirement::~PythonModuleRequirement()
+    {
+      delete ui_;
+      // TODO: store UI to INI?
+    }
 
-}
+    void PythonModuleRequirement::setTitle(const QString& title)
+    {
+      ui_->box->setTitle(title);
+    }
+
+    void PythonModuleRequirement::setRequiredModules(const QStringList& m)
+    {
+      required_modules_ = m;
+    }
+
+    void PythonModuleRequirement::setFreeText(const QString& text)
+    {
+      ui_->lbl_freetext->setText(text);
+    }
+
+
+  } //namespace Internal
+} //namspace OpenMS
 

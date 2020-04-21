@@ -28,38 +28,63 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+#include <QWidget>
+
+namespace Ui
+{
+  class PythonSelector;
+}
 
 namespace OpenMS
 {
-  class String;
-  /**
-    @brief Detect Java and retrieve information.
-
-    Similar classes exist for other external tools, e.g. PythonInfo .
-
-    @ingroup System
-  */
-  class OPENMS_DLLAPI JavaInfo
+  namespace Internal
   {
-public:
-    /**
-      @brief Determine if Java is installed and reachable
+    /// A QLineEdit + Browse button to have the user select a local python installation
+    /// By default, 'python' is used
+    class OPENMS_GUI_DLLAPI PythonSelector : public QWidget
+    {
+      Q_OBJECT
 
-      The call fails if either Java is not installed or if a relative location is given and Java is not on the search PATH.
+    public:
+      explicit PythonSelector(QWidget* parent = nullptr);
+      ~PythonSelector();
 
-      @param java_executable Path to Java executable. Can be absolute, relative or just a filename
-      @param verbose On error, should an error message be printed to OPENMS_LOG_ERROR?
-      @return Returns false if Java executable can not be called; true if Java executable can be executed
-    **/
-    static bool canRun(const String& java_executable, bool verbose_on_error = true);
-  };
+      const String& getLastPython() const
+      {
+        return last_known_python_exe_;
+      }
 
-}
+    signals:
+      /// emitted whenever the line-edit has new values for the current python executable
+      /// @param last_known_python_exe The currently best guess where python can be found
+      /// @param valid_python Is the python executable given in @last_known_python_exe callable?
+      void valueChanged(QString last_known_python_exe, bool valid_python);
+      
+    
+    private slots:
+      void showFileDialog_();
 
+      void validate_();
+
+    private:
+      String last_known_python_exe_ = "python"; ///< initial guess or last valid user input
+      bool currently_valid_ = false; ///< unless proven otherwise by 'validate_()'
+
+      Ui::PythonSelector* ui_;
+    };
+
+  }
+} // ns OpenMS
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonSelector member
+using PythonSelector = OpenMS::Internal::PythonSelector;
