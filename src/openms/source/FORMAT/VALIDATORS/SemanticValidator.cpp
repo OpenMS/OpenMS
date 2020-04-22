@@ -572,12 +572,9 @@ namespace OpenMS
           {
             return true;
           }
-          if (term.getAllowChildren()) //check if the term's children are allowed
+          if (term.getAllowChildren() && cv_.containsTermRecursively(term.getAccession(), parsed_term.accession)) //check if the term's children are allowed
           {
-            if (cv_.containsTermRecursively(term.getAccession(), parsed_term.accession))
-            {
-              return true;
-            }
+            return true;
           }
         }
       }

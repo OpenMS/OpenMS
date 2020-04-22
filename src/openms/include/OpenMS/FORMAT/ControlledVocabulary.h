@@ -156,7 +156,13 @@ public:
     */
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
+    /**
+        @brief Checks recursively if the given search term exists in the parent term
+
+        @exception Exception::InvalidValue is thrown if the term is not present
+    */
     bool containsTermRecursively(const String& parent, const String& search) const;
+
     /**
         @brief Returns if @p child is a child of @p parent
 

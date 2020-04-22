@@ -458,7 +458,6 @@ namespace OpenMS
     return terms_;
   }
 
-#if 1
   bool ControlledVocabulary::containsTermRecursively(const String& parent, const String& search) const
   {
     for (const auto& it : getTerm(parent).children)
@@ -468,7 +467,6 @@ namespace OpenMS
     }
     return false;
   }
-#endif
 
   void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
