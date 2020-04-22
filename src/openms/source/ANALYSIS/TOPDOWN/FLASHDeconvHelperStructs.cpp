@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
-
 namespace OpenMS
 {
   FLASHDeconvHelperStructs::PrecalcularedAveragine::PrecalcularedAveragine(double m,
@@ -110,7 +109,7 @@ namespace OpenMS
 
       rightIndices.push_back(rightIndex);
       leftIndices.push_back(leftIndex);
-      averageMassDelta.push_back(iso.averageMass()-iso[0].getMZ());
+      averageMassDelta.push_back(iso.averageMass() - iso[0].getMZ());
       norms.push_back(norm);
       isotopes.push_back(iso);
 
@@ -204,104 +203,20 @@ namespace OpenMS
     return this->logMz >= a.logMz;
   }
 
-
-  FLASHDeconvHelperStructs::PeakGroup::~PeakGroup()
+  bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak &a) const
   {
-    std::vector<LogMzPeak>().swap(peaks);
+    return this->logMz == a.logMz;
   }
 
-  void FLASHDeconvHelperStructs::PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
+  class LogMzPeakHashFunction
   {
-    peaks.push_back(p);
-  }
+  public:
 
-  void FLASHDeconvHelperStructs::PeakGroup::reserve(Size n)
-  {
-    peaks.reserve(n);
-  }
-
-  bool FLASHDeconvHelperStructs::PeakGroup::operator<(const FLASHDeconvHelperStructs::PeakGroup &a) const
-  {
-    //if(this->spec->getRT() == a.spec->getRT()){
-    return  this->monoisotopicMass < a.monoisotopicMass;
-    //}
-    //return this->spec->getRT() < a.spec->getRT();
-  }
-
-  bool FLASHDeconvHelperStructs::PeakGroup::operator>(const FLASHDeconvHelperStructs::PeakGroup &a) const
-  {
-    //if(this->spec->getRT() == a.spec->getRT()){
-    return  this->monoisotopicMass > a.monoisotopicMass;
-    //}
-    //return this->spec->getRT() > a.spec->getRT();
-  }
-
-  bool FLASHDeconvHelperStructs::PeakGroup::operator==(const PeakGroup &a) const
-  {
-    return// this->spec->getRT() == a.spec->getRT() &&
-        this->monoisotopicMass == a.monoisotopicMass
-        && this->intensity == a.intensity;
-  }
-
-  void FLASHDeconvHelperStructs::PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalcularedAveragine &averagines,
-                                                                     int offset,
-                                                                     int maxIsoIndex)
-  {
-    //
-
-    if (offset != 0)
+    size_t operator()(const FLASHDeconvHelperStructs::LogMzPeak &p) const
     {
-      std::vector<LogMzPeak> tmpPeaks;
-      tmpPeaks.swap(peaks);
-      peaks.reserve(tmpPeaks.size());
-
-      for (auto &p : tmpPeaks)
-      {
-        p.isotopeIndex -= offset;
-        if (p.isotopeIndex < 0 || p.isotopeIndex >= maxIsoIndex)
-        {
-          continue;
-        }
-        peaks.push_back(p);
-      }
+      return std::hash<double>()(p.mz);
     }
-
-    intensity = .0;
-    double nominator = .0;
-    //double denominator = .0;
-    //auto masses = std::set<double>();
-    //double median = 0.0;
-    //double average = 0.0;
-
-   // masses.reserve(peaks.size());
-    //double maxIntensityForMonoIsotopeMass = -1;
-    for (auto &p : peaks)
-    {
-      double pi = p.intensity;
-      intensity += pi;
-      // auto w = std::sqrt(pi);
-    //   denominator += pi;
-       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
-      //auto mass = (p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U);
-      //if (average <=0){
-      //  average = median = mass;
-     // }
-     // average += ( mass - average ) * 0.1f; // rough running average magnitude.
-     // median += copysign( average * 0.01, mass - median );// Jeff McClintock running median
-
-      //maxIntensityForMonoIsotopeMass = pi;
-      //monoisotopicMass = p.getUnchargedMass() - p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-      //  int mostAbundantIndex = averagines.getMostAbundantIndex(monoisotopicMass);
-      // avgMass = p.getMass() + (mostAbundantIndex - p.isotopeIndex) * Constants::C13C12_MASSDIFF_U;
-
-    }
-    //sort(masses.begin(), masses.end());
-    //monoisotopicMass = median;// masses[masses.size()/2];
-    monoisotopicMass = nominator / intensity;
-    auto massDelta = averagines.getAverageMassDelta(monoisotopicMass);
-    avgMass = monoisotopicMass + massDelta;
-
-  }
+  };
 
   double FLASHDeconvHelperStructs::getLogMz(double mz)
   {

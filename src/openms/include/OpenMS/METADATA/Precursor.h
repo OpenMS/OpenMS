@@ -72,7 +72,7 @@ public:
       ECD,                      ///< Electron capture dissociation
       IMD,                      ///< Infrared multiphoton dissociation
       SORI,                     ///< Sustained off-resonance irradiation
-      HCID,                     ///< High-energy collision-induced dissociation
+      HCD,                     ///< High-energy collision-induced dissociation
       LCID,                     ///< Low-energy collision-induced dissociation
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation

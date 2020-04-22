@@ -4,7 +4,9 @@ set(directory include/OpenMS/ANALYSIS/TOPDOWN)
 ### list all header files of the directory here
 set(sources_list_h
 MassFeatureTrace.h
-		PeakGroupScoring.h
+DeconvolutedSpectrum.h
+PeakGroup.h
+PeakGroupScoring.h
 SpectrumDeconvolution.h
 FLASHDeconvAlgorithm.h
 FLASHDeconvRealTimeAlgorithm.h

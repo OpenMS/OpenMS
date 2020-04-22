@@ -7,82 +7,49 @@
 namespace OpenMS
 {
 
-  void MassFeatureTrace::findFeatures(std::vector<PeakGroup> &peakGroups,
-                                      int maxSpecIndex,
-                                      int &featureCntr,
-                                      std::fstream &fsf,
-                                      std::fstream &fsp,
-                                      PrecalcularedAveragine &averagines,
-                                      Param &mtd_param,
-                                      Parameter &param)
+  MassFeatureTrace::MassFeatureTrace(Parameter &p, Param &mp, PrecalcularedAveragine &avg): param(p), mtd_param(mp), averagines(avg)
   {
 
+  }
+
+  MassFeatureTrace::~MassFeatureTrace()
+  {
+    for (auto &item : peakGroupMap)
+    {
+      std::unordered_map<double, PeakGroup>().swap(item.second);
+    }
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>>().swap(peakGroupMap);
+  }
+
+
+  void MassFeatureTrace::findFeatures(int &featureCntr,
+                                      std::fstream &fsf,
+                                      std::fstream &fsp)
+  {
     MSExperiment map;
-    boost::unordered_map<float, PeakGroup> *peakGroupMap;
-    boost::unordered_map<float, int> rtSpecMap;
     std::map<int, MSSpectrum> indexSpecMap;
-    peakGroupMap = new boost::unordered_map<float, PeakGroup>[maxSpecIndex + 1];
 
-    for (auto &pg : peakGroups)
+    for (auto &item : peakGroupMap)
     {
-      auto &spec = pg.spec;
-      if (spec->getMSLevel() != 1)
-      {
-        continue;
+      auto rt = item.first;
+      MSSpectrum deconvSpec;
+      deconvSpec.setRT(rt);
+      for(auto &pg : item.second){
+        Peak1D tp(pg.first, (float) pg.second.intensity);
+        deconvSpec.push_back(tp);
       }
-
-      if (indexSpecMap.find(pg.specIndex) == indexSpecMap.end())
-      {
-        indexSpecMap[pg.specIndex] = MSSpectrum();
-      }
-      auto &deconvSpec = indexSpecMap[pg.specIndex];
-      rtSpecMap[spec->getRT()] = pg.specIndex;
-      maxSpecIndex = maxSpecIndex > pg.specIndex ? maxSpecIndex : pg.specIndex;
-
-      deconvSpec.setRT(spec->getRT());
-      Peak1D tp(pg.monoisotopicMass, (float) pg.intensity);
-      deconvSpec.push_back(tp);
-
-      auto &pgMap = peakGroupMap[pg.specIndex];
-      pgMap[pg.monoisotopicMass] = pg;
-
+      map.addSpectrum(deconvSpec);
     }
-
-    //int tmp = 0;
-    for (auto iter = indexSpecMap.begin(); iter != indexSpecMap.end(); ++iter)
-    {
-      map.addSpectrum(iter->second);
-    }
-
-    std::map<int, MSSpectrum>().swap(indexSpecMap);
 
     if (map.size() < 3)
     {
       return;
     }
-    //std::cout<<map.size()<< " " <<tmp<< std::endl;
-    /*
-    for (auto &pg : peakGroups)
-    {
-      auto &spec = pg.spec;
-      if(spec->getMSLevel() != 1){
-        continue;
-      }
-      auto &pgMap = peakGroupMap[pg.specIndex];
 
-      pgMap[pg.monoisotopicMass] = pg;
-    }*/
-
-    for (auto it = map.begin(); it != map.end(); ++it)
-    {
-      it->sortByPosition();
-      // cout<<it->size()<<endl;
-    }
+    map.sortSpectra();
 
     MassTraceDetection mtdet;
 
-    //mtd_param.setValue("mass_error_da", .3,// * (param.chargeRange+ param.minCharge),
-    //                   "Allowed mass deviation (in da).");
     mtd_param.setValue("mass_error_ppm", param.tolerance[0] * 1e6, "");
     mtd_param.setValue("trace_termination_criterion", "outlier", "");
 
@@ -108,14 +75,10 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
-      //if (mt.getSize() < 3)
-      //{
-      //  continue;
-      //}
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
 
-      int minScanNum = map.size() + 1000;
+      int minScanNum = (int)map.size() + 1000;
       int maxScanNum = 0;
 
       int repScan = 0, repCharge = 0;
@@ -128,24 +91,26 @@ namespace OpenMS
 
       for (auto &p2 : mt)
       {
+
         // std::cout << p2.getRT() << " " << p2.getMZ() << std::endl;
-        int specIndex = rtSpecMap[(float) p2.getRT()];
-        auto &pgMap = peakGroupMap[specIndex];
-        auto &pg = pgMap[(float) p2.getMZ()];
+        //int specIndex = rtSpecMap[(float) p2.getRT()];
+        auto &pgMap = peakGroupMap[p2.getRT()];
+        auto &pg = pgMap[p2.getMZ()];
+        auto scanNumber = pg.deconvSpec->scanNumber;
 
         minCharge = minCharge < pg.minCharge ? minCharge : pg.minCharge;
         maxCharge = maxCharge > pg.maxCharge ? maxCharge : pg.maxCharge;
 
-        minScanNum = minScanNum < pg.scanNumber ? minScanNum : pg.scanNumber;
-        maxScanNum = maxScanNum > pg.scanNumber ? maxScanNum : pg.scanNumber;
+        minScanNum = minScanNum < scanNumber ? minScanNum : scanNumber;
+        maxScanNum = maxScanNum > scanNumber ? maxScanNum : scanNumber;
 
         if (pg.intensity > maxIntensity)
         {
           maxIntensity = pg.intensity;
-          repScan = pg.scanNumber;
+          repScan = scanNumber;
         }
 
-        //std::cout<<2<<std::endl;
+
         for (auto &p : pg.peaks)
         {
           //std::cout<<1<<std::endl;
@@ -194,8 +159,6 @@ namespace OpenMS
       if (offset != 0)
       {
         mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
-        //avgMass += offset * Constants::C13C12_MASSDIFF_U;
-        //p.isotopeIndex -= offset;
       }
 
       auto sumInt = .0;
@@ -226,11 +189,6 @@ namespace OpenMS
 
 
       if(param.promexOut){
-
-        // int specIndex = rtSpecMap[(float) p2.getRT()];
-        //        auto &pgMap = peakGroupMap[specIndex];
-        //        auto &pg = pgMap[(float) p2.getMZ()];
-
         double maxChargeIntensity = 0;
         for (int c = 0; c < param.chargeRange + param.minCharge + 1; c++)
         {
@@ -241,14 +199,14 @@ namespace OpenMS
           }
         }
         auto apex = mt[mt.findMaxByIntPeak()];
-        int si = rtSpecMap[(float) apex.getRT()];
-        auto &spgMap = peakGroupMap[si];
-        auto &spg = spgMap[(float) apex.getMZ()];
+        //int si = rtSpecMap[(float) apex.getRT()];
+        auto &spgMap = peakGroupMap[apex.getRT()];
+        auto &spg = spgMap[apex.getMZ()];
 
         fsp << featureCntr << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minCharge << "\t"
             << maxCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
             << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
-            << spg.scanNumber << "\t" << spg.intensity << "\t"
+            << spg.deconvSpec->scanNumber << "\t" << spg.intensity << "\t"
             << mt.begin()->getRT()/60.0 << "\t"
             << mt.rbegin()->getRT()/60.0 << "\t"
             << mt.getTraceLength()/60.0 << "\t";
@@ -271,6 +229,39 @@ namespace OpenMS
     delete[] perChargeMz;
     delete[] perChargeMaxIntensity;
     delete[] perChargeIntensity;
-    delete[] peakGroupMap;
+//    delete[] peakGroupMap;
   }
+
+  void MassFeatureTrace::addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum)
+  {
+    if(deconvolutedSpectrum.spec->getMSLevel() != 1){
+      return;
+    }
+    double rt = deconvolutedSpectrum.spec->getRT();
+    peakGroupMap[rt] = std::unordered_map<double, PeakGroup>();
+    auto &subMap = peakGroupMap[rt];
+    for(auto &pg : deconvolutedSpectrum.peakGroups){
+      subMap[pg.monoisotopicMass] = pg;
+    }
+  }
+
+  void MassFeatureTrace::writeHeader(std::fstream &fs)
+  {
+    fs << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
+           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
+           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
+           //"\tPeakGroupMasses\tPeakGroupRTs"
+           "\n";
+  }
+
+
+  void MassFeatureTrace::writePromexHeader(std::fstream &fs)
+  {
+    fs << "FeatureID\tMinScan\tMaxScan\tMinCharge\tMaxCharge\t"
+          "MonoMass\tRepScan\tRepCharge\tRepMz\tAbundance\tApexScanNum\tApexIntensity\tMinElutionTime\tMaxElutionTime\t"
+          "ElutionLength\tEnvelope\tLikelihoodRatio"
+          //"\tPeakGroupMasses\tPeakGroupRTs"
+          "\n";
+  }
+
 }

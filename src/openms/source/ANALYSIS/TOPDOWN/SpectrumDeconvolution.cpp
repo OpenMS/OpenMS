@@ -1064,10 +1064,10 @@ namespace OpenMS
     return logMzPeaks.empty();
   }
 
-  std::vector<SpectrumDeconvolution::PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
+  std::vector<PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                                                                   std::vector<double> &prevMinBinLogMassVector,
                                                                                                   FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
-                                                                                                  unsigned int &msLevel)
+                                                                                                  unsigned int msLevel)
   {
     auto minContinuousChargePeakCount =
         param.minContinuousChargePeakCount[msLevel - 1];//

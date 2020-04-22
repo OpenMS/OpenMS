@@ -39,6 +39,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 //#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 
 #include "boost/dynamic_bitset.hpp"
@@ -48,6 +51,8 @@
 #include <Eigen/Dense>
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h>
 
 namespace OpenMS
@@ -64,13 +69,11 @@ namespace OpenMS
   {
 public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
     typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    FLASHDeconvAlgorithm(MSExperiment &map, Parameter &param);
-
+    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg, Parameter &param);
 
     /// default destructor
     ~FLASHDeconvAlgorithm();
@@ -80,25 +83,16 @@ public:
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    std::vector<PeakGroup> Deconvolution(int* specCntr, int* qspecCntr, int* massCntr, int& specIndex, int& massIndex, PrecalcularedAveragine &avg);
+    void Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum, int &scanNumber);
     static int getNominalMass(double &m);
 
   protected:
-    MSExperiment &map;
     Parameter &param;
-    //std::vector<LogMzPeak> logMzPeaks;
-   // double* filter;
-    //double** harmonicFilter;
-    //boost::dynamic_bitset<> massBins;
-    //boost::dynamic_bitset<> mzBins;
-   // PrecalcularedAveragine averagines;
-
-
-
-
+    FLASHDeconvHelperStructs::PrecalcularedAveragine &avg;
+    std::vector<std::vector<Size>> prevMassBinMap;
+    std::vector<double> prevMinBinLogMassMap;
+    int specIndex = 0, massIndex = 0;
   private:
-
-    static void printProgress(float progress);
 
   };
 }// namespace OpenMS

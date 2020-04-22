@@ -7,8 +7,8 @@
 
 #include <Eigen/Dense>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 
 namespace OpenMS
 {
@@ -16,7 +16,7 @@ namespace OpenMS
   {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
+    //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
     typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 

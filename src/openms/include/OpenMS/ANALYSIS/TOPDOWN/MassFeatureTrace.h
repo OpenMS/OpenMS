@@ -9,6 +9,10 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 //#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 
 #include "boost/dynamic_bitset.hpp"
@@ -19,33 +23,37 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI MassFeatureTrace
   {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
     typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+   // typedef FLASHDeconvHelperStructs::DeconvolutedSpectrum DeconvolutedSpectrum;
 
     /// default constructor
-    MassFeatureTrace();
+    MassFeatureTrace(Parameter &param, Param &mtd_param, PrecalcularedAveragine &averagines);
 
     /// default destructor
     ~MassFeatureTrace();
 
-    static void findFeatures(std::vector<PeakGroup> &peakGroups,
-                                        int maxSpecIndex,
-                                        int &featureCntr,
-                                        std::fstream &fsf,
-                                        std::fstream &fsp,
-                                        PrecalcularedAveragine &averagines,
-                                               Param &mtd_param,
-                                               Parameter &param);
+    void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);
+
+    void findFeatures(int &featureCntr, std::fstream &fsf, std::fstream &fsp);
+    static void writeHeader(std::fstream &fs);
+    static void writePromexHeader(std::fstream &fs);
 
   protected:
+    Parameter &param;
+    Param &mtd_param;
+    PrecalcularedAveragine &averagines;
 
+    std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };
 }
 

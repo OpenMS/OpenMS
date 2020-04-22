@@ -81,7 +81,7 @@ namespace OpenMS
     // default with b and y ions
     Param theo_gen_settings = theo_gen.getParameters();
 
-    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCID)
+    if (fm == Precursor::ActivationMethod::CID || fm == Precursor::ActivationMethod::HCD)
     {
       theo_gen_settings.setValue("add_b_ions", "true");
       theo_gen_settings.setValue("add_y_ions", "true");

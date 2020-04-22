@@ -37,9 +37,11 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+//#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolutedSpectrum.h>
 
 namespace OpenMS
 {
@@ -110,7 +112,6 @@ namespace OpenMS
 
     };
 
-
     struct OPENMS_DLLAPI LogMzPeak
     {
       //Peak1D *orgPeak;
@@ -134,46 +135,8 @@ namespace OpenMS
 
       bool operator<(const LogMzPeak &a) const;
       bool operator>(const LogMzPeak &a) const;
-    };
+      bool operator==(const LogMzPeak &other) const;
 
-    struct OPENMS_DLLAPI PeakGroup
-    {
-      std::vector<LogMzPeak> peaks;
-      double monoisotopicMass = .0;
-      double avgMass = .0;
-      double intensity = .0;
-      Size massBinIndex = 0;
-      // double chargeDistributionScore = .0;
-
-      float isotopeCosineScore = .0;
-      float chargeCosineScore = .0;
-
-      int massIndex, specIndex, massCntr, scanNumber;
-      int maxCharge, minCharge;
-      int maxSNRcharge = 0;
-      std::unordered_map<int, float> perChargeSNR;
-      float maxSNR = 0;
-      float totalSNR = 0;
-      double maxSNRmaxMz, maxSNRminMz;
-
-      int precursorSpecIndex=-1, precursorScanNumber=-1, precursorCharge=-1;
-      double precursorMz=-1.0, precursorMonoMass=-1.0;
-      float precursorIntensity=-1.0;
-      float precursorSNR = -1.0f;
-
-      MSSpectrum *spec;
-
-      //explicit PeakGroup(int maxCharge);
-      ~PeakGroup();
-      void push_back(LogMzPeak &p);
-      void reserve(Size n);
-
-      bool operator<(const PeakGroup &a) const;
-      bool operator>(const PeakGroup &a) const;
-
-      bool operator==(const PeakGroup &a) const;
-
-      void updateMassesAndIntensity(PrecalcularedAveragine &averagines, int offset = 0, int maxIsoIndex = 0);
     };
 
     static double getLogMz(double mz);

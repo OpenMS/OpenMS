@@ -21,6 +21,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 
 namespace OpenMS
 {
@@ -29,7 +30,7 @@ namespace OpenMS
   {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
+    //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
     typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
@@ -44,7 +45,7 @@ namespace OpenMS
     std::vector<PeakGroup>& getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
                                                      FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
-                                                     unsigned int& msLevel);
+                                                     unsigned int msLevel);
 
   protected:
     MSSpectrum &spec;
