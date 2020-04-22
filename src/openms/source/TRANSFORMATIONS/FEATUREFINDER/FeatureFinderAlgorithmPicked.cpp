@@ -325,7 +325,7 @@ namespace OpenMS
       for (Size s = min_spectra_; s < end_iteration; ++s)
       {
         ff_->setProgress(s);
-        SpectrumType& spectrum = map_[s];
+        const SpectrumType& spectrum = map_[s];
         //iterate over all peaks of the scan
         for (Size p = 0; p < spectrum.size(); ++p)
         {
