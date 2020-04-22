@@ -576,18 +576,16 @@ namespace OpenMS
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            //set<String> child_terms;
-            //cv_.getAllChildTerms(child_terms, term.getAccession());
-            allowed = cv_.containsTermRecursively(term.getAccession(), parsed_term.accession);
-            //cv_.containsTerm();
-            //for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
-            //{
-            //  if (*it == parsed_term.accession)
-            //  {
-            //    allowed = true;
-            //    break;
-            //  }
-            //}
+            set<String> child_terms;
+            cv_.getAllChildTerms(child_terms, term.getAccession());
+            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            {
+              if (*it == parsed_term.accession)
+              {
+                allowed = true;
+                break;
+              }
+            }
           }
         }
       }
