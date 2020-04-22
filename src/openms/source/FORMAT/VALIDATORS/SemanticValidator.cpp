@@ -561,7 +561,6 @@ namespace OpenMS
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
-      bool allowed = false;
       const vector<CVMappingRule>& rules = rules_[path];
       for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
@@ -571,28 +570,18 @@ namespace OpenMS
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
           if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
-            allowed = true;
-            break;
+            return true;
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            //set<String> child_terms;
-            //cv_.getAllChildTerms(child_terms, term.getAccession());
-            allowed = cv_.containsTermRecursively(term.getAccession(), parsed_term.accession);
-            //cv_.containsTerm();
-            //for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
-            //{
-            //  if (*it == parsed_term.accession)
-            //  {
-            //    allowed = true;
-            //    break;
-            //  }
-            //}
+            if (cv_.containsTermRecursively(term.getAccession(), parsed_term.accession))
+            {
+              return true;
+            }
           }
         }
       }
-      return allowed;
+      return false;
     }
-
   } // namespace Internal
 } // namespace OpenMS
