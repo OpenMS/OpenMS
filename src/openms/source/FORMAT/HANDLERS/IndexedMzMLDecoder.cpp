@@ -163,7 +163,7 @@ namespace OpenMS
     }
 
     // Read the last few bytes and hope our offset is there to be found
-    std::unique_ptr<char> buffer(new char[buffersize + 1]);
+    std::unique_ptr<char[]> buffer(new char[buffersize + 1]);
     f.seekg(-buffersize, f.end);
     f.read(buffer.get(), buffersize);
     buffer.get()[buffersize] = '\0';
