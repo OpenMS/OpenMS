@@ -735,7 +735,7 @@ namespace OpenMS
             {
               aas = parsePeptideSiblings_(element_pep);
             }
-            catch (Exception::MissingInformation)
+            catch (Exception::MissingInformation&)
             {
               // We found an unknown modification, we could try to rescue this
               // situation. The "name" attribute, if present, may be parsable:
