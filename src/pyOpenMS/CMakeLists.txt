@@ -402,7 +402,7 @@ if(NOT PY_NUM_MODULES)
 endif()
 
 # set data variable nightly builds
-string(TIMESTAMP DATE "%Y%m%d" [UTC+2]) 
+string(TIMESTAMP DATE "%Y%m%d" CEST) 
 
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
