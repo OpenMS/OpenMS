@@ -3538,16 +3538,29 @@ namespace OpenMS
 
     ControlledVocabulary::CVTerm MzMLHandler::getChildWithName_(const String& parent_accession, const String& name) const
     {
-      std::set<String> terms;
-      cv_.getAllChildTerms(terms, parent_accession);
-      for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+      //std::set<String> terms;
+      //cv_.getAllChildTerms(terms, parent_accession);
+      //for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+      //{
+      //  if (cv_.getTerm(*it).name == name)
+      //  {
+      //    return cv_.getTerm(*it);
+      //  }
+      //}
+      //return ControlledVocabulary::CVTerm();
+      ControlledVocabulary::CVTerm res = ControlledVocabulary::CVTerm();
+      auto searcher = [&res, &name, this] (const String& child)
       {
-        if (cv_.getTerm(*it).name == name)
+        const ControlledVocabulary::CVTerm& current = this->cv_.getTerm(child);
+        if (current.name == name)
         {
-          return cv_.getTerm(*it);
+          res = current;
+          return true;
         }
-      }
-      return ControlledVocabulary::CVTerm();
+        return false;
+      };
+      cv_.iterateAllChildren(parent_accession, searcher);
+      return res;
     }
 
     void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)

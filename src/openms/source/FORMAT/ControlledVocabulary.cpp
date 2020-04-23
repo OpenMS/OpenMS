@@ -458,24 +458,14 @@ namespace OpenMS
     return terms_;
   }
 
-  bool ControlledVocabulary::containsTermRecursively(const String& parent, const String& search) const
-  {
-    for (const auto& it : getTerm(parent).children)
-    {
-      if (it == search) return true;
-      else if (containsTermRecursively(it, search)) return true;
-    }
-    return false;
-  }
-
   void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
     //cerr << "Parent: " << parent << "\n";
-    for (const auto& it : getTerm(parent).children)
+    for (const auto& child : getTerm(parent).children)
     {
-      terms.insert(it);
+      terms.insert(child);
       //TODO: This is not safe for cyclic graphs. Are they allowed in CVs?
-      getAllChildTerms(terms, it);
+      getAllChildTerms(terms, child);
     }
   }
 

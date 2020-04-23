@@ -564,7 +564,6 @@ namespace OpenMS
       const vector<CVMappingRule>& rules = rules_[path];
       for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
-        //~ rule_found = true;
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
@@ -572,7 +571,8 @@ namespace OpenMS
           {
             return true;
           }
-          if (term.getAllowChildren() && cv_.containsTermRecursively(term.getAccession(), parsed_term.accession)) //check if the term's children are allowed
+          auto searcher = [&parsed_term] (const String& child) { return child == parsed_term.accession; };
+          if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher))
           {
             return true;
           }

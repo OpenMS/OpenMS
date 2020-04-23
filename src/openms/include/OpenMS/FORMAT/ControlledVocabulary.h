@@ -157,11 +157,20 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
     /**
-        @brief Checks recursively if the given search term exists in the parent term
-
-        @exception Exception::InvalidValue is thrown if the term is not present
+        @brief Iterates over all children of parent recurisively.
+        @param x Function that gets the child-Strings passed. Must return bool.
+                 Used for comparisons and / or to set captured variables.
     */
-    bool containsTermRecursively(const String& parent, const String& search) const;
+    template <class LAMBDA>
+    bool iterateAllChildren(const String& parent, LAMBDA x) const
+    {
+      for (const auto& child : getTerm(parent).children)
+      {
+        if (x(child)) return true;
+        else if (iterateAllChildren(child, x)) return true;
+      }
+      return false;
+    }
 
     /**
         @brief Returns if @p child is a child of @p parent
