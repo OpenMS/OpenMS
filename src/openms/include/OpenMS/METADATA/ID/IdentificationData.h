@@ -153,7 +153,7 @@ namespace OpenMS
     using IdentifiedOligoRef = IdentificationDataInternal::IdentifiedOligoRef;
 
     using IdentifiedMolecule = IdentificationDataInternal::IdentifiedMolecule;
- 
+
     using PeakAnnotations = IdentificationDataInternal::PeakAnnotations;
 
     using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
@@ -522,6 +522,13 @@ namespace OpenMS
       return pos->first;
     }
 
+    /// Set a meta value on a stored molecule-query match
+    void setMetaValue(const QueryMatchRef ref, const String& key, const DataValue& value)
+    {
+      setMetaValue_(ref, key, value, query_matches_, query_match_lookup_);
+    }
+    // @TODO: add overloads for other data types derived from MetaInfoInterface
+
   protected:
 
     // containers:
@@ -752,6 +759,24 @@ namespace OpenMS
       {
         lookup.insert(uintptr_t(&element));
       }
+    }
+
+    /// Helper function to add a meta value to an element in a multi-index container
+    template <typename RefType, typename ContainerType>
+    void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
+                       ContainerType& container, const AddressLookup& lookup = AddressLookup())
+    {
+      if (!no_checks_ && ((lookup.empty() && !isValidReference_(ref, container)) ||
+                          (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
+      {
+        String msg = "invalid reference for the given container";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      container.modify(ref, [&key, &value](typename ContainerType::value_type& element)
+      {
+        element.setMetaValue(key, value);
+      });
     }
 
 
