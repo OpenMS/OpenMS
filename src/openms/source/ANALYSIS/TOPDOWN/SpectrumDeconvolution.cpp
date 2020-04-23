@@ -76,6 +76,7 @@ namespace OpenMS
   void SpectrumDeconvolution::updateLogMzPeaks()
   {
     logMzPeaks.reserve(spec.size());
+    int index = 0;
     for (auto &peak: spec)
     {
       if (peak.getIntensity() <= param.intensityThreshold)//
@@ -83,6 +84,7 @@ namespace OpenMS
         continue;
       }
       LogMzPeak logMzPeak(peak);
+      logMzPeak.index = index++;
       logMzPeaks.push_back(logMzPeak);
     }
   }

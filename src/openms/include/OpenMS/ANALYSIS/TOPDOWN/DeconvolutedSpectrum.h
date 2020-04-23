@@ -18,27 +18,47 @@ namespace OpenMS
   class OPENMS_DLLAPI DeconvolutedSpectrum
   {
 
-  public:
+  public: // TODO protect and public devide..
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
+    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    //typedef FLASHDeconvHelperStructs::hash_LogMzPeak hash_LogMzPeak;
+
+    DeconvolutedSpectrum();
 
     explicit DeconvolutedSpectrum(MSSpectrum &s);
 
     ~DeconvolutedSpectrum();
 
-    void write(std::fstream &fs, Parameter &param);
-
+    void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
+    void writeAttCsv(std::fstream &fs, int msLevel);
     void writeTopFD(std::fstream &fs, int id);
 
-    static void writeHeader(std::fstream &fs, int &n, bool detail);
+    static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
+    static void writeAttCsvHeader(std::fstream &fs);
 
     bool empty() const;
     MSSpectrum *spec;
-    DeconvolutedSpectrum *precursorSpectrum;
-
-
     std::vector<PeakGroup> peakGroups;
+    std::vector<LogMzPeak> peaks;
+    //std::vector<double> mzs; // sorted peaks from the original spectrum
+
+    PeakGroup *precursorPeakGroup = nullptr;
+    LogMzPeak *precursorPeak = nullptr;
+    std::string activationMethod;
+
+    bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
+
     int specIndex, massCntr, scanNumber;
+
+
+    //fs << "MS_ONE_ID=" << pg.precursorSpecIndex << "\n"
+    //       << "MS_ONE_SCAN=" << pg.precursorScanNumber << "\n"
+    //       << "PRECURSOR_MZ="
+    //       << std::to_string(pg.precursorMz) << "\n"
+    //       << "PRECURSOR_CHARGE=" << pg.precursorCharge << "\n"
+    //       << "PRECURSOR_MASS=" << std::to_string(pg.precursorMonoMass) << "\n"
+    //       << "PRECURSOR_INTENSITY=" << pg.precursorIntensity << "\n";*/
+
   };
 }
 

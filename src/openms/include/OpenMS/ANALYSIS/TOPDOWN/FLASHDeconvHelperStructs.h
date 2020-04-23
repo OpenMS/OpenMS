@@ -89,6 +89,7 @@ namespace OpenMS
       int writeDetail = 0;
       bool promexOut = false;
       bool topfdOut = false;
+      bool trainOut = false;
       //int jitter = 0;
     };
 
@@ -114,19 +115,18 @@ namespace OpenMS
 
     struct OPENMS_DLLAPI LogMzPeak
     {
-      //Peak1D *orgPeak;
       double mz = 0;
       double intensity = 0;
       double logMz = 0;
       double mass = .0;
       int charge = 0;
       int isotopeIndex = -1;
-      //double score;
+      int index = -1;// index in (filtered) spectrum
 
       LogMzPeak();
 
       explicit LogMzPeak(Peak1D &peak);
-
+      explicit LogMzPeak(double mz);
       LogMzPeak(LogMzPeak &peak, int c, int i);
 
       ~LogMzPeak();
@@ -138,6 +138,12 @@ namespace OpenMS
       bool operator==(const LogMzPeak &other) const;
 
     };
+
+    /*
+    struct OPENMS_DLLAPI hash_LogMzPeak
+    {
+      std::size_t operator () (const LogMzPeak &key) const;
+    };*/
 
     static double getLogMz(double mz);
   };

@@ -122,7 +122,7 @@ protected:
 
     registerIntOption_("maxMassCount", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
     //
-    registerDoubleOption_("minIntensity", "<min_intensity>", 0.0, "intensity threshold (default 0.0)", false, true);
+    registerDoubleOption_("minIntensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow",
                           "<seconds>",
                           0.0,
@@ -137,8 +137,10 @@ protected:
                        false,
                        true);
 
-    registerIntOption_("promexOutput", "", 0, "if set, promexoutput (*_FD.ms1ft) is generated", false, true);
-    registerIntOption_("topfdOutput", "", 0, "if set, topfdoutput (*_FD_ms2.msalign) is generated", false, true);
+    registerIntOption_("promexOutput", "", 0, "if set, promexoutput ([prefix]]_FD.ms1ft) is generated", false, true);
+    registerIntOption_("topfdOutput", "", 0, "if set, topfdoutput ([prefix]_FD_ms2.msalign) is generated", false, true);
+    registerIntOption_("trainOutput", "", 0, "if set, [preifx]_train_MSn.csv files are generated", false, true);
+
     registerIntOption_("maxMSLevel", "", 2, "maximum MS-level (inclusive) for deconvolution", false, true);
   }
 
@@ -172,7 +174,7 @@ protected:
     param.maxMSLevel = getIntOption_("maxMSLevel");
     param.promexOut = getIntOption_("promexOutput");
     param.topfdOut = getIntOption_("topfdOutput");
-
+    param.trainOut = getIntOption_("trainOutput");
     return param;
   }
 
@@ -218,6 +220,7 @@ protected:
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream fsf, fsp, fsfd;
     auto fs = new fstream[param.maxMSLevel];
+    auto ft = new fstream[param.maxMSLevel];
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
     //-------------------------------------------------------------
@@ -247,7 +250,13 @@ protected:
       for (int n = 1; n <= (int) param.maxMSLevel; ++n)
       {
         fs[n - 1].open(outfilePath + "_MS" + n + "_spec.tsv", fstream::out);
-        DeconvolutedSpectrum::writeHeader(fs[n - 1], n, param.writeDetail);
+        DeconvolutedSpectrum::writeDeconvolutedMassesHeader(fs[n - 1], n, param.writeDetail);
+
+        if (param.trainOut)
+        {
+          ft[n - 1].open(outfilePath + "_train_MS" + n + ".csv", fstream::out);//[preifx]_train_MSn.csv
+          DeconvolutedSpectrum::writeAttCsvHeader(ft[n - 1]);
+        }
       }
 
       //fsm.open(outfilePath + ".csv", fstream::out);
@@ -288,7 +297,13 @@ protected:
       MzMLFile mzml;
 
       double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
-      double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
+      //double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
+
+      auto elapsed_deconv_cpu_secs = new double[param.maxMSLevel];
+      auto elapsed_deconv_wall_secs = new double[param.maxMSLevel];
+      fill_n(elapsed_deconv_cpu_secs, param.maxMSLevel, 0);
+      fill_n(elapsed_deconv_wall_secs, param.maxMSLevel, 0);
+
 
       auto begin = clock();
       auto t_start = chrono::high_resolution_clock::now();
@@ -341,7 +356,14 @@ protected:
         for (int n = 1; n <= (int) param.maxMSLevel; ++n)
         {
           fs[n - 1].open(outfilePath + outfileName + "_MS" + n + "_spec.tsv", fstream::out);
-          DeconvolutedSpectrum::writeHeader(fs[n - 1], n, param.writeDetail);
+          DeconvolutedSpectrum::writeDeconvolutedMassesHeader(fs[n - 1], n, param.writeDetail);
+
+          if (param.trainOut)
+          {
+            ft[n - 1].open(outfilePath + outfileName + "_train_MS" + n + ".csv", fstream::out);//[preifx]_train_MSn.csv
+            DeconvolutedSpectrum::writeAttCsvHeader(ft[n - 1]);
+          }
+
         }
 
         //fsm.open(outfilePath + outfileName + "PerSpecMasses.csv", fstream::out);
@@ -385,9 +407,10 @@ protected:
 
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
-      int scanNumber = 0, id = 0;
+      int scanNumber = 0, id = 0, specIndex = 0, massIndex = 0;
       float prevProgress = .0;
       auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
+      auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
@@ -403,25 +426,49 @@ protected:
         auto deconv_t_start = chrono::high_resolution_clock::now();
 
         // per spec deconvolution
-        auto fd = FLASHDeconvAlgorithm(avgine, param);
+        auto fd = FLASHDeconvAlgorithm(specIndex, massIndex, avgine, param);
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it);
-        fd.Deconvolution(deconvolutedSpectrum, scanNumber);
 
-        elapsed_deconv_cpu_secs += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
-        elapsed_deconv_wall_secs += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start)
+        bool proceed = true;
+        param.currentChargeRange = param.chargeRange;
+        param.currentMaxMass = param.maxMass;
+
+        if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
+        {
+          proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+          if (proceed)
+          {
+            param.currentChargeRange = deconvolutedSpectrum.precursorPeak->charge;
+            param.currentMaxMass = deconvolutedSpectrum.precursorPeakGroup->monoisotopicMass;
+          }
+        }
+
+        if (proceed)
+        {
+          fd.Deconvolution(deconvolutedSpectrum, scanNumber);
+        }
+
+        elapsed_deconv_cpu_secs[msLevel-1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
+        elapsed_deconv_wall_secs[msLevel-1] += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start)
             .count();
 
-        if(deconvolutedSpectrum.empty()){
+        if (deconvolutedSpectrum.empty())
+        {
           continue;
         }
 
+        lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
-        massCntr[msLevel - 1]+=deconvolutedSpectrum.peakGroups.size();
+        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
 
-        deconvolutedSpectrum.write(fs[msLevel - 1], param);
-        if (param.topfdOut){
+        deconvolutedSpectrum.writeDeconvolutedMasses(fs[msLevel - 1], param);
+        if (param.topfdOut)
+        {
           deconvolutedSpectrum.writeTopFD(fsfd, id++);
+        }
+        if(param.trainOut){
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel-1], msLevel);
         }
 
         float progress = (float) (it - map.begin()) / map.size();
@@ -430,16 +477,17 @@ protected:
           printProgress(progress); //
           prevProgress = progress;
         }
-
       }
       printProgress(1); //
       std::cout << std::endl;
+
+      std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra);
 
       massTracer.findFeatures(featureCntr, fsf, fsp);
 
       if (isOutPathDir)
       {
-        for (int j = 0; j < (int)param.maxMSLevel; j++)
+        for (int j = 0; j < (int) param.maxMSLevel; j++)
         {
           if (specCntr[j] == 0)
           {
@@ -455,9 +503,12 @@ protected:
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
 
-        for (int n = 1; n <= (int)param.maxMSLevel; ++n)
+        for (int n = 1; n <= (int) param.maxMSLevel; ++n)
         {
           fs[n - 1].close();
+          if(param.trainOut){
+            ft[n-1].close();
+          }
           if (specCntr[n - 1] == 0)
           {
             QString filename = QString::fromStdString(outfilePath + outfileName + "_MS" + n + "_spec.tsv");
@@ -465,7 +516,7 @@ protected:
             file.remove();
           }
         }
-       // fsm.close();
+        // fsm.close();
 
         fsf.close();
         if (param.promexOut)
@@ -473,7 +524,7 @@ protected:
           fsp.close();
         }
         //fsm.close();
-        for (int j = 0; j < (int)param.maxMSLevel; j++)
+        for (int j = 0; j < (int) param.maxMSLevel; j++)
         {
           total_specCntr[j] += specCntr[j];
           total_qspecCntr[j] += qspecCntr[j];
@@ -483,7 +534,7 @@ protected:
       }
       else
       {
-        for (int j = 0; j < (int)param.maxMSLevel; j++)
+        for (int j = 0; j < (int) param.maxMSLevel; j++)
         {
           if (specCntr[j] == 0)
           {
@@ -497,7 +548,7 @@ protected:
         {
           OPENMS_LOG_INFO << "Mass tracer found " << featureCntr << " features" << endl;
         }
-        for (int j = 0; j < (int)param.maxMSLevel; j++)
+        for (int j = 0; j < (int) param.maxMSLevel; j++)
         {
           total_specCntr[j] = specCntr[j];
           total_qspecCntr[j] = qspecCntr[j];
@@ -517,13 +568,16 @@ protected:
                       << endl;
 
       auto sumCntr = 0;
-      for (int j = 0; j < (int)param.maxMSLevel; j++)
+      for (int j = 0; j < (int) param.maxMSLevel; j++)
       {
         sumCntr += specCntr[j];
+
+        OPENMS_LOG_INFO << "-- deconv per MS"<< (j+1) <<" spectrum (except spec loading, feature finding) [took "
+                        << 1000.0 * elapsed_deconv_cpu_secs[j] / sumCntr
+                        << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / sumCntr << " ms (Wall)] --" << endl;
       }
-      OPENMS_LOG_INFO << "-- deconv per spectrum (except spec loading, feature finding) [took "
-                      << 1000.0 * elapsed_deconv_cpu_secs / sumCntr
-                      << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs / sumCntr << " ms (Wall)] --" << endl;
+      delete[] elapsed_deconv_cpu_secs;
+      delete[] elapsed_deconv_wall_secs;
 
       total_elapsed_cpu_secs += elapsed_cpu_secs;
       total_elapsed_wall_secs += elapsed_wall_secs;
@@ -543,7 +597,7 @@ protected:
 
     if (massCntr[0] < total_massCntr[0])
     {
-      for (int j = 0; j < (int)param.maxMSLevel; j++)
+      for (int j = 0; j < (int) param.maxMSLevel; j++)
       {
         if (total_specCntr[j] == 0)
         {
@@ -565,9 +619,12 @@ protected:
       // fsm << "];";
       //  fsm.close();
       //  fsp.close();
-      for (int n = 1; n <= (int)param.maxMSLevel; ++n)
+      for (int n = 1; n <= (int) param.maxMSLevel; ++n)
       {
         fs[n - 1].close();
+        if(param.trainOut){
+          ft[n-1].close();
+        }
         if (specCntr[n - 1] == 0)
         {
           QString filename = QString::fromStdString(outfilePath + "_MS" + n + "_spec.tsv");
@@ -594,10 +651,10 @@ protected:
   static void printProgress(float progress)
   {
     //return; //
-    int barWidth = 70;
+    float barWidth = 70;
     std::cout << "[";
     int pos = (int) (barWidth * progress);
-    for (int i = 0; i < barWidth; ++i)
+    for (auto i = 0; i < barWidth; ++i)
     {
       if (i < pos)
       {

@@ -171,12 +171,17 @@ namespace OpenMS
   {
   }
 
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz) : mz(mz), logMz(getLogMz(mz))
+  {
+  }
+
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(LogMzPeak &peak, int c, int i) :
       mz(peak.mz),
       intensity(peak.intensity),
       logMz(peak.logMz),
       charge(c),
-      isotopeIndex(i)
+      isotopeIndex(i),
+      index(peak.index)
   {
   }
 
@@ -200,7 +205,7 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak &a) const
   {
-    return this->logMz >= a.logMz;
+    return this->logMz > a.logMz;
   }
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator==(const LogMzPeak &a) const
@@ -222,4 +227,10 @@ namespace OpenMS
   {
     return std::log(mz - Constants::PROTON_MASS_U);
   }
+
+  /*
+  std::size_t FLASHDeconvHelperStructs::hash_LogMzPeak::operator()(FLASHDeconvHelperStructs::LogMzPeak const &key) const
+  {
+    return std::hash<double>()(key.mz);
+  }*/
 }

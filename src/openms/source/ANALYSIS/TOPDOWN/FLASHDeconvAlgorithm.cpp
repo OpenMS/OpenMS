@@ -39,8 +39,8 @@ namespace OpenMS
 
   // constructor
 
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &a, Parameter &p) :
-      param(p), avg(a)
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(int &specIndex, int &massIndex, FLASHDeconvHelperStructs::PrecalcularedAveragine &a, Parameter &p) :
+      param(p), avg(a), specIndex(specIndex), massIndex(massIndex)
   {
     prevMassBinMap = std::vector<std::vector<Size>>();
     prevMinBinLogMassMap = std::vector<double>();
@@ -91,6 +91,7 @@ namespace OpenMS
       return;
     }
 
+    deconvolutedSpectrum.peaks = sd.logMzPeaks;
     deconvolutedSpectrum.specIndex = specIndex;
     deconvolutedSpectrum.scanNumber = scanNumber;
     deconvolutedSpectrum.massCntr = (int) deconvolutedSpectrum.peakGroups.size();

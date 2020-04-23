@@ -16,7 +16,6 @@
 namespace OpenMS
 {
   class DeconvolutedSpectrum;
-
   class OPENMS_DLLAPI PeakGroup
   {
   public:
