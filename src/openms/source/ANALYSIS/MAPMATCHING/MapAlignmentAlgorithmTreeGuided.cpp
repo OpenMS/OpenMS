@@ -197,7 +197,7 @@ namespace OpenMS
     Size to_transform;
 
     // check RT ranges of IDs
-    for (int i = 0; i < maps_ranges.size(); ++i)
+    for (size_t i = 0; i < maps_ranges.size(); ++i)
     {
       StringList p;
       feature_maps_transformed[i].getPrimaryMSRunPath(p);
