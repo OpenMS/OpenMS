@@ -578,12 +578,8 @@ protected:
       {
         IdentificationData id_data;
         OMSFile().load(in, id_data);
-        // if we don't have peptides, but have RNA oligos, then export those:
-        bool export_rna = (id_data.getIdentifiedPeptides().empty() &&
-                           !id_data.getIdentifiedOligos().empty());
         IdentificationDataConverter::exportIDs(id_data, protein_identifications,
-                                               peptide_identifications,
-                                               export_rna);
+                                               peptide_identifications);
       }
       break;
 

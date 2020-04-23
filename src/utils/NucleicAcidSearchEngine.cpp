@@ -851,8 +851,9 @@ protected:
     for (const IdentificationData::MoleculeQueryMatch& match :
            id_data.getMoleculeQueryMatches())
     {
-      auto key = make_pair(match.getIdentifiedOligoRef()->sequence,
-                           match.getMetaValue("adduct"));
+      const NASequence& seq =
+        match.identified_molecule_var.getIdentifiedOligoRef()->sequence;
+      auto key = make_pair(seq, match.getMetaValue("adduct"));
       double rt = match.data_query_ref->rt;
       double prec_int =
         match.data_query_ref->getMetaValue("precursor_intensity");
@@ -1441,7 +1442,7 @@ protected:
       }
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
