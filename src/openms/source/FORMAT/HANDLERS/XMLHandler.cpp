@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <simde/x86/sse2.h>
 
 #include <set>
 
@@ -269,25 +270,47 @@ namespace OpenMS
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
-      const XMLCh* it = chars;
-      const XMLCh* end = it + length;
 
-      size_t curr_size = result.size();
+      const uint16_t* in_it = reinterpret_cast<const uint16_t*>(chars);
+      const uint16_t* const in_end = reinterpret_cast<const uint16_t* const>(chars + length);
+
+      const size_t curr_size = result.size();
       result.resize(curr_size + length);
-      std::string::iterator str_it = result.begin();
-      std::advance(str_it, curr_size);
-      while (it!=end)
-      {   
-        *str_it = (char)*it;
-        ++str_it;
-        ++it;
+      char* out_it = &*result.begin() + curr_size;
+
+      // iterate over the input string until in_it points to an address in 256-bit memory alignment
+      // or until the input string ends
+      const size_t mask{0b11111};
+      while((reinterpret_cast<size_t>(in_it) & mask) && in_it != in_end)
+      {
+        *out_it = *in_it;
+        ++in_it; ++out_it; 
       }
 
-      // This is ca. 50 % faster than 
-      // for (size_t i = 0; i < length; i++)
-      // {
-      //   result[curr_size + i] = (char)chars[i];
-      // }
+      const simde__m128i* sse_in_it = reinterpret_cast<const simde__m128i*>(in_it);
+      const simde__m128i* const sse_in_end = reinterpret_cast<const simde__m128i*>(in_end);
+      simde__m128i* sse_out_it = reinterpret_cast<simde__m128i*>(out_it);
+
+      // if there is more than 256 bit of data in the input string left, use SSE
+      while(sse_in_it + 2 <= sse_in_end)
+      {
+        simde_mm_storeu_si128(sse_out_it, 
+          simde_mm_packus_epi16(simde_mm_load_si128(sse_in_it),
+                                simde_mm_load_si128(sse_in_it + 1)));
+
+        sse_in_it += 2, ++sse_out_it;
+      }
+
+      in_it = reinterpret_cast<const uint16_t*>(sse_in_it);
+      out_it = reinterpret_cast<char*>(sse_out_it);
+
+      // iterate over the rest of the input string, which SSE can't handle
+      // because the large registers would overlap at the end of the input string
+      while(in_it != in_end)
+      {
+        *out_it = *in_it;
+        ++in_it; ++out_it; 
+      }
 
     }
 

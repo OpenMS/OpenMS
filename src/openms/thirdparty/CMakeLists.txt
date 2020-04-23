@@ -46,4 +46,5 @@ add_subdirectory(evergreen/src)
 add_subdirectory(IsoSpec)
 
 add_subdirectory(json)
+add_subdirectory(simde)
 
