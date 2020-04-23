@@ -532,6 +532,7 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
+        cos2 = cos2>=0.9999 ? 0.9999 : cos2;
         if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
           pg.perChargeSNR[j] = 0;
         }

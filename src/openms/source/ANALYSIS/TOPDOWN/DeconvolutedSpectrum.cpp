@@ -256,10 +256,10 @@ namespace OpenMS
     if (msLevel>1)
     {
       fs << scanNumber << "," << precursorPeak->charge
-         << "," << precursorPeakGroup->perChargeSNR[precursorPeak->charge] << "," << precursorPeak->intensity
-         << "," << precursorPeakGroup->monoisotopicMass << "," << precursorPeakGroup->totalSNR << ","
+         << "," << log10(precursorPeakGroup->perChargeSNR[precursorPeak->charge]+1e-3) << "," << log10(precursorPeak->intensity+1e-3)
+         << "," << precursorPeakGroup->monoisotopicMass << "," << log10(precursorPeakGroup->totalSNR+1e-3) << ","
          << precursorPeakGroup->isotopeCosineScore
-         << "," << precursorPeakGroup->chargeCosineScore << "," << precursorPeakGroup->intensity << ",0\n";
+         << "," << precursorPeakGroup->chargeCosineScore << "," << log10(precursorPeakGroup->intensity+1e-3) << ",0\n";
     }else{
       for (auto &pg : peakGroups)
       {
@@ -279,9 +279,9 @@ namespace OpenMS
         }
 
         fs<<scanNumber << "," << pg.maxSNRcharge
-          << "," << pg.maxSNR  << "," << peak->intensity
-          << "," << pg.monoisotopicMass << "," << pg.totalSNR << "," << pg.isotopeCosineScore
-          << "," << pg.chargeCosineScore << "," <<pg.intensity << ",0\n";
+          << "," << log10(pg.maxSNR+1e-3)  << "," << log10(peak->intensity+1e-3)
+          << "," << pg.monoisotopicMass << "," << log10(pg.totalSNR+1e-3) << "," << pg.isotopeCosineScore
+          << "," << pg.chargeCosineScore << "," << log10(pg.intensity+1e-3) << ",0\n";
       }
     }
   }
