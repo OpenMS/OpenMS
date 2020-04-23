@@ -1212,7 +1212,15 @@ protected:
           }
         }
       }
+
+      if (!peptide_level_fdrs)
+      {
+      OPENMS_LOG_INFO << "Suitable PSM Hits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
+      }
+      else if (peptide_level_fdrs)
+      {
       OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
+      }
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
