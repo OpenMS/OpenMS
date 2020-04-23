@@ -726,11 +726,11 @@ namespace OpenMS
 
             bool feature_ok = checkFeatureQuality_(fitter, new_traces, seed_mz, min_feature_score, error_msg, fit_score, correlation, final_score);
 
-#pragma omp critical (FeatureFinderAlgorithmPicked_DEBUG)
             {
               //write debug output of feature
               if (debug_)
               {
+#pragma omp critical (FeatureFinderAlgorithmPicked_DEBUG)
                 writeFeatureDebugInfo_(fitter, traces, new_traces, feature_ok, error_msg, final_score, plot_nr, peak);
               }
             }
@@ -840,9 +840,9 @@ namespace OpenMS
       // used in any feature with higher intensity, we can add it to the
       // features_ list.
       std::vector<Size> seeds_contained;
-      for (std::map<Size, Feature>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
+      for (auto & iter : tmp_feature_map)
       {
-        Size seed_nr = iter->first;
+        Size seed_nr = iter.first;
         bool is_used = false;
         for (unsigned long i : seeds_contained)
         {
@@ -853,9 +853,9 @@ namespace OpenMS
           ++feature_candidates;
 
           //re-set label
-          iter->second.setMetaValue(3, feature_nr_global);
+          iter.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
-          features_->push_back(iter->second);
+          features_->push_back(iter.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
           for (unsigned long k : curr_seed)
@@ -1764,6 +1764,7 @@ namespace OpenMS
     double high_bound = fitter->getUpperRTBound();
 
     if (debug_) log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
+    std::vector<double> v_theo, v_real;
     for (Size t = 0; t < traces.size(); ++t)
     {
       const MassTrace& trace = traces[t];
@@ -1772,7 +1773,8 @@ namespace OpenMS
       MassTrace new_trace;
       //compute average relative deviation and correlation
       double deviation = 0.0;
-      std::vector<double> v_theo, v_real;
+      v_theo.clear();
+      v_real.clear();
       for (Size k = 0; k < trace.peaks.size(); ++k)
       {
         //consider peaks when inside RT bounds only
@@ -1781,7 +1783,6 @@ namespace OpenMS
           new_trace.peaks.push_back(trace.peaks[k]);
 
           double theo = traces.baseline + fitter->computeTheoretical(trace, k);
-
           v_theo.push_back(theo);
           double real = trace.peaks[k].second->getIntensity();
           v_real.push_back(real);
