@@ -1217,7 +1217,7 @@ protected:
       {
       OPENMS_LOG_INFO << "Suitable PSM Hits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
       }
-      else if (peptide_level_fdrs)
+      else
       {
       OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
       }
