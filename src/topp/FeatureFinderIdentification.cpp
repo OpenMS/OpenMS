@@ -40,11 +40,15 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 #include <cstdlib> // for "rand"
 #include <ctime> // for "time" (seeding of random number generator)
@@ -179,7 +183,7 @@ public:
              { {"Weisser H, Choudhary JS",
                 "Targeted Feature Detection for Data-Dependent Shotgun Proteomics",
                 "J. Proteome Res. 2017; 16, 8:2964-2974",
-                "10.1021/acs.jproteome.7b00248"} 
+                "10.1021/acs.jproteome.7b00248"}
              })
   {
   }
@@ -188,21 +192,21 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", {"idXML", "oms"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
+    setValidFormats_("id_ext", {"idXML", "oms"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", {"featureXML"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
-    setValidFormats_("lib_out", ListUtils::create<String>("traML"));
+    setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
-    setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
-    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_out", {"featureXML"});
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
-    setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_in", {"featureXML"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
@@ -210,6 +214,24 @@ protected:
     algo_with_subsection.insert("", subsection);
     registerFullParam_(algo_with_subsection);
   }
+
+
+  void loadIDData_(const String& filename, IdentificationData& id_data)
+  {
+    FileTypes::Type type = FileHandler::getType(filename);
+    if (type == FileTypes::OMS)
+    {
+      OMSFile(log_type_).load(filename, id_data);
+    }
+    else // idXML input
+    {
+      vector<PeptideIdentification> peptides;
+      vector<ProteinIdentification> proteins;
+      IdXMLFile().load(filename, proteins, peptides);
+      IdentificationDataConverter::importIDs(id_data, proteins, peptides);
+    }
+  }
+
 
   ExitCodes main_(int, const char**) override
   {
@@ -247,23 +269,20 @@ protected:
       // annotate mzML file
       features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
 
-      vector<PeptideIdentification> peptides, peptides_ext;
-      vector<ProteinIdentification> proteins, proteins_ext;
-
+      IdentificationData id_data, id_data_ext;
       // "internal" IDs:
-      IdXMLFile().load(id, proteins, peptides);
-
+      loadIDData_(id, id_data);
       // "external" IDs:
       if (!id_ext.empty())
       {
-        IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+        loadIDData_(id_ext, id_data_ext);
       }
 
       //-------------------------------------------------------------
       // run feature detection
       //-------------------------------------------------------------
 
-      ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features);
+      ffid_algo.run(features, id_data, id_data_ext);
 
       // write auxiliary output:
       bool keep_chromatograms = !chrom_out.empty();
@@ -296,7 +315,7 @@ protected:
       FeatureXMLFile().load(candidates_in, features);
       OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
-      ffid_algo.runOnCandidates(features);
+      // ffid_algo.runOnCandidates(features);
     }
 
     //-------------------------------------------------------------
