@@ -259,7 +259,7 @@ namespace OpenMS
          << "," << precursorPeakGroup->perChargeSNR[precursorPeak->charge] << "," << precursorPeak->intensity
          << "," << precursorPeakGroup->monoisotopicMass << "," << precursorPeakGroup->totalSNR << ","
          << precursorPeakGroup->isotopeCosineScore
-         << "," << precursorPeakGroup->chargeCosineScore << "," << precursorPeakGroup->intensity << "0\n";
+         << "," << precursorPeakGroup->chargeCosineScore << "," << precursorPeakGroup->intensity << ",0\n";
     }else{
       for (auto &pg : peakGroups)
       {
@@ -281,7 +281,7 @@ namespace OpenMS
         fs<<scanNumber << "," << pg.maxSNRcharge
           << "," << pg.maxSNR  << "," << peak->intensity
           << "," << pg.monoisotopicMass << "," << pg.totalSNR << "," << pg.isotopeCosineScore
-          << "," << pg.chargeCosineScore << "," <<pg.intensity << "0\n";
+          << "," << pg.chargeCosineScore << "," <<pg.intensity << ",0\n";
       }
     }
   }
