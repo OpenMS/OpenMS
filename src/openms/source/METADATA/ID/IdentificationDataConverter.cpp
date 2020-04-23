@@ -317,7 +317,7 @@ namespace OpenMS
 
   void IdentificationDataConverter::exportIDs(
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides, bool export_oligonucleotides)
+    vector<PeptideIdentification>& peptides)
   {
     proteins.clear();
     peptides.clear();
@@ -336,25 +336,31 @@ namespace OpenMS
            id_data.getMoleculeQueryMatches())
     {
       PeptideHit hit;
-      const ID::ParentMatches* parent_matches_ptr;
+      static_cast<MetaInfoInterface&>(hit) = query_match;
+      const ID::ParentMatches* parent_matches_ptr = nullptr;
       const ID::IdentifiedMolecule& molecule_var =
         query_match.identified_molecule_var;
-      if (!export_oligonucleotides) // export peptides
+      if (molecule_var.getMoleculeType() == ID::MoleculeType::PROTEIN)
       {
-        if (molecule_var.getMoleculeType() != ID::MoleculeType::PROTEIN) continue;
-        static_cast<MetaInfoInterface&>(hit) = query_match;
         ID::IdentifiedPeptideRef peptide_ref =
           molecule_var.getIdentifiedPeptideRef();
         hit.setSequence(peptide_ref->sequence);
         parent_matches_ptr = &(peptide_ref->parent_matches);
       }
-      else
+      else if (molecule_var.getMoleculeType() == ID::MoleculeType::RNA)
       {
-        if (molecule_var.getMoleculeType() != ID::MoleculeType::RNA) continue;
-        static_cast<MetaInfoInterface&>(hit) = query_match;
         ID::IdentifiedOligoRef oligo_ref = molecule_var.getIdentifiedOligoRef();
         hit.setMetaValue("label", oligo_ref->sequence.toString());
+        hit.setMetaValue("molecule_type", "RNA");
         parent_matches_ptr = &(oligo_ref->parent_matches);
+      }
+      else // small molecule
+      {
+        ID::IdentifiedCompoundRef compound_ref =
+          molecule_var.getIdentifiedCompoundRef();
+        // @TODO: use "name" member instead of "identifier" here?
+        hit.setMetaValue("label", compound_ref->identifier);
+        hit.setMetaValue("molecule_type", "compound");
       }
       hit.setCharge(query_match.charge);
       // @TODO: is this needed? don't we copy over all meta values above?
@@ -363,25 +369,9 @@ namespace OpenMS
         hit.setMetaValue(ppm_error_name,
                          query_match.getMetaValue(ppm_error_name));
       }
-      for (const auto& pair : *parent_matches_ptr)
+      if (parent_matches_ptr != nullptr)
       {
-        ID::ParentMoleculeRef parent_ref = pair.first;
-        for (const ID::MoleculeParentMatch& parent_match : pair.second)
-        {
-          PeptideEvidence evidence;
-          evidence.setProteinAccession(parent_ref->accession);
-          evidence.setStart(parent_match.start_pos);
-          evidence.setEnd(parent_match.end_pos);
-          if (!parent_match.left_neighbor.empty())
-          {
-            evidence.setAABefore(parent_match.left_neighbor[0]);
-          }
-          if (!parent_match.right_neighbor.empty())
-          {
-            evidence.setAAAfter(parent_match.right_neighbor[0]);
-          }
-          hit.addPeptideEvidence(evidence);
-        }
+        exportParentMatches(*parent_matches_ptr, hit);
       }
       // sort the evidences:
       vector<PeptideEvidence> evidences = hit.getPeptideEvidences();
@@ -449,11 +439,6 @@ namespace OpenMS
     map<StepOpt, pair<vector<ProteinHit>, ID::ScoreTypeRef>> prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
-      bool right_type =
-        parent.molecule_type == (export_oligonucleotides ?
-                                 ID::MoleculeType::RNA :
-                                 ID::MoleculeType::PROTEIN);
-      if (!right_type) continue;
       ProteinHit hit;
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
@@ -748,6 +733,32 @@ namespace OpenMS
         parent.is_decoy = true;
       }
       id_data.registerParentMolecule(parent);
+    }
+  }
+
+
+  void IdentificationDataConverter::exportParentMatches(
+    const ID::ParentMatches& parent_matches, PeptideHit& hit)
+  {
+    for (const auto& pair : parent_matches)
+    {
+      ID::ParentMoleculeRef parent_ref = pair.first;
+      for (const ID::MoleculeParentMatch& parent_match : pair.second)
+      {
+        PeptideEvidence evidence;
+        evidence.setProteinAccession(parent_ref->accession);
+        evidence.setStart(parent_match.start_pos);
+        evidence.setEnd(parent_match.end_pos);
+        if (!parent_match.left_neighbor.empty())
+        {
+          evidence.setAABefore(parent_match.left_neighbor[0]);
+        }
+        if (!parent_match.right_neighbor.empty())
+        {
+          evidence.setAAAfter(parent_match.right_neighbor[0]);
+        }
+        hit.addPeptideEvidence(evidence);
+      }
     }
   }
 

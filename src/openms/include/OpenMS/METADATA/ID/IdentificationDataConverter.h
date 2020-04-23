@@ -54,8 +54,7 @@ namespace OpenMS
     /// Export to legacy peptide/protein identifications
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides,
-                          bool export_oligonucleotides = false);
+                          std::vector<PeptideIdentification>& peptides);
 
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);
@@ -66,6 +65,10 @@ namespace OpenMS
                                 IdentificationData::MoleculeType type =
                                 IdentificationData::MoleculeType::PROTEIN,
                                 const String& decoy_pattern = "");
+
+    /// Convert molecule-parent matches to peptide evidences
+    static void exportParentMatches(
+      const IdentificationData::ParentMatches& parent_matches, PeptideHit& hit);
 
   protected:
 
