@@ -885,11 +885,11 @@ namespace OpenMS
             {
                 if (hit.metaValueExists(requested_score_type))
                 {
-                    return hit.getMetaValue(requested_score_type).toDouble();
+                    return static_cast<double>(hit.getMetaValue(requested_score_type));
                 }
                 if (hit.metaValueExists(requested_score_type+"_score"))
                 {
-                    return hit.getMetaValue(requested_score_type+"_score").toDouble();
+                    return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
                 }
             }
         }
@@ -897,7 +897,7 @@ namespace OpenMS
     }
 
 
-    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit, const String& current_mainscore_type)
+    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit, const String& current_score_type)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
 
@@ -999,7 +999,7 @@ namespace OpenMS
                   {
                     if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                     {
-                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0]);
+                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0], pep.getScoreType());
                       if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
@@ -1024,7 +1024,7 @@ namespace OpenMS
                     {
                       if (!split_charge || (hit.getCharge() == *charge_it))
                       {
-                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit);
+                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit, pep.getScoreType());
                         if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                         {
                           scores.push_back(score);
@@ -1101,7 +1101,7 @@ namespace OpenMS
                 {
                   double score;
                   hit.setMetaValue(score_type, hit.getScore());
-                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit);
+                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType());
 
                   //TODO they should be ignored during fitting already!
                   // and in this issue the -log(10^99) should actually be an acceptable value.
