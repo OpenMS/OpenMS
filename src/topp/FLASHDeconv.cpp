@@ -415,7 +415,6 @@ protected:
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
-        std::cout<<0<<std::endl;
         ++scanNumber;
         auto msLevel = it->getMSLevel();
         if (msLevel > param.currentMaxMSLevel)
