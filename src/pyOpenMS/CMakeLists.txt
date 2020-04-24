@@ -402,7 +402,7 @@ if(NOT PY_NUM_MODULES)
 endif()
 
 # set data variable nightly builds use repository last change date
-set(OPENMS_GIT_LC_DATE OPENMS_GIT_LC_DATE)
+set(OPENMS_GIT_LC_DATE ${OPENMS_GIT_LC_DATE})
 
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
