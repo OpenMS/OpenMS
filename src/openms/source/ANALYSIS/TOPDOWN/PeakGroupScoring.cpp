@@ -586,11 +586,10 @@ namespace OpenMS
 
     //std::cout<<filteredPeakGroups.size();
     peakGroups.swap(filteredPeakGroups);
-
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
+    removeHarmonicPeakGroups(param.tolerance[msLevel-1]); // TODO
     removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
-
     //(param.currentMaxMassCount); //
     filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
 
@@ -699,10 +698,75 @@ namespace OpenMS
     newPeakGroups.swap(peakGroups);
   }
 
-  void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
+  void PeakGroupScoring::removeHarmonicPeakGroups(double tol)
   { // pgs are sorted
     //return;
     sort(peakGroups.begin(), peakGroups.end());
+    std::vector<PeakGroup> merged;
+    merged.reserve(peakGroups.size());
+
+    std::vector<double> masses;
+    masses.reserve(peakGroups.size());
+    for (auto & peakGroup : peakGroups)
+    {
+      masses.push_back(peakGroup.monoisotopicMass);
+    }
+    for (auto & pg : peakGroups)
+    {
+      bool select = true;
+      for(int h=2;h<=3;h++){
+        for (int k=0;k<2;k++)
+        {
+          auto hmass = k == 0? pg.monoisotopicMass * h : pg.monoisotopicMass / h;
+          double massTol = hmass * tol;
+
+          auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
+          Size j = iter - masses.begin();
+
+          if (j>=0 && j < peakGroups.size())
+          {
+            for (; j < peakGroups.size(); j++)
+            {
+              auto &pgo = peakGroups[j];
+              if (hmass - pgo.monoisotopicMass > massTol)
+              {
+                continue;
+              }
+
+              if (!select || pgo.monoisotopicMass - hmass > massTol)
+              {
+                break;
+              }
+              select &= pg.totalSNR >= pgo.totalSNR;
+            }
+          }
+          if (!select)
+          {
+            break;
+          }
+        }
+        if (!select)
+        {
+          break;
+        }
+      }
+      if (!select)
+      {
+        continue;
+      }
+      merged.push_back(pg);
+    }
+    //pgs = merged;
+    //merged.shrink_to_fit();
+    std::vector<PeakGroup>().swap(peakGroups);
+    merged.swap(peakGroups);
+    //vector<PeakGroup>().swap(merged);
+  }
+
+  void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
+  { // pgs are sorted
+    //return;
+    //sort(peakGroups.begin(), peakGroups.end());
     std::vector<PeakGroup> merged;
     merged.reserve(peakGroups.size());
 

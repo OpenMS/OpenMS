@@ -37,6 +37,8 @@ namespace OpenMS
     static void writeAttCsvHeader(std::fstream &fs);
 
     bool empty() const;
+    void clearChargeSNRMap();
+
     MSSpectrum *spec;
     std::vector<PeakGroup> peakGroups;
     std::vector<LogMzPeak> peaks;

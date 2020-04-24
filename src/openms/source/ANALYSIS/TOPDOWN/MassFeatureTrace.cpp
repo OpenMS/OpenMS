@@ -75,6 +75,9 @@ namespace OpenMS
 
     for (auto &mt : m_traces)
     {
+      //if(mt.getSize() < 3){
+      //  continue;
+      //}
       int minCharge = param.chargeRange + param.minCharge + 1;
       int maxCharge = 0;
 

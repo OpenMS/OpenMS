@@ -8,7 +8,7 @@ namespace OpenMS
   PeakGroup::~PeakGroup()
   {
     std::vector<LogMzPeak>().swap(peaks);
-    emptyChargeSNRMap();
+    clearChargeSNRMap();
   }
 
   void PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
@@ -21,7 +21,7 @@ namespace OpenMS
     peaks.reserve(n);
   }
 
-  void PeakGroup::emptyChargeSNRMap()
+  void PeakGroup::clearChargeSNRMap()
   {
     std::unordered_map<int, float>().swap(perChargeSNR);
   }

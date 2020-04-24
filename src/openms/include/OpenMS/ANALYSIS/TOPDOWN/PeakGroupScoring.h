@@ -44,7 +44,7 @@ namespace OpenMS
 
 
     void removeOverlappingPeakGroups(double tol);
-
+    void removeHarmonicPeakGroups(double tol);
     std::vector<int> updatePerChargeIsotopeIntensity(
         //        double **intensityGrid,
         //        double **intensityGrid2,

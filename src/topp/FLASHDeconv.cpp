@@ -316,8 +316,7 @@ protected:
       param.fileName = QFileInfo(infile).fileName().toStdString();
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
-      auto msCntr = new int[1 + param.maxMSLevel];
-      fill_n(msCntr, 1 + param.maxMSLevel, 0);
+      auto ms1Cntr = 0;
 
       for (auto &it : map)
       {
@@ -325,26 +324,24 @@ protected:
         {
           continue;
         }
-        msCntr[it.getMSLevel()]++;
+        ms1Cntr++;
       }
 
       param.numOverlappedScans.clear();
-      for (int j = 1; j <= 1; j++)
-      {
-        double rtDelta = rtDuration / msCntr[j];
 
-        auto rw = param.RTwindow;
-        auto count = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
-        OPENMS_LOG_INFO << "# Overlapped MS" << j << " scans:" << count << " (in RT " << (rtDelta * count) //
-                        << " sec)" << endl;
+      double rtDelta = rtDuration / ms1Cntr;
 
-        param.numOverlappedScans.push_back(count);
-      }
+      auto rw = param.RTwindow;
+      auto count = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
+      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << count << " (in RT " << (rtDelta * count) //
+                      << " sec)" << endl;
+
+      param.numOverlappedScans.push_back(count);
+
       for (int j = 2; j <= (int) param.maxMSLevel; j++)
       {
         param.numOverlappedScans.push_back(0);
       }
-      delete[] msCntr;
 
       std::string outfileName(param.fileName);
 
@@ -363,11 +360,7 @@ protected:
             ft[n - 1].open(outfilePath + outfileName + "_train_MS" + n + ".csv", fstream::out);//[preifx]_train_MSn.csv
             DeconvolutedSpectrum::writeAttCsvHeader(ft[n - 1]);
           }
-
         }
-
-        //fsm.open(outfilePath + outfileName + "PerSpecMasses.csv", fstream::out);
-        //writeAttCsvHeader(fsm);
 
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
         MassFeatureTrace::writeHeader(fsf);
@@ -394,7 +387,6 @@ protected:
       }
 
       param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
-
 
       Param common_param = getParam_().copy("algorithm:common:", true);
       writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
@@ -447,15 +439,20 @@ protected:
         {
           fd.Deconvolution(deconvolutedSpectrum, scanNumber);
         }
-        elapsed_deconv_cpu_secs[msLevel-1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
-        elapsed_deconv_wall_secs[msLevel-1] += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start)
-            .count();
+        elapsed_deconv_cpu_secs[msLevel - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
+        elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
+            chrono::high_resolution_clock::now() - deconv_t_start).count();
+
         if (deconvolutedSpectrum.empty())
         {
           continue;
         }
 
+        if(lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end()){
+          lastDeconvolutedSpectra[msLevel].clearChargeSNRMap(); // for memroy efficiency
+        }
         lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
+
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
@@ -465,10 +462,10 @@ protected:
         if (param.topfdOut)
         {
           deconvolutedSpectrum.writeTopFD(fsfd, id++);
-
         }
-        if(param.trainOut){
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel-1], msLevel);
+        if (param.trainOut)
+        {
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel);
         }
 
         float progress = (float) (it - map.begin()) / map.size();
@@ -505,8 +502,9 @@ protected:
         for (int n = 1; n <= (int) param.maxMSLevel; ++n)
         {
           fs[n - 1].close();
-          if(param.trainOut){
-            ft[n-1].close();
+          if (param.trainOut)
+          {
+            ft[n - 1].close();
           }
           if (specCntr[n - 1] == 0)
           {
@@ -533,7 +531,7 @@ protected:
       }
       else
       {
-        for (int j = 0; j < (int) param.maxMSLevel; j++)
+        for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
         {
           if (specCntr[j] == 0)
           {
@@ -567,11 +565,11 @@ protected:
                       << endl;
 
       auto sumCntr = 0;
-      for (int j = 0; j < (int) param.maxMSLevel; j++)
+      for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
       {
         sumCntr += specCntr[j];
 
-        OPENMS_LOG_INFO << "-- deconv per MS"<< (j+1) <<" spectrum (except spec loading, feature finding) [took "
+        OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took "
                         << 1000.0 * elapsed_deconv_cpu_secs[j] / sumCntr
                         << " ms (CPU), " << 1000.0 * elapsed_deconv_wall_secs[j] / sumCntr << " ms (Wall)] --" << endl;
       }
@@ -596,7 +594,7 @@ protected:
 
     if (massCntr[0] < total_massCntr[0])
     {
-      for (int j = 0; j < (int) param.maxMSLevel; j++)
+      for (int j = 0; j < (int) param.currentMaxMSLevel; j++)
       {
         if (total_specCntr[j] == 0)
         {
@@ -621,8 +619,9 @@ protected:
       for (int n = 1; n <= (int) param.maxMSLevel; ++n)
       {
         fs[n - 1].close();
-        if(param.trainOut){
-          ft[n-1].close();
+        if (param.trainOut)
+        {
+          ft[n - 1].close();
         }
         if (specCntr[n - 1] == 0)
         {

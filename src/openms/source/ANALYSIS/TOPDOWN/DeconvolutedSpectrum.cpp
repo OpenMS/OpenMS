@@ -60,6 +60,11 @@ namespace OpenMS
     return peakGroups.empty();
   }
 
+  void DeconvolutedSpectrum::clearChargeSNRMap(){
+    for(auto &pg : peakGroups){
+      pg.clearChargeSNRMap();
+    }
+  }
   /*void DeconvolutedSpectrum::updatePeakGroupMap()
   {
     if (!peakGroupMap.empty())

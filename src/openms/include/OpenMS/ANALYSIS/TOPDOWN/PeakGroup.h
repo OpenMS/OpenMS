@@ -47,7 +47,7 @@ namespace OpenMS
 
     void reserve(Size n);
 
-    void emptyChargeSNRMap();
+    void clearChargeSNRMap();
 
     bool operator<(const PeakGroup &a) const;
 

@@ -1084,7 +1084,6 @@ namespace OpenMS
     tmp = minContinuousChargePeakCount - 1;
     tmp = tmp < 0 ? 0 : tmp;
     double massBinMinValue = logMzPeaks[0].logMz - filter[tmp];
-    // std::cout<<massBinMinValue<<std::endl;
     double mzBinMinValue = logMzPeaks[0].logMz;
     double mzBinMaxValue = logMzPeaks[logMzPeaks.size() - 1].logMz;
     Size massBinNumber = getBinNumber(massBinMaxValue, massBinMinValue, binWidth) + 1;
