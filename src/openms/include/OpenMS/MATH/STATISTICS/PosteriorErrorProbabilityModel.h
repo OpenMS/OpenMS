@@ -258,6 +258,9 @@ private:
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
       static double transformScore_(const String & engine, const PeptideHit & hit);
 
+      /// gets a specific score (either main score or metavalue)
+      static double getScore_(const StringList& requested_score_type, const PeptideHit & hit, const String& actual_score_type);
+
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);
       ///Copy constructor (not implemented)

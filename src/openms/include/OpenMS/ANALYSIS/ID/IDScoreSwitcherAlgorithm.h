@@ -223,7 +223,7 @@ namespace OpenMS
             //TODO check if we should combine RAW and RAW_EVAL:
             // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
             // then you need additional ifs/trys
-            {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue"}},
+            {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
             {ScoreType::PP, {"Posterior Probability"}},
             {ScoreType::PEP, {"Posterior Error Probability", "pep", "MS:1001493"}}, // TODO add CV terms
             {ScoreType::FDR, {"FDR", "fdr", "false discovery rate"}},

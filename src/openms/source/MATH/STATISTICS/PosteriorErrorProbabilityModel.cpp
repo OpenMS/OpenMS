@@ -873,24 +873,45 @@ namespace OpenMS
       }
     }
 
-    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit)
+    double PosteriorErrorProbabilityModel::getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type)
+    {
+        for (const auto& requested_score_type : requested_score_types)
+        {
+            if (actual_score_type == requested_score_type)
+            {
+                return hit.getScore();
+            }
+            else
+            {
+                if (hit.metaValueExists(requested_score_type))
+                {
+                    return hit.getMetaValue(requested_score_type).toDouble();
+                }
+                if (hit.metaValueExists(requested_score_type+"_score"))
+                {
+                    return hit.getMetaValue(requested_score_type+"_score").toDouble();
+                }
+            }
+        }
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "Check your input.");
+    }
+
+
+    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit, const String& current_mainscore_type)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
 
-
-      //TODO we don't care about score types here? What if the data was processed with
-      // IDPEP or Percolator already?
       if (engine == "OMSSA")
       {
-        return (-1) * log10(hit.getScore());
+        return (-1) * log10(getScore_({"OMSSA"}, hit, current_score_type)); //OMSSA??? TODO make sure to fix in new ID datastructure
       }
-      else if (engine == "MYRIMATCH" ) 
+      else if (engine == "MYRIMATCH") 
       {
-        return hit.getScore();
+        return getScore_({"mvh"}, hit, current_score_type);
       }
       else if (engine == "XTANDEM")
       {
-        return (-1) * log10((double)hit.getMetaValue("E-Value"));
+        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
       }
       else if (engine == "MASCOT")
       {
@@ -900,47 +921,23 @@ namespace OpenMS
           return numeric_limits<double>::quiet_NaN();
         }
         // end issue #740
-        if (hit.metaValueExists("EValue"))
-        {
-          return (-1) * log10((double)hit.getMetaValue("EValue"));
-        }
-        if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10((double)hit.getMetaValue("expect"));
-        }
+        return (-1) * log10(getScore_({"EValue","expect"}, hit, current_score_type));
       }
       else if (engine == "SPECTRAST")
       {
-        return 100 * hit.getScore(); // f-val
+        return 100 * getScore_({""}, hit, current_score_type); // f-val
       }
       else if (engine == "SIMTANDEM")
       {
-        if (hit.metaValueExists("E-Value"))
-        {
-          return (-1) * log10((double)hit.getMetaValue("E-Value"));
-        }
+        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
       }
       else if ((engine == "MSGFPLUS") || (engine == "MS-GF+"))
       {
-        if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
-        {
-          return (-1) * log10((double)hit.getMetaValue("MS:1002053"));
-        }
-        else if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10((double)hit.getMetaValue("expect"));
-        }
+        return (-1) * log10(getScore_({"MS:1002053","expect"}, hit, current_score_type));
       }
       else if (engine == "COMET")
       {
-        if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
-        {
-          return (-1) * log10((double)hit.getMetaValue("MS:1002257"));
-        }
-        else if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10((double)hit.getMetaValue("expect"));
-        }
+        return (-1) * log10(getScore_({"MS:1002257","expect"}, hit, current_score_type));
       }
 
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
