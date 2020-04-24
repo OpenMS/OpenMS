@@ -3378,13 +3378,21 @@ namespace OpenMS
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
       SemanticValidator::CVTerm sc;
+      // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
+      static std::map<std::pair<String, String>, std::unique_ptr<bool>> cachedTerms;
+      std::unique_ptr<bool>& item = cachedTerms[std::make_pair(path, c.id)];
+      if (item)
+      {
+        return item.get();
+      }
 
       sc.accession = c.id;
       sc.name = c.name;
       sc.has_unit_accession = false;
       sc.has_unit_name = false;
 
-      return validator.SemanticValidator::locateTerm(path, sc);
+      item = std::unique_ptr<bool>(new bool(validator.SemanticValidator::locateTerm(path, sc)));
+      return item.get();
     }
 
     String MzMLHandler::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const
@@ -3454,11 +3462,12 @@ namespace OpenMS
         }
         else
         {
-
           bool writtenAsCVTerm = false;
-          if (cv_.hasTermWithName(*key))
+          ControlledVocabulary::CVTerm c;
+          //if (cv_.hasTermWithName(*key))
+          if (cv_.checkAndGetTermByName(*key, c))
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
+            //ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
             if (validateCV_(c, path, validator))
             {
               // write CV

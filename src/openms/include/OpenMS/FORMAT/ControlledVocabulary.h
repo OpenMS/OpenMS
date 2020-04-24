@@ -172,6 +172,8 @@ public:
       return false;
     }
 
+    bool checkAndGetTermByName(const OpenMS::String& name, ControlledVocabulary::CVTerm& c) const;
+
     /**
         @brief Returns if @p child is a child of @p parent
 

@@ -497,6 +497,15 @@ namespace OpenMS
     return terms_.has(id);
   }
 
+  bool ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name, ControlledVocabulary::CVTerm& c) const
+  {
+    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    if (it == namesToIds_.end())
+      return false;
+    c = terms_[it->second];
+    return true;
+  }
+
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
     Map<String, String>::const_iterator it = namesToIds_.find(name);
