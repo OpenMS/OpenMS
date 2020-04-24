@@ -317,19 +317,32 @@ namespace OpenMS
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
             break;
           }
-          if (term.getAllowChildren()) //check if the term's children are allowed
+
+          UInt& counter = fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
+          auto searcher = [&allowed, &counter, &parsed_term] (const String& child)
           {
-            set<String> child_terms;
-            cv_.getAllChildTerms(child_terms, term.getAccession());
-            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            if (child == parsed_term.accession)
             {
-              if (*it == parsed_term.accession)
-              {
-                allowed = true;
-                fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
-                break;
-              }
+              allowed = true;
+              counter++;
+              return true;
             }
+            return false;
+          };
+          if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher)) //check if the term's children are allowed
+          {
+            break;
+            //set<String> child_terms;
+            //cv_.getAllChildTerms(child_terms, term.getAccession());
+            //for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            //{
+            //  if (*it == parsed_term.accession)
+            //  {
+            //    allowed = true;
+            //    fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+            //    break;
+            //  }
+            //}
           }
         }
       }
@@ -359,12 +372,22 @@ namespace OpenMS
                 bool found_unit(false);
                 for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
-                  cv_.getAllChildTerms(child_terms, *it);
-                  if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+                  auto lambda = [&parsed_term, &found_unit] (const String& child)
                   {
-                    found_unit = true;
-                    break;
-                  }
+                    if (child == parsed_term.accession)
+                    {
+                      found_unit = true;
+                      return true;
+                    }
+                    return false;
+                  };
+                  if (cv_.iterateAllChildren(*it, lambda)) break;
+                  //cv_.getAllChildTerms(child_terms, *it);
+                  //if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+                  //{
+                  //  found_unit = true;
+                  //  break;
+                  //}
                 }
 
                 if (!found_unit)

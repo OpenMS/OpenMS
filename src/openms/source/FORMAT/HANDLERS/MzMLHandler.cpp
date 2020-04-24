@@ -3465,10 +3465,8 @@ namespace OpenMS
         {
           bool writtenAsCVTerm = false;
           const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
-          //if (cv_.hasTermWithName(*key))
           if (c)
           {
-            //ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
             if (validateCV_(*c, path, validator))
             {
               // write CV
