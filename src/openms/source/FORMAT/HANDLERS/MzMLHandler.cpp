@@ -3377,22 +3377,23 @@ namespace OpenMS
 
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
-      SemanticValidator::CVTerm sc;
       // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
-      static std::map<std::pair<String, String>, std::unique_ptr<bool>> cachedTerms;
-      std::unique_ptr<bool>& item = cachedTerms[std::make_pair(path, c.id)];
-      if (item)
+      static std::map<std::pair<String, String>, bool> cachedTerms;
+      const auto it = cachedTerms.find(std::make_pair(path, c.id));
+      if (it != cachedTerms.end())
       {
-        return item.get();
+        return it->second;
       }
 
+      SemanticValidator::CVTerm sc;
       sc.accession = c.id;
       sc.name = c.name;
       sc.has_unit_accession = false;
       sc.has_unit_name = false;
 
-      item = std::unique_ptr<bool>(new bool(validator.SemanticValidator::locateTerm(path, sc)));
-      return item.get();
+      bool isValid = validator.SemanticValidator::locateTerm(path, sc);
+      cachedTerms[std::make_pair(path, c.id)] = isValid;
+      return isValid;
     }
 
     String MzMLHandler::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const
@@ -3463,15 +3464,15 @@ namespace OpenMS
         else
         {
           bool writtenAsCVTerm = false;
-          ControlledVocabulary::CVTerm c;
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
           //if (cv_.hasTermWithName(*key))
-          if (cv_.checkAndGetTermByName(*key, c))
+          if (c)
           {
             //ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
-            if (validateCV_(c, path, validator))
+            if (validateCV_(*c, path, validator))
             {
               // write CV
-              cvParams.push_back(writeCV_(c, meta.getMetaValue(*key)));
+              cvParams.push_back(writeCV_(*c, meta.getMetaValue(*key)));
               writtenAsCVTerm = true;
             }
           }
