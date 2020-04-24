@@ -73,7 +73,7 @@ public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    FLASHDeconvAlgorithm(int &specIndex, int &massIndex, FLASHDeconvHelperStructs::PrecalcularedAveragine &avg, Parameter &param);
+    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg, Parameter &param);
 
     /// default destructor
     ~FLASHDeconvAlgorithm();
@@ -89,9 +89,8 @@ public:
   protected:
     Parameter &param;
     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg;
-    std::vector<std::vector<Size>> prevMassBinMap;
-    std::vector<double> prevMinBinLogMassMap;
-    int& specIndex, massIndex;
+
+
   private:
 
   };

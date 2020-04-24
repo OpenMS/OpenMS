@@ -577,7 +577,7 @@ namespace OpenMS
       //      return; //
       //    }
 
-      if(msLevel == 1 || pg.maxSNR>0.1) //
+      if(msLevel == 1 || pg.totalSNR>0.1) //
       //if(msLevel == 1 || getPeakGroupScore(pg)>.5) //
       {
         filteredPeakGroups.push_back(pg);

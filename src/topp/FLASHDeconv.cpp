@@ -407,13 +407,15 @@ protected:
 
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
-      int scanNumber = 0, id = 0, specIndex = 0, massIndex = 0;
+      int scanNumber = 0, id = 0;
       float prevProgress = .0;
+
       auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
+        std::cout<<0<<std::endl;
         ++scanNumber;
         auto msLevel = it->getMSLevel();
         if (msLevel > param.currentMaxMSLevel)
@@ -426,7 +428,7 @@ protected:
         auto deconv_t_start = chrono::high_resolution_clock::now();
 
         // per spec deconvolution
-        auto fd = FLASHDeconvAlgorithm(specIndex, massIndex, avgine, param);
+        auto fd = FLASHDeconvAlgorithm(avgine, param);
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it);
 
         bool proceed = true;
@@ -442,16 +444,13 @@ protected:
             param.currentMaxMass = deconvolutedSpectrum.precursorPeakGroup->monoisotopicMass;
           }
         }
-
         if (proceed)
         {
           fd.Deconvolution(deconvolutedSpectrum, scanNumber);
         }
-
         elapsed_deconv_cpu_secs[msLevel-1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
         elapsed_deconv_wall_secs[msLevel-1] += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start)
             .count();
-
         if (deconvolutedSpectrum.empty())
         {
           continue;
@@ -463,9 +462,11 @@ protected:
         massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
 
         deconvolutedSpectrum.writeDeconvolutedMasses(fs[msLevel - 1], param);
+
         if (param.topfdOut)
         {
           deconvolutedSpectrum.writeTopFD(fsfd, id++);
+
         }
         if(param.trainOut){
           deconvolutedSpectrum.writeAttCsv(ft[msLevel-1], msLevel);
@@ -480,7 +481,6 @@ protected:
       }
       printProgress(1); //
       std::cout << std::endl;
-
       std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra);
 
       massTracer.findFeatures(featureCntr, fsf, fsp);

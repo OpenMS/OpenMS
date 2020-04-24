@@ -253,7 +253,8 @@ namespace OpenMS
   }
 
   void DeconvolutedSpectrum::writeAttCsv(std::fstream &fs, int msLevel){
-    if (msLevel>1)
+
+    if (msLevel>1 && precursorPeakGroup != nullptr)
     {
       fs << scanNumber << "," << precursorPeak->charge
          << "," << log10(precursorPeakGroup->perChargeSNR[precursorPeak->charge]+1e-3) << "," << log10(precursorPeak->intensity+1e-3)

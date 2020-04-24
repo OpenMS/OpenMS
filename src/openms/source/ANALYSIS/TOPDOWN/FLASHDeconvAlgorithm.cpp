@@ -39,20 +39,14 @@ namespace OpenMS
 
   // constructor
 
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(int &specIndex, int &massIndex, FLASHDeconvHelperStructs::PrecalcularedAveragine &a, Parameter &p) :
-      param(p), avg(a), specIndex(specIndex), massIndex(massIndex)
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &a, Parameter &p) :
+      param(p), avg(a)
   {
-    prevMassBinMap = std::vector<std::vector<Size>>();
-    prevMinBinLogMassMap = std::vector<double>();
 
-    prevMassBinMap.reserve(param.numOverlappedScans[0] * 10);
-    prevMinBinLogMassMap.reserve(param.numOverlappedScans[0] * 10);
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
   {
-    std::vector<std::vector<Size>>().swap(prevMassBinMap);
-    std::vector<double>().swap(prevMinBinLogMassMap);
   }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
@@ -74,6 +68,21 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum, int &scanNumber)
   {
+    static int specIndex = -1;
+    static int massIndex = -1;
+    static int prevScanNumber = INT_MAX;
+    static std::vector<std::vector<Size>> prevMassBinMap;
+    static std::vector<double> prevMinBinLogMassMap;
+
+    if(prevScanNumber > scanNumber){
+      std::vector<std::vector<Size>>().swap(prevMassBinMap);
+      std::vector<double>().swap(prevMinBinLogMassMap);
+      prevMassBinMap.reserve(param.numOverlappedScans[0] * 10);
+      prevMinBinLogMassMap.reserve(param.numOverlappedScans[0] * 10);
+      specIndex = massIndex = 1;
+    }
+
+    prevScanNumber = scanNumber;
     auto sd = SpectrumDeconvolution(*deconvolutedSpectrum.spec, param);
     //std::vector<SpectrumDeconvolution::PeakGroup> peakGroups;
     if (sd.empty())
@@ -83,8 +92,7 @@ namespace OpenMS
 
     deconvolutedSpectrum.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
                                               prevMinBinLogMassMap,
-                                              avg,
-                                              deconvolutedSpectrum.spec->getMSLevel());// FLASHDeconvAlgorithm::Deconvolution (specCntr, qspecCntr, massCntr);
+                                              avg, deconvolutedSpectrum.spec->getMSLevel());
 
     if (deconvolutedSpectrum.empty())
     {
@@ -104,7 +112,6 @@ namespace OpenMS
     }
     specIndex++;
   }
-
 
 
 
@@ -200,7 +207,6 @@ namespace OpenMS
 
 
    */
-
 
 
 }
