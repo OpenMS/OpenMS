@@ -117,6 +117,12 @@ namespace OpenMS
         String msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
+      } 
+      else if (t == id[0].getScoreType())
+      {
+        // we assume that all the other peptide ids
+        // also already have the correct score set
+        return;
       }
       new_score_ = t;
       new_score_type_ = t;
