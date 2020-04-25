@@ -893,7 +893,9 @@ namespace OpenMS
                 }
             }
         }
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "Check your input.");
+        std::cout << actual_score_type << std::endl;
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, ',') + " for search engine found");
+        return 0.;
     }
 
 
@@ -925,7 +927,7 @@ namespace OpenMS
       }
       else if (engine == "SPECTRAST")
       {
-        return 100 * getScore_({""}, hit, current_score_type); // f-val
+        return 100 * getScore_({"f-val"}, hit, current_score_type); // f-val
       }
       else if (engine == "SIMTANDEM")
       {
@@ -1129,16 +1131,6 @@ namespace OpenMS
                 }
               }
               pep.setHits(hits);
-            }
-            if (prob_correct)
-            {
-              pep.setScoreType("Posterior Probability");
-              pep.setHigherScoreBetter(true);
-            }
-            else
-            {
-              pep.setScoreType("Posterior Error Probability");
-              pep.setHigherScoreBetter(false);
             }
           }
         }

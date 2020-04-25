@@ -829,7 +829,8 @@ protected:
       try
       {
         IDScoreSwitcherAlgorithm switcher;
-        switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, 0);
+        Size c = 0;
+        switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
       }
       catch(Exception::MissingInformation&)
       {
