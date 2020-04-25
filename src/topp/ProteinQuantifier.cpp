@@ -812,7 +812,7 @@ protected:
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
       bool inference_in_cxml = false;
-      // protein inference results in the consensusXML?
+      // protein inference results in the consensusXML or from external ID-only file?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
           (!consensus.getProteinIdentifications()[0].getHits().empty()))
@@ -850,7 +850,7 @@ protected:
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, true, report_unidentified_features, report_unmapped, report_subfeatures);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, !inference_in_cxml, report_unidentified_features, report_unmapped, report_subfeatures);
         MzTabFile().store(mztab, m);
       }
     }
