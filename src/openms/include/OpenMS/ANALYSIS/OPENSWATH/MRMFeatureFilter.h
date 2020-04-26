@@ -36,7 +36,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -50,6 +49,7 @@
 
 namespace OpenMS
 {
+  struct AbsoluteQuantitationMethod;
 
   /**
 
