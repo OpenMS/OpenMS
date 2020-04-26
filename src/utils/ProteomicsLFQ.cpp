@@ -60,6 +60,7 @@
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
@@ -106,8 +107,7 @@ using Internal::IDBoostGraph;
            2. PSMFeatureExtractor to annotate percolator features.
            3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)
            4. IDFilter (pep:score = 0.01) to filter PSMs at 1% FDR
-           5. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type pep)
-
+           
          - An experimental design file: @n
            (see @ref OpenMS::ExperimentalDesign "ExperimentalDesign" for details) @n
          - A protein database in with appended decoy sequences in FASTA format @n
@@ -162,7 +162,6 @@ protected:
       "2. PSMFeatureExtractor to annotate percolator features.\n"
       "3. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
       "4. IDFilter (pep:score = 0.01)\n"
-      "5. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type pep)\n"
       "To obtain well calibrated PEPs and an inital reduction of PSMs\n"
       "ID files must be provided in same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
@@ -827,19 +826,15 @@ protected:
       }
 
       // Check of score types are valid. TODO
-      String overall_score_type = "";
-      if (!peptide_ids.empty())
+      try
       {
-        overall_score_type = peptide_ids[0].getScoreType(); //TODO check all pep IDs? this assumes equality
+        IDScoreSwitcherAlgorithm switcher;
+        Size c = 0;
+        switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
       }
-
-      bool pep_scores = (overall_score_type == "Posterior Error Probability" // from IDPEP
-        || overall_score_type != "pep" // from Percolator
-        || overall_score_type != "MS:1001493"); // from Percolator
-
-      if (!pep_scores)
+      catch(Exception::MissingInformation&)
       {
-        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects Posterior Error Probabilities as main score. ID file: " << id_file_abs_path << endl;
+        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
