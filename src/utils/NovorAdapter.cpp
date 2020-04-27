@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -240,17 +241,26 @@ protected:
     createParamFile_(os);
 
     // convert mzML to mgf format
-    MzMLFile f;
-    MSExperiment exp;
-    f.setLogType(log_type_);
-    f.getOptions().setMSLevels( {2} );
-    f.load(in, exp);
- 
-    String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
-  
+    MSDataTransformingConsumer* c = new MSDataTransformingConsumer();
+
+    String tmp_mgf = tmp_dir + "tmp_mgf.mgf";
+    std::ofstream ofs;
+    ofs.open(tmp_mgf, std::ofstream::out);
     MascotGenericFile mgf;
-    mgf.setLogType(log_type_);
-    mgf.store(tmp_mgf,exp);
+
+    auto f = [&ofs,&in,&mgf](const MSSpectrum& s)
+    {
+        UInt lvl = s.getMSLevel();
+        bool centroided = s.getType() == MSSpectrum::SpectrumType::CENTROID;
+        if (lvl == 2 && centroided)
+        {
+            mgf.writeSpectrum(ofs, s, in, "UNKNOWN");
+        }
+    };
+    c->setSpectraProcessingFunc(f);
+    MzMLFile().transform(in, c);
+    delete c;
+    ofs.close();
 
     //-------------------------------------------------------------
     // process

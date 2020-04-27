@@ -305,7 +305,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
+  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -318,10 +318,8 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
-        " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       msg);
+      OPENMS_LOG_WARN << "Spectrum to be written as MGF has " + String(spec.size()) +
+        " peaks; This is most likely unannotated profile data. Check conversion.";
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
@@ -457,7 +455,7 @@ namespace OpenMS
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum_(os, experiment[i], filtered_filename, native_id_type_accession);
+        writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {
