@@ -42,6 +42,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
+#include <boost/optional/optional.hpp>
+
 #include <map>
 #include <vector>
 #include <list>
@@ -865,13 +867,19 @@ public:
 
     void setMetaData(const MzTabMetaData& md);
 
+    MzTabProteinSectionRows& getProteinSectionRows();
+
     const MzTabProteinSectionRows& getProteinSectionRows() const;
 
     void setProteinSectionRows(const MzTabProteinSectionRows& psd);
 
+    MzTabPeptideSectionRows& getPeptideSectionRows();
+
     const MzTabPeptideSectionRows& getPeptideSectionRows() const;
 
     void setPeptideSectionRows(const MzTabPeptideSectionRows& psd);
+
+    MzTabPSMSectionRows& getPSMSectionRows();
 
     const MzTabPSMSectionRows& getPSMSectionRows() const;
 
@@ -914,14 +922,14 @@ public:
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
 
+    //static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows);
     /**
       @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
 
       @param peptide_evidences Vector of PeptideEvidence holding internal data.
       @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
-      @param rows Vector of MzTabPSMSectionRow to add the differently updated rows to.
     */
-    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows);
+    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row);
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
@@ -957,13 +965,14 @@ public:
       * @return mzTab object
     */
     static MzTab exportIdentificationsToMzTab(
-        const std::vector<ProteinIdentification>& prot_ids,
-        const std::vector<PeptideIdentification>& peptide_ids,
+        const std::vector<const ProteinIdentification*>& prot_ids,
+        const std::vector<const PeptideIdentification*>& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
         std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
         std::map<String, size_t>& idrun_2_run_index,
         bool export_empty_pep_ids = false);
+
 
     /// Generate MzTab style list of PTMs from AASequence object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
@@ -993,6 +1002,17 @@ public:
 
 
   protected:
+    static boost::optional<MzTabPSMSectionRow> nextPSMSectionRow_(
+     const PeptideIdentification& pid,
+     const std::vector<const ProteinIdentification*>& prot_id,
+     std::map<String, size_t>& idrun_2_run_index,
+     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+     std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+     const int psm_id,
+     const MzTabString& db,
+     const MzTabString& db_version,
+     const bool export_empty_pep_ids);
+
     /// Helper function for "get...OptionalColumnNames" functions
     template <typename SectionRows>
     std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
