@@ -1914,7 +1914,7 @@ namespace OpenMS
 
     }
 
-    return feature_ok;
+    return true;
   }
 
   void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(TraceFitter* fitter,
