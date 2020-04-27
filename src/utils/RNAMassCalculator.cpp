@@ -52,7 +52,7 @@ using namespace std;
 /**
     @page UTILS_RNAMassCalculator RNAMassCalculator
 
-    @brief Calculates masses and mass-to-charge ratios of RNA sequences.
+    @brief Calculates masses, mass-to-charge ratios and sum formulas of RNA sequences.
 
     Given an RNA (oligonucleotide) sequence and a charge state, the charged mass (including H+ adducts or losses), mass-to-charge ratio and molecular sum formula are computed.
     The sequence can include modifications (for information on valid notation see the @ref OpenMS::NASequence "NASequence" class documentation).
@@ -67,8 +67,8 @@ using namespace std;
     Output can be written to a file or to the screen (see parameter @p out).
     Results for different charge states are always ordered from lowest to highest charge.
     A number of different output formats are available via the parameter @p format:
-    - @p list writes a human-readable list of the form "ABCDEF: z=1 m=566.192 m/z=566.192, z=2 m=567.199 m/z=283.599";
-    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", and "mass-to-charge", and with one row per sequence and charge state;
+    - @p list writes a human-readable list of the form "ACGU: z=-2 m=1221.1951 m/z=610.5976 f=C38H46N15O26P3, z=-1 m=1222.2030 m/z=1222.2030 f=C38H47N15O26P3";
+    - @p table produces a CSV-like table (using parameter @p separator to delimit fields) with the columns "sequence", "charge", "mass", "mass-to-charge" and "formula", and with one row per sequence and charge state;
     - @p mass_only writes only mass values (one line per sequence, values for different charge states separated by spaces);
     - @p mz_only writes only mass-to-charge ratios (one line per sequence, values for different charge states separated by spaces);
     - @p formula_only writes only sum formulas.
