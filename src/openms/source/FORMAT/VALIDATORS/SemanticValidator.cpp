@@ -332,17 +332,6 @@ namespace OpenMS
           if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher)) //check if the term's children are allowed
           {
             break;
-            //set<String> child_terms;
-            //cv_.getAllChildTerms(child_terms, term.getAccession());
-            //for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
-            //{
-            //  if (*it == parsed_term.accession)
-            //  {
-            //    allowed = true;
-            //    fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
-            //    break;
-            //  }
-            //}
           }
         }
       }
@@ -370,24 +359,18 @@ namespace OpenMS
                 set<String> child_terms;
 
                 bool found_unit(false);
+                auto lambda = [&parsed_term, &found_unit] (const String& child)
+                {
+                  if (child == parsed_term.accession)
+                  {
+                    found_unit = true;
+                    return true;
+                  }
+                  return false;
+                };
                 for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
-                  auto lambda = [&parsed_term, &found_unit] (const String& child)
-                  {
-                    if (child == parsed_term.accession)
-                    {
-                      found_unit = true;
-                      return true;
-                    }
-                    return false;
-                  };
                   if (cv_.iterateAllChildren(*it, lambda)) break;
-                  //cv_.getAllChildTerms(child_terms, *it);
-                  //if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
-                  //{
-                  //  found_unit = true;
-                  //  break;
-                  //}
                 }
 
                 if (!found_unit)

@@ -3546,16 +3546,6 @@ namespace OpenMS
 
     ControlledVocabulary::CVTerm MzMLHandler::getChildWithName_(const String& parent_accession, const String& name) const
     {
-      //std::set<String> terms;
-      //cv_.getAllChildTerms(terms, parent_accession);
-      //for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
-      //{
-      //  if (cv_.getTerm(*it).name == name)
-      //  {
-      //    return cv_.getTerm(*it);
-      //  }
-      //}
-      //return ControlledVocabulary::CVTerm();
       ControlledVocabulary::CVTerm res = ControlledVocabulary::CVTerm();
       auto searcher = [&res, &name, this] (const String& child)
       {
