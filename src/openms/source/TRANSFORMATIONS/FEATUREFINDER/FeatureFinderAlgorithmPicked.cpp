@@ -1840,49 +1840,42 @@ namespace OpenMS
                                                           const double& seed_mz, const double& min_feature_score,
                                                           String& error_msg, double& fit_score, double& correlation, double& final_score)
   {
-    bool feature_ok = true;
-
     //check if the sigma fit was ok (if it is larger than 'max_rt_span')
+    // 5.0 * sigma > max_rt_span_ * region_rt_span
+    if (fitter->checkMaximalRTSpan(max_rt_span_))
     {
-      // 5.0 * sigma > max_rt_span_ * region_rt_span
-      if (fitter->checkMaximalRTSpan(max_rt_span_))
-      {
-        feature_ok = false;
-        error_msg = "Invalid fit: Fitted model is bigger than 'max_rt_span'";
-      }
+      error_msg = "Invalid fit: Fitted model is bigger than 'max_rt_span'";
+      return false;
     }
 
     //check if the feature is valid
     if (!feature_traces.isValid(seed_mz, trace_tolerance_))
     {
-      feature_ok = false;
       error_msg = "Invalid feature after fit - too few traces or peaks left";
+      return false;
     }
 
     //check if x0 is inside feature bounds
-    if (feature_ok)
     {
       std::pair<double, double> rt_bounds = feature_traces.getRTBounds();
       if (fitter->getCenter() < rt_bounds.first || fitter->getCenter() > rt_bounds.second)
       {
-        feature_ok = false;
         error_msg = "Invalid fit: Center outside of feature bounds";
+        return false;
       }
     }
 
     //check if the remaining traces fill out at least 'min_rt_span' of the RT span
-    if (feature_ok)
     {
       std::pair<double, double> rt_bounds = feature_traces.getRTBounds();
       if (fitter->checkMinimalRTSpan(rt_bounds, min_rt_span_))
       {
-        feature_ok = false;
         error_msg = "Invalid fit: Less than 'min_rt_span' left after fit";
+        return false;
       }
     }
 
     //check if feature quality is high enough (average relative deviation and correlation of the whole feature)
-    if (feature_ok)
     {
       std::vector<double> v_theo, v_real;
       double deviation = 0.0;
@@ -1903,12 +1896,6 @@ namespace OpenMS
       correlation = std::max(0.0, Math::pearsonCorrelationCoefficient(v_theo.begin(), v_theo.end(), v_real.begin(), v_real.end()));
       final_score = std::sqrt(correlation * fit_score);
 
-      if (final_score < min_feature_score)
-      {
-        feature_ok = false;
-        error_msg = "Feature quality too low after fit";
-      }
-
       //quality output
       if (debug_)
       {
@@ -1917,6 +1904,14 @@ namespace OpenMS
         log_ << " - correlation: " << correlation << std::endl;
         log_ << " => final score: " << final_score << std::endl;
       }
+
+      if (final_score < min_feature_score)
+      {
+        error_msg = "Feature quality too low after fit";
+        return false;
+      }
+
+
     }
 
     return feature_ok;
