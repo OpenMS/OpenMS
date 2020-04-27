@@ -1506,79 +1506,6 @@ namespace OpenMS
     row.accession = MzTabString(accession);
   }
 
-/*
-  void MzTab::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows)
-  {
-    if (!peptide_evidences.empty())
-    {
-      for (Size i = 0; i != peptide_evidences.size(); ++i)
-      {
-        // get AABefore and AAAfter as well as start and end for all pep evidences
-
-        // pre/post
-        // from spec: Amino acid preceding the peptide (coming from the PSM) in the protein
-        // sequence. If unknown “null” MUST be used, if the peptide is N-terminal “-“
-        // MUST be used.
-        if (peptide_evidences[i].getAABefore() == PeptideEvidence::UNKNOWN_AA)
-        {
-          row.pre = MzTabString("null");
-        }
-        else if (peptide_evidences[i].getAABefore() == PeptideEvidence::N_TERMINAL_AA)
-        {
-          row.pre = MzTabString("-");
-        }
-        else
-        {
-          row.pre = MzTabString(String(peptide_evidences[i].getAABefore()));
-        }
-
-        if (peptide_evidences[i].getAAAfter() == PeptideEvidence::UNKNOWN_AA)
-        {
-          row.post = MzTabString("null");
-        }
-        else if (peptide_evidences[i].getAAAfter() == PeptideEvidence::C_TERMINAL_AA)
-        {
-          row.post = MzTabString("-");
-        }
-        else
-        {
-          row.post = MzTabString(String(peptide_evidences[i].getAAAfter()));
-        }
-
-        // start/end
-        if (peptide_evidences[i].getStart() == PeptideEvidence::UNKNOWN_POSITION)
-        {
-          row.start = MzTabString("null");
-        }
-        else
-        {
-          row.start = MzTabString(String(peptide_evidences[i].getStart() + 1)); // counting in mzTab starts at 1
-        }
-
-        if (peptide_evidences[i].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
-        {
-          row.end = MzTabString("null");
-        }
-        else
-        {
-          row.end = MzTabString(String(peptide_evidences[i].getEnd() + 1)); // counting in mzTab starts at 1
-        }
-
-        row.accession = MzTabString(peptide_evidences[i].getProteinAccession());
-
-        rows.push_back(row);
-      }
-    }
-    else
-    { // report without pep evidence information
-      row.pre = MzTabString("null");
-      row.post = MzTabString("null");
-      row.start = MzTabString("null");
-      row.end = MzTabString("null");
-      rows.push_back(row);
-    }
-  }
-*/
 
   void MzTab::addMetaInfoToOptionalColumns(
     const set<String>& keys,
@@ -1865,6 +1792,256 @@ namespace OpenMS
     }
 
     return mztab;
+  }
+
+  boost::optional<MzTabPeptideSectionRow> MzTab::nextPeptideSectionRow_(
+    const ConsensusFeature& c, 
+    const ConsensusMap& consensus_map,
+    const StringList& ms_runs,
+    const Size n_study_variables,
+    const set<String>& consensus_feature_user_value_keys,
+    const set<String>& peptide_hit_user_value_keys,
+    bool export_unidentified_features,
+    const map<String, size_t>& idrun_2_run_index,
+    const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+    const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
+    const vector<String>& fixed_mods,
+    bool export_subfeatures)
+  {
+    MzTabPeptideSectionRow row;
+
+    const ConsensusMap::ColumnHeaders& cm_column_headers = consensus_map.getColumnHeaders();
+    const String & experiment_type = consensus_map.getExperimentType();
+    const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
+
+    // create opt_ column for peptide sequence containing modification
+    MzTabOptionalColumnEntry opt_global_modified_sequence;
+    opt_global_modified_sequence.first = String("opt_global_modified_sequence");
+    row.opt_.push_back(opt_global_modified_sequence);
+
+    // Defines how to consume user value keys for the upcoming keys
+    const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+    {
+      return [f,&row](const String &user_value_key)
+        {
+          MzTabOptionalColumnEntry opt_entry;
+          opt_entry.first = "opt_global_" + user_value_key;
+          f(user_value_key, opt_entry);
+
+          // Use default column_header for target decoy
+          row.opt_.push_back(opt_entry);
+        };
+    };
+
+    // create opt_ columns for consensus map user values
+    for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
+      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+        {
+          if (c.metaValueExists(key))
+          {
+            opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+          }
+        })
+      );
+
+    // create opt_ columns for psm (PeptideHit) user values
+    for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
+      				addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
+
+    row.mass_to_charge = MzTabDouble(c.getMZ());
+    MzTabDoubleList rt_list;
+    vector<MzTabDouble> rts;
+    rts.emplace_back(c.getRT());
+    rt_list.set(rts);
+    row.retention_time = rt_list;
+    MzTabDoubleList rt_window;
+    row.retention_time_window = rt_window;
+    row.charge = MzTabInteger(c.getCharge());
+    row.best_search_engine_score[1] = MzTabDouble();
+
+    // initialize columns
+    OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
+    for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
+    {
+      row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
+      row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
+      row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
+    }
+
+    for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
+    {
+      row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
+    }
+
+    ConsensusFeature::HandleSetType fs = c.getFeatures();
+    for (auto fit = fs.begin(); fit != fs.end(); ++fit)
+    {
+      UInt study_variable{1};
+      const int index = fit->getMapIndex();
+      const ConsensusMap::ColumnHeader& ch = cm_column_headers.at(index);
+
+      UInt label = ch.getLabelAsUInt(experiment_type);
+      // convert from column index to study variable index
+      auto pl = make_pair(ch.filename, label);
+      study_variable = path_label_to_assay.at(pl); // for now, a study_variable is one assay
+
+      //TODO implement aggregation in case we generalize study_variable to include multiple assays.
+      row.peptide_abundance_stdev_study_variable[study_variable];
+      row.peptide_abundance_std_error_study_variable[study_variable];
+      row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+
+      if (export_subfeatures)
+      {
+            MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
+            opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
+            opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
+            row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+
+            MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
+            opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
+            opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
+            row.opt_.push_back(opt_global_retention_time_study_variable);
+      	    }
+    }
+
+    const vector<PeptideIdentification>& curr_pep_ids = c.getPeptideIdentifications();
+    if (!curr_pep_ids.empty())
+    {
+      checkSequenceUniqueness_(curr_pep_ids);
+
+      // Overall information for this feature in PEP section
+      // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
+      const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
+      const AASequence& aas = best_ph.getSequence();
+      row.sequence = MzTabString(aas.toUnmodifiedString());
+
+      // annotate variable modifications (no fixed ones)
+      row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
+
+      const set<String>& accessions = best_ph.extractProteinAccessionsSet();
+      const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
+
+      row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
+      // select accession of first peptide_evidence as representative ("leading") accession
+      row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
+
+      // fill opt_ columns based on best ID in the feature
+
+      // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
+      for (Size i = 0; i != row.opt_.size(); ++i)
+      {
+        MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+        if (opt_entry.first == String("opt_global_modified_sequence"))
+        {
+          opt_entry.second = MzTabString(aas.toString());
+        }
+      }
+
+      // fill opt_ column of psm
+      vector<String> ph_keys;
+      best_ph.getKeys(ph_keys);
+      for (String & s : ph_keys)
+      {
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      }
+
+      for (Size k = 0; k != ph_keys.size(); ++k)
+      {
+        const String& key = ph_keys[k];
+
+        // find matching entry in opt_ (TODO: speed this up)
+        for (Size i = 0; i != row.opt_.size(); ++i)
+        {
+          MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+          if (opt_entry.first == String("opt_global_") + key)
+          {
+            opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
+          }
+        }
+      }
+
+      // get msrun indices for each ID and insert best search_engine_score for this run
+      // for the first run we also annotate the spectra_ref (since it is not designed to be a list)
+      // TODO choose best run instead?
+      bool first = true;
+      double best_score = best_ph.getScore();
+      for (const auto& pep : curr_pep_ids)
+      {
+        size_t spec_run_index = idrun_2_run_index.at(pep.getIdentifier());
+        StringList filenames;
+        prot_id[spec_run_index].getPrimaryMSRunPath(filenames);
+        size_t msfile_index(0);
+        size_t id_merge_index(0);
+        //TODO synchronize information from ID structures and quant structures somehow.
+        // e.g. this part of the code now parses the ID information.
+        // This is done because in IsobaricLabelling there is only one ID Run for the different labels
+        if (filenames.size() <= 1) //either none or only one file for this run
+        {
+          msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, 0});
+        }
+        else
+        {
+          if (pep.metaValueExists("id_merge_index"))
+          {
+            id_merge_index = pep.getMetaValue("id_merge_index");
+            msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, id_merge_index});
+          }
+          else
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                "Multiple files in a run, but no id_merge_index in PeptideIdentification found.");
+          }
+        }
+
+        double curr_score = pep.getHits()[0].getScore();
+        auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
+        if (sit == row.search_engine_score_ms_run[1].end())
+        {
+          String ref = "";
+          if (pep.metaValueExists("spectrum_reference"))
+          {
+            ref = pep.getMetaValue("spectrum_reference");
+          }
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                              "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
+                                              "Check your merging and filtering steps and/or report the issue, please.");
+        }
+        sit->second = MzTabDouble(curr_score);
+
+        //TODO assumes same scores & score types
+        if ((pep.isHigherScoreBetter() && curr_score > best_score)
+        || (!pep.isHigherScoreBetter() && curr_score < best_score))
+        {
+          best_score = curr_score;
+        }
+
+        if (first)
+        {
+          if (pep.metaValueExists("spectrum_reference"))
+          {
+            row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
+            row.spectra_ref.setMSFile(msfile_index);
+          }
+          first = false;
+        }
+      }
+      row.best_search_engine_score[1] = MzTabDouble(best_score);
+    }
+    // skip export of unidentified feature TODO: move logic a bit up to me more efficient
+    // TODO @timo: what does unidentified have to do with empty accessions? We check for empty identification vector anyway.
+    if (!export_unidentified_features
+      && row.accession.isNull())
+    {
+      return boost::none;
+    }
+
+    remapTargetDecoy_(row.opt_);
+    return row;
   }
 
   boost::optional<MzTabPSMSectionRow> MzTab::nextPSMSectionRow_(
@@ -2957,7 +3134,7 @@ Not sure how to handle these:
 
     // assay index (and sample index) must be unique numbers 1..n
     // fraction_group + label define the quant. values of an assay (which currently corresponds to our Sample ID)
-    auto path_label_to_assay = ed.getPathLabelToSampleMapping(false);
+    std::map< std::pair< String, unsigned >, unsigned> path_label_to_assay = ed.getPathLabelToSampleMapping(false);
 
     // assay meta data
     for (auto const & c : consensus_map.getColumnHeaders())
@@ -3048,235 +3225,23 @@ Not sure how to handle these:
 
     for (ConsensusFeature const & c : consensus_map)
     {
-      MzTabPeptideSectionRow row;
+      auto row = nextPeptideSectionRow_(c, 
+       consensus_map, 
+       ms_runs,
+       n_study_variables, 
+       consensus_feature_user_value_keys, 
+       peptide_hit_user_value_keys,
+       export_unidentified_features,
+       idrun_2_run_index,
+       map_run_fileidx_2_msfileidx,
+       path_label_to_assay,
+       fixed_mods,
+       export_subfeatures);
 
-      // create opt_ column for peptide sequence containing modification
-      MzTabOptionalColumnEntry opt_global_modified_sequence;
-      opt_global_modified_sequence.first = String("opt_global_modified_sequence");
-      row.opt_.push_back(opt_global_modified_sequence);
-
-	    // Defines how to consume user value keys for the upcoming keys
-      const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+      if (row)
       {
-        return [f,&row](const String &user_value_key)
-          {
-            MzTabOptionalColumnEntry opt_entry;
-            opt_entry.first = "opt_global_" + user_value_key;
-            f(user_value_key, opt_entry);
-
-            // Use default column_header for target decoy
-            row.opt_.push_back(opt_entry);
-          };
-      };
-
-			// create opt_ columns for consensus map user values
-      for_each(consensus_feature_user_value_keys.begin(), consensus_feature_user_value_keys.end(),
-        addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
-          {
-            if (c.metaValueExists(key))
-            {
-              opt_entry.second = MzTabString(c.getMetaValue(key).toString());
-            }
-          })
-        );
-
-      // create opt_ columns for psm (PeptideHit) user values
-      for_each(peptide_hit_user_value_keys.begin(), peptide_hit_user_value_keys.end(),
-					addUserValueToRowBy([](const String&, MzTabOptionalColumnEntry&){}));
-
-      row.mass_to_charge = MzTabDouble(c.getMZ());
-      MzTabDoubleList rt_list;
-      vector<MzTabDouble> rts;
-      rts.emplace_back(c.getRT());
-      rt_list.set(rts);
-      row.retention_time = rt_list;
-      MzTabDoubleList rt_window;
-      row.retention_time_window = rt_window;
-      row.charge = MzTabInteger(c.getCharge());
-      row.best_search_engine_score[1] = MzTabDouble();
-
-      // initialize columns
-      OPENMS_LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
-      for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
-      {
-        row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
-        row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
-        row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
+        mztab.getPeptideSectionRows().emplace_back(row.value());
       }
-
-      for (Size ms_run = 1; ms_run <= ms_runs.size(); ++ms_run)
-      {
-        row.search_engine_score_ms_run[1][ms_run] = MzTabDouble();
-      }
-
-      ConsensusFeature::HandleSetType fs = c.getFeatures();
-      for (auto fit = fs.begin(); fit != fs.end(); ++fit)
-      {
-        UInt study_variable{1};
-        const int index = fit->getMapIndex();
-        const ConsensusMap::ColumnHeader& ch = consensus_map.getColumnHeaders().at(index);
-
-        UInt label = ch.getLabelAsUInt(experiment_type);
-        // convert from column index to study variable index
-        auto pl = make_pair(ch.filename, label);
-        study_variable = path_label_to_assay[pl]; // for now, a study_variable is one assay
-
-        //TODO implement aggregation in case we generalize study_variable to include multiple assays.
-        row.peptide_abundance_stdev_study_variable[study_variable];
-        row.peptide_abundance_std_error_study_variable[study_variable];
-        row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
-
-        if (export_subfeatures)
-        {
-	      MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-	      opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
-	      opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
-	      row.opt_.push_back(opt_global_mass_to_charge_study_variable);
-
-	      MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-	      opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
-	      opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
-	      row.opt_.push_back(opt_global_retention_time_study_variable);
-		    }
-      }
-
-      const vector<PeptideIdentification>& curr_pep_ids = c.getPeptideIdentifications();
-      if (!curr_pep_ids.empty())
-      {
-        checkSequenceUniqueness_(curr_pep_ids);
-
-        // Overall information for this feature in PEP section
-        // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-        const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
-        const AASequence& aas = best_ph.getSequence();
-        row.sequence = MzTabString(aas.toUnmodifiedString());
-
-        // annotate variable modifications (no fixed ones)
-        row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
-
-        const set<String>& accessions = best_ph.extractProteinAccessionsSet();
-        const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
-
-        row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
-        // select accession of first peptide_evidence as representative ("leading") accession
-        row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
-
-        // fill opt_ columns based on best ID in the feature
-
-        // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
-        for (Size i = 0; i != row.opt_.size(); ++i)
-        {
-          MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
-
-          if (opt_entry.first == String("opt_global_modified_sequence"))
-          {
-            opt_entry.second = MzTabString(aas.toString());
-          }
-        }
-
-        // fill opt_ column of psm
-        vector<String> ph_keys;
-        best_ph.getKeys(ph_keys);
-        for (String & s : ph_keys)
-        {
-          if (s.has(' '))
-          {
-            s.substitute(' ', '_');
-          }
-        }
-
-        for (Size k = 0; k != ph_keys.size(); ++k)
-        {
-          const String& key = ph_keys[k];
-
-          // find matching entry in opt_ (TODO: speed this up)
-          for (Size i = 0; i != row.opt_.size(); ++i)
-          {
-            MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
-
-            if (opt_entry.first == String("opt_global_") + key)
-            {
-              opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
-            }
-          }
-        }
-
-        // get msrun indices for each ID and insert best search_engine_score for this run
-        // for the first run we also annotate the spectra_ref (since it is not designed to be a list)
-        // TODO choose best run instead?
-        bool first = true;
-        double best_score = best_ph.getScore();
-        for (const auto& pep : curr_pep_ids)
-        {
-          size_t spec_run_index = idrun_2_run_index[pep.getIdentifier()];
-          StringList filenames;
-          prot_ids[spec_run_index]->getPrimaryMSRunPath(filenames);
-          size_t msfile_index(0);
-          size_t id_merge_index(0);
-          //TODO synchronize information from ID structures and quant structures somehow.
-          // e.g. this part of the code now parses the ID information.
-          // This is done because in IsobaricLabelling there is only one ID Run for the different labels
-          if (filenames.size() <= 1) //either none or only one file for this run
-          {
-            msfile_index = map_run_fileidx_2_msfileidx[{spec_run_index, 0}];
-          }
-          else
-          {
-            if (pep.metaValueExists("id_merge_index"))
-            {
-              id_merge_index = pep.getMetaValue("id_merge_index");
-              msfile_index = map_run_fileidx_2_msfileidx[{spec_run_index, id_merge_index}];
-            }
-            else
-            {
-              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                  "Multiple files in a run, but no id_merge_index in PeptideIdentification found.");
-            }
-          }
-
-          double curr_score = pep.getHits()[0].getScore();
-          auto sit = row.search_engine_score_ms_run[1].find(msfile_index);
-          if (sit == row.search_engine_score_ms_run[1].end())
-          {
-            String ref = "";
-            if (pep.metaValueExists("spectrum_reference"))
-            {
-              ref = pep.getMetaValue("spectrum_reference");
-            }
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                "PSM " + ref + " does not map to an MS file registered in the quantitative metadata. "
-                                                "Check your merging and filtering steps and/or report the issue, please.");
-          }
-          sit->second = MzTabDouble(curr_score);
-
-          //TODO assumes same scores & score types
-          if ((pep.isHigherScoreBetter() && curr_score > best_score)
-          || (!pep.isHigherScoreBetter() && curr_score < best_score))
-          {
-            best_score = curr_score;
-          }
-
-          if (first)
-          {
-            if (pep.metaValueExists("spectrum_reference"))
-            {
-              row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
-              row.spectra_ref.setMSFile(msfile_index);
-            }
-            first = false;
-          }
-        }
-        row.best_search_engine_score[1] = MzTabDouble(best_score);
-      }
-      // skip export of unidentified feature TODO: move logic a bit up to me more efficient
-      // TODO @timo: what does unidentified have to do with empty accessions? We check for empty identification vector anyway.
-      if (!export_unidentified_features
-        && row.accession.isNull())
-      {
-        continue;
-      }
-      remapTargetDecoy_(row.opt_);
-      mztab.getPeptideSectionRows().emplace_back(row);
     }
 
     return mztab;
