@@ -95,7 +95,7 @@ protected:
 
     //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
     registerIntOption_("minCharge", "<min_charge>", 1, "minimum charge state", false, false);
-    registerIntOption_("maxCharge", "<max_charge>", 120, "maximum charge state", false, false);
+    registerIntOption_("maxCharge", "<max_charge>", 100, "maximum charge state", false, false);
     registerDoubleOption_("minMass", "<min_mass>", 50.0, "minimum mass (Da)", false, false);
     registerDoubleOption_("maxMass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
@@ -420,7 +420,7 @@ protected:
 
         // per spec deconvolution
         auto fd = FLASHDeconvAlgorithm(avgine, param);
-        auto deconvolutedSpectrum = DeconvolutedSpectrum(*it);
+        auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
 
         bool proceed = true;
         param.currentChargeRange = param.chargeRange;
@@ -429,6 +429,7 @@ protected:
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
           proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+
           if (proceed)
           {
             param.currentChargeRange = deconvolutedSpectrum.precursorPeak->charge;
@@ -437,21 +438,29 @@ protected:
         }
         if (proceed)
         {
-          fd.Deconvolution(deconvolutedSpectrum, scanNumber);
+          fd.Deconvolution(deconvolutedSpectrum);
         }
+
         elapsed_deconv_cpu_secs[msLevel - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
+
+        if (param.trainOut)
+        {
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel);
+        }
+
+        if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
+        {
+            lastDeconvolutedSpectra[msLevel].clearChargeSNRMap(); // for memroy efficiency
+        }
+
+        lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
 
         if (deconvolutedSpectrum.empty())
         {
           continue;
         }
-
-        if(lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end()){
-          lastDeconvolutedSpectra[msLevel].clearChargeSNRMap(); // for memroy efficiency
-        }
-        lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
 
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
@@ -462,10 +471,6 @@ protected:
         if (param.topfdOut)
         {
           deconvolutedSpectrum.writeTopFD(fsfd, id++);
-        }
-        if (param.trainOut)
-        {
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel);
         }
 
         float progress = (float) (it - map.begin()) / map.size();
@@ -520,6 +525,12 @@ protected:
         {
           fsp.close();
         }
+
+        if (param.topfdOut)
+        {
+          fsfd.close();
+        }
+
         //fsm.close();
         for (int j = 0; j < (int) param.maxMSLevel; j++)
         {

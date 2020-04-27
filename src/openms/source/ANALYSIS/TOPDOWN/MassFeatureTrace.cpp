@@ -99,7 +99,7 @@ namespace OpenMS
         //int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[p2.getRT()];
         auto &pg = pgMap[p2.getMZ()];
-        auto scanNumber = pg.deconvSpec->scanNumber;
+        auto scanNumber = pg.scanNumber;
 
         minCharge = minCharge < pg.minCharge ? minCharge : pg.minCharge;
         maxCharge = maxCharge > pg.maxCharge ? maxCharge : pg.maxCharge;
@@ -209,7 +209,7 @@ namespace OpenMS
         fsp << featureCntr << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minCharge << "\t"
             << maxCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
             << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
-            << spg.deconvSpec->scanNumber << "\t" << spg.intensity << "\t"
+            << spg.scanNumber << "\t" << spg.intensity << "\t"
             << mt.begin()->getRT()/60.0 << "\t"
             << mt.rbegin()->getRT()/60.0 << "\t"
             << mt.getTraceLength()/60.0 << "\t";

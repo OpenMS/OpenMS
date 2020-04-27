@@ -66,7 +66,7 @@ namespace OpenMS
   }
 
 
-  void FLASHDeconvAlgorithm::Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum, int &scanNumber)
+  void FLASHDeconvAlgorithm::Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum)
   {
     static int specIndex = -1;
     static int massIndex = -1;
@@ -74,6 +74,7 @@ namespace OpenMS
     static std::vector<std::vector<Size>> prevMassBinMap;
     static std::vector<double> prevMinBinLogMassMap;
 
+    auto scanNumber = deconvolutedSpectrum.scanNumber;
     if(prevScanNumber > scanNumber){
       std::vector<std::vector<Size>>().swap(prevMassBinMap);
       std::vector<double>().swap(prevMinBinLogMassMap);
@@ -81,10 +82,12 @@ namespace OpenMS
       prevMinBinLogMassMap.reserve(param.numOverlappedScans[0] * 10);
       specIndex = massIndex = 1;
     }
+    deconvolutedSpectrum.scanNumber = scanNumber;
 
     prevScanNumber = scanNumber;
     auto sd = SpectrumDeconvolution(*deconvolutedSpectrum.spec, param);
-    //std::vector<SpectrumDeconvolution::PeakGroup> peakGroups;
+    deconvolutedSpectrum.peaks = sd.logMzPeaks;
+
     if (sd.empty())
     {
       return;
@@ -99,17 +102,18 @@ namespace OpenMS
       return;
     }
 
-    deconvolutedSpectrum.peaks = sd.logMzPeaks;
     deconvolutedSpectrum.specIndex = specIndex;
-    deconvolutedSpectrum.scanNumber = scanNumber;
     deconvolutedSpectrum.massCntr = (int) deconvolutedSpectrum.peakGroups.size();
 
     for (auto &pg : deconvolutedSpectrum.peakGroups)
     {
       sort(pg.peaks.begin(), pg.peaks.end());
-      pg.deconvSpec = &deconvolutedSpectrum;
+      pg.spec = deconvolutedSpectrum.spec;
+      pg.specIndex = specIndex;
+      pg.scanNumber = scanNumber;
       pg.massIndex = massIndex++;
     }
+
     specIndex++;
   }
 

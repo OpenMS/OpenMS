@@ -25,7 +25,7 @@ namespace OpenMS
 
     DeconvolutedSpectrum();
 
-    explicit DeconvolutedSpectrum(MSSpectrum &s);
+    explicit DeconvolutedSpectrum(MSSpectrum &s, int &n);
 
     ~DeconvolutedSpectrum();
 
@@ -50,7 +50,8 @@ namespace OpenMS
 
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
-    int specIndex, massCntr, scanNumber;
+    int specIndex, massCntr;
+    int scanNumber;
 
 
     //fs << "MS_ONE_ID=" << pg.precursorSpecIndex << "\n"

@@ -635,8 +635,8 @@ namespace OpenMS
     newPeakGroups.swap(peakGroups);
   }
 
-  double PeakGroupScoring::getPeakGroupScore(PeakGroup &pg){// TODO
-    if (pg.deconvSpec->spec->getMSLevel() == 1){
+  double PeakGroupScoring::getPeakGroupScore(PeakGroup &pg, int msLevel){// TODO
+    if (msLevel == 1){
       auto score = -0.1472 * log10(pg.maxSNR)  - 2.8307 * log10(pg.totalSNR) + 0.2889;
       return 1.0/(1.0+exp(-score));
     }else{
@@ -660,7 +660,7 @@ namespace OpenMS
     //   -0.1794 * log10(pg.totalSNR);
   }
 
-  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount)
+  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount) // TODO
   {
     if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
     {
@@ -671,7 +671,7 @@ namespace OpenMS
     std::vector<double> scores;
     for (auto &pg : peakGroups)
     {
-      auto score = getPeakGroupScore(pg);
+      auto score = getPeakGroupScore(pg, 1); // TODO;
       scores.push_back(score);
     }
 
@@ -688,7 +688,7 @@ namespace OpenMS
       {
         break;
       }
-      auto score = getPeakGroupScore(pg);
+      auto score = getPeakGroupScore(pg, 1);
       if (score >= threshold)
       {
         newPeakGroups.push_back(pg);

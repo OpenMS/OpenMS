@@ -83,7 +83,7 @@ public:
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    void Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum, int &scanNumber);
+    void Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum);
     static int getNominalMass(double &m);
 
   protected:

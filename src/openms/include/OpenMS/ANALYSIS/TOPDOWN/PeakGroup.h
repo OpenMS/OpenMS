@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-  class DeconvolutedSpectrum;
+  //class DeconvolutedSpectrum;
   class OPENMS_DLLAPI PeakGroup
   {
   public:
@@ -23,7 +23,9 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
 
-    DeconvolutedSpectrum *deconvSpec;
+    //econvolutedSpectrum *deconvSpec;
+    int scanNumber, specIndex;
+    MSSpectrum *spec;
     std::vector<LogMzPeak> peaks;
     double monoisotopicMass = .0;
     double avgMass = .0;
