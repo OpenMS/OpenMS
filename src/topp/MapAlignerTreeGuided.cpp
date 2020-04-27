@@ -164,6 +164,8 @@ private:
     TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML",
                                                  REF_NONE);
     registerSubsection_("algorithm", "Algorithm parameters section");
+    registerStringOption_("copy_data", "String", "true", "When aligning a large dataset with many files, load the input files twice and bypass copying.", false, false);
+    setValidStrings_("copy_data", {"true","false"});
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -221,8 +223,18 @@ private:
     // alignment
     vector<Size> trafo_order;
     FeatureMap map_transformed;
-    // alignment uses copy of feature_maps, returning result within map_transformed (to keep original data)
-    algoTree.treeGuidedAlignment(tree, feature_maps, maps_ranges, map_transformed, trafo_order);
+    // depending on the selected parameter, the input data for the alignment are copied or reloaded after alignment
+    if (getStringOption_("copy_data") == "true")
+    {
+      vector<FeatureMap> copied_maps = feature_maps;
+      algoTree.treeGuidedAlignment(tree, copied_maps, maps_ranges, map_transformed, trafo_order);
+    }
+    else
+    {
+      algoTree.treeGuidedAlignment(tree, feature_maps, maps_ranges, map_transformed, trafo_order);
+      // load() of FeatureXMLFile clears featureMap, so we don't have to care
+      loadInputMaps_(feature_maps, in_files, fxml_file);
+    }
 
     //-------------------------------------------------------------
     // generating output
