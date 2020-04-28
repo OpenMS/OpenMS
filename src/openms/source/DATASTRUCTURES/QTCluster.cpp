@@ -299,6 +299,14 @@ namespace OpenMS
     return tmp;
   }
 
+  QTCluster::NeighborMap const& QTCluster::getAllNeighborsDirect()
+  {
+    OPENMS_PRECONDITION(finalized_,
+        "Cannot perform operation on cluster that is not finalized")
+        
+    return neighbors_;
+  }
+
   const set<AASequence>& QTCluster::getAnnotations()
   {
     if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() && !neighbors_.empty())

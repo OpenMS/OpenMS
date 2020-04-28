@@ -245,21 +245,24 @@ namespace OpenMS
     Size size = clustering.size();
 
     // create a temp. map storing which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > NeighborList;
+    // typedef OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > NeighborList;
+    typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
     ElementMapping element_mapping;
     for (list<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
-      NeighborList neigh = it->getAllNeighbors();
-      for (NeighborList::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+      // NeighborList neigh = it->getAllNeighbors();
+      NeighborMap neigh = it->getAllNeighborsDirect();
+      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
-        for (std::vector<GridFeature*>::iterator i_it = n_it->second.begin();
-            i_it != n_it->second.end(); ++i_it)
-        {
+        GridFeature* gf_ptr = n_it->second.second;
+        // for (std::vector<GridFeature*>::iterator i_it = n_it->second.begin();
+        //     i_it != n_it->second.end(); ++i_it)
+        // {
           // remember for each feature (gridfeature) all the cluster elements
           // it belongs to
-          element_mapping[*i_it].push_back(&(*it));
-        }
+          element_mapping[gf_ptr].push_back(&(*it));
+        // }
       }
     }
 
@@ -405,18 +408,21 @@ namespace OpenMS
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
-            typedef OpenMSBoost::unordered_map<Size,
-                    std::vector<GridFeature*> > NeighborList;
-            NeighborList neigh = (*cluster)->getAllNeighbors();
-            for (NeighborList::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+            // typedef OpenMSBoost::unordered_map<Size,
+            //        std::vector<GridFeature*> > NeighborList;
+            typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
+            // NeighborList neigh = (*cluster)->getAllNeighbors();
+            NeighborMap neigh = (*cluster)->getAllNeighborsDirect();
+            for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
             {
-              for (std::vector<GridFeature*>::iterator i_it =
-                  n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
-              {
+              // for (std::vector<GridFeature*>::iterator i_it =
+              //     n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
+              // {
+                GridFeature* gf_ptr = n_it->second.second;
                 // remember for each feature (gridfeature) all the cluster
                 // elements it belongs to
-                tmp_element_mapping[*i_it].push_back(*cluster);
-              }
+                tmp_element_mapping[gf_ptr].push_back(*cluster);
+              // }
             }
           }
         }

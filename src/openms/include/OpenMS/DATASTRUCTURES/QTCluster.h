@@ -296,6 +296,8 @@ public:
 
     /// Get all current neighbors
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
+
+    NeighborMap const& getAllNeighborsDirect();
   };
 } // namespace OpenMS
 
