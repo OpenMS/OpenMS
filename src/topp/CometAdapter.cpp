@@ -630,7 +630,6 @@ protected:
 
     int ms_level = getIntOption_("ms_level");
     const auto& centroid_info = MzMLFile().getCentroidInfo(inputfile_name);
-    std::cout << centroid_info.size() << std::endl;
     const auto& lvl_info = centroid_info.find(ms_level);
     if (lvl_info == centroid_info.end())
         throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
