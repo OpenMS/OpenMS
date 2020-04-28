@@ -195,7 +195,7 @@ namespace OpenMS
     }
     //if (c < 2)
     //{
-   //   return 0;
+    //   return 0;
     //}
     double d = (d1 * bNorm);
     if (d <= 0)
@@ -384,13 +384,13 @@ namespace OpenMS
   }
 
   std::vector<PeakGroup> &PeakGroupScoring::scoreAndFilterPeakGroups(unsigned int &msLevel,
-                                                                                               FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+                                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
   {
     std::vector<PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(peakGroups.size());
     double threshold = .0;
 
-    Size mc = (Size) param.maxMassCount;
+    auto mc = param.maxMassCount[msLevel - 1];
     if (mc > 0)
     {
       std::vector<double> intensities;
@@ -412,6 +412,7 @@ namespace OpenMS
 
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.currentChargeRange];
+    auto preChargeMaxIntensity = new double[param.chargeRange];
 
     for (auto &pg : peakGroups)
     {
@@ -439,7 +440,7 @@ namespace OpenMS
 
         bool isChargeWellDistributed = checkChargeDistribution(perChargeIntensity,
                                                                param.chargeRange,
-                                                               param.minContinuousChargePeakCount[msLevel -1]);
+                                                               param.minContinuousChargePeakCount[msLevel - 1]);
 
         if (!isChargeWellDistributed)
         {
@@ -450,7 +451,7 @@ namespace OpenMS
       }
       else
       {
-        if (pg.peaks.empty()|| pg.chargeCosineScore < 0.1)//
+        if (pg.peaks.empty() || pg.chargeCosineScore < 0.1)//
         {
           // delete[] pg.perChargeSNR;
           continue;
@@ -465,7 +466,8 @@ namespace OpenMS
                                                                        avg);
 
       if (pg.peaks.empty() ||
-          (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel-1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
+          (pg.isotopeCosineScore <= param.minIsotopeCosine[msLevel -
+                                                           1]))// (msLevel <= 1 ? param.minIsotopeCosineSpec : param.minIsotopeCosineSpec2)))
       {
         //delete[] pg.perChargeSNR;
         continue;
@@ -479,45 +481,58 @@ namespace OpenMS
       int isoSize = (int) iso.size();
       float totalNoise = .0;
       float totalSignal = .0;
+      std::fill_n(preChargeMaxIntensity, param.chargeRange, 0);
 
-      double maxSNR = 0;
-      for(auto charge=pg.minCharge;charge<=pg.maxCharge;charge++){
+      for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
+      {
         int j = charge - param.minCharge;
         auto perIsotopeIntensities = new double[param.maxIsotopeCount];
-        std::fill_n(perIsotopeIntensities,param.maxIsotopeCount,.0);
+        std::fill_n(perIsotopeIntensities, param.maxIsotopeCount, .0);
 
         int minIsotopeIndex = param.maxIsotopeCount;
         int maxIsotopeIndex = 0;
 
         double minMz = pg.monoisotopicMass * 2;
         double maxMz = 0;
+        double maxIntensity = .0;
         double sp = .0;
 
-        for(auto& p:pg.peaks){
-          if(p.charge != charge){
+        for (auto &p:pg.peaks)
+        {
+          if (p.charge != charge)
+          {
             continue;
           }
           //
+
+          if (p.isotopeIndex > isoSize)
+          {
+            continue;
+          }
+
           perIsotopeIntensities[p.isotopeIndex] += p.intensity;
           minIsotopeIndex = minIsotopeIndex < p.isotopeIndex ? minIsotopeIndex : p.isotopeIndex;
           maxIsotopeIndex = maxIsotopeIndex < p.isotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
 
           minMz = minMz < p.mz ? minMz : p.mz;
           maxMz = maxMz > p.mz ? maxMz : p.mz;
-          if(p.isotopeIndex>isoSize){
-            continue;
+          if (maxIntensity < p.intensity)
+          {
+            maxIntensity = p.intensity;
+            preChargeMaxIntensity[j] = maxIntensity;
           }
-         // sp += p.intensity * p.intensity;
+          // sp += p.intensity * p.intensity;
         }
-        if(maxMz <= 0){
+        if (maxIntensity <= 0)
+        {
           delete[] perIsotopeIntensities;
           continue;
         }
 
-
-        for (int k = minIsotopeIndex; k <=maxIsotopeIndex ; ++k)
+        for (int k = minIsotopeIndex; k <= maxIsotopeIndex; ++k)
         {
-          if(k>isoSize){
+          if (k > isoSize)
+          {
             break;
           }
           sp += perIsotopeIntensities[k] * perIsotopeIntensities[k];
@@ -532,76 +547,99 @@ namespace OpenMS
                                                0);
 
         double cos2 = cos * cos;
-        cos2 = cos2>=0.9999 ? 0.9999 : cos2;
-        if(pg.perChargeSNR.find(j) == pg.perChargeSNR.end()){
-          pg.perChargeSNR[j] = 0;
+
+        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
+        {
+          pg.perChargeSNR[charge] = 0;
         }
-        auto dno = (1 - cos2) * sp + pg.perChargeSNR[j] + 1;
+        auto dno = (1 - cos2) * sp + pg.perChargeSNR[charge] + 1;
         auto no = cos2 * sp + 1;
 
-        //dno = pg.perChargeSNR[j] + 1;
-        //no = sp;//
-        /*if (no / dno<=0){
-          if (cos2 <=0){
-            for (int k = minIsotopeIndex; k <=maxIsotopeIndex ; ++k)
-            {
-              if (k > isoSize)
-              {
-                break;
-              }
-              std::cout<<perIsotopeIntensities[k]<<std::endl;
-            }
-            std::cout<<minIsotopeIndex << " * " << maxIsotopeIndex << std::endl;
-          }
-        }*/
-
-        pg.perChargeSNR[j] = no / dno;
+        pg.perChargeSNR[charge] = no / dno;
 
         totalNoise += dno;
         totalSignal += no;
 
-        if(pg.perChargeSNR[j] > maxSNR){
-          maxSNR = pg.perChargeSNR[j];
-          pg.maxSNR = pg.perChargeSNR[j];
-          pg.maxSNRcharge = charge;
-          pg.maxSNRminMz = minMz;
-          pg.maxSNRmaxMz = maxMz;
-        }
-
         delete[] perIsotopeIntensities;
       }
 
-      pg.totalSNR =  totalSignal / totalNoise;
-      //delete[] pg.perChargeSNR;
-      // if ( pg.maxSNR < .1){
-      //      return; //
-      //    }
+      pg.totalSNR = totalSignal / totalNoise;
+      pg.maxScore = -100;
 
-      if(msLevel == 1 || pg.totalSNR>0.1) //
-      //if(msLevel == 1 || getPeakGroupScore(pg)>.5) //
+      for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
+      {
+        int j = charge - param.minCharge;
+        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end()){
+          continue;
+        }
+
+        auto score =
+        -0.4318 * log10(pg.perChargeSNR[charge] + 1e-3)
+        - 0.2366 * log10(preChargeMaxIntensity[j] + 1)
+        - 1.0932 * log10(pg.totalSNR + 1e-3)
+        + 2.8047 * pg.isotopeCosineScore
+        - 1.2686 * pg.chargeCosineScore
+        - 0.2606 * log10(pg.intensity + 1)
+        + 2.325;
+        score = -score;
+
+        if (score < pg.maxScore)
+        {
+          continue;
+        }
+        pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
+        pg.maxScoreCharge = charge;
+        pg.maxScore = score;
+      }
+
+      pg.maxScoreMinMz = pg.monoisotopicMass * 2;
+      pg.maxScoreMaxMz = 0;
+      for (auto &p:pg.peaks)
+      {
+        if (p.charge != pg.maxScoreCharge)
+        {
+          continue;
+        }
+        if (p.isotopeIndex > isoSize)
+        {
+          continue;
+        }
+
+        pg.maxScoreMinMz = pg.maxScoreMinMz < p.mz ? pg.maxScoreMinMz : p.mz;
+        pg.maxScoreMaxMz = pg.maxScoreMaxMz > p.mz ? pg.maxScoreMaxMz : p.mz;
+      }
+
+      if (msLevel == 1 || pg.totalSNR > 0.1) //
+        //if(msLevel == 1 || getPeakGroupScore(pg)>.5) //
       {
         filteredPeakGroups.push_back(pg);
       }
     }
 
-    //std::cout<<filteredPeakGroups.size();
     peakGroups.swap(filteredPeakGroups);
     std::vector<PeakGroup>().swap(filteredPeakGroups);
 
-    removeHarmonicPeakGroups(param.tolerance[msLevel-1]); // TODO
-    removeOverlappingPeakGroups(param.tolerance[msLevel-1]);
-    //(param.currentMaxMassCount); //
-    filterPeakGroupsByIsotopeCosine(param.currentMaxMassCount);
+    removeHarmonicPeakGroups(param.tolerance[msLevel - 1]); // TODO
+    removeOverlappingPeakGroups(param.tolerance[msLevel - 1]);
 
+    //std::cout<< "* " << mc<<std::endl;
+    //(param.currentMaxMassCount); //
+
+    if(msLevel > 1)
+    {
+      filterPeakGroupsByIsotopeCosine(mc);
+    }else{
+      filterPeakGroupsByPredictionScore(mc);
+    }
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
-
+    delete[] preChargeMaxIntensity;
     return peakGroups;
   }
 
   void PeakGroupScoring::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
   {
-    if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
     {
       return;
     }
@@ -619,7 +657,7 @@ namespace OpenMS
     auto newPeakGroups = std::vector<PeakGroup>();
     newPeakGroups.reserve(peakGroups.size());
     auto threshold = scores[scores.size() - mc];
-    for (auto& pg : peakGroups)
+    for (auto &pg : peakGroups)
     {
       if (newPeakGroups.size() > mc)
       {
@@ -635,61 +673,34 @@ namespace OpenMS
     newPeakGroups.swap(peakGroups);
   }
 
-  double PeakGroupScoring::getPeakGroupScore(PeakGroup &pg, int msLevel){// TODO
-    if (msLevel == 1){
-      auto score = -0.1472 * log10(pg.maxSNR)  - 2.8307 * log10(pg.totalSNR) + 0.2889;
-      return 1.0/(1.0+exp(-score));
-    }else{
-      //Intensity     1.1476
-      //mSNR           2.418
-      //tSNR         -0.3143
-      //Intercept    -3.5201
-      auto score = log10(pg.intensity) * 1.1476 + log10(pg.maxSNR + 1e-5) * 2.418 -  log10(pg.totalSNR + 1e-5) * .3143 -3.5201;
-      return 1.0/(1.0+exp(-score));
-    }
-
-
-
-    return pg.isotopeCosineScore;
-
-
-
-     // 0.0761 * log10(pg.intensity)
-     //  + 1.1278 * pg.isotopeCosineScore -0.002 *pg.maxSNRcharge +
-    //   0.2382 * log10(pg.maxSNR) +
-    //   -0.1794 * log10(pg.totalSNR);
-  }
-
-  void PeakGroupScoring::filterPeakGroupsByTotalSNR(int currentMaxMassCount) // TODO
+  void PeakGroupScoring::filterPeakGroupsByPredictionScore(int currentMaxMassCount)
   {
-    if (currentMaxMassCount < 0 || peakGroups.size() <= (Size) currentMaxMassCount)
+    if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
     {
       return;
     }
 
     Size mc = (Size) currentMaxMassCount;
     std::vector<double> scores;
+    scores.reserve(peakGroups.size());
     for (auto &pg : peakGroups)
     {
-      auto score = getPeakGroupScore(pg, 1); // TODO;
-      scores.push_back(score);
+      scores.push_back(pg.maxScore);
     }
 
     sort(scores.begin(), scores.end());
+
     auto newPeakGroups = std::vector<PeakGroup>();
     newPeakGroups.reserve(peakGroups.size());
     auto threshold = scores[scores.size() - mc];
-   // threshold = threshold < .8? .8 : threshold; //
-
-
-    for (auto& pg : peakGroups)
+    for (auto &pg : peakGroups)
     {
       if (newPeakGroups.size() > mc)
       {
         break;
       }
-      auto score = getPeakGroupScore(pg, 1);
-      if (score >= threshold)
+
+      if (pg.maxScore >= threshold)
       {
         newPeakGroups.push_back(pg);
       }
@@ -697,6 +708,8 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(peakGroups);
     newPeakGroups.swap(peakGroups);
   }
+
+
 
   void PeakGroupScoring::removeHarmonicPeakGroups(double tol)
   { // pgs are sorted
@@ -707,23 +720,24 @@ namespace OpenMS
 
     std::vector<double> masses;
     masses.reserve(peakGroups.size());
-    for (auto & peakGroup : peakGroups)
+    for (auto &peakGroup : peakGroups)
     {
       masses.push_back(peakGroup.monoisotopicMass);
     }
-    for (auto & pg : peakGroups)
+    for (auto &pg : peakGroups)
     {
       bool select = true;
-      for(int h=2;h<=3;h++){
-        for (int k=0;k<2;k++)
+      for (int h = 2; h <= 3; h++)
+      {
+        for (int k = 0; k < 2; k++)
         {
-          auto hmass = k == 0? pg.monoisotopicMass * h : pg.monoisotopicMass / h;
+          auto hmass = k == 0 ? pg.monoisotopicMass * h : pg.monoisotopicMass / h;
           double massTol = hmass * tol;
 
           auto iter = std::lower_bound(masses.begin(), masses.end(), hmass - massTol);
           Size j = iter - masses.begin();
 
-          if (j>=0 && j < peakGroups.size())
+          if (j >= 0 && j < peakGroups.size())
           {
             for (; j < peakGroups.size(); j++)
             {
@@ -879,5 +893,38 @@ namespace OpenMS
 
     return std::vector<int>{maxIntChargeIndex, maxIntIsoIndex};
   }
+
+
+  /*
+
+  double PeakGroupScoring::getPredictionScore(PeakGroup &pg, int charge)
+  {//
+
+    //Variable                       f
+    //================================
+    //ChargeSNR                -0.4318 Non zero
+    //PeakIntensity            -0.2366
+    //MassSNR                  -1.0932
+    //IsotopeCosine             2.8047
+    //ChargeIntensityCosine    -1.2686
+    //MassIntensity            -0.2606
+    //Intercept                  2.325
+
+    double score =
+
+        -0.4318 * log10(pg->perChargeSNR[charge] + 1e-3)
+        - 0.2366 * log10(pg->maxSNRPeakIntensity + 1)
+        - 1.0932 * log10(pg->totalSNR + 1e-3)
+        + 2.8047 * pg->isotopeCosineScore
+        - 1.2686 * pg->chargeCosineScore
+        - 0.2606 * log10(pg->intensity + 1)
+        + 2.325;
+
+
+    return -score;
+
+  }*/
+
+
 
 }

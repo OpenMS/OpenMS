@@ -100,7 +100,7 @@ protected:
     registerDoubleOption_("maxMass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleList_("minIsotopeCosine",
-                        "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
+                        "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)", // TODO polish descriptions
                         {.75, .75},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...",
                         false,
@@ -120,7 +120,7 @@ protected:
                      false,
                      true);
 
-    registerIntOption_("maxMassCount", "<max_mass_count>", -1, "maximum mass count per spec", false, true);
+    registerIntList_("maxMassCount", "<max_mass_count>", {-1, -1}, "maximum mass count per spec for MS1 and MSn", false, true);
     //
     registerDoubleOption_("minIntensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow",
@@ -164,7 +164,8 @@ protected:
     param.minIsotopeCosine = getDoubleList_("minIsotopeCosine");
     param.minChargeCosine = getDoubleOption_("minChargeCosine");
 
-    param.currentMaxMassCount = param.maxMassCount = getIntOption_("maxMassCount");
+    param.maxMassCount = getIntList_("maxMassCount");
+
     //param.chargeDistributionScoreThreshold = getDoubleOption_("minCDScore");
     param.RTwindow = getDoubleOption_("RTwindow");
     param.minRTSpan = getDoubleOption_("minRTSpan");
@@ -317,6 +318,7 @@ protected:
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
       auto ms1Cntr = 0;
+      auto ms2Cntr = 0; // for debug...
 
       for (auto &it : map)
       {
@@ -324,7 +326,14 @@ protected:
         {
           continue;
         }
-        ms1Cntr++;
+        if (it.getMSLevel() == 1)
+        {
+          ms1Cntr++;
+        }
+        if (it.getMSLevel() == 2)
+        {
+          ms2Cntr++;
+        }
       }
 
       param.numOverlappedScans.clear();
@@ -429,7 +438,6 @@ protected:
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
           proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
-
           if (proceed)
           {
             param.currentChargeRange = deconvolutedSpectrum.precursorPeak->charge;
@@ -447,7 +455,7 @@ protected:
 
         if (param.trainOut)
         {
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel);
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, round(ms2Cntr/ms1Cntr));
         }
 
         if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
@@ -456,7 +464,6 @@ protected:
         }
 
         lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
-
         if (deconvolutedSpectrum.empty())
         {
           continue;
@@ -465,7 +472,6 @@ protected:
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
         massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
-
         deconvolutedSpectrum.writeDeconvolutedMasses(fs[msLevel - 1], param);
 
         if (param.topfdOut)

@@ -916,11 +916,11 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz * 2; // TODO
 
-        if (pg.perChargeSNR.find(j) == pg.perChargeSNR.end())
+        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
         {
-          pg.perChargeSNR[j] = .0f;
+          pg.perChargeSNR[charge] = .0f;
         }
-        auto &np = pg.perChargeSNR[j];
+        auto &np = pg.perChargeSNR[charge];
         //np = 0;
 
         int pi = 0;

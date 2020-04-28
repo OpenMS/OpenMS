@@ -53,10 +53,11 @@ namespace OpenMS
         PeakGroup &pg);
 
     void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
-    void filterPeakGroupsByTotalSNR(int currentMaxMassCount);
+    void filterPeakGroupsByPredictionScore(int currentMaxMassCount);
+
     void filterPeakGroupsByIntensity(int currentMaxMassCount);
 
-
+    double getPredictionScore(PeakGroup &pg, int charge); //
 
     static double getAvgMassPpmError(PeakGroup &pg);
 
@@ -83,7 +84,7 @@ namespace OpenMS
                             double &bNorm,
                             int offset);
   public:
-    static double getPeakGroupScore(PeakGroup &pg, int msLevel);
+
   };
 
 

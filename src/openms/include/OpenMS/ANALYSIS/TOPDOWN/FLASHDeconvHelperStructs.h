@@ -70,8 +70,7 @@ namespace OpenMS
 
       IntList minContinuousChargePeakCount;
       int maxIsotopeCount;
-      int maxMassCount;
-      int currentMaxMassCount;
+      IntList maxMassCount;
 
       unsigned int maxMSLevel = 0;//maxMSL;
       unsigned int currentMaxMSLevel = 0;//maxMSL;

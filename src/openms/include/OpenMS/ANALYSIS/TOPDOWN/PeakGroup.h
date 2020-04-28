@@ -37,11 +37,12 @@ namespace OpenMS
 
     int massIndex;
     int maxCharge, minCharge;
-    int maxSNRcharge = 0;
+    int maxScoreCharge = 0;
+    float maxScorePeakIntensity = 0;
     std::unordered_map<int, float> perChargeSNR;
-    float maxSNR = 0;
+    float maxScore = 0;
     float totalSNR = 0;
-    double maxSNRmaxMz, maxSNRminMz;
+    double maxScoreMaxMz, maxScoreMinMz;
 
     ~PeakGroup();
 
