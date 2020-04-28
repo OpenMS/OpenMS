@@ -367,19 +367,18 @@ public:
     */
     //@{
     /// Sum operator for an integer
-    OPENMS_DLLAPI String& operator+=(int i);
-    /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String& operator+=(unsigned int i);
-    /// Sum operator for an integer
-    OPENMS_DLLAPI String& operator+=(short int i);
-    /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String& operator+=(short unsigned int i);
-    /// Sum operator for an integer
-    OPENMS_DLLAPI String& operator+=(long int i);
-    /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String& operator+=(long unsigned int i);
-    /// Sum operator for an unsigned integer
-    OPENMS_DLLAPI String& operator+=(long long unsigned int i);
+    /// Sum operator for a 16bit unsigned integer
+    OPENMS_DLLAPI String& operator+=(uint16_t i);
+    /// Sum operator for a 16bit signed integer
+    OPENMS_DLLAPI String& operator+=(int16_t i);
+    /// Sum operator for a 32bit unsigned integer
+    OPENMS_DLLAPI String& operator+=(uint32_t i);
+    /// Sum operator for a 32bit signed integer
+    OPENMS_DLLAPI String& operator+=(int32_t i);
+    /// Sum operator for a 64bit unsigned integer
+    OPENMS_DLLAPI String& operator+=(uint64_t i);
+    /// Sum operator for a 64bit signed integer
+    OPENMS_DLLAPI String& operator+=(int64_t i);
     /// Sum operator for float
     OPENMS_DLLAPI String& operator+=(float f);
     /// Sum operator for double
