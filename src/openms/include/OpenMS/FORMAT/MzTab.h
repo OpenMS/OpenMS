@@ -1002,6 +1002,7 @@ public:
 
 
   protected:
+    // yield new PSM row from identification data
     static boost::optional<MzTabPSMSectionRow> nextPSMSectionRow_(
      const PeptideIdentification& pid,
      const std::vector<const ProteinIdentification*>& prot_id,
@@ -1013,6 +1014,7 @@ public:
      const MzTabString& db_version,
      const bool export_empty_pep_ids);
 
+    // yield next PEP row from consensus map
     static boost::optional<MzTabPeptideSectionRow> nextPeptideSectionRow_(
       const ConsensusFeature& c, 
       const ConsensusMap& consensus_map,
@@ -1026,6 +1028,18 @@ public:
       const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
       const std::vector<String>& fixed_mods,
       bool export_subfeatures);
+
+    // yield next PEP row from feature map
+    static boost::optional<MzTabPeptideSectionRow> nextPeptideSectionRow_(
+      const Feature& c, 
+      const std::set<String>& feature_user_value_keys,
+      const std::set<String>& peptide_hit_user_value_keys,
+      const std::vector<String>& fixed_mods);
+
+    // TODO: move to core classes?
+    static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, std::set<String>& consensus_feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+
+    static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
 
     /// Helper function for "get...OptionalColumnNames" functions
     template <typename SectionRows>

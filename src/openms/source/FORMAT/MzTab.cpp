@@ -942,7 +942,6 @@ namespace OpenMS
 
   MzTabString::~MzTabString()
   {
-
   }
 
   void MzTabString::set(const String& value)
@@ -1657,141 +1656,113 @@ namespace OpenMS
 
     // pre-analyze data for occuring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
-
     set<String> feature_user_value_keys;
     set<String> peptide_hit_user_value_keys;
-    for (Size i = 0; i < feature_map.size(); ++i)
-    {
-      const Feature& f = feature_map[i];
-      vector<String> keys;
-      f.getKeys(keys); //TODO: why not just return it?
-      for (String & s : keys)
-      {
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      }
-
-      feature_user_value_keys.insert(keys.begin(), keys.end());
-
-      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-      for (PeptideIdentification const & pep_id : pep_ids)
-      {
-        for (PeptideHit const & hit : pep_id.getHits())
-        {
-          vector<String> ph_keys;
-          hit.getKeys(ph_keys);
-          for (String& s : ph_keys)
-          {
-            if (s.has(' '))
-            {
-              s.substitute(' ', '_');
-            }
-          }
-          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
-        }
-      }
-    }
+    MzTab::getFeatureMapMetaValues_(feature_map, feature_user_value_keys, peptide_hit_user_value_keys);
 
     for (Size i = 0; i < feature_map.size(); ++i)
     {
-      MzTabPeptideSectionRow row;
       const Feature& f = feature_map[i];
-      row.mass_to_charge = MzTabDouble(f.getMZ());
-      MzTabDoubleList rt_list;
-      vector<MzTabDouble> rts;
-      rts.emplace_back(MzTabDouble(f.getRT()));
-      rt_list.set(rts);
-      row.retention_time = rt_list;
-
-      // set rt window if a bounding box has been set
-      vector<MzTabDouble> window;
-      if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
+      auto row = nextPeptideSectionRow_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
+      if (row)
       {
-        window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
-        window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+        mztab.getPeptideSectionRows().emplace_back(row.value());
       }
-
-      MzTabDoubleList rt_window;
-      rt_window.set(window);
-      row.retention_time_window = rt_window;
-      row.charge = MzTabInteger(f.getCharge());
-      row.peptide_abundance_stdev_study_variable[1];
-      row.peptide_abundance_std_error_study_variable[1];
-      row.peptide_abundance_study_variable[1] = MzTabDouble(f.getIntensity());
-      row.best_search_engine_score[1] = MzTabDouble();
-      row.search_engine_score_ms_run[1][1] = MzTabDouble();
-
-      // create opt_ column for peptide sequence containing modification
-      MzTabOptionalColumnEntry opt_global_modified_sequence;
-      opt_global_modified_sequence.first = String("opt_global_modified_sequence");
-      row.opt_.push_back(opt_global_modified_sequence);
-
-      // create and fill opt_ columns for feature (peptide) user values
-      addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
-
-      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-      if (pep_ids.empty())
-      {
-        mztab.getPeptideSectionRows().emplace_back(row);
-        continue;
-      }
-
-      // TODO: here we assume that all have the same score type etc.
-      vector<PeptideHit> all_hits;
-      for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-      {
-        all_hits.insert(all_hits.end(), it->getHits().begin(), it->getHits().end());
-      }
-
-      if (all_hits.empty())
-      {
-        mztab.getPeptideSectionRows().emplace_back(row);
-        continue;
-      }
-
-      // create new peptide id object to assist in sorting
-      PeptideIdentification new_pep_id = pep_ids[0];
-      new_pep_id.setHits(all_hits);
-      new_pep_id.assignRanks();
-
-      const PeptideHit& best_ph = new_pep_id.getHits()[0];
-      const AASequence& aas = best_ph.getSequence();
-      row.sequence = MzTabString(aas.toUnmodifiedString());
-
-      row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
-
-      const set<String>& accessions = best_ph.extractProteinAccessionsSet();
-      const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
-
-      row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
-      // select accession of first peptide_evidence as representative ("leading") accession
-      row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
-      row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
-      row.search_engine_score_ms_run[1][1] = MzTabDouble(best_ph.getScore());
-
-      // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
-      for (Size j = 0; j != row.opt_.size(); ++j)
-      {
-        MzTabOptionalColumnEntry& opt_entry = row.opt_[j];
-
-        if (opt_entry.first == String("opt_global_modified_sequence"))
-        {
-          opt_entry.second = MzTabString(aas.toString());
-        }
-      }
-
-      // create and fill opt_ columns for psm (PeptideHit) user values
-      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), best_ph);
-
-      // remap the target/decoy column
-      remapTargetDecoy_(row.opt_);
-
-      mztab.getPeptideSectionRows().emplace_back(row);
     }
 
     return mztab;
+  }
+
+  boost::optional<MzTabPeptideSectionRow> MzTab::nextPeptideSectionRow_(
+    const Feature& f, 
+    const set<String>& feature_user_value_keys,
+    const set<String>& peptide_hit_user_value_keys,
+    const vector<String>& fixed_mods)
+  {
+    MzTabPeptideSectionRow row;
+    row.mass_to_charge = MzTabDouble(f.getMZ());
+    MzTabDoubleList rt_list;
+    vector<MzTabDouble> rts;
+    rts.emplace_back(MzTabDouble(f.getRT()));
+    rt_list.set(rts);
+    row.retention_time = rt_list;
+
+    // set rt window if a bounding box has been set
+    vector<MzTabDouble> window;
+    if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
+    {
+      window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
+      window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+    }
+
+    MzTabDoubleList rt_window;
+    rt_window.set(window);
+    row.retention_time_window = rt_window;
+    row.charge = MzTabInteger(f.getCharge());
+    row.peptide_abundance_stdev_study_variable[1];
+    row.peptide_abundance_std_error_study_variable[1];
+    row.peptide_abundance_study_variable[1] = MzTabDouble(f.getIntensity());
+    row.best_search_engine_score[1] = MzTabDouble();
+    row.search_engine_score_ms_run[1][1] = MzTabDouble();
+
+    // create opt_ column for peptide sequence containing modification
+    MzTabOptionalColumnEntry opt_global_modified_sequence;
+    opt_global_modified_sequence.first = String("opt_global_modified_sequence");
+    row.opt_.push_back(opt_global_modified_sequence);
+
+    // create and fill opt_ columns for feature (peptide) user values
+    addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
+
+    const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
+    if (pep_ids.empty()) { return row; }
+
+    // TODO: here we assume that all have the same score type etc.
+    vector<PeptideHit> all_hits;
+    for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    {
+      all_hits.insert(all_hits.end(), it->getHits().begin(), it->getHits().end());
+    }
+
+    if (all_hits.empty()) { return row; }
+
+    // create new peptide id object to assist in sorting
+    PeptideIdentification new_pep_id = pep_ids[0];
+    new_pep_id.setHits(all_hits);
+    new_pep_id.assignRanks();
+
+    const PeptideHit& best_ph = new_pep_id.getHits()[0];
+    const AASequence& aas = best_ph.getSequence();
+    row.sequence = MzTabString(aas.toUnmodifiedString());
+
+    row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
+
+    const set<String>& accessions = best_ph.extractProteinAccessionsSet();
+    const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
+
+    row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
+    // select accession of first peptide_evidence as representative ("leading") accession
+    row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
+    row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
+    row.search_engine_score_ms_run[1][1] = MzTabDouble(best_ph.getScore());
+
+    // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
+    for (Size j = 0; j != row.opt_.size(); ++j)
+    {
+      MzTabOptionalColumnEntry& opt_entry = row.opt_[j];
+
+      if (opt_entry.first == String("opt_global_modified_sequence"))
+      {
+        opt_entry.second = MzTabString(aas.toString());
+      }
+    }
+
+    // create and fill opt_ columns for psm (PeptideHit) user values
+    addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, String("global"), best_ph);
+
+    // remap the target/decoy column
+    remapTargetDecoy_(row.opt_);
+
+    return row;
   }
 
   boost::optional<MzTabPeptideSectionRow> MzTab::nextPeptideSectionRow_(
@@ -2992,6 +2963,69 @@ Not sure how to handle these:
  -      set<String> consensus_feature_user_value_keys;
  */
 
+  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map, set<String>& feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  {
+    for (Size i = 0; i < feature_map.size(); ++i)
+    {
+      const Feature& f = feature_map[i];
+      vector<String> keys;
+      f.getKeys(keys); //TODO: why not just return it?
+      for (String & s : keys)
+      {
+        s.substitute(' ', '_');
+      }
+
+      feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
+      for (PeptideIdentification const & pep_id : pep_ids)
+      {
+        for (PeptideHit const & hit : pep_id.getHits())
+        {
+          vector<String> ph_keys;
+          hit.getKeys(ph_keys);
+          for (String & s : ph_keys)
+          {
+            s.substitute(' ', '_');
+          }
+          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
+        }
+      }
+    }
+  }
+
+  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map, set<String>& consensus_feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  {
+    for (ConsensusFeature const & c : consensus_map)
+    {
+      vector<String> keys;
+      c.getKeys(keys);
+      for (String & s : keys)
+      {
+        s.substitute(' ', '_');
+      }
+
+      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
+      for (auto const & pep_id : curr_pep_ids)
+      {
+        for (auto const & hit : pep_id.getHits())
+        {
+          vector<String> ph_keys;
+          hit.getKeys(ph_keys);
+          for (String & s : ph_keys)
+          {
+            if (s.has(' '))
+            {
+              s.substitute(' ', '_');
+            }
+          }
+          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
+        }
+      }
+    }
+  }
 
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map,
@@ -3021,8 +3055,12 @@ Not sure how to handle these:
       for (const PeptideIdentification& pi : p) { pep_ids.push_back(&pi); }
     }
 
-    const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
-    for (const PeptideIdentification& pi : up) { pep_ids.push_back(&pi); }
+    // also export PSMs of unassigned peptide identifications
+    if (export_unassigned_ids)
+    {
+      const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
+      for (const PeptideIdentification& pi : up) { pep_ids.push_back(&pi); }
+    }
 
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
@@ -3032,20 +3070,10 @@ Not sure how to handle these:
 
     MzTab mztab;
 
-    if (export_unassigned_ids)
-    {
-      // export PSMs of assigned + unassigned peptide identifications
-      mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
+    // export PSMs of peptide identifications
+    mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
                                                map_run_fileidx_2_msfileidx,
                                                idrun_2_run_index, export_empty_pep_ids);
-    }
-    else
-    {
-      // only PSMs associated with a feature
-      mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
-                                               map_run_fileidx_2_msfileidx,
-                                               idrun_2_run_index, export_empty_pep_ids);
-    }
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
@@ -3185,43 +3213,13 @@ Not sure how to handle these:
 
     mztab.setMetaData(meta_data);
 
+
     // optional meta value columns
     // Pre-analyze data for re-occurring meta values at consensus feature and peptide hit level.
     // These are stored in optional columns.
     set<String> consensus_feature_user_value_keys;
-    set<String> peptide_hit_user_value_keys;
-    for (ConsensusFeature const & c : consensus_map)
-    {
-      vector<String> keys;
-      c.getKeys(keys);
-      for (String & s : keys)
-      {
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      }
-
-      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
-
-      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
-      for (auto const & pep_id : curr_pep_ids)
-      {
-        for (auto const & hit : pep_id.getHits())
-        {
-          vector<String> ph_keys;
-          hit.getKeys(ph_keys);
-          for (String & s : ph_keys)
-          {
-            if (s.has(' '))
-            {
-              s.substitute(' ', '_');
-            }
-          }
-          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
-        }
-      }
-    }
+    set<String> peptide_hit_user_value_keys;    
+    getConsensusMapMetaValues_(consensus_map, consensus_feature_user_value_keys, peptide_hit_user_value_keys);
 
     for (ConsensusFeature const & c : consensus_map)
     {
