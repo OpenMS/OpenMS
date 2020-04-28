@@ -47,6 +47,7 @@
 #include <functional>
 #include <numeric>
 
+
 using namespace std;
 
 namespace OpenMS
@@ -103,6 +104,7 @@ namespace OpenMS
     auto it = formula.begin();
     for (; it != formula.end(); ++it)
     {
+
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
       result.set(convolve_(result.getContainer(),
                            convolvePow_(tmp.getContainer(), it->second)));
@@ -119,6 +121,7 @@ namespace OpenMS
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeight(double average_weight)
   {
     // Element counts are from Senko's Averagine model
+
     return estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
@@ -256,8 +259,11 @@ namespace OpenMS
       for (SignedSize j = min<SignedSize>(r_max - i, right_l.size()) - 1; j >= 0; --j)
       {
         Peak1D& peak = result[i + j];
-        Peak1D::IntensityType p_intensity = peak.getIntensity();
-        peak.setIntensity( p_intensity + left_l[i].getIntensity() * right_l[j].getIntensity());
+        Peak1D::IntensityType p_intensity;
+        if(peak.getIntensity() < 1e-38) p_intensity = 0.0f;
+        else  p_intensity = peak.getIntensity();
+        if(left_l[i].getIntensity() < 1e-19 || right_l[j].getIntensity() < 1e-19) peak.setIntensity(p_intensity);
+        else peak.setIntensity(p_intensity + left_l[i].getIntensity() * right_l[j].getIntensity() );
       }
     }
     return result;
@@ -309,6 +315,7 @@ namespace OpenMS
       if (n & (Size(1) << i))
       {
         result = convolve_(result, convolution_power);
+
       }
       // check the loop condition
       if (i >= log2n)
@@ -343,7 +350,8 @@ namespace OpenMS
     {
       for (SignedSize j = min<SignedSize>(r_max - i, input.size()) - 1; j >= 0; --j)
       {
-        result[i + j].setIntensity( result[i + j].getIntensity() + input[i].getIntensity() * input[j].getIntensity());
+        if(input[i].getIntensity()<1e-19 || input[j].getIntensity()< 1e-19) result[i + j].setIntensity(result[i + j].getIntensity());
+        else result[i + j].setIntensity( result[i + j].getIntensity() + input[i].getIntensity() * input[j].getIntensity());
       }
     }
 
