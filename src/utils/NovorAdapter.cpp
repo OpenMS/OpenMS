@@ -258,7 +258,7 @@ protected:
         }
     };
     c->setSpectraProcessingFunc(f);
-    MzMLFile().transform(in, c);
+    MzMLFile().transform(in, c, true);
     delete c;
     ofs.close();
 

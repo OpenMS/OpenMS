@@ -785,7 +785,7 @@ protected:
 
         std::ofstream ofs;
         MascotGenericFile mgf;
-        int chunk_size(getIntOption_("chunk_size")); chunk_size++;
+        int chunk_size(getIntOption_("chunk_size"));
         int chunk(0);
         ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
         bool empty = true;
@@ -811,7 +811,7 @@ protected:
         };
         
         c->setSpectraProcessingFunc(f);
-        MzMLFile().transform(inputfile_name, c);
+        MzMLFile().transform(inputfile_name, c, true);
         ofs.close();
         delete c;
         if (empty) chunk--;
@@ -926,7 +926,7 @@ protected:
         }
         it->setHits(hits);
       }
-
+      std::cout << "nr proteins: " << protein_identification_chunk.getHits().size() << std::endl;
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
       // across chunks. So we only retain this information if there is a single chunk (no splitting occurred)
       if (file_spectra_chunks_in.size() == 1)
