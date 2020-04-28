@@ -1036,10 +1036,65 @@ public:
       const std::set<String>& peptide_hit_user_value_keys,
       const std::vector<String>& fixed_mods);
 
+    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromProteinHit_(
+      const ProteinHit& hit,
+      const MzTabString& db,
+      const MzTabString& db_version,
+      const std::set<String>& protein_hit_user_value_keys);
+
+    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromProteinGroup_(
+      const ProteinIdentification::ProteinGroup& group,
+      const MzTabString& db,
+      const MzTabString& db_version);
+
+    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromIndistinguishableGroup_(
+      const std::vector<ProteinHit>& protein_hits,
+      const ProteinIdentification::ProteinGroup& group,
+      const size_t g,
+      const std::map<Size, std::set<Size>>& ind2prot,
+      const MzTabString& db,
+      const MzTabString& db_version);
+
+    static void addMSRunMetaData_(
+      const std::vector<const ProteinIdentification*> prot_ids, 
+      bool skip_first_run,
+      MzTabMetaData& meta_data,
+      StringList& var_mods, 
+      StringList& fixed_mods,
+      std::map<String, size_t>& idrun_2_run_index,
+      std::map<String, size_t>& msfilename_2_msfileindex);
+
+    static size_t getQuantStudyVariables_(const ProteinIdentification& pid);
+
+    static MzTabParameter getProteinScoreType_(const ProteinIdentification& prot_id);
+
     // TODO: move to core classes?
     static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, std::set<String>& consensus_feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+
+    static void mapBetweenRunAndSearchEngines_(
+      const std::vector<const ProteinIdentification*>& prot_ids,
+      bool skip_first_run,
+      std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
+      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+      std::vector<std::pair<String, String>>& secondary_search_engines,
+      std::vector<std::vector<std::pair<String, String>>>& secondary_search_engines_settings);
+
+    static void addSearchMetaData_(
+      const ProteinIdentification& prot_id, 
+      const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
+      const std::vector<std::pair<String, String>>& secondary_search_engines, 
+      const std::vector<std::vector<std::pair<String, String>>>& secondary_search_engines_settings,
+      MzTabMetaData& meta_data,
+      MzTabString& db,
+      MzTabString& db_version);
+
+    static void mapRunFileIndex2MSFileIndex_(
+      const std::vector<const ProteinIdentification*>& prot_ids,
+      const std::map<String, size_t>& msfilename_2_msfileindex,
+      bool skip_first_run, 
+      std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx);
 
     /// Helper function for "get...OptionalColumnNames" functions
     template <typename SectionRows>

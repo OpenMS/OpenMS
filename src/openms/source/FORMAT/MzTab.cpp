@@ -2162,6 +2162,531 @@ namespace OpenMS
     return row;
   }
 
+  size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
+  {
+    size_t quant_study_variables(0);
+    for (auto & p : pid.getIndistinguishableProteins())
+    {
+      if (p.getFloatDataArrays().empty()
+        || p.getFloatDataArrays()[0].getName() != "abundances")
+      {
+        quant_study_variables = 0;
+        break;
+      }
+      quant_study_variables = p.getFloatDataArrays()[0].size();
+    }
+    return quant_study_variables; 
+  }
+
+  MzTabParameter MzTab::getProteinScoreType_(const ProteinIdentification& prot_id)
+  {
+    MzTabParameter protein_score_type;
+
+    bool has_inference_data = prot_id.hasInferenceData();
+
+    if (has_inference_data)
+    {
+      protein_score_type.fromCellString("[,," + prot_id.getInferenceEngine() + " " + prot_id.getScoreType() 
+         + "," + prot_id.getInferenceEngineVersion() + "]"); // TODO: check if we need one for every run (should not be redundant!)
+    }
+    else
+    {
+      // if there was no inference all proteins just come from PeptideIndexer which kind of does a one-peptide rule
+      // TODO actually: where are scores coming from in this case. Better to just not write any proteins IMHO
+      protein_score_type.fromCellString("[,,one-peptide-rule " + prot_id.getScoreType() + ",]");
+    }
+    return protein_score_type;    
+  }
+
+  void MzTab::mapRunFileIndex2MSFileIndex_(
+    const vector<const ProteinIdentification*>& prot_ids, 
+    const map<String, size_t>& msfilename_2_msfileindex,
+    bool skip_first_run, 
+    std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx)
+  {
+    //TODO the following assumes that every file occurs max. once in all runs
+    size_t run_index(0);
+    for (const auto& run : prot_ids)
+    {
+      // First entry might be the inference result without (single) associated ms_run. We skip it.
+      if (skip_first_run && run_index == 0)
+      {
+        run_index++;
+        continue;
+      }
+
+      StringList files;
+      run->getPrimaryMSRunPath(files);
+      if (!files.empty())
+      {
+        size_t file_index(0);
+        for (const String& file : files)
+        {
+          map_run_fileidx_2_msfileidx[{run_index,file_index}] = msfilename_2_msfileindex.at(file);
+          file_index++;
+        }
+      }
+      else
+      {
+        map_run_fileidx_2_msfileidx[{run_index,0}] = msfilename_2_msfileindex.at(String(run_index));
+      }
+      run_index++;
+    }
+  }
+
+  void MzTab::mapBetweenRunAndSearchEngines_(
+    const vector<const ProteinIdentification*>& prot_ids,
+    bool skip_first_run,
+    map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
+    map<Size, vector<pair<String, String>>>& run_to_search_engines,
+    vector<pair<String, String>>& secondary_search_engines,
+    vector<vector<pair<String, String>>>& secondary_search_engines_settings)
+  {
+    size_t run_index(0);
+    for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
+    {
+      // First entry might be the inference result without (single) associated ms_run. We skip it.
+      if (skip_first_run && it == prot_ids.cbegin())
+      {
+        run_index++;
+        continue;
+      }
+
+      size_t hit_index = std::distance(prot_ids.begin(), it);
+      const String &search_engine_name = prot_ids[hit_index]->getSearchEngine();
+      const String &search_engine_version = prot_ids[hit_index]->getSearchEngineVersion();
+      const String &search_engine_score_type = prot_ids[hit_index]->getScoreType();
+      search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
+      run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
+
+
+      vector<String> mvkeys;
+      const ProteinIdentification::SearchParameters& sp2 = prot_ids[hit_index]->getSearchParameters();
+      sp2.getKeys(mvkeys);
+      if (prot_ids[hit_index]->metaValueExists("percolator"))
+      {
+        secondary_search_engines.emplace_back(make_pair("Percolator", sp2.getMetaValue("percolator")));
+      }
+      for (const String & mvkey : mvkeys)
+      {
+        // currently only supported for SEs overwritten by PercolatorAdapter
+        // we also do not support different settings across runs but assume that they were run with the same settings
+        // and that these settings were taken over into the ones for PercolatorAdapter
+        if (mvkey.hasPrefix("SE:"))
+        {
+          secondary_search_engines.emplace_back(make_pair(mvkey.substr(3), sp2.getMetaValue(mvkey)));
+        }
+      }
+      secondary_search_engines_settings.resize(secondary_search_engines.size());
+      for (const String & mvkey : mvkeys)
+      {
+        for (size_t s = 0; s < secondary_search_engines.size(); ++s)
+        {
+          if (mvkey.hasPrefix(secondary_search_engines[s].first))
+          {
+            secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp2.getMetaValue(mvkey)));
+          }
+        }
+      }
+      ++run_index;
+    }
+  }
+
+
+  boost::optional<MzTabProteinSectionRow> MzTab::nextProteinSectionRowFromProteinHit_(
+    const ProteinHit& hit,
+    const MzTabString& db,
+    const MzTabString& db_version,
+    const set<String>& protein_hit_user_value_keys)
+  {
+    MzTabProteinSectionRow protein_row;
+    protein_row.accession = MzTabString(hit.getAccession());
+    protein_row.description = MzTabString(hit.getDescription());
+ // protein_row.taxid = hit.getTaxonomyID(); // TODO maybe add as meta value to protein hit NEWT taxonomy for the species.
+ // MzTabString species = hit.getSpecies(); // Human readable name of the species
+    protein_row.database = db; // Name of the protein database.
+    protein_row.database_version = db_version; // String Version of the protein database.
+    protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
+ // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+ // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+ // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+ // MzTabInteger reliability;
+ // std::map<Size, MzTabInteger> num_psms_ms_run;
+ // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
+ // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
+    MzTabModificationList modifications; // Modifications identified in the protein.
+    const std::set<pair<Size, ResidueModification>>& leader_mods = hit.getModifications();
+    for (auto const & m : leader_mods)
+    {
+      MzTabModification mztab_mod;
+      String unimod = m.second.getUniModAccession();
+      MzTabString unimod_accession = MzTabString(unimod.toUpper());
+      mztab_mod.setModificationIdentifier(unimod_accession);
+      vector<std::pair<Size, MzTabParameter> > pos;
+      pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
+      mztab_mod.setPositionsAndParameters(pos);
+    }
+    protein_row.modifications = modifications;
+
+ // MzTabString uri; // Location of the protein’s source entry.
+ // MzTabStringList go_terms; // List of GO terms for the protein.
+    double coverage = hit.getCoverage() / 100.0; // convert percent to fraction
+    protein_row.coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
+ // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+
+    // create and fill opt_ columns for protein hit user values
+    addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
+
+    // optional column for protein groups
+    MzTabOptionalColumnEntry opt_column_entry;
+    opt_column_entry.first = "opt_global_protein_group_type";
+    opt_column_entry.second = MzTabString("single_protein");
+    protein_row.opt_.push_back(opt_column_entry);
+
+    remapTargetDecoy_(protein_row.opt_);
+
+    return protein_row;
+  }
+
+  boost::optional<MzTabProteinSectionRow> MzTab::nextProteinSectionRowFromProteinGroup_(
+    const ProteinIdentification::ProteinGroup& group,
+    const MzTabString& db,
+    const MzTabString& db_version)
+  {
+    MzTabProteinSectionRow protein_row;
+    protein_row.database = db; // Name of the protein database.
+    protein_row.database_version = db_version; // String Version of the protein database.
+
+    MzTabStringList ambiguity_members;
+    ambiguity_members.setSeparator(',');
+    vector<MzTabString> entries;
+    for (Size j = 0; j != group.accessions.size() ; ++j)
+    {
+      // set accession and description to first element of group
+      if (j == 0)
+      {
+        protein_row.accession = MzTabString(group.accessions[j]);
+        // protein_row.description  // TODO: how to set description? information not contained in group
+      }
+      entries.emplace_back(MzTabString(group.accessions[j]));
+    }
+    ambiguity_members.set(entries);
+    protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
+    protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
+
+    protein_row.coverage = MzTabDouble();
+
+    MzTabOptionalColumnEntry opt_column_entry;
+    opt_column_entry.first = "opt_global_protein_group_type";
+    opt_column_entry.second = MzTabString("protein_group");
+    protein_row.opt_.push_back(opt_column_entry);
+
+    remapTargetDecoy_(protein_row.opt_);
+
+    return protein_row;
+  }
+
+  boost::optional<MzTabProteinSectionRow> MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
+    const std::vector<ProteinHit>& protein_hits,
+    const ProteinIdentification::ProteinGroup& group,
+    const size_t g,
+    const map<Size, set<Size>>& ind2prot,
+    const MzTabString& db,
+    const MzTabString& db_version)
+  {
+    MzTabProteinSectionRow protein_row;
+
+    // get references (indices) into proteins vector
+    const set<Size> & protein_hits_idx = ind2prot.at(g);
+
+    // determine group leader
+    const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
+
+    protein_row.database = db; // Name of the protein database.
+    protein_row.database_version = db_version; // String Version of the protein database.
+
+    // column: accession and ambiguity_members
+    MzTabStringList ambiguity_members;
+    ambiguity_members.setSeparator(',');
+    vector<MzTabString> entries;
+
+    // set accession and description to first element of group
+    protein_row.accession = MzTabString(leader_protein.getAccession());
+
+    // TODO: check with standard if it is important to also place leader at first position
+    //       (because order in set and vector may differ)
+    for (Size j = 0; j != group.accessions.size() ; ++j)
+    {
+      entries.emplace_back(MzTabString(group.accessions[j]));
+    }
+    ambiguity_members.set(entries);
+    protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
+
+    // annotate if group contains only one or multiple proteins
+    MzTabOptionalColumnEntry opt_column_entry;
+    opt_column_entry.first = "opt_global_protein_group_type";
+
+    // TODO: we could count the number of targets or set it to target if at least one target is inside the group
+    // we will always call them "indistinguishable_proteins" to differentiate between e.g.
+    // protein scores based on grouping or on single proteins
+    opt_column_entry.second = MzTabString("indistinguishable_proteins");
+    protein_row.opt_.push_back(opt_column_entry);
+
+    // column: coverage
+    // calculate mean coverage from individual protein coverages
+    double coverage{0};
+    for (const Size & prot_idx : protein_hits_idx)
+    {
+      coverage += (1.0 / (double)protein_hits_idx.size()) * 0.01 * protein_hits[prot_idx].getCoverage();
+    }
+    if (coverage >= 0) { protein_row.coverage = MzTabDouble(coverage); }
+
+    // Store quantitative value attached to abundances in study variables
+    if (group.getFloatDataArrays().size() == 1
+      && group.getFloatDataArrays()[0].getName() == "abundances")
+    {
+      const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];
+      Size s(1);
+      for (float f : fa)
+      {
+        protein_row.protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
+        protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
+        protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
+        protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
+        ++s;
+      }
+    }
+
+    // add protein description of first (leader) protein
+    protein_row.description = MzTabString(leader_protein.getDescription());
+    protein_row.taxid = (leader_protein.metaValueExists("TaxID")) ?
+      MzTabInteger(static_cast<int>(leader_protein.getMetaValue("TaxID"))) :
+      MzTabInteger();
+
+    protein_row.species = (leader_protein.metaValueExists("Species")) ?
+      MzTabString(leader_protein.getMetaValue("Species")) :
+      MzTabString();
+
+    protein_row.uri = (leader_protein.metaValueExists("URI")) ?
+      MzTabString(leader_protein.getMetaValue("URI")) :
+      MzTabString();
+
+    if (leader_protein.metaValueExists("GO"))
+    {
+      StringList sl = leader_protein.getMetaValue("GO");
+      String s{};
+      s.concatenate(sl.begin(), sl.end(), ",");
+      protein_row.go_terms.fromCellString(s);
+    }
+
+    protein_row.best_search_engine_score[1] = MzTabDouble(group.probability); // TODO: group probability or search engine score?
+
+    protein_row.reliability = MzTabInteger();
+
+    MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+    protein_row.search_engine = search_engine;
+
+    MzTabModificationList modifications; // Modifications identified in the protein.
+    const std::set<pair<Size, ResidueModification>>& leader_mods = leader_protein.getModifications();
+    for (auto const & m : leader_mods)
+    {
+      MzTabModification mztab_mod;
+      String unimod = m.second.getUniModAccession();
+      MzTabString unimod_accession = MzTabString(unimod.toUpper());
+      mztab_mod.setModificationIdentifier(unimod_accession);
+      vector<std::pair<Size, MzTabParameter> > pos;
+
+      // mzTab position is one-based, internal is 0-based so we need to +1
+      pos.emplace_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
+      mztab_mod.setPositionsAndParameters(pos);
+      vector<MzTabModification> mztab_mods(1, mztab_mod);
+      modifications.set(mztab_mods);
+    }
+    protein_row.modifications = modifications;
+
+    if (leader_protein.metaValueExists("num_psms_ms_run"))
+    {
+      const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
+      for (Size ili = 0; ili != il.size(); ++ili)
+      {
+        protein_row.num_psms_ms_run[ili+1] = MzTabInteger(il[ili]);
+      }
+    }
+
+    if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
+    {
+      const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+      for (Size ili = 0; ili != il.size(); ++ili)
+      {
+        protein_row.num_peptides_distinct_ms_run[ili+1] = MzTabInteger(il[ili]);
+      }
+    }
+
+    if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
+    {
+      const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
+      for (Size ili = 0; ili != il.size(); ++ili)
+      {
+        protein_row.num_peptides_unique_ms_run[ili+1] = MzTabInteger(il[ili]);
+      }
+    }
+
+/*
+TODO:
+Not sure how to handle these:
+       // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+       // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+*/
+
+    remapTargetDecoy_(protein_row.opt_);
+
+    // Add protein(group) row to MzTab
+    return protein_row;
+  }
+
+  void MzTab::addMSRunMetaData_(
+    const vector<const ProteinIdentification*> prot_ids, 
+    bool skip_first_run, 
+    MzTabMetaData& meta_data,
+    StringList& var_mods, 
+    StringList& fixed_mods, 
+    std::map<String, size_t>& idrun_2_run_index,
+    map<String, size_t>& msfilename_2_msfileindex)
+  {
+    // collect variable and fixed modifications plus file origins from different runs
+    size_t current_ms_run_index(1);
+    size_t current_idrun_index(0);
+    bool first = true;
+    for (auto const & pid : prot_ids)
+    {
+      if (skip_first_run && first)
+      {
+        first = false;
+        current_idrun_index++;
+        continue;
+      }
+      idrun_2_run_index[pid->getIdentifier()] = current_idrun_index;
+      const ProteinIdentification::SearchParameters & sp = pid->getSearchParameters();
+      var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
+      fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
+
+      StringList ms_run_in_data;
+      pid->getPrimaryMSRunPath(ms_run_in_data);
+
+      if (!ms_run_in_data.empty())
+      {
+        // prepend file:// if not there yet
+        for (const String& s : ms_run_in_data)
+        {
+          String m;
+          if (!s.hasPrefix("file://"))
+          {
+             m = String("file://") + s;
+          }
+          else
+          {
+             m = s;
+          }
+          // use the string without file: prefix for the map
+          const auto& msfileidxpair_success = msfilename_2_msfileindex.emplace(s, current_ms_run_index);
+          if (msfileidxpair_success.second) // newly inserted
+          {
+            MzTabMSRunMetaData ms_run;
+            ms_run.location = MzTabString(m); // use the string with file: prefix
+            meta_data.ms_run[current_ms_run_index] = ms_run;
+            current_ms_run_index++;
+          }
+        }
+      }
+      else
+      {
+        MzTabMSRunMetaData ms_run;
+        ms_run.location = MzTabString("null");
+        // next line is a hack. In case we would ever have some idXML where some runs are annotated
+        // and others are not. If a run is not annotated use its index as a String key.
+        msfilename_2_msfileindex.emplace(String(current_idrun_index), current_ms_run_index);
+        meta_data.ms_run[current_ms_run_index] = ms_run;
+        current_ms_run_index++;
+      }
+      current_idrun_index++;
+    }
+
+    // make mods unique
+    std::sort(var_mods.begin(), var_mods.end());
+    auto v_it = std::unique(var_mods.begin(), var_mods.end());
+    var_mods.resize(std::distance(var_mods.begin(), v_it));
+    std::sort(fixed_mods.begin(), fixed_mods.end());
+    auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end());
+    fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
+  }
+
+  void MzTab::addSearchMetaData_(
+    const ProteinIdentification& prot_id, 
+    const map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
+    const vector<pair<String, String>>& secondary_search_engines, 
+    const vector<vector<pair<String, String>>>& secondary_search_engines_settings,
+    MzTabMetaData& meta_data,
+    MzTabString& db,
+    MzTabString& db_version)
+  {
+    // TODO: check if standard should provide run level info
+    const ProteinIdentification::SearchParameters & sp = prot_id.getSearchParameters();
+    db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
+    db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
+    //The following "rescoring" algorithms will overwrite search engine names and scores but not the settings.
+    // Settings and old searchengines should then be stored in the ProteinIDRun in Metavalues (see PercolatorAdapter)
+    // They are parsed later as "secondary search engines".
+    if (prot_id.getSearchEngine() != "Percolator" && prot_id.getSearchEngine() != "IDPosteriorErrorProbability")
+    {
+      MzTabSoftwareMetaData sesoftwaremd;
+      MzTabParameter sesoftware;
+      sesoftware.fromCellString("[,," + prot_id.getSearchEngine() + "," + prot_id.getSearchEngineVersion() + "]");
+      sesoftwaremd.software = sesoftware;
+      sesoftwaremd.setting[1] = sp.db.empty() ? MzTabString() : MzTabString("db:"+sp.db);
+      sesoftwaremd.setting[2] = sp.db_version.empty() ? MzTabString() : MzTabString("db_version:" + sp.db_version);
+      sesoftwaremd.setting[3] = sp.taxonomy.empty() ? MzTabString() : MzTabString("taxonomy:" + sp.taxonomy);
+      sesoftwaremd.setting[4] = MzTabString("fragment_mass_tolerance:" + String(sp.fragment_mass_tolerance));
+      sesoftwaremd.setting[5] = MzTabString("fragment_mass_tolerance_unit:" + String(sp.fragment_mass_tolerance_ppm ? "ppm" : "Da"));
+      sesoftwaremd.setting[6] = MzTabString("precursor_mass_tolerance:"+String(sp.precursor_mass_tolerance));
+      sesoftwaremd.setting[7] = MzTabString("precursor_mass_tolerance_unit:" + String(sp.precursor_mass_tolerance_ppm ? "ppm" : "Da"));
+      sesoftwaremd.setting[8] = MzTabString(String("enzyme:") + sp.digestion_enzyme.getName());
+      meta_data.software[1] = sesoftwaremd;
+    }
+
+    //TODO make software a list?? super weird to fill it like this.
+    Size sw_idx(meta_data.software.size()+1); //+1 since we always start with 1 anyway.
+    Size cnt(0);
+    for (auto const & se : secondary_search_engines)
+    {
+      MzTabSoftwareMetaData sesoftwaremd;
+      MzTabParameter sesoftware;
+      sesoftware.fromCellString("[,," + se.first + "," + se.second + "]");
+      sesoftwaremd.software = sesoftware;
+      Size cnt2(1);
+      for (auto const & sesetting : secondary_search_engines_settings[cnt])
+      {
+        sesoftwaremd.setting[cnt2] = MzTabString(sesetting.first + ":" + sesetting.second);
+        cnt2++;
+      }
+      meta_data.software[sw_idx] = sesoftwaremd;
+      sw_idx++;
+      cnt++;
+    }
+
+    //TODO actually we would need to go through all MetaValues in the PeptideHits to get all scores.
+    // and also: Why do we go through all runs here, while above for the search engine settings we only take the first.
+    // nonsense.
+    Size psm_search_engine_index(1);
+    for (auto const & se : search_engine_to_runs) // loop over (unique) search engine names
+    {
+      MzTabParameter psm_score_type;
+      const tuple<String, String, String>& name_version_score = se.first;
+      psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
+      meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
+      meta_data.peptide_search_engine_score[psm_search_engine_index] = psm_score_type; // same score type for peptides
+      psm_search_engine_index++;
+    }
+  }
 
   MzTab MzTab::exportIdentificationsToMzTab(
     const vector<const ProteinIdentification*>& prot_ids,
@@ -2176,7 +2701,6 @@ namespace OpenMS
 
     MzTab mztab;
     MzTabMetaData meta_data;
-    vector<String> var_mods, fixed_mods;
     MzTabString db, db_version;
 
     // search engine and version -> MS runs index
@@ -2192,7 +2716,14 @@ namespace OpenMS
     // helper to map between peptide identifications and MS run
 
     // used to report quantitative study variables
-    Size quant_study_variables(0);
+    Size quant_study_variables(0); 
+
+    vector<String> var_mods, fixed_mods;
+
+    // fill sensible defaults that might be overwritten 
+    meta_data.mz_tab_type = MzTabString("Identification"); // overwritten if quant data is available
+    meta_data.mz_tab_mode = MzTabString("Summary");
+    meta_data.description = MzTabString("OpenMS export from idXML");
 
     if (!prot_ids.empty())
     {
@@ -2201,15 +2732,16 @@ namespace OpenMS
       // TODO: we currently assume groups are only in the first run, if at all
       //  if we add a field to an ProtIDRun to specify to which condition it belongs,
       //  a vector of ProtIDRuns can potentially hold multiple groupings with quants
-      for (auto & p : prot_ids[0]->getIndistinguishableProteins())
+      quant_study_variables = getQuantStudyVariables_(*prot_ids[0]);
+
+      // mandatory meta values
+      if (quant_study_variables == 0)
       {
-        if (p.getFloatDataArrays().empty()
-          || p.getFloatDataArrays()[0].getName() != "abundances")
-        {
-          quant_study_variables = 0;
-          break;
-        }
-        quant_study_variables = p.getFloatDataArrays()[0].size();
+        meta_data.mz_tab_type = MzTabString("Identification");
+      }
+      else
+      {
+        meta_data.mz_tab_type = MzTabString("Quantification");
       }
 
       // TODO: use a different identifier to determine if it is inference data (check other places!)
@@ -2220,240 +2752,40 @@ namespace OpenMS
         OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
       }
 
-      MzTabParameter protein_score_type;
-      if (has_inference_data)
-      {
-        protein_score_type.fromCellString("[,," + prot_ids[0]->getInferenceEngine() + " " + prot_ids[0]->getScoreType() 
-           + "," + prot_ids[0]->getInferenceEngineVersion() + "]"); // TODO: check if we need one for every run (should not be redundant!)
-      }
-      else
-      {
-        // if there was no inference all proteins just come from PeptideIndexer which kind of does a one-peptide rule
-        // TODO actually: where are scores coming from in this case. Better to just not write any proteins IMHO
-        protein_score_type.fromCellString("[,,one-peptide-rule " + prot_ids[0]->getScoreType() + ",]");
-      }
-      meta_data.protein_search_engine_score[1] = protein_score_type;
+      meta_data.protein_search_engine_score[1] = getProteinScoreType_(*prot_ids[0]);
       // TODO what if not only the first run has inference data?
       //  then we need to cluster like with the peptide search engines.
 
-      // maps the filenames in the runs to the MSRun index in the metadata section
-      //TODO I think this is a temporary map and could be freed after usage
-      map<String, size_t> msfilename_2_msfileindex;
+      // add filenames to the MSRuns in the metadata section and collect modifications
+      map<String, size_t> msfilename_2_msfileindex; // TODO: check if mapping could be done in other helper
+      MzTab::addMSRunMetaData_(prot_ids, skip_first_run, meta_data, var_mods, fixed_mods, idrun_2_run_index, msfilename_2_msfileindex);
 
+      // Determine search engines used in the different MS runs.
+      MzTab::mapBetweenRunAndSearchEngines_(
+        prot_ids,
+        skip_first_run,
+        search_engine_to_runs,
+        run_to_search_engines,
+        secondary_search_engines,
+        secondary_search_engines_settings);
 
-      // collect variable and fixed modifications plus file origins from different runs
-      size_t current_ms_run_index(1);
-      size_t current_idrun_index(0);
-      bool first = true;
-      for (auto const & pid : prot_ids)
-      {
-        if (skip_first_run && first)
-        {
-          first = false;
-          current_idrun_index++;
-          continue;
-        }
-        idrun_2_run_index[pid->getIdentifier()] = current_idrun_index;
-        const ProteinIdentification::SearchParameters & sp = pid->getSearchParameters();
-        var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
-        fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
+      // add search settings to software meta data
+      MzTab::addSearchMetaData_(
+        *prot_ids[0], 
+        search_engine_to_runs, 
+        secondary_search_engines, 
+        secondary_search_engines_settings,
+        meta_data, 
+        db, 
+        db_version);
 
-
-        StringList ms_run_in_data;
-        pid->getPrimaryMSRunPath(ms_run_in_data);
-
-        if (!ms_run_in_data.empty())
-        {
-          // prepend file:// if not there yet
-          for (const String& s : ms_run_in_data)
-          {
-
-            String m;
-            if (!s.hasPrefix("file://"))
-            {
-               m = String("file://") + s;
-            }
-            else
-            {
-               m = s;
-            }
-            // use the string without file: prefix for the map
-            const auto& msfileidxpair_success = msfilename_2_msfileindex.emplace(s, current_ms_run_index);
-            if (msfileidxpair_success.second) // newly inserted
-            {
-              MzTabMSRunMetaData ms_run;
-              ms_run.location = MzTabString(m); // use the string with file: prefix
-              meta_data.ms_run[current_ms_run_index] = ms_run;
-              current_ms_run_index++;
-            }
-          }
-        }
-        else
-        {
-          MzTabMSRunMetaData ms_run;
-          ms_run.location = MzTabString("null");
-          // next line is a hack. In case we would ever have some idXML where some runs are annotated
-          // and others are not. If a run is not annotated use its index as a String key.
-          msfilename_2_msfileindex.emplace(String(current_idrun_index), current_ms_run_index);
-          meta_data.ms_run[current_ms_run_index] = ms_run;
-          current_ms_run_index++;
-        }
-        current_idrun_index++;
-      }
-
-      // make mods unique
-      std::sort(var_mods.begin(), var_mods.end());
-      auto v_it = std::unique(var_mods.begin(), var_mods.end());
-      var_mods.resize(std::distance(var_mods.begin(), v_it));
-      std::sort(fixed_mods.begin(), fixed_mods.end());
-      auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end());
-      fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
-
-      // TODO: check if standard should provide run level info
-      const ProteinIdentification::SearchParameters & sp = prot_ids[0]->getSearchParameters();
-      db = sp.db.empty() ? MzTabString() : MzTabString(prot_ids[0]->getSearchParameters().db);
-      db_version = sp.db_version.empty() ? MzTabString() : MzTabString(prot_ids[0]->getSearchParameters().db_version);
-      //The following "rescoring" algorithms will overwrite search engine names and scores but not the settings.
-      // Settings and old searchengines should then be stored in the ProteinIDRun in Metavalues (see PercolatorAdapter)
-      // They are parsed later as "secondary search engines".
-      if (prot_ids[0]->getSearchEngine() != "Percolator" && prot_ids[0]->getSearchEngine() != "IDPosteriorErrorProbability")
-      {
-        MzTabSoftwareMetaData sesoftwaremd;
-        MzTabParameter sesoftware;
-        sesoftware.fromCellString("[,," + prot_ids[0]->getSearchEngine() + "," + prot_ids[0]->getSearchEngineVersion() + "]");
-        sesoftwaremd.software = sesoftware;
-        sesoftwaremd.setting[1] = sp.db.empty() ? MzTabString() : MzTabString("db:"+sp.db);
-        sesoftwaremd.setting[2] = sp.db_version.empty() ? MzTabString() : MzTabString("db_version:"+sp.db_version);
-        sesoftwaremd.setting[3] = sp.taxonomy.empty() ? MzTabString() : MzTabString("taxonomy:"+sp.taxonomy);
-        sesoftwaremd.setting[4] = MzTabString("fragment_mass_tolerance:"+String(sp.fragment_mass_tolerance));
-        sesoftwaremd.setting[5] = MzTabString("fragment_mass_tolerance_unit:" + String(sp.fragment_mass_tolerance_ppm ? "ppm" : "Da"));
-        sesoftwaremd.setting[6] = MzTabString("precursor_mass_tolerance:"+String(sp.precursor_mass_tolerance));
-        sesoftwaremd.setting[7] = MzTabString("precursor_mass_tolerance_unit:" + String(sp.precursor_mass_tolerance_ppm ? "ppm" : "Da"));
-        sesoftwaremd.setting[8] = MzTabString(String("enzyme:") + sp.digestion_enzyme.getName());
-        meta_data.software[1] = sesoftwaremd;
-      }
+      // trim db name for rows (full name already stored in meta data)
+      db = MzTabString(File::removeExtension(File::basename(db.toCellString())));
 
       // MS runs of a peptide identification object is stored in
       // the protein identification object with the same "identifier".
       // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-      // TODO: move to method
-      {
-
-        //TODO the following assumes that every file occurs max. once in all runs
-        size_t run_index(0);
-        for (const auto& run : prot_ids)
-        {
-          // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (skip_first_run && run_index == 0)
-          {
-            run_index++;
-            continue;
-          }
-
-          StringList files;
-          run->getPrimaryMSRunPath(files);
-          if (!files.empty())
-          {
-            size_t file_index(0);
-            for (const String& file : files)
-            {
-              map_run_fileidx_2_msfileidx[{run_index,file_index}] = msfilename_2_msfileindex[file];
-              file_index++;
-            }
-          }
-          else
-          {
-            map_run_fileidx_2_msfileidx[{run_index,0}] = msfilename_2_msfileindex[String(run_index)];
-          }
-          run_index++;
-        }
-      }
-
-      // Determine search engines used in the different MS runs. TODO: move to method
-      {
-        size_t run_index(0);
-        for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
-        {
-          // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (skip_first_run && it == prot_ids.cbegin())
-          {
-            run_index++;
-            continue;
-          }
-
-          size_t hit_index = std::distance(prot_ids.begin(), it);
-          const String &search_engine_name = prot_ids[hit_index]->getSearchEngine();
-          const String &search_engine_version = prot_ids[hit_index]->getSearchEngineVersion();
-          const String &search_engine_score_type = prot_ids[hit_index]->getScoreType();
-          search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
-          run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
-
-
-          vector<String> mvkeys;
-          const ProteinIdentification::SearchParameters& sp2 = prot_ids[hit_index]->getSearchParameters();
-          sp2.getKeys(mvkeys);
-          if (prot_ids[hit_index]->metaValueExists("percolator"))
-          {
-            secondary_search_engines.emplace_back(make_pair("Percolator", sp2.getMetaValue("percolator")));
-          }
-          for (const String & mvkey : mvkeys)
-          {
-            // currently only supported for SEs overwritten by PercolatorAdapter
-            // we also do not support different settings across runs but assume that they were run with the same settings
-            // and that these settings were taken over into the ones for PercolatorAdapter
-            if (mvkey.hasPrefix("SE:"))
-            {
-              secondary_search_engines.emplace_back(make_pair(mvkey.substr(3), sp2.getMetaValue(mvkey)));
-            }
-          }
-          secondary_search_engines_settings.resize(secondary_search_engines.size());
-          for (const String & mvkey : mvkeys)
-          {
-            for (size_t s = 0; s < secondary_search_engines.size(); ++s)
-            {
-              if (mvkey.hasPrefix(secondary_search_engines[s].first))
-              {
-                secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp2.getMetaValue(mvkey)));
-              }
-            }
-          }
-          ++run_index;
-        }
-      }
-
-      //TODO make software a list?? super weird to fill it like this.
-      Size sw_idx(meta_data.software.size()+1); //+1 since we always start with 1 anyway.
-      Size cnt(0);
-      for (auto const & se : secondary_search_engines)
-      {
-        MzTabSoftwareMetaData sesoftwaremd;
-        MzTabParameter sesoftware;
-        sesoftware.fromCellString("[,," + se.first + "," + se.second + "]");
-        sesoftwaremd.software = sesoftware;
-        Size cnt2(1);
-        for (auto const & sesetting : secondary_search_engines_settings[cnt])
-        {
-          sesoftwaremd.setting[cnt2] = MzTabString(sesetting.first + ":" + sesetting.second);
-          cnt2++;
-        }
-        meta_data.software[sw_idx] = sesoftwaremd;
-        sw_idx++;
-        cnt++;
-      }
-
-      //TODO actually we would need to go through all MetaValues in the PeptideHits to get all scores.
-      // and also: Why do we go through all runs here, while above for the search engine settings we only take the first.
-      // nonsense.
-      Size psm_search_engine_index(1);
-      for (auto const & se : search_engine_to_runs) // loop over (unique) search engine names
-      {
-        MzTabParameter psm_score_type;
-        const tuple<String, String, String>& name_version_score = se.first;
-        psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
-        meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
-        meta_data.peptide_search_engine_score[psm_search_engine_index] = psm_score_type; // same score type for peptides
-        psm_search_engine_index++;
-      }
+      MzTab::mapRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msfileindex, skip_first_run, map_run_fileidx_2_msfileidx);
 
       // map (indist.)protein groups to their protein hits (by index).
       map<Size, set<Size>> ind2prot; // indistinguishable protein groups
@@ -2463,6 +2795,7 @@ namespace OpenMS
 
       // map indistinguishable groups to the contained proteins
       const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = prot_ids.front()->getIndistinguishableProteins();
+
       Size ind_idx{0};
       for (const ProteinIdentification::ProteinGroup & p : indist_groups)
       {
@@ -2521,15 +2854,8 @@ namespace OpenMS
           set<String> tmp_protein_hit_user_value_keys;
           for (String s : protein_hit_user_value_keys)
           {
-            if (s.has(' '))
-            {
-              s.substitute(' ', '_');
-              tmp_protein_hit_user_value_keys.insert(std::move(s));
-            }
-            else
-            {
-              tmp_protein_hit_user_value_keys.insert(std::move(s));
-            }
+            s.substitute(' ', '_');
+            tmp_protein_hit_user_value_keys.insert(std::move(s));
           }
           swap(protein_hit_user_value_keys, tmp_protein_hit_user_value_keys);
         }
@@ -2551,279 +2877,62 @@ namespace OpenMS
         * indist_groups define the indistinguishable groups and reference proteins in protein_hits
         * protein_groups define general protein groups and reference proteins in protein_hits
         */
-       if (!skip_first_run)
-       {
-
-        for (Size i = 0; i != protein_hits.size(); ++i)
+        if (!skip_first_run)
         {
-          const ProteinHit& hit = protein_hits[i];
 
-          MzTabProteinSectionRow protein_row;
+         for (Size i = 0; i != protein_hits.size(); ++i)
+         {
+           const ProteinHit& hit = protein_hits[i];
+           auto protein_row = nextProteinSectionRowFromProteinHit_(
+             hit,
+             db,
+             db_version,
+             protein_hit_user_value_keys);
+           if (protein_row)
+           {
+             mztab.getProteinSectionRows().emplace_back(protein_row.value());
+           }
+         }
 
-          protein_row.accession = MzTabString(hit.getAccession());
-          protein_row.description = MzTabString(hit.getDescription());
-       // protein_row.taxid = hit.getTaxonomyID(); // TODO maybe add as meta value to protein hit NEWT taxonomy for the species.
-       // MzTabString species = hit.getSpecies(); // Human readable name of the species
-          protein_row.database = db; // Name of the protein database.
-          protein_row.database_version = db_version; // String Version of the protein database.
-          protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
-       // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-       // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-       // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-       // MzTabInteger reliability;
-       // std::map<Size, MzTabInteger> num_psms_ms_run;
-       // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
-       // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-          MzTabModificationList modifications; // Modifications identified in the protein.
-          const std::set<pair<Size, ResidueModification>>& leader_mods = hit.getModifications();
-          for (auto const & m : leader_mods)
-          {
-            MzTabModification mztab_mod;
-            String unimod = m.second.getUniModAccession();
-            MzTabString unimod_accession = MzTabString(unimod.toUpper());
-            mztab_mod.setModificationIdentifier(unimod_accession);
-            vector<std::pair<Size, MzTabParameter> > pos;
-            pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
-            mztab_mod.setPositionsAndParameters(pos);
-          }
-          protein_row.modifications = modifications;
-
-       // MzTabString uri; // Location of the protein’s source entry.
-       // MzTabStringList go_terms; // List of GO terms for the protein.
-          double coverage = hit.getCoverage() / 100.0; // convert percent to fraction
-          protein_row.coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
-       // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-
-          // create and fill opt_ columns for protein hit user values
-          addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
-
-          // optional column for protein groups
-          MzTabOptionalColumnEntry opt_column_entry;
-          opt_column_entry.first = "opt_global_protein_group_type";
-          opt_column_entry.second = MzTabString("single_protein");
-          protein_row.opt_.push_back(opt_column_entry);
-
-          remapTargetDecoy_(protein_row.opt_);
-
-          // Add protein(group) row to MzTab
-          mztab.getProteinSectionRows().emplace_back(protein_row);
+         /////////////////////////////////////////////////////////////
+         // reporting of general protein groups (not supported for quant data)
+         for (Size i = 0; i != protein_groups2.size(); ++i)
+         {
+           const ProteinIdentification::ProteinGroup& group = protein_groups2[i];
+           auto protein_row = nextProteinSectionRowFromProteinGroup_(
+             group,
+             db,
+             db_version);
+           if (protein_row)
+           {
+             mztab.getProteinSectionRows().emplace_back(protein_row.value());
+           }
+         }
         }
-
-        /////////////////////////////////////////////////////////////
-        // reporting of general protein groups (not supported for quant data)
-        for (Size i = 0; i != protein_groups2.size(); ++i)
-        {
-          const ProteinIdentification::ProteinGroup& group = protein_groups2[i];
-          MzTabProteinSectionRow protein_row;
-          protein_row.database = db; // Name of the protein database.
-          protein_row.database_version = db_version; // String Version of the protein database.
-
-          MzTabStringList ambiguity_members;
-          ambiguity_members.setSeparator(',');
-          vector<MzTabString> entries;
-          for (Size j = 0; j != group.accessions.size() ; ++j)
-          {
-            // set accession and description to first element of group
-            if (j == 0)
-            {
-              protein_row.accession = MzTabString(group.accessions[j]);
-              // protein_row.description  // TODO: how to set description? information not contained in group
-            }
-            entries.emplace_back(MzTabString(group.accessions[j]));
-          }
-          ambiguity_members.set(entries);
-          protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
-          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
-
-          protein_row.coverage = MzTabDouble();
-
-          MzTabOptionalColumnEntry opt_column_entry;
-          opt_column_entry.first = "opt_global_protein_group_type";
-          opt_column_entry.second = MzTabString("protein_group");
-          protein_row.opt_.push_back(opt_column_entry);
-
-          remapTargetDecoy_(protein_row.opt_);
-
-          // Add protein(group) row to MzTab
-          mztab.getProteinSectionRows().emplace_back(protein_row);
-        }
-       }
 
         /////////////////////////////////////////////////////////////
         // reporting of protein groups composed of indistinguishable proteins
         for (Size g = 0; g != indist_groups2.size(); ++g)
         {
           const ProteinIdentification::ProteinGroup& group = indist_groups2[g];
-
-          // get references (indices) into proteins vector
-          const set<Size> & protein_hits_idx = ind2prot[g];
-
-          // determine group leader
-          const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
-
-          MzTabProteinSectionRow protein_row;
-          protein_row.database = db; // Name of the protein database.
-          protein_row.database_version = db_version; // String Version of the protein database.
-
-          // column: accession and ambiguity_members
-          MzTabStringList ambiguity_members;
-          ambiguity_members.setSeparator(',');
-          vector<MzTabString> entries;
-
-          // set accession and description to first element of group
-          protein_row.accession = MzTabString(leader_protein.getAccession());
-
-          // TODO: check with standard if it is important to also place leader at first position
-          //       (because order in set and vector may differ)
-          for (Size j = 0; j != group.accessions.size() ; ++j)
+          auto protein_row = nextProteinSectionRowFromIndistinguishableGroup_(
+            protein_hits,
+            group,
+            g,
+            ind2prot,
+            db,
+            db_version);
+          if (protein_row)
           {
-            entries.emplace_back(MzTabString(group.accessions[j]));
+            mztab.getProteinSectionRows().emplace_back(protein_row.value());
           }
-          ambiguity_members.set(entries);
-          protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
-
-          // annotate if group contains only one or multiple proteins
-          MzTabOptionalColumnEntry opt_column_entry;
-          opt_column_entry.first = "opt_global_protein_group_type";
-
-          // TODO: we could count the number of targets or set it to target if at least one target is inside the group
-          // we will always call them "indistinguishable_proteins" to differentiate between e.g.
-          // protein scores based on grouping or on single proteins
-          opt_column_entry.second = MzTabString("indistinguishable_proteins");
-          protein_row.opt_.push_back(opt_column_entry);
-
-          // column: coverage
-          // calculate mean coverage from individual protein coverages
-          double coverage{0};
-          for (const Size & prot_idx : protein_hits_idx)
-          {
-            coverage += (1.0 / (double)protein_hits_idx.size()) * 0.01 * protein_hits[prot_idx].getCoverage();
-          }
-          if (coverage >= 0) { protein_row.coverage = MzTabDouble(coverage); }
-
-          // Store quantitative value attached to abundances in study variables
-          if (group.getFloatDataArrays().size() == 1
-            && group.getFloatDataArrays()[0].getName() == "abundances")
-          {
-            const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];
-            Size s(1);
-            for (float f : fa)
-            {
-              protein_row.protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
-              protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
-              protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
-              protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
-              ++s;
-            }
-          }
-
-          // add protein description of first (leader) protein
-          protein_row.description = MzTabString(leader_protein.getDescription());
-          protein_row.taxid = (leader_protein.metaValueExists("TaxID")) ?
-            MzTabInteger(static_cast<int>(leader_protein.getMetaValue("TaxID"))) :
-            MzTabInteger();
-
-          protein_row.species = (leader_protein.metaValueExists("Species")) ?
-            MzTabString(leader_protein.getMetaValue("Species")) :
-            MzTabString();
-
-          protein_row.uri = (leader_protein.metaValueExists("URI")) ?
-            MzTabString(leader_protein.getMetaValue("URI")) :
-            MzTabString();
-
-          if (leader_protein.metaValueExists("GO"))
-          {
-            StringList sl = leader_protein.getMetaValue("GO");
-            String s{};
-            s.concatenate(sl.begin(), sl.end(), ",");
-            protein_row.go_terms.fromCellString(s);
-          }
-
-          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability); // TODO: group probability or search engine score?
-
-          protein_row.reliability = MzTabInteger();
-
-          MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-          protein_row.search_engine = search_engine;
-
-          MzTabModificationList modifications; // Modifications identified in the protein.
-          const std::set<pair<Size, ResidueModification>>& leader_mods = leader_protein.getModifications();
-          for (auto const & m : leader_mods)
-          {
-            MzTabModification mztab_mod;
-            String unimod = m.second.getUniModAccession();
-            MzTabString unimod_accession = MzTabString(unimod.toUpper());
-            mztab_mod.setModificationIdentifier(unimod_accession);
-            vector<std::pair<Size, MzTabParameter> > pos;
-
-            // mzTab position is one-based, internal is 0-based so we need to +1
-            pos.emplace_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
-            mztab_mod.setPositionsAndParameters(pos);
-            vector<MzTabModification> mztab_mods(1, mztab_mod);
-            modifications.set(mztab_mods);
-          }
-          protein_row.modifications = modifications;
-
-          if (leader_protein.metaValueExists("num_psms_ms_run"))
-          {
-            const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
-            for (Size ili = 0; ili != il.size(); ++ili)
-            {
-              protein_row.num_psms_ms_run[ili+1] = MzTabInteger(il[ili]);
-            }
-          }
-
-          if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
-          {
-            const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
-            for (Size ili = 0; ili != il.size(); ++ili)
-            {
-              protein_row.num_peptides_distinct_ms_run[ili+1] = MzTabInteger(il[ili]);
-            }
-          }
-
-          if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
-          {
-            const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
-            for (Size ili = 0; ili != il.size(); ++ili)
-            {
-              protein_row.num_peptides_unique_ms_run[ili+1] = MzTabInteger(il[ili]);
-            }
-          }
-
-/*
-TODO:
-Not sure how to handle these:
-       // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-       // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-*/
-
-          remapTargetDecoy_(protein_row.opt_);
-
-          // Add protein(group) row to MzTab
-          mztab.getProteinSectionRows().emplace_back(protein_row);
         }
       }
-
     }
     // end protein groups
 
     ////////////////////////////////////////////////////
     // PSMs
-
-    // mandatory meta values
-    if (quant_study_variables == 0)
-    {
-      meta_data.mz_tab_type = MzTabString("Identification");
-    }
-    else
-    {
-      meta_data.mz_tab_type = MzTabString("Quantification");
-    }
-
-    meta_data.mz_tab_mode = MzTabString("Summary");
-    meta_data.description = MzTabString("OpenMS export from idXML");
-
     meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
     meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
 
