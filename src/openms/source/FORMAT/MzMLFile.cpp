@@ -257,7 +257,7 @@ namespace OpenMS
   {
     bool oldoption = options_.getFillData();
     options_.setFillData(false);
-    MSDataTransformingConsumer* c = new MSDataTransformingConsumer();
+    MSDataTransformingConsumer c{};
     std::map<UInt,std::pair<Size,Size>> ret;
     auto f = [&ret](const MSSpectrum& s)
     {
@@ -274,10 +274,9 @@ namespace OpenMS
             success_mapiter.first->second.second++;
         }
     };
-    c->setSpectraProcessingFunc(f);
-    transform(filename, c);
+    c.setSpectraProcessingFunc(f);
+    transform(filename, &c);
     options_.setFillData(oldoption);
-    delete c;
     return ret;
   }
 

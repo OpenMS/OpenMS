@@ -781,7 +781,7 @@ protected:
     ProteinIdentification protein_identification;
     Size cnt(0);
     { // local scope to free memory after conversion to MGF format is done
-        MSDataTransformingConsumer* c = new MSDataTransformingConsumer();
+        MSDataTransformingConsumer c{};
 
         std::ofstream ofs;
         MascotGenericFile mgf;
@@ -810,10 +810,9 @@ protected:
             }
         };
         
-        c->setSpectraProcessingFunc(f);
-        MzMLFile().transform(inputfile_name, c, true);
+        c.setSpectraProcessingFunc(f);
+        MzMLFile().transform(inputfile_name, &c, true);
         ofs.close();
-        delete c;
         if (empty) chunk--;
         if (chunk < 0) throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
 

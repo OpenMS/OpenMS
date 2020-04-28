@@ -241,26 +241,26 @@ protected:
     createParamFile_(os);
 
     // convert mzML to mgf format
-    MSDataTransformingConsumer* c = new MSDataTransformingConsumer();
-
     String tmp_mgf = tmp_dir + "tmp_mgf.mgf";
-    std::ofstream ofs;
-    ofs.open(tmp_mgf, std::ofstream::out);
-    MascotGenericFile mgf;
-
-    auto f = [&ofs,&in,&mgf](const MSSpectrum& s)
     {
+      MSDataTransformingConsumer c{};
+      std::ofstream ofs;
+      ofs.open(tmp_mgf, std::ofstream::out);
+      MascotGenericFile mgf;
+
+      auto f = [&ofs,&in,&mgf](const MSSpectrum& s)
+      {
         UInt lvl = s.getMSLevel();
         bool centroided = s.getType() == MSSpectrum::SpectrumType::CENTROID;
         if (lvl == 2 && centroided)
         {
             mgf.writeSpectrum(ofs, s, in, "UNKNOWN");
         }
-    };
-    c->setSpectraProcessingFunc(f);
-    MzMLFile().transform(in, c, true);
-    delete c;
-    ofs.close();
+      };
+      c.setSpectraProcessingFunc(f);
+      MzMLFile().transform(in, &c, true);
+      ofs.close();
+    }
 
     //-------------------------------------------------------------
     // process
