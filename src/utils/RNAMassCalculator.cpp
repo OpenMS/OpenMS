@@ -204,7 +204,7 @@ protected:
     if (format_ == "list") writeList_(seq, charges);
     else if (format_ == "table") writeTable_(seq, charges);
     else if (format_ == "mass_only") writeMassOnly_(seq, charges);
-    else if (format_ == "mass_only") writeMassOnly_(seq, charges, true);
+    else if (format_ == "mz_only") writeMassOnly_(seq, charges, true);
     else writeFormulaOnly_(seq, charges);
   }
 
