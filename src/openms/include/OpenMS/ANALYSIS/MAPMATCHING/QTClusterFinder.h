@@ -147,12 +147,12 @@ private:
     void setParameters_(double max_intensity, double max_mz);
 
     /// Generates a consensus feature from the best cluster and updates the clustering
-    void makeConsensusFeature_(std::list<QTCluster>& clustering,
+    void makeConsensusFeature_(std::vector<QTCluster>& clustering,
                                ConsensusFeature& feature,
                                ElementMapping& element_mapping, Grid&);
 
     /// Computes an initial QT clustering of the points in the hash grid
-    void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
+    void computeClustering_(Grid& grid, std::vector<QTCluster>& clustering);
 
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>

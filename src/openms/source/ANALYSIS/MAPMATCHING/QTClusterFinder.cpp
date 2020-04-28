@@ -239,35 +239,27 @@ namespace OpenMS
 
     // compute QT clustering:
     // std::cout << "Clustering..." << std::endl;
-    list<QTCluster> clustering;
+    vector<QTCluster> clustering;
     computeClustering_(grid, clustering);
     // number of clusters == number of data points:
     Size size = clustering.size();
 
     // create a temp. map storing which grid features are next to which clusters
-    // typedef OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > NeighborList;
     typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
     ElementMapping element_mapping;
-    for (list<QTCluster>::iterator it = clustering.begin();
+    for (vector<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
-      // NeighborList neigh = it->getAllNeighbors();
       NeighborMap neigh = it->getAllNeighborsDirect();
       for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
         GridFeature* gf_ptr = n_it->second.second;
-        // for (std::vector<GridFeature*>::iterator i_it = n_it->second.begin();
-        //     i_it != n_it->second.end(); ++i_it)
-        // {
-          // remember for each feature (gridfeature) all the cluster elements
-          // it belongs to
-          element_mapping[gf_ptr].push_back(&(*it));
-        // }
+        element_mapping[gf_ptr].push_back(&(*it));
       }
     }
 
     // ensure that all cluster centers are in the list
-    for (list<QTCluster>::iterator it = clustering.begin();
+    for (vector<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
       OpenMS::GridFeature* center_feature = it->getCenterPoint();
@@ -297,19 +289,19 @@ namespace OpenMS
     if (do_progress) logger.endProgress();
   }
 
-  void QTClusterFinder::makeConsensusFeature_(list<QTCluster>& clustering,
+  void QTClusterFinder::makeConsensusFeature_(vector<QTCluster>& clustering,
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               Grid& grid)
   {
     // find the best cluster (a valid cluster with the highest score)
     // -> this is equivalent to std::max_element but we can skip invalid clusters
-    list<QTCluster>::iterator best = clustering.begin();
+    vector<QTCluster>::iterator best = clustering.begin();
     while (best != clustering.end() && best->isInvalid()) // find start element
     {
       ++best;
     }
-    for (list<QTCluster>::iterator it = best;
+    for (vector<QTCluster>::iterator it = best;
          it != clustering.end(); ++it)
     {
       if (!it->isInvalid())
@@ -408,21 +400,13 @@ namespace OpenMS
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
-            // typedef OpenMSBoost::unordered_map<Size,
-            //        std::vector<GridFeature*> > NeighborList;
+
             typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
-            // NeighborList neigh = (*cluster)->getAllNeighbors();
             NeighborMap neigh = (*cluster)->getAllNeighborsDirect();
             for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
             {
-              // for (std::vector<GridFeature*>::iterator i_it =
-              //     n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
-              // {
-                GridFeature* gf_ptr = n_it->second.second;
-                // remember for each feature (gridfeature) all the cluster
-                // elements it belongs to
-                tmp_element_mapping[gf_ptr].push_back(*cluster);
-              // }
+              GridFeature* gf_ptr = n_it->second.second;
+              tmp_element_mapping[gf_ptr].push_back(*cluster);
             }
           }
         }
@@ -534,7 +518,7 @@ namespace OpenMS
   }
 
   void QTClusterFinder::computeClustering_(Grid& grid,
-                                           list<QTCluster>& clustering)
+                                           vector<QTCluster>& clustering)
   {
     clustering.clear();
     already_used_.clear();
