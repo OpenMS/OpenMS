@@ -317,6 +317,65 @@ namespace OpenMS
     return (max_intensity_it - this->begin());
   }
 
+
+  void MSSpectrum::specialSortByPosition(const std::vector<Size>& chunks)
+  {
+    if (isSorted()) return;
+
+    if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
+    {
+      std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    }
+    else
+    {
+      //sort index list
+      std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
+      sorted_indices.reserve(ContainerType::size());
+      for (Size i = 0; i < ContainerType::size(); ++i)
+      {
+        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
+      }
+      std::vector<Size> select_indices;
+      select_indices.reserve(sorted_indices.size());
+      //std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
+      std::vector<Size> pointers(chunks.size() - 1);
+      for (Size i = 0; i < chunks.size() - 1; ++i)
+      {
+        pointers[i] = chunks[i];
+      }
+      //std::cout << "Pointers size:" << pointers.size() << std::endl;
+      //std::cout << "Sorted indices size:" << sorted_indices.size() << std::endl;
+
+      // merging the different chunks
+      while (true)
+      {
+        double min = std::numeric_limits<double>::max();
+        Size pos_min = 0;
+        Size pos_ptr = 0;
+        for (Size i = 0; i < pointers.size(); ++i)
+        {
+          if (pointers[i] == chunks[i + 1]) continue;
+          std::pair<PeakType::PositionType, Size>& current = sorted_indices[pointers[i]];
+          if (current.first[0] < min)
+          {
+            min = current.first[0];
+            pos_min = current.second;
+            pos_ptr = i;
+          }
+        }
+        if (min == std::numeric_limits<double>::max()) break;
+        ++pointers[pos_ptr];
+        select_indices.push_back(pos_min);
+      }
+
+      //for (Size i = 0; i < select_indices.size(); ++i) std::cout << select_indices[i] << ", ";
+      //std::cout << std::endl;
+      //for (Size i = 0; i < sorted_indices.size(); ++i) std::cout << sorted_indices[i].first[0] << ", ";
+      //std::cout << std::endl;
+      select(select_indices);
+    }
+  }
+
   void MSSpectrum::sortByPosition()
   {
     if (isSorted()) return;
