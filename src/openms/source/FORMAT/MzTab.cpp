@@ -1912,13 +1912,7 @@ namespace OpenMS
       // fill opt_ column of psm
       vector<String> ph_keys;
       best_ph.getKeys(ph_keys);
-      for (String & s : ph_keys)
-      {
-        if (s.has(' '))
-        {
-          s.substitute(' ', '_');
-        }
-      }
+      replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
@@ -2050,13 +2044,8 @@ namespace OpenMS
     // meta data on peptide identifications
     vector<String> pid_keys;
     pid.getKeys(pid_keys);
-    for (String & s : pid_keys)
-    {
-      if (s.has(' '))
-      {
-        s.substitute(' ', '_');
-      }
-    }
+    replaceWhiteSpaces_(pid_keys.begin(), pid_keys.end());
+
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 
@@ -2139,8 +2128,7 @@ namespace OpenMS
     // meta data on PSMs
     vector<String> ph_keys;
     best_ph.getKeys(ph_keys);
-
-    for (String & s : ph_keys) { s.substitute(' ', '_'); }
+    replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
     set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
     addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
@@ -2548,8 +2536,6 @@ Not sure how to handle these:
     const vector<const ProteinIdentification*> prot_ids, 
     bool skip_first_run, 
     MzTabMetaData& meta_data,
-    StringList& var_mods, 
-    StringList& fixed_mods, 
     std::map<String, size_t>& idrun_2_run_index,
     map<String, size_t>& msfilename_2_msfileindex)
   {
@@ -2566,9 +2552,6 @@ Not sure how to handle these:
         continue;
       }
       idrun_2_run_index[pid->getIdentifier()] = current_idrun_index;
-      const ProteinIdentification::SearchParameters & sp = pid->getSearchParameters();
-      var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
-      fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
 
       StringList ms_run_in_data;
       pid->getPrimaryMSRunPath(ms_run_in_data);
@@ -2610,14 +2593,31 @@ Not sure how to handle these:
       }
       current_idrun_index++;
     }
+  }
 
-    // make mods unique
-    std::sort(var_mods.begin(), var_mods.end());
-    auto v_it = std::unique(var_mods.begin(), var_mods.end());
-    var_mods.resize(std::distance(var_mods.begin(), v_it));
-    std::sort(fixed_mods.begin(), fixed_mods.end());
-    auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end());
-    fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
+  map<Size, set<Size>> MzTab::mapGroupsToProteins_(
+    const vector<ProteinIdentification::ProteinGroup>& groups, 
+    const vector<ProteinHit>& proteins)
+  {
+    map<Size, set<Size>> group2prot;
+    Size idx{0};
+    for (const ProteinIdentification::ProteinGroup & p : groups)
+    {
+      for (const String & a : p.accessions)
+      {
+        // find protein corresponding to accession stored in group
+        auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
+          {
+            return ph.getAccession() == a;
+          }
+        );
+        if (it == proteins.end()) { continue; }
+        Size protein_index = std::distance(proteins.begin(), it);
+        group2prot[idx].insert(protein_index);
+      }
+      ++idx;
+    }
+    return group2prot;
   }
 
   void MzTab::addSearchMetaData_(
@@ -2687,6 +2687,7 @@ Not sure how to handle these:
       psm_search_engine_index++;
     }
   }
+
 
   MzTab MzTab::exportIdentificationsToMzTab(
     const vector<const ProteinIdentification*>& prot_ids,
@@ -2758,7 +2759,7 @@ Not sure how to handle these:
 
       // add filenames to the MSRuns in the metadata section and collect modifications
       map<String, size_t> msfilename_2_msfileindex; // TODO: check if mapping could be done in other helper
-      MzTab::addMSRunMetaData_(prot_ids, skip_first_run, meta_data, var_mods, fixed_mods, idrun_2_run_index, msfilename_2_msfileindex);
+      MzTab::addMSRunMetaData_(prot_ids, skip_first_run, meta_data, idrun_2_run_index, msfilename_2_msfileindex);
 
       // Determine search engines used in the different MS runs.
       MzTab::mapBetweenRunAndSearchEngines_(
@@ -2787,56 +2788,14 @@ Not sure how to handle these:
       // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
       MzTab::mapRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msfileindex, skip_first_run, map_run_fileidx_2_msfileidx);
 
+      const std::vector<ProteinHit>& proteins = prot_ids.front()->getHits();
+
       // map (indist.)protein groups to their protein hits (by index).
-      map<Size, set<Size>> ind2prot; // indistinguishable protein groups
-      map<Size, set<Size>> pg2prot; // general protein groups
-
-      const std::vector<ProteinHit> proteins = prot_ids.front()->getHits();
-
-      // map indistinguishable groups to the contained proteins
-      const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = prot_ids.front()->getIndistinguishableProteins();
-
-      Size ind_idx{0};
-      for (const ProteinIdentification::ProteinGroup & p : indist_groups)
-      {
-        for (const String & a : p.accessions)
-        {
-          // find protein corresponding to accession stored in group
-          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
-            {
-              return ph.getAccession() == a;
-            }
-          );
-          if (it == proteins.end()) { continue; }
-          Size protein_index = std::distance(proteins.begin(), it);
-          ind2prot[ind_idx].insert(protein_index);
-        }
-        ++ind_idx;
-      }
-
-      // map general protein groups to the contained proteins
-      const std::vector<ProteinIdentification::ProteinGroup>& protein_groups = prot_ids.front()->getProteinGroups();
-      Size pg_idx{0};
-      for (const ProteinIdentification::ProteinGroup & p : protein_groups)
-      {
-        for (const String & a : p.accessions)
-        {
-          // find protein corresponding to accession stored in group
-          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
-            {
-              return ph.getAccession() == a;
-            }
-          );
-          if (it == proteins.end()) { continue; }
-          Size protein_index = std::distance(proteins.begin(), it);
-          pg2prot[pg_idx].insert(protein_index);
-        }
-        ++pg_idx;
-      }
+      const map<Size, set<Size>> ind2prot = MzTab::mapGroupsToProteins_(prot_ids.front()->getIndistinguishableProteins(), proteins);
+      const map<Size, set<Size>> pg2prot = MzTab::mapGroupsToProteins_(prot_ids.front()->getProteinGroups(), proteins);
 
       ////////////////////////////////////////////////////////////////
       // generate protein section
-
       for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
       {
         const std::vector<ProteinHit>& protein_hits = (*it)->getHits();
@@ -2846,19 +2805,13 @@ Not sure how to handle these:
 
         // pre-analyze data for occurring meta values at protein hit level
         // these are used to build optional columns containing the meta values in internal data structures
+        
         set<String> protein_hit_user_value_keys =
           MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(), protein_hits.end(), 100.0);
 
         // column headers may not contain spaces
-        {
-          set<String> tmp_protein_hit_user_value_keys;
-          for (String s : protein_hit_user_value_keys)
-          {
-            s.substitute(' ', '_');
-            tmp_protein_hit_user_value_keys.insert(std::move(s));
-          }
-          swap(protein_hit_user_value_keys, tmp_protein_hit_user_value_keys);
-        }
+        replaceWhiteSpaces_(protein_hit_user_value_keys);
+
 
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
@@ -3079,10 +3032,7 @@ Not sure how to handle these:
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
-      for (String & s : keys)
-      {
-        s.substitute(' ', '_');
-      }
+      replaceWhiteSpaces_(keys.begin(), keys.end());
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -3093,10 +3043,7 @@ Not sure how to handle these:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          for (String & s : ph_keys)
-          {
-            s.substitute(' ', '_');
-          }
+          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -3109,10 +3056,7 @@ Not sure how to handle these:
     {
       vector<String> keys;
       c.getKeys(keys);
-      for (String & s : keys)
-      {
-        s.substitute(' ', '_');
-      }
+      replaceWhiteSpaces_(keys.begin(), keys.end());
 
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
@@ -3123,17 +3067,29 @@ Not sure how to handle these:
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          for (String & s : ph_keys)
-          {
-            if (s.has(' '))
-            {
-              s.substitute(' ', '_');
-            }
-          }
+          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
     }
+  }
+
+  void MzTab::getSearchModifications_(const vector<const ProteinIdentification*> prot_ids, StringList& var_mods, StringList& fixed_mods)
+  {
+    for (auto const & pid : prot_ids)
+    {
+      const ProteinIdentification::SearchParameters & sp = pid->getSearchParameters();
+      var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
+      fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
+    }
+
+    // make mods unique
+    std::sort(var_mods.begin(), var_mods.end());
+    auto v_it = std::unique(var_mods.begin(), var_mods.end());
+    var_mods.resize(std::distance(var_mods.begin(), v_it));
+    std::sort(fixed_mods.begin(), fixed_mods.end());
+    auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end());
+    fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
   }
 
   MzTab MzTab::exportConsensusMapToMzTab(
@@ -3177,10 +3133,8 @@ Not sure how to handle these:
     map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
     map<String, size_t> idrun_2_run_index;
 
-    MzTab mztab;
-
     // export PSMs of peptide identifications
-    mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
                                                map_run_fileidx_2_msfileidx,
                                                idrun_2_run_index, export_empty_pep_ids);
 
@@ -3188,25 +3142,13 @@ Not sure how to handle these:
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
 
     Size n_assays = ed.getNumberOfSamples();
+
     // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
     Size n_study_variables = n_assays;
 
     // collect variable and fixed modifications from different runs
-    vector<String> var_mods, fixed_mods;
-    for (auto const & pid : prot_ids)
-    {
-      const ProteinIdentification::SearchParameters & sp = pid->getSearchParameters();
-      var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
-      fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
-    }
-
-    // make mods unique
-    std::sort(var_mods.begin(), var_mods.end());
-    auto v_it = std::unique(var_mods.begin(), var_mods.end());
-    var_mods.resize(std::distance(var_mods.begin(), v_it));
-    std::sort(fixed_mods.begin(), fixed_mods.end());
-    auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end());
-    fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
+    StringList var_mods, fixed_mods;
+    MzTab::getSearchModifications_(prot_ids, var_mods, fixed_mods);
 
     ///////////////////////////////////////////////////////////////////////
     // MetaData section

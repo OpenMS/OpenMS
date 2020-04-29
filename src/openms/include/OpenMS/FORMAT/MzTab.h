@@ -1059,8 +1059,6 @@ public:
       const std::vector<const ProteinIdentification*> prot_ids, 
       bool skip_first_run,
       MzTabMetaData& meta_data,
-      StringList& var_mods, 
-      StringList& fixed_mods,
       std::map<String, size_t>& idrun_2_run_index,
       std::map<String, size_t>& msfilename_2_msfileindex);
 
@@ -1073,6 +1071,30 @@ public:
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
 
+    template <class ForwardIterator>
+    static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)
+    {
+      while (first!=last) 
+      {
+        first->substitute(' ', '_');
+        ++first;
+      }
+    }
+
+    static void replaceWhiteSpaces_(std::set<String>& keys)
+    {
+      std::set<String> tmp_keys;
+      auto first = keys.begin();
+      while (first != keys.end()) 
+      {
+        String s = *first;
+        s.substitute(' ', '_');
+        tmp_keys.insert(std::move(s));
+        ++first;
+      }      
+      std::swap(keys, tmp_keys);
+    }
+
     static void mapBetweenRunAndSearchEngines_(
       const std::vector<const ProteinIdentification*>& prot_ids,
       bool skip_first_run,
@@ -1080,6 +1102,10 @@ public:
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
       std::vector<std::pair<String, String>>& secondary_search_engines,
       std::vector<std::vector<std::pair<String, String>>>& secondary_search_engines_settings);
+
+    static std::map<Size, std::set<Size>> mapGroupsToProteins_(
+      const std::vector<ProteinIdentification::ProteinGroup>& groups, 
+      const std::vector<ProteinHit>& proteins);
 
     static void addSearchMetaData_(
       const ProteinIdentification& prot_id, 
@@ -1117,6 +1143,11 @@ public:
       }
       return names;
     }
+
+    static void getSearchModifications_(
+      const std::vector<const ProteinIdentification*> prot_ids, 
+      StringList& var_mods, 
+      StringList& fixed_mods);
 
     static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 
