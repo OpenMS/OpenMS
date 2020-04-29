@@ -1,0 +1,7 @@
+{
+    "name": "GCC 7.4.0",
+    "compilers": {
+        "C": "/usr/bin/gcc",
+        "CXX": "/usr/bin/g++"
+    }
+}
