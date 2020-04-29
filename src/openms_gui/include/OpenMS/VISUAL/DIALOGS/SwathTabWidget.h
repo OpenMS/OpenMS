@@ -46,6 +46,9 @@ namespace Ui
 
 namespace OpenMS
 {
+  class InputFile;
+  class ParamEditor;
+
   namespace Internal
   {
     /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
@@ -59,10 +62,17 @@ namespace OpenMS
     
     private slots:
       void on_pushButton_clicked();
+      void on_run_swath_clicked();
+      void on_edit_advanced_parameters_clicked();
 
     private:
         Ui::SwathTabWidget *ui;
+        
     };
 
   }
-}
+} // ns OpenMS
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a InputFile member
+using InputFile = OpenMS::InputFile;
+using ParamEditor = OpenMS::ParamEditor;

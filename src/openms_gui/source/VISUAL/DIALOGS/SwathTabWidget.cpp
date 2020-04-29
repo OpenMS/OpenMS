@@ -35,8 +35,12 @@
 #include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
 #include <ui_SwathTabWidget.h>
 
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+
+#include <qprocess.h>
 
 using namespace std;
 
@@ -44,7 +48,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    SwathTabWidget::SwathTabWidget(QWidget *parent) :
+    SwathTabWidget::SwathTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::SwathTabWidget)
     {
@@ -62,6 +66,26 @@ namespace OpenMS
         // call once to update py_pyprophet canvas 
         // alternative: load latest data from .ini and set py_selector (will update py_pyprophet via above signal/slot)
         py_pyprophet->validate(py_selector->getLastPython().toQString());
+
+        ui->input_tr->setFileFormatFilter("Transition sqLite file (*.pqp)");
+        ui->input_iRT->setFileFormatFilter("Transition sqLite file (*.pqp)");
+
+        // create a default config from OpenSwathWorkflow
+        String executable = File::getExecutablePath() + "OpenSwathWorkflow";
+        String tmp_file = File::getTemporaryFile();
+        QProcess qp;
+        qp.start(executable.toQString(), QStringList() << "-write_ini" << tmp_file.toQString());
+        qp.waitForFinished();
+        Param param;
+        ParamXMLFile().load(tmp_file, param);
+        param = param.copy("OpenSwathWorkflow:1:", true);
+        // parameters to show:
+        StringList extract = {"mz_extraction_window", "rt_extraction_window", "threads"};
+        Param param_wizard;
+        for (const auto& name : extract) param_wizard.setValue(name, "");
+        param_wizard = param.copySubset(param_wizard);
+                
+        ui->list_editor->load(param_wizard);
     }
 
     SwathTabWidget::~SwathTabWidget()
@@ -74,7 +98,19 @@ namespace OpenMS
         TOPPASInputFilesDialog tifd({}, "", 0);
         tifd.exec();
     }
+
+    void SwathTabWidget::on_run_swath_clicked()
+    {
+
+    }
+
+    void SwathTabWidget::on_edit_advanced_parameters_clicked()
+    {
+
+    }
   }   //namespace Internal
 } //namspace OpenMS
+
+
 
 

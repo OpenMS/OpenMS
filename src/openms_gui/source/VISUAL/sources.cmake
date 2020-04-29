@@ -12,6 +12,8 @@ EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
+InputFile.cpp
+InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerData.cpp
