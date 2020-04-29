@@ -2186,9 +2186,9 @@ namespace OpenMS
     return protein_score_type;    
   }
 
-  void MzTab::mapRunFileIndex2MSFileIndex_(
+  void MzTab::mapIDRunFileIndex2MSFileIndex_(
     const vector<const ProteinIdentification*>& prot_ids, 
-    const map<String, size_t>& msfilename_2_msfileindex,
+    const map<String, size_t>& msfilename_2_msrunindex,
     bool skip_first_run, 
     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx)
   {
@@ -2210,13 +2210,13 @@ namespace OpenMS
         size_t file_index(0);
         for (const String& file : files)
         {
-          map_run_fileidx_2_msfileidx[{run_index,file_index}] = msfilename_2_msfileindex.at(file);
+          map_run_fileidx_2_msfileidx[{run_index,file_index}] = msfilename_2_msrunindex.at(file);
           file_index++;
         }
       }
       else
       {
-        map_run_fileidx_2_msfileidx[{run_index,0}] = msfilename_2_msfileindex.at(String(run_index));
+        map_run_fileidx_2_msfileidx[{run_index,0}] = msfilename_2_msrunindex.at(String(run_index));
       }
       run_index++;
     }
@@ -2532,26 +2532,33 @@ Not sure how to handle these:
     return protein_row;
   }
 
-  void MzTab::addMSRunMetaData_(
-    const vector<const ProteinIdentification*> prot_ids, 
-    bool skip_first_run, 
-    MzTabMetaData& meta_data,
-    std::map<String, size_t>& idrun_2_run_index,
-    map<String, size_t>& msfilename_2_msfileindex)
+  map<String, Size> MzTab::mapIDRunIdentifier2IDRunIndex_(const vector<const ProteinIdentification*>& prot_ids)
   {
-    // collect variable and fixed modifications plus file origins from different runs
-    size_t current_ms_run_index(1);
+    map<String, Size> idrunid_2_idrunindex;
     size_t current_idrun_index(0);
+    for (auto const & pid : prot_ids)
+    {
+      idrunid_2_idrunindex[pid->getIdentifier()] = current_idrun_index;
+      ++current_idrun_index;
+    }
+    return idrunid_2_idrunindex;
+  }
+
+  void MzTab::mapBetweenMSFileNameAndMSRunIndex_(
+    const vector<const ProteinIdentification*>& prot_ids, 
+    bool skip_first, 
+    map<String, size_t>& msfilename_2_msrunindex,
+    map<size_t, String>& msrunindex_2_msfilename)
+  {
+    size_t current_ms_run_index(1);
     bool first = true;
     for (auto const & pid : prot_ids)
     {
-      if (skip_first_run && first)
+      if (skip_first && first)
       {
         first = false;
-        current_idrun_index++;
         continue;
       }
-      idrun_2_run_index[pid->getIdentifier()] = current_idrun_index;
 
       StringList ms_run_in_data;
       pid->getPrimaryMSRunPath(ms_run_in_data);
@@ -2561,37 +2568,37 @@ Not sure how to handle these:
         // prepend file:// if not there yet
         for (const String& s : ms_run_in_data)
         {
-          String m;
-          if (!s.hasPrefix("file://"))
-          {
-             m = String("file://") + s;
-          }
-          else
-          {
-             m = s;
-          }
           // use the string without file: prefix for the map
-          const auto& msfileidxpair_success = msfilename_2_msfileindex.emplace(s, current_ms_run_index);
+          msrunindex_2_msfilename.emplace(current_ms_run_index, s);
+          const auto& msfileidxpair_success = msfilename_2_msrunindex.emplace(s, current_ms_run_index);
           if (msfileidxpair_success.second) // newly inserted
           {
-            MzTabMSRunMetaData ms_run;
-            ms_run.location = MzTabString(m); // use the string with file: prefix
-            meta_data.ms_run[current_ms_run_index] = ms_run;
             current_ms_run_index++;
           }
         }
       }
       else
       {
-        MzTabMSRunMetaData ms_run;
-        ms_run.location = MzTabString("null");
         // next line is a hack. In case we would ever have some idXML where some runs are annotated
-        // and others are not. If a run is not annotated use its index as a String key.
-        msfilename_2_msfileindex.emplace(String(current_idrun_index), current_ms_run_index);
-        meta_data.ms_run[current_ms_run_index] = ms_run;
+        // and others are not. If a run is not annotated use its index as a String key.        
+        msrunindex_2_msfilename.emplace(current_ms_run_index, String(current_ms_run_index));
+        msfilename_2_msrunindex.emplace(String(current_ms_run_index), current_ms_run_index);
         current_ms_run_index++;
       }
-      current_idrun_index++;
+    }
+  }
+
+  void MzTab::addMSRunMetaData_(
+    const map<size_t, String>& msrunindex_2_msfilename,
+    MzTabMetaData& meta_data)
+  {
+    for (const auto r2f : msrunindex_2_msfilename)
+    {
+      MzTabMSRunMetaData ms_run;
+      String m = r2f.second;
+      if (!m.hasPrefix("file://")) m = String("file://") + m;
+      ms_run.location = MzTabString(m);
+      meta_data.ms_run[r2f.first] = ms_run;
     }
   }
 
@@ -2694,37 +2701,65 @@ Not sure how to handle these:
     const vector<const PeptideIdentification*>& peptide_ids,
     const String& filename,
     bool first_run_inference_only,
-    std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-    std::map<String, size_t>& idrun_2_run_index,
     bool export_empty_pep_ids)
   {
+    ////////////////////////////////////////////////
+    // create some lookup structures
+    map<String, size_t> idrunid_2_idrunindex = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids);
+
+    bool has_inference_data = prot_ids.empty() ? false : prot_ids[0]->hasInferenceData();
+    bool skip_first_run = has_inference_data && first_run_inference_only;
+    if (skip_first_run)
+    {
+      OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
+    }
+
+    map<String, size_t> msfilename_2_msrunindex;
+    map<size_t, String> msrunindex_2_msfilename;
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
+
+    // MS runs of a peptide identification object is stored in
+    // the protein identification object with the same "identifier".
+    // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
+    std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx;
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx);
+
+    // Determine search engines used in the different MS runs.
+    map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
+    map<Size, vector<pair<String, String>>> run_to_search_engines;
+    // old/secondary/overwritten search engines and versions.
+    // TODO we could potentially make a map too, but our mzTabs currently do not support
+    //  associating a PSM with multiple SEs in the metadata section. (we write them as opt_ cols)
+    vector<pair<String, String>> secondary_search_engines;
+    vector<vector<pair<String, String>>> secondary_search_engines_settings;
+    // search engine and version <-> MS runs index
+    MzTab::mapBetweenRunAndSearchEngines_(
+      prot_ids,
+      skip_first_run,
+      search_engine_to_runs,
+      run_to_search_engines,
+      secondary_search_engines,
+      secondary_search_engines_settings);
+
+    /////////////////////////////////////////////////
+    // export
     OPENMS_LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
 
     MzTab mztab;
     MzTabMetaData meta_data;
     MzTabString db, db_version;
 
-    // search engine and version -> MS runs index
-    map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
-    map<Size, vector<pair<String, String>>> run_to_search_engines;
-
-    // old/secondary/overwritten search engines and versions.
-    // TODO we could potentially make a map too, but our mzTabs currently do not support
-    //  associating a PSM with multiple SEs in the metadata section. (we write them as opt_ cols)
-    vector<pair<String, String>> secondary_search_engines;
-    vector<vector<pair<String, String>>> secondary_search_engines_settings;
-
-    // helper to map between peptide identifications and MS run
-
     // used to report quantitative study variables
     Size quant_study_variables(0); 
-
-    vector<String> var_mods, fixed_mods;
 
     // fill sensible defaults that might be overwritten 
     meta_data.mz_tab_type = MzTabString("Identification"); // overwritten if quant data is available
     meta_data.mz_tab_mode = MzTabString("Summary");
     meta_data.description = MzTabString("OpenMS export from idXML");
+
+    // collect variable and fixed modifications from different runs
+    StringList var_mods, fixed_mods;
+    MzTab::getSearchModifications_(prot_ids, var_mods, fixed_mods);
 
     if (!prot_ids.empty())
     {
@@ -2757,18 +2792,9 @@ Not sure how to handle these:
       // TODO what if not only the first run has inference data?
       //  then we need to cluster like with the peptide search engines.
 
-      // add filenames to the MSRuns in the metadata section and collect modifications
-      map<String, size_t> msfilename_2_msfileindex; // TODO: check if mapping could be done in other helper
-      MzTab::addMSRunMetaData_(prot_ids, skip_first_run, meta_data, idrun_2_run_index, msfilename_2_msfileindex);
 
-      // Determine search engines used in the different MS runs.
-      MzTab::mapBetweenRunAndSearchEngines_(
-        prot_ids,
-        skip_first_run,
-        search_engine_to_runs,
-        run_to_search_engines,
-        secondary_search_engines,
-        secondary_search_engines_settings);
+      // add filenames to the MSRuns in the metadata section
+      MzTab::addMSRunMetaData_(msrunindex_2_msfilename, meta_data);
 
       // add search settings to software meta data
       MzTab::addSearchMetaData_(
@@ -2782,11 +2808,6 @@ Not sure how to handle these:
 
       // trim db name for rows (full name already stored in meta data)
       db = MzTabString(File::removeExtension(File::basename(db.toCellString())));
-
-      // MS runs of a peptide identification object is stored in
-      // the protein identification object with the same "identifier".
-      // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-      MzTab::mapRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msfileindex, skip_first_run, map_run_fileidx_2_msfileidx);
 
       const std::vector<ProteinHit>& proteins = prot_ids.front()->getHits();
 
@@ -2812,10 +2833,8 @@ Not sure how to handle these:
         // column headers may not contain spaces
         replaceWhiteSpaces_(protein_hit_user_value_keys);
 
-
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
-
 
         // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
         // We skip the more extensive reporting of general groups with complex shared peptide relations.
@@ -2832,7 +2851,6 @@ Not sure how to handle these:
         */
         if (!skip_first_run)
         {
-
          for (Size i = 0; i != protein_hits.size(); ++i)
          {
            const ProteinHit& hit = protein_hits[i];
@@ -2900,8 +2918,8 @@ Not sure how to handle these:
       auto psm_row = MzTab::nextPSMSectionRow_(
         *pid, 
         prot_ids, 
-        idrun_2_run_index,
-        map_run_fileidx_2_msfileidx,
+        idrunid_2_idrunindex,
+        map_id_run_fileidx_2_msfileidx,
         run_to_search_engines,
         psm_id, 
         db, 
@@ -3104,6 +3122,7 @@ Not sure how to handle these:
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
 
+    // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     vector<const ProteinIdentification*> prot_ids; 
     for (Size i = 0; i < prot_id.size(); ++i)
@@ -3127,16 +3146,29 @@ Not sure how to handle these:
       for (const PeptideIdentification& pi : up) { pep_ids.push_back(&pi); }
     }
 
+    // create some lookup structures
+    bool has_inference_data = prot_ids.empty() ? false : prot_ids[0]->hasInferenceData();
+    bool skip_first_run = has_inference_data && first_run_inference_only;
+
+    map<String, size_t> idrunid_2_idrunindex = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids);
+
+    map<String, size_t> msfilename_2_msrunindex;
+    map<size_t, String> msrunindex_2_msfilename;
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
+
+    std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx;
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx);
+
+    // collect variable and fixed modifications from different runs
+    StringList var_mods, fixed_mods;
+    MzTab::getSearchModifications_(prot_ids, var_mods, fixed_mods);
+
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
     // In this case, the first run is only for inference, get peptide info from the rest of the runs.
-    map<pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-    map<String, size_t> idrun_2_run_index;
 
     // export PSMs of peptide identifications
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only,
-                                               map_run_fileidx_2_msfileidx,
-                                               idrun_2_run_index, export_empty_pep_ids);
+    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only, export_empty_pep_ids);
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
@@ -3145,10 +3177,6 @@ Not sure how to handle these:
 
     // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
     Size n_study_variables = n_assays;
-
-    // collect variable and fixed modifications from different runs
-    StringList var_mods, fixed_mods;
-    MzTab::getSearchModifications_(prot_ids, var_mods, fixed_mods);
 
     ///////////////////////////////////////////////////////////////////////
     // MetaData section
@@ -3281,8 +3309,8 @@ Not sure how to handle these:
        consensus_feature_user_value_keys, 
        peptide_hit_user_value_keys,
        export_unidentified_features,
-       idrun_2_run_index,
-       map_run_fileidx_2_msfileidx,
+       idrunid_2_idrunindex,
+       map_id_run_fileidx_2_msfileidx,
        path_label_to_assay,
        fixed_mods,
        export_subfeatures);

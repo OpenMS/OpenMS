@@ -182,8 +182,6 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-        std::map<String, size_t> idrun_2_run_index;
 
         vector<const PeptideIdentification*> pep_ids_ptr;
         for (const PeptideIdentification& pi : pep_ids) { pep_ids_ptr.push_back(&pi); }
@@ -191,7 +189,7 @@ protected:
         vector<const ProteinIdentification*> prot_ids_ptr;
         for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
 
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"));
       }
 
       // export identification data from mzIdentML
@@ -201,8 +199,6 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
-        std::map<std::pair<size_t,size_t>,size_t> map_run_fileidx_2_msfileidx;
-        std::map<String, size_t> idrun_2_run_index;
 
         vector<const PeptideIdentification*> pep_ids_ptr;
         for (const PeptideIdentification& pi : pep_ids) { pep_ids_ptr.push_back(&pi); }
@@ -210,7 +206,7 @@ protected:
         vector<const ProteinIdentification*> prot_ids_ptr;
         for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
 
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"), map_run_fileidx_2_msfileidx, idrun_2_run_index);
+        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"));
       }
 
       // export quantification data

@@ -959,8 +959,6 @@ public:
       * @param[in] peptide_ids Data structure containing peptide identifications
       * @param[in] filename Input idXML file name
       * @param[in] first_run_inference_only Is all protein inference information stored in the first run?
-      * @param[out] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
-      * @param[out] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
       *
       * @return mzTab object
     */
@@ -969,8 +967,6 @@ public:
         const std::vector<const PeptideIdentification*>& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
-        std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-        std::map<String, size_t>& idrun_2_run_index,
         bool export_empty_pep_ids = false);
 
 
@@ -1002,6 +998,10 @@ public:
 
 
   protected:
+    // extract basic mappings
+
+    static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
+
     // yield new PSM row from identification data
     static boost::optional<MzTabPSMSectionRow> nextPSMSectionRow_(
      const PeptideIdentification& pid,
@@ -1056,11 +1056,14 @@ public:
       const MzTabString& db_version);
 
     static void addMSRunMetaData_(
-      const std::vector<const ProteinIdentification*> prot_ids, 
-      bool skip_first_run,
-      MzTabMetaData& meta_data,
-      std::map<String, size_t>& idrun_2_run_index,
-      std::map<String, size_t>& msfilename_2_msfileindex);
+      const std::map<size_t, String>& msrunindex_2_msfilename,
+      MzTabMetaData& meta_data);
+
+    static void mapBetweenMSFileNameAndMSRunIndex_(
+      const std::vector<const ProteinIdentification*>& prot_ids, 
+      bool skip_first, 
+      std::map<String, size_t>& msfilename_2_msrunindex,
+      std::map<size_t, String>& msrunindex_2_msfilename);
 
     static size_t getQuantStudyVariables_(const ProteinIdentification& pid);
 
@@ -1116,9 +1119,9 @@ public:
       MzTabString& db,
       MzTabString& db_version);
 
-    static void mapRunFileIndex2MSFileIndex_(
+    static void mapIDRunFileIndex2MSFileIndex_(
       const std::vector<const ProteinIdentification*>& prot_ids,
-      const std::map<String, size_t>& msfilename_2_msfileindex,
+      const std::map<String, size_t>& msfilename_2_msrunindex,
       bool skip_first_run, 
       std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx);
 
