@@ -402,7 +402,7 @@ namespace OpenMS
         intensities.push_back(pg.intensity);
       }
 
-      if (intensities.size() > mc)
+      if (intensities.size() > (Size) mc)
       {
         sort(intensities.begin(), intensities.end());
         threshold = intensities[intensities.size() - mc];
@@ -564,7 +564,7 @@ namespace OpenMS
       }
 
       pg.totalSNR = totalSignal / totalNoise;
-      pg.maxScore = -100;
+      pg.qScore = -100;
 
       for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
       {
@@ -583,20 +583,20 @@ namespace OpenMS
         + 2.325;
         score = -score;
 
-        if (score < pg.maxScore)
+        if (score < pg.qScore)
         {
           continue;
         }
         pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
-        pg.maxScoreCharge = charge;
-        pg.maxScore = score;
+        pg.maxQScoreCharge = charge;
+        pg.qScore = score;
       }
 
-      pg.maxScoreMinMz = pg.monoisotopicMass * 2;
-      pg.maxScoreMaxMz = 0;
+      pg.maxQScoreMzStart = pg.monoisotopicMass * 2;
+      pg.maxQScoreMzEnd = 0;
       for (auto &p:pg.peaks)
       {
-        if (p.charge != pg.maxScoreCharge)
+        if (p.charge != pg.maxQScoreCharge)
         {
           continue;
         }
@@ -605,8 +605,8 @@ namespace OpenMS
           continue;
         }
 
-        pg.maxScoreMinMz = pg.maxScoreMinMz < p.mz ? pg.maxScoreMinMz : p.mz;
-        pg.maxScoreMaxMz = pg.maxScoreMaxMz > p.mz ? pg.maxScoreMaxMz : p.mz;
+        pg.maxQScoreMzStart = pg.maxQScoreMzStart < p.mz ? pg.maxQScoreMzStart : p.mz;
+        pg.maxQScoreMzEnd = pg.maxQScoreMzEnd > p.mz ? pg.maxQScoreMzEnd : p.mz;
       }
 
       if (msLevel == 1 || pg.totalSNR > 0.1) //
@@ -685,7 +685,7 @@ namespace OpenMS
     scores.reserve(peakGroups.size());
     for (auto &pg : peakGroups)
     {
-      scores.push_back(pg.maxScore);
+      scores.push_back(pg.qScore);
     }
 
     sort(scores.begin(), scores.end());
@@ -700,7 +700,7 @@ namespace OpenMS
         break;
       }
 
-      if (pg.maxScore >= threshold)
+      if (pg.qScore >= threshold)
       {
         newPeakGroups.push_back(pg);
       }

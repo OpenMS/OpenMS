@@ -318,7 +318,7 @@ protected:
 
       double rtDuration = map[map.size() - 1].getRT() - map[0].getRT();
       auto ms1Cntr = 0;
-      auto ms2Cntr = 0; // for debug...
+      auto ms2Cntr = .0; // for debug...
 
       for (auto &it : map)
       {
@@ -336,6 +336,7 @@ protected:
         }
       }
 
+      auto numMS2perMS1 = round(ms2Cntr/ms1Cntr);
       param.numOverlappedScans.clear();
 
       double rtDelta = rtDuration / ms1Cntr;
@@ -455,7 +456,7 @@ protected:
 
         if (param.trainOut)
         {
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, round(ms2Cntr/ms1Cntr));
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, 0); // TODO
         }
 
         if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
