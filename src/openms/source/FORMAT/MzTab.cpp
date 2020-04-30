@@ -1960,6 +1960,7 @@ namespace OpenMS
       {
 
         //TODO the following assumes that every file occurs max. once in all runs
+        // and that all file information is taken from the non-inference runs
         size_t run_index(0);
         for (const auto &run : prot_ids)
         {
@@ -2080,65 +2081,11 @@ namespace OpenMS
         psm_search_engine_index++;
       }
 
-      // map (indist.)protein groups to their protein hits (by index).
-      map<Size, set<Size>> ind2prot; // indistinguishable protein groups
-      map<Size, set<Size>> pg2prot; // general protein groups
-
-      const std::vector<ProteinHit> proteins = prot_ids.front().getHits();
-
-      // map indistinguishable groups to the contained proteins
-      const std::vector<ProteinIdentification::ProteinGroup> &indist_groups = prot_ids.front()
-                                                                                      .getIndistinguishableProteins();
-      Size ind_idx{0};
-      for (const ProteinIdentification::ProteinGroup &p : indist_groups)
-      {
-        for (const String &a : p.accessions)
-        {
-          // find protein corresponding to accession stored in group
-          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit &ph)
-                                 {
-                                   return ph.getAccession() == a;
-                                 }
-          );
-          if (it == proteins.end())
-          {
-            continue;
-          }
-          Size protein_index = std::distance(proteins.begin(), it);
-          ind2prot[ind_idx].insert(protein_index);
-        }
-        ++ind_idx;
-      }
-
-      // map general protein groups to the contained proteins
-      const std::vector<ProteinIdentification::ProteinGroup> &protein_groups = prot_ids.front().getProteinGroups();
-      Size pg_idx{0};
-      for (const ProteinIdentification::ProteinGroup &p : protein_groups)
-      {
-        for (const String &a : p.accessions)
-        {
-          // find protein corresponding to accession stored in group
-          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit &ph)
-                                 {
-                                   return ph.getAccession() == a;
-                                 }
-          );
-          if (it == proteins.end())
-          {
-            continue;
-          }
-          Size protein_index = std::distance(proteins.begin(), it);
-          pg2prot[pg_idx].insert(protein_index);
-        }
-        ++pg_idx;
-      }
-
       ////////////////////////////////////////////////////////////////
       // generate protein section
 
       MzTabProteinSectionRows protein_rows;
-
-      bool first_run = true;
+      
       for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
       {
         /*
@@ -2153,6 +2100,8 @@ namespace OpenMS
 
         // pre-analyze data for occurring meta values at protein hit level
         // these are used to build optional columns containing the meta values in internal data structures
+        // TODO this should probably be done over all runs in the beginning. For now we assume the runs
+        //  are similar/equal with the meta values.
         set<String> protein_hit_user_value_keys =
             MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(),
                                                                                          protein_hits.end(),
@@ -2179,15 +2128,68 @@ namespace OpenMS
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
 
+        // map (indist.)protein groups to their protein hits (by index).
+        //TODO if you know the number of groups it could just be a vector
+        map<Size, set<Size>> ind2prot; // indistinguishable protein groups
+        map<Size, set<Size>> pg2prot; // general protein groups
 
-        // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-        // We skip the more extensive reporting of general groups with complex shared peptide relations.
-        std::vector<ProteinIdentification::ProteinGroup> protein_groups2;
-        if (quant_study_variables == 0)
+        const std::vector<ProteinHit>& proteins = protein_hits;
+
+        // map indistinguishable groups to the contained proteins
+        // TODO make function. since it is the same for both group types
+        Size ind_idx{0};
+        for (const ProteinIdentification::ProteinGroup &p : indist_groups2)
         {
-          protein_groups2 = it->getProteinGroups();
+          for (const String &a : p.accessions)
+          {
+            // find protein corresponding to accession stored in group
+            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit &ph)
+                                   {
+                                     return ph.getAccession() == a;
+                                   }
+            );
+            if (it == proteins.end())
+            {
+              continue;
+            }
+            Size protein_index = std::distance(proteins.begin(), it);
+            ind2prot[ind_idx].insert(protein_index);
+          }
+          ++ind_idx;
         }
 
+        // map general protein groups to the contained proteins
+        // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+        // We skip the more extensive reporting of general groups with complex shared peptide relations.
+        std::vector<ProteinIdentification::ProteinGroup> empty_protein_groups;
+        auto protein_groups = std::cref(empty_protein_groups);
+        if (quant_study_variables == 0)
+        {
+          protein_groups = std::cref(it->getProteinGroups());
+        }
+
+        Size pg_idx{0};
+        for (const ProteinIdentification::ProteinGroup &p : protein_groups.get())
+        {
+          for (const String &a : p.accessions)
+          {
+            // find protein corresponding to accession stored in group
+            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit &ph)
+                                   {
+                                     return ph.getAccession() == a;
+                                   }
+            );
+            if (it == proteins.end())
+            {
+              continue;
+            }
+            Size protein_index = std::distance(proteins.begin(), it);
+            pg2prot[pg_idx].insert(protein_index);
+          }
+          ++pg_idx;
+        }
+
+        // Construct the single_protein rows
         for (Size i = 0; i != protein_hits.size(); ++i)
         {
           const ProteinHit &hit = protein_hits[i];
@@ -2243,9 +2245,9 @@ namespace OpenMS
 
         /////////////////////////////////////////////////////////////
         // reporting of general protein groups
-        for (Size i = 0; i != protein_groups2.size(); ++i)
+        for (Size i = 0; i != protein_groups.get().size(); ++i)
         {
-          const ProteinIdentification::ProteinGroup &group = protein_groups2[i];
+          const ProteinIdentification::ProteinGroup &group = protein_groups.get()[i];
           MzTabProteinSectionRow protein_row;
           protein_row.database = db; // Name of the protein database.
           protein_row.database_version = db_version; // String Version of the protein database.
@@ -2373,8 +2375,8 @@ namespace OpenMS
             protein_row.go_terms.fromCellString(s);
           }
 
-          protein_row.best_search_engine_score[1] = MzTabDouble(group
-                                                                    .probability); // TODO: group probability or search engine score?
+          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
+          // TODO: group probability or search engine score?
 
           protein_row.reliability = MzTabInteger();
 
@@ -2436,11 +2438,10 @@ namespace OpenMS
           // Add protein(group) row to MzTab
           protein_rows.push_back(protein_row);
         }
-        if (first_run && first_run_inference)
+        if (first_run_inference)
         {
           break;
         }
-        first_run = false;
       } // end for every protein run
       for (auto &row : protein_rows)
       {
