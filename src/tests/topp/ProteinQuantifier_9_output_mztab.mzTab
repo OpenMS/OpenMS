@@ -15,7 +15,7 @@ MTD	software[1]-setting[5]	fragment_mass_tolerance_unit:Da
 MTD	software[1]-setting[6]	precursor_mass_tolerance:0.0
 MTD	software[1]-setting[7]	precursor_mass_tolerance_unit:Da
 MTD	software[1]-setting[8]	enzyme:unknown_enzyme
-MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-cXMLProtGroups-2020-04-06]
+MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabSingleProts-2020-04-29]
 MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
@@ -40,10 +40,6 @@ MTD	study_variable[2]-assay_refs	assay[2]
 MTD	study_variable[2]-description	no description given
 MTD	study_variable[3]-assay_refs	assay[3]
 MTD	study_variable[3]-description	no description given
-
-PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	opt_global_protein_group_type
-PRT	Protein	null	null	null	null	null	null	0.9097144245	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	single_protein
-PRT	Protein	null	null	null	null	null	null	0.9097144245	Protein	null	null	1230.0	230.0	1030.0	1230.0	null	null	230.0	null	null	1030.0	null	null	indistinguishable_proteins
 
 PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	opt_global_modified_sequence
 PEP	AAA	Protein	1	null	null	null	1.0	1.0	null	null	null	100.0	null	2	100.0	null	1000.0	null	null	null	null	null	1000.0	null	null	AAA

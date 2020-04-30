@@ -140,6 +140,7 @@ protected:
     setValidFormats_("in_contaminants", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
+    registerFlag_("first_run_inference_only", "Activate if the first ID run in the consensusXML should only be used to extract protein (group) infos.", false);
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR is missing (accepts all pep_ids as target hits).", false);
     //TODO get ProteinQuantifier output for PRT section
@@ -411,7 +412,7 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
+    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, getFlag_("first_run_inference_only"), true, true, true, "QC export from OpenMS");
     MzTabMetaData meta = mztab.getMetaData();
     qc_tic.addMetaDataMetricsToMzTab(meta);
     qc_ms2ir.addMetaDataMetricsToMzTab(meta);
