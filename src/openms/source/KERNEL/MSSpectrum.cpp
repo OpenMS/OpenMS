@@ -52,6 +52,7 @@ namespace OpenMS
     }
     ContainerType::swap(tmp);
 
+    std::vector<float> mda_tmp_float;
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
       if (float_data_arrays_[i].empty()) continue;
@@ -61,15 +62,16 @@ namespace OpenMS
                                                                                   String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
 
-      std::vector<float> mda_tmp;
-      mda_tmp.reserve(float_data_arrays_[i].size());
+      mda_tmp_float.clear();
+      mda_tmp_float.reserve(float_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(float_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_float.push_back(float_data_arrays_[i][indices[j]]);
       }
-      std::swap(float_data_arrays_[i], mda_tmp);
+      std::swap(float_data_arrays_[i], mda_tmp_float);
     }
 
+    std::vector<String> mda_tmp_str;
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
       if (string_data_arrays_[i].empty()) continue;
@@ -78,15 +80,17 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
                                                                                   String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
-      std::vector<String> mda_tmp;
-      mda_tmp.reserve(string_data_arrays_[i].size());
+
+      mda_tmp_str.clear();
+      mda_tmp_str.reserve(string_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(string_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_str.push_back(string_data_arrays_[i][indices[j]]);
       }
-      std::swap(string_data_arrays_[i], mda_tmp);
+      std::swap(string_data_arrays_[i], mda_tmp_str);
     }
 
+    std::vector<Int> mda_tmp_int;
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
       if (integer_data_arrays_[i].empty()) continue;
@@ -95,13 +99,14 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
                                                                                   String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
-      std::vector<Int> mda_tmp;
-      mda_tmp.reserve(integer_data_arrays_[i].size());
+
+      mda_tmp_int.clear();
+      mda_tmp_int.reserve(integer_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(integer_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_int.push_back(integer_data_arrays_[i][indices[j]]);
       }
-      std::swap(integer_data_arrays_[i], mda_tmp);
+      std::swap(integer_data_arrays_[i], mda_tmp_int);
     }
 
     return *this;
@@ -324,19 +329,15 @@ namespace OpenMS
 
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
+      //std::cout << "Empty arrays" << std::endl;
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
     }
     else
     {
+      //std::cout << "Non-Empty arrays" << std::endl;
       //sort index list
-      std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-      sorted_indices.reserve(ContainerType::size());
-      for (Size i = 0; i < ContainerType::size(); ++i)
-      {
-        sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-      }
       std::vector<Size> select_indices;
-      select_indices.reserve(sorted_indices.size());
+      select_indices.reserve(this->size());
       //std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
       std::vector<Size> pointers(chunks.size() - 1);
       for (Size i = 0; i < chunks.size() - 1; ++i)
@@ -351,19 +352,19 @@ namespace OpenMS
       {
         double min = std::numeric_limits<double>::max();
         Size pos_min = 0;
-        Size pos_ptr = 0;
+        Size pos_ptr = pointers.size();
         for (Size i = 0; i < pointers.size(); ++i)
         {
           if (pointers[i] == chunks[i + 1]) continue;
-          std::pair<PeakType::PositionType, Size>& current = sorted_indices[pointers[i]];
-          if (current.first[0] < min)
+          auto& current = ContainerType::operator[](pointers[i]);
+          if (current.getPos() < min)
           {
-            min = current.first[0];
-            pos_min = current.second;
+            min = current.getPos();
+            pos_min = pointers[i];
             pos_ptr = i;
           }
         }
-        if (min == std::numeric_limits<double>::max()) break;
+        if (pos_ptr == pointers.size()) break;
         ++pointers[pos_ptr];
         select_indices.push_back(pos_min);
       }
