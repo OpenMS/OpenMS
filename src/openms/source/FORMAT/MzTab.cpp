@@ -1881,7 +1881,7 @@ namespace OpenMS
         if (!ms_run_in_data.empty())
         {
           // prepend file:// if not there yet
-          for (const String &s : ms_run_in_data)
+          for (const String& s : ms_run_in_data)
           {
 
             String m;
