@@ -167,7 +167,7 @@ protected slots:
 
     It supports two display modes:
     - normal mode: only the main parameters are displayed, advanced parameters are hidden.
-    - advanced mode: all parameters are displayed.
+    - advanced mode: all parameters are displayed (only available when advanced parameters are provided)
 
     @image html ParamEditor.png
 

@@ -37,6 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <QTabWidget>
 
 namespace Ui
@@ -67,7 +68,8 @@ namespace OpenMS
 
     private:
         Ui::SwathTabWidget *ui;
-        
+        Param swath_param_; ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
+        Param swath_param_wizard_; ///< small selection of important parameters which the user can directly changed in the Wizard
     };
 
   }

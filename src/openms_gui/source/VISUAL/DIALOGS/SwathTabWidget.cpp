@@ -76,16 +76,16 @@ namespace OpenMS
         QProcess qp;
         qp.start(executable.toQString(), QStringList() << "-write_ini" << tmp_file.toQString());
         qp.waitForFinished();
-        Param param;
-        ParamXMLFile().load(tmp_file, param);
-        param = param.copy("OpenSwathWorkflow:1:", true);
+        
+        ParamXMLFile().load(tmp_file, swath_param_);
+        swath_param_ = swath_param_.copy("OpenSwathWorkflow:1:", true);
         // parameters to show:
         StringList extract = {"mz_extraction_window", "rt_extraction_window", "threads"};
-        Param param_wizard;
-        for (const auto& name : extract) param_wizard.setValue(name, "");
-        param_wizard = param.copySubset(param_wizard);
+        
+        for (const auto& name : extract) swath_param_wizard_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
+        swath_param_wizard_ = swath_param_.copySubset(swath_param_wizard_);
                 
-        ui->list_editor->load(param_wizard);
+        ui->list_editor->load(swath_param_wizard_);
     }
 
     SwathTabWidget::~SwathTabWidget()
@@ -106,6 +106,34 @@ namespace OpenMS
 
     void SwathTabWidget::on_edit_advanced_parameters_clicked()
     {
+      Param tmp_param = swath_param_;
+      ui->list_editor->store(); // update 'swath_param_wizard_' in ParamEditor
+      tmp_param.update(swath_param_wizard_, false); // update with selected params in the Wizard itself
+      StringList to_remove;
+      for (Param::ParamIterator it = tmp_param.begin(); it != tmp_param.end(); ++it)
+      {
+        if (it->tags.count("input file") || it->tags.count("output file"))
+        {
+          to_remove.push_back(it->name); // do not remove right away.. does not work
+        }
+      }
+      for (const auto& p : to_remove) 
+      {
+        tmp_param.remove(p);
+        if (tmp_param.exists(p + "_type")) tmp_param.remove(p + "_type"); // for good measure of related input/output parameters
+      }
+
+      tmp_param.remove("tr");
+      String executable = File::getExecutablePath() + "INIFIleEditor";
+      String tmp_file = File::getTemporaryFile();
+      ParamXMLFile().store(tmp_file, tmp_param);
+      QProcess qp;
+      qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
+      ui->run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
+      qp.waitForFinished(-1);
+      ui->run->setEnabled(true);
+      ParamXMLFile().load(tmp_file, tmp_param);
+      swath_param_.update(tmp_param, false);
 
     }
   }   //namespace Internal
