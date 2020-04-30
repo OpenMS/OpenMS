@@ -1827,8 +1827,8 @@ namespace OpenMS
 
       // TODO: use a different identifier to determine if it is inference data (check other places!)
       bool has_inference_data = prot_ids[0].hasInferenceData();
-      bool skip_first_run = has_inference_data && first_run_inference_only;
-      if (skip_first_run)
+      bool first_run_inference = has_inference_data && first_run_inference_only;
+      if (first_run_inference)
       {
         OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data."
                         << std::endl;
@@ -1863,7 +1863,7 @@ namespace OpenMS
       bool first = true;
       for (auto const &pid : prot_ids)
       {
-        if (skip_first_run && first)
+        if (first_run_inference && first)
         {
           first = false;
           current_idrun_index++;
@@ -1964,7 +1964,7 @@ namespace OpenMS
         for (const auto &run : prot_ids)
         {
           // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (skip_first_run && run_index == 0)
+          if (first_run_inference && run_index == 0)
           {
             run_index++;
             continue;
@@ -1995,7 +1995,7 @@ namespace OpenMS
         for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
           // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (skip_first_run && it == prot_ids.begin())
+          if (first_run_inference && it == prot_ids.begin())
           {
             run_index++;
             continue;
@@ -2146,305 +2146,309 @@ namespace OpenMS
         * indist_groups define the indistinguishable groups and reference proteins in protein_hits
         * protein_groups define general protein groups and reference proteins in protein_hits
         */
-        if (first_run && skip_first_run)
+        const std::vector<ProteinHit> &protein_hits = it->getHits();
+        const std::vector<ProteinIdentification::ProteinGroup> &indist_groups2 = it->getIndistinguishableProteins();
+
+        // TODO: add processing information that this file has been exported from "filename"
+
+        // pre-analyze data for occurring meta values at protein hit level
+        // these are used to build optional columns containing the meta values in internal data structures
+        set<String> protein_hit_user_value_keys =
+            MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(),
+                                                                                         protein_hits.end(),
+                                                                                         100.0);
+
+        // column headers may not contain spaces
         {
-          first_run = false;
-          const std::vector<ProteinHit> &protein_hits = it->getHits();
-          const std::vector<ProteinIdentification::ProteinGroup> &indist_groups2 = it->getIndistinguishableProteins();
-
-          // TODO: add processing information that this file has been exported from "filename"
-
-          // pre-analyze data for occurring meta values at protein hit level
-          // these are used to build optional columns containing the meta values in internal data structures
-          set<String> protein_hit_user_value_keys =
-              MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(),
-                                                                                           protein_hits.end(),
-                                                                                           100.0);
-
-          // column headers may not contain spaces
+          set<String> tmp_protein_hit_user_value_keys;
+          for (String s : protein_hit_user_value_keys)
           {
-            set<String> tmp_protein_hit_user_value_keys;
-            for (String s : protein_hit_user_value_keys)
+            if (s.has(' '))
             {
-              if (s.has(' '))
-              {
-                s.substitute(' ', '_');
-                tmp_protein_hit_user_value_keys.insert(std::move(s));
-              }
-              else
-              {
-                tmp_protein_hit_user_value_keys.insert(std::move(s));
-              }
+              s.substitute(' ', '_');
+              tmp_protein_hit_user_value_keys.insert(std::move(s));
             }
-            swap(protein_hit_user_value_keys, tmp_protein_hit_user_value_keys);
-          }
-
-          // we do not want descriptions twice
-          protein_hit_user_value_keys.erase("Description");
-
-
-          // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-          // We skip the more extensive reporting of general groups with complex shared peptide relations.
-          std::vector<ProteinIdentification::ProteinGroup> protein_groups2;
-          if (quant_study_variables == 0)
-          {
-            protein_groups2 = it->getProteinGroups();
-          }
-
-          for (Size i = 0; i != protein_hits.size(); ++i)
-          {
-            const ProteinHit &hit = protein_hits[i];
-
-            MzTabProteinSectionRow protein_row;
-
-            protein_row.accession = MzTabString(hit.getAccession());
-            protein_row.description = MzTabString(hit.getDescription());
-            // protein_row.taxid = hit.getTaxonomyID(); // TODO maybe add as meta value to protein hit NEWT taxonomy for the species.
-            // MzTabString species = hit.getSpecies(); // Human readable name of the species
-            protein_row.database = db; // Name of the protein database.
-            protein_row.database_version = db_version; // String Version of the protein database.
-            protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
-            // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-            // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-            // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-            // MzTabInteger reliability;
-            // std::map<Size, MzTabInteger> num_psms_ms_run;
-            // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
-            // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-            MzTabModificationList modifications; // Modifications identified in the protein.
-            const std::set<pair<Size, ResidueModification>> &leader_mods = hit.getModifications();
-            for (auto const &m : leader_mods)
+            else
             {
-              MzTabModification mztab_mod;
-              String unimod = m.second.getUniModAccession();
-              MzTabString unimod_accession = MzTabString(unimod.toUpper());
-              mztab_mod.setModificationIdentifier(unimod_accession);
-              vector<std::pair<Size, MzTabParameter> > pos;
-              pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
-              mztab_mod.setPositionsAndParameters(pos);
+              tmp_protein_hit_user_value_keys.insert(std::move(s));
             }
-            protein_row.modifications = modifications;
-
-            // MzTabString uri; // Location of the protein’s source entry.
-            // MzTabStringList go_terms; // List of GO terms for the protein.
-            double coverage = hit.getCoverage() / 100.0; // convert percent to fraction
-            protein_row.coverage =
-                coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
-            // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-
-            // create and fill opt_ columns for protein hit user values
-            addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
-
-            // optional column for protein groups
-            MzTabOptionalColumnEntry opt_column_entry;
-            opt_column_entry.first = "opt_global_protein_group_type";
-            opt_column_entry.second = MzTabString("single_protein");
-            protein_row.opt_.push_back(opt_column_entry);
-
-            protein_rows.push_back(protein_row);
           }
+          swap(protein_hit_user_value_keys, tmp_protein_hit_user_value_keys);
+        }
 
-          /////////////////////////////////////////////////////////////
-          // reporting of general protein groups
-          for (Size i = 0; i != protein_groups2.size(); ++i)
+        // we do not want descriptions twice
+        protein_hit_user_value_keys.erase("Description");
+
+
+        // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+        // We skip the more extensive reporting of general groups with complex shared peptide relations.
+        std::vector<ProteinIdentification::ProteinGroup> protein_groups2;
+        if (quant_study_variables == 0)
+        {
+          protein_groups2 = it->getProteinGroups();
+        }
+
+        for (Size i = 0; i != protein_hits.size(); ++i)
+        {
+          const ProteinHit &hit = protein_hits[i];
+
+          MzTabProteinSectionRow protein_row;
+
+          protein_row.accession = MzTabString(hit.getAccession());
+          protein_row.description = MzTabString(hit.getDescription());
+          // protein_row.taxid = hit.getTaxonomyID(); // TODO maybe add as meta value to protein hit NEWT taxonomy for the species.
+          // MzTabString species = hit.getSpecies(); // Human readable name of the species
+          protein_row.database = db; // Name of the protein database.
+          protein_row.database_version = db_version; // String Version of the protein database.
+          protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
+          // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+          // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+          // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+          // MzTabInteger reliability;
+          // std::map<Size, MzTabInteger> num_psms_ms_run;
+          // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
+          // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
+          MzTabModificationList modifications; // Modifications identified in the protein.
+          const std::set<pair<Size, ResidueModification>> &leader_mods = hit.getModifications();
+          for (auto const &m : leader_mods)
           {
-            const ProteinIdentification::ProteinGroup &group = protein_groups2[i];
-            MzTabProteinSectionRow protein_row;
-            protein_row.database = db; // Name of the protein database.
-            protein_row.database_version = db_version; // String Version of the protein database.
-
-            MzTabStringList ambiguity_members;
-            ambiguity_members.setSeparator(',');
-            vector<MzTabString> entries;
-            for (Size j = 0; j != group.accessions.size(); ++j)
-            {
-              // set accession and description to first element of group
-              if (j == 0)
-              {
-                protein_row.accession = MzTabString(group.accessions[j]);
-                // protein_row.description  // TODO: how to set description? information not contained in group
-              }
-              entries.emplace_back(MzTabString(group.accessions[j]));
-            }
-            ambiguity_members.set(entries);
-            protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
-            protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
-
-            protein_row.coverage = MzTabDouble();
-
-            MzTabOptionalColumnEntry opt_column_entry;
-            opt_column_entry.first = "opt_global_protein_group_type";
-            opt_column_entry.second = MzTabString("protein_group");
-            protein_row.opt_.push_back(opt_column_entry);
-            protein_rows.push_back(protein_row);
+            MzTabModification mztab_mod;
+            String unimod = m.second.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
+            mztab_mod.setModificationIdentifier(unimod_accession);
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
+            mztab_mod.setPositionsAndParameters(pos);
           }
+          protein_row.modifications = modifications;
 
-          /////////////////////////////////////////////////////////////
-          // reporting of protein groups composed of indistinguishable proteins
-          for (Size g = 0; g != indist_groups2.size(); ++g)
+          // MzTabString uri; // Location of the protein’s source entry.
+          // MzTabStringList go_terms; // List of GO terms for the protein.
+          double coverage = hit.getCoverage() / 100.0; // convert percent to fraction
+          protein_row.coverage =
+              coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
+          // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+
+          // create and fill opt_ columns for protein hit user values
+          addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
+
+          // optional column for protein groups
+          MzTabOptionalColumnEntry opt_column_entry;
+          opt_column_entry.first = "opt_global_protein_group_type";
+          opt_column_entry.second = MzTabString("single_protein");
+          protein_row.opt_.push_back(opt_column_entry);
+
+          protein_rows.push_back(protein_row);
+        }
+
+        /////////////////////////////////////////////////////////////
+        // reporting of general protein groups
+        for (Size i = 0; i != protein_groups2.size(); ++i)
+        {
+          const ProteinIdentification::ProteinGroup &group = protein_groups2[i];
+          MzTabProteinSectionRow protein_row;
+          protein_row.database = db; // Name of the protein database.
+          protein_row.database_version = db_version; // String Version of the protein database.
+
+          MzTabStringList ambiguity_members;
+          ambiguity_members.setSeparator(',');
+          vector<MzTabString> entries;
+          for (Size j = 0; j != group.accessions.size(); ++j)
           {
-            const ProteinIdentification::ProteinGroup &group = indist_groups2[g];
-
-            // get references (indices) into proteins vector
-            const set<Size> &protein_hits_idx = ind2prot[g];
-
-            // determine group leader
-            const ProteinHit &leader_protein = protein_hits[*protein_hits_idx.begin()];
-
-            MzTabProteinSectionRow protein_row;
-            protein_row.database = db; // Name of the protein database.
-            protein_row.database_version = db_version; // String Version of the protein database.
-
-            // column: accession and ambiguity_members
-            MzTabStringList ambiguity_members;
-            ambiguity_members.setSeparator(',');
-            vector<MzTabString> entries;
-
             // set accession and description to first element of group
-            protein_row.accession = MzTabString(leader_protein.getAccession());
-
-            // TODO: check with standard if it is important to also place leader at first position
-            //       (because order in set and vector may differ)
-            for (Size j = 0; j != group.accessions.size(); ++j)
+            if (j == 0)
             {
-              entries.emplace_back(MzTabString(group.accessions[j]));
+              protein_row.accession = MzTabString(group.accessions[j]);
+              // protein_row.description  // TODO: how to set description? information not contained in group
             }
-            ambiguity_members.set(entries);
-            protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
-
-            // annotate if group contains only one or multiple proteins
-            MzTabOptionalColumnEntry opt_column_entry;
-            opt_column_entry.first = "opt_global_protein_group_type";
-
-            // TODO: we could count the number of targets or set it to target if at least one target is inside the group
-            // we will always call them "indistinguishable_proteins" to differentiate between e.g.
-            // protein scores based on grouping or on single proteins
-            opt_column_entry.second = MzTabString("indistinguishable_proteins");
-            protein_row.opt_.push_back(opt_column_entry);
-
-            // column: coverage
-            // calculate mean coverage from individual protein coverages
-            double coverage{0};
-            for (const Size &prot_idx : protein_hits_idx)
-            {
-              coverage += (1.0 / (double) protein_hits_idx.size()) * 0.01 * protein_hits[prot_idx].getCoverage();
-            }
-            if (coverage >= 0)
-            {
-              protein_row.coverage = MzTabDouble(coverage);
-            }
-
-            // Store quantitative value attached to abundances in study variables
-            if (group.getFloatDataArrays().size() == 1
-                && group.getFloatDataArrays()[0].getName() == "abundances")
-            {
-              const ProteinIdentification::ProteinGroup::FloatDataArray &fa = group.getFloatDataArrays()[0];
-              Size s(1);
-              for (float f : fa)
-              {
-                protein_row
-                    .protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
-                protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
-                protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
-                protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
-                ++s;
-              }
-            }
-
-            // add protein description of first (leader) protein
-            protein_row.description = MzTabString(leader_protein.getDescription());
-            protein_row.taxid = (leader_protein.metaValueExists("TaxID")) ?
-                                MzTabInteger(static_cast<int>(leader_protein.getMetaValue("TaxID"))) :
-                                MzTabInteger();
-
-            protein_row.species = (leader_protein.metaValueExists("Species")) ?
-                                  MzTabString(leader_protein.getMetaValue("Species")) :
-                                  MzTabString();
-
-            protein_row.uri = (leader_protein.metaValueExists("URI")) ?
-                              MzTabString(leader_protein.getMetaValue("URI")) :
-                              MzTabString();
-
-            if (leader_protein.metaValueExists("GO"))
-            {
-              StringList sl = leader_protein.getMetaValue("GO");
-              String s{};
-              s.concatenate(sl.begin(), sl.end(), ",");
-              protein_row.go_terms.fromCellString(s);
-            }
-
-            protein_row.best_search_engine_score[1] = MzTabDouble(group
-                                                                      .probability); // TODO: group probability or search engine score?
-
-            protein_row.reliability = MzTabInteger();
-
-            MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-            protein_row.search_engine = search_engine;
-
-            MzTabModificationList modifications; // Modifications identified in the protein.
-            const std::set<pair<Size, ResidueModification>> &leader_mods = leader_protein.getModifications();
-            for (auto const &m : leader_mods)
-            {
-              MzTabModification mztab_mod;
-              String unimod = m.second.getUniModAccession();
-              MzTabString unimod_accession = MzTabString(unimod.toUpper());
-              mztab_mod.setModificationIdentifier(unimod_accession);
-              vector<std::pair<Size, MzTabParameter> > pos;
-
-              // mzTab position is one-based, internal is 0-based so we need to +1
-              pos.emplace_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
-              mztab_mod.setPositionsAndParameters(pos);
-              vector<MzTabModification> mztab_mods(1, mztab_mod);
-              modifications.set(mztab_mods);
-            }
-            protein_row.modifications = modifications;
-
-            if (leader_protein.metaValueExists("num_psms_ms_run"))
-            {
-              const IntList &il = leader_protein.getMetaValue("num_psms_ms_run");
-              for (Size ili = 0; ili != il.size(); ++ili)
-              {
-                protein_row.num_psms_ms_run[ili + 1] = MzTabInteger(il[ili]);
-              }
-            }
-
-            if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
-            {
-              const IntList &il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
-              for (Size ili = 0; ili != il.size(); ++ili)
-              {
-                protein_row.num_peptides_distinct_ms_run[ili + 1] = MzTabInteger(il[ili]);
-              }
-            }
-
-            if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
-            {
-              const IntList &il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
-              for (Size ili = 0; ili != il.size(); ++ili)
-              {
-                protein_row.num_peptides_unique_ms_run[ili + 1] = MzTabInteger(il[ili]);
-              }
-            }
-
-            /*
-            TODO:
-            Not sure how to handle these:
-                   // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-                   // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-            */
-
-            // Add protein(group) row to MzTab
-            protein_rows.push_back(protein_row);
+            entries.emplace_back(MzTabString(group.accessions[j]));
           }
-        }
-        for (auto &row : protein_rows)
-        {
-          remapTargetDecoy_(row.opt_);
+          ambiguity_members.set(entries);
+          protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
+          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
+
+          protein_row.coverage = MzTabDouble();
+
+          MzTabOptionalColumnEntry opt_column_entry;
+          opt_column_entry.first = "opt_global_protein_group_type";
+          opt_column_entry.second = MzTabString("protein_group");
+          protein_row.opt_.push_back(opt_column_entry);
+          protein_rows.push_back(protein_row);
         }
 
-        mztab.setProteinSectionRows(protein_rows);
-      } // end protein groups
-    } // end if inference run
+        /////////////////////////////////////////////////////////////
+        // reporting of protein groups composed of indistinguishable proteins
+        for (Size g = 0; g != indist_groups2.size(); ++g)
+        {
+          const ProteinIdentification::ProteinGroup &group = indist_groups2[g];
+
+          // get references (indices) into proteins vector
+          const set<Size> &protein_hits_idx = ind2prot[g];
+
+          // determine group leader
+          const ProteinHit &leader_protein = protein_hits[*protein_hits_idx.begin()];
+
+          MzTabProteinSectionRow protein_row;
+          protein_row.database = db; // Name of the protein database.
+          protein_row.database_version = db_version; // String Version of the protein database.
+
+          // column: accession and ambiguity_members
+          MzTabStringList ambiguity_members;
+          ambiguity_members.setSeparator(',');
+          vector<MzTabString> entries;
+
+          // set accession and description to first element of group
+          protein_row.accession = MzTabString(leader_protein.getAccession());
+
+          // TODO: check with standard if it is important to also place leader at first position
+          //       (because order in set and vector may differ)
+          for (Size j = 0; j != group.accessions.size(); ++j)
+          {
+            entries.emplace_back(MzTabString(group.accessions[j]));
+          }
+          ambiguity_members.set(entries);
+          protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
+
+          // annotate if group contains only one or multiple proteins
+          MzTabOptionalColumnEntry opt_column_entry;
+          opt_column_entry.first = "opt_global_protein_group_type";
+
+          // TODO: we could count the number of targets or set it to target if at least one target is inside the group
+          // we will always call them "indistinguishable_proteins" to differentiate between e.g.
+          // protein scores based on grouping or on single proteins
+          opt_column_entry.second = MzTabString("indistinguishable_proteins");
+          protein_row.opt_.push_back(opt_column_entry);
+
+          // column: coverage
+          // calculate mean coverage from individual protein coverages
+          double coverage{0};
+          for (const Size &prot_idx : protein_hits_idx)
+          {
+            coverage += (1.0 / (double) protein_hits_idx.size()) * 0.01 * protein_hits[prot_idx].getCoverage();
+          }
+          if (coverage >= 0)
+          {
+            protein_row.coverage = MzTabDouble(coverage);
+          }
+
+          // Store quantitative value attached to abundances in study variables
+          if (group.getFloatDataArrays().size() == 1
+              && group.getFloatDataArrays()[0].getName() == "abundances")
+          {
+            //Note: this only works if there is only one run with quant data or at least if index = study variable
+            // We would need another mapping if different runs hold different quant data for e.g. different
+            // conditions or so
+            const ProteinIdentification::ProteinGroup::FloatDataArray &fa = group.getFloatDataArrays()[0];
+            Size s(1);
+            for (float f : fa)
+            {
+              protein_row
+                  .protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
+              protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
+              protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
+              protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
+              ++s;
+            }
+          }
+
+          // add protein description of first (leader) protein
+          protein_row.description = MzTabString(leader_protein.getDescription());
+          protein_row.taxid = (leader_protein.metaValueExists("TaxID")) ?
+                              MzTabInteger(static_cast<int>(leader_protein.getMetaValue("TaxID"))) :
+                              MzTabInteger();
+
+          protein_row.species = (leader_protein.metaValueExists("Species")) ?
+                                MzTabString(leader_protein.getMetaValue("Species")) :
+                                MzTabString();
+
+          protein_row.uri = (leader_protein.metaValueExists("URI")) ?
+                            MzTabString(leader_protein.getMetaValue("URI")) :
+                            MzTabString();
+
+          if (leader_protein.metaValueExists("GO"))
+          {
+            StringList sl = leader_protein.getMetaValue("GO");
+            String s{};
+            s.concatenate(sl.begin(), sl.end(), ",");
+            protein_row.go_terms.fromCellString(s);
+          }
+
+          protein_row.best_search_engine_score[1] = MzTabDouble(group
+                                                                    .probability); // TODO: group probability or search engine score?
+
+          protein_row.reliability = MzTabInteger();
+
+          MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+          protein_row.search_engine = search_engine;
+
+          MzTabModificationList modifications; // Modifications identified in the protein.
+          const std::set<pair<Size, ResidueModification>> &leader_mods = leader_protein.getModifications();
+          for (auto const &m : leader_mods)
+          {
+            MzTabModification mztab_mod;
+            String unimod = m.second.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
+            mztab_mod.setModificationIdentifier(unimod_accession);
+            vector<std::pair<Size, MzTabParameter> > pos;
+
+            // mzTab position is one-based, internal is 0-based so we need to +1
+            pos.emplace_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
+            mztab_mod.setPositionsAndParameters(pos);
+            vector<MzTabModification> mztab_mods(1, mztab_mod);
+            modifications.set(mztab_mods);
+          }
+          protein_row.modifications = modifications;
+
+          if (leader_protein.metaValueExists("num_psms_ms_run"))
+          {
+            const IntList &il = leader_protein.getMetaValue("num_psms_ms_run");
+            for (Size ili = 0; ili != il.size(); ++ili)
+            {
+              protein_row.num_psms_ms_run[ili + 1] = MzTabInteger(il[ili]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
+          {
+            const IntList &il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+            for (Size ili = 0; ili != il.size(); ++ili)
+            {
+              protein_row.num_peptides_distinct_ms_run[ili + 1] = MzTabInteger(il[ili]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
+          {
+            const IntList &il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
+            for (Size ili = 0; ili != il.size(); ++ili)
+            {
+              protein_row.num_peptides_unique_ms_run[ili + 1] = MzTabInteger(il[ili]);
+            }
+          }
+
+          /*
+          TODO:
+          Not sure how to handle these:
+                 // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+                 // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+          */
+
+          // Add protein(group) row to MzTab
+          protein_rows.push_back(protein_row);
+        }
+        if (first_run && first_run_inference)
+        {
+          break;
+        }
+        first_run = false;
+      } // end for every protein run
+      for (auto &row : protein_rows)
+      {
+        remapTargetDecoy_(row.opt_);
+      }
+
+      mztab.setProteinSectionRows(protein_rows);
+    } // end proteins and protein groups
 
     ////////////////////////////////////////////////////
     // PSMs
