@@ -298,6 +298,10 @@ public:
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
 
     NeighborMap const& getAllNeighborsDirect();
+
+    void makeSeq_table(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
+
+    void initialize_neighbors_();
   };
 } // namespace OpenMS
 

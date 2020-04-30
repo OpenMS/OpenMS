@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <numeric> // for make_pair
+#include <iostream>
 
 using std::map;
 using std::vector;
@@ -252,8 +253,9 @@ namespace OpenMS
     return quality_;
   }
 
-  void QTCluster::computeQuality_()
+  void __attribute__ ((noinline))QTCluster::computeQuality_()
   {
+
     // ensure cluster is not finalized as we cannot call optimizeAnnotations_
     // in that case
     OPENMS_PRECONDITION(!finalized_,
@@ -299,7 +301,7 @@ namespace OpenMS
     return tmp;
   }
 
-  QTCluster::NeighborMap const& QTCluster::getAllNeighborsDirect()
+  QTCluster::NeighborMap __attribute__ ((noinline))const& QTCluster::getAllNeighborsDirect()
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -316,7 +318,7 @@ namespace OpenMS
     return annotations_;
   }
 
-  double QTCluster::optimizeAnnotations_()
+  double __attribute__ ((noinline))QTCluster::optimizeAnnotations_()
   {
     OPENMS_PRECONDITION(collect_annotations_,
         "QTCluster::optimizeAnnotations_ should only be called if we use collect_annotations_")
@@ -328,36 +330,7 @@ namespace OpenMS
     // mapping: peptides -> best distance per input map
     map<set<AASequence>, vector<double> > seq_table;
 
-    for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin();
-        n_it != tmp_neighbors_->end(); ++n_it)
-    {
-      Size map_index = n_it->first;
-      for (NeighborListType::iterator df_it = n_it->second.begin(); 
-          df_it != n_it->second.end(); ++df_it)
-      {
-        double dist = df_it->first;
-        const set<AASequence>& current = df_it->second->getAnnotations();
-        map<set<AASequence>, vector<double> >::iterator pos =
-          seq_table.find(current);
-        if (pos == seq_table.end())
-        {
-          // new set of annotations, fill vector with max distance for all maps
-          seq_table[current].resize(num_maps_, max_distance_);
-          seq_table[current][map_index] = dist;
-        }
-        else 
-        {
-          // new dist. value for this input map
-          pos->second[map_index] = min(dist, pos->second[map_index]);
-        }
-        if (current.empty()) // unannotated feature
-        {
-          // no need to check further (annotation-specific distances are worse
-          // than this unspecific one):
-          break;
-        }
-      }
-    }
+    makeSeq_table(seq_table);
 
     // combine annotation-specific and unspecific distances 
     // (all unspecific ones are grouped as empty set<AASequence>):
@@ -398,6 +371,14 @@ namespace OpenMS
     }
 
     // report elements that are compatible with the optimal annotation:
+    initialize_neighbors_();
+
+    // one "max_dist." too many (from the input map of the cluster center):
+    return best_total - max_distance_;
+  }
+
+  void __attribute__ ((noinline))QTCluster::initialize_neighbors_()
+  {
     neighbors_.clear();
     for (NeighborMapMulti::const_iterator n_it = tmp_neighbors_->begin();
          n_it != tmp_neighbors_->end(); ++n_it)
@@ -405,7 +386,7 @@ namespace OpenMS
       for (std::multimap<double, GridFeature*>::const_iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
-        const set<AASequence>& current = df_it->second->getAnnotations();
+        const std::set<AASequence>& current = df_it->second->getAnnotations();
         if (current.empty() || (current == annotations_))
         {
           neighbors_[n_it->first] = make_pair(df_it->first, df_it->second);
@@ -413,9 +394,40 @@ namespace OpenMS
         }
       }
     }
+  }
 
-    // one "max_dist." too many (from the input map of the cluster center):
-    return best_total - max_distance_;
+  void __attribute__ ((noinline))QTCluster::makeSeq_table(map<set<AASequence>, vector<double>> &seq_table) const
+  {
+    for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin();
+         n_it != tmp_neighbors_->end(); ++n_it)
+    {
+      Size map_index = n_it->first;
+      for (NeighborListType::iterator df_it = n_it->second.begin();
+          df_it != n_it->second.end(); ++df_it)
+      {
+        double dist = df_it->first;
+        const std::set<AASequence>& current = df_it->second->getAnnotations();
+        map<std::set<AASequence>, vector<double> >::iterator pos =
+          seq_table.find(current);
+        if (pos == seq_table.end())
+        {
+          // new set of annotations, fill vector with max distance for all maps
+          seq_table[current].resize(num_maps_, max_distance_);
+          seq_table[current][map_index] = dist;
+        }
+        else
+        {
+          // new dist. value for this input map
+          pos->second[map_index] = min(dist, pos->second[map_index]);
+        }
+        if (current.empty()) // unannotated feature
+        {
+          // no need to check further (annotation-specific distances are worse
+          // than this unspecific one):
+          break;
+        }
+      }
+    }
   }
 
   void QTCluster::finalizeCluster()
