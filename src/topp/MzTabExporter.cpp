@@ -215,7 +215,14 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, getFlag_("first_run_inference_only"), true, true, export_subfeatures);
+        MzTabFile().store(out,
+           consensus_map,
+           getFlag_("first_run_inference_only"), 
+           true, 
+           true, 
+           export_subfeatures); // direct stream to disc
+        //mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, getFlag_("first_run_inference_only"), true, true, export_subfeatures);
+        return EXECUTION_OK;
       }
 
       MzTabFile().store(out, mztab);

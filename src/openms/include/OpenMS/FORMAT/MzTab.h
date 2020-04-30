@@ -975,17 +975,17 @@ public:
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
 
-		/**
-		 * @brief export linked peptide features aka consensus map
-		 *
-		 * @param consensus_map		data structure of the linked peptide features
-		 * @param filename		input consensusXML file name
-		 * @param export_unidentified_features		Should not identified peptide features be exported?
-		 * @param export_unassigned_ids		Should unassigned identifications be exported?
-		 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
-		 *
-		 * @return mzTab object
-		 */
+	/**
+	 * @brief export linked peptide features aka consensus map
+	 *
+	 * @param consensus_map		data structure of the linked peptide features
+	 * @param filename		input consensusXML file name
+	 * @param export_unidentified_features		Should not identified peptide features be exported?
+	 * @param export_unassigned_ids		Should unassigned identifications be exported?
+	 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+	 *
+	 * @return mzTab object
+	 */
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap& consensus_map,
       const String& filename,
@@ -997,13 +997,77 @@ public:
       const String& title = "ConsensusMap export from OpenMS");
 
 
+    class CMMzTabStream
+    {
+       public:
+        CMMzTabStream(
+          const ConsensusMap& consensus_map,
+          const String& filename,
+          const bool first_run_inference_only,
+          const bool export_unidentified_features,
+          const bool export_unassigned_ids,
+          const bool export_subfeatures,
+          const bool export_empty_pep_ids = false,
+          const String& title = "ConsensusMap export from OpenMS");
+
+         const MzTabMetaData& getMetaData() const;
+
+         const std::vector<String>& getProteinOptionalColumnNames() const; 
+         const std::vector<String>& getPeptideOptionalColumnNames() const;
+         const std::vector<String>& getPSMOptionalColumnNames() const;
+
+         bool nextPRTRow(MzTabProteinSectionRow& row);
+         bool nextPEPRow(MzTabPeptideSectionRow& row);
+         bool nextPSMRow(MzTabPSMSectionRow& row);
+       private:
+         const ConsensusMap& consensus_map_;
+         std::set<String> protein_hit_user_value_keys_;
+         std::set<String> consensus_feature_user_value_keys_;
+         std::set<String> peptide_hit_user_value_keys_;
+
+         // beautiful mapping structs
+         std::map<Size, std::set<Size>> ind2prot_;
+         std::map<Size, std::set<Size>> pg2prot_;
+         std::map<String, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
+         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+
+         std::vector<const ProteinIdentification*> prot_ids_;
+         std::vector<const PeptideIdentification*> peptide_ids_;
+
+         StringList ms_runs_;
+         bool first_run_inference_;
+         String filename_;
+         StringList fixed_mods_;
+         bool export_unidentified_features_; 
+         bool export_subfeatures_;
+         bool export_empty_pep_ids_; 
+         size_t quant_study_variables_ = 0;
+         size_t n_study_variables_ = 0;
+         size_t PRT_STATE_ = 0;
+         size_t prt_run_id_ = 0; // current (protein) identification run
+         size_t prt_hit_id_ = 0; // current protein in (protein) identification run
+         size_t prt_group_id_ = 0;
+         size_t prt_indistgroup_id_ = 0;
+         size_t pep_id_ = 0;
+         size_t psm_id_ = 0;
+         MzTabString db_, db_version_;
+
+         std::vector<String> prt_optional_column_names_;
+         std::vector<String> pep_optional_column_names_;
+         std::vector<String> psm_optional_column_names_;
+
+         MzTabMetaData meta_data_;
+    };
+
+     
   protected:
     // extract basic mappings
 
     static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
 
-    // yield new PSM row from identification data
-    static boost::optional<MzTabPSMSectionRow> nextPSMSectionRow_(
+    static boost::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
      const PeptideIdentification& pid,
      const std::vector<const ProteinIdentification*>& prot_id,
      std::map<String, size_t>& idrun_2_run_index,
@@ -1014,8 +1078,7 @@ public:
      const MzTabString& db_version,
      const bool export_empty_pep_ids);
 
-    // yield next PEP row from consensus map
-    static boost::optional<MzTabPeptideSectionRow> nextPeptideSectionRow_(
+    static boost::optional<MzTabPeptideSectionRow> peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 
       const ConsensusMap& consensus_map,
       const StringList& ms_runs,
@@ -1029,14 +1092,13 @@ public:
       const std::vector<String>& fixed_mods,
       bool export_subfeatures);
 
-    // yield next PEP row from feature map
-    static boost::optional<MzTabPeptideSectionRow> nextPeptideSectionRow_(
+    static boost::optional<MzTabPeptideSectionRow> peptideSectionRowFromFeature_(
       const Feature& c, 
       const std::set<String>& feature_user_value_keys,
       const std::set<String>& peptide_hit_user_value_keys,
       const std::vector<String>& fixed_mods);
 
-    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromProteinHit_(
+    static boost::optional<MzTabProteinSectionRow> proteinSectionRowFromProteinHit_(
       const ProteinHit& hit,
       const MzTabString& db,
       const MzTabString& db_version,
@@ -1135,7 +1197,7 @@ public:
       {
         for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
         {
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
+          for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
           {
             if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
             {

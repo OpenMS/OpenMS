@@ -68,6 +68,16 @@ namespace OpenMS
     // store MzTab file
     void store(const String& filename, const MzTab& mz_tab) const;
 
+    // stream ConsensusMap to file
+    void store(
+      const String& filename, 
+      const ConsensusMap& cmap,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids = false) const;
+
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);
     void storePeptideReliabilityColumn(bool store);

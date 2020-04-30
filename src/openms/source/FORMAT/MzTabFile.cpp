@@ -2889,6 +2889,130 @@ namespace OpenMS
     }
   }
 
+  void MzTabFile::store(
+      const String& filename, 
+      const ConsensusMap& cmap,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids) const
+  {
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    }
+
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
+
+    MzTab::CMMzTabStream s(
+      cmap,
+      filename,
+      first_run_inference_only,
+      export_unidentified_features,
+      export_unassigned_ids,
+      export_subfeatures,
+      export_empty_pep_ids,
+      "ConsensusMap export from OpenMS");      
+
+    // generate full meta data section and write to file
+    MzTabMetaData meta_data = s.getMetaData();
+
+//    ms_runs = meta_data.ms_run.size();
+//    bool complete = (meta_data.mz_tab_mode.toCellString() == "Complete");
+    {
+      StringList out;
+      generateMzTabMetaDataSection_(meta_data, out);
+      for (const String & line : out) { tab_file << line << "\n"; }
+    }
+   
+    Size n_best_search_engine_score = meta_data.protein_search_engine_score.size();
+
+    {
+      MzTabProteinSectionRow row;
+      bool first = true;
+      while (s.nextPRTRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << generateMzTabProteinHeader_(
+            row,
+            n_best_search_engine_score,
+            s.getProteinOptionalColumnNames(),
+            meta_data) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getProteinOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    Size assays(0);
+    Size study_variables(0);
+    bool first = true;
+    Size search_ms_runs = 0;
+    {
+      MzTabPeptideSectionRow row;
+      while (s.nextPEPRow(row))
+      {
+        if (first)
+        {
+          assays = row.peptide_abundance_assay.size();
+          study_variables = row.peptide_abundance_study_variable.size();
+          Size n_search_engine_score = row.search_engine_score_ms_run.size();
+          Size n_best_search_engine_score = row.best_search_engine_score.size();
+          tab_file << generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, s.getPeptideOptionalColumnNames());
+          first = false;
+/*
+ *        TODO: consider removing this below as well. Does not add much value and looks convoluted
+          if (complete)
+          { // all ms_runs mandatory
+            search_ms_runs = ms_runs;
+          }
+          else // only report all scores if user provided at least one
+          {
+            const MzTabPeptideSectionRows& psr = mz_tab.getPeptideSectionRows();
+            bool has_ms_run_level_scores = false;
+            for (Size i = 0; i != psr.size(); ++i)
+            {
+              if (!psr[i].search_engine_score_ms_run.empty())
+              {
+                has_ms_run_level_scores = true;
+              }
+            }
+            if (has_ms_run_level_scores) { search_ms_runs = ms_runs; }
+          }
+*/
+        }
+        generateMzTabSectionRow_(row, s.getPeptideOptionalColumnNames(), meta_data) + "\n";
+      }
+    } 
+
+    Size n_search_engine_scores = meta_data.psm_search_engine_score.size();
+
+    if (n_search_engine_scores == 0)
+    {
+      // TODO warn
+    }
+
+    {
+      MzTabPSMSectionRow row;
+      bool first = true;
+      while (s.nextPSMRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    tab_file.close();
+  }
+
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
     if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
