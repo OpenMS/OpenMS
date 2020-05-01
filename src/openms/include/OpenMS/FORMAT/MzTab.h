@@ -786,8 +786,8 @@ public:
     MzTabString uri; ///< Location of the oligonucleotide's source entry.
     MzTabString pre;
     MzTabString post;
-    MzTabString start;
-    MzTabString end;
+    MzTabInteger start;
+    MzTabInteger end;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
@@ -1032,4 +1032,3 @@ public:
 } // namespace OpenMS
 
 #pragma clang diagnostic pop
-
