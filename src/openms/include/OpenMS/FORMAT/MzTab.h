@@ -1023,7 +1023,7 @@ public:
          const ConsensusMap& consensus_map_;
          std::set<String> protein_hit_user_value_keys_;
          std::set<String> consensus_feature_user_value_keys_;
-         std::set<String> peptide_hit_user_value_keys_;
+         std::set<String> consensus_feature_peptide_hit_user_value_keys_;
 
          // beautiful mapping structs
          std::map<Size, std::set<Size>> ind2prot_;
@@ -1085,7 +1085,6 @@ public:
       const Size n_study_variables,
       const std::set<String>& consensus_feature_user_value_keys,
       const std::set<String>& peptide_hit_user_value_keys,
-      bool export_unidentified_features,
       const std::map<String, size_t>& idrun_2_run_index,
       const std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
       const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,

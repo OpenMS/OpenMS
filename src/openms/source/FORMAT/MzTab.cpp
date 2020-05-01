@@ -1795,7 +1795,6 @@ namespace OpenMS
     const Size n_study_variables,
     const set<String>& consensus_feature_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
-    bool export_unidentified_features,
     const map<String, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
     const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
@@ -2019,13 +2018,6 @@ namespace OpenMS
         }
       }
       row.best_search_engine_score[1] = MzTabDouble(best_score);
-    }
-    // skip export of unidentified feature TODO: move logic a bit up to me more efficient
-    // TODO @timo: what does unidentified have to do with empty accessions? We check for empty identification vector anyway.
-    if (!export_unidentified_features
-      && row.accession.isNull())
-    {
-      return boost::none;
     }
 
     remapTargetDecoyPSMAndPeptideSection_(row.opt_);
@@ -2827,16 +2819,13 @@ Not sure how to handle these:
 
       const std::vector<ProteinHit>& proteins = prot_ids.front()->getHits();
 
-      // map (indist.)protein groups to their protein hits (by index).
-      const map<Size, set<Size>> ind2prot = MzTab::mapGroupsToProteins_(prot_ids.front()->getIndistinguishableProteins(), proteins);
-      const map<Size, set<Size>> pg2prot = MzTab::mapGroupsToProteins_(prot_ids.front()->getProteinGroups(), proteins);
-
       ////////////////////////////////////////////////////////////////
       // generate protein section
       for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
       {
         const std::vector<ProteinHit>& protein_hits = (*it)->getHits();
         const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = (*it)->getIndistinguishableProteins();
+        const map<Size, set<Size>> ind2prot = MzTab::mapGroupsToProteins_((*it)->getIndistinguishableProteins(), proteins);
 
         // TODO: add processing information that this file has been exported from "filename"
 
@@ -2859,6 +2848,9 @@ Not sure how to handle these:
         {
           protein_groups2 = (*it)->getProteinGroups();
         }
+
+        // map (indist.)protein groups to their protein hits (by index).
+        const map<Size, set<Size>> pg2prot = MzTab::mapGroupsToProteins_(protein_groups2, proteins);
 
         /*
         * protein_hits are supposed to contain all inferred proteins (single proteins and part of groups)
@@ -3161,10 +3153,17 @@ Not sure how to handle these:
       secondary_search_engines,
       secondary_search_engines_settings);
 
-    // optional meta value columns
-    // Pre-analyze data for re-occurring meta values at consensus feature and peptide hit level.
-    // These are stored in optional columns.
-    MzTab::getConsensusMapMetaValues_(consensus_map, consensus_feature_user_value_keys_, peptide_hit_user_value_keys_);
+    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide hit level.
+    // These are stored in optional columns of the PEP section.
+    MzTab::getConsensusMapMetaValues_(consensus_map, 
+      consensus_feature_user_value_keys_, 
+      consensus_feature_peptide_hit_user_value_keys_);
+    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.push_back(k); 
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.push_back(k); 
+
+    // PSM optional columns: also from meta values in consensus features
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.push_back(k); 
+    std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
@@ -3213,12 +3212,6 @@ Not sure how to handle these:
       // trim db name for rows (full name already stored in meta data)
       db_ = MzTabString(File::removeExtension(File::basename(db_.toCellString())));
 
-      const std::vector<ProteinHit>& proteins = prot_ids_[0]->getHits();
-
-      // map (indist.)protein groups to their protein hits (by index).
-      ind2prot_ = MzTab::mapGroupsToProteins_(prot_ids_[0]->getIndistinguishableProteins(), proteins);
-      pg2prot_ = MzTab::mapGroupsToProteins_(prot_ids_[0]->getProteinGroups(), proteins);
-
       ////////////////////////////////////////////////////////////////
       // generate protein section
       for (auto it = prot_ids_.cbegin(); it != prot_ids_.cend(); ++it)
@@ -3242,7 +3235,11 @@ Not sure how to handle these:
     // column headers may not contain spaces
     replaceWhiteSpaces_(protein_hit_user_value_keys_);
 
-    // end protein groups
+
+    // PRT optional columns
+    for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.push_back("opt_global_" + k); 
+    std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
+    prt_optional_column_names_.push_back("opt_global_protein_group_type");
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
@@ -3381,6 +3378,7 @@ Not sure how to handle these:
 
   bool MzTab::CMMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
+    // done if all protein information is contained in run zero and we enter run 1
     if (first_run_inference_ && prt_run_id_ > 0) return false; // done
 
     if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
@@ -3388,11 +3386,19 @@ Not sure how to handle these:
     const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
     const std::vector<ProteinHit>& protein_hits = pid.getHits();
 
+    if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
+    { // Processing new protein identification run?
+      // Map (indist.)protein groups to their protein hits (by index) in this run.
+      ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
+      pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
+    }
+
     // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
     // We skip the more extensive reporting of general groups with complex shared peptide relations.
     const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
     const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
 
+    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
 state0:
     if (PRT_STATE_ == 0) // write protein hits
     {
@@ -3466,22 +3472,39 @@ state0:
         return true;
       }        
     }
-   
+    return false; // should not be reached
   }
 
   bool MzTab::CMMzTabStream::nextPEPRow(MzTabPeptideSectionRow& row)
   {
     if (pep_id_ >= consensus_map_.size()) return false; 
 
-    const ConsensusFeature& c = consensus_map_[pep_id_];
+    auto c = std::cref(consensus_map_[pep_id_]);
 
-    auto pep_row = MzTab::peptideSectionRowFromConsensusFeature_(c, 
+    auto has_peptide_hits = [&](const ConsensusFeature& c) 
+      { 
+        for (const auto& pid : c.getPeptideIdentifications())
+        {
+          if (!pid.getHits().empty()) return true;
+        }
+        return false; 
+      };
+    
+    // skip unidentified features
+    while (!export_unidentified_features_ && !has_peptide_hits(c.get()))
+    {
+      ++pep_id_;
+      if (pep_id_ >= consensus_map_.size()) return false;      
+      c = consensus_map_[pep_id_];
+    }
+
+    auto pep_row = MzTab::peptideSectionRowFromConsensusFeature_(
+     c.get(), 
      consensus_map_, 
      ms_runs_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
-     peptide_hit_user_value_keys_,
-     export_unidentified_features_,
+     consensus_feature_peptide_hit_user_value_keys_,
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
      path_label_to_assay_,

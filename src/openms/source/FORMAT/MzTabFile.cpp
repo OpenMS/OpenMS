@@ -2010,7 +2010,6 @@ namespace OpenMS
     String s = String("MTD\tcolunit-small_molecule") + md.colunit_small_molecule[i];
     sl.push_back(s);
   }
-  sl.push_back(String("\n"));
   }
 
   String MzTabFile::generateMzTabProteinHeader_(
@@ -2937,7 +2936,7 @@ namespace OpenMS
       {
         if (first)
         { // add header
-          tab_file << generateMzTabProteinHeader_(
+          tab_file << "\n" << generateMzTabProteinHeader_(
             row,
             n_best_search_engine_score,
             s.getProteinOptionalColumnNames(),
@@ -2962,7 +2961,7 @@ namespace OpenMS
           study_variables = row.peptide_abundance_study_variable.size();
           Size n_search_engine_score = row.search_engine_score_ms_run.size();
           Size n_best_search_engine_score = row.best_search_engine_score.size();
-          tab_file << generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, s.getPeptideOptionalColumnNames());
+          tab_file << "\n" << generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, s.getPeptideOptionalColumnNames()) + "\n";
           first = false;
 /*
  *        TODO: consider removing this below as well. Does not add much value and looks convoluted
@@ -2985,7 +2984,7 @@ namespace OpenMS
           }
 */
         }
-        generateMzTabSectionRow_(row, s.getPeptideOptionalColumnNames(), meta_data) + "\n";
+        tab_file << generateMzTabSectionRow_(row, s.getPeptideOptionalColumnNames(), meta_data) + "\n";
       }
     } 
 
@@ -3003,7 +3002,7 @@ namespace OpenMS
       {
         if (first)
         { // add header
-          tab_file << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
+          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
           first = false;
         }
         tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data) + "\n";
