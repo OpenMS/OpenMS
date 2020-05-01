@@ -3535,211 +3535,37 @@ state0:
   {  
     OPENMS_LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
 
-    // fill ID datastructure without copying
-    const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
-    vector<const ProteinIdentification*> prot_ids; 
-    for (Size i = 0; i < prot_id.size(); ++i)
-    {
-      prot_ids.push_back(&(prot_id[i]));
-    }
- 
-    // extract mapped IDs (TODO: there should be a helper function)
-    vector<const PeptideIdentification*> pep_ids;
-    for (Size i = 0; i < consensus_map.size(); ++i)
-    {
-      const ConsensusFeature& c = consensus_map[i];
-      const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
-      for (const PeptideIdentification& pi : p) { pep_ids.push_back(&pi); }
-    }
+    CMMzTabStream s(consensus_map,
+      filename,
+      first_run_inference_only,
+      export_unidentified_features,
+      export_unassigned_ids,
+      export_subfeatures,
+      export_empty_pep_ids,
+      title);
 
-    // also export PSMs of unassigned peptide identifications
-    if (export_unassigned_ids)
+    MzTab m;
+    m.setMetaData(s.getMetaData());
+
+    MzTabProteinSectionRow prot_row;
+    while (s.nextPRTRow(prot_row))
     {
-      const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
-      for (const PeptideIdentification& pi : up) { pep_ids.push_back(&pi); }
+      m.getProteinSectionRows().emplace_back(std::move(prot_row));
     }
-
-    ////////////////////////////////////////////////
-    // create some lookup structures and precalculate some values
-    map<String, size_t> idrunid_2_idrunindex = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids);
-
-    bool has_inference_data = prot_ids.empty() ? false : prot_ids[0]->hasInferenceData();
-    bool skip_first_run = has_inference_data && first_run_inference_only;
-    if (skip_first_run)
+    
+    MzTabPeptideSectionRow pep_row;
+    while (s.nextPEPRow(pep_row))
     {
-      OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
+      m.getPeptideSectionRows().emplace_back(std::move(pep_row));
     }
 
-    map<String, size_t> msfilename_2_msrunindex;
-    map<size_t, String> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
-
-    std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx;
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx);
-
-    // collect variable and fixed modifications from different runs
-    StringList var_mods, fixed_mods;
-    MzTab::getSearchModifications_(prot_ids, var_mods, fixed_mods);
-
-    ///////////////////////////////////////////////////////////////////////
-    // Export protein/-group quantifications (stored as meta value in protein IDs)
-    // In this case, the first run is only for inference, get peptide info from the rest of the runs.
-
-    // export PSMs of peptide identifications
-    MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename, first_run_inference_only, export_empty_pep_ids);
-
-    // determine number of samples
-    ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
-
-    Size n_assays = ed.getNumberOfSamples();
-
-    // TODO for now every assay is a study variable since we do not aggregate across e.g. replicates.
-    Size n_study_variables = n_assays;
-
-    ///////////////////////////////////////////////////////////////////////
-    // MetaData section
-
-    MzTabMetaData meta_data = mztab.getMetaData();
-
-    // add some mandatory meta values
-    meta_data.mz_tab_type = MzTabString("Quantification");
-    meta_data.mz_tab_mode = MzTabString("Summary");
-    meta_data.description = MzTabString("OpenMS export from consensusXML");
-    meta_data.title = MzTabString(title);
-
-    MzTabParameter quantification_method;
-    const String & experiment_type = consensus_map.getExperimentType();
-    if (experiment_type == "label-free")
+    MzTabPSMSectionRow psm_row;
+    while (s.nextPSMRow(psm_row))
     {
-      quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
-    }
-    else if (experiment_type == "labeled_MS1")
-    {
-      quantification_method.fromCellString("[PRIDE,PRIDE_0000316,MS1 based isotope labeling,]");
-    }
-    else if (experiment_type == "labeled_MS2")
-    {
-      quantification_method.fromCellString("[PRIDE,PRIDE_0000317,MS2 based isotope labeling,]");
+      m.getPSMSectionRows().emplace_back(std::move(psm_row));
     }
 
-    meta_data.quantification_method = quantification_method;
-    MzTabParameter protein_quantification_unit;
-    protein_quantification_unit.fromCellString("[,,Abundance,]"); // TODO: add better term to obo
-    meta_data.protein_quantification_unit = protein_quantification_unit;
-    MzTabParameter peptide_quantification_unit;
-    peptide_quantification_unit.fromCellString("[,,Abundance,]");
-    meta_data.peptide_quantification_unit = peptide_quantification_unit;
-
-    StringList ms_runs;
-    meta_data.ms_run.clear();
-    consensus_map.getPrimaryMSRunPath(ms_runs);
-
-    // condense consecutive unique MS runs to get the different MS files
-    auto it = std::unique(ms_runs.begin(), ms_runs.end());
-    ms_runs.resize(std::distance(ms_runs.begin(), it));
-    // TODO according to the mzTab standard an MS run can or should be multiple files, when they are coming from
-    //  a pre-fractionated sample -> this sounds more like our fraction groups ?!
-
-    // set run meta data
-    Size run_index{1};
-    for (String m : ms_runs)
-    {
-      MzTabMSRunMetaData mztab_run_metadata;
-      mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
-
-      // prepend file:// if not there yet
-      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
-
-      mztab_run_metadata.location = MzTabString(m);
-      meta_data.ms_run[run_index] = mztab_run_metadata;
-      OPENMS_LOG_DEBUG << "Adding MS run for file: " << m << endl;
-      ++run_index;
-    }
-
-    // assay index (and sample index) must be unique numbers 1..n
-    // fraction_group + label define the quant. values of an assay (which currently corresponds to our Sample ID)
-    std::map< std::pair< String, unsigned >, unsigned> path_label_to_assay = ed.getPathLabelToSampleMapping(false);
-
-    // assay meta data
-    for (auto const & c : consensus_map.getColumnHeaders())
-    {
-      Size assay_index{1};
-
-      MzTabAssayMetaData assay;
-      MzTabParameter quantification_reagent;
-      Size label = c.second.getLabelAsUInt(experiment_type);
-      auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay[pl];
-
-      if (experiment_type == "label-free")
-      {
-        quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
-      }
-      else if (experiment_type == "labeled_MS1")
-      {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
-      }
-      else if (experiment_type == "labeled_MS2")
-      {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
-      }
-      
-      // look up run index by filename
-      //TODO again, check if we rather want fraction groups instead of individual files.
-      auto md_it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(),
-        [&c] (const pair<Size, MzTabMSRunMetaData>& m) {
-          return m.second.location.toCellString().hasSuffix(c.second.filename);
-        } );
-      Size curr_run_index = md_it->first;
-
-      meta_data.assay[assay_index].quantification_reagent = quantification_reagent;
-      meta_data.assay[assay_index].ms_run_ref.push_back(curr_run_index);
-
-      // study variable meta data
-      MzTabString sv_description;
-      // TODO how would we represent study variables? = Collection of sample rows that are equal except for replicate
-      //  columns?
-      meta_data.study_variable[assay_index].description.fromCellString("no description given");
-      IntList al;
-      al.push_back(assay_index);
-      meta_data.study_variable[assay_index].assay_refs = al;
-    }
-
-    mztab.setMetaData(meta_data);
-
-
-    // optional meta value columns
-    // Pre-analyze data for re-occurring meta values at consensus feature and peptide hit level.
-    // These are stored in optional columns.
-    set<String> consensus_feature_user_value_keys;
-    set<String> peptide_hit_user_value_keys;    
-    getConsensusMapMetaValues_(consensus_map, consensus_feature_user_value_keys, peptide_hit_user_value_keys);
-
-    for (ConsensusFeature const & c : consensus_map)
-    {
-      auto row = peptideSectionRowFromConsensusFeature_(c, 
-       consensus_map, 
-       ms_runs,
-       n_study_variables, 
-       consensus_feature_user_value_keys, 
-       peptide_hit_user_value_keys,
-       export_unidentified_features,
-       idrunid_2_idrunindex,
-       map_id_run_fileidx_2_msfileidx,
-       path_label_to_assay,
-       fixed_mods,
-       export_subfeatures);
-
-      if (row)
-      {
-        mztab.getPeptideSectionRows().emplace_back(row.value());
-      }
-    }
-
-    return mztab;
+    return m;
   }
 
   void MzTab::checkSequenceUniqueness_(const vector<PeptideIdentification>& curr_pep_ids)
