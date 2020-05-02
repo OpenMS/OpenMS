@@ -2214,7 +2214,7 @@ namespace OpenMS
       // First entry might be the inference result without (single) associated ms_run. We skip it.
       if (skip_first_run && run_index == 0)
       {
-        run_index++;
+        ++run_index;
         continue;
       }
 
@@ -2231,9 +2231,10 @@ namespace OpenMS
       }
       else
       {
-        map_run_fileidx_2_msfileidx[{run_index,0}] = msfilename_2_msrunindex.at(String(run_index));
+        OPENMS_LOG_WARN << "No MS file associated (primary MS run path)." << endl;
+        map_run_fileidx_2_msfileidx[{run_index,0}] = run_index;
       }
-      run_index++;
+      ++run_index;
     }
   }
 
@@ -2815,7 +2816,9 @@ Not sure how to handle these:
         db_version);
 
       // trim db name for rows (full name already stored in meta data)
-      db = MzTabString(File::removeExtension(File::basename(db.toCellString())));
+      String db_basename = db.toCellString();
+      db_basename.substitute("\\", "/"); // substitute windows backslash
+      db = MzTabString(File::removeExtension(File::basename(db_basename)));
 
       const std::vector<ProteinHit>& proteins = prot_ids.front()->getHits();
 
@@ -3158,11 +3161,15 @@ Not sure how to handle these:
     MzTab::getConsensusMapMetaValues_(consensus_map, 
       consensus_feature_user_value_keys_, 
       consensus_feature_peptide_hit_user_value_keys_);
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.push_back(k); 
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.push_back(k); 
+
+    // create column names from meta values
+    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.push_back("opt_global_" + k); 
+    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referencable via spectra_ref
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.push_back("opt_global_" + k); 
+    std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
     // PSM optional columns: also from meta values in consensus features
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.push_back(k); 
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.push_back("opt_global_" + k); 
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
     ///////////////////////////////////////////////////////////////////////
@@ -3210,7 +3217,9 @@ Not sure how to handle these:
         db_version_);
 
       // trim db name for rows (full name already stored in meta data)
-      db_ = MzTabString(File::removeExtension(File::basename(db_.toCellString())));
+      String db_basename = db_.toCellString();
+      db_basename.substitute("\\", "/"); // substitute windows backslash
+      db_ = MzTabString(File::removeExtension(File::basename(db_basename)));
 
       ////////////////////////////////////////////////////////////////
       // generate protein section
@@ -3234,7 +3243,6 @@ Not sure how to handle these:
     }
     // column headers may not contain spaces
     replaceWhiteSpaces_(protein_hit_user_value_keys_);
-
 
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.push_back("opt_global_" + k); 
@@ -3378,13 +3386,21 @@ Not sure how to handle these:
 
   bool MzTab::CMMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
+    if (prot_ids_.empty()) return false;
+
+    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
+state0:
     // done if all protein information is contained in run zero and we enter run 1
     if (first_run_inference_ && prt_run_id_ > 0) return false; // done
-
     if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
 
     const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
     const std::vector<ProteinHit>& protein_hits = pid.getHits();
+
+    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+    // We skip the more extensive reporting of general groups with complex shared peptide relations.
+    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
+    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
 
     if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
     { // Processing new protein identification run?
@@ -3393,19 +3409,12 @@ Not sure how to handle these:
       pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
     }
 
-    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-    // We skip the more extensive reporting of general groups with complex shared peptide relations.
-    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
-    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
-
-    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
-state0:
     if (PRT_STATE_ == 0) // write protein hits
     {
       if (prt_hit_id_ >= protein_hits.size())
       {
         prt_hit_id_ = 0;
-        PRT_STATE_ = 1; // continue with next state
+        PRT_STATE_ = 1; // continue with next state (!)
       }
       else
       {
@@ -3420,9 +3429,9 @@ state0:
         {
           std::swap(row, prt_row.value());
           return true;
-        }        
-      } // Note: no break as we want to continue with case 1
-    }
+        }
+      }
+    } 
 
     if (PRT_STATE_ == 1) // write general groups
     {
@@ -3451,6 +3460,7 @@ state0:
     if (prt_indistgroup_id_ >= indist_groups2.size()) 
     {
       prt_indistgroup_id_ = 0;
+      prt_hit_id_ = 0;
       PRT_STATE_ = 0;
       ++prt_run_id_; // next protein run
       goto state0;

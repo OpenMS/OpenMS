@@ -3037,12 +3037,13 @@ namespace OpenMS
       // add header
       // use the first row as a reference row to get the optional cols from meta values
       // TODO this is very fragile!
+      out.push_back("");
       out.push_back(generateMzTabProteinHeader_(protein_section[0],
           n_best_search_engine_score,
           mz_tab.getProteinOptionalColumnNames(),
           mz_tab.getMetaData()));
 
-      // add section
+      // add section content
       generateMzTabSection_(protein_section, mz_tab.getProteinOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
 
@@ -3073,6 +3074,7 @@ namespace OpenMS
       Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = peptide_section[0].best_search_engine_score.size();
 
+      out.push_back("");
       out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPeptideSectionRows(), mz_tab.getPeptideOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3085,6 +3087,7 @@ namespace OpenMS
       {
         // TODO warn
       }
+      out.push_back("");
       out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPSMSectionRows(), mz_tab.getPSMOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3095,6 +3098,7 @@ namespace OpenMS
       Size study_variables = smallmolecule_section[0].smallmolecule_abundance_study_variable.size();
       Size n_search_engine_score = smallmolecule_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().smallmolecule_search_engine_score.size();
+      out.push_back("");
       out.push_back(generateMzTabSmallMoleculeHeader_(ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getSmallMoleculeOptionalColumnNames()));
       generateMzTabSection_(smallmolecule_section, mz_tab.getSmallMoleculeOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3131,6 +3135,7 @@ namespace OpenMS
       Size n_best_search_engine_score = mz_tab.getMetaData().nucleic_acid_search_engine_score.size();
 
       // add header
+      out.push_back("");
       out.push_back(generateMzTabNucleicAcidHeader_(search_ms_runs, n_search_engine_score, n_best_search_engine_score, mz_tab.getNucleicAcidOptionalColumnNames()));
 
       // add section
@@ -3163,6 +3168,7 @@ namespace OpenMS
       }
       Size n_search_engine_score = oligonucleotide_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().oligonucleotide_search_engine_score.size();
+      out.push_back("");
       out.push_back(generateMzTabOligonucleotideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, mz_tab.getOligonucleotideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getOligonucleotideSectionRows(), mz_tab.getOligonucleotideOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3175,6 +3181,7 @@ namespace OpenMS
       {
         // TODO warn
       }
+      out.push_back("");
       out.push_back(generateMzTabOSMHeader_(n_search_engine_scores, mz_tab.getOSMOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getOSMSectionRows(), mz_tab.getOSMOptionalColumnNames(), mz_tab.getMetaData(), out);
   }

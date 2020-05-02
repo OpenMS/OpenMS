@@ -996,7 +996,6 @@ public:
       const bool export_empty_pep_ids = false,
       const String& title = "ConsensusMap export from OpenMS");
 
-
     class CMMzTabStream
     {
        public:

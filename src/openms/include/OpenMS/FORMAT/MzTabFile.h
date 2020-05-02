@@ -153,7 +153,6 @@ namespace OpenMS
       {
         output.push_back(generateMzTabSectionRow_(row, optional_columns, meta));
       }
-      output.push_back(String("\n"));
     }
 
     // auxiliary functions
