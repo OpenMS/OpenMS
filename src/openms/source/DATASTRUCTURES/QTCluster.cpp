@@ -253,7 +253,7 @@ namespace OpenMS
     return quality_;
   }
 
-  void __attribute__ ((noinline))QTCluster::computeQuality_()
+  void QTCluster::computeQuality_()
   {
 
     // ensure cluster is not finalized as we cannot call optimizeAnnotations_
@@ -301,7 +301,7 @@ namespace OpenMS
     return tmp;
   }
 
-  QTCluster::NeighborMap __attribute__ ((noinline))const& QTCluster::getAllNeighborsDirect()
+  QTCluster::NeighborMap  const& QTCluster::getAllNeighborsDirect()
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -318,7 +318,7 @@ namespace OpenMS
     return annotations_;
   }
 
-  double __attribute__ ((noinline))QTCluster::optimizeAnnotations_()
+  double QTCluster::optimizeAnnotations_()
   {
     OPENMS_PRECONDITION(collect_annotations_,
         "QTCluster::optimizeAnnotations_ should only be called if we use collect_annotations_")
@@ -377,7 +377,7 @@ namespace OpenMS
     return best_total - max_distance_;
   }
 
-  void __attribute__ ((noinline))QTCluster::initialize_neighbors_()
+  void QTCluster::initialize_neighbors_()
   {
     neighbors_.clear();
     for (NeighborMapMulti::const_iterator n_it = tmp_neighbors_->begin();
@@ -396,7 +396,7 @@ namespace OpenMS
     }
   }
 
-  void __attribute__ ((noinline))QTCluster::makeSeq_table(map<set<AASequence>, vector<double>> &seq_table) const
+  void QTCluster::makeSeq_table(map<set<AASequence>, vector<double>> &seq_table) const
   {
     for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin();
          n_it != tmp_neighbors_->end(); ++n_it)
