@@ -2949,10 +2949,10 @@ namespace OpenMS
 
     Size assays(0);
     Size study_variables(0);
-    bool first = true;
     Size search_ms_runs = 0;
     {
       MzTabPeptideSectionRow row;
+      bool first = true;
       while (s.nextPEPRow(row))
       {
         if (first)
