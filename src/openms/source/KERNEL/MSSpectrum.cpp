@@ -48,7 +48,7 @@ namespace OpenMS
 
     for (Size i = 0; i < snew; ++i)
     {
-      tmp.push_back(*(ContainerType::begin() + indices[i]));
+      tmp.push_back(std::move(ContainerType::operator[](indices[i])));
     }
     ContainerType::swap(tmp);
 
@@ -66,7 +66,7 @@ namespace OpenMS
       mda_tmp_float.reserve(float_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_float.push_back(float_data_arrays_[i][indices[j]]);
+        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
       }
       std::swap(float_data_arrays_[i], mda_tmp_float);
     }
@@ -85,7 +85,7 @@ namespace OpenMS
       mda_tmp_str.reserve(string_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_str.push_back(string_data_arrays_[i][indices[j]]);
+        mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
       }
       std::swap(string_data_arrays_[i], mda_tmp_str);
     }
@@ -104,7 +104,7 @@ namespace OpenMS
       mda_tmp_int.reserve(integer_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp_int.push_back(integer_data_arrays_[i][indices[j]]);
+        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
       }
       std::swap(integer_data_arrays_[i], mda_tmp_int);
     }
@@ -329,24 +329,12 @@ namespace OpenMS
 
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
-      //std::cout << "Empty arrays" << std::endl;
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
     }
     else
     {
-      //std::cout << "Non-Empty arrays" << std::endl;
-      //sort index list
       std::vector<Size> select_indices(this->size());
       for (Size i = 0; i < this->size(); ++i) select_indices[i] = i;
-      //std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
-      //std::vector<Size> pointers(chunks.size() - 1);
-      //for (Size i = 0; i < chunks.size() - 1; ++i)
-      //{
-      //  pointers[i] = chunks[i];
-      //}
-      //std::cout << "Pointers size:" << pointers.size() << std::endl;
-      //std::cout << "Sorted indices size:" << sorted_indices.size() << std::endl;
-
       std::function<void(Size,Size)> rec;
       rec = [&chunks, &select_indices, this, &rec] (Size first, Size last)->void {
         if (last - first > 1)
@@ -361,27 +349,6 @@ namespace OpenMS
       };
 
       rec(0, chunks.size() - 1);
-      // merging the different chunks
-      //while (true)
-      //{
-      //  double min = std::numeric_limits<double>::max();
-      //  Size pos_min = 0;
-      //  Size pos_ptr = pointers.size();
-      //  for (Size i = 0; i < pointers.size(); ++i)
-      //  {
-      //    if (pointers[i] == chunks[i + 1]) continue;
-      //    auto& current = ContainerType::operator[](pointers[i]);
-      //    if (current.getPos() < min)
-      //    {
-      //      min = current.getPos();
-      //      pos_min = pointers[i];
-      //      pos_ptr = i;
-      //    }
-      //  }
-      //  if (pos_ptr == pointers.size()) break;
-      //  ++pointers[pos_ptr];
-      //  select_indices.push_back(pos_min);
-      //}
 
       select(select_indices);
     }
