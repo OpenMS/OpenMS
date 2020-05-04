@@ -1689,7 +1689,7 @@ namespace OpenMS
       auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
       if (row)
       {
-        mztab.getPeptideSectionRows().emplace_back(row.value());
+        mztab.getPeptideSectionRows().emplace_back(*row);
       }
     }
 
@@ -2872,7 +2872,7 @@ Not sure how to handle these:
              protein_hit_user_value_keys);
            if (protein_row)
            {
-             mztab.getProteinSectionRows().emplace_back(protein_row.value());
+             mztab.getProteinSectionRows().emplace_back(*protein_row);
            }
          }
 
@@ -2887,7 +2887,7 @@ Not sure how to handle these:
              db_version);
            if (protein_row)
            {
-             mztab.getProteinSectionRows().emplace_back(protein_row.value());
+             mztab.getProteinSectionRows().emplace_back(*protein_row);
            }
          }
         }
@@ -2906,7 +2906,7 @@ Not sure how to handle these:
             db_version);
           if (protein_row)
           {
-            mztab.getProteinSectionRows().emplace_back(protein_row.value());
+            mztab.getProteinSectionRows().emplace_back(*protein_row);
           }
         }
       }
@@ -2932,7 +2932,7 @@ Not sure how to handle these:
 
       if (psm_row) // valid row?
       {
-        mztab.getPSMSectionRows().emplace_back(psm_row.value());
+        mztab.getPSMSectionRows().emplace_back(*psm_row);
       }
     }
 
