@@ -297,21 +297,7 @@ namespace OpenMS
     // find the best cluster (a valid cluster with the highest score)
     // -> this is equivalent to std::max_element but we can skip invalid clusters
     vector<QTCluster>::iterator best = clustering.begin();
-    while (best != clustering.end() && best->isInvalid()) // find start element
-    {
-      ++best;
-    }
-    for (vector<QTCluster>::iterator it = best;
-         it != clustering.end(); ++it)
-    {
-      if (!it->isInvalid())
-      {
-        if (it->getQuality() > best->getQuality())
-        {
-          best = it;
-        }
-      }
-    }
+    getBest(clustering, best);
 
     // no more clusters to process -> clear clustering and return
     if (best == clustering.end())
@@ -328,21 +314,9 @@ namespace OpenMS
 #endif
 
     // create consensus feature from best cluster:
-    feature.setQuality(best->getQuality());
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
-    {
-      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second->getFeature());
-      feature.insert(it->first, elem_feat);
-      if (elem_feat.metaValueExists("dc_charge_adducts"))
-      {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
-      }
-    }
+    createConsensusFeature(feature, best, elements);
 
-    feature.computeConsensus();
-
-#ifdef DEBUG_QTCLUSTERFINDER
+    #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << std::endl;
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
@@ -364,7 +338,13 @@ namespace OpenMS
     // 2. update all clusters accordingly by removing already used elements
     // 3. Invalidate elements whose central has been used already
     best->setInvalid();
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+    updateClustering(element_mapping, grid, elements);
+  }
+
+  void QTClusterFinder::updateClustering(QTClusterFinder::ElementMapping &element_mapping,
+                                         QTClusterFinder::Grid const &grid, OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> &elements)
+  {
+    for (boost::unordered::unordered_map<Size, GridFeature*>::const_iterator
         it = elements.begin(); it != elements.end(); ++it)
     {
       // Identify all features that could potentially have been touched by this
@@ -372,7 +352,7 @@ namespace OpenMS
 
       ElementMapping tmp_element_mapping; // modify copy, then update
 
-      for (std::vector<QTCluster*>::iterator
+      for (vector<QTCluster*>::iterator
            cluster  = element_mapping[&(*it->second)].begin();
            cluster != element_mapping[&(*it->second)].end(); ++cluster)
       {
@@ -387,21 +367,21 @@ namespace OpenMS
             // removed from the cluster and we need to update that cluster
 
             // Get the coordinates of the current cluster
-            const Int x = (*cluster)->getXCoord(); 
+            const Int x = (*cluster)->getXCoord();
             const Int y = (*cluster)->getYCoord();
 
             ////////////////////////////////////////
             // Step 1: Iterate through all neighboring grid features and try to
             // add elements to the current cluster to replace the ones we just
             // removed
-            const OpenMS::GridFeature* center_feature = (*cluster)->getCenterPoint();
+            const GridFeature* center_feature = (*cluster)->getCenterPoint();
             addClusterElements_(x, y, grid, (**cluster), center_feature);
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
 
-            typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
+            typedef boost::unordered::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
             NeighborMap neigh = (*cluster)->getAllNeighborsDirect();
             for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
             {
@@ -412,13 +392,49 @@ namespace OpenMS
         }
       }
 
-      for (ElementMapping::iterator it = tmp_element_mapping.begin(); 
+      for (ElementMapping::iterator it = tmp_element_mapping.begin();
           it != tmp_element_mapping.end(); ++it )
       {
-        for (std::vector<QTCluster*>::iterator it2 = it->second.begin();
+        for (vector<QTCluster*>::iterator it2 = it->second.begin();
             it2 != it->second.end(); ++it2)
         {
           element_mapping[ it->first ].push_back(*it2);
+        }
+      }
+    }
+  }
+
+  void QTClusterFinder::createConsensusFeature(ConsensusFeature &feature, vector<QTCluster>::iterator &best, OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> &elements) const
+  {
+    feature.setQuality(best->getQuality());
+    for (boost::unordered::unordered_map<Size, GridFeature*>::const_iterator
+         it = elements.begin(); it != elements.end(); ++it)
+    {
+      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second->getFeature());
+      feature.insert(it->first, elem_feat);
+      if (elem_feat.metaValueExists("dc_charge_adducts"))
+      {
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
+      }
+    }
+
+    feature.computeConsensus();
+  }
+
+  void QTClusterFinder::getBest(vector<QTCluster> &clustering, vector<QTCluster>::iterator &best) const
+  {
+    while (best != clustering.end() && best->isInvalid()) // find start element
+    {
+      ++best;
+    }
+    for (vector<QTCluster>::iterator it = best;
+         it != clustering.end(); ++it)
+    {
+      if (!it->isInvalid())
+      {
+        if (it->getQuality() > best->getQuality())
+        {
+          best = it;
         }
       }
     }

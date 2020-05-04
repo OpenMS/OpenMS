@@ -214,6 +214,12 @@ public:
     {
       return new QTClusterFinder();
     }
+
+    void getBest(std::vector<QTCluster> &clustering, std::vector<QTCluster>::iterator &best) const;
+
+    void createConsensusFeature(ConsensusFeature &feature, std::vector<QTCluster>::iterator &best, OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> &elements) const;
+
+    void updateClustering(ElementMapping &element_mapping, Grid const &grid, OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> &elements);
   };
 } // namespace OpenMS
 
