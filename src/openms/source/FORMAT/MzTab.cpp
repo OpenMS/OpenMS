@@ -2608,7 +2608,7 @@ Not sure how to handle these:
     const map<size_t, String>& msrunindex_2_msfilename,
     MzTabMetaData& meta_data)
   {
-    for (const auto r2f : msrunindex_2_msfilename)
+    for (const auto& r2f : msrunindex_2_msfilename)
     {
       MzTabMSRunMetaData ms_run;
       String m = r2f.second;
