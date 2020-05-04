@@ -224,7 +224,7 @@ public:
               Int x_coord, Int y_coord);
 
     /// Destructor
-    virtual ~QTCluster();
+    ~QTCluster();
 
     /// Returns the cluster center
     GridFeature* getCenterPoint();
