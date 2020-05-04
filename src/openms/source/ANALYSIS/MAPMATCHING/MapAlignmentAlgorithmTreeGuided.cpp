@@ -196,6 +196,14 @@ namespace OpenMS
     Size ref;
     Size to_transform;
 
+    // check RT ranges of IDs
+    for (size_t i = 0; i < maps_ranges.size(); ++i)
+    {
+      StringList p;
+      feature_maps_transformed[i].getPrimaryMSRunPath(p);
+      if (maps_ranges[i].empty()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap originating from '" + ListUtils::concatenate(p, "', '") + "' contains no Peptide Identifications. Cannot align!");
+    }
+
     for (const auto& node : tree)
     {
       // ----------------

@@ -289,7 +289,6 @@ protected:
       {
         cmerge.mergeAllIDRuns(cmap);
       }
-      IDFilter::removeUnreferencedProteins(cmap, true);
 
       OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
       sw.reset();
@@ -380,6 +379,7 @@ protected:
       // that get evaluated during FDR without a new posterior being set. (since components of size 1 are skipped)
       // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
       // However, this is done additionally in the Inference class after filtering, so maybe not necessary.
+
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
       OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
@@ -476,3 +476,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

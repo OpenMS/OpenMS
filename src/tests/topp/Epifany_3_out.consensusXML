@@ -9,7 +9,7 @@
 			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 				<UserParam type="string" name="InferenceEngine" value="Epifany"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.5.0-feature-mergeIdx-2020-03-28"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-cXMLProtGroups-2020-04-06"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="A" score="0.823050426961284" sequence="">
@@ -28,11 +28,11 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="E" score="0.234162896871567" sequence="">
+			<ProteinHit id="PH_4" accession="E" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="F" score="0.234162896871567" sequence="">
+			<ProteinHit id="PH_5" accession="F" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -48,19 +48,22 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="J" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_9" accession="J" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="M" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_10" accession="M" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="N" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_11" accession="N" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f2r1.mzML,file:///C:\c1f1r2.mzML,file:///C:\c1f2r2.mzML,file:///C:\c2f1r1.mzML,file:///C:\c2f2r1.mzML,file:///C:\c2f1r2.mzML,file:///C:\c2f2r2.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9868024191411,PH_0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.999273936308983,PH_2,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.995977601279186,PH_6,PH_7"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="611.327697753906" RT="3002.38033267983" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >

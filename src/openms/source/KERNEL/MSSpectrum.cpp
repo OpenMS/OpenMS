@@ -48,10 +48,11 @@ namespace OpenMS
 
     for (Size i = 0; i < snew; ++i)
     {
-      tmp.push_back(*(ContainerType::begin() + indices[i]));
+      tmp.push_back(std::move(ContainerType::operator[](indices[i])));
     }
     ContainerType::swap(tmp);
 
+    std::vector<float> mda_tmp_float;
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
       if (float_data_arrays_[i].empty()) continue;
@@ -61,15 +62,16 @@ namespace OpenMS
                                                                                   String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
 
-      std::vector<float> mda_tmp;
-      mda_tmp.reserve(float_data_arrays_[i].size());
+      mda_tmp_float.clear();
+      mda_tmp_float.reserve(float_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(float_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
       }
-      std::swap(float_data_arrays_[i], mda_tmp);
+      std::swap(float_data_arrays_[i], mda_tmp_float);
     }
 
+    std::vector<String> mda_tmp_str;
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
       if (string_data_arrays_[i].empty()) continue;
@@ -78,15 +80,17 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
                                                                                   String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
-      std::vector<String> mda_tmp;
-      mda_tmp.reserve(string_data_arrays_[i].size());
+
+      mda_tmp_str.clear();
+      mda_tmp_str.reserve(string_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(string_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
       }
-      std::swap(string_data_arrays_[i], mda_tmp);
+      std::swap(string_data_arrays_[i], mda_tmp_str);
     }
 
+    std::vector<Int> mda_tmp_int;
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
       if (integer_data_arrays_[i].empty()) continue;
@@ -95,13 +99,14 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
                                                                                   String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
       }
-      std::vector<Int> mda_tmp;
-      mda_tmp.reserve(integer_data_arrays_[i].size());
+
+      mda_tmp_int.clear();
+      mda_tmp_int.reserve(integer_data_arrays_[i].size());
       for (Size j = 0; j < snew; ++j)
       {
-        mda_tmp.push_back(*(integer_data_arrays_[i].begin() + indices[j]));
+        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
       }
-      std::swap(integer_data_arrays_[i], mda_tmp);
+      std::swap(integer_data_arrays_[i], mda_tmp_int);
     }
 
     return *this;
@@ -315,6 +320,38 @@ namespace OpenMS
 
     // find peak (index) with highest intensity to expected position
     return (max_intensity_it - this->begin());
+  }
+
+
+  void MSSpectrum::specialSortByPosition(const std::vector<Size>& chunks)
+  {
+    if (isSorted()) return;
+
+    if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
+    {
+      std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
+    }
+    else
+    {
+      std::vector<Size> select_indices(this->size());
+      for (Size i = 0; i < this->size(); ++i) select_indices[i] = i;
+      std::function<void(Size,Size)> rec;
+      rec = [&chunks, &select_indices, this, &rec] (Size first, Size last)->void {
+        if (last - first > 1)
+        {
+          Size mid = first + (last - first) / 2;
+          rec(first, mid);
+          rec(mid, last);
+          std::inplace_merge(select_indices.begin() + chunks[first], select_indices.begin() + chunks[mid], select_indices.begin() + chunks[last], [this] (Size a, Size b) {
+            return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos();
+          });
+        }
+      };
+
+      rec(0, chunks.size() - 1);
+
+      select(select_indices);
+    }
   }
 
   void MSSpectrum::sortByPosition()

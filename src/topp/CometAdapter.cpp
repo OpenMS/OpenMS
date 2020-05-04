@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -124,7 +125,6 @@ protected:
       // choose the default value according to the platform where it will be executed
       "comet.exe", // this is the name on ALL platforms currently...
       "The Comet executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-    registerStringOption_("comet_version","<choice>", "2019.01 rev. 4", "comet version: (year,version,revision)", false, false); // required as first line in the param file
 
     //
     // Optional parameters
@@ -133,7 +133,7 @@ protected:
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
     setValidFormats_("pin_out", ListUtils::create<String>("tsv"));
-    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using 'comet.exe -p'", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
     //Masses
@@ -159,6 +159,14 @@ protected:
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
+
+    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
+    setMinInt_("min_peptide_length", 5);
+    setMaxInt_("min_peptide_length", 63);
+    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
+    setMinInt_("max_peptide_length", 5);
+    setMaxInt_("max_peptide_length", 63);
+
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance", 0.01);
@@ -239,27 +247,26 @@ protected:
     setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
   }
 
-  vector<ResidueModification> getModifications_(StringList modNames)
+  vector<ResidueModification> getModifications_(const StringList& modNames)
   {
     vector<ResidueModification> modifications;
 
     // iterate over modification names and add to vector
-    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    for (const auto& modification : modNames)
     {
-      if (mod_it->empty())
+      if (modNames.empty())
       {
         continue;
       }
-      String modification(*mod_it);
       modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
   }
 
-  void createParamFile_(ostream& os)
+  void createParamFile_(ostream& os, const String& comet_version)
   {
-    os << "# comet_version " << getStringOption_("comet_version") << "\n";              // required as first line in the param file
+    os << comet_version << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
     os << "# Everything following the '#' symbol is treated as a comment.\n";
     os << "database_name = " << getStringOption_("database") << "\n";
@@ -479,7 +486,7 @@ protected:
     os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
-    os << "peptide_length_range = 5 63\n";                       // minimum and maximum peptide length to analyze (default 1 63; max length 63)
+    os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
     os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
@@ -565,9 +572,17 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_param = File::getTemporaryFile();
-    writeLog_("Comet is writing the default parameter file...");
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str());
+    String tmp_dir = makeAutoRemoveTempDirectory_();
+
+    writeDebug_("Comet is writing the default parameter file...", 1);
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());
+    // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
+    String comet_version; 
+    {
+      std::ifstream ifs(tmp_dir + "/comet.params.new");
+      getline(ifs, comet_version);
+    }
+    writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
 
     String inputfile_name = getStringOption_("in");
     String out = getStringOption_("out");
@@ -594,7 +609,6 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -605,7 +619,7 @@ protected:
     {
         tmp_file = tmp_dir + "param.txt";
         ofstream os(tmp_file.c_str());
-        createParamFile_(os);
+        createParamFile_(os, comet_version);
         os.close();
     }
     else
@@ -615,7 +629,8 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2
+    mzml_file.getOptions().setFillData(false); // only load metadata for spectra
+    mzml_file.getOptions().setMSLevels({2, 3}); // only load MS2 and MS3
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -625,14 +640,27 @@ protected:
     }
 
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    for (const auto& s : exp)
     {
-      if (!getFlag_("force"))
+      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
       {
         throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
       }
+    }
+
+    // check for mzML index (comet requires one)
+    String input_file_with_index = inputfile_name;
+    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
+    if (index_offset == (std::streampos)-1)
+    {
+      OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
+                      << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
+      mzml_file.getOptions().setFillData(true); // load all data
+      mzml_file.load(inputfile_name, exp);
+      // write mzML with index again
+      auto tmp_file = File::getTemporaryFile();
+      mzml_file.store(tmp_file, exp);
+      input_file_with_index = tmp_file;
     }
 
     //-------------------------------------------------------------
@@ -641,7 +669,7 @@ protected:
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
     QStringList arguments;
-    arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    arguments << paramP.toQString() << paramN.toQString() << input_file_with_index.toQString();
 
     //-------------------------------------------------------------
     // run comet

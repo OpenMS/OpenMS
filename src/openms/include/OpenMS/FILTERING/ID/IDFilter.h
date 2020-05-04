@@ -542,6 +542,15 @@ public:
                   items.end());
     }
 
+    /// Move items that satisfy a condition to a container (e.g. vector)
+    template <class Container, class Predicate>
+    static void moveMatchingItems(Container& items, const Predicate& pred, Container& target)
+    {
+        auto part = std::partition(items.begin(), items.end(), std::not1(pred));
+        std::move(part, items.end(), std::back_inserter(target));
+        items.erase(part, items.end());
+    }
+
     /// Remove Hit items that satisfy a condition in one of our ID containers (e.g. vector of Peptide or ProteinIDs)
     template <class IDContainer, class Predicate>
     static void removeMatchingItemsUnroll(IDContainer& items, const Predicate& pred)
@@ -687,8 +696,14 @@ public:
       std::set<String>& sequences, bool ignore_mods = false);
 
     /**
-       @brief remove peptide evidences based on a filter
+     * @brief Extracts all proteins not matched by PSMs in features
+     * @param cmap the Input ConsensusMap
+     * @return extracted ProteinHits for every IDRun
+     */
+    static std::map<String,std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
 
+    /**
+       @brief remove peptide evidences based on a filter
        @param filter filter function that overloads ()(PeptideEvidence&) operator
        @param peptides a collection of peptide evidences
      */

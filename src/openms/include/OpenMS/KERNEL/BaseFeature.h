@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-
+  class FeatureHandle;
   class PeptideIdentification;
 
   /**
@@ -100,6 +100,9 @@ public:
 
     /// Constructor from raw data point with meta information
     explicit BaseFeature(const RichPeak2D& point);
+
+    /// Constructor from a featurehandle
+    explicit BaseFeature(const FeatureHandle& fh);
 
     /// Destructor
     ~BaseFeature() override;
@@ -184,7 +187,7 @@ protected:
     /// Width (FWHM) for the feature. The default value is 0.0, a feature finding algorithm can compute this form the model.
     WidthType width_;
 
-    /// Peptide PeptideIdentifications belonging to the feature
+    /// PeptideIdentifications belonging to the feature
     std::vector<PeptideIdentification> peptides_;
   };
 

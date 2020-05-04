@@ -216,7 +216,7 @@ private:
 
     // print tree
     ClusterAnalyzer ca;
-    OPENMS_LOG_INFO << "  Alignment follows tree: " << ca.newickTree(tree, true) << endl;
+    OPENMS_LOG_INFO << "  Alignment follows Newick tree: " << ca.newickTree(tree, true) << endl;
 
     // alignment
     vector<Size> trafo_order;

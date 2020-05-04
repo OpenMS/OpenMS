@@ -12,6 +12,7 @@ EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
+InputFileList.h
 LayerData.h
 ListEditor.h
 MetaDataBrowser.h

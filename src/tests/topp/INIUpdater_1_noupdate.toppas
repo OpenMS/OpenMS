@@ -34,7 +34,7 @@
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
-        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="algorithm" description="Algorithm section">
           <ITEM name="debug" value="false" type="bool" description="When debug mode is activated, several files with intermediate results are written to the folder &apos;debug&apos; (do not use in parallel mode)." required="false" advanced="false" />
@@ -116,7 +116,7 @@
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
-        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="feature" description="Additional options for featureXML input">
           <ITEM name="use_centroid_rt" value="false" type="bool" description="Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces." required="false" advanced="false" />
@@ -148,7 +148,7 @@
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
         <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
-        <ITEM name="force" value="false" type="bool" description="Overwrite tool specific checks." required="false" advanced="true" />
+        <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
         <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
         <NODE name="algorithm" description="Algorithm parameters section">
           <ITEM name="second_nearest_gap" value="2" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1:" />
