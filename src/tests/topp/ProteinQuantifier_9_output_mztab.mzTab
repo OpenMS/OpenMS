@@ -15,7 +15,7 @@ MTD	software[1]-setting[5]	fragment_mass_tolerance_unit:Da
 MTD	software[1]-setting[6]	precursor_mass_tolerance:0.0
 MTD	software[1]-setting[7]	precursor_mass_tolerance_unit:Da
 MTD	software[1]-setting[8]	enzyme:unknown_enzyme
-MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-cXMLProtGroups-2020-04-06]
+MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabSingleProts-2020-04-30]
 MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
@@ -52,8 +52,8 @@ PEP	EEE	Protein	1	null	null	null	1.0	1.0	null	null	null	300.0	null	2	300.0	null	
 PEP	GGG	Protein	1	null	null	null	1.0	1.0	null	null	null	400.0	null	2	400.0	null	4.0	null	null	4.0	null	null	null	null	null	GGG
 
 PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_modified_sequence
-PSM	AAA	0	Protein	1	null	null	[, , Mascot, ]	1.0	null	100.0	2	100.0	116.568230237921	null	null	null	null	null	AAA
-PSM	CCC	1	Protein	1	null	null	[, , Mascot, ]	1.0	null	200.0	2	200.0	164.526336332921005	null	null	null	null	null	CCC
+PSM	AAA	0	Protein	1	null	null	[, , Mascot, ]	1.0	null	100.0	2	100.0	116.568230237921029	null	null	null	null	null	AAA
+PSM	CCC	1	Protein	1	null	null	[, , Mascot, ]	1.0	null	200.0	2	200.0	164.526336332921034	null	null	null	null	null	CCC
 PSM	EEE	2	Protein	1	null	null	[, , Mascot, ]	1.0	null	300.0	2	300.0	203.576450333621011	null	null	null	null	null	EEE
 PSM	GGG	3	Protein	1	null	null	[, , Mascot, ]	1.0	null	400.0	2	400.0	95.544755142220993	null	null	null	null	null	GGG
 

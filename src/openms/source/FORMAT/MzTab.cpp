@@ -3299,7 +3299,7 @@ Not sure how to handle these:
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]"); // TODO: determine from data
 
       // prepend file:// if not there yet
       if (!m.hasPrefix("file://")) {m = String("file://") + m; }
@@ -3361,7 +3361,6 @@ Not sure how to handle these:
       al.push_back(assay_index);
       meta_data_.study_variable[assay_index].assay_refs = al;
     }
-
   }
 
   const MzTabMetaData& MzTab::CMMzTabStream::getMetaData() const

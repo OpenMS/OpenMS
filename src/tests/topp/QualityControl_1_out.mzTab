@@ -15,7 +15,7 @@ MTD	software[1]-setting[5]	fragment_mass_tolerance_unit:Da
 MTD	software[1]-setting[6]	precursor_mass_tolerance:10.0
 MTD	software[1]-setting[7]	precursor_mass_tolerance_unit:ppm
 MTD	software[1]-setting[8]	enzyme:Trypsin
-MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-cXMLProtGroups-2020-04-16]
+MTD	software[2]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabSingleProts-2020-04-30]
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere
