@@ -135,7 +135,7 @@ protected:
   public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
-      MSDataWritingConsumer(filename),
+      MSDataWritingConsumer(std::move(filename)),
       ms_levels_(pp.getParameters().getValue("ms_levels").toIntList())
     {
       pp_ = pp;
@@ -143,18 +143,25 @@ protected:
 
     void processSpectrum_(MapType::SpectrumType& s) override
     {
-      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
+      if (ms_levels_.empty()) //auto mode
+      {
+        if (s.getType() == SpectrumSettings::CENTROID) return;
+      }
+      else if (!ListUtils::contains(ms_levels_, s.getMSLevel()))
+      {
+        return;
+      }
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;  // todo: swap? (requires implementation)
+      s = std::move(sout);
     }
 
     void processChromatogram_(MapType::ChromatogramType & c) override
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
-      c = c_out;
+      c = std::move(c_out);
     }
 
   private:
