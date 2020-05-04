@@ -42,7 +42,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
-#include <boost/optional/optional.hpp>
+#include <boost/optional.hpp>
 
 #include <map>
 #include <vector>
@@ -1077,7 +1077,7 @@ public:
      const MzTabString& db_version,
      const bool export_empty_pep_ids);
 
-    static boost::optional<MzTabPeptideSectionRow> peptideSectionRowFromConsensusFeature_(
+    static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 
       const ConsensusMap& consensus_map,
       const StringList& ms_runs,
@@ -1090,24 +1090,24 @@ public:
       const std::vector<String>& fixed_mods,
       bool export_subfeatures);
 
-    static boost::optional<MzTabPeptideSectionRow> peptideSectionRowFromFeature_(
+    static MzTabPeptideSectionRow peptideSectionRowFromFeature_(
       const Feature& c, 
       const std::set<String>& feature_user_value_keys,
       const std::set<String>& peptide_hit_user_value_keys,
       const std::vector<String>& fixed_mods);
 
-    static boost::optional<MzTabProteinSectionRow> proteinSectionRowFromProteinHit_(
+    static MzTabProteinSectionRow proteinSectionRowFromProteinHit_(
       const ProteinHit& hit,
       const MzTabString& db,
       const MzTabString& db_version,
       const std::set<String>& protein_hit_user_value_keys);
 
-    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromProteinGroup_(
+    static MzTabProteinSectionRow nextProteinSectionRowFromProteinGroup_(
       const ProteinIdentification::ProteinGroup& group,
       const MzTabString& db,
       const MzTabString& db_version);
 
-    static boost::optional<MzTabProteinSectionRow> nextProteinSectionRowFromIndistinguishableGroup_(
+    static MzTabProteinSectionRow nextProteinSectionRowFromIndistinguishableGroup_(
       const std::vector<ProteinHit>& protein_hits,
       const ProteinIdentification::ProteinGroup& group,
       const size_t g,

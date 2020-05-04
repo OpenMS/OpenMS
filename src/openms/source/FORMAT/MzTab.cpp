@@ -1687,16 +1687,13 @@ namespace OpenMS
     {
       const Feature& f = feature_map[i];
       auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
-      if (row)
-      {
-        mztab.getPeptideSectionRows().emplace_back(*row);
-      }
+      mztab.getPeptideSectionRows().emplace_back(row);
     }
 
     return mztab;
   }
 
-  boost::optional<MzTabPeptideSectionRow> MzTab::peptideSectionRowFromFeature_(
+  MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
     const Feature& f, 
     const set<String>& feature_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
@@ -1788,7 +1785,7 @@ namespace OpenMS
     return row;
   }
 
-  boost::optional<MzTabPeptideSectionRow> MzTab::peptideSectionRowFromConsensusFeature_(
+  MzTabPeptideSectionRow MzTab::peptideSectionRowFromConsensusFeature_(
     const ConsensusFeature& c, 
     const ConsensusMap& consensus_map,
     const StringList& ms_runs,
@@ -2297,7 +2294,7 @@ namespace OpenMS
   }
 
 
-  boost::optional<MzTabProteinSectionRow> MzTab::proteinSectionRowFromProteinHit_(
+  MzTabProteinSectionRow MzTab::proteinSectionRowFromProteinHit_(
     const ProteinHit& hit,
     const MzTabString& db,
     const MzTabString& db_version,
@@ -2352,7 +2349,7 @@ namespace OpenMS
     return protein_row;
   }
 
-  boost::optional<MzTabProteinSectionRow> MzTab::nextProteinSectionRowFromProteinGroup_(
+  MzTabProteinSectionRow MzTab::nextProteinSectionRowFromProteinGroup_(
     const ProteinIdentification::ProteinGroup& group,
     const MzTabString& db,
     const MzTabString& db_version)
@@ -2390,7 +2387,7 @@ namespace OpenMS
     return protein_row;
   }
 
-  boost::optional<MzTabProteinSectionRow> MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
+  MzTabProteinSectionRow MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
     const std::vector<ProteinHit>& protein_hits,
     const ProteinIdentification::ProteinGroup& group,
     const size_t g,
@@ -2870,10 +2867,7 @@ Not sure how to handle these:
              db,
              db_version,
              protein_hit_user_value_keys);
-           if (protein_row)
-           {
-             mztab.getProteinSectionRows().emplace_back(*protein_row);
-           }
+           mztab.getProteinSectionRows().emplace_back(protein_row);
          }
 
          /////////////////////////////////////////////////////////////
@@ -2885,10 +2879,7 @@ Not sure how to handle these:
              group,
              db,
              db_version);
-           if (protein_row)
-           {
-             mztab.getProteinSectionRows().emplace_back(*protein_row);
-           }
+           mztab.getProteinSectionRows().emplace_back(protein_row);
          }
         }
 
@@ -2904,10 +2895,7 @@ Not sure how to handle these:
             ind2prot,
             db,
             db_version);
-          if (protein_row)
-          {
-            mztab.getProteinSectionRows().emplace_back(*protein_row);
-          }
+          mztab.getProteinSectionRows().emplace_back(protein_row);
         }
       }
     }
@@ -3424,11 +3412,8 @@ state0:
           db_version_,
           protein_hit_user_value_keys_);
         ++prt_hit_id_;
-        if (prt_row)
-        {
-          std::swap(row, prt_row.value());
-          return true;
-        }
+        std::swap(row, prt_row);
+        return true;
       }
     } 
 
@@ -3447,11 +3432,8 @@ state0:
           db_,
           db_version_);
         ++prt_group_id_;
-        if (prt_row)
-        {
-          std::swap(row, prt_row.value());
-          return true;
-        }        
+        std::swap(row, prt_row);
+        return true;
       }      
     }
 
@@ -3475,11 +3457,9 @@ state0:
         db_,
         db_version_);
       ++prt_indistgroup_id_;
-      if (prt_row)
-      {
-        std::swap(row, prt_row.value());
-        return true;
-      }        
+
+      std::swap(row, prt_row);
+      return true;
     }
     return false; // should not be reached
   }
@@ -3522,12 +3502,8 @@ state0:
 
     ++pep_id_;
 
-    if (pep_row)
-    {
-      std::swap(row, pep_row.value());
-      return true;
-    }
-    return false;
+    std::swap(row, pep_row);
+    return true;
   }
   
   bool MzTab::CMMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
@@ -3549,7 +3525,7 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, psm_row.value());
+      std::swap(row, *psm_row);
       return true;
     }
     return false;
