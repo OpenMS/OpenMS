@@ -1,6 +1,9 @@
+## Use CMake 3.17 to correctly find OpenMP on macOS
+cmake_minimum_required(VERSION 3.17)
+
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
-cmake_minimum_required(VERSION 3.8)
+
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
