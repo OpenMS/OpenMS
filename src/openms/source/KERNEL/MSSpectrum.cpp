@@ -336,43 +336,53 @@ namespace OpenMS
     {
       //std::cout << "Non-Empty arrays" << std::endl;
       //sort index list
-      std::vector<Size> select_indices;
-      select_indices.reserve(this->size());
+      std::vector<Size> select_indices(this->size());
+      for (Size i = 0; i < this->size(); ++i) select_indices[i] = i;
       //std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
-      std::vector<Size> pointers(chunks.size() - 1);
-      for (Size i = 0; i < chunks.size() - 1; ++i)
-      {
-        pointers[i] = chunks[i];
-      }
+      //std::vector<Size> pointers(chunks.size() - 1);
+      //for (Size i = 0; i < chunks.size() - 1; ++i)
+      //{
+      //  pointers[i] = chunks[i];
+      //}
       //std::cout << "Pointers size:" << pointers.size() << std::endl;
       //std::cout << "Sorted indices size:" << sorted_indices.size() << std::endl;
 
-      // merging the different chunks
-      while (true)
-      {
-        double min = std::numeric_limits<double>::max();
-        Size pos_min = 0;
-        Size pos_ptr = pointers.size();
-        for (Size i = 0; i < pointers.size(); ++i)
+      std::function<void(Size,Size)> rec;
+      rec = [&chunks, &select_indices, this, &rec] (Size first, Size last)->void {
+        if (last - first > 1)
         {
-          if (pointers[i] == chunks[i + 1]) continue;
-          auto& current = ContainerType::operator[](pointers[i]);
-          if (current.getPos() < min)
-          {
-            min = current.getPos();
-            pos_min = pointers[i];
-            pos_ptr = i;
-          }
+          Size mid = first + (last - first) / 2;
+          rec(first, mid);
+          rec(mid, last);
+          std::inplace_merge(select_indices.begin() + chunks[first], select_indices.begin() + chunks[mid], select_indices.begin() + chunks[last], [this] (Size a, Size b) {
+            return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos();
+          });
         }
-        if (pos_ptr == pointers.size()) break;
-        ++pointers[pos_ptr];
-        select_indices.push_back(pos_min);
-      }
+      };
 
-      //for (Size i = 0; i < select_indices.size(); ++i) std::cout << select_indices[i] << ", ";
-      //std::cout << std::endl;
-      //for (Size i = 0; i < sorted_indices.size(); ++i) std::cout << sorted_indices[i].first[0] << ", ";
-      //std::cout << std::endl;
+      rec(0, chunks.size() - 1);
+      // merging the different chunks
+      //while (true)
+      //{
+      //  double min = std::numeric_limits<double>::max();
+      //  Size pos_min = 0;
+      //  Size pos_ptr = pointers.size();
+      //  for (Size i = 0; i < pointers.size(); ++i)
+      //  {
+      //    if (pointers[i] == chunks[i + 1]) continue;
+      //    auto& current = ContainerType::operator[](pointers[i]);
+      //    if (current.getPos() < min)
+      //    {
+      //      min = current.getPos();
+      //      pos_min = pointers[i];
+      //      pos_ptr = i;
+      //    }
+      //  }
+      //  if (pos_ptr == pointers.size()) break;
+      //  ++pointers[pos_ptr];
+      //  select_indices.push_back(pos_min);
+      //}
+
       select(select_indices);
     }
   }
