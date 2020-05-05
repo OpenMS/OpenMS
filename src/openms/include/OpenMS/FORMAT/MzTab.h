@@ -963,11 +963,12 @@ public:
       * @return mzTab object
     */
     static MzTab exportIdentificationsToMzTab(
-        const std::vector<const ProteinIdentification*>& prot_ids,
-        const std::vector<const PeptideIdentification*>& peptide_ids,
+        const std::vector<ProteinIdentification>& prot_ids,
+        const std::vector<PeptideIdentification>& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
-        bool export_empty_pep_ids = false);
+        bool export_empty_pep_ids = false,
+        const String& title = "ID export from OpenMS");
 
 
     /// Generate MzTab style list of PTMs from AASequence object.
@@ -995,6 +996,67 @@ public:
       const bool export_subfeatures,
       const bool export_empty_pep_ids = false,
       const String& title = "ConsensusMap export from OpenMS");
+
+    class IDMzTabStream
+    {
+       public:
+        IDMzTabStream(
+          const std::vector<const ProteinIdentification*>& prot_ids,
+          const std::vector<const PeptideIdentification*>& peptide_ids,
+          const String& filename,
+          bool first_run_inference_only,
+          bool export_empty_pep_ids = false,
+          const String& title = "ID export from OpenMS");
+
+         const MzTabMetaData& getMetaData() const;
+
+         const std::vector<String>& getProteinOptionalColumnNames() const; 
+         const std::vector<String>& getPeptideOptionalColumnNames() const;
+         const std::vector<String>& getPSMOptionalColumnNames() const;
+
+         bool nextPRTRow(MzTabProteinSectionRow& row);
+         bool nextPEPRow(MzTabPeptideSectionRow& row);
+         bool nextPSMRow(MzTabPSMSectionRow& row);
+       private:
+         std::set<String> protein_hit_user_value_keys_;
+         std::set<String> peptide_id_user_value_keys_;
+         std::set<String> peptide_hit_user_value_keys_;
+
+         // beautiful mapping structs
+         std::map<Size, std::set<Size>> ind2prot_;
+         std::map<Size, std::set<Size>> pg2prot_;
+         std::map<String, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
+         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+
+         std::vector<const ProteinIdentification*> prot_ids_;
+         std::vector<const PeptideIdentification*> peptide_ids_;
+
+         StringList ms_runs_;
+         bool first_run_inference_;
+         String filename_;
+         StringList fixed_mods_;
+         bool export_unidentified_features_; 
+         bool export_subfeatures_;
+         bool export_empty_pep_ids_; 
+         size_t quant_study_variables_ = 0;
+         size_t n_study_variables_ = 0;
+         size_t PRT_STATE_ = 0;
+         size_t prt_run_id_ = 0; // current (protein) identification run
+         size_t prt_hit_id_ = 0; // current protein in (protein) identification run
+         size_t prt_group_id_ = 0;
+         size_t prt_indistgroup_id_ = 0;
+         size_t pep_id_ = 0;
+         size_t psm_id_ = 0;
+         MzTabString db_, db_version_;
+
+         std::vector<String> prt_optional_column_names_;
+         std::vector<String> pep_optional_column_names_;
+         std::vector<String> psm_optional_column_names_;
+
+         MzTabMetaData meta_data_;
+    };
 
     class CMMzTabStream
     {
@@ -1133,6 +1195,14 @@ public:
     static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, std::set<String>& consensus_feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
 
     static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+
+    static void getIdentificationMetaValues_(
+      const std::vector<const ProteinIdentification*>& prot_ids, 
+      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::set<String>& protein_hit_user_value_keys,
+      std::set<String>& peptide_id_user_value_keys,
+      std::set<String>& peptide_hit_user_value_keys);
+
 
     template <class ForwardIterator>
     static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)

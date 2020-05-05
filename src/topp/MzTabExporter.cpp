@@ -183,13 +183,11 @@ protected:
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
-        vector<const PeptideIdentification*> pep_ids_ptr;
-        for (const PeptideIdentification& pi : pep_ids) { pep_ids_ptr.push_back(&pi); }
-    
-        vector<const ProteinIdentification*> prot_ids_ptr;
-        for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
-
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"));
+        MzTabFile().store(out,
+	  prot_ids,
+          pep_ids,
+          getFlag_("first_run_inference_only"));
+        return EXECUTION_OK;
       }
 
       // export identification data from mzIdentML
@@ -200,13 +198,11 @@ protected:
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
 
-        vector<const PeptideIdentification*> pep_ids_ptr;
-        for (const PeptideIdentification& pi : pep_ids) { pep_ids_ptr.push_back(&pi); }
-
-        vector<const ProteinIdentification*> prot_ids_ptr;
-        for (const ProteinIdentification& pi : prot_ids) { prot_ids_ptr.push_back(&pi); }
-
-        mztab = MzTab::exportIdentificationsToMzTab(prot_ids_ptr, pep_ids_ptr, in, getFlag_("first_run_inference_only"));
+        MzTabFile().store(out,
+	  prot_ids,
+          pep_ids,
+          getFlag_("first_run_inference_only"));
+        return EXECUTION_OK;
       }
 
       // export quantification data
@@ -221,7 +217,6 @@ protected:
            true, 
            true, 
            export_subfeatures); // direct stream to disc
-        //mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, getFlag_("first_run_inference_only"), true, true, export_subfeatures);
         return EXECUTION_OK;
       }
 

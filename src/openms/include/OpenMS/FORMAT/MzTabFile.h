@@ -68,6 +68,15 @@ namespace OpenMS
     // store MzTab file
     void store(const String& filename, const MzTab& mz_tab) const;
 
+    // stream IDs to file
+    void store(
+          const String& filename,
+          const std::vector<ProteinIdentification>& protein_identifications,
+          const std::vector<PeptideIdentification>& peptide_identifications,
+          bool first_run_inference_only,
+          bool export_empty_pep_ids = false,
+          const String& title = "ID export from OpenMS");
+
     // stream ConsensusMap to file
     void store(
       const String& filename, 

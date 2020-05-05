@@ -2887,6 +2887,92 @@ namespace OpenMS
       }
     }
   }
+    // stream IDs to file
+  void MzTabFile::store(
+        const String& filename,
+        const std::vector<ProteinIdentification>& protein_identifications,
+        const std::vector<PeptideIdentification>& peptide_identifications,
+        bool first_run_inference_only,
+        bool export_empty_pep_ids,
+        const String& title)
+  {
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    }
+
+    vector<const PeptideIdentification*> pep_ids_ptr;
+    for (const PeptideIdentification& pi : peptide_identifications) { pep_ids_ptr.push_back(&pi); }
+
+    vector<const ProteinIdentification*> prot_ids_ptr;
+    for (const ProteinIdentification& pi : protein_identifications) { prot_ids_ptr.push_back(&pi); }
+
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
+
+    MzTab::IDMzTabStream s(
+      prot_ids_ptr,
+      pep_ids_ptr,
+      filename,
+      first_run_inference_only,
+      export_empty_pep_ids,
+      title);      
+
+    // generate full meta data section and write to file
+    MzTabMetaData meta_data = s.getMetaData();
+
+    {
+      StringList out;
+      generateMzTabMetaDataSection_(meta_data, out);
+      for (const String & line : out) { tab_file << line << "\n"; }
+    }
+   
+    Size n_best_search_engine_score = meta_data.protein_search_engine_score.size();
+
+    {
+      MzTabProteinSectionRow row;
+      bool first = true;
+      while (s.nextPRTRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabProteinHeader_(
+            row,
+            n_best_search_engine_score,
+            s.getProteinOptionalColumnNames(),
+            meta_data) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getProteinOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+
+    Size n_search_engine_scores = meta_data.psm_search_engine_score.size();
+
+    if (n_search_engine_scores == 0)
+    {
+      // TODO warn
+    }
+
+    {
+      MzTabPSMSectionRow row;
+      bool first = true;
+      while (s.nextPSMRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    tab_file.close();
+    
+  }
 
   void MzTabFile::store(
       const String& filename, 
