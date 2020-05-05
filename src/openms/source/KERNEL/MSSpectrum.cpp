@@ -105,7 +105,6 @@ namespace OpenMS
       for (Size j = 0; j < snew; ++j)
       {
         mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
-        //mda_tmp_int.push_back(integer_data_arrays_[i][indices[j]]);
       }
       std::swap(integer_data_arrays_[i], mda_tmp_int);
     }
@@ -324,7 +323,7 @@ namespace OpenMS
   }
 
 
-  void MSSpectrum::specialSortByPosition(const std::vector<std::pair<Size, bool>>& chunks)
+  void MSSpectrum::sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks)
   {
     if (isSorted()) return;
 
@@ -336,7 +335,7 @@ namespace OpenMS
     {
       std::vector<Size> select_indices(this->size());
       for (Size i = 0; i < this->size(); ++i) select_indices[i] = i;
-      
+
       auto comparePos =  [this] (Size a, Size b) { return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos(); };
 
       // sort all chunks, that haven't been sorted yet
@@ -347,6 +346,8 @@ namespace OpenMS
           std::stable_sort(select_indices.begin() + chunks[i - 1].first, select_indices.begin() + chunks[i].first, comparePos);
         }
       }
+
+      // now we can recursively merge all chunks, which is faster than using stable_sort in the first place
       std::function<void(Size,Size)> rec;
       rec = [&chunks, &select_indices, &rec, &comparePos] (Size first, Size last)->void {
         if (last - first > 1)

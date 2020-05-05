@@ -160,30 +160,12 @@ namespace OpenMS
 
     for (Int z = min_charge; z <= max_charge; ++z)
     {
-      if (add_b_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::BIon, z);
-      }
-      if (add_y_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::YIon, z);
-      }
-      if (add_a_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::AIon, z);
-      }
-      if (add_c_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::CIon, z);
-      }
-      if (add_x_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::XIon, z);
-      }
-      if (add_z_ions_)
-      {
-        addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::ZIon, z);
-      }
+      if (add_b_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::BIon, z);
+      if (add_y_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::YIon, z);
+      if (add_a_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::AIon, z);
+      if (add_c_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::CIon, z);
+      if (add_x_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::XIon, z);
+      if (add_z_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::ZIon, z);
     }
 
     if (add_precursor_peaks_)
@@ -227,8 +209,7 @@ namespace OpenMS
       }
     }
 
-    if (sort_by_position_) spectrum.specialSortByPosition(chunks);
-    return;
+    if (sort_by_position_) spectrum.sortByPositionPresorted(chunks);
   }
 
 
@@ -240,7 +221,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('P')))
     {
       p.setMZ(70.0656);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -254,7 +234,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('C')))
     {
       p.setMZ(76.0221);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -268,7 +247,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('L')))
     {
       p.setMZ(86.09698);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -282,7 +260,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
     {
       p.setMZ(110.0718);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -296,7 +273,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('F')))
     {
       p.setMZ(120.0813);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -310,7 +286,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('Y')))
     {
       p.setMZ(136.0762);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -324,7 +299,6 @@ namespace OpenMS
     if (peptide.has(*ResidueDB::getInstance()->getResidue('W')))
     {
       p.setMZ(159.0922);
-      //std::cout << "Pos (abund): " << p.getMZ() << std::endl;
       p.setIntensity(1.0);
       if (add_metainfo_)
       {
@@ -592,7 +566,6 @@ namespace OpenMS
 
       if (!add_isotopes_) // add single peak
       {
-        //std::cout << "Adding single peaks" << std::endl;
         Size i = add_first_prefix_ion_ ? 0 : 1;
         if (i == 1)
         {
@@ -619,7 +592,6 @@ namespace OpenMS
 
           if (add_losses_ && !add_isotopes_)
           {
-            ////std::cout << "Adding losses faster" << std::endl;
             if (peptide[i].hasNeutralLoss())
             {
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
@@ -717,7 +689,7 @@ namespace OpenMS
           if (add_metainfo_)
           {
             ion_names.emplace_back(residue_str);
-            //note: size of Residue::residueTypeToIonLetter(res_type) : 1. size of String(i + 1) : 2;
+            //note: size of Residue::residueTypeToIonLetter(res_type) => 1, size of String(peptide.size() - i) => 3;
             ion_names.back().reserve(1 + 3 + charge_str.size());
             (ion_names.back() += Size(peptide.size() - i)) += charge_str;
             charges.push_back(charge);
@@ -833,7 +805,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           ion_names.emplace_back("[M+H]-H2O");
-          //note: Size of "[M+H]-H2O" : 9
+          //note: Size of "[M+H]-H2O" => 9
           ion_names.back().reserve(9 + charge_str.size());
           ion_names.back() += charge_str;
           charges.push_back(charge);
@@ -848,7 +820,7 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.emplace_back("[M+H]-H2O");
-        //note: Size of "[M+H]-H2O" : 9
+        //note: Size of "[M+H]-H2O" => 9
         ion_names.back().reserve(9 + charge_str.size());
         ion_names.back() += charge_str;
         charges.push_back(charge);
@@ -883,7 +855,7 @@ namespace OpenMS
         if (add_metainfo_)
         {
           ion_names.emplace_back("[M+H]-NH3");
-          //note: Size of "[M+H]-NH3" : 9
+          //note: Size of "[M+H]-NH3" => 9
           ion_names.back().reserve(9 + charge_str.size());
           ion_names.back() += charge_str;
           charges.push_back(charge);
@@ -898,7 +870,7 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.emplace_back("[M+H]-NH3");
-        //note: Size of "[M+H]-NH3" : 9
+        //note: Size of "[M+H]-NH3" => 9
         ion_names.back().reserve(9 + charge_str.size());
         ion_names.back() += charge_str;
         charges.push_back(charge);

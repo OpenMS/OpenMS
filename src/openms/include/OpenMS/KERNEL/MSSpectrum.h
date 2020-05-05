@@ -286,7 +286,7 @@ public:
     */
     void sortByPosition();
 
-    void specialSortByPosition(const std::vector<std::pair<Size, bool>>& chunks);
+    void sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks);
 
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
