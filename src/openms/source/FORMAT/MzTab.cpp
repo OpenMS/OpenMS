@@ -98,9 +98,8 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split("|", fields);
+      s.split("|", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabParameter p;
@@ -186,9 +185,8 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split(sep_, fields);
+      s.split(sep_, fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabString ts;
@@ -1141,9 +1139,8 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split(",", fields);
+      s.split(",", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabInteger ds;
@@ -1420,9 +1417,8 @@ namespace OpenMS
     }
     else
     {
-      String ss = s;
       std::vector<String> fields;
-      ss.split("|", fields);
+      s.split("|", fields);
       for (Size i = 0; i != fields.size(); ++i)
       {
         MzTabDouble ds;
@@ -1885,17 +1881,17 @@ namespace OpenMS
 
       if (export_subfeatures)
       {
-            MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
-            opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
-            opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
-            row.opt_.push_back(opt_global_mass_to_charge_study_variable);
+        MzTabOptionalColumnEntry opt_global_mass_to_charge_study_variable;
+        opt_global_mass_to_charge_study_variable.first = "opt_global_mass_to_charge_study_variable[" + String(study_variable) + "]";
+        opt_global_mass_to_charge_study_variable.second = MzTabString(String(fit->getMZ()));
+        row.opt_.push_back(opt_global_mass_to_charge_study_variable);
 
-            MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
-            opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
-            opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
-            row.opt_.push_back(opt_global_retention_time_study_variable);
-      	    }
-    }
+        MzTabOptionalColumnEntry opt_global_retention_time_study_variable;
+        opt_global_retention_time_study_variable.first = "opt_global_retention_time_study_variable[" + String(study_variable) + "]";
+        opt_global_retention_time_study_variable.second = MzTabString(String(fit->getRT()));
+        row.opt_.push_back(opt_global_retention_time_study_variable);
+        }
+      }
 
     const vector<PeptideIdentification>& curr_pep_ids = c.getPeptideIdentifications();
     if (!curr_pep_ids.empty())
@@ -2552,7 +2548,7 @@ Not sure how to handle these:
   {
     map<String, Size> idrunid_2_idrunindex;
     size_t current_idrun_index(0);
-    for (auto const & pid : prot_ids)
+    for (auto const& pid : prot_ids)
     {
       idrunid_2_idrunindex[pid->getIdentifier()] = current_idrun_index;
       ++current_idrun_index;
@@ -2568,7 +2564,7 @@ Not sure how to handle these:
   {
     size_t current_ms_run_index(1);
     bool first = true;
-    for (auto const & pid : prot_ids)
+    for (auto const& pid : prot_ids)
     {
       if (skip_first && first)
       {
@@ -2608,7 +2604,7 @@ Not sure how to handle these:
     const map<size_t, String>& msrunindex_2_msfilename,
     MzTabMetaData& meta_data)
   {
-    for (const auto r2f : msrunindex_2_msfilename)
+    for (const auto& r2f : msrunindex_2_msfilename)
     {
       MzTabMSRunMetaData ms_run;
       String m = r2f.second;
@@ -3163,13 +3159,13 @@ Not sure how to handle these:
       consensus_feature_peptide_hit_user_value_keys_);
 
     // create column names from meta values
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.push_back("opt_global_" + k); 
+    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referencable via spectra_ref
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.push_back("opt_global_" + k); 
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
     // PSM optional columns: also from meta values in consensus features
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.push_back("opt_global_" + k); 
+    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
 
     ///////////////////////////////////////////////////////////////////////
@@ -3245,9 +3241,9 @@ Not sure how to handle these:
     replaceWhiteSpaces_(protein_hit_user_value_keys_);
 
     // PRT optional columns
-    for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.push_back("opt_global_" + k); 
+    for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
-    prt_optional_column_names_.push_back("opt_global_protein_group_type");
+    prt_optional_column_names_.emplace_back("opt_global_protein_group_type");
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);
