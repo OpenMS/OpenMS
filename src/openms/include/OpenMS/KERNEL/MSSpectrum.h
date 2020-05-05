@@ -286,6 +286,10 @@ public:
     */
     void sortByPosition();
 
+    /**
+      @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
+      @param chunks a chunk represents the end of a sublist of peaks in the spectrum, that is (true) or isn't (false) sorted yet
+    */
     void sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks);
 
     /// Checks if all peaks are sorted with respect to ascending m/z

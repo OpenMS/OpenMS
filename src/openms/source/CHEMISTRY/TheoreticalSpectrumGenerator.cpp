@@ -310,7 +310,7 @@ namespace OpenMS
   }
 
 
-  char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type)
+  char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(const Residue::ResidueType res_type)
   {
     switch (res_type)
     {
@@ -331,7 +331,7 @@ namespace OpenMS
                                                         const AASequence& ion,
                                                         DataArrays::StringDataArray& ion_names,
                                                         DataArrays::IntegerDataArray& charges,
-                                                        Residue::ResidueType res_type,
+                                                        const Residue::ResidueType res_type,
                                                         Int charge,
                                                         double intensity) const
   {
@@ -373,7 +373,7 @@ namespace OpenMS
                          DataArrays::StringDataArray& ion_names,
                          DataArrays::IntegerDataArray& charges,
                          double intensity,
-                         Residue::ResidueType res_type,
+                         const Residue::ResidueType res_type,
                          bool add_metainfo,
                          int charge)
   {
@@ -396,10 +396,7 @@ namespace OpenMS
 
     for (Size k = 0; k < losses.size(); k++)
     {
-      Peak1D p;
-      p.setIntensity(intensity);
-      p.setMZ((mz - losses[k]) / (double)charge);
-      spectrum.push_back(p);
+      spectrum.emplace_back((mz - losses[k]) / (double)charge, intensity);
 
       if (add_metainfo)
       {
@@ -419,7 +416,7 @@ namespace OpenMS
                                                 DataArrays::StringDataArray& ion_names,
                                                 DataArrays::IntegerDataArray& charges,
                                                 double intensity,
-                                                Residue::ResidueType res_type,
+                                                const Residue::ResidueType res_type,
                                                 int charge) const
   {
     const String charge_str((Size)abs(charge), '+');
@@ -516,7 +513,7 @@ namespace OpenMS
                                                DataArrays::StringDataArray& ion_names,
                                                DataArrays::IntegerDataArray& charges,
                                                std::vector<std::pair<Size, bool>>& chunks,
-                                               Residue::ResidueType res_type,
+                                               const Residue::ResidueType res_type,
                                                Int charge) const
   {
     const String charge_str((Size)abs(charge), '+');
@@ -596,10 +593,7 @@ namespace OpenMS
             chunks.emplace_back(spectrum.size(), false);
           }
 
-          Peak1D p;
-          p.setMZ(pos);
-          p.setIntensity(intensity);
-          spectrum.push_back(p);
+          spectrum.emplace_back(pos, intensity);
           if (add_metainfo_)
           {
             ion_names.emplace_back(residue_str);
@@ -676,10 +670,7 @@ namespace OpenMS
             chunks.emplace_back(spectrum.size(), false);
           }
 
-          Peak1D p;
-          p.setMZ(pos);
-          p.setIntensity(intensity);
-          spectrum.push_back(p);
+          spectrum.emplace_back(pos, intensity);
           if (add_metainfo_)
           {
             ion_names.emplace_back(residue_str);

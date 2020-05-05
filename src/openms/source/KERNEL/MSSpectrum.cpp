@@ -325,7 +325,7 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks)
   {
-    if (isSorted()) return;
+    if (chunks.size() == 2 && chunks[1].second) return;
 
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
@@ -334,7 +334,7 @@ namespace OpenMS
     else
     {
       std::vector<Size> select_indices(this->size());
-      for (Size i = 0; i < this->size(); ++i) select_indices[i] = i;
+      std::iota(select_indices.begin(), select_indices.end(), 0);
 
       auto comparePos =  [this] (Size a, Size b) { return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos(); };
 
