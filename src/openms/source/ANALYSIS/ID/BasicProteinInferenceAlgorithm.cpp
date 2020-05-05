@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <algorithm>
 #include <map>
