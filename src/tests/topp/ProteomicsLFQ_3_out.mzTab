@@ -3,10 +3,10 @@ MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
-MTD	protein_search_engine_score[1]	[, , TOPPProteinInference q-value, 2.1.4]
+MTD	protein_search_engine_score[1]	[, , TOPPProteinInference q-value, 2.6.0-pre-feature-MzTab-stream-2020-05-05]
 MTD	peptide_search_engine_score[1]	[, , OMSSA FDR, 2.1.4]
 MTD	psm_search_engine_score[1]	[, , OMSSA FDR, 2.1.4]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-MzTab-stream-2020-05-02]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-MzTab-stream-2020-05-05]
 MTD	software[2]	[, , OMSSA, 2.1.4]
 MTD	software[2]-setting[1]	db:18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
 MTD	software[2]-setting[2]	null
