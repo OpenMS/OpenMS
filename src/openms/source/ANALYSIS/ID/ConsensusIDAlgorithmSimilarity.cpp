@@ -51,9 +51,11 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator id = ids.begin();
          id != ids.end(); ++id)
     {
-      if (id->getScoreType() != "Posterior Error Probability")
+      if (id->getScoreType() != "Posterior Error Probability" ||
+          id->getScoreType() != "pep" ||
+          id->getScoreType() != "MS:1001493")
       {
-        String msg = "Score type must be 'Posterior Error Probablity'";
+        String msg = "Score type must be 'Posterior Error Probability'";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, id->getScoreType());
       }
