@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,53 +37,52 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtWidgets/QDialog>
+#include <QtWidgets\qwidget.h>
 
 namespace Ui
 {
-  class TOPPASOutputFilesDialogTemplate;
+  class InputFileTemplate;
 }
 
 namespace OpenMS
 {
-  class OutputDirectory;
-
   /**
-      @brief Dialog which allows to specify the directory for the output files
+      @brief A simple widget with a line-edit and a browse button to choose filenames
 
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI InputFile :
+    public QWidget
   {
     Q_OBJECT
-
-public:
-
+  public:
     /// Constructor
-    TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
-    ~TOPPASOutputFilesDialog();
+    InputFile(const QWidget* parent);
+    /// Destructor
+    ~InputFile();
 
-    /// Returns the name of the directory
-    QString getDirectory() const;
+    /// Sets the text in the line-edit
+    void setFilename(const QString& filename);
 
-    /// Returns the maximum number of jobs in the spinbox
-    int getNumJobs() const;
+    /// Returns the filename currently set in the line-edit
+    QString getFilename() const;
+
+    /// Users can only choose certain filetypes
+    void setFileFormatFilter(const QString& fff);
 
 public slots:
 
-    /// Lets the user select the directory via a file dialog
+    /// Lets the user select the file via a file dialog
     void showFileDialog();
 
-protected slots:
 
-    /// Called when OK is pressed; checks if the selected file is valid
-    void checkValidity_();
+protected:
+    /// optional filter during file browsing
+    QString file_format_filter_;
+
 private:
-    Ui::TOPPASOutputFilesDialogTemplate* ui_;
+    Ui::InputFileTemplate* ui_;
   };
 
 }
-
-using OutputDirectory = OpenMS::OutputDirectory;

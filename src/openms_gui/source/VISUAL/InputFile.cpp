@@ -28,62 +28,66 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+// OpenMS includes
+#include <OpenMS/VISUAL/InputFile.h>
+#include <ui_InputFile.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
 
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPASOutputFilesDialogTemplate;
-}
 
 namespace OpenMS
 {
-  class OutputDirectory;
-
-  /**
-      @brief Dialog which allows to specify the directory for the output files
-
-      @ingroup TOPPAS_elements
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog
+  InputFile::InputFile(const QWidget* parent)
+    : file_format_filter_(),
+      ui_(new Ui::InputFileTemplate)
   {
-    Q_OBJECT
+    ui_->setupUi(this);
+    // disable completer for windows, causes crashes
+//#ifndef OPENMS_WINDOWSPLATFORM
+    QCompleter* completer = new QCompleter(this);
+    completer->setModel(new QDirModel(completer));
+    ui_->line_edit->setCompleter(completer);
+//#endif
+    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+  }
 
-public:
+  InputFile::~InputFile()
+  {
+    delete ui_;
+  }
 
-    /// Constructor
-    TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
-    ~TOPPASOutputFilesDialog();
+  void InputFile::setFilename(const QString& filename)
+  {
+    ui_->line_edit->setText(filename);
+  }
 
-    /// Returns the name of the directory
-    QString getDirectory() const;
+  QString InputFile::getFilename() const
+  {
+    return ui_->line_edit->text();
+  }
 
-    /// Returns the maximum number of jobs in the spinbox
-    int getNumJobs() const;
+  void InputFile::setFileFormatFilter(const QString& fff)
+  {
+    file_format_filter_ = fff;
+  }
 
-public slots:
+  void InputFile::showFileDialog()
+  {
+    QFileInfo fi(getFilename()); // get path from current file as starting directory for selection
+    
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Specify input file"), fi.path(), file_format_filter_);
+    if (!file_name.isEmpty())
+    {
+      ui_->line_edit->setText(file_name);
+    }
+  }
 
-    /// Lets the user select the directory via a file dialog
-    void showFileDialog();
 
-protected slots:
-
-    /// Called when OK is pressed; checks if the selected file is valid
-    void checkValidity_();
-private:
-    Ui::TOPPASOutputFilesDialogTemplate* ui_;
-  };
-
-}
-
-using OutputDirectory = OpenMS::OutputDirectory;
+} // namespace

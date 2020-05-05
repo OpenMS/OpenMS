@@ -19,6 +19,7 @@ ListEditor.h
 MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
+OutputDirectory.h
 ParamEditor.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h

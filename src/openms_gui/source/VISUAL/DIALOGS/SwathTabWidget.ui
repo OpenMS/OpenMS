@@ -22,7 +22,7 @@
   <property name="currentIndex">
    <number>3</number>
   </property>
-  <widget class="QWidget" name="config">
+  <widget class="QWidget" name="tab_config">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
@@ -67,12 +67,12 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="lcms_files">
+  <widget class="QWidget" name="tab_lcms_files">
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
    <attribute name="title">
-    <string>LC/MS files</string>
+    <string>LC-MS files</string>
    </attribute>
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -85,7 +85,7 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="InputFileList" name="widget" native="true">
+        <widget class="InputFileList" name="input_mzML" native="true">
          <property name="acceptDrops">
           <bool>true</bool>
          </property>
@@ -94,16 +94,9 @@
       </layout>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QPushButton" name="pushButton">
-      <property name="text">
-       <string>PushButton</string>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="database">
+  <widget class="QWidget" name="tab_database">
    <attribute name="title">
     <string>Database</string>
    </attribute>
@@ -121,7 +114,17 @@
         <property name="title">
          <string>Transition File (Assay Library)</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Select a .PQP file from disk. You can convert from 'TraML' or 'tsv' format to 'PQP' by using 'TargetedFileConverter'</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="InputFile" name="input_tr" native="true">
            <property name="sizePolicy">
@@ -150,6 +153,13 @@
          <string>iRT library</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Select a .PQP file from disk</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="InputFile" name="input_iRT" native="true">
            <property name="sizePolicy">
@@ -203,7 +213,7 @@ Just provide the required DDA input files.</string>
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="run">
+  <widget class="QWidget" name="tab_run">
    <attribute name="title">
     <string>Run</string>
    </attribute>
@@ -215,7 +225,17 @@ Just provide the required DDA input files.</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <widget class="InputFile" name="input_tr_2" native="true">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Provide a text file with your SWATH window settings. If not given, we will try to determine the windows automatically.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="InputFile" name="input_swath_windows" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -232,6 +252,28 @@ Just provide the required DDA input files.</string>
           <bool>false</bool>
          </property>
         </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_7">
+      <property name="title">
+       <string>Output folder</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Select a directory to place the results into. Leaving this empty will place results in your $HOME/SwathWizard directory.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="OutputDirectory" name="out_dir" native="true"/>
        </item>
       </layout>
      </widget>
@@ -284,6 +326,20 @@ Just provide the required DDA input files.</string>
     </item>
    </layout>
   </widget>
+  <widget class="QWidget" name="tab_log">
+   <attribute name="title">
+    <string>Log</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout_8">
+    <item>
+     <widget class="QTextEdit" name="log_text">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>
@@ -314,6 +370,12 @@ Just provide the required DDA input files.</string>
    <class>ParamEditor</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/ParamEditor.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>OutputDirectory</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/OutputDirectory.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

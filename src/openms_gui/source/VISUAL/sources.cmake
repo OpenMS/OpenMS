@@ -21,6 +21,8 @@ ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
+OutputDirectory.cpp
+OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
 SpectraIdentificationViewWidget.cpp

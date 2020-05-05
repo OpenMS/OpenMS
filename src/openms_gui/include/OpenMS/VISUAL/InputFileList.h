@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>
@@ -68,6 +69,8 @@ namespace OpenMS
         
         /// Stores the list of all filenames in the list widget in @p files
         void getFilenames(QStringList& files) const;
+        /// Stores the list of all filenames in the list widget in @p files
+        StringList getFilenames() const;
         /// Set the list of all filenames in the list widget
         void setFilenames(const QStringList& files);
 

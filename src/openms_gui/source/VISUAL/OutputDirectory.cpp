@@ -28,62 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+// OpenMS includes
+#include <OpenMS/VISUAL/OutputDirectory.h>
+#include <ui_OutputDirectory.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtWidgets/QDialog>
+#include <OpenMS/SYSTEM/File.h>
 
-namespace Ui
-{
-  class TOPPASOutputFilesDialogTemplate;
-}
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
+
 
 namespace OpenMS
 {
-  class OutputDirectory;
-
-  /**
-      @brief Dialog which allows to specify the directory for the output files
-
-      @ingroup TOPPAS_elements
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog
+  OutputDirectory::OutputDirectory(const QWidget* parent)
+    : ui_(new Ui::OutputDirectoryTemplate)
   {
-    Q_OBJECT
+    ui_->setupUi(this);
+    QCompleter* completer = new QCompleter(this);
+    QDirModel* dir_model = new QDirModel(completer);
+    dir_model->setFilter(QDir::AllDirs);
+    completer->setModel(dir_model);
+    ui_->line_edit->setCompleter(completer);
 
-public:
+    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+  }
 
-    /// Constructor
-    TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
-    ~TOPPASOutputFilesDialog();
+  OutputDirectory::~OutputDirectory()
+  {
+    delete ui_;
+  }
 
-    /// Returns the name of the directory
-    QString getDirectory() const;
+  void OutputDirectory::setDirectory(const QString& dir)
+  {
+    ui_->line_edit->setText(dir);
+  }
 
-    /// Returns the maximum number of jobs in the spinbox
-    int getNumJobs() const;
+  QString OutputDirectory::getDirectory() const
+  {
+    return ui_->line_edit->text();
+  }
 
-public slots:
+  void OutputDirectory::showFileDialog()
+  {
+   
+    QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
+    QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
+    if (selected_dir != "")
+    {
+      ui_->line_edit->setText(selected_dir);
+    }
+  }
 
-    /// Lets the user select the directory via a file dialog
-    void showFileDialog();
+  bool OutputDirectory::dirNameValid() const
+  {
+    if (!QFileInfo(getDirectory()).isDir()) return false;
 
-protected slots:
+    QString file_name = getDirectory();
+    if (!file_name.endsWith(QDir::separator()))
+    {
+      file_name += QDir::separator();
+    }
+    file_name += "test_file";
+    return File::writable(file_name);
+  }
 
-    /// Called when OK is pressed; checks if the selected file is valid
-    void checkValidity_();
-private:
-    Ui::TOPPASOutputFilesDialogTemplate* ui_;
-  };
 
-}
-
-using OutputDirectory = OpenMS::OutputDirectory;
+} // namespace

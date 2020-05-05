@@ -160,6 +160,17 @@ namespace OpenMS
       }
     }
 
+    StringList InputFileList::getFilenames() const
+    {
+      int nr_files = ui_->input_file_list->count();
+      StringList files;
+      for (int i = 0; i < nr_files; ++i)
+      {
+        files.push_back(ui_->input_file_list->item(i)->text());
+      }
+      return files;
+    }
+
     void OpenMS::Internal::InputFileList::setFilenames(const QStringList& files)
     {
       ui_->input_file_list->addItems(files);

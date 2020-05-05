@@ -35,11 +35,15 @@
 #include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
 #include <ui_SwathTabWidget.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 
+#include <QtCore/QDateTime>
+#include <QtCore/QDir>
+#include <QMessageBox>
 #include <qprocess.h>
 
 using namespace std;
@@ -48,6 +52,18 @@ namespace OpenMS
 {
   namespace Internal
   {
+    String getOSWExe()
+    {
+      return File::getExecutablePath() + "OpenSwathWorkflow";
+    }
+
+    QString getDefaultOutDir()
+    {
+      auto dir = QDir::homePath().append("/SwathWizardOut");
+      if (!QDir().exists(dir)) QDir().mkpath(dir);
+      return dir;
+    }
+
     SwathTabWidget::SwathTabWidget(QWidget* parent) :
         QTabWidget(parent),
         ui(new Ui::SwathTabWidget)
@@ -69,12 +85,12 @@ namespace OpenMS
 
         ui->input_tr->setFileFormatFilter("Transition sqLite file (*.pqp)");
         ui->input_iRT->setFileFormatFilter("Transition sqLite file (*.pqp)");
+        ui->out_dir->setDirectory(getDefaultOutDir());
 
         // create a default config from OpenSwathWorkflow
-        String executable = File::getExecutablePath() + "OpenSwathWorkflow";
         String tmp_file = File::getTemporaryFile();
         QProcess qp;
-        qp.start(executable.toQString(), QStringList() << "-write_ini" << tmp_file.toQString());
+        qp.start(getOSWExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString());
         qp.waitForFinished();
         
         ParamXMLFile().load(tmp_file, swath_param_);
@@ -93,22 +109,45 @@ namespace OpenMS
         delete ui;
     }
 
-    void SwathTabWidget::on_pushButton_clicked()
-    {
-        TOPPASInputFilesDialog tifd({}, "", 0);
-        tifd.exec();
-    }
-
     void SwathTabWidget::on_run_swath_clicked()
     {
+      if (!checkInputReady_()) return;
 
+      updateSwathParamFromWidgets_();
+      Param tmp_param;
+      tmp_param.insert("OpenSwathWorkflow:1:", swath_param_);
+      String tmp_ini = File::getTemporaryFile();
+      ParamXMLFile().store(tmp_ini, tmp_param);
+      QProcess qp;
+      qp.start(getOSWExe().toQString(), QStringList() << "-ini" << tmp_ini.toQString());
+      ui->tab_run->setEnabled(false); // grey out the Wizard until OSW returns...
+      const bool success = qp.waitForFinished(-1);
+      ui->tab_run->setEnabled(true);
+      if (qp.error() == QProcess::FailedToStart)
+      {
+        QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' failed to start. Does it exist? Is it executable?"));
+        return;
+      }
+      const QString external_sout(qp.readAllStandardOutput());
+      const QString external_serr(qp.readAllStandardError());
+      if (!external_sout.isEmpty()) writeLog_("Standard output: " + external_sout, true);
+      if (!external_serr.isEmpty()) writeLog_("Standard error: " + external_serr);
+      writeLog_(("Exit code: " + String(qp.exitCode()).toQString()));
+      
+      bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
+      if (any_failure)
+      {
+        QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' did not finish successfully. Please check the log."));
+      }
     }
 
     void SwathTabWidget::on_edit_advanced_parameters_clicked()
     {
+      // refresh 'swath_param_' from data within the Wizards controls
+      updateSwathParamFromWidgets_();
       Param tmp_param = swath_param_;
-      ui->list_editor->store(); // update 'swath_param_wizard_' in ParamEditor
-      tmp_param.update(swath_param_wizard_, false); // update with selected params in the Wizard itself
+
+      // remove all input and output parameters from the user interface we are about to show
       StringList to_remove;
       for (Param::ParamIterator it = tmp_param.begin(); it != tmp_param.end(); ++it)
       {
@@ -122,20 +161,82 @@ namespace OpenMS
         tmp_param.remove(p);
         if (tmp_param.exists(p + "_type")) tmp_param.remove(p + "_type"); // for good measure of related input/output parameters
       }
-
-      tmp_param.remove("tr");
-      String executable = File::getExecutablePath() + "INIFIleEditor";
+      // show the parameters to the user
+      String executable = File::getExecutablePath() + "INIFileEditor";
       String tmp_file = File::getTemporaryFile();
       ParamXMLFile().store(tmp_file, tmp_param);
       QProcess qp;
       qp.start(executable.toQString(), QStringList() << tmp_file.toQString());
-      ui->run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
+      ui->tab_run->setEnabled(false); // grey out the Wizard until INIFileEditor returns...
       qp.waitForFinished(-1);
-      ui->run->setEnabled(true);
+      ui->tab_run->setEnabled(true);
       ParamXMLFile().load(tmp_file, tmp_param);
       swath_param_.update(tmp_param, false);
 
+      // refresh controls
+      updateWidgetsfromSwathParam_();
     }
+
+    void SwathTabWidget::updateSwathParamFromWidgets_()
+    {
+      // refresh 'swath_param_wizard_' which is linked into ParamEditor
+      ui->list_editor->store();
+      // ... and merge into main param
+      swath_param_.update(swath_param_wizard_, false);
+
+      Param tmp;
+      // grab the files
+      tmp.setValue("tr", ui->input_tr->getFilename());
+      tmp.setValue("tr_irt", ui->input_iRT->getFilename());
+      tmp.setValue("in", ui->input_mzML->getFilenames());
+      String swath_windows = ui->input_swath_windows->getFilename();
+      if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
+      QString outfile(ui->out_dir->dirNameValid() ?
+                          ui->out_dir->getDirectory() :
+                          getDefaultOutDir());
+      tmp.setValue("out_osw", outfile);
+      // update; do NOT write directly to swath_param_, because 'setValue(name, value)' will loose the description and the tags, i.e. input-file etc. We need this information though!
+      swath_param_.update(tmp, false, false, true, true, OpenMS_Log_warn);
+    }
+
+    void SwathTabWidget::updateWidgetsfromSwathParam_()
+    {
+      swath_param_wizard_.update(swath_param_, false, false, true, false, OpenMS_Log_warn);
+      ui->list_editor->load(swath_param_wizard_);
+      
+    }
+    void SwathTabWidget::writeLog_(const QString& text, bool new_section)
+    {
+      if (new_section)
+      {
+        ui->log_text->append(QString(10, '#').append(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).append(QString(10, '#')).append("\n"));
+      }
+      ui->log_text->append(text);
+    }
+    
+    bool SwathTabWidget::checkInputReady_()
+    {
+      if (ui->input_mzML->getFilenames().empty())
+      {
+        QMessageBox::critical(this, "Error", "Input mzML file(s) are missing! Please provide at least one!");
+        return false;
+      }
+      if (ui->input_tr->getFilename().isEmpty())
+      {
+        QMessageBox::critical(this, "Error", "Input file 'Transition Library' is missing! Please provide one!");
+        return false;
+      }
+      if (ui->input_iRT->getFilename().isEmpty())
+      {
+        QMessageBox::critical(this, "Error", "Input file 'iRT Library' is missing! Please provide one!");
+        return false;
+      }
+
+      // swath_windows_file is optional... no need to check
+
+      return true;
+    }
+
   }   //namespace Internal
 } //namspace OpenMS
 
