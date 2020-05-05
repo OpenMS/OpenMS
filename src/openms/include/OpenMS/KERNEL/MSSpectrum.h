@@ -77,6 +77,24 @@ public:
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 
+    /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
+    struct Chunk {
+      Size start;
+      Size end;
+      bool isSorted;
+      Chunk(Size a, Size b, bool c) : start(a), end(b), isSorted(c) {}
+    };
+
+    struct Chunks {
+      std::vector<Chunk> chunks_;
+      const MSSpectrum& spec_;
+      Chunks(const MSSpectrum& s) : spec_(s) {}
+      void add(bool isSorted)
+      {
+        chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), isSorted);
+      }
+    };
+
     ///@name Base type definitions
     //@{
     /// Peak type
@@ -290,7 +308,7 @@ public:
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
       @param chunks a chunk represents the end of a sublist of peaks in the spectrum, that is (true) or isn't (false) sorted yet
     */
-    void sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks);
+    void sortByPositionPresorted(const std::vector<Chunk>& chunks);
 
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;

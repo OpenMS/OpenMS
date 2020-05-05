@@ -323,9 +323,9 @@ namespace OpenMS
   }
 
 
-  void MSSpectrum::sortByPositionPresorted(const std::vector<std::pair<Size, bool>>& chunks)
+  void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
-    if (chunks.size() == 2 && chunks[1].second) return;
+    if (chunks.size() == 1 && chunks[0].isSorted) return;
 
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
@@ -336,26 +336,26 @@ namespace OpenMS
       std::vector<Size> select_indices(this->size());
       std::iota(select_indices.begin(), select_indices.end(), 0);
 
-      auto comparePos =  [this] (Size a, Size b) { return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos(); };
+      auto comparePos = [this] (Size a, Size b) { return this->ContainerType::operator[](a).getPos() < this->ContainerType::operator[](b).getPos(); };
 
       // sort all chunks, that haven't been sorted yet
-      for (Size i = 1; i < chunks.size(); ++i)
+      for (Size i = 0; i < chunks.size(); ++i)
       {
-        if (!chunks[i].second)
+        if (!chunks[i].isSorted)
         {
-          std::stable_sort(select_indices.begin() + chunks[i - 1].first, select_indices.begin() + chunks[i].first, comparePos);
+          std::stable_sort(select_indices.begin() + chunks[i].start, select_indices.begin() + chunks[i].end, comparePos);
         }
       }
 
       // now we can recursively merge all chunks, which is faster than using stable_sort in the first place
       std::function<void(Size,Size)> rec;
       rec = [&chunks, &select_indices, &rec, &comparePos] (Size first, Size last)->void {
-        if (last - first > 1)
+        if (last > first)
         {
           Size mid = first + (last - first) / 2;
           rec(first, mid);
-          rec(mid, last);
-          std::inplace_merge(select_indices.begin() + chunks[first].first, select_indices.begin() + chunks[mid].first, select_indices.begin() + chunks[last].first, comparePos);
+          rec(mid + 1, last);
+          std::inplace_merge(select_indices.begin() + chunks[first].start, select_indices.begin() + chunks[mid].end, select_indices.begin() + chunks[last].end, comparePos);
         }
       };
 

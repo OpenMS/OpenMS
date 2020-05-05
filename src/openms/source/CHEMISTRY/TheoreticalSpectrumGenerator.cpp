@@ -140,7 +140,7 @@ namespace OpenMS
       return;
     }
 
-    std::vector<std::pair<Size, bool>> chunks{{0, true}};
+    MSSpectrum::Chunks chunks(spectrum);
     PeakSpectrum::StringDataArray ion_names;
     PeakSpectrum::IntegerDataArray charges;
 
@@ -174,19 +174,21 @@ namespace OpenMS
       {
         for (Int z = min_charge; z <= max_charge; ++z)
         {
-          addPrecursorPeaks_(spectrum, peptide, ion_names, charges, chunks, z);
+          addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
+          chunks.add(false);
         }
       }
       else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
-        addPrecursorPeaks_(spectrum, peptide, ion_names, charges, chunks, max_charge);
+        addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
+        chunks.add(false);
       }
     }
 
     if (add_abundant_immonium_ions_)
     {
       addAbundantImmoniumIons_(spectrum, peptide, ion_names, charges);
-      chunks.emplace_back(spectrum.size(), true);
+      chunks.add(true);
     }
 
     if (add_metainfo_)
@@ -209,7 +211,7 @@ namespace OpenMS
       }
     }
 
-    if (sort_by_position_) spectrum.sortByPositionPresorted(chunks);
+    if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.chunks_);
   }
 
 
@@ -512,7 +514,7 @@ namespace OpenMS
                                                const AASequence& peptide,
                                                DataArrays::StringDataArray& ion_names,
                                                DataArrays::IntegerDataArray& charges,
-                                               std::vector<std::pair<Size, bool>>& chunks,
+                                               MSSpectrum::Chunks& chunks,
                                                const Residue::ResidueType res_type,
                                                Int charge) const
   {
@@ -590,7 +592,7 @@ namespace OpenMS
             addLosses_faster_(spectrum, mono_weight + ion_offset, fx_losses,
                               i + 1, ion_names, charges, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
-            chunks.emplace_back(spectrum.size(), false);
+            chunks.add(false);
           }
 
           spectrum.emplace_back(pos, intensity);
@@ -603,7 +605,7 @@ namespace OpenMS
             charges.push_back(charge);
           }
         }
-        chunks.emplace_back(spectrum.size(), true);
+        chunks.add(true);
       }
       else // add isotope clusters (slow)
       {
@@ -613,19 +615,19 @@ namespace OpenMS
           const AASequence ion = peptide.getPrefix(i);
           addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity);
         }
-        chunks.emplace_back(spectrum.size(), true);
-      }
+        chunks.add(true);
 
-      if (add_losses_ && add_isotopes_) // otherwise losses are already added, see above
-      {
-        // add loss peaks (slow)
-        Size i = add_first_prefix_ion_ ? 1 : 2;
-        for (; i < peptide.size(); ++i)
+        if (add_losses_)
         {
-          const AASequence ion = peptide.getPrefix(i);
-          addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
+          // add loss peaks (slow)
+          Size i = add_first_prefix_ion_ ? 1 : 2;
+          for (; i < peptide.size(); ++i)
+          {
+            const AASequence ion = peptide.getPrefix(i);
+            addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
+          }
+          chunks.add(true);
         }
-        chunks.emplace_back(spectrum.size(), false);
       }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
@@ -667,7 +669,7 @@ namespace OpenMS
             addLosses_faster_(spectrum, mono_weight + ion_offset, fx_losses,
                               peptide.size() - i, ion_names, charges, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
-            chunks.emplace_back(spectrum.size(), false);
+            chunks.add(false);
           }
 
           spectrum.emplace_back(pos, intensity);
@@ -680,7 +682,7 @@ namespace OpenMS
             charges.push_back(charge);
           }
         }
-        chunks.emplace_back(spectrum.size(), true);
+        chunks.add(true);
       }
       else // add isotope clusters
       {
@@ -689,22 +691,20 @@ namespace OpenMS
           const AASequence ion = peptide.getSuffix(i);
           addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity);
         }
-        chunks.emplace_back(spectrum.size(), true);
-      }
+        chunks.add(true);
 
-      if (add_losses_ && add_isotopes_) // otherwise losses are already added, see above
-      {
-        // add loss peaks (slow)
-        for (Size i = 1; i < peptide.size(); ++i)
+        if (add_losses_)
         {
-          const AASequence ion = peptide.getSuffix(i);
-          addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
+          // add loss peaks (slow)
+          for (Size i = 1; i < peptide.size(); ++i)
+          {
+            const AASequence ion = peptide.getSuffix(i);
+            addLosses_(spectrum, ion, ion_names, charges, intensity, res_type, charge);
+          }
+          chunks.add(true);
         }
-        chunks.emplace_back(spectrum.size(), false);
       }
     }
-
-    return;
   }
 
 
@@ -712,7 +712,6 @@ namespace OpenMS
                                                         const AASequence& peptide,
                                                         DataArrays::StringDataArray& ion_names,
                                                         DataArrays::IntegerDataArray& charges,
-                                                        std::vector<std::pair<Size, bool>>& chunks,
                                                         Int charge) const
   {
     Peak1D p;
@@ -761,7 +760,6 @@ namespace OpenMS
       }
       spectrum.push_back(p);
     }
-    chunks.emplace_back(spectrum.size(), true);
     // loss peaks of the precursor
 
     //loss of water
@@ -850,7 +848,6 @@ namespace OpenMS
       }
       spectrum.push_back(p);
     }
-    chunks.emplace_back(spectrum.size(), true);
   }
 
   void TheoreticalSpectrumGenerator::updateMembers_()

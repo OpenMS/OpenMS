@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -98,10 +99,10 @@ namespace OpenMS
     protected:
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, std::vector<std::pair<Size, bool>>& chunks, Residue::ResidueType res_type, Int charge = 1) const;
+    virtual void addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, Residue::ResidueType res_type, Int charge = 1) const;
 
     /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, std::vector<std::pair<Size, bool>>& chunks, Int charge = 1) const;
+    virtual void addPrecursorPeaks_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge = 1) const;
 
     /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addAbundantImmoniumIons_(PeakSpectrum& spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
