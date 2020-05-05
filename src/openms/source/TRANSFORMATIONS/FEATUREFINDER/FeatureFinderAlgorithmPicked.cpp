@@ -219,7 +219,7 @@ namespace OpenMS
 
     //reserve space for calculated scores
     UInt charge_count = charge_high - charge_low + 1;
-    for (auto & s : map_)
+    for (auto& s : map_)
     {
       Size scan_size = s.size();
       s.getFloatDataArrays().resize(3 + 2 * charge_count);
@@ -394,9 +394,9 @@ namespace OpenMS
         isotope_distributions_[index].trimmed_left = size_before - d.size();
         d.trimRight(intensity_percentage_optional_);
 
-        for (auto & it : d)
+        for (auto& peak : d)
         {
-          isotope_distributions_[index].intensity.push_back(it.getIntensity());
+          isotope_distributions_[index].intensity.push_back(peak.getIntensity());
           //if(debug_) log_ << " - " << it->second << std::endl;
         }
 
@@ -432,7 +432,7 @@ namespace OpenMS
           }
         }
         isotope_distributions_[index].max = max;
-        for (double & i : isotope_distributions_[index].intensity)
+        for (double& i : isotope_distributions_[index].intensity)
         {
           i /= max;
         }
@@ -566,7 +566,7 @@ namespace OpenMS
         //seeds
         FeatureMap seed_map;
         seed_map.reserve(seeds.size());
-        for (auto & seed : seeds)
+        for (auto& seed : seeds)
         {
           Size spectrum = seed.spectrum;
           Size peak = seed.peak;
@@ -780,7 +780,7 @@ namespace OpenMS
                 double average_mz = 0.0;
                 for (Size t = 0; t < traces.size(); ++t)
                 {
-                  for (auto & p : traces[t].peaks)
+                  for (auto& p : traces[t].peaks)
                   {
                     average_mz += p.second->getMZ() * p.second->getIntensity();
                     total_intensity += p.second->getIntensity();
@@ -840,11 +840,11 @@ namespace OpenMS
       // used in any feature with higher intensity, we can add it to the
       // features_ list.
       std::vector<Size> seeds_contained;
-      for (auto & iter : tmp_feature_map)
+      for (auto& f : tmp_feature_map)
       {
-        Size seed_nr = iter.first;
+        Size seed_nr = f.first;
         bool is_used = false;
-        for (unsigned long i : seeds_contained)
+        for (Size i : seeds_contained)
         {
           if (seed_nr == i) { is_used = true; break; }
         }
@@ -853,12 +853,12 @@ namespace OpenMS
           ++feature_candidates;
 
           //re-set label
-          iter.second.setMetaValue(3, feature_nr_global);
+          f.second.setMetaValue(3, feature_nr_global);
           ++feature_nr_global;
-          features_->push_back(iter.second);
+          features_->push_back(f.second);
 
           std::vector<Size> curr_seed = seeds_in_features[seed_nr];
-          for (unsigned long k : curr_seed)
+          for (Size k : curr_seed)
           {
             seeds_contained.push_back(k);
           }
@@ -1005,7 +1005,7 @@ namespace OpenMS
       FeatureXMLFile().store("debug/abort_reasons.featureXML", abort_map);
 
       //store input map with calculated scores (without overall score)
-      for (auto & s : map_)
+      for (auto& s : map_)
       {
         s.getFloatDataArrays().erase(s.getFloatDataArrays().begin() + 2);
       }
@@ -1057,7 +1057,7 @@ namespace OpenMS
     //calculate the RT range sum of feature 1
     double s1 = 0.0;
     const std::vector<ConvexHull2D>& hulls1 = f1.getConvexHulls();
-    for (const auto & i : hulls1)
+    for (const auto& i : hulls1)
     {
       s1 += i.getBoundingBox().width();
     }
@@ -1065,17 +1065,17 @@ namespace OpenMS
     //calculate the RT range sum of feature 2
     double s2 = 0.0;
     const std::vector<ConvexHull2D>& hulls2 = f2.getConvexHulls();
-    for (const auto & j : hulls2)
+    for (const auto& j : hulls2)
     {
       s2 += j.getBoundingBox().width();
     }
 
     //calculate overlap
     double overlap = 0.0;
-    for (const auto & i : hulls1)
+    for (const auto& i : hulls1)
     {
       DBoundingBox<2> bb1 = i.getBoundingBox();
-      for (const auto & j : hulls2)
+      for (const auto& j : hulls2)
       {
         DBoundingBox<2> bb2 = j.getBoundingBox();
         if (bb1.intersects(bb2))
