@@ -833,10 +833,10 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(tmp.size(), 107)
 
   auto anno = tmp.getStringDataArrays()[0];
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") != anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2") != anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1") != anno.end(), true)
 
   // test without prefix ion (but still requires correct losses elsewhere)
   tmp.clear(true);
@@ -847,10 +847,10 @@ START_SECTION(([EXTRA] test first prefix loss))
   TEST_EQUAL(tmp.size(), 99) // missing a1 and b1 ions as well as their losses -H3N1+ C1H2N2+ -C1H2N1O1+
 
   anno = tmp.getStringDataArrays()[0];
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2+") == anno.end(), true)
-  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1+") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-H3N1") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N2") == anno.end(), true)
+  TEST_EQUAL(std::find(anno.begin(), anno.end(), "b1-C1H2N1O1") == anno.end(), true)
 }
 END_SECTION
 

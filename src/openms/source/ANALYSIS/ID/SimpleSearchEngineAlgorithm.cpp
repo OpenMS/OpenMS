@@ -468,27 +468,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
 
-<<<<<<< HEAD
-      // append decoy proteins
-      const size_t old_size = fasta_db.size();
-      for (size_t i = 0; i != old_size; ++i)
-      {
-        FASTAFile::FASTAEntry e = fasta_db[i];
-
-        std::vector<AASequence> output;
-        digestor.digest(AASequence::fromString(e.sequence), output);
-
-        // pseudo reverse protein digest
-        e.sequence = "";
-        for (const auto & aas : output)
-        {
-          std::string s = aas.toUnmodifiedString();
-          auto last = --s.end();
-          std::reverse(s.begin(), last);
-          e.sequence += s;
-        }
-
-=======
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
@@ -497,7 +476,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
         e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
->>>>>>> upstream/develop
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }

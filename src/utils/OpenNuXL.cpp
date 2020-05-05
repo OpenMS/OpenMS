@@ -3856,7 +3856,7 @@ static void scoreXLIons_(
       p.setValue("precursor:isotopes", IntList{0, 1});
       p.setValue("decoys", generate_decoys ? "true" : "false");
       p.setValue("enzyme", getStringOption_("peptide:enzyme"));
-      p.setValue("annotate:PSM", StringList{"median_fragment_error_ppm", "precursor_error_ppm"});
+      p.setValue("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
       sse.setParameters(p);
       cout << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
@@ -3935,14 +3935,14 @@ static void scoreXLIons_(
         for (const auto& pi : pep_ids)
         {
           const PeptideHit& ph = pi.getHits()[0];
-          if (ph.metaValueExists("median_fragment_error_ppm"))
+          if (ph.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
           {
             //cout << ph.getMetaValue("median_fragment_error_ppm") << endl;
-            median_fragment_error_ppm.push_back(fabs((double)ph.getMetaValue("median_fragment_error_ppm")));
+            median_fragment_error_ppm.push_back(fabs((double)ph.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
           }
-          if (ph.metaValueExists("precursor_error_ppm"))
+          if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
           {
-            precursor_error_ppm.push_back((double)ph.getMetaValue("precursor_error_ppm"));
+            precursor_error_ppm.push_back((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
           }
         }
         sort(median_fragment_error_ppm.begin(), median_fragment_error_ppm.end());

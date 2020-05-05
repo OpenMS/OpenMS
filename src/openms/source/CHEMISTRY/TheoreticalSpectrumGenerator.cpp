@@ -400,7 +400,7 @@ namespace OpenMS
       {
         const String& loss_name = losses_names[k];
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
-        String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion_ordinal) + "-" + loss_name + String((Size)abs(charge), '+');
+        String ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion_ordinal) + "-" + loss_name;
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }

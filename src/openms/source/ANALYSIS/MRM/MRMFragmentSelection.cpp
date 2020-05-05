@@ -139,15 +139,7 @@ namespace OpenMS
         {
           if (!(name.hasSubstring("-H") || name.hasSubstring("-C") || name.hasSubstring("-N")))
           {
-            Size c = count(name.begin(), name.end(), '+');
-            if (ListUtils::contains(allowed_charges, String(c)))
-            {
-              return true;
-            }
-            else
-            {
-              return false;
-            }
+            return charges_ok;
           }
           else
           {

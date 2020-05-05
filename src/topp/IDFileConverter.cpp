@@ -182,9 +182,6 @@ private:
       FileHandler().loadExperiment(filename, expmap);
       lookup.readSpectra(expmap.getSpectra());
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
       for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
       {
         try
@@ -195,9 +192,6 @@ private:
         }
         catch (Exception::ElementNotFound&)
         {
-#ifdef _OPENMP
-#pragma omp critical (IDFileConverter_ERROR)
-#endif
           {
             OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
