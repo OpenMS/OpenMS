@@ -89,7 +89,6 @@ namespace OpenMS
       double mz_raw_;
       double mz_ref_;
       bool no_mzml_;
-      String name_;
   };
 }
 

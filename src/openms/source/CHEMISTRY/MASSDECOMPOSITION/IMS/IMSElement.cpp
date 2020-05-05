@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSElement.h>
+#include <ostream>
 
 namespace OpenMS
 {

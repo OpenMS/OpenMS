@@ -41,6 +41,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -132,7 +134,7 @@ namespace OpenMS
     defaults_.setValidStrings("decoys", {"true","false"} );
 
     defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
-    defaults_.setValidStrings("annotate:PSM", StringList{"median_fragment_error_ppm","precursor_error_ppm"});
+    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
     defaults_.setSectionDescription("annotate", "Annotation Options");
 
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
@@ -258,10 +260,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), "precursor_error_ppm") !=  annotate_psm_.end();
-    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), "median_fragment_error_ppm") != annotate_psm_.end();
 
-#pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide, annotation_precursor_error_ppm, annotation_fragment_error_ppm)
+    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
+
+#pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
@@ -315,14 +318,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             }
             double median_ppm_error(0);
             if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
-            ph.setMetaValue("median_fragment_error_ppm", median_ppm_error);
+            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
           }
 
           if (annotation_precursor_error_ppm)
           {
             double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
-            ph.setMetaValue("precursor_error_ppm", ppm_difference);
+            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
           // store PSM
           phs.push_back(ph);
@@ -465,6 +468,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
 
+<<<<<<< HEAD
       // append decoy proteins
       const size_t old_size = fasta_db.size();
       for (size_t i = 0; i != old_size; ++i)
@@ -484,6 +488,16 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           e.sequence += s;
         }
 
+=======
+      DecoyGenerator decoy_generator;
+
+      // append decoy proteins
+      const size_t old_size = fasta_db.size();
+      for (size_t i = 0; i != old_size; ++i)
+      {
+        FASTAFile::FASTAEntry e = fasta_db[i];
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+>>>>>>> upstream/develop
         e.identifier = "DECOY_" + e.identifier;
         fasta_db.push_back(e);
       }

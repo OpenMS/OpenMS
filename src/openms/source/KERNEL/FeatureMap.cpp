@@ -367,7 +367,7 @@ namespace OpenMS
 
     for (const String& filename : s)
     {
-      if (!filename.hasSuffix("mzML"))
+      if (!filename.hasSuffix("mzML") && !filename.hasSuffix("mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
                         << "Filename: '" << filename << "'" << std::endl;                          

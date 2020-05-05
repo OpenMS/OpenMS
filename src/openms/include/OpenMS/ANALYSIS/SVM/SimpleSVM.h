@@ -153,6 +153,7 @@ namespace OpenMS
     /// Parameter values to try during optimization
     std::vector<double> log2_C_, log2_gamma_;
 
+    /// Mapping from predictor name to predictor min and max
     ScaleMap scaling_;
 
     /// Cross-validation results

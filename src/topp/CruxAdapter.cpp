@@ -143,7 +143,7 @@ protected:
     setValidStrings_("precursor_mass_units", ListUtils::create<String>("mass,mz,ppm"));
     registerDoubleOption_("fragment_bin_offset", "<offset>", 0.0, "In the discretization of the m/z axes of the observed and theoretical spectra, this parameter specifies the location of the left edge of the first bin, relative to mass = 0 (i.e., mz-bin-offset = 0.xx means the left edge of the first bin will be located at +0.xx Da).", false, false);
     registerDoubleOption_("fragment_bin_width", "<width>", 0.02, "Before calculation of the XCorr score, the m/z axes of the observed and theoretical spectra are discretized. This parameter specifies the size of each bin. The exact formula for computing the discretized m/z value is floor((x/mz-bin-width) + 1.0 - mz-bin-offset), where x is the observed m/z value. For low resolution ion trap ms/ms data 1.0005079 and for high resolution ms/ms 0.02 is recommended.", false, false);
-    registerStringOption_("isotope_error", "<choice>", "", "List of positive, non-zero integers.", false, false);
+    registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "", "List of positive, non-zero integers.", false, false);
 
     registerStringOption_("run_percolator", "<true/false>", "true", "Whether to run percolator after tide-search", false, false);
     setValidStrings_("run_percolator", ListUtils::create<String>("true,false"));
@@ -343,7 +343,7 @@ protected:
       params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
       params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
       if (deisotope) params += " --deisotope ";
-      if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
+      if (!getStringOption_(Constants::UserParam::ISOTOPE_ERROR).empty()) params += " --isotope-error " + getStringOption_(Constants::UserParam::ISOTOPE_ERROR);
 
       // add extra arguments passed on the command-line (pass through args)
       if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));

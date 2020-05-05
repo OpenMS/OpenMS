@@ -232,7 +232,7 @@ namespace OpenMS
                     int i = std::atoi(what[1].first);
                     ion_series[ion_type].at(i-1) = true;
                   }
-                  catch (std::out_of_range)
+                  catch (std::out_of_range&)
                   {
                     OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
                              << " will be ignored for max_series " << ph->getSequence().toString() << endl;

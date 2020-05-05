@@ -42,8 +42,7 @@
 
 #include <vector>
 #include <algorithm>
-#include <iostream>
-#include <ostream>
+#include <iosfwd>
 
 
 namespace OpenMS

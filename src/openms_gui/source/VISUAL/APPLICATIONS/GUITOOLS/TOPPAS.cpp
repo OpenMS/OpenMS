@@ -177,8 +177,8 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(QColor(44, 50, 152));
     pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
-    QSplashScreen* splash_screen = new QSplashScreen(qpm);
-    splash_screen->show();
+    QSplashScreen splash_screen(qpm);
+    splash_screen.show();
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -190,7 +190,7 @@ int main(int argc, const char** argv)
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(param.getValue("misc"), splash_screen);
+      mw->loadFiles(param.getValue("misc"), &splash_screen);
     }
     else // remember this new window as obsolete once a real workflow is loaded without this window being touched
     {    // if this is not desired, simply call newPipeline() without arguments
@@ -203,8 +203,7 @@ int main(int argc, const char** argv)
     {
     }
     stop_watch.stop();
-    splash_screen->close();
-    delete splash_screen;
+    splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)

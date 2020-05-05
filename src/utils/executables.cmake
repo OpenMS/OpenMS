@@ -25,8 +25,6 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 LabeledEval
-LowMemPeakPickerHiRes
-LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
