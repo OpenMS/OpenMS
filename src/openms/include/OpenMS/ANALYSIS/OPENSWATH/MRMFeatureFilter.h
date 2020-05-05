@@ -49,7 +49,7 @@
 
 namespace OpenMS
 {
-  struct AbsoluteQuantitationMethod;
+  class AbsoluteQuantitationMethod;
 
   /**
 
