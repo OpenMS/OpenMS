@@ -48,7 +48,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <unordered_set>
 
 using namespace OpenMS;
@@ -317,11 +317,12 @@ protected:
           }
           else if (mvkey.hasSuffix("digestion_enzyme"))
           {
-            sp.digestion_enzyme = ProteaseDB::getEnzyme(prot.getMetaValue(mvkey));
+            Protease p = *(ProteaseDB::getInstance()->getEnzyme(prot.getMetaValue(mvkey)));
+            sp.digestion_enzyme = p;
           }
-          secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp2.getMetaValue(mvkey)));
         }
       }
+      return {original_SE, original_SE_ver, sp};
     }
   }
 
@@ -332,8 +333,13 @@ protected:
     set<String> var_mods_set;
 
     //TODO check if settings are same/similar
+    bool allsamese = true;
     for (const auto& se_ver_setting : se_ver_settings)
     {
+      allsamese = allsamese &&
+          (get<0>(se_ver_setting) == get<0>(se_ver_settings[0]) &&
+           get<1>(se_ver_setting) == get<1>(se_ver_settings[0]));
+
       const ProteinIdentification::SearchParameters& sp = get<2>(se_ver_setting);
       const String& SE = get<0>(se_ver_setting);
       prot_id.setMetaValue("SE:" + SE, get<1>(se_ver_setting));
@@ -367,9 +373,9 @@ protected:
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
     // or maybe put it in a DataProcessingStep
-    if (algorithm_ == "best" || algorithm_ == "worst" || algorithm_ == "average")
+    if (allsamese)
     {
-      prot_id.setMetaValue("ConsensusIDBaseSearch", engine + String(":") + version);
+      prot_id.setMetaValue("ConsensusIDBaseSearch", get<0>(se_ver_settings[0]) + String(":") + get<1>(se_ver_settings[0]));
     }
   }
 
@@ -517,6 +523,7 @@ protected:
               }
             }
           }
+
           for (auto& pep_id : tmp_pep_ids)
           {
             StringList original_files;
@@ -524,6 +531,7 @@ protected:
             if (original_files.size() != 1)
             {
               //TODO allow more via merge idx or throw
+              // or match by identical lists (e.g. if you consensusID merged fractions)
               std::cerr << "Only one file per run allowed" << std::endl;
             }
             String original_file = original_files[0];
@@ -535,13 +543,31 @@ protected:
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
           }
-
-          for (auto& file_prots : grouping_per_file)
+        }
+        for (auto& file_ref_peps : grouping_per_file)
+        {
+          Size new_run_id = mzml_to_new_run_idx[file_ref_peps.first];
+          ProteinIdentification& to_put = prot_ids[new_run_id];
+          to_put.setPrimaryMSRunPath({file_ref_peps.first});
+          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
+          for (const auto& ref_peps : file_ref_peps.second)
           {
-            Size new_run_id = mzml_to_new_run_idx[file_prots.first];
-            ProteinIdentification& to_put = prot_ids[new_run_id];
-            setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
-
+            vector<PeptideIdentification> peps = ref_peps.second;
+            // cannot be empty
+            double mz = peps[0].getMZ();
+            double rt = peps[0].getRT();
+            // has to have a ref
+            String ref = peps[0].getMetaValue("spectrum_reference");
+            consensus->apply(peps, prot_ids.size());
+            for (auto& p : peps)
+            {
+              p.setIdentifier(to_put.getIdentifier());
+              p.setMZ(mz);
+              p.setRT(rt);
+              p.setMetaValue("spectrum_reference", ref);
+              //TODO copy other meta values from the originals?
+              pep_ids.emplace_back(std::move(p));
+            }
           }
         }
       }
