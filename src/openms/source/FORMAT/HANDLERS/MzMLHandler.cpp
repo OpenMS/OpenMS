@@ -3451,14 +3451,12 @@ namespace OpenMS
         if (*key == "GO cellular component" || *key == "brenda source tissue")
         {
           // the CVTerm info is in the value
-          const DataValue& metaValue = meta.getMetaValue(*key);
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(*key));
 
-          if (cv_.hasTermWithName((String) metaValue))
+          if (c)
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName((String) metaValue);
-
             // TODO: validate CV, we currently cannot do this as the relations in the BTO and GO are not captured by our CV impl
-            cvParams.push_back(writeCV_(c, DataValue::EMPTY));
+            cvParams.push_back(writeCV_(*c, DataValue::EMPTY));
           }
         }
         else
