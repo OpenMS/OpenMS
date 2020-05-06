@@ -325,7 +325,7 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
-    if (chunks.size() == 1 && chunks[0].isSorted) return;
+    if (chunks.size() == 1 && chunks[0].is_sorted) return;
 
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
@@ -341,7 +341,7 @@ namespace OpenMS
       // sort all chunks, that haven't been sorted yet
       for (Size i = 0; i < chunks.size(); ++i)
       {
-        if (!chunks[i].isSorted)
+        if (!chunks[i].is_sorted)
         {
           std::stable_sort(select_indices.begin() + chunks[i].start, select_indices.begin() + chunks[i].end, comparePos);
         }

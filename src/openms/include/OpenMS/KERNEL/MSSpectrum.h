@@ -81,18 +81,24 @@ public:
     struct Chunk {
       Size start;
       Size end;
-      bool isSorted;
-      Chunk(Size a, Size b, bool c) : start(a), end(b), isSorted(c) {}
+      bool is_sorted;
+      Chunk(Size a, Size b, bool c) : start(a), end(b), is_sorted(c) {}
     };
 
     struct Chunks {
-      std::vector<Chunk> chunks_;
-      const MSSpectrum& spec_;
-      Chunks(const MSSpectrum& s) : spec_(s) {}
-      void add(bool isSorted)
-      {
-        chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), isSorted);
-      }
+      public:
+        Chunks(const MSSpectrum& s) : spec_(s) {}
+        void add(bool is_sorted)
+        {
+          chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), is_sorted);
+        }
+        std::vector<Chunk>& getChunks()
+        {
+          return chunks_;
+        }
+      private:
+        std::vector<Chunk> chunks_;
+        const MSSpectrum& spec_;
     };
 
     ///@name Base type definitions
@@ -306,7 +312,7 @@ public:
 
     /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
-      @param chunks a chunk represents the end of a sublist of peaks in the spectrum, that is (true) or isn't (false) sorted yet
+      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
     void sortByPositionPresorted(const std::vector<Chunk>& chunks);
 
