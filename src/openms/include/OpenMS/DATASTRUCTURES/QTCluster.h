@@ -46,7 +46,7 @@
 #include <vector> // for vector<>
 #include <set> // for set<>
 #include <utility> // for pair<>
-
+#include <memory> // for unique_ptr<>
 
 namespace OpenMS
 {
@@ -111,6 +111,7 @@ namespace OpenMS
   class OPENMS_DLLAPI QTCluster
   {
 private:
+    // total size of this class in memory should be 24 byte
 
     // need to store more than one
     typedef std::multimap<double, GridFeature*> NeighborListType;
@@ -119,41 +120,17 @@ private:
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
-    /// Pointer to the cluster center
-    GridFeature* center_point_;
-
-    /**
-     * @brief Map that keeps track of the best current feature for each map
-     *
-     */
-    NeighborMap neighbors_;
-
-    /**
-     * @brief Temporary map tracking *all* neighbors
-     *
-     * For each input run, a multimap which contains pointers to all
-     * neighboring elements and the respective distance.
-     *
-     */
-    NeighborMapMulti* tmp_neighbors_;
-
-    /// Maximum distance of a point that can still belong to the cluster
-    double max_distance_;
-
-    /// Number of input maps
-    Size num_maps_;
-
     /// Quality of the cluster
     double quality_;
+
+    /// Whether current cluster is valid
+    bool valid_;
 
     /// Has the cluster changed (if yes, quality needs to be recomputed)?
     bool changed_;
 
     /// Keep track of peptide IDs and use them for matching?
     bool use_IDs_;
-
-    /// Whether current cluster is valid
-    bool valid_;
 
     /** 
      * @brief Whether initial collection of all neighbors is needed
@@ -169,19 +146,8 @@ private:
     /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
     bool finalized_;
 
-    /// x coordinate in the grid cell
-    Int x_coord_;
-
-    /// y coordinate in the grid cell
-    Int y_coord_;
-
-    /**
-     * @brief Set of annotations of the cluster
-     *
-     * The set of peptide sequences that is compatible to the cluster center
-     * and results in the best cluster quality.
-     */
-    std::set<AASequence> annotations_;
+    /// Pointer to data members
+    std::unique_ptr<Data_> data_;
 
     /// Base constructor (not accessible)
     QTCluster();
@@ -212,6 +178,50 @@ private:
 
 public:
 
+    // For hot-cold-splitting
+    class OPENMS_DLLAPI Data_
+    {
+      friend class QTCluster;
+
+      /// Pointer to the cluster center
+      GridFeature* center_point_;
+
+      /**
+       * @brief Map that keeps track of the best current feature for each map
+       *
+       */
+      NeighborMap neighbors_;
+
+      /**
+       * @brief Temporary map tracking *all* neighbors
+       *
+       * For each input run, a multimap which contains pointers to all
+       * neighboring elements and the respective distance.
+       *
+       */
+      NeighborMapMulti tmp_neighbors_;
+
+      /// Maximum distance of a point that can still belong to the cluster
+      double max_distance_;
+
+      /// Number of input maps
+      Size num_maps_;
+
+      /// x coordinate in the grid cell
+      Int x_coord_;
+
+      /// y coordinate in the grid cell
+      Int y_coord_;
+
+      /**
+       * @brief Set of annotations of the cluster
+       *
+       * The set of peptide sequences that is compatible to the cluster center
+       * and results in the best cluster quality.
+       */
+      std::set<AASequence> annotations_;
+    };
+
     /**
      * @brief Detailed constructor
      * @param center_point Pointer to the center point
@@ -219,12 +229,10 @@ public:
      * @param max_distance Maximum allowed distance of two points
      * @param use_IDs Use peptide annotations?
      */
-    QTCluster(GridFeature* center_point, Size num_maps,
-              double max_distance, bool use_IDs, 
-              Int x_coord, Int y_coord);
 
-    /// Destructor
-    ~QTCluster();
+    QTCluster(Data_* data, GridFeature* center_point, 
+              Size num_maps, double max_distance, 
+              bool use_IDs, Int x_coord, Int y_coord);
 
     /// Returns the cluster center
     GridFeature* getCenterPoint();
@@ -302,6 +310,9 @@ public:
     void makeSeq_table(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
 
     void initialize_neighbors_();
+
   };
 } // namespace OpenMS
 
+// vector<QTCluster> clustering;
+// vector<QTCluster::Data> clustering_data;

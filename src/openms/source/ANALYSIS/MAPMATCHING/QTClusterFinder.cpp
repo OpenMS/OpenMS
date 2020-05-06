@@ -240,7 +240,10 @@ namespace OpenMS
     // compute QT clustering:
     // std::cout << "Clustering..." << std::endl;
     vector<QTCluster> clustering;
-    computeClustering_(grid, clustering);
+    vector<QTCluster::Data_> clusterData;
+
+    computeClustering_(grid, clustering, clusterData);
+
     // number of clusters == number of data points:
     Size size = clustering.size();
 
@@ -534,10 +537,12 @@ namespace OpenMS
   }
 
   void QTClusterFinder::computeClustering_(Grid& grid,
-                                           vector<QTCluster>& clustering)
+                                           vector<QTCluster>& clustering,
+                                           vector<QTCluster::Data_>& clusterData)
   {
     clustering.clear();
     already_used_.clear();
+    clusterData.clear();
 
     // FeatureDistance produces normalized distances (between 0 and 1):
     const double max_distance = 1.0;
@@ -549,11 +554,11 @@ namespace OpenMS
       const Int x = act_coords[0], y = act_coords[1];
 
       OpenMS::GridFeature* center_feature = it->second;
-      QTCluster cluster(center_feature, num_maps_, max_distance, use_IDs_, x, y);
 
-      addClusterElements_(x, y, grid, cluster, center_feature);
+      clusterData.emplace_back();
+      clustering.emplace_back(&clusterData.back(), center_feature, num_maps_, max_distance, use_IDs_, x, y);
 
-      clustering.push_back(cluster);
+      addClusterElements_(x, y, grid, clustering.back(), center_feature);
     }
   }
 
