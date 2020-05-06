@@ -248,7 +248,7 @@ protected:
     String engine = prot.getSearchEngine();
     if (engine != "Percolator")
     {
-      return {engine, prot.getSearchEngineVersion(), prot.getSearchParameters()};
+      return std::tie(engine, prot.getSearchEngineVersion(), prot.getSearchParameters());
     }
     else
     {
@@ -322,7 +322,7 @@ protected:
           }
         }
       }
-      return {original_SE, original_SE_ver, sp};
+      return std::tie(original_SE, original_SE_ver, sp);
     }
   }
 
