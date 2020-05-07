@@ -1489,7 +1489,7 @@ static void scoreXLIons_(
     public:
 
     // initalize tagger with minimum/maximum tag length and +- tolerance ppm
-  OpenNuXLTagger(float tol = 0.05, size_t min_tag_length = 0, size_t max_tag_length = 65535)
+  explicit OpenNuXLTagger(float tol = 0.05, size_t min_tag_length = 0, size_t max_tag_length = 65535)
   {
     tol_ = tol;
     min_tag_length_ = min_tag_length;
@@ -1624,10 +1624,9 @@ static void scoreXLIons_(
     int max_size_;
   public:
     priority_queue<size_t, std::vector<size_t>, std::greater<size_t>> pq;
-    SmallestElements(size_t size): 
+    explicit SmallestElements(size_t size): 
       max_size_(size)
     {
-      pq = priority_queue<size_t, std::vector<size_t>, std::greater<size_t>>(); // smallest element at top
     }
 
     void tryAdd(size_t v)
@@ -1892,7 +1891,7 @@ static void scoreXLIons_(
     for (const auto& aa2 : aa2mass2count)
     {
       auto& mass2count = aa2.second;
-      for (const auto m2c : mass2count)
+      for (const auto& m2c : mass2count)
       {
         double current_mass = m2c.first;
         size_t current_residue_count = m2c.second;
@@ -1901,9 +1900,9 @@ static void scoreXLIons_(
         {
           cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
         }
-        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;  // frequency relative to unmodified residue
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
+        double frequency_normalized = (double)current_residue_count / unmodified_residue_count;  // frequency relative to unmodified residue
         if (frequency_normalized > 0.5 && frequency_normalized != 1.0) // residue with shift as frequent as unmodified residue
         {
           mass2high_frequency_[m2c.first] = frequency_normalized;
@@ -1918,14 +1917,14 @@ static void scoreXLIons_(
       for (const auto& aa2 : aa2mass2count)
       {
         auto& mass2count = aa2.second;
-        for (const auto m2c : mass2count)
+        for (const auto& m2c : mass2count)
         {
           // normalize by counts
           double current_mass = m2c.first;
           size_t current_residue_count = m2c.second;
           size_t unmodified_residue_count = mass2count.begin()->second;
           double frequency_normalized = (double)current_residue_count / unmodified_residue_count;
-          cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl ; // aa mass count
+          cout << aa2.first->getName() << "\t" << current_mass << "\t" << frequency_normalized << endl; // aa mass count
         }
       }
     }
@@ -3343,7 +3342,7 @@ static void scoreXLIons_(
         if (static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0)
         {
           // fill XL related feature columns with zeros
-          for (auto s : feature_set)
+          for (const auto & s : feature_set)
           {
             if (s.hasPrefix("NuXL")) ph.setMetaValue("XL_" + s, 0.0);
           }
@@ -3351,7 +3350,7 @@ static void scoreXLIons_(
         else  // XL
         {
           // fill linear peptide releated feature columns with zero (after copying them over)
-          for (auto s : feature_set)
+          for (const auto& s : feature_set)
           {
             if (s.hasPrefix("NuXL"))
             { 
@@ -3365,7 +3364,7 @@ static void scoreXLIons_(
 
     // we duplicated the feature set
     auto XL_columns = feature_set;
-    for (auto s : feature_set) { if (s.hasPrefix("NuXL")) XL_columns.push_back("XL_" + s); }
+    for (const auto& s : feature_set) { if (s.hasPrefix("NuXL")) XL_columns.push_back("XL_" + s); }
     feature_set = XL_columns;
 #endif
 
@@ -3886,7 +3885,7 @@ static void scoreXLIons_(
 //                       << "-nested-xval-bins" << "3"
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
 //                       << "-weights" << weights_out.toQString();
-                       ;
+                       
           TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
 
           if (exit_code != EXECUTION_OK) 
