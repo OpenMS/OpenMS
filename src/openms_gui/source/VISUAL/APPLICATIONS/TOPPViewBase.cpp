@@ -1314,7 +1314,7 @@ namespace OpenMS
     // try to add the data
     if (caption == "")
     {
-      caption = File::removeExtension(File::basename(abs_filename));
+      caption = FileHandler::stripExtension(File::basename(abs_filename));
     }
     else
     {

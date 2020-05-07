@@ -124,15 +124,6 @@ public:
     /// Returns the path of the file (without the file name).
     static String path(const String& file);
 
-    /**
-      Returns the file name without the extension
-
-      The extension is the suffix of the string up to and including the last dot.
-
-      If no extension is found, the whole file name is returned
-    */
-    static String removeExtension(const String& file);
-
     /// Return true if the file exists and is readable
     static bool readable(const String& file);
 
