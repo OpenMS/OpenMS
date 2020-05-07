@@ -10,6 +10,9 @@
     <height>41</height>
    </rect>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>Input file</string>
   </property>

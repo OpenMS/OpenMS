@@ -36,6 +36,7 @@
 #include <ui_SwathTabWidget.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
@@ -44,7 +45,8 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QDir>
 #include <QMessageBox>
-#include <qprocess.h>
+#include <QProcess>
+#include <QSignalBlocker>
 
 using namespace std;
 
@@ -102,11 +104,22 @@ namespace OpenMS
         swath_param_wizard_ = swath_param_.copySubset(swath_param_wizard_);
                 
         ui->list_editor->load(swath_param_wizard_);
+
+        // keep the group of input widgets in sync with respect to their current-working-dir, when browsing for new files
+        connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
+        connect(ui->input_iRT, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
+        connect(ui->input_tr, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
+        connect(ui->input_swath_windows, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
     }
 
     SwathTabWidget::~SwathTabWidget()
     {
         delete ui;
+    }
+
+    String infileToOSW(const String& infile)
+    {
+      return FileHandler::swapExtension(File::basename(infile), FileTypes::OSW);
     }
 
     void SwathTabWidget::on_run_swath_clicked()
@@ -119,26 +132,34 @@ namespace OpenMS
       String tmp_ini = File::getTemporaryFile();
       ParamXMLFile().store(tmp_ini, tmp_param);
       QProcess qp;
-      qp.start(getOSWExe().toQString(), QStringList() << "-ini" << tmp_ini.toQString());
+      StringList in_mzMLs = ui->input_mzMLs->getFilenames();
       ui->tab_run->setEnabled(false); // grey out the Wizard until OSW returns...
-      const bool success = qp.waitForFinished(-1);
-      ui->tab_run->setEnabled(true);
-      if (qp.error() == QProcess::FailedToStart)
+      writeLog_(QString("Starting OpenSwathWorkflow with %1 mzML file(s)").arg(in_mzMLs.size()), true);
+      QString out_dir(ui->out_dir->dirNameValid() ?
+        ui->out_dir->getDirectory() :
+        getDefaultOutDir());
+      for (const auto& mzML : in_mzMLs)
       {
-        QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' failed to start. Does it exist? Is it executable?"));
-        return;
-      }
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      if (!external_sout.isEmpty()) writeLog_("Standard output: " + external_sout, true);
-      if (!external_serr.isEmpty()) writeLog_("Standard error: " + external_serr);
-      writeLog_(("Exit code: " + String(qp.exitCode()).toQString()));
+        qp.start(getOSWExe().toQString(), QStringList() << "-ini" << tmp_ini.toQString() << "-in" << mzML.toQString() << "-out_osw" << out_dir + "/" + infileToOSW(mzML).toQString());
+        const bool success = qp.waitForFinished(-1);
+        if (qp.error() == QProcess::FailedToStart)
+        {
+          QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' failed to start. Does it exist? Is it executable?"));
+          return;
+        }
+        const QString external_sout(qp.readAllStandardOutput());
+        const QString external_serr(qp.readAllStandardError());
+        if (!external_sout.isEmpty()) writeLog_("Standard output: " + external_sout, true);
+        if (!external_serr.isEmpty()) writeLog_("Standard error: " + external_serr);
+        writeLog_(("Exit code: " + String(qp.exitCode()).toQString()));
       
-      bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-      if (any_failure)
-      {
-        QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' did not finish successfully. Please check the log."));
-      }
+        bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
+        if (any_failure)
+        {
+          QMessageBox::critical(this, "Error", QString("Process '").append(getOSWExe().toQString()).append("' did not finish successfully. Please check the log."));
+        }
+      } // mzML loop
+      ui->tab_run->setEnabled(true);
     }
 
     void SwathTabWidget::on_edit_advanced_parameters_clicked()
@@ -188,13 +209,11 @@ namespace OpenMS
       // grab the files
       tmp.setValue("tr", ui->input_tr->getFilename());
       tmp.setValue("tr_irt", ui->input_iRT->getFilename());
-      tmp.setValue("in", ui->input_mzML->getFilenames());
+      // do not set 'in' because it allows for one file only, while we have more and need to iterate manually
       String swath_windows = ui->input_swath_windows->getFilename();
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
-      QString outfile(ui->out_dir->dirNameValid() ?
-                          ui->out_dir->getDirectory() :
-                          getDefaultOutDir());
-      tmp.setValue("out_osw", outfile);
+      // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
+
       // update; do NOT write directly to swath_param_, because 'setValue(name, value)' will loose the description and the tags, i.e. input-file etc. We need this information though!
       swath_param_.update(tmp, false, false, true, true, OpenMS_Log_warn);
     }
@@ -216,7 +235,7 @@ namespace OpenMS
     
     bool SwathTabWidget::checkInputReady_()
     {
-      if (ui->input_mzML->getFilenames().empty())
+      if (ui->input_mzMLs->getFilenames().empty())
       {
         QMessageBox::critical(this, "Error", "Input mzML file(s) are missing! Please provide at least one!");
         return false;
@@ -235,6 +254,15 @@ namespace OpenMS
       // swath_windows_file is optional... no need to check
 
       return true;
+    }
+
+    void SwathTabWidget::broadcastNewCWD_(const QString& new_cwd)
+    {
+      QSignalBlocker blocker(this); // RAII to avoid infinite loop (setCWD signals updatedCWD which is connected to slot broadcastNewCWD_)
+      ui->input_mzMLs->setCWD(new_cwd);
+      ui->input_iRT->setCWD(new_cwd);
+      ui->input_tr->setCWD(new_cwd);
+      ui->input_swath_windows->setCWD(new_cwd);
     }
 
   }   //namespace Internal

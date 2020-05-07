@@ -20,7 +20,7 @@
    <string>TabWidget</string>
   </property>
   <property name="currentIndex">
-   <number>3</number>
+   <number>2</number>
   </property>
   <widget class="QWidget" name="tab_config">
    <property name="sizePolicy">
@@ -85,7 +85,20 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="InputFileList" name="input_mzML" native="true">
+        <widget class="QLabel" name="label_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Drag'n'drop files or use the 'Add ..' button to add files</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="InputFileList" name="input_mzMLs" native="true">
          <property name="acceptDrops">
           <bool>true</bool>
          </property>

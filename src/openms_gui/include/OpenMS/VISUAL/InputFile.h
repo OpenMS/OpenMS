@@ -58,9 +58,15 @@ namespace OpenMS
     Q_OBJECT
   public:
     /// Constructor
-    InputFile(const QWidget* parent);
+    InputFile(QWidget* parent);
     /// Destructor
     ~InputFile();
+
+    /// support drag'n'drop of files from OS window manager
+    void dragEnterEvent(QDragEnterEvent* e) override;
+    /// support drag'n'drop of files from OS window manager
+    void dropEvent(QDropEvent* e) override;
+    void dragMoveEvent(QDragMoveEvent* pEvent) override;
 
     /// Sets the text in the line-edit
     void setFilename(const QString& filename);
@@ -68,20 +74,30 @@ namespace OpenMS
     /// Returns the filename currently set in the line-edit
     QString getFilename() const;
 
-    /// Users can only choose certain filetypes
+    /// Users can only choose certain filetypes, e.g. "Transition sqLite file (*.pqp)"
     void setFileFormatFilter(const QString& fff);
 
-public slots:
+    /// get the CWD (according to most recently added file)
+    const QString& getCWD() const;
+    /// set the current working directory (for opening files). If the input is not empty, the cwd will not be altered, unless @p force is used
+    void setCWD(const QString& cwd, bool force = false);
+ 
+  signals:
+    /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
+    void updatedCWD(QString new_cwd);
+  public slots:
 
     /// Lets the user select the file via a file dialog
     void showFileDialog();
 
 
-protected:
+  protected:
     /// optional filter during file browsing
     QString file_format_filter_;
+    /// the current working directory according to the last file added
+    QString cwd_;
 
-private:
+  private:
     Ui::InputFileTemplate* ui_;
   };
 
