@@ -1895,7 +1895,9 @@ static void scoreXLIons_(
       {
         double current_mass = m2c.first;
         size_t current_residue_count = m2c.second;
+#ifdef FILTER_AMBIGIOUS_PEAKS
         size_t unmodified_residue_count = mass2count.begin()->second;
+#endif
         if (debug_level_ > 0)
         {
           cout << aa2.first->getName() << "\t" << current_mass << "\t" << current_residue_count << endl; // aa, mass, count  
