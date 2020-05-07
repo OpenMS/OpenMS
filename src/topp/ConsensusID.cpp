@@ -231,6 +231,10 @@ protected:
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
     // or maybe put it in a DataProcessingStep
+    //TODO actually this only makes sense if there was only one search engine. (see the alternative
+    // setProteinIdentificationSettings_)
+    // best, worst, average can also be used on PEP scores for different search engines. IDPEP does not
+    // overwrite the search engine (in contrast to PercolatorAdapter)
     if (algorithm_ == "best" || algorithm_ == "worst" || algorithm_ == "average")
     {
       prot_ids[0].setMetaValue("ConsensusIDBaseSearch", engine + String(":") + version);
@@ -640,14 +644,12 @@ protected:
             }
           }
         }
-
         // create new identification run
         setProteinIdentifications_(prot_ids);
       }
       // store consensus
       IdXMLFile().store(out, prot_ids, pep_ids);
     }
-
 
     //----------------------------------------------------------------
     // featureXML
@@ -679,7 +681,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 
