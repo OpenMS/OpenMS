@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
@@ -781,8 +782,8 @@ namespace OpenMS
 
       if (ignore_extension)
       {
-        sl1_name = File::removeExtension(sl1_name);
-        sl2_name = File::removeExtension(sl2_name);
+        sl1_name = FileHandler::stripExtension(sl1_name);
+        sl2_name = FileHandler::stripExtension(sl2_name);
       }
 
       sl1_set.insert(sl1_name);
