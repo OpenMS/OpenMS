@@ -92,7 +92,7 @@ public:
      * @brief Align feature maps tree guided using align() of @ref OpenMS::MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
      *
      * @param tree Vector of BinaryTreeNodes that contains order for alignment.
-     * @param feature_maps_transformed Vector with input maps for transformation process.
+     * @param feature_maps_transformed Vector with input maps for transformation process. Because the transformed maps are stored within this vector it's not const.
      * @param maps_ranges Vector that contains all sorted RTs of extracted identifications for each map; needed to determine the 10/90 percentiles.
      * @param map_transformed FeatureMap to store all features of combined maps with original and transformed RTs in order of alignment.
      * @param trafo_order Vector to store indices of maps in order of alignment.
