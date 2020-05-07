@@ -229,7 +229,7 @@ public:
       Note: this does not require the file to have executable permission set (this is not tested)
       The returned content of @p exe_filename is only valid if true is returned.
 
-      @param [in/out] exe_filename The executable to search for.
+      @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
     static bool findExecutable(OpenMS::String& exe_filename);
@@ -260,6 +260,27 @@ public:
     */
     static const String& getTemporaryFile(const String& alternative_file = "");
 
+    /**
+      @brief Helper function to test if filenames provided in two StringLists match.
+
+      Passing several InputFilesLists is error-prone as users may provide files in a different order.
+      To check for common mistakes this helper function checks:
+      - if both file lists have the same length (returns false otherwise)
+      - if the content is the same and provided in exactly the same order (returns false otherwise)
+
+      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
+      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
+      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+
+      @param sl1 First StringList with filenames
+      @param sl2 Second StringList with filenames
+      @param basename If set to true, only basenames are compared
+      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
+                    If set to false, only the order is compared if both share the same filenames.
+      @return False, if both StringLists are different (respecting the parameters)
+    */
+    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.

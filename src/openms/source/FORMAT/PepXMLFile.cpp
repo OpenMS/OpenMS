@@ -272,7 +272,7 @@ namespace OpenMS
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
         PeptideHit h = *hit;
-        AASequence seq = h.getSequence();
+        const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
         int scan_index = count;

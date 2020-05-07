@@ -116,7 +116,7 @@ public:
 
 private:
   template <typename MapType, typename FileType>
-  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins,
                         FileType& input_file)
   {
     // custom progress logger for this task:
@@ -134,7 +134,7 @@ private:
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
   template <typename MapType, typename FileType>
-  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs,
                              FileType& output_file)
   {
     // custom progress logger for this task:
@@ -145,7 +145,7 @@ private:
     {
       progresslogger.setProgress(i);
       // annotate output with data processing info:
-      addDataProcessing_(maps[i], 
+      addDataProcessing_(maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
@@ -158,11 +158,28 @@ private:
                          vector<TransformationDescription>& transformations,
                          Int reference_index)
   {
-    algorithm.align(data, transformations, reference_index);
-
     // find model parameters:
     Param model_params = getParam_().copy("model:", true);
     String model_type = model_params.getValue("type");
+
+    try
+    {
+      algorithm.align(data, transformations, reference_index);
+    }
+    catch (Exception::MissingInformation& err)
+    {
+      if (getFlag_("force"))
+      {
+        OPENMS_LOG_ERROR
+          << "Error: alignment failed. Details:\n" << err.getMessage()
+          << "\nSince 'force' is set, processing will continue using 'identity' transformations."
+          << endl;
+        model_type = "identity";
+        transformations.resize(data.size());
+      }
+      else throw;
+    }
+
     if (model_type != "none")
     {
       model_params = model_params.copy(model_type + ":", true);
@@ -191,7 +208,7 @@ private:
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), 
+    progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
@@ -356,22 +373,23 @@ private:
           size_t n_fractions = frac2files.size();
 
           // TODO FRACTIONS: determine map index based on annotated MS files (getPrimaryMSRuns())
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
-            ++feature_map_index)
+          for (size_t feature_map_index = 0; feature_map_index != n_fractions;
+               ++feature_map_index)
           {
             fraction_maps.push_back(feature_maps[feature_map_index]);
           }
           performAlignment_(algorithm, fraction_maps, fraction_transformations,
-            reference_index);
+                            reference_index);
           applyTransformations_(fraction_maps, fraction_transformations);
 
           // copy into transformations and feature maps
-          transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+          transformations.insert(transformations.end(),
+                                 fraction_transformations.begin(),
+                                 fraction_transformations.end());
 
           Size f = 0;
-          for (size_t feature_map_index = 0; 
-            feature_map_index != n_fractions; 
+          for (size_t feature_map_index = 0;
+            feature_map_index != n_fractions;
             ++feature_map_index,
             ++f)
           {
@@ -430,7 +448,7 @@ private:
 
       if (!output_files.empty())
       {
-        progresslogger.startProgress(0, output_files.size(), 
+        progresslogger.startProgress(0, output_files.size(),
                                      "writing output files");
         for (Size i = 0; i < output_files.size(); ++i)
         {

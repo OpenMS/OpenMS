@@ -29,19 +29,21 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Tom Waschischeck $
+// $Authors: Chris Bielow, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <iostream>
+
+#include <ostream>
 #include <map>
 
 namespace OpenMS
 {
   class MSExperiment;
+  class ConsensusMap;
 
   /**
    * @brief This class serves as an abstract base class for all QC classes.
@@ -58,7 +60,7 @@ namespace OpenMS
     enum class Requires 
       : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
     {
-      FAIL,         //< default, does not encode for anything
+      NOTHING,      //< default, does not require anything
       RAWMZML,      //< mzML file is required
       POSTFDRFEAT,  //< Features with FDR-filtered pepIDs
       PREFDRFEAT,   //< Features with unfiltered pepIDs
@@ -79,7 +81,7 @@ namespace OpenMS
       SpectraMap() = default;
 
       /// CTor which allows immediate indexing of an MSExperiment
-      SpectraMap(const MSExperiment& exp);
+      explicit SpectraMap(const MSExperiment& exp);
 
       /// Destructor
       ~SpectraMap() = default;
@@ -125,7 +127,7 @@ namespace OpenMS
       Status() : value_(0)
       {}
 
-      Status(const Requires& req)
+      explicit Status(const Requires& req)
       {
         value_ = getPow_(req);
       }
@@ -232,29 +234,26 @@ namespace OpenMS
      *@brief Returns the input data requirements of the compute(...) function
      */
     virtual Status requires() const = 0;
-    
 
-    /**
-     * @brief function, which iterates through all PeptideIdentifications of a given FeatureMap and applies a given lambda function
-     *
-     * The Lambda may or may not change the PeptideIdentification
-     */
 
-    template <typename MAP, typename T>
-    static void iterateFeatureMap(MAP& fmap, T lambda)
+    /// tests if a metric has the required input files
+    /// gives a warning with the name of the metric that can not be performed
+    bool isRunnable(const Status& s) const;
+
+    /// check if the IsobaricAnalyzer TOPP tool was used to create this ConsensusMap
+    static bool isLabeledExperiment(const ConsensusMap& cm);
+
+    /// does the container have a PeptideIdentification in its members or as unassignedPepID ?
+    template <typename MAP>
+    static bool hasPepID(const MAP& fmap)
     {
-      for (auto& pep_id : fmap.getUnassignedPeptideIdentifications())
-      {
-        lambda(pep_id);
-      }
+      if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
 
-      for (auto& features : fmap)
+      for (const auto& features : fmap)
       {
-        for (auto& pep_id : features.getPeptideIdentifications())
-        {
-          lambda(pep_id);
-        }
+        if (!features.getPeptideIdentifications().empty()) return true;
       }
+      return false;
     }
   };
 

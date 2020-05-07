@@ -42,9 +42,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>
 
-// #include <string>
-// #include <cmath>
-
 #include <cassert>
 
 using namespace OpenMS;
@@ -72,11 +69,9 @@ using namespace std;
                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
             </tr>
             <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-            </tr>
-            <tr>
             </tr>
         </table>
     </center>
@@ -87,6 +82,8 @@ using namespace std;
     @htmlinclude TOPP_XFDR.html
 */
 
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
 
 class TOPPXFDR final :
 public TOPPBase
@@ -94,7 +91,7 @@ public TOPPBase
 public:
 
   TOPPXFDR() :
-    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", false)
+    TOPPBase("XFDR", "Calculates false discovery rate estimates on crosslink identifications", true)
   {
   }
 
@@ -318,3 +315,5 @@ int main(int argc, const char ** argv)
   TOPPXFDR tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
