@@ -32,3 +32,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler"
     bool isSupported(FileType type_) nogil except + # wrap-attach:FileHandler 
     bool hasValidExtension(const String & filename, FileType type_) nogil except + # wrap-attach:FileHandler 
 
+    # Returns the file name without the extension
+    String stripExtension(String file) nogil except + # wrap-attach:FileHandler
+    # Removes the current extension (if any) and adds a new one
+    String swapExtension(String filename, FileType new_type) nogil except + # wrap-attach:FileHandler 
