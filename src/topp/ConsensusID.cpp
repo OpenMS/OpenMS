@@ -142,6 +142,7 @@ public:
 protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
+  bool keep_old_scores_;
 
   void registerOptionsAndFlags_() override
   {
@@ -157,6 +158,7 @@ protected:
     setMinFloat_("mz_delta", 0.0);
 
     registerFlag_("per_spectrum", "(only idXML) if set, mapping will be done based on exact matching of originating mzml file and spectrum_ref");
+
     // General algorithm parameters are defined in the abstract base class
     // "ConsensusIDAlgorithm", but we can't get them from there because we can't
     // instantiate the class. So we get those parameters from a subclass that
@@ -247,6 +249,30 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
+  String getOriginalSearchEngineName_(const ProteinIdentification& prot)
+  {
+    String engine = prot.getSearchEngine();
+    if (engine != "Percolator")
+    {
+      return engine;
+    }
+    else
+    {
+      String original_SE = "Unknown";
+      vector<String> mvkeys;
+      prot.getKeys(mvkeys);
+      for (const String& mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix("SE:"))
+        {
+          original_SE = mvkey.substr(3);
+          break; // multiSE percolator before consensusID not allowed; we take first only
+        }
+      }
+      return original_SE;
+    }
+  }
+
   tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
   {
     String engine = prot.getSearchEngine();
@@ -266,7 +292,7 @@ protected:
         {
           original_SE = mvkey.substr(3);
           original_SE_ver = prot.getMetaValue(mvkey);
-          break; // multiSE percolator before consenusID not allowed
+          break; // multiSE percolator before consensusID not allowed; we take first only
         }
       }
 
@@ -396,11 +422,17 @@ protected:
     // different ID runs with the max. number of times we see the same ID run
     // in the annotations of a feature.
 
+    map<String, String> runid_to_se;
     map<String, Size> id_mapping; // mapping: run ID -> index
     Size number_of_runs = input_map.getProteinIdentifications().size();
     for (Size i = 0; i < number_of_runs; ++i)
     {
-      id_mapping[input_map.getProteinIdentifications()[i].getIdentifier()] = i;
+      const auto& prot = input_map.getProteinIdentifications()[i];
+      id_mapping[prot.getIdentifier()] = i;
+      if (keep_old_scores_)
+      {
+        runid_to_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+      }
     }
 
     // compute consensus:
@@ -416,7 +448,7 @@ protected:
       }
       Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
 
-      consensus->apply(ids, number_of_runs * n_repeats);
+      consensus->apply(ids, runid_to_se, number_of_runs * n_repeats);
     }
 
     // create new identification run:
@@ -433,6 +465,7 @@ protected:
     String out = getStringOption_("out");
     double rt_delta = getDoubleOption_("rt_delta");
     double mz_delta = getDoubleOption_("mz_delta");
+    keep_old_scores_ = getFlag_("filter:keep_old_scores");
 
     //----------------------------------------------------------------
     // set up ConsensusID
@@ -484,8 +517,10 @@ protected:
       {
         map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
         map<String, unordered_set<String>> seen_proteins_per_file;
-        map<String, Size> mzml_to_new_run_idx;
         map<String, Size> runid_to_old_run_idx;
+        map<String, String> runid_to_old_se;
+        // the values (new_run_idx) in mzml_to_new_run_idx correspond to the indices in mzml_to_sesettings
+        map<String, Size> mzml_to_new_run_idx;
         vector<vector<tuple<String, String, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
 
         for (const auto& infile : in)
@@ -497,6 +532,10 @@ protected:
           for (const auto& prot : tmp_prot_ids)
           {
             runid_to_old_run_idx[prot.getIdentifier()] = idx++;
+            if (keep_old_scores_)
+            {
+              runid_to_old_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+            }
             StringList original_files;
             prot.getPrimaryMSRunPath(original_files);
             if (original_files.size() != 1)
@@ -562,7 +601,7 @@ protected:
             double rt = peps[0].getRT();
             // has to have a ref
             String ref = peps[0].getMetaValue("spectrum_reference");
-            consensus->apply(peps, prot_ids.size());
+            consensus->apply(peps, runid_to_old_se, prot_ids.size());
             for (auto& p : peps)
             {
               p.setIdentifier(to_put.getIdentifier());
@@ -584,10 +623,15 @@ protected:
         // features from different maps), so we bring the data into a format
         // suitable for a feature grouping algorithm:
         vector<FeatureMap> maps(prot_ids.size());
+        map<String, String> runid_to_se;
         map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
         for (Size i = 0; i < prot_ids.size(); ++i)
         {
           id_mapping[prot_ids[i].getIdentifier()] = i;
+          if (keep_old_scores_)
+          {
+            runid_to_se[prot_ids[i].getIdentifier()] = getOriginalSearchEngineName_(prot_ids[i]);
+          }
         }
 
         for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
@@ -630,7 +674,7 @@ protected:
         for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
              ++it)
         {
-          consensus->apply(it->getPeptideIdentifications(), prot_ids.size());
+          consensus->apply(it->getPeptideIdentifications(), runid_to_se, prot_ids.size());
           if (!it->getPeptideIdentifications().empty())
           {
             PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
