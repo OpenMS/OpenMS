@@ -888,8 +888,8 @@ protected:
       else if (id_msfile_ref.size() == 1)
       {
         // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
-        const String& in_bn = File::removeExtension(File::basename(mz_file_abs_path));
-        const String& id_primaryMSRun_bn = File::removeExtension(File::basename(id_msfile_ref[0]));
+        const String& in_bn = FileHandler::stripExtension(File::basename(mz_file_abs_path));
+        const String& id_primaryMSRun_bn = FileHandler::stripExtension(File::basename(id_msfile_ref[0]));
 
         if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
         {
