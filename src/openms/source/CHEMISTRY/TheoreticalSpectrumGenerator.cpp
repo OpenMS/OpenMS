@@ -363,13 +363,20 @@ namespace OpenMS
     const String residue_str(Residue::residueTypeToIonLetter(res_type));
     const String ion_ordinal_str(String(ion_ordinal) + "-");
 
+    // formula.toString() is extremely expensive, so we use a static map to remember what String belongs to which formula
+    static std::map<EmpiricalFormula, String> formula_str_cache;
+
     for (auto& formula : f_losses)
     {
       spectrum.emplace_back((mz - formula.getMonoWeight()) / (double)charge, intensity);
 
       if (add_metainfo)
       {
-        const String loss_name = formula.toString();
+        String& loss_name = formula_str_cache[formula];
+        if (loss_name.empty())
+        {
+          loss_name = formula.toString();
+        }
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         ion_names.emplace_back(residue_str);
         //note: size of Residue::residueTypeToIonLetter(res_type) : 1;
@@ -404,7 +411,7 @@ namespace OpenMS
       }
     }
 
-    spectrum.reserve(spectrum.size() + losses.size() );
+    spectrum.reserve(spectrum.size() + losses.size());
     String ion_name;
     for (const auto& it : losses)
     {
