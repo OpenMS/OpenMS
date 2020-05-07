@@ -589,7 +589,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
-    String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
+    String paramN = "-N" + FileHandler::stripExtension(FileHandler::stripExtension(tmp_pepxml));
     QStringList arguments;
     arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
 
