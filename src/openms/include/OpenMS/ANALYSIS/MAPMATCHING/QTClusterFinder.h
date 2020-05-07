@@ -149,10 +149,13 @@ private:
     /// Generates a consensus feature from the best cluster and updates the clustering
     void makeConsensusFeature_(std::vector<QTCluster>& clustering,
                                ConsensusFeature& feature,
-                               ElementMapping& element_mapping, Grid&);
+                               ElementMapping& element_mapping, Grid&, 
+                               std::vector<QTCluster>::iterator &clustering_end);
 
     /// Computes an initial QT clustering of the points in the hash grid
-    void computeClustering_(Grid& grid, std::vector<QTCluster>& clustering);
+    void computeClustering_(Grid& grid, std::vector<QTCluster>& clustering,
+                            std::vector<QTCluster::Data_>& clusterData,
+                            ElementMapping* element_mapping_ptr);
 
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
@@ -215,7 +218,7 @@ public:
       return new QTClusterFinder();
     }
 
-    void getBest(std::vector<QTCluster> &clustering, std::vector<QTCluster>::iterator &best) const;
+    void getBest(std::vector<QTCluster>::iterator &best, std::vector<QTCluster>::iterator &clustering_end) const;
 
     void createConsensusFeature(ConsensusFeature &feature, std::vector<QTCluster>::iterator &best, OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> &elements) const;
 

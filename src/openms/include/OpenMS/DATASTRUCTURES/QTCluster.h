@@ -46,7 +46,6 @@
 #include <vector> // for vector<>
 #include <set> // for set<>
 #include <utility> // for pair<>
-#include <memory> // for unique_ptr<>
 
 namespace OpenMS
 {
@@ -110,8 +109,7 @@ namespace OpenMS
 */
   class OPENMS_DLLAPI QTCluster
   {
-private:
-    // total size of this class in memory should be 24 byte
+public:
 
     // need to store more than one
     typedef std::multimap<double, GridFeature*> NeighborListType;
@@ -120,63 +118,9 @@ private:
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
-    /// Quality of the cluster
-    double quality_;
-
-    /// Whether current cluster is valid
-    bool valid_;
-
-    /// Has the cluster changed (if yes, quality needs to be recomputed)?
-    bool changed_;
-
-    /// Keep track of peptide IDs and use them for matching?
-    bool use_IDs_;
-
-    /** 
-     * @brief Whether initial collection of all neighbors is needed
-     *
-     * This variable stores whether we need to collect all annotations first
-     * before we can decide upon the best set of cluster points. This is
-     * usually only necessary if the center point does not have an annotation
-     * but we want to use ids.
-     *
-    */
-    bool collect_annotations_;
-
-    /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
-    bool finalized_;
-
-    /// Pointer to data members
-    std::unique_ptr<Data_> data_;
-
-    /// Base constructor (not accessible)
-    QTCluster();
-
-    /// Computes the quality of the cluster
-    void computeQuality_();
-
-    /**
-     * @brief Finds the optimal annotation (peptide sequences) for the cluster
-     *
-     * The optimal annotation is the one that results in the best quality. It
-     * is stored in @p annotations_;
-     *
-     * This function is only needed when peptide ids are used and the current
-     * center point does not have any peptide id associated with it. In this
-     * case, it is not clear which peptide id the current cluster should use.
-     * The function thus iterates through all possible peptide ids and selects
-     * the one producing the best cluster.
-     *
-     * This function needs access to all possible neighbors for this cluster
-     * and thus can only be run when tmp_neighbors_ is filled (which is during
-     * the filling of a cluster). The function thus cannot be called after
-     * finalizing the cluster.
-     *
-     * @returns The total distance between cluster elements and the center.
-     */
-    double optimizeAnnotations_();
-
-public:
+    /// Map to store which grid features are next to which clusters
+    typedef OpenMSBoost::unordered_map<
+              OpenMS::GridFeature*, std::vector<QTCluster*>> ElementMapping;
 
     // For hot-cold-splitting
     class OPENMS_DLLAPI Data_
@@ -185,6 +129,9 @@ public:
 
       /// Pointer to the cluster center
       GridFeature* center_point_;
+
+      /// Pointer to element mapping for being updated
+      ElementMapping* element_mapping_;
 
       /**
        * @brief Map that keeps track of the best current feature for each map
@@ -230,9 +177,21 @@ public:
      * @param use_IDs Use peptide annotations?
      */
 
+    /// construct/copy/destruct
+    QTCluster() = delete;
+
     QTCluster(Data_* data, GridFeature* center_point, 
               Size num_maps, double max_distance, 
-              bool use_IDs, Int x_coord, Int y_coord);
+              bool use_IDs, Int x_coord, Int y_coord,
+              ElementMapping* element_mapping);
+
+    QTCluster(QTCluster const& rhs) = delete;
+    QTCluster(QTCluster && rhs);
+
+    QTCluster& operator=(QTCluster const& rhs) = delete;
+    QTCluster& operator=(QTCluster && rhs);
+
+    ~QTCluster() = default;
 
     /// Returns the cluster center
     GridFeature* getCenterPoint();
@@ -311,8 +270,60 @@ public:
 
     void initialize_neighbors_();
 
+    private:
+      // total size of this class in memory should be 24 byte
+
+      /// Quality of the cluster
+      double quality_;
+
+      /// Whether current cluster is valid
+      bool valid_;
+
+      /// Has the cluster changed (if yes, quality needs to be recomputed)?
+      bool changed_;
+
+      /// Keep track of peptide IDs and use them for matching?
+      bool use_IDs_;
+
+      /** 
+       * @brief Whether initial collection of all neighbors is needed
+       *
+       * This variable stores whether we need to collect all annotations first
+       * before we can decide upon the best set of cluster points. This is
+       * usually only necessary if the center point does not have an annotation
+       * but we want to use ids.
+       *
+      */
+      bool collect_annotations_;
+
+      /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
+      bool finalized_;
+
+      /// Pointer to data members
+      Data_* data_;
+
+      /// Computes the quality of the cluster
+      void computeQuality_();
+
+      /**
+       * @brief Finds the optimal annotation (peptide sequences) for the cluster
+       *
+       * The optimal annotation is the one that results in the best quality. It
+       * is stored in @p annotations_;
+       *
+       * This function is only needed when peptide ids are used and the current
+       * center point does not have any peptide id associated with it. In this
+       * case, it is not clear which peptide id the current cluster should use.
+       * The function thus iterates through all possible peptide ids and selects
+       * the one producing the best cluster.
+       *
+       * This function needs access to all possible neighbors for this cluster
+       * and thus can only be run when tmp_neighbors_ is filled (which is during
+       * the filling of a cluster). The function thus cannot be called after
+       * finalizing the cluster.
+       *
+       * @returns The total distance between cluster elements and the center.
+       */
+      double optimizeAnnotations_();
   };
 } // namespace OpenMS
-
-// vector<QTCluster> clustering;
-// vector<QTCluster::Data> clustering_data;

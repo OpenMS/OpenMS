@@ -38,6 +38,8 @@
 #include <OpenMS/KERNEL/FeatureHandle.h>
 
 // #define DEBUG_QTCLUSTERFINDER
+// #include <boost/heap/fibonacci_heap.hpp>
+// #include <algorithm>
 
 using std::list;
 using std::vector;
@@ -181,6 +183,7 @@ namespace OpenMS
         run_internal_(tmp_input_maps, result_map, false);
         logger.setProgress(progress++);
       }
+
       logger.endProgress();
     }
   }
@@ -240,21 +243,21 @@ namespace OpenMS
     // compute QT clustering:
     // std::cout << "Clustering..." << std::endl;
     vector<QTCluster> clustering;
+    //boost::heap::fibonacci_heap<QTCluster>() clustering;
     vector<QTCluster::Data_> clusterData;
+    ElementMapping element_mapping;
 
-    computeClustering_(grid, clustering, clusterData);
+    computeClustering_(grid, clustering, clusterData, &element_mapping);
 
     // number of clusters == number of data points:
     Size size = clustering.size();
 
     // create a temp. map storing which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<Size, std::pair<double, GridFeature*>> NeighborMap;
-    ElementMapping element_mapping;
     for (vector<QTCluster>::iterator it = clustering.begin();
          it != clustering.end(); ++it)
     {
-      NeighborMap neigh = it->getAllNeighborsDirect();
-      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+      QTCluster::NeighborMap const& neigh = it->getAllNeighborsDirect();
+      for (QTCluster::NeighborMap::const_iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
         GridFeature* gf_ptr = n_it->second.second;
         element_mapping[gf_ptr].push_back(&(*it));
@@ -274,14 +277,16 @@ namespace OpenMS
     if (do_progress)
     {
       logger.setLogType(ProgressLogger::CMD);
-      logger.startProgress(0, size, "linking features");
+      logger.startProgress(0, size, "Linking features");
     }
-
+    
+    vector<QTCluster>::iterator clustering_end = clustering.end();
+    
     while (!clustering.empty())
     {
       // std::cout << "Clusters: " << clustering.size() << std::endl;
       ConsensusFeature consensus_feature;
-      makeConsensusFeature_(clustering, consensus_feature, element_mapping, grid);
+      makeConsensusFeature_(clustering, consensus_feature, element_mapping, grid, clustering_end);
       if (!clustering.empty())
       {
         result_map.push_back(consensus_feature);
@@ -295,15 +300,15 @@ namespace OpenMS
   void QTClusterFinder::makeConsensusFeature_(vector<QTCluster>& clustering,
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
-                                              Grid& grid)
+                                              Grid& grid,
+                                              vector<QTCluster>::iterator& clustering_end)
   {
-    // find the best cluster (a valid cluster with the highest score)
-    // -> this is equivalent to std::max_element but we can skip invalid clusters
     vector<QTCluster>::iterator best = clustering.begin();
-    getBest(clustering, best);
+
+    getBest(best, clustering_end);
 
     // no more clusters to process -> clear clustering and return
-    if (best == clustering.end())
+    if (best == clustering_end)
     {
       clustering.clear();
       return;
@@ -311,6 +316,7 @@ namespace OpenMS
 
     OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
     best->getElements(elements);
+
 #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
          << best->getQuality() << " invalid " << best->isInvalid() << std::endl;
@@ -341,7 +347,11 @@ namespace OpenMS
     // 2. update all clusters accordingly by removing already used elements
     // 3. Invalidate elements whose central has been used already
     best->setInvalid();
+
     updateClustering(element_mapping, grid, elements);
+
+    // prevent future iterations of this algorithm to touch this Cluster in getBest()
+    std::swap<QTCluster>(*best, *(--clustering_end));
   }
 
   void QTClusterFinder::updateClustering(QTClusterFinder::ElementMapping &element_mapping,
@@ -424,14 +434,18 @@ namespace OpenMS
     feature.computeConsensus();
   }
 
-  void QTClusterFinder::getBest(vector<QTCluster> &clustering, vector<QTCluster>::iterator &best) const
+  void QTClusterFinder::getBest(vector<QTCluster>::iterator &best, vector<QTCluster>::iterator &clustering_end) const
   {
-    while (best != clustering.end() && best->isInvalid()) // find start element
+    // find the best cluster (a valid cluster with the highest score)
+    // -> this is equivalent to std::max_element but we can skip invalid clusters
+
+    while (best != clustering_end && best->isInvalid()) // find start element
     {
       ++best;
     }
+
     for (vector<QTCluster>::iterator it = best;
-         it != clustering.end(); ++it)
+         it != clustering_end; ++it)
     {
       if (!it->isInvalid())
       {
@@ -538,11 +552,16 @@ namespace OpenMS
 
   void QTClusterFinder::computeClustering_(Grid& grid,
                                            vector<QTCluster>& clustering,
-                                           vector<QTCluster::Data_>& clusterData)
+                                           vector<QTCluster::Data_>& clusterData,
+                                           ElementMapping* element_mapping_ptr)
   {
     clustering.clear();
     already_used_.clear();
     clusterData.clear();
+
+    // do not remove this (will lead to segfault)
+    clustering.reserve(grid.size());
+    clusterData.reserve(grid.size());
 
     // FeatureDistance produces normalized distances (between 0 and 1):
     const double max_distance = 1.0;
@@ -556,7 +575,7 @@ namespace OpenMS
       OpenMS::GridFeature* center_feature = it->second;
 
       clusterData.emplace_back();
-      clustering.emplace_back(&clusterData.back(), center_feature, num_maps_, max_distance, use_IDs_, x, y);
+      clustering.emplace_back(&clusterData.back(), center_feature, num_maps_, max_distance, use_IDs_, x, y, element_mapping_ptr);
 
       addClusterElements_(x, y, grid, clustering.back(), center_feature);
     }
