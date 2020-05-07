@@ -509,15 +509,6 @@ namespace OpenMS
     return found;
   }
 
-  String File::removeExtension(const OpenMS::String& file)
-  {
-    if (!file.has('.'))
-      return file;
-
-    SignedSize ext_length = file.suffix('.').size() + 1;
-    return file.chop(ext_length);
-  }
-
   bool File::isDirectory(const String& path)
   {
     QFileInfo fi(path.toQString());
