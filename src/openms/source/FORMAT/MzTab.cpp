@@ -44,6 +44,8 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
 
 #include <tuple>
 
@@ -2828,7 +2830,7 @@ Not sure how to handle these:
       // trim db name for rows (full name already stored in meta data)
       String db_basename = db_.toCellString();
       db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(File::removeExtension(File::basename(db_basename)));
+      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
     }
 
     // condense consecutive unique MS runs to get the different MS files
@@ -3346,7 +3348,7 @@ state0:
       // trim db name for rows (full name already stored in meta data)
       String db_basename = db_.toCellString();
       db_basename.substitute("\\", "/"); // substitute windows backslash
-      db_ = MzTabString(File::removeExtension(File::basename(db_basename)));
+      db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
 
       ////////////////////////////////////////////////////////////////
       // generate protein section
