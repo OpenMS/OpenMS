@@ -125,8 +125,9 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   param.setValue("filter:considered_hits", 5);
   consensus.setParameters(param);
   // apply:
+  map<String,String> empty;
   vector<PeptideIdentification> f = ids;
-  consensus.apply(f);
+  consensus.apply(f, empty);
 
   TEST_EQUAL(f.size(), 1);
   hits = f[0].getHits();
@@ -166,7 +167,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 
 
   ids[2].setHigherScoreBetter(true);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
+  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids, empty));
 }
 END_SECTION
 

@@ -1151,7 +1151,14 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType(scoreType);
+        if (scoreType == "pep")
+        {
+          it->setScoreType("Posterior Error Probability");
+        }
+        else
+        {
+          it->setScoreType(scoreType);
+        }
         it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
