@@ -1212,7 +1212,17 @@ protected:
           }
         }
       }
-      OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
+
+      if (!peptide_level_fdrs)
+      {
+      OPENMS_LOG_INFO << "PSM-level FDR: All PSMs are returned by percolator. Reannotating all PSMs in input data with percolator output." << endl;
+      }
+      else
+      {
+      OPENMS_LOG_INFO << "Peptide-level FDR: Only the best PSM per Peptide is returned by percolator. Reannotating the best PSM in input data with percolator output." << endl;
+      }
+      OPENMS_LOG_INFO << "Scores of all other PSMs will be set to 1.0." << endl;
+      OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
