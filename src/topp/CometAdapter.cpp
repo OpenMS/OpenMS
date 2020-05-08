@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -627,41 +628,36 @@ protected:
         tmp_file = default_params;
     }
 
-    PeakMap exp;
-    MzMLFile mzml_file;
-    mzml_file.getOptions().setFillData(false); // only load metadata for spectra
-    mzml_file.getOptions().setMSLevels({2, 3}); // only load MS2 and MS3
-    mzml_file.setLogType(log_type_);
-    mzml_file.load(inputfile_name, exp);
+    int ms_level = getIntOption_("ms_level");
+    const auto& centroid_info = MzMLFile().getCentroidInfo(inputfile_name);
+    const auto& lvl_info = centroid_info.find(ms_level);
+    if (lvl_info == centroid_info.end())
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+    if (lvl_info->second.second > 0 && !getFlag_("force"))
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
 
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    for (const auto& s : exp)
-    {
-      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
 
     // check for mzML index (comet requires one)
+    MSExperiment exp;
+    MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
     auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
     if (index_offset == (std::streampos)-1)
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
-      mzml_file.getOptions().setFillData(true); // load all data
-      mzml_file.load(inputfile_name, exp);
+      // Low memory conversion
       // write mzML with index again
       auto tmp_file = File::getTemporaryFile();
-      mzml_file.store(tmp_file, exp);
+      PlainMSDataWritingConsumer consumer(tmp_file);
+      consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
+      bool skip_full_count = true;
+      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
       input_file_with_index = tmp_file;
     }
+
+    mzml_file.getOptions().setMetadataOnly(true);
+    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
 
     //-------------------------------------------------------------
     // calculations

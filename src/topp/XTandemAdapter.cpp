@@ -227,6 +227,7 @@ protected:
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
+    mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
 
