@@ -115,14 +115,20 @@ namespace OpenMS
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {
-      PeptideHit hit;
       // filter by "support" value:
       if (res_it->second.support < min_support_) continue;
+      PeptideHit hit;
       hit.setMetaValue("consensus_support", res_it->second.support);
-      
+      if (!res_it->second.target_decoy.empty())
+        hit.setMetaValue("target_decoy", res_it->second.target_decoy);
       hit.setSequence(res_it->first);
       hit.setCharge(res_it->second.charge);
       hit.setScore(res_it->second.final_score);
+      for (auto& ev : res_it->second.evidence)
+      {
+        hit.addPeptideEvidence(ev);
+      }
+
       if (keep_old_scores_)
       {
         for (Size s = 0; s < res_it->second.scores.size(); ++s)

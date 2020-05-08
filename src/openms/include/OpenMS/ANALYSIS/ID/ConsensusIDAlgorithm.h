@@ -83,9 +83,16 @@ namespace OpenMS
       Int charge;
       std::vector<double> scores;
       std::vector<String> types;
+      // in case too much information is stored, TD and evidence
+      // could be re-annotated with PeptideIndexer later
       String target_decoy;
+      std::set<PeptideEvidence> evidence;
       double final_score;
       double support;
+      //TODO: we could gather spectrum_refs here as well,
+      // to support passing of spectrum_ref if ALL refs of a group are the same
+      // For now, we do it in the ConsensusID TOPP tool class in cases where we
+      // know that refs will be the same.
     };
 
     /// Mapping: peptide sequence -> (charge, scores)

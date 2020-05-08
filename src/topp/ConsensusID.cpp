@@ -540,8 +540,12 @@ protected:
             prot.getPrimaryMSRunPath(original_files);
             if (original_files.size() != 1)
             {
-              //TODO allow more via merge idx or throw
-              std::cerr << "Only one file per run allowed" << std::endl;
+              //TODO in theory you could also compare the whole StringList (if you want to consensusID
+              // a whole "merge" of multiple ID files (e.g. fractions)
+              throw Exception::InvalidValue(
+                  __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  "Currently only ID runs on exactly one mzML file are supported. "
+                  "Run " + prot.getIdentifier() + " contains too many.", String(original_files.size()));
             }
             String original_file = original_files[0];
             auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
@@ -570,13 +574,8 @@ protected:
           for (auto& pep_id : tmp_pep_ids)
           {
             StringList original_files;
-            tmp_prot_ids[runid_to_old_run_idx[pep_id.getIdentifier()]].getPrimaryMSRunPath(original_files);
-            if (original_files.size() != 1)
-            {
-              //TODO allow more via merge idx or throw
-              // or match by identical lists (e.g. if you consensusID merged fractions)
-              std::cerr << "Only one file per run allowed" << std::endl;
-            }
+            const ProteinIdentification& old = tmp_prot_ids[runid_to_old_run_idx[pep_id.getIdentifier()]];
+            old.getPrimaryMSRunPath(original_files); // the size should have been checked during the loop over proteins
             String original_file = original_files[0];
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
             if (pep_id.metaValueExists("spectrum_reference"))
@@ -596,10 +595,10 @@ protected:
           for (const auto& ref_peps : file_ref_peps.second)
           {
             vector<PeptideIdentification> peps = ref_peps.second;
-            // cannot be empty
+            if (peps.empty()) continue; //sth went wrong. skip
             double mz = peps[0].getMZ();
             double rt = peps[0].getRT();
-            // has to have a ref
+            // has to have a ref, save it, since apply might modify everything
             String ref = peps[0].getMetaValue("spectrum_reference");
             consensus->apply(peps, runid_to_old_se, prot_ids.size());
             for (auto& p : peps)
@@ -608,7 +607,8 @@ protected:
               p.setMZ(mz);
               p.setRT(rt);
               p.setMetaValue("spectrum_reference", ref);
-              //TODO copy other meta values from the originals?
+              //TODO copy other meta values from the originals? They need to be collected
+              // in the algorithm subclasses though first
               pep_ids.emplace_back(std::move(p));
             }
           }

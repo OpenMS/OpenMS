@@ -103,11 +103,15 @@ namespace OpenMS
         auto pos = results.find(seq);
         if (pos == results.end()) // new sequence
         {
+          auto ev = hit_it->getPeptideEvidences();
           results[seq] = HitInfo{
               hit_it->getCharge(),
               {hit_it->getScore()},
               {score_type},
-              hit_it->getMetaValue("target_decoy").toString()
+              hit_it->getMetaValue("target_decoy").toString(),
+              {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
+              0.,
+              0.
           };
         }
         else // previously seen sequence
@@ -116,6 +120,10 @@ namespace OpenMS
                                pos->first);
           pos->second.scores.emplace_back(hit_it->getScore());
           pos->second.types.emplace_back(score_type);
+          for (const auto& ev : hit_it->getPeptideEvidences())
+          {
+            pos->second.evidence.emplace(ev);
+          }
         }
       }
     }

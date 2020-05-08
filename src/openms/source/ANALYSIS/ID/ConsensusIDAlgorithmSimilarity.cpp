@@ -84,6 +84,10 @@ namespace OpenMS
                                pos->first);
           pos->second.scores.emplace_back(hit1->getScore());
           pos->second.types.emplace_back(id1->getScoreType());
+          for (const auto& ev : hit1->getPeptideEvidences())
+          {
+            pos->second.evidence.emplace(ev);
+          }
           continue;
         }
         
@@ -135,7 +139,8 @@ namespace OpenMS
         {
           support = (sum_sim - 1.0) / n_other_ids;
         }
-        
+
+        auto ev = hit1->getPeptideEvidences();
         // don't filter based on "min_score_" yet, so we don't recompute results
         // for the same peptide sequence:
         results[hit1->getSequence()] =
@@ -144,6 +149,7 @@ namespace OpenMS
               {hit1->getScore()},
               {score_type},
               hit1->getMetaValue("target_decoy").toString(),
+              {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
               score,
               support
             };
