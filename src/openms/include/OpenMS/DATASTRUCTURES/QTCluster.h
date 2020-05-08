@@ -223,7 +223,7 @@ public:
     void add(GridFeature* element, double distance);
 
     /// Gets the clustered elements. This should only be called immediately before destruction
-    void getElementsBeforeDestruction() const;
+    NeighborMap const& getElementsBeforeDestruction() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
@@ -232,7 +232,7 @@ public:
      *
      * @return Whether the cluster composition has changed due to the update
      */
-    bool update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed);
+    bool update(NeighborMap const& removed);
 
     /// Returns the cluster quality and recomputes if necessary
     double getQuality();
@@ -329,4 +329,7 @@ public:
        */
       double optimizeAnnotations_();
   };
+
+  // needed for the heap
+  bool operator<(QTCluster const& q1, QTCluster const& q2);
 } // namespace OpenMS

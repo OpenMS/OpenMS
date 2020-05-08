@@ -47,6 +47,7 @@
 #include <list>
 #include <vector>
 #include <set>
+#include <unordered_set>
 #include <utility> // for pair<>
 
 namespace OpenMS
@@ -104,7 +105,7 @@ namespace OpenMS
   class OPENMS_DLLAPI QTClusterFinder :
     public BaseGroupFinder
   {
-private:
+  public:
 
     /// Distances between pairs of grid features
     typedef OpenMSBoost::unordered_map< 
@@ -121,8 +122,13 @@ private:
     /// Heap to efficiently find the best clusters
     typedef boost::heap::fibonacci_heap<QTCluster> Heap;
 
+    /// Map of neighbors of a cluster
+    typedef std::pair<double, GridFeature*> NeighborPairType;
+    typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
+
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
+private:
     /// Number of input maps
     Size num_maps_;
 
@@ -156,10 +162,9 @@ private:
     /// Generates a consensus feature from the best cluster and updates the clustering
     bool makeConsensusFeature_(Heap& cluster_heads,
                                ConsensusFeature& feature,
-                               ElementMapping& element_mapping, Grid&, 
-                               std::unordered_set<Size>& changed_clusters,
-                               std::unordered_set<Size>& invalidated_clusters,
-                               std::vector<Handle>& handles);
+                               ElementMapping& element_mapping,
+                               Grid& grid,
+                               std::vector<Handle> const& handles);
 
     /// Computes an initial QT clustering of the points in the hash grid
     void computeClustering_(Grid& grid,
@@ -167,19 +172,18 @@ private:
                             std::vector<QTCluster::Data_>& cluster_data,
                             std::vector<Handle>& handles);
 
-    void removeFromHeap_(Heap& cluster_heads,
-                         QTCluster& cluster,
-                         ElementMapping& element_mapping,
-                         Size best_id);
+    void removeTopFromHeap_(Heap& cluster_heads,
+                         QTCluster const& cluster,
+                         ElementMapping& element_mapping);
 
     void createConsensusFeature_(ConsensusFeature &feature, double quality, 
-                                 NeighborMap const& elements) const;
+                                 NeighborMap const& elements);
 
     void updateClustering_(ElementMapping &element_mapping,
                            Grid const &grid, 
                            NeighborMap const& elements,
-                           std::unordered_set<Size>& changed_clusters,
-                           std::unordered_set<Size>& invalidated_clusters,
+                           Heap& cluster_heads,
+                           std::vector<Handle> const& handles,
                            Size best_id);
 
     /// Runs the algorithm on feature maps or consensus maps

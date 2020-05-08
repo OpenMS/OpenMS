@@ -191,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::getElementsBeforeDestruction() const
+  QTCluster::NeighborMap const& QTCluster::getElementsBeforeDestruction() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -199,25 +199,26 @@ namespace OpenMS
     // get references on member that is used in this function
     NeighborMap & neighbors_ = data_->neighbors_;
 
-    // add center point to 
-    neighbors_[data_->center_point_->getMapIndex()] = data_->center_point_;
+    // add center point to neighbors
+    // this is actually wrong, but this is function shoudl only be called 
+    // immediately before destruction of the cluster
+    neighbors_[data_->center_point_->getMapIndex()].second = data_->center_point_;
 
     return neighbors_;
   }
 
-  bool QTCluster::update(const OpenMSBoost::unordered_map<Size,
-      OpenMS::GridFeature*>& removed)
+  bool QTCluster::update(NeighborMap const& removed)
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
     // check if the cluster center was removed:
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+    for (NeighborMap::const_iterator
         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       // If center point was removed, then we are done and no more work is
       // required
-      if (rm_it->second == data_->center_point_)
+      if (rm_it->second.second == data_->center_point_)
       {
         this->setInvalid();
         return false;
@@ -228,7 +229,7 @@ namespace OpenMS
     NeighborMap & neighbors_ = data_->neighbors_;
 
     // update cluster contents, remove those elements we find in our cluster
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
+    for (NeighborMap::const_iterator
         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
@@ -238,7 +239,7 @@ namespace OpenMS
       }
 
       const NeighborPairType current_feature = pos->second;
-      if (current_feature.second == rm_it->second) // remove this neighbor
+      if (current_feature.second == rm_it->second.second) // remove this neighbor
       {
         changed_ = true;
         neighbors_.erase(pos);
@@ -495,4 +496,8 @@ namespace OpenMS
     data_->tmp_neighbors_.clear();
   }
 
+  bool operator<(QTCluster const& q1, QTCluster const& q2)
+  {
+    return q1.getCurrentQuality() < q2.getCurrentQuality(); 
+  }
 } // namespace OpenMS

@@ -43,10 +43,11 @@ using std::list;
 using std::vector;
 using std::max;
 using std::make_pair;
+using std::unordered_set;
+
 
 namespace OpenMS
 {
-
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
@@ -256,14 +257,14 @@ namespace OpenMS
     computeClustering_(grid, cluster_heads, cluster_data, handles);
 
     // number of clusters == number of data points:
-    Size size = clustering.size();
+    Size size = cluster_heads.size();
 
     // fill the element mapping
     for (Heap::iterator it = cluster_heads.begin();
          it != cluster_heads.end(); ++it)
     {
-      QTCluster::NeighborMap const& neigh = it->getAllNeighborsDirect();
-      for (QTCluster::NeighborMap::const_iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+      NeighborMap const& neigh = it->getAllNeighborsDirect();
+      for (NeighborMap::const_iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
         GridFeature* gf_ptr = n_it->second.second;
         element_mapping[gf_ptr].insert(it->getId());
@@ -287,10 +288,10 @@ namespace OpenMS
       // std::cout << "Clusters: " << clustering.size() << std::endl;
 
       ConsensusFeature consensus_feature;
-      bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, element_mapping, 
-                                                grid, changed_clusters, invalidated_clusters, handles);
+      bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, 
+                                                element_mapping, grid, handles);
 
-      if(!cluster_heads.empty())
+      if(made_feature)
       {
         result_map.push_back(consensus_feature);
       }
@@ -306,17 +307,16 @@ namespace OpenMS
                                               Grid& grid,
                                               vector<Handle> const& handles)
   {
-    QTCluster const& best = cluster_heads.top();
 
     // pop until the top is valid
-    while (!best.isValid())
+    while (cluster_heads.top().isInvalid())
     {
-      removeFromHeap_(cluster_heads, best.getElementsBeforeDestruction(), element_mapping, best.getId());
+      removeTopFromHeap_(cluster_heads, cluster_heads.top(), element_mapping);
       if (cluster_heads.empty()) return false;
-      best = cluster_heads.top();
     }
 
-    NeighborMap elements = best.getElementsBeforeDestruction();
+    QTCluster const& best = cluster_heads.top();
+    NeighborMap const& elements = best.getElementsBeforeDestruction();
 
     #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
@@ -335,33 +335,25 @@ namespace OpenMS
     }
     #endif
 
-    // Store the id of already used features (important: needs to be done
-    // before the large loop below)
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
-    {
-      already_used_.insert(it->second);
-    }
-
     // update the clustering:
     // 1. remove current "best" cluster from list
     // 2. update all clusters accordingly by removing already used elements
     // 3. Invalidate elements whose central has been used already
 
-    updateClustering_(element_mapping, grid, elements, cluster_heads, handles);
+    updateClustering_(element_mapping, grid, elements, cluster_heads, handles, best.getId());
 
     return true;
   }
 
   void QTClusterFinder::removeTopFromHeap_(Heap& cluster_heads,
-                                           NeighborMap const& elements,
-                                           ElementMapping& element_mapping,
-                                           Size best_id)
+                                           QTCluster const& cluster,
+                                           ElementMapping& element_mapping)
   {
+    NeighborMap const& elements = cluster.getElementsBeforeDestruction();
     for(NeighborMap::const_iterator it = elements.begin(); it != elements.end(); ++it)
     {
       unordered_set<Size>& cluster_ids = element_mapping[it->second.second];
-      clusters_ids.erase(best_id);
+      cluster_ids.erase(cluster.getId());
     }
 
     cluster_heads.pop();
@@ -379,7 +371,7 @@ namespace OpenMS
     {
       // delete id of the best cluster from element mapping
       unordered_set<Size>& cluster_ids = element_mapping[it->second.second];
-      clusters_ids.erase(best_id);
+      cluster_ids.erase(best_id);
 
       // Identify all features that could potentially have been touched by this
       // Get all clusters that may potentially need updating
@@ -390,7 +382,7 @@ namespace OpenMS
            id_it  = cluster_ids.begin();
            id_it != cluster_ids.end(); ++id_it)
       {
-        QTCluster& cluster = handles[*id_it]; 
+        QTCluster& cluster = *handles[*id_it]; 
         
         // we do not want to update invalid features (saves time and does not
         // recompute the quality)
@@ -414,7 +406,7 @@ namespace OpenMS
             addClusterElements_(x, y, grid, cluster, center_feature);
 
             // update the heap, because the quality has changed
-            cluster_heads.update_lazy(handles[id_it]);
+            cluster_heads.update_lazy(handles[*id_it]);
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
@@ -445,12 +437,16 @@ namespace OpenMS
     cluster_heads.pop();
   }
 
-  void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, NeighborMap const& elements) const
+  void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, NeighborMap const& elements)
   {
     feature.setQuality(quality);
     for (NeighborMap::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
+      // Store the id of already used features (important: needs to be done
+      // before updateClustering)
+      already_used_.insert(it->second.second);
+
       BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second.second->getFeature());
       feature.insert(it->first, elem_feat);
       if (elem_feat.metaValueExists("dc_charge_adducts"))
