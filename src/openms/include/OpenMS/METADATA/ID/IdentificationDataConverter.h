@@ -111,7 +111,7 @@ namespace OpenMS
       }
       else // generate entries (with duplicated data) for every accession
       {
-        // in mzTab, "unique" means "peptide is unique for this protein":
+        // in mzTab, "unique" means "peptide is unique for this protein"
         row.unique.set(identified.parent_matches.size() == 1);
         for (const auto& match_pair : identified.parent_matches)
         {
