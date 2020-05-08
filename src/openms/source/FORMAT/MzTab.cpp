@@ -1759,7 +1759,7 @@ namespace OpenMS
 
     row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
     // select accession of first peptide_evidence as representative ("leading") accession
-    row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
+    row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
     row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
     row.search_engine_score_ms_run[1][1] = MzTabDouble(best_ph.getScore());
 
@@ -2061,7 +2061,7 @@ namespace OpenMS
 
     // link to spectrum in MS run
     String spectrum_nativeID = pid.getMetaValue("spectrum_reference").toString();
-    size_t run_index = idrun_2_run_index[pid.getIdentifier()];
+    size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
     size_t msfile_index(0);

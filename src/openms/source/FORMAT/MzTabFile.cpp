@@ -2948,12 +2948,11 @@ namespace OpenMS
       }
     }
 
-
     Size n_search_engine_scores = meta_data.psm_search_engine_score.size();
 
     if (n_search_engine_scores == 0)
     {
-      // TODO warn
+      OPENMS_LOG_WARN << "No search engine scores given. Please check your input data." << endl;
     }
 
     {
@@ -3005,8 +3004,6 @@ namespace OpenMS
     // generate full meta data section and write to file
     MzTabMetaData meta_data = s.getMetaData();
 
-//    ms_runs = meta_data.ms_run.size();
-//    bool complete = (meta_data.mz_tab_mode.toCellString() == "Complete");
     {
       StringList out;
       generateMzTabMetaDataSection_(meta_data, out);
@@ -3049,26 +3046,6 @@ namespace OpenMS
           Size n_best_search_engine_score = row.best_search_engine_score.size();
           tab_file << "\n" << generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, s.getPeptideOptionalColumnNames()) + "\n";
           first = false;
-/*
- *        TODO: consider removing this below as well. Does not add much value and looks convoluted
-          if (complete)
-          { // all ms_runs mandatory
-            search_ms_runs = ms_runs;
-          }
-          else // only report all scores if user provided at least one
-          {
-            const MzTabPeptideSectionRows& psr = mz_tab.getPeptideSectionRows();
-            bool has_ms_run_level_scores = false;
-            for (Size i = 0; i != psr.size(); ++i)
-            {
-              if (!psr[i].search_engine_score_ms_run.empty())
-              {
-                has_ms_run_level_scores = true;
-              }
-            }
-            if (has_ms_run_level_scores) { search_ms_runs = ms_runs; }
-          }
-*/
         }
         tab_file << generateMzTabSectionRow_(row, s.getPeptideOptionalColumnNames(), meta_data) + "\n";
       }
@@ -3078,7 +3055,7 @@ namespace OpenMS
 
     if (n_search_engine_scores == 0)
     {
-      // TODO warn
+      OPENMS_LOG_WARN << "No search engine scores given. Please check your input data." << endl;
     }
 
     {
