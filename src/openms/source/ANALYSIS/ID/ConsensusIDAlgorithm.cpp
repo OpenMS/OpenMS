@@ -78,7 +78,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
-                                   map<String, String>& se_info,
+                                   const map<String, String>& se_info,
                                    Size number_of_runs)
   {
     // abort if no IDs present
@@ -146,6 +146,12 @@ namespace OpenMS
     ids[0].assignRanks();
   }
 
+  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+                                   Size number_of_runs)
+  {
+    const auto empty = map<String,String>();
+    apply(ids, empty, number_of_runs);
+  }
 
   void ConsensusIDAlgorithm::compareChargeStates_(Int& recorded_charge, 
                                                   Int new_charge,

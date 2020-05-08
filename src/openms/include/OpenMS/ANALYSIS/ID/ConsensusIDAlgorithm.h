@@ -71,7 +71,10 @@ namespace OpenMS
         @todo we could pass the score_types that we want to carry over in the map as well (right now it always takes main)
      */
     void apply(std::vector<PeptideIdentification>& ids,
-               std::map<String, String>& se_info,
+               const std::map<String, String>& se_info,
+               Size number_of_runs = 0);
+
+    void apply(std::vector<PeptideIdentification>& ids,
                Size number_of_runs = 0);
 
     /// Virtual destructor
