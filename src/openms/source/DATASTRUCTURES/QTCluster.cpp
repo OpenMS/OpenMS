@@ -52,8 +52,7 @@ namespace OpenMS
 {
   QTCluster::QTCluster(QTCluster::Data_* data, OpenMS::GridFeature* center_point, 
                        Size num_maps, double max_distance,
-                       bool use_IDs, Int x_coord, Int y_coord,
-                       ElementMapping* element_mapping) :
+                       bool use_IDs, Int x_coord, Int y_coord, Size id) :
     quality_(0.0),
     valid_(true),
     changed_(false),
@@ -63,11 +62,11 @@ namespace OpenMS
     data_(data)
   {
     data_->center_point_ = center_point;
+    data_->id_ = id;
     data_->max_distance_ = max_distance;
     data_->num_maps_ = num_maps;
     data_->x_coord_ = x_coord;
     data_->y_coord_ = y_coord;
-    data_->element_mapping_ = element_mapping;
 
     if (use_IDs)
     {
@@ -79,68 +78,14 @@ namespace OpenMS
     }
   }
 
-  QTCluster::QTCluster(QTCluster && rhs) :
-  quality_(rhs.quality_),
-  valid_(rhs.valid_),
-  changed_(rhs.changed_),
-  use_IDs_(rhs.use_IDs_),
-  collect_annotations_(rhs.collect_annotations_),
-  finalized_(rhs.finalized_),
-  data_(rhs.data_)
-  {
-    // get references on more members that are used in this function
-    NeighborMap const& neighbors_ = data_->neighbors_;
-    ElementMapping& element_mapping = *(data_->element_mapping_);;
-
-    // update element mapping for this cluster, because it has a different address now
-    for (NeighborMap::const_iterator n_it = neighbors_.begin(); n_it != neighbors_.end(); ++n_it)
-    {
-      GridFeature* gf_ptr = n_it->second.second;
-      vector<QTCluster*>& clusters = element_mapping[gf_ptr];
-      vector<QTCluster*>::iterator old = std::find(clusters.begin(), clusters.end(), &rhs);
-      *old = this;
-    }
-
-    // update center_point in element_mapping for this cluster as well
-    vector<QTCluster*>& clusters = element_mapping[data_->center_point_];
-    vector<QTCluster*>::iterator old = std::find(clusters.begin(), clusters.end(), &rhs);
-    *old = this;
-  }
-
-  QTCluster& QTCluster::operator=(QTCluster && rhs)
-  {
-    quality_ = rhs.quality_;
-    valid_ = rhs.valid_;
-    changed_ = rhs.changed_;
-    use_IDs_ = rhs.use_IDs_;
-    collect_annotations_ = rhs.collect_annotations_,
-    finalized_ = rhs.finalized_,
-    data_ = rhs.data_;
-
-    // get references on more members that are used in this function
-    NeighborMap const& neighbors_ = data_->neighbors_;
-    ElementMapping& element_mapping = *(data_->element_mapping_);
-
-    // update element mapping for this cluster, because it has a different address now
-    for (NeighborMap::const_iterator n_it = neighbors_.begin(); n_it != neighbors_.end(); ++n_it)
-    {
-      GridFeature* gf_ptr = n_it->second.second;
-      vector<QTCluster*>& clusters = element_mapping[gf_ptr];
-      vector<QTCluster*>::iterator old = std::find(clusters.begin(), clusters.end(), &rhs);
-      *old = this;
-    }
-
-    // update center_point in element_mapping for this cluster as well
-    vector<QTCluster*>& clusters = element_mapping[data_->center_point_];
-    vector<QTCluster*>::iterator old = std::find(clusters.begin(), clusters.end(), &rhs);
-    *old = this;
-
-    return *this;
-  }
-
-  GridFeature* QTCluster::getCenterPoint() 
+  GridFeature* QTCluster::getCenterPoint() const
   {
     return data_->center_point_;
+  }
+
+  Size QTCluster::getId() const
+  {
+    return data_->id_;
   }
 
   double QTCluster::getCenterRT() const
@@ -179,11 +124,12 @@ namespace OpenMS
     return data_->neighbors_.size() + 1; // + 1 for the center
   }
 
-  bool QTCluster::operator<(QTCluster& cluster)
+  bool QTCluster::operator<(QTCluster const& rhs)
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
-    return this->getQuality() < cluster.getQuality();
+
+    return quality_ < rhs.quality_;
   }
 
   void QTCluster::add(OpenMS::GridFeature* element, double distance)
@@ -245,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>& elements)
+  void QTCluster::getElementsBeforeDestruction() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -253,19 +199,10 @@ namespace OpenMS
     // get references on member that is used in this function
     NeighborMap & neighbors_ = data_->neighbors_;
 
-    elements.clear();
-    elements[data_->center_point_->getMapIndex()] = data_->center_point_;
+    // add center point to 
+    neighbors_[data_->center_point_->getMapIndex()] = data_->center_point_;
 
-    if (neighbors_.empty())
-    {
-      return;
-    }
-
-    // since we are finalized, we do not need to care about the annotation
-    for (NeighborMap::const_iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
-    {
-      elements[it->first] = it->second.second;
-    }
+    return neighbors_;
   }
 
   bool QTCluster::update(const OpenMSBoost::unordered_map<Size,
@@ -321,9 +258,13 @@ namespace OpenMS
     return quality_;
   }
 
+  double QTCluster::getCurrentQuality() const
+  {
+    return quality_;
+  }
+
   void QTCluster::computeQuality_()
   {
-
     // ensure cluster is not finalized as we cannot call optimizeAnnotations_
     // in that case
     OPENMS_PRECONDITION(!finalized_,
@@ -362,7 +303,7 @@ namespace OpenMS
     quality_ = (max_distance_ - internal_distance) / max_distance_;
   }
 
-  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors() 
+  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -378,7 +319,7 @@ namespace OpenMS
     return tmp;
   }
 
-  QTCluster::NeighborMap const& QTCluster::getAllNeighborsDirect()
+  QTCluster::NeighborMap const& QTCluster::getAllNeighborsDirect() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")

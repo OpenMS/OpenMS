@@ -118,10 +118,6 @@ public:
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
-    /// Map to store which grid features are next to which clusters
-    typedef OpenMSBoost::unordered_map<
-              OpenMS::GridFeature*, std::vector<QTCluster*>> ElementMapping;
-
     // For hot-cold-splitting
     class OPENMS_DLLAPI Data_
     {
@@ -130,8 +126,8 @@ public:
       /// Pointer to the cluster center
       GridFeature* center_point_;
 
-      /// Pointer to element mapping for being updated
-      ElementMapping* element_mapping_;
+      /// id of this cluster
+      Size id_;
 
       /**
        * @brief Map that keeps track of the best current feature for each map
@@ -169,6 +165,8 @@ public:
       std::set<AASequence> annotations_;
     };
 
+    // construct/copy/destruct
+
     /**
      * @brief Detailed constructor
      * @param center_point Pointer to the center point
@@ -177,24 +175,26 @@ public:
      * @param use_IDs Use peptide annotations?
      */
 
-    /// construct/copy/destruct
-    QTCluster() = delete;
-
     QTCluster(Data_* data, GridFeature* center_point, 
               Size num_maps, double max_distance, 
               bool use_IDs, Int x_coord, Int y_coord,
-              ElementMapping* element_mapping);
+              Size id);
 
-    QTCluster(QTCluster const& rhs) = delete;
-    QTCluster(QTCluster && rhs);
+    QTCluster() = delete;
 
-    QTCluster& operator=(QTCluster const& rhs) = delete;
-    QTCluster& operator=(QTCluster && rhs);
+    QTCluster(QTCluster const& rhs) = default;
+    QTCluster(QTCluster && rhs) = default;
+
+    QTCluster& operator=(QTCluster const& rhs) = default;
+    QTCluster& operator=(QTCluster && rhs) = default;
 
     ~QTCluster() = default;
 
     /// Returns the cluster center
-    GridFeature* getCenterPoint();
+    GridFeature* getCenterPoint() const;
+
+    /// returns the clusters id
+    Size getId() const;
 
     /// Returns the RT value of the cluster
     double getCenterRT() const;
@@ -212,7 +212,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(QTCluster& cluster);
+    bool operator<(QTCluster const& cluster);
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -222,8 +222,8 @@ public:
      */
     void add(GridFeature* element, double distance);
 
-    /// Gets the clustered elements
-    void getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements);
+    /// Gets the clustered elements. This should only be called immediately before destruction
+    void getElementsBeforeDestruction() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
@@ -234,8 +234,11 @@ public:
      */
     bool update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed);
 
-    /// Returns the cluster quality
+    /// Returns the cluster quality and recomputes if necessary
     double getQuality();
+
+    /// Returns the cluster quality without recomputing
+    double getCurrentQuality() const;
 
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence>& getAnnotations();
@@ -262,9 +265,9 @@ public:
     void finalizeCluster();
 
     /// Get all current neighbors
-    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
+    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors() const;
 
-    NeighborMap const& getAllNeighborsDirect();
+    NeighborMap const& getAllNeighborsDirect() const;
 
     void makeSeq_table(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
 
