@@ -282,7 +282,7 @@ namespace OpenMS
       logger.setLogType(ProgressLogger::CMD);
       logger.startProgress(0, size, "Linking features");
     }
-    
+
     while (!cluster_heads.empty())
     {
       // std::cout << "Clusters: " << clustering.size() << std::endl;
@@ -299,6 +299,8 @@ namespace OpenMS
     }
 
     if (do_progress) logger.endProgress();
+
+    deleted_ids_.clear();
   }
 
   bool QTClusterFinder::makeConsensusFeature_(Heap& cluster_heads,
@@ -307,7 +309,6 @@ namespace OpenMS
                                               Grid& grid,
                                               vector<Handle> const& handles)
   {
-
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
     {
@@ -316,7 +317,8 @@ namespace OpenMS
     }
 
     QTCluster const& best = cluster_heads.top();
-    NeighborMap const& elements = best.getElementsBeforeDestruction();
+
+    NeighborMap const elements = best.getElements();
 
     #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
@@ -349,13 +351,14 @@ namespace OpenMS
                                            QTCluster const& cluster,
                                            ElementMapping& element_mapping)
   {
-    NeighborMap const& elements = cluster.getElementsBeforeDestruction();
+    NeighborMap const elements = cluster.getElements();
     for(NeighborMap::const_iterator it = elements.begin(); it != elements.end(); ++it)
     {
       unordered_set<Size>& cluster_ids = element_mapping[it->second.second];
       cluster_ids.erase(cluster.getId());
     }
 
+    deleted_ids_.insert(cluster.getId());
     cluster_heads.pop();
   }
 
@@ -369,8 +372,10 @@ namespace OpenMS
     for (NeighborMap::const_iterator
         it = elements.begin(); it != elements.end(); ++it)
     {
-      // delete id of the best cluster from element mapping
-      unordered_set<Size>& cluster_ids = element_mapping[it->second.second];
+      GridFeature* curr_feature = it->second.second;
+
+      // delete id of the current best (soon deleted) cluster from element mapping
+      unordered_set<Size>& cluster_ids = element_mapping[curr_feature];
       cluster_ids.erase(best_id);
 
       // Identify all features that could potentially have been touched by this
@@ -382,13 +387,19 @@ namespace OpenMS
            id_it  = cluster_ids.begin();
            id_it != cluster_ids.end(); ++id_it)
       {
+        // if (deleted_ids_.find(*id_it) != deleted_ids_.end()) std::cout << "ID FEHLER" << std::endl;
+        if (deleted_ids_.find(*id_it) != deleted_ids_.end()) continue;
+
         QTCluster& cluster = *handles[*id_it]; 
-        
+
+        // std::cout << cluster.size() << std::endl;
+
         // we do not want to update invalid features (saves time and does not
         // recompute the quality)
         if (!cluster.isInvalid())
         {
           // remove the elements of the new feature from the cluster
+
           if (cluster.update(elements))
           {
             // If update returns true, it means that at least one element was
@@ -403,6 +414,7 @@ namespace OpenMS
             // add elements to the current cluster to replace the ones we just
             // removed
             const GridFeature* center_feature = cluster.getCenterPoint();
+
             addClusterElements_(x, y, grid, cluster, center_feature);
 
             // update the heap, because the quality has changed
@@ -434,6 +446,7 @@ namespace OpenMS
     }
 
     // remove the current best from the heap
+    deleted_ids_.insert(cluster_heads.top().getId());
     cluster_heads.pop();
   }
 

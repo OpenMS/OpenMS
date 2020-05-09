@@ -191,20 +191,18 @@ namespace OpenMS
     }
   }
 
-  QTCluster::NeighborMap const& QTCluster::getElementsBeforeDestruction() const
+  QTCluster::NeighborMap QTCluster::getElements() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
-    // get references on member that is used in this function
-    NeighborMap & neighbors_ = data_->neighbors_;
+    // copy neighbor map
+    NeighborMap neighbors_copy = data_->neighbors_;
 
-    // add center point to neighbors
-    // this is actually wrong, but this is function shoudl only be called 
-    // immediately before destruction of the cluster
-    neighbors_[data_->center_point_->getMapIndex()].second = data_->center_point_;
+    // add center point to the copy
+    neighbors_copy[data_->center_point_->getMapIndex()].second = data_->center_point_;
 
-    return neighbors_;
+    return neighbors_copy;
   }
 
   bool QTCluster::update(NeighborMap const& removed)
@@ -228,11 +226,14 @@ namespace OpenMS
     // get references on member that is used in this function
     NeighborMap & neighbors_ = data_->neighbors_;
 
+    // if (&neighbors_ == &removed) std::cout << "neighbors and removed is the same" << std::endl;
+    // std::cout << neighbors_.size() << std::endl;
+
     // update cluster contents, remove those elements we find in our cluster
     for (NeighborMap::const_iterator
         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
-      NeighborMap::iterator pos = neighbors_.find(rm_it->first);
+      NeighborMap::iterator pos = neighbors_.find(rm_it->first); //SEGFAULT here ... whyyy????
       if (pos == neighbors_.end())
       {
         continue; // no points from this map

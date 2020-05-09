@@ -150,6 +150,9 @@ private:
     /// Set of features already used
     std::set<OpenMS::GridFeature*> already_used_;
 
+    // save deleted ids
+    std::unordered_set<Size> deleted_ids_;
+
     /**
        @brief Calculates the distance between two grid features.
     */

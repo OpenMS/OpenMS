@@ -222,8 +222,8 @@ public:
      */
     void add(GridFeature* element, double distance);
 
-    /// Gets the clustered elements. This should only be called immediately before destruction
-    NeighborMap const& getElementsBeforeDestruction() const;
+    /// Gets the clustered elements meaning neighbors + cluster center
+    NeighborMap getElements() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
