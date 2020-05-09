@@ -387,12 +387,15 @@ namespace OpenMS
            id_it  = cluster_ids.begin();
            id_it != cluster_ids.end(); ++id_it)
       {
-        // if (deleted_ids_.find(*id_it) != deleted_ids_.end()) std::cout << "ID FEHLER" << std::endl;
+        // THIS SHOULD NOT BE NECESSARY BUT IT CURRENTLY IS
+        // -> OTHERWISE SEGFAULT
+
+        // SOMEHOW IDS OF DELETED CLUSTERS ARE STILL IN THE
+        // ELEMENT MAPPING EVEN THOUGH WE ERASE THEM BEFORE POPPING THE HEAP
+
         if (deleted_ids_.find(*id_it) != deleted_ids_.end()) continue;
 
         QTCluster& cluster = *handles[*id_it]; 
-
-        // std::cout << cluster.size() << std::endl;
 
         // we do not want to update invalid features (saves time and does not
         // recompute the quality)
