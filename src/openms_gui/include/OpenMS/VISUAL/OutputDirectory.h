@@ -58,7 +58,7 @@ namespace OpenMS
     Q_OBJECT
   public:
     /// Constructor
-    OutputDirectory(const QWidget* parent);
+    OutputDirectory(QWidget* parent);
     /// Destructor
     ~OutputDirectory();
 

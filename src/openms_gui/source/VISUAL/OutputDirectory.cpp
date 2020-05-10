@@ -47,8 +47,9 @@
 
 namespace OpenMS
 {
-  OutputDirectory::OutputDirectory(const QWidget* parent)
-    : ui_(new Ui::OutputDirectoryTemplate)
+  OutputDirectory::OutputDirectory(QWidget* parent)
+    : QWidget(parent),
+      ui_(new Ui::OutputDirectoryTemplate)
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
