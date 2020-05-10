@@ -76,11 +76,11 @@ namespace OpenMS
   class OPENMS_DLLAPI MzTabNullAbleInterface
   {
 public:
-    virtual ~MzTabNullAbleInterface();
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
     virtual void fromCellString(const String&) = 0;
+    ~MzTabNullAbleInterface() = default;
   };
 
   /// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
@@ -88,11 +88,11 @@ public:
     public MzTabNullAbleInterface
   {
 public:
-    ~MzTabNullNaNAndInfAbleInterface() override;
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
     virtual void setInf() = 0;
+    ~MzTabNullNaNAndInfAbleInterface() = default;
   };
 
   /// base class for atomic, non-container types (Double, Int)
@@ -101,13 +101,9 @@ public:
   {
 public:
     MzTabNullAbleBase();
-
-    ~MzTabNullAbleBase() override;
-
     bool isNull() const override;
-
     void setNull(bool b) override;
-
+    ~MzTabNullAbleBase() = default;
 protected:
     bool null_;
   };
@@ -119,7 +115,6 @@ protected:
 public:
     MzTabNullNaNAndInfAbleBase();
 
-    ~MzTabNullNaNAndInfAbleBase() override;
 
     bool isNull() const override;
 
@@ -133,6 +128,7 @@ public:
 
     void setInf() override;
 
+    ~MzTabNullNaNAndInfAbleBase() = default;
 protected:
     MzTabCellStateType state_;
   };
@@ -145,8 +141,6 @@ public:
 
     explicit MzTabDouble(const double v);
 
-    ~MzTabDouble() override;
-
     void set(const double& value);
 
     double get() const;
@@ -155,6 +149,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabDouble() = default;
 protected:
     double value_;
   };
@@ -164,8 +159,6 @@ protected:
   {
 public:
     MzTabDoubleList();
-
-    ~MzTabDoubleList() override;
 
     bool isNull() const override;
 
@@ -179,6 +172,7 @@ public:
 
     void set(const std::vector<MzTabDouble>& entries);
 
+    ~MzTabDoubleList() = default;
 protected:
     std::vector<MzTabDouble> entries_;
   };
@@ -191,8 +185,6 @@ public:
 
     explicit MzTabInteger(const int v);
 
-    ~MzTabInteger() override;
-
     void set(const Int& value);
 
     Int get() const;
@@ -201,6 +193,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabInteger() = default;
 protected:
     Int value_;
   };
@@ -223,6 +216,7 @@ public:
 
     void set(const std::vector<MzTabInteger>& entries);
 
+    ~MzTabIntegerList() = default;
 protected:
     std::vector<MzTabInteger> entries_;
   };
@@ -235,8 +229,6 @@ public:
 
     explicit MzTabBoolean(bool v);
 
-    ~MzTabBoolean() override;
-
     void set(const bool& value);
 
     Int get() const;
@@ -245,6 +237,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabBoolean() = default;
 protected:
     bool value_;
   };
@@ -256,8 +249,6 @@ public:
     MzTabString();
 
     explicit MzTabString(const String& s);
-
-    ~MzTabString() override;
 
     void set(const String& value);
 
@@ -271,6 +262,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabString() = default;
 protected:
     String value_;
   };
@@ -280,8 +272,6 @@ protected:
   {
 public:
     MzTabParameter();
-
-    ~MzTabParameter() override;
 
     bool isNull() const override;
 
@@ -307,6 +297,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabParameter() = default;
 protected:
     String CV_label_;
     String accession_;
@@ -318,9 +309,6 @@ protected:
     public MzTabNullAbleInterface
   {
 public:
-
-    ~MzTabParameterList() override;
-
     bool isNull() const override;
 
     void setNull(bool b) override;
@@ -333,6 +321,7 @@ public:
 
     void set(const std::vector<MzTabParameter>& parameters);
 
+    ~MzTabParameterList() = default;
 protected:
     std::vector<MzTabParameter> parameters_;
   };
@@ -342,8 +331,6 @@ protected:
   {
 public:
     MzTabStringList();
-
-    ~MzTabStringList() override;
 
     /// needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
@@ -360,6 +347,7 @@ public:
 
     void set(const std::vector<MzTabString>& entries);
 
+    ~MzTabStringList() = default;
 protected:
     std::vector<MzTabString> entries_;
     char sep_;
@@ -370,8 +358,6 @@ protected:
   {
 public:
     MzTabModification();
-
-    ~MzTabModification() override;
 
     bool isNull() const override;
 
@@ -390,6 +376,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabModification() = default;
 protected:
     std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
     MzTabString mod_identifier_;
@@ -399,8 +386,6 @@ protected:
     public MzTabNullAbleBase
   {
 public:
-    ~MzTabModificationList() override;
-
     bool isNull() const override;
 
     void setNull(bool b) override;
@@ -413,9 +398,9 @@ public:
 
     void set(const std::vector<MzTabModification>& entries);
 
+    ~MzTabModificationList() = default;
 protected:
     std::vector<MzTabModification> entries_;
-
   };
 
   class OPENMS_DLLAPI MzTabSpectraRef :
@@ -423,8 +408,6 @@ protected:
   {
 public:
     MzTabSpectraRef();
-
-    ~MzTabSpectraRef() override;
 
     bool isNull() const override;
 
@@ -444,6 +427,7 @@ public:
 
     void fromCellString(const String& s) override;
 
+    ~MzTabSpectraRef() = default;
 protected:
     Size ms_run_; //< number is specified in the meta data section.
     String spec_ref_;
@@ -858,10 +842,8 @@ public:
   {
   public:
     /// Default constructor
-    MzTab();
-
-    /// Destructor
-    virtual ~MzTab();
+    MzTab() = default;
+    ~MzTab() = default;
 
     const MzTabMetaData& getMetaData() const;
 

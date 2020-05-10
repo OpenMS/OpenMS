@@ -54,10 +54,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  MzTabParameterList::~MzTabParameterList()
-  {
-  }
-
   bool MzTabParameterList::isNull() const
   {
     return parameters_.empty();
@@ -132,11 +128,6 @@ namespace OpenMS
   {
   }
 
-  MzTabStringList::~MzTabStringList()
-  {
-
-  }
-
   void MzTabStringList::setSeparator(char sep)
   {
     sep_ = sep;
@@ -209,10 +200,6 @@ namespace OpenMS
   }
 
   MzTabModification::MzTabModification()
-  {
-  }
-
-  MzTabModification::~MzTabModification()
   {
   }
 
@@ -351,11 +338,6 @@ namespace OpenMS
     }
   }
 
-  MzTabModificationList::~MzTabModificationList()
-  {
-
-  }
-
   bool MzTabModificationList::isNull() const
   {
     return entries_.empty();
@@ -478,11 +460,6 @@ namespace OpenMS
   MzTabSpectraRef::MzTabSpectraRef() :
     ms_run_(0)
   {
-  }
-
-  MzTabSpectraRef::~MzTabSpectraRef()
-  {
-
   }
 
   bool MzTabSpectraRef::isNull() const
@@ -633,13 +610,6 @@ namespace OpenMS
       }
     }
   }
-
-  MzTab::MzTab()
-  {
-
-  }
-
-  MzTab::~MzTab() = default;
 
   const MzTabMetaData& MzTab::getMetaData() const
   {
@@ -796,11 +766,6 @@ namespace OpenMS
     accession_(""),
     name_(""),
     value_("")
-  {
-
-  }
-
-  MzTabParameter::~MzTabParameter()
   {
 
   }
@@ -963,10 +928,6 @@ namespace OpenMS
     set(s);
   }
 
-  MzTabString::~MzTabString()
-  {
-  }
-
   void MzTabString::set(const String& value)
   {
     String lower = value;
@@ -1025,11 +986,6 @@ namespace OpenMS
   MzTabBoolean::MzTabBoolean(bool v)
   {
     set(v);
-  }
-
-  MzTabBoolean::~MzTabBoolean()
-  {
-
   }
 
   MzTabBoolean::MzTabBoolean()
@@ -1167,11 +1123,6 @@ namespace OpenMS
     set(v);
   }
 
-  MzTabInteger::~MzTabInteger()
-  {
-
-  }
-
   MzTabInteger::MzTabInteger()
     : value_(0)
   {
@@ -1241,9 +1192,6 @@ namespace OpenMS
   {
   }
 
-  MzTabNullAbleBase::~MzTabNullAbleBase()
-  {
-  }
 
   bool MzTabNullAbleBase::isNull() const
   {
@@ -1257,10 +1205,6 @@ namespace OpenMS
 
   MzTabNullNaNAndInfAbleBase::MzTabNullNaNAndInfAbleBase() :
     state_(MZTAB_CELLSTATE_NULL)
-  {
-  }
-
-  MzTabNullNaNAndInfAbleBase::~MzTabNullNaNAndInfAbleBase()
   {
   }
 
@@ -1302,11 +1246,6 @@ namespace OpenMS
   MzTabDouble::MzTabDouble(const double v)
   {
     set(v);
-  }
-
-  MzTabDouble::~MzTabDouble()
-  {
-
   }
 
   void MzTabDouble::set(const double& value)
@@ -1368,11 +1307,6 @@ namespace OpenMS
 
   MzTabDoubleList::MzTabDoubleList()
   {
-  }
-
-  MzTabDoubleList::~MzTabDoubleList()
-  {
-
   }
 
   bool MzTabDoubleList::isNull() const
@@ -1439,15 +1373,6 @@ namespace OpenMS
   {
     entries_ = entries;
   }
-
-  MzTabNullAbleInterface::~MzTabNullAbleInterface()
-  {
-  }
-
-  MzTabNullNaNAndInfAbleInterface::~MzTabNullNaNAndInfAbleInterface()
-  {
-  }
-
 
   void MzTab::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row)
   {
@@ -1584,7 +1509,7 @@ namespace OpenMS
         mod.position = MzTabString("Protein N-term");
       }
 
-      mod.site = MzTabString(m->getOrigin());
+      mod.site = MzTabString(String(m->getOrigin()));
       mods_mztab[index] = mod;
       ++index;
     }
@@ -1701,7 +1626,7 @@ namespace OpenMS
     row.mass_to_charge = MzTabDouble(f.getMZ());
     MzTabDoubleList rt_list;
     vector<MzTabDouble> rts;
-    rts.emplace_back(MzTabDouble(f.getRT()));
+    rts.emplace_back(f.getRT());
     rt_list.set(rts);
     row.retention_time = rt_list;
 
@@ -1709,8 +1634,8 @@ namespace OpenMS
     vector<MzTabDouble> window;
     if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
     {
-      window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
-      window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+      window.emplace_back(f.getConvexHull().getBoundingBox().minX());
+      window.emplace_back(f.getConvexHull().getBoundingBox().maxX());
     }
 
     MzTabDoubleList rt_window;
@@ -2043,7 +1968,7 @@ namespace OpenMS
     row.database_version = db_version;
     
     vector<MzTabDouble> rts_vector;
-    rts_vector.emplace_back(MzTabDouble(pid.getRT()));
+    rts_vector.emplace_back(pid.getRT());
 
     MzTabDoubleList rts;
     rts.set(rts_vector);
@@ -2367,7 +2292,7 @@ namespace OpenMS
         protein_row.accession = MzTabString(group.accessions[j]);
         // protein_row.description  // TODO: how to set description? information not contained in group
       }
-      entries.emplace_back(MzTabString(group.accessions[j]));
+      entries.emplace_back(group.accessions[j]);
     }
     ambiguity_members.set(entries);
     protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
@@ -2416,7 +2341,7 @@ namespace OpenMS
     //       (because order in set and vector may differ)
     for (Size j = 0; j != group.accessions.size() ; ++j)
     {
-      entries.emplace_back(MzTabString(group.accessions[j]));
+      entries.emplace_back(group.accessions[j]);
     }
     ambiguity_members.set(entries);
     protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
