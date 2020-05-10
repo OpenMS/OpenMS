@@ -222,8 +222,8 @@ namespace OpenMS
     {
       swath_param_wizard_.update(swath_param_, false, false, true, false, OpenMS_Log_warn);
       ui->list_editor->load(swath_param_wizard_);
-      
     }
+
     void SwathTabWidget::writeLog_(const QString& text, bool new_section)
     {
       if (new_section)

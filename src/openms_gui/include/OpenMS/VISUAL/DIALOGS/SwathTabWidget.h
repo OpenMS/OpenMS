@@ -69,7 +69,6 @@ namespace OpenMS
       void broadcastNewCWD_(const QString& new_cwd);
 
     private:
-
       /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
       void updateSwathParamFromWidgets_();
 

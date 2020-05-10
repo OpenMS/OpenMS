@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtWidgets\qwidget.h>
+#include <QWidget>
 
 namespace Ui
 {

@@ -77,7 +77,6 @@ namespace OpenMS
 
   void OutputDirectory::showFileDialog()
   {
-   
     QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
     QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
     if (selected_dir != "")
