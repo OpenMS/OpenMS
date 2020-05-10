@@ -111,15 +111,18 @@ namespace OpenMS
       }
       else // generate entries (with duplicated data) for every accession
       {
-        bool unique = (identified.parent_matches.size() == 1);
+        // in mzTab, "unique" means "peptide is unique for this protein"
+        row.unique.set(identified.parent_matches.size() == 1);
         for (const auto& match_pair : identified.parent_matches)
         {
-          const String& accession = match_pair.first->accession;
-          MzTabSectionRow copy = row;
-          copy.accession.set(accession);
-          copy.unique.set(unique);
-          addMzTabMoleculeParentContext_(match_pair.second, copy);
-          output.push_back(copy);
+          row.accession.set(match_pair.first->accession);
+          for (const IdentificationData::MoleculeParentMatch& match :
+                 match_pair.second)
+          {
+            MzTabSectionRow copy = row;
+            addMzTabMoleculeParentContext_(match, copy);
+            output.push_back(copy);
+          }
         }
       }
     }
@@ -181,12 +184,12 @@ namespace OpenMS
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
-      const std::set<IdentificationData::MoleculeParentMatch>& matches,
+      const IdentificationData::MoleculeParentMatch& match,
       MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
-      const std::set<IdentificationData::MoleculeParentMatch>& matches,
+      const IdentificationData::MoleculeParentMatch& match,
       MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
