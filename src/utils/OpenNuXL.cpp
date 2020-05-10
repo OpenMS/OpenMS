@@ -5497,7 +5497,7 @@ variable_modifications  -0.0944707
             {
               csv_file.addLine(r.getString("\t"));
             }
-            const String out_percolator_tsv = File::removeExtension(out_tsv) + "_perc.tsv";
+            const String out_percolator_tsv = FileHandler::stripExtension(out_tsv) + "_perc.tsv";
             csv_file.store(out_percolator_tsv);
           }
 
