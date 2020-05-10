@@ -985,24 +985,35 @@ namespace OpenMS
 
   MzTabBoolean::MzTabBoolean(bool v)
   {
-    set(v);
+    set((int)v);
   }
 
   MzTabBoolean::MzTabBoolean()
-    : value_(false)
+    : value_(-1)
   {
-
   }
 
   void MzTabBoolean::set(const bool& value)
   {
-    setNull(false);
-    value_ = value;
+    value_ = (int)value;
   }
 
   Int MzTabBoolean::get() const
   {
     return value_;
+  }
+
+  bool MzTabBoolean::isNull() const
+  {
+    return value_ < 0;
+  }
+
+  void MzTabBoolean::setNull(bool b)
+  {
+    if (!b)
+      value_ = -1;
+    else
+      value_ = 0;
   }
 
   String MzTabBoolean::toCellString() const
@@ -1124,7 +1135,7 @@ namespace OpenMS
   }
 
   MzTabInteger::MzTabInteger()
-    : value_(0)
+    : value_(0), state_(MZTAB_CELLSTATE_NULL)
   {
   }
 
@@ -1187,59 +1198,68 @@ namespace OpenMS
     }
   }
 
-  MzTabNullAbleBase::MzTabNullAbleBase() :
-    null_(true)
-  {
-  }
-
-
-  bool MzTabNullAbleBase::isNull() const
-  {
-    return null_;
-  }
-
-  void MzTabNullAbleBase::setNull(bool b)
-  {
-    null_ = b;
-  }
-
-  MzTabNullNaNAndInfAbleBase::MzTabNullNaNAndInfAbleBase() :
-    state_(MZTAB_CELLSTATE_NULL)
-  {
-  }
-
-  bool MzTabNullNaNAndInfAbleBase::isNull() const
+  bool MzTabInteger::isNull() const
   {
     return state_ == MZTAB_CELLSTATE_NULL;
   }
 
-  void MzTabNullNaNAndInfAbleBase::setNull(bool b)
+  void MzTabInteger::setNull(bool b)
   {
     state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
   }
 
-  bool MzTabNullNaNAndInfAbleBase::isNaN() const
+  bool MzTabInteger::isNaN() const
   {
     return state_ == MZTAB_CELLSTATE_NAN;
   }
 
-  void MzTabNullNaNAndInfAbleBase::setNaN()
+  void MzTabInteger::setNaN()
   {
     state_ = MZTAB_CELLSTATE_NAN;
   }
 
-  bool MzTabNullNaNAndInfAbleBase::isInf() const
+  bool MzTabInteger::isInf() const
   {
     return state_ == MZTAB_CELLSTATE_INF;
   }
 
-  void MzTabNullNaNAndInfAbleBase::setInf()
+  void MzTabInteger::setInf()
+  {
+    state_ = MZTAB_CELLSTATE_INF;
+  }
+
+  bool MzTabDouble::isNull() const
+  {
+    return state_ == MZTAB_CELLSTATE_NULL;
+  }
+
+  void MzTabDouble::setNull(bool b)
+  {
+    state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
+  }
+
+  bool MzTabDouble::isNaN() const
+  {
+    return state_ == MZTAB_CELLSTATE_NAN;
+  }
+
+  void MzTabDouble::setNaN()
+  {
+    state_ = MZTAB_CELLSTATE_NAN;
+  }
+
+  bool MzTabDouble::isInf() const
+  {
+    return state_ == MZTAB_CELLSTATE_INF;
+  }
+
+  void MzTabDouble::setInf()
   {
     state_ = MZTAB_CELLSTATE_INF;
   }
 
   MzTabDouble::MzTabDouble()
-    : value_(0.0)
+    : value_(0.0), state_(MZTAB_CELLSTATE_NULL)
   {
   }
 

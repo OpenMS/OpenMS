@@ -72,69 +72,7 @@ namespace OpenMS
     SIZE_OF_MZTAB_CELLTYPE
   };
 
-  /// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-  class OPENMS_DLLAPI MzTabNullAbleInterface
-  {
-public:
-    virtual bool isNull() const = 0;
-    virtual void setNull(bool b) = 0;
-    virtual String toCellString() const = 0;
-    virtual void fromCellString(const String&) = 0;
-    ~MzTabNullAbleInterface() = default;
-  };
-
-  /// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
-    public MzTabNullAbleInterface
-  {
-public:
-    virtual bool isNaN() const = 0;
-    virtual void setNaN() = 0;
-    virtual bool isInf() const = 0;
-    virtual void setInf() = 0;
-    ~MzTabNullNaNAndInfAbleInterface() = default;
-  };
-
-  /// base class for atomic, non-container types (Double, Int)
-  class OPENMS_DLLAPI MzTabNullAbleBase :
-    public MzTabNullAbleInterface
-  {
-public:
-    MzTabNullAbleBase();
-    bool isNull() const override;
-    void setNull(bool b) override;
-    ~MzTabNullAbleBase() = default;
-protected:
-    bool null_;
-  };
-
-  /// base class for the atomic non-container like MzTab data types (Double, Int)
-  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
-    public MzTabNullNaNAndInfAbleInterface
-  {
-public:
-    MzTabNullNaNAndInfAbleBase();
-
-
-    bool isNull() const override;
-
-    void setNull(bool b) override;
-
-    bool isNaN() const override;
-
-    void setNaN() override;
-
-    bool isInf() const override;
-
-    void setInf() override;
-
-    ~MzTabNullNaNAndInfAbleBase() = default;
-protected:
-    MzTabCellStateType state_;
-  };
-
-  class OPENMS_DLLAPI MzTabDouble :
-    public MzTabNullNaNAndInfAbleBase
+  class OPENMS_DLLAPI MzTabDouble
   {
 public:
     MzTabDouble();
@@ -145,28 +83,40 @@ public:
 
     double get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
+
+    bool isNull() const;
+
+    void setNull(bool b);
+
+    bool isNaN() const;
+
+    void setNaN();
+
+    bool isInf() const;
+
+    void setInf();
 
     ~MzTabDouble() = default;
 protected:
     double value_;
+    MzTabCellStateType state_;
   };
 
-  class OPENMS_DLLAPI MzTabDoubleList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabDoubleList
   {
 public:
     MzTabDoubleList();
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabDouble> get() const;
 
@@ -177,8 +127,7 @@ protected:
     std::vector<MzTabDouble> entries_;
   };
 
-  class OPENMS_DLLAPI MzTabInteger :
-    public MzTabNullNaNAndInfAbleBase
+  class OPENMS_DLLAPI MzTabInteger
   {
 public:
     MzTabInteger();
@@ -189,28 +138,40 @@ public:
 
     Int get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
+
+    bool isNull() const;
+
+    void setNull(bool b);
+
+    bool isNaN() const;
+
+    void setNaN();
+
+    bool isInf() const;
+
+    void setInf();
 
     ~MzTabInteger() = default;
 protected:
     Int value_;
+    MzTabCellStateType state_;
   };
 
-  class OPENMS_DLLAPI MzTabIntegerList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabIntegerList
   {
 public:
     MzTabIntegerList();
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabInteger> get() const;
 
@@ -221,11 +182,14 @@ protected:
     std::vector<MzTabInteger> entries_;
   };
 
-  class OPENMS_DLLAPI MzTabBoolean :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabBoolean
   {
 public:
     MzTabBoolean();
+
+    bool isNull() const;
+
+    void setNull(bool b);
 
     explicit MzTabBoolean(bool v);
 
@@ -233,20 +197,23 @@ public:
 
     Int get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     ~MzTabBoolean() = default;
 protected:
-    bool value_;
+    int value_;
   };
 
-  class OPENMS_DLLAPI MzTabString :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabString
   {
 public:
     MzTabString();
+
+    bool isNull() const;
+
+    void setNull(bool b);
 
     explicit MzTabString(const String& s);
 
@@ -254,28 +221,23 @@ public:
 
     String get() const;
 
-    bool isNull() const override;
+    String toCellString() const;
 
-    void setNull(bool b) override;
-
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     ~MzTabString() = default;
 protected:
     String value_;
   };
 
-  class OPENMS_DLLAPI MzTabParameter :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabParameter
   {
 public:
     MzTabParameter();
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     void setCVLabel(const String& CV_label);
 
@@ -293,9 +255,9 @@ public:
 
     String getValue() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     ~MzTabParameter() = default;
 protected:
@@ -305,17 +267,18 @@ protected:
     String value_;
   };
 
-  class OPENMS_DLLAPI MzTabParameterList :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabParameterList
   {
 public:
-    bool isNull() const override;
+    MzTabParameterList() = default;
 
-    void setNull(bool b) override;
+    bool isNull() const;
 
-    String toCellString() const override;
+    void setNull(bool b);
 
-    void fromCellString(const String& s) override;
+    String toCellString() const;
+
+    void fromCellString(const String& s);
 
     std::vector<MzTabParameter> get() const;
 
@@ -326,22 +289,21 @@ protected:
     std::vector<MzTabParameter> parameters_;
   };
 
-  class OPENMS_DLLAPI MzTabStringList :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabStringList
   {
 public:
     MzTabStringList();
 
+    bool isNull() const;
+
+    void setNull(bool b);
+
     /// needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
 
-    bool isNull() const override;
+    String toCellString() const;
 
-    void setNull(bool b) override;
-
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabString> get() const;
 
@@ -353,15 +315,14 @@ protected:
     char sep_;
   };
 
-  class OPENMS_DLLAPI MzTabModification :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabModification
   {
 public:
     MzTabModification();
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     /// set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
     void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp);
@@ -372,9 +333,9 @@ public:
 
     MzTabString getModOrSubstIdentifier() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     ~MzTabModification() = default;
 protected:
@@ -382,17 +343,16 @@ protected:
     MzTabString mod_identifier_;
   };
 
-  class OPENMS_DLLAPI MzTabModificationList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabModificationList
   {
 public:
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabModification> get() const;
 
@@ -403,15 +363,14 @@ protected:
     std::vector<MzTabModification> entries_;
   };
 
-  class OPENMS_DLLAPI MzTabSpectraRef :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabSpectraRef
   {
 public:
     MzTabSpectraRef();
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     void setMSFile(Size index);
 
@@ -423,9 +382,9 @@ public:
 
     void setSpecRefFile(const String& spec_ref);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     ~MzTabSpectraRef() = default;
 protected:
