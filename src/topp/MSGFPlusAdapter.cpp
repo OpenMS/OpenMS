@@ -340,8 +340,10 @@ protected:
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
     if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
-    String position = mod->getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
-    if (position == "none") position = "any";
+    String position = mod->getTermSpecificityName();
+    if (position == "Protein N-term") position = "Prot-N-term";
+    else if (position == "Protein C-term") position = "Prot-C-term";
+    else if (position == "none") position = "any";
     return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
