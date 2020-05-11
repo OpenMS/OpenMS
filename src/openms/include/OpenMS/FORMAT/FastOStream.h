@@ -43,9 +43,12 @@ namespace OpenMS
   {
 public:
     // Rule of six
-    FastOStream(std::ostream& os) : os_(os) {};
+    FastOStream(std::ostream& os) : os_(&os), string_constructed(false) {};
+    FastOStream(const std::string& path);
+    FastOStream(const String& path);
     FastOStream() = delete;
     FastOStream(const FastOStream& rhs) = delete;
+    ~FastOStream();
 
     FastOStream& operator << (const String& s);
 
@@ -60,7 +63,7 @@ public:
       {
         buffer_.clear();
         buffer_ += s; // use internal buffer, instead of String(s), which would allocate
-        os_.rdbuf()->sputn(buffer_.c_str(), buffer_.size());
+        os_->rdbuf()->sputn(buffer_.c_str(), buffer_.size());
       }
       else
       {
@@ -72,7 +75,7 @@ public:
     template <typename T>
     inline FastOStream& operator << (const std::vector<T>& v)
     {
-      os_ << "[";
+      os_->operator <<("[");
 
       if (!v.empty())
       {
@@ -84,14 +87,15 @@ public:
         os_ << v.back();
       }
 
-      os_ << "]";
+      os_->operator << ("]");
       return *this;
     }
 
-    std::ostream& getStream();
+    std::ostream* getStream();
 
 private:
-    std::ostream& os_;
+    std::ostream* os_;
     String buffer_;
+    bool string_constructed;
   };
 }
