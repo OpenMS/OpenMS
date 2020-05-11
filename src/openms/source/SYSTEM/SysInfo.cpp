@@ -148,7 +148,7 @@ namespace OpenMS
     rusage ru;
     if (getrusage(0, &ru) == 0) // success;
     {
-      mem_virtual = ru.ru_maxrss; // in KB already
+      mem_virtual = ru.ru_maxrss / 1024; // reported in bytes (whereas Linux is KB!). Convert to KB
       return true;
     }
     return false;
