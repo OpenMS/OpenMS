@@ -108,7 +108,7 @@ protected:
   class OPENMS_DLLAPI MzTabDoubleList
   {
 public:
-    MzTabDoubleList();
+    MzTabDoubleList() = default;
 
     bool isNull() const;
 
@@ -163,7 +163,7 @@ protected:
   class OPENMS_DLLAPI MzTabIntegerList
   {
 public:
-    MzTabIntegerList();
+    MzTabIntegerList() = default;
 
     bool isNull() const;
 
@@ -211,11 +211,11 @@ protected:
 public:
     MzTabString();
 
+    explicit MzTabString(const String& s);
+
     bool isNull() const;
 
     void setNull(bool b);
-
-    explicit MzTabString(const String& s);
 
     void set(const String& value);
 

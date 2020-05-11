@@ -242,7 +242,7 @@ namespace OpenMS
   {
     if (isNull())
     {
-      return String("null");
+      return "null";
     }
     else
     {
@@ -523,7 +523,7 @@ namespace OpenMS
   {
     if (isNull())
     {
-      return String("null");
+      return "null";
     }
     else
     {
@@ -970,7 +970,7 @@ namespace OpenMS
   {
     if (isNull())
     {
-      return String("null");
+      return "null";
     }
     else
     {
@@ -1058,10 +1058,6 @@ namespace OpenMS
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabBoolean");
       }
     }
-  }
-
-  MzTabIntegerList::MzTabIntegerList()
-  {
   }
 
   bool MzTabIntegerList::isNull() const
@@ -1162,13 +1158,13 @@ namespace OpenMS
     switch (state_)
     {
     case MZTAB_CELLSTATE_NULL:
-      return String("null");
+      return "null";
 
     case MZTAB_CELLSTATE_NAN:
-      return String("NaN");
+      return "NaN";
 
     case MZTAB_CELLSTATE_INF:
-      return String("Inf");
+      return "Inf";
 
     case MZTAB_CELLSTATE_DEFAULT:
     default:
@@ -1289,13 +1285,13 @@ namespace OpenMS
     switch (state_)
     {
     case MZTAB_CELLSTATE_NULL:
-      return String("null");
+      return "null";
 
     case MZTAB_CELLSTATE_NAN:
-      return String("NaN");
+      return "NaN";
 
     case MZTAB_CELLSTATE_INF:
-      return String("Inf");
+      return "Inf";
 
     case MZTAB_CELLSTATE_DEFAULT:
     default:
@@ -1323,10 +1319,6 @@ namespace OpenMS
     {
       set(lower.toDouble());
     }
-  }
-
-  MzTabDoubleList::MzTabDoubleList()
-  {
   }
 
   bool MzTabDoubleList::isNull() const
@@ -1399,10 +1391,10 @@ namespace OpenMS
     if (peptide_evidences.empty())
     {
       // report without pep evidence information
-      row.pre = MzTabString("null");
-      row.post = MzTabString("null");
-      row.start = MzTabString("null");
-      row.end = MzTabString("null");
+      row.pre = MzTabString();
+      row.post = MzTabString();
+      row.start = MzTabString();
+      row.end = MzTabString();
       return;
     }
 
@@ -1610,7 +1602,7 @@ namespace OpenMS
     }
     else
     {
-      ms_run.location = MzTabString("null");
+      ms_run.location = MzTabString();
     }
 
     meta_data.ms_run[1] = ms_run;
@@ -1856,7 +1848,7 @@ namespace OpenMS
 
       row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
       // select accession of first peptide_evidence as representative ("leading") accession
-      row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
+      row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
 
       // fill opt_ columns based on best ID in the feature
 
