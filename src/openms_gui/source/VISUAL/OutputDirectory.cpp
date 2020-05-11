@@ -32,67 +32,72 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
+// OpenMS includes
+#include <OpenMS/VISUAL/OutputDirectory.h>
+#include <ui_OutputDirectory.h>
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <QTabWidget>
+#include <OpenMS/SYSTEM/File.h>
 
-namespace Ui
-{
-  class SwathTabWidget;
-}
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
+
 
 namespace OpenMS
 {
-  class InputFile;
-  class OutputDirectory;
-  class ParamEditor;
-
-  namespace Internal
+  OutputDirectory::OutputDirectory(QWidget* parent)
+    : QWidget(parent),
+      ui_(new Ui::OutputDirectoryTemplate)
   {
-    /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
-    class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
-    {
-      Q_OBJECT
+    ui_->setupUi(this);
+    QCompleter* completer = new QCompleter(this);
+    QDirModel* dir_model = new QDirModel(completer);
+    dir_model->setFilter(QDir::AllDirs);
+    completer->setModel(dir_model);
+    ui_->line_edit->setCompleter(completer);
 
-    public:
-      explicit SwathTabWidget(QWidget *parent = nullptr);
-      ~SwathTabWidget();
-    
-    private slots:
-      void on_run_swath_clicked();
-      void on_edit_advanced_parameters_clicked();
-      /// update the current working directory for all file input fields
-      void broadcastNewCWD_(const QString& new_cwd);
-
-    private:
-      /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
-      void updateSwathParamFromWidgets_();
-
-      /// update Widgets given a param object
-      void updateWidgetsfromSwathParam_();
-
-      /// append text to the log tab
-      /// @param text The text to write
-      /// @param new_section Start a new block with a date and time
-      void writeLog_(const QString& text, bool new_section = false);
-
-      /// Ensure all input widgets are filled with data by the user
-      /// If anything is missing: show a Messagebox and return false.
-      bool checkInputReady_();
-
-      Ui::SwathTabWidget *ui;
-      Param swath_param_; ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
-      Param swath_param_wizard_; ///< small selection of important parameters which the user can directly change in the Wizard
-    };
-
+    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
   }
-} // ns OpenMS
 
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a InputFile member
-using InputFile = OpenMS::InputFile;
-using OutputDirectory = OpenMS::OutputDirectory;
-using ParamEditor = OpenMS::ParamEditor;
+  OutputDirectory::~OutputDirectory()
+  {
+    delete ui_;
+  }
+
+  void OutputDirectory::setDirectory(const QString& dir)
+  {
+    ui_->line_edit->setText(dir);
+  }
+
+  QString OutputDirectory::getDirectory() const
+  {
+    return ui_->line_edit->text();
+  }
+
+  void OutputDirectory::showFileDialog()
+  {
+    QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
+    QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
+    if (selected_dir != "")
+    {
+      ui_->line_edit->setText(selected_dir);
+    }
+  }
+
+  bool OutputDirectory::dirNameValid() const
+  {
+    if (!QFileInfo(getDirectory()).isDir()) return false;
+
+    QString file_name = getDirectory();
+    if (!file_name.endsWith(QDir::separator()))
+    {
+      file_name += QDir::separator();
+    }
+    file_name += "test_file";
+    return File::writable(file_name);
+  }
+
+
+} // namespace

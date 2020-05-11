@@ -37,62 +37,46 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <QTabWidget>
+#include <QWidget>
 
 namespace Ui
 {
-  class SwathTabWidget;
+  class OutputDirectoryTemplate;
 }
 
 namespace OpenMS
 {
-  class InputFile;
-  class OutputDirectory;
-  class ParamEditor;
+  /**
+      @brief A simple widget with a line-edit and a browse button to choose filenames
 
-  namespace Internal
+      @ingroup TOPPAS_elements
+      @ingroup Dialogs
+  */
+  class OPENMS_GUI_DLLAPI OutputDirectory :
+    public QWidget
   {
-    /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
-    class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
-    {
-      Q_OBJECT
+    Q_OBJECT
+  public:
+    /// Constructor
+    OutputDirectory(QWidget* parent);
+    /// Destructor
+    ~OutputDirectory();
 
-    public:
-      explicit SwathTabWidget(QWidget *parent = nullptr);
-      ~SwathTabWidget();
+    /// Sets the text in the line-edit
+    void setDirectory(const QString& dir);
+
+    /// return the directory currently set (does not need to be valid)
+    QString getDirectory() const;
     
-    private slots:
-      void on_run_swath_clicked();
-      void on_edit_advanced_parameters_clicked();
-      /// update the current working directory for all file input fields
-      void broadcastNewCWD_(const QString& new_cwd);
+    /// check if the current directory exists and is writeable
+    bool dirNameValid() const;
+public slots:
 
-    private:
-      /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
-      void updateSwathParamFromWidgets_();
+    /// Lets the user select the file via a file dialog
+    void showFileDialog();
+    
+private:
+    Ui::OutputDirectoryTemplate* ui_;
+  };
 
-      /// update Widgets given a param object
-      void updateWidgetsfromSwathParam_();
-
-      /// append text to the log tab
-      /// @param text The text to write
-      /// @param new_section Start a new block with a date and time
-      void writeLog_(const QString& text, bool new_section = false);
-
-      /// Ensure all input widgets are filled with data by the user
-      /// If anything is missing: show a Messagebox and return false.
-      bool checkInputReady_();
-
-      Ui::SwathTabWidget *ui;
-      Param swath_param_; ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
-      Param swath_param_wizard_; ///< small selection of important parameters which the user can directly change in the Wizard
-    };
-
-  }
-} // ns OpenMS
-
-// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a InputFile member
-using InputFile = OpenMS::InputFile;
-using OutputDirectory = OpenMS::OutputDirectory;
-using ParamEditor = OpenMS::ParamEditor;
+}

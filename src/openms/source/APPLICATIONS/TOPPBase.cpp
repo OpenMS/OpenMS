@@ -1596,21 +1596,10 @@ namespace OpenMS
       writeLog_("Exit code: " + String(qp.exitCode()));
       if (any_failure)
       {
-        qp.close();
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
 
-    if (debug_level_ >= 10)
-    {
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
-      writeDebug_(external_sout, 10);
-      writeDebug_(external_serr, 10);
-    }
-
-    qp.close();
     writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }
