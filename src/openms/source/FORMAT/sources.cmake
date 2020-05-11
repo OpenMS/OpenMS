@@ -20,6 +20,7 @@ DTAFile.cpp
 EDTAFile.cpp
 ExperimentalDesignFile.cpp
 FASTAFile.cpp
+FastOStream.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp

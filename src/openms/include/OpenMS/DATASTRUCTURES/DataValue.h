@@ -44,6 +44,8 @@ class QString;
 
 namespace OpenMS
 {
+  class FastOStream;
+
   /**
     @brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
 
@@ -408,6 +410,8 @@ public:
 
     /// output stream operator
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream&, const DataValue&);
+
+    friend OPENMS_DLLAPI FastOStream& operator<<(FastOStream&, const DataValue&);
 
     /// Equality comparator
     friend OPENMS_DLLAPI bool operator==(const DataValue&, const DataValue&);

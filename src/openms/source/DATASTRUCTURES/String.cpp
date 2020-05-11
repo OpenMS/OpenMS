@@ -445,43 +445,36 @@ namespace OpenMS
     return tmp;
   }
 
-  String& String::operator+=(int i)
+  String& String::operator+=(int16_t i)
   {
     StringConversions::append(i, *this);
     return *this;
   }
 
-  String& String::operator+=(unsigned int i)
+  String& String::operator+=(uint16_t i)
+  {
+    StringConversions::append(i, *this);
+    return *this;
+  }
+  String& String::operator+=(int32_t i)
   {
     StringConversions::append(i, *this);
     return *this;
   }
 
-  String& String::operator+=(short int i)
+  String& String::operator+=(uint32_t i)
   {
     StringConversions::append(i, *this);
     return *this;
   }
 
-  String& String::operator+=(short unsigned int i)
+  String& String::operator+=(int64_t i)
   {
     StringConversions::append(i, *this);
     return *this;
   }
 
-  String& String::operator+=(long int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(long unsigned int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(long long unsigned int i)
+  String& String::operator+=(uint64_t i)
   {
     StringConversions::append(i, *this);
     return *this;
