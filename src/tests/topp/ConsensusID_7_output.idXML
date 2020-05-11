@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2020-05-08T15:16:53" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.6.0-pre-feature-consensusIDPerSpectrum-2020-05-07" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-05-11T23:56:02" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.6.0-pre-feature-consensusIDPerSpectrum-2020-05-08" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="A" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -15,7 +15,7 @@
 			<ProteinHit id="PH_2" accession="C" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[c1.mzML]"/>
 			<UserParam type="string" name="SE:Mascot" value="2.2.04"/>
 			<UserParam type="string" name="Mascot:db" value="ECOlL"/>
 			<UserParam type="string" name="Mascot:db_version" value="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta"/>

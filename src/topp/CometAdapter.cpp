@@ -428,7 +428,7 @@ protected:
     else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
     {
       OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
-    };
+    }
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
     os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
@@ -696,6 +696,8 @@ protected:
 
     //Whatever the pepXML says, overwrite origin as the input mzML
     protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+    // seems like version is not correctly parsed from pepXML. Overwrite it here.
+    protein_identifications[0].setSearchEngineVersion(comet_version);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------
