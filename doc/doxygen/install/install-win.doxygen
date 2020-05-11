@@ -225,7 +225,11 @@
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
+        @note If you build Qt5 from source, the build directories will be located at <tt><path_to_qt>/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note Example CMAKE_PREFIX_PAT: <tt>C:\dev\qt-5.9\mkspecs\winrt-x64-msvc2017</tt>
+        
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
+        
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
@@ -234,6 +238,7 @@
         cd c:\dev\OpenMS_Win64
         cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 16 2019" -A x64 -T host=x64 ..\OpenMS
         \endcode
+       
     </ol>
 
     \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
