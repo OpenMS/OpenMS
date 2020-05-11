@@ -40,6 +40,7 @@ namespace OpenMS
 
   MSDataWritingConsumer::MSDataWritingConsumer(String filename) :
     Internal::MzMLHandler(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
+    os_(ofs_),
     started_writing_(false),
     writing_spectra_(false),
     writing_chromatograms_(false),
@@ -102,19 +103,19 @@ namespace OpenMS
       //--------------------------------------------------------------------
       //header
       //--------------------------------------------------------------------
-      Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
+      Internal::MzMLHandler::writeHeader_(os_, dummy, dps_, *validator_);
       started_writing_ = true;
     }
     if (!writing_spectra_)
     {
       // This is the first spectrum, thus write the spectrumList header
-      ofs_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+      os_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
       writing_spectra_ = true;
     }
     bool renew_native_ids = false;
     // TODO writeSpectrum assumes that dps_ has at least one value -> assert
     // this here ...
-    Internal::MzMLHandler::writeSpectrum_(ofs_, scpy,
+    Internal::MzMLHandler::writeSpectrum_(os_, scpy,
             spectra_written_++, *validator_, renew_native_ids, dps_);
   }
 
@@ -123,7 +124,7 @@ namespace OpenMS
     // make sure to close an open List tag
     if (writing_spectra_)
     {
-      ofs_ << "\t\t</spectrumList>\n";
+      os_ << "\t\t</spectrumList>\n";
       writing_spectra_ = false;
     }
 
@@ -148,15 +149,15 @@ namespace OpenMS
       //--------------------------------------------------------------------
       //header (fill also dps_ variable)
       //--------------------------------------------------------------------
-      Internal::MzMLHandler::writeHeader_(ofs_, dummy, dps_, *validator_);
+      Internal::MzMLHandler::writeHeader_(os_, dummy, dps_, *validator_);
       started_writing_ = true;
     }
     if (!writing_chromatograms_)
     {
-      ofs_ << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+      os_ << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
       writing_chromatograms_ = true;
     }
-    Internal::MzMLHandler::writeChromatogram_(ofs_, ccpy,
+    Internal::MzMLHandler::writeChromatogram_(os_, ccpy,
             chromatograms_written_++, *validator_);
   }
 
@@ -178,11 +179,11 @@ namespace OpenMS
     // make sure to close an open List tag
     if (writing_spectra_)
     {
-      ofs_ << "\t\t</spectrumList>\n";
+      os_ << "\t\t</spectrumList>\n";
     }
     else if (writing_chromatograms_)
     {
-      ofs_ << "\t\t</chromatogramList>\n";
+      os_ << "\t\t</chromatogramList>\n";
     }
 
     // Only write the footer if we actually did start writing ... 

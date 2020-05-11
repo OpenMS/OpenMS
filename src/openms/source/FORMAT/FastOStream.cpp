@@ -34,44 +34,46 @@
 
 #include <OpenMS/FORMAT/FastOStream.h>
 
+#include <ostream>
 #include <cstring>
 
 namespace OpenMS
 {
-  FastOStream::FastOStream(const std::string& path):
-      string_constructed(true)
-  {
-    os_ = new std::ostream(path.c_str()); // xxx Mag er nicht
-  }
+  //FastOStream::FastOStream(const std::string& path):
+  //    string_constructed(true)
+  //{
+  //  os_ = new std::fstream( path.c_str() ); // xxx Mag er nicht
+  //  //os_->open()
+  //}
 
-  FastOStream::FastOStream(const String& path):
-      string_constructed(true)
-  {
-    os_ = new std::ostream(); // xxx Mag er auch nicht =(
-    os_->open(path.c_str());
-  }
+  //FastOStream::FastOStream(const String& path):
+  //    string_constructed(true)
+  //{
+  //  os_ = new std::ostream; // xxx Mag er auch nicht =(
+  //  os_->open(path.c_str());
+  //}
 
-  FastOStream::~FastOStream(){
-    if(string_constructed){
-      delete os_;
-    }
-  }
+  //FastOStream::~FastOStream(){
+  //  if(string_constructed){
+  //    delete os_;
+  //  }
+  //}
 
   FastOStream& FastOStream::operator << (const OpenMS::String& s)
   {
-    os_->rdbuf()->sputn(s.c_str(), s.size());
+    os_.rdbuf()->sputn(s.c_str(), s.size());
     return *this;
   }
 
   FastOStream& FastOStream::operator << (const std::string& s)
   {
-    os_->rdbuf()->sputn(s.c_str(), s.size());
+    os_.rdbuf()->sputn(s.c_str(), s.size());
     return *this;
   }
 
   FastOStream& FastOStream::operator << (const char* const s)
   {
-    os_->rdbuf()->sputn(s, strlen(s));
+    os_.rdbuf()->sputn(s, strlen(s));
     return *this;
   }
 
@@ -92,7 +94,7 @@ namespace OpenMS
     return os;
   }
 
-  std::ostream* FastOStream::getStream()
+  std::ostream& FastOStream::getStream()
   {
     return os_;
   }

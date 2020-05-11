@@ -4950,7 +4950,7 @@ namespace OpenMS
         native_id = String("spectrum=") + s;
       }
 
-      Int64 offset = os.tellp();
+      Int64 offset = os.getStream().tellp();
       spectra_offsets_.emplace_back(native_id, offset + 3);
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
