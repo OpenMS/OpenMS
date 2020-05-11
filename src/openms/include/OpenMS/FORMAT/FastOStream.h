@@ -32,8 +32,7 @@
 // $Authors: Tom Lukas Lankenau, Anton Kriese $
 // --------------------------------------------------------------------------
 
-#include <ostream>
-#include <cstring>
+#include <fstream>
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -43,12 +42,10 @@ namespace OpenMS
   class FastOStream
   {
 public:
-    FastOStream(const std::string& path);
-    FastOStream(const String& path);
     // Rule of six
+    FastOStream(std::ostream& os) : os_(os) {};
     FastOStream() = delete;
     FastOStream(const FastOStream& rhs) = delete;
-    //FastOStream (FastOStream&& rhs) { os_ = rhs.os_; }
 
     FastOStream& operator << (const String& s);
 
@@ -91,10 +88,10 @@ public:
       return *this;
     }
 
-    FastOStream& operator << (const DataValue& p);
+    std::ostream& getStream();
 
 private:
-    std::ostream os_;
+    std::ostream& os_;
     String buffer_;
   };
 }

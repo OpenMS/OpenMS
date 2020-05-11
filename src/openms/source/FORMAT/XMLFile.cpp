@@ -169,7 +169,7 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
             String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)
@@ -237,7 +237,7 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
             String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)

@@ -34,12 +34,10 @@
 
 #include <OpenMS/FORMAT/FastOStream.h>
 
+#include <cstring>
+
 namespace OpenMS
 {
-  FastOStream::FastOStream(const std::string& path) : os_(path.c_str()) {}
-
-  FastOStream::FastOStream(const String& path) : os_(path.c_str()) {}
-
   FastOStream& FastOStream::operator << (const OpenMS::String& s)
   {
     os_.rdbuf()->sputn(s.c_str(), s.size());
@@ -58,20 +56,25 @@ namespace OpenMS
     return *this;
   }
 
-  FastOStream& FastOStream::operator << (const DataValue& p)
+  FastOStream& operator << (FastOStream& os, const DataValue& p)
   {
     /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision
 
     switch (p.value_type_)
     {
-      case DataValue::STRING_VALUE: os_ << *(p.data_.str_); break;
-      case DataValue::STRING_LIST: os_ << *(p.data_.str_list_); break;
-      case DataValue::INT_LIST: os_ << *(p.data_.int_list_); break;
-      case DataValue::DOUBLE_LIST: os_ << *(p.data_.dou_list_); break;
-      case DataValue::INT_VALUE: os_ << p.data_.ssize_; break; // using our String conversion (faster than std::ofstream)
-      case DataValue::DOUBLE_VALUE: os_ << p.data_.dou_; break; // using our String conversion (faster than std::ofstream)
+      case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
+      case DataValue::STRING_LIST: os << *(p.data_.str_list_); break;
+      case DataValue::INT_LIST: os << *(p.data_.int_list_); break;
+      case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
+      case DataValue::INT_VALUE: os << p.data_.ssize_; break; // using our String conversion (faster than std::ofstream)
+      case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break; // using our String conversion (faster than std::ofstream)
       case DataValue::EMPTY_VALUE: break;
     }
-    return *this;
+    return os;
+  }
+
+  std::ostream& FastOStream::getStream()
+  {
+    return os_;
   }
 }

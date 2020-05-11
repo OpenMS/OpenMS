@@ -147,7 +147,7 @@ public:
       void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
       /// Docu in base class XMLHandler::writeTo
-      void writeTo(std::ostream& os) override;
+      void writeTo(std::ostream& nos) override;
 
       //@}
 
@@ -303,14 +303,14 @@ protected:
       //@{
 
       /// Write out XML header including (everything up to spectrumList / chromatogramList
-      void writeHeader_(std::ostream& os,
+      void writeHeader_(FastOStream& os,
                         const MapType& exp,
                         std::vector<std::vector< ConstDataProcessingPtr > >& dps,
                         const Internal::MzMLValidator& validator);
 
 
       /// Write out a single spectrum
-      void writeSpectrum_(std::ostream& os,
+      void writeSpectrum_(FastOStream& os,
                           const SpectrumType& spec,
                           Size spec_idx,
                           const Internal::MzMLValidator& validator,
@@ -318,13 +318,13 @@ protected:
                           std::vector<std::vector< ConstDataProcessingPtr > >& dps);
 
       /// Write out a single chromatogram
-      void writeChromatogram_(std::ostream& os,
+      void writeChromatogram_(FastOStream& os,
                               const ChromatogramType& chromatogram,
                               Size chrom_idx,
                               const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(FastOStream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
 
       /**
           @brief Write a single <binaryDataArray> element to the output
@@ -340,7 +340,7 @@ protected:
 
       */
       template <typename DataType>
-      void writeBinaryDataArray_(std::ostream& os,
+      void writeBinaryDataArray_(FastOStream& os,
                                  const PeakFileOptions& options,
                                  std::vector<DataType>& data,
                                  bool is32bit,
@@ -360,7 +360,7 @@ protected:
           @param isSpectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
           @param validator Validator object
       */
-      void writeBinaryFloatDataArray_(std::ostream& os,
+      void writeBinaryFloatDataArray_(FastOStream& os,
                                       const PeakFileOptions& pf_options_,
                                       const OpenMS::DataArrays::FloatDataArray& array,
                                       const Size spec_chrom_idx,
@@ -369,22 +369,22 @@ protected:
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
+      void writeUserParam_(FastOStream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
 
       /// Helper method that writes a software
-      void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
+      void writeSoftware_(FastOStream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, const Internal::MzMLValidator& validator);
+      void writeSourceFile_(FastOStream& os, const String& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
+      void writeDataProcessing_(FastOStream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator);
+      void writePrecursor_(FastOStream& os, const Precursor& precursor, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator);
+      void writeProduct_(FastOStream& os, const Product& product, const Internal::MzMLValidator& validator);
 
       /// Helper method to write an CV based on a meta value
       String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
@@ -514,4 +514,3 @@ protected:
 
   } // namespace Internal
 } // namespace OpenMS
-
