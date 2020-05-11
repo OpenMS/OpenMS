@@ -188,7 +188,7 @@ namespace OpenMS
     if (add_abundant_immonium_ions_)
     {
       addAbundantImmoniumIons_(spectrum, peptide, ion_names, charges);
-      chunks.add(true);
+      chunks.add(true); // this chunk is ordered, as the if-statements in addAbundantImmoniumIons_() are in ascending order (by MZ)
     }
 
     if (add_metainfo_)
@@ -225,7 +225,7 @@ namespace OpenMS
         ion_names.emplace_back("iP");
         charges.push_back(1);
       }
-      spectrum.emplace_back(70.0656, 1.0);
+      spectrum.emplace_back(70.0656, 1.0); // emplace_back(MZ, intensity)
     }
 
     // Cysteine (C2H6NS)
@@ -341,7 +341,7 @@ namespace OpenMS
     {
       if (add_metainfo_) // one entry per peak
       {
-        ion_names.emplace_back(ion_name);
+        ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
       spectrum.emplace_back(it.getMZ() / charge, intensity * it.getIntensity());
@@ -601,7 +601,7 @@ namespace OpenMS
         if (add_losses_)
         {
           // add loss peaks (slow)
-          Size i = add_first_prefix_ion_ ? 1 : 2;
+          i = add_first_prefix_ion_ ? 1 : 2;
           for (; i < peptide.size(); ++i)
           {
             const AASequence ion = peptide.getPrefix(i);

@@ -82,7 +82,7 @@ public:
       Size start;
       Size end;
       bool is_sorted;
-      Chunk(Size a, Size b, bool c) : start(a), end(b), is_sorted(c) {}
+      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
     };
 
     struct Chunks {
