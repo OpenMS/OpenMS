@@ -2010,7 +2010,6 @@ namespace OpenMS
     String s = String("MTD\tcolunit-small_molecule") + md.colunit_small_molecule[i];
     sl.push_back(s);
   }
-  sl.push_back(String("\n"));
   }
 
   String MzTabFile::generateMzTabProteinHeader_(
@@ -2888,6 +2887,193 @@ namespace OpenMS
       }
     }
   }
+    // stream IDs to file
+  void MzTabFile::store(
+        const String& filename,
+        const std::vector<ProteinIdentification>& protein_identifications,
+        const std::vector<PeptideIdentification>& peptide_identifications,
+        bool first_run_inference_only,
+        bool export_empty_pep_ids,
+        const String& title)
+  {
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    }
+
+    vector<const PeptideIdentification*> pep_ids_ptr;
+    for (const PeptideIdentification& pi : peptide_identifications) { pep_ids_ptr.push_back(&pi); }
+
+    vector<const ProteinIdentification*> prot_ids_ptr;
+    for (const ProteinIdentification& pi : protein_identifications) { prot_ids_ptr.push_back(&pi); }
+
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
+
+    MzTab::IDMzTabStream s(
+      prot_ids_ptr,
+      pep_ids_ptr,
+      filename,
+      first_run_inference_only,
+      export_empty_pep_ids,
+      title);      
+
+    // generate full meta data section and write to file
+    MzTabMetaData meta_data = s.getMetaData();
+
+    {
+      StringList out;
+      generateMzTabMetaDataSection_(meta_data, out);
+      for (const String & line : out) { tab_file << line << "\n"; }
+    }
+   
+    Size n_best_search_engine_score = meta_data.protein_search_engine_score.size();
+
+    {
+      MzTabProteinSectionRow row;
+      bool first = true;
+      while (s.nextPRTRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabProteinHeader_(
+            row,
+            n_best_search_engine_score,
+            s.getProteinOptionalColumnNames(),
+            meta_data) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getProteinOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    Size n_search_engine_scores = meta_data.psm_search_engine_score.size();
+
+    if (n_search_engine_scores == 0)
+    {
+      OPENMS_LOG_WARN << "No search engine scores given. Please check your input data." << endl;
+    }
+
+    {
+      MzTabPSMSectionRow row;
+      bool first = true;
+      while (s.nextPSMRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    tab_file.close();
+    
+  }
+
+  void MzTabFile::store(
+      const String& filename, 
+      const ConsensusMap& cmap,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids) const
+  {
+    if (!(FileHandler::hasValidExtension(filename, FileTypes::MZTAB) || FileHandler::hasValidExtension(filename, FileTypes::TSV)))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '"
+      + FileTypes::typeToName(FileTypes::MZTAB) + "' or '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    }
+
+    ofstream tab_file;
+    tab_file.open(filename, ios::out | ios::trunc);
+
+    MzTab::CMMzTabStream s(
+      cmap,
+      filename,
+      first_run_inference_only,
+      export_unidentified_features,
+      export_unassigned_ids,
+      export_subfeatures,
+      export_empty_pep_ids,
+      "ConsensusMap export from OpenMS");      
+
+    // generate full meta data section and write to file
+    MzTabMetaData meta_data = s.getMetaData();
+
+    {
+      StringList out;
+      generateMzTabMetaDataSection_(meta_data, out);
+      for (const String & line : out) { tab_file << line << "\n"; }
+    }
+   
+    Size n_best_search_engine_score = meta_data.protein_search_engine_score.size();
+
+    {
+      MzTabProteinSectionRow row;
+      bool first = true;
+      while (s.nextPRTRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabProteinHeader_(
+            row,
+            n_best_search_engine_score,
+            s.getProteinOptionalColumnNames(),
+            meta_data) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getProteinOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    Size assays(0);
+    Size study_variables(0);
+    Size search_ms_runs = 0;
+    {
+      MzTabPeptideSectionRow row;
+      bool first = true;
+      while (s.nextPEPRow(row))
+      {
+        if (first)
+        {
+          assays = row.peptide_abundance_assay.size();
+          study_variables = row.peptide_abundance_study_variable.size();
+          Size n_search_engine_score = row.search_engine_score_ms_run.size();
+          Size n_best_search_engine_score = row.best_search_engine_score.size();
+          tab_file << "\n" << generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, s.getPeptideOptionalColumnNames()) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getPeptideOptionalColumnNames(), meta_data) + "\n";
+      }
+    } 
+
+    Size n_search_engine_scores = meta_data.psm_search_engine_score.size();
+
+    if (n_search_engine_scores == 0)
+    {
+      OPENMS_LOG_WARN << "No search engine scores given. Please check your input data." << endl;
+    }
+
+    {
+      MzTabPSMSectionRow row;
+      bool first = true;
+      while (s.nextPSMRow(row))
+      {
+        if (first)
+        { // add header
+          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames()) + "\n";
+          first = false;
+        }
+        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data) + "\n";
+      }
+    }
+
+    tab_file.close();
+  }
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
@@ -2914,12 +3100,13 @@ namespace OpenMS
       // add header
       // use the first row as a reference row to get the optional cols from meta values
       // TODO this is very fragile!
+      out.push_back("");
       out.push_back(generateMzTabProteinHeader_(protein_section[0],
           n_best_search_engine_score,
           mz_tab.getProteinOptionalColumnNames(),
           mz_tab.getMetaData()));
 
-      // add section
+      // add section content
       generateMzTabSection_(protein_section, mz_tab.getProteinOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
 
@@ -2950,6 +3137,7 @@ namespace OpenMS
       Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = peptide_section[0].best_search_engine_score.size();
 
+      out.push_back("");
       out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPeptideSectionRows(), mz_tab.getPeptideOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -2962,6 +3150,7 @@ namespace OpenMS
       {
         // TODO warn
       }
+      out.push_back("");
       out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getPSMSectionRows(), mz_tab.getPSMOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -2972,6 +3161,7 @@ namespace OpenMS
       Size study_variables = smallmolecule_section[0].smallmolecule_abundance_study_variable.size();
       Size n_search_engine_score = smallmolecule_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().smallmolecule_search_engine_score.size();
+      out.push_back("");
       out.push_back(generateMzTabSmallMoleculeHeader_(ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getSmallMoleculeOptionalColumnNames()));
       generateMzTabSection_(smallmolecule_section, mz_tab.getSmallMoleculeOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3008,6 +3198,7 @@ namespace OpenMS
       Size n_best_search_engine_score = mz_tab.getMetaData().nucleic_acid_search_engine_score.size();
 
       // add header
+      out.push_back("");
       out.push_back(generateMzTabNucleicAcidHeader_(search_ms_runs, n_search_engine_score, n_best_search_engine_score, mz_tab.getNucleicAcidOptionalColumnNames()));
 
       // add section
@@ -3040,6 +3231,7 @@ namespace OpenMS
       }
       Size n_search_engine_score = oligonucleotide_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().oligonucleotide_search_engine_score.size();
+      out.push_back("");
       out.push_back(generateMzTabOligonucleotideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, mz_tab.getOligonucleotideOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getOligonucleotideSectionRows(), mz_tab.getOligonucleotideOptionalColumnNames(), mz_tab.getMetaData(), out);
     }
@@ -3052,6 +3244,7 @@ namespace OpenMS
       {
         // TODO warn
       }
+      out.push_back("");
       out.push_back(generateMzTabOSMHeader_(n_search_engine_scores, mz_tab.getOSMOptionalColumnNames()));
       generateMzTabSection_(mz_tab.getOSMSectionRows(), mz_tab.getOSMOptionalColumnNames(), mz_tab.getMetaData(), out);
   }

@@ -542,9 +542,14 @@ protected:
           String name = r->getName();
           os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << fm.getDiffMonoMass() << endl;
         }
-        else
+        else if (term_specificity == "N-term" || term_specificity == "C-term")
         {
           os << "add_" << term_specificity.erase(1,1) << "_peptide = " << fm.getDiffMonoMass() << endl;
+        }
+        else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
+        {
+          term_specificity.erase(0,8); // remove "Protein "
+          os << "add_" << term_specificity.erase(1,1) << "_protein = " << fm.getDiffMonoMass() << endl;
         }
       }
     }
