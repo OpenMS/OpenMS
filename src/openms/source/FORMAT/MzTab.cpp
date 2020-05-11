@@ -1630,7 +1630,7 @@ namespace OpenMS
     {
       const Feature& f = feature_map[i];
       auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
-      mztab.getPeptideSectionRows().emplace_back(row);
+      mztab.getPeptideSectionRows().emplace_back(std::move(row));
     }
 
     return mztab;
