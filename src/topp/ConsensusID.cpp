@@ -538,6 +538,11 @@ protected:
             }
             StringList original_files;
             prot.getPrimaryMSRunPath(original_files);
+            for (auto& f : original_files)
+            {
+              std::replace( f.begin(), f.end(), '\\', '/');
+              f = File::removeExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+            }
             if (original_files.size() != 1)
             {
               //TODO in theory you could also compare the whole StringList (if you want to consensusID
@@ -556,6 +561,7 @@ protected:
               mzml_to_sesettings.emplace_back(vector<tuple<String, String, ProteinIdentification::SearchParameters>>{});
               mzml_to_sesettings.back().emplace_back(se_ver_settings);
               prot_ids.emplace_back(ProteinIdentification());
+              prot_ids.back().setIdentifier("ConsensusID for " + original_file);
             }
             else
             {
@@ -576,6 +582,11 @@ protected:
             StringList original_files;
             const ProteinIdentification& old = tmp_prot_ids[runid_to_old_run_idx[pep_id.getIdentifier()]];
             old.getPrimaryMSRunPath(original_files); // the size should have been checked during the loop over proteins
+            for (auto& f : original_files)
+            {
+              std::replace( f.begin(), f.end(), '\\', '/');
+              f = File::removeExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+            }
             String original_file = original_files[0];
             auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
             if (pep_id.metaValueExists("spectrum_reference"))
@@ -590,7 +601,9 @@ protected:
         {
           Size new_run_id = mzml_to_new_run_idx[file_ref_peps.first];
           ProteinIdentification& to_put = prot_ids[new_run_id];
-          to_put.setPrimaryMSRunPath({file_ref_peps.first});
+          // Note: we assume that at least one of the inputs had mzML as an extension
+          // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
+          to_put.setPrimaryMSRunPath({file_ref_peps.first + ".mzML"});
           setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
           for (const auto& ref_peps : file_ref_peps.second)
           {
@@ -600,7 +613,7 @@ protected:
             double rt = peps[0].getRT();
             // has to have a ref, save it, since apply might modify everything
             String ref = peps[0].getMetaValue("spectrum_reference");
-            consensus->apply(peps, runid_to_old_se, prot_ids.size());
+            consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
             for (auto& p : peps)
             {
               p.setIdentifier(to_put.getIdentifier());
