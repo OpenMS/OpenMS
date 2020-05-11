@@ -188,6 +188,17 @@ protected:
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
 
+    registerIntOption_("max_missed_cleavages", "<num>", -1, "Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)", false);
+    setMinInt_("max_missed_cleavages", -1);
+
+    registerIntOption_("tasks", "<num>", 0, "(Override the number of tasks to use on the threads; Default: (internally calculated based on inputs))\n"
+                                             "   More tasks than threads will reduce the memory requirements of the search, but will be slower (how much depends on the inputs).\n"
+                                             "   1 <= tasks <= numThreads: will create one task per thread, which is the original behavior.\n"
+                                             "   tasks = 0: use default calculation - minimum of: (threads*3) and (numSpectra/250).\n"
+                                             "   tasks < 0: multiply number of threads by abs(tasks) to determine number of tasks (i.e., -2 means \"2 * numThreads\" tasks).\n"
+                                             "   One task per thread will use the most memory, but will usually finish the fastest.\n"
+                                             "   2-3 tasks per thread will use comparably less memory, but may cause the search to take 1.5 to 2 times as long.", false);
+
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
@@ -508,8 +519,10 @@ protected:
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
+                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
+                   << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
     if (!mod_file.empty())
