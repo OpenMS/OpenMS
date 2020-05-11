@@ -68,6 +68,25 @@ namespace OpenMS
     // store MzTab file
     void store(const String& filename, const MzTab& mz_tab) const;
 
+    // stream IDs to file
+    void store(
+          const String& filename,
+          const std::vector<ProteinIdentification>& protein_identifications,
+          const std::vector<PeptideIdentification>& peptide_identifications,
+          bool first_run_inference_only,
+          bool export_empty_pep_ids = false,
+          const String& title = "ID export from OpenMS");
+
+    // stream ConsensusMap to file
+    void store(
+      const String& filename, 
+      const ConsensusMap& cmap,
+      const bool first_run_inference_only,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids,
+      const bool export_subfeatures,
+      const bool export_empty_pep_ids = false) const;
+
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);
     void storePeptideReliabilityColumn(bool store);
@@ -143,7 +162,6 @@ namespace OpenMS
       {
         output.push_back(generateMzTabSectionRow_(row, optional_columns, meta));
       }
-      output.push_back(String("\n"));
     }
 
     // auxiliary functions
