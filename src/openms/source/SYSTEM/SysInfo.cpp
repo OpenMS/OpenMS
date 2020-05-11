@@ -145,7 +145,12 @@ namespace OpenMS
     mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
     return true;
 #elif __APPLE__
-    //todo: find a good API to do this
+    rusage ru;
+    if (getrusage(0, &ru) == 0) // success;
+    {
+      mem_virtual = ru.ru_maxrss; // in KB already
+      return true;
+    }
     return false;
 #else // Linux
     #ifdef OPENMS_HAS_SYS_RESOURCE_H
