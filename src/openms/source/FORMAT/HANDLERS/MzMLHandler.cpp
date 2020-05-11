@@ -243,9 +243,7 @@ namespace OpenMS
       {
         size_t errCount = 0;
         String error_message;
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
@@ -314,9 +312,7 @@ namespace OpenMS
       {
         size_t errCount = 0;
         String error_message;
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
