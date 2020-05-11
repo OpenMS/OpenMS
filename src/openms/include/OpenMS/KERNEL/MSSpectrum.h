@@ -79,9 +79,9 @@ public:
 
     /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
     struct Chunk {
-      Size start;
-      Size end;
-      bool is_sorted;
+      Size start; ///< inclusive
+      Size end; ///< not inclusive
+      bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
       Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
     };
 
