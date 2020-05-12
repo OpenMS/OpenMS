@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -17,7 +17,8 @@
 #pragma once
 
 #include <cmath>
-#include <atomic>
+#include <vector>
+#include <utility>
 
 namespace IsoSpec
 {
@@ -27,19 +28,18 @@ class SSummator
     // Shewchuk algorithm
     std::vector<double> partials;
     int maxpart;
-public:
+ public:
     inline SSummator()
     { maxpart = 0; }
 
-    inline SSummator(SSummator& other)
-    {
-        this->partials = other.partials;
-        this->maxpart = other.maxpart;
-    }
+    inline SSummator(const SSummator& other) :
+        partials(other.partials),
+        maxpart(other.maxpart) {}
+
     inline void add(double x)
     {
-        unsigned int i=0;
-        for(int pidx=0; pidx<maxpart; pidx++)
+        unsigned int i = 0;
+        for(int pidx = 0; pidx < maxpart; pidx++)
         {
             double y = partials[pidx];
             if(std::abs(x) < std::abs(y))
@@ -61,7 +61,7 @@ public:
     inline double get()
     {
         double ret = 0.0;
-        for(int i=0; i<maxpart; i++)
+        for(int i = 0; i < maxpart; i++)
             ret += partials[i];
         return ret;
     }
@@ -75,10 +75,10 @@ public:
 
 class Summator{
     // Kahan algorithm
-   double sum;
-   double c;
+    double sum;
+    double c;
 
-public:
+ public:
     inline Summator()
     { sum = 0.0; c = 0.0;}
 
@@ -100,7 +100,7 @@ class TSummator
 {
     // Trivial algorithm, for testing only
     double sum;
-public:
+ public:
     inline TSummator()
     { sum = 0.0; }
 
@@ -110,10 +110,9 @@ public:
     }
     inline double get()
     {
-    	return sum;
+        return sum;
     }
 };
 
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec
