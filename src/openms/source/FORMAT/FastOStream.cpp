@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FastOStream.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <ostream>
 #include <cstring>
 
 namespace OpenMS

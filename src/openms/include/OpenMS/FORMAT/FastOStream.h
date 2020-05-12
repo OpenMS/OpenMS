@@ -34,7 +34,7 @@
 
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <ostream>
 
 namespace OpenMS
 {
@@ -42,12 +42,14 @@ namespace OpenMS
   {
 public:
     // Rule of six
-    FastOStream(std::ostream& os) : os_(os) {};
-    //FastOStream(const std::string& path);
-    //FastOStream(const String& path);
     FastOStream() = delete;
-    //FastOStream& operator=(const FastOStream& rhs);
-    //~FastOStream();
+    FastOStream(const FastOStream& rhs) = delete;
+    FastOStream& operator=(const FastOStream& rhs) = delete;
+    FastOStream(FastOStream&& rhs) = delete;
+    FastOStream& operator=(FastOStream&& rhs) = delete;
+    ~FastOStream() = default;
+
+    FastOStream(std::ostream& os) : os_(os) {};
 
     FastOStream& operator << (const String& s);
 
@@ -74,19 +76,19 @@ public:
     template <typename T>
     inline FastOStream& operator << (const std::vector<T>& v)
     {
-      os_.operator <<("[");
+      *this << "[";
 
       if (!v.empty())
       {
         auto end = v.end() - 1;
         for (auto it = v.begin(); it < end; ++it)
         { // convert T to String using FastOStream::operator<< (very fast!)
-          os_ << *it << ", ";
+          *this << *it << ", ";
         }
-        os_ << v.back();
+        *this << v.back();
       }
 
-      os_.operator << ("]");
+      *this << "]";
       return *this;
     }
 

@@ -1037,7 +1037,7 @@ END_SECTION
 
 START_SECTION((String& operator+= (long long unsigned int i)))
   String s = "test";
-  s += (long long unsigned int)(7);
+  s += (uint64_t)(7);
   TEST_EQUAL(s, "test7")
 END_SECTION
 
