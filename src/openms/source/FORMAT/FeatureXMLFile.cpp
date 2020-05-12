@@ -36,6 +36,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -141,8 +142,8 @@ namespace OpenMS
     }
 
     //open stream
-    ofstream os(filename.c_str());
-    if (!os)
+    ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
@@ -169,7 +170,9 @@ namespace OpenMS
       throw;
     }
 
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
        << "<featureMap version=\"" << version_ << "\"";
@@ -965,7 +968,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
+  void FeatureXMLFile::writeFeature_(const String& filename, FastOStream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 
@@ -1035,7 +1038,7 @@ namespace OpenMS
     os << indent << "\t\t</feature>\n";
   }
 
-  void FeatureXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
+  void FeatureXMLFile::writePeptideIdentification_(const String& filename, FastOStream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 

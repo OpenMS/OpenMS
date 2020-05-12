@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -383,8 +384,9 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeTo(std::ostream& os)
+    void MzIdentMLHandler::writeTo(std::ostream& nos)
     {
+      FastOStream os(nos);
       String cv_ns = cv_.name();
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;

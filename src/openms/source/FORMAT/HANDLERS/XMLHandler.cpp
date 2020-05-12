@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -198,7 +199,7 @@ namespace OpenMS
       }
     }
 
-    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+    void XMLHandler::writeUserParam_(const String& tag_name, FastOStream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);

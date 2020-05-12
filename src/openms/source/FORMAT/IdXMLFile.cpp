@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -113,15 +114,17 @@ namespace OpenMS
     file_ = filename;
 
     //open stream
-    std::ofstream os(filename.c_str());
-    if (!os)
+    std::ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     startProgress(0, peptide_ids.size(), "Storing idXML");
 
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     // write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -436,7 +439,7 @@ namespace OpenMS
     os << "</IdXML>\n";
 
     // close stream
-    os.close();
+    nos.close();
 
     endProgress();
 
@@ -978,7 +981,7 @@ namespace OpenMS
     }
   }
 
-  std::ostream& IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os)
+  void IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, FastOStream& os)
   {
     // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
@@ -1016,10 +1019,9 @@ namespace OpenMS
       }
       os << "\"";
     }
-    return os;
   }
 
-  std::ostream& IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes, std::ostream& os)
+  void IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes, FastOStream& os)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
@@ -1058,10 +1060,9 @@ namespace OpenMS
         os << "\"";
       }
     }
-    return os;
   }
 
-  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os,
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, FastOStream& os,
                                             const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent)
   {
     String val;

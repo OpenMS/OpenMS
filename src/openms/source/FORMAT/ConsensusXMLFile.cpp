@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -675,13 +676,15 @@ namespace OpenMS
     }
 
     //open stream
-    ofstream os(filename.c_str());
-    if (!os)
+    ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -945,7 +948,7 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
+  ConsensusXMLFile::writePeptideIdentification_(const String& filename, FastOStream& os, const PeptideIdentification& id, const String& tag_name,
                                                 UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');

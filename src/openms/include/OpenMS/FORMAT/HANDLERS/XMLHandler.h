@@ -284,7 +284,7 @@ protected:
       //@{
 
       /// Writes the content of MetaInfoInterface to the file
-      void writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
+      void writeUserParam_(const String & tag_name, FastOStream& os, const MetaInfoInterface & meta, UInt indent) const;
 
       //@}
 

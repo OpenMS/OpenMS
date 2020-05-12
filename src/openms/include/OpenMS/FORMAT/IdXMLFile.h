@@ -125,19 +125,19 @@ protected:
       * Helper function to create the XML string for the amino acids before and after the peptide position in a protein.
       * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
-    static std::ostream& createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os);
+    static void createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, FastOStream& os);
 
     /**
       * Helper function to create the XML string for the position of the peptide in a protein.
       * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
-    static std::ostream& createPositionXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os);
+    static void createPositionXMLString_(const std::vector<PeptideEvidence> & pes, FastOStream& os);
 
 
     /**
       * Helper function to write out fragment annotations as user param fragment_annotation
       */  
-    static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+    static void writeFragmentAnnotations_(const String & tag_name, FastOStream& os,
                                           const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent);
 
     /**
