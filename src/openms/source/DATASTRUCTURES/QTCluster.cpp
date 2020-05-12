@@ -113,7 +113,6 @@ namespace OpenMS
     // this cluster is considered invalid, it will never be used again in the
     // algorithm. This means we can clean up a bit and save some memory.
     valid_ = false;
-    data_->neighbors_.clear();
     data_->annotations_.clear();
   }
 

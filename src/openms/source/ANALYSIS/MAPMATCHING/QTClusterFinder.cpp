@@ -299,8 +299,6 @@ namespace OpenMS
     }
 
     if (do_progress) logger.endProgress();
-
-    deleted_ids_.clear();
   }
 
   bool QTClusterFinder::makeConsensusFeature_(Heap& cluster_heads,
@@ -352,13 +350,13 @@ namespace OpenMS
                                            ElementMapping& element_mapping)
   {
     NeighborMap const elements = cluster.getElements();
-    for(NeighborMap::const_iterator it = elements.begin(); it != elements.end(); ++it)
+    for(NeighborMap::const_iterator feature_it = elements.begin(); 
+        feature_it != elements.end(); ++feature_it)
     {
-      unordered_set<Size>& cluster_ids = element_mapping[it->second.second];
+      unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
       cluster_ids.erase(cluster.getId());
     }
 
-    deleted_ids_.insert(cluster.getId());
     cluster_heads.pop();
   }
 
@@ -374,9 +372,7 @@ namespace OpenMS
     {
       GridFeature* curr_feature = it->second.second;
 
-      // delete id of the current best (soon deleted) cluster from element mapping
       unordered_set<Size>& cluster_ids = element_mapping[curr_feature];
-      cluster_ids.erase(best_id);
 
       // Identify all features that could potentially have been touched by this
       // Get all clusters that may potentially need updating
@@ -387,19 +383,12 @@ namespace OpenMS
            id_it  = cluster_ids.begin();
            id_it != cluster_ids.end(); ++id_it)
       {
-        // THIS SHOULD NOT BE NECESSARY BUT IT CURRENTLY IS
-        // -> OTHERWISE SEGFAULT
-
-        // SOMEHOW IDS OF DELETED CLUSTERS ARE STILL IN THE
-        // ELEMENT MAPPING EVEN THOUGH WE ERASE THEM BEFORE POPPING THE HEAP
-
-        if (deleted_ids_.find(*id_it) != deleted_ids_.end()) continue;
 
         QTCluster& cluster = *handles[*id_it]; 
 
-        // we do not want to update invalid features (saves time and does not
-        // recompute the quality)
-        if (!cluster.isInvalid())
+        // we do not want to update invalid features or the current best
+        // (saves time and does not recompute the quality)
+        if (!(cluster.isInvalid() || cluster.getId() == best_id))
         {
           // remove the elements of the new feature from the cluster
 
@@ -448,8 +437,16 @@ namespace OpenMS
       }
     }
 
+    // erase ids of the soon removed cluster from element mapping
+    // this must happen AFTER the above loop
+    for (NeighborMap::const_iterator feature_it = elements.begin(); 
+        feature_it != elements.end(); ++feature_it)
+    {
+      unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
+      cluster_ids.erase(best_id);
+    }
+
     // remove the current best from the heap
-    deleted_ids_.insert(cluster_heads.top().getId());
     cluster_heads.pop();
   }
 
@@ -595,7 +592,7 @@ namespace OpenMS
 
       OpenMS::GridFeature* center_feature = it->second;
 
-      // construct empty data body for the new cluster
+      // construct empty data body for the new cluster and create the head afterwards
       cluster_data.emplace_back();
       
       QTCluster cluster(&cluster_data.back(), center_feature, num_maps_, 
@@ -603,7 +600,7 @@ namespace OpenMS
 
       addClusterElements_(x, y, grid, cluster, center_feature);
 
-      // push cluster head into the heap
+      // push the cluster head of the new cluster into the heap
       handles[id] = cluster_heads.push(cluster);
 
       // next cluster gets the next id
@@ -618,5 +615,4 @@ namespace OpenMS
   }
   
   QTClusterFinder::~QTClusterFinder() = default;
-
 } // namespace OpenMS

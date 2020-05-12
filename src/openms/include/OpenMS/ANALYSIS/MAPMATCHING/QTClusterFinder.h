@@ -125,6 +125,8 @@ namespace OpenMS
     /// Map of neighbors of a cluster
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
+    
+    typedef NeighborMap ClusterElementsMap;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
@@ -150,9 +152,7 @@ private:
     /// Set of features already used
     std::set<OpenMS::GridFeature*> already_used_;
 
-    // save deleted ids
-    std::unordered_set<Size> deleted_ids_;
-
+    
     /**
        @brief Calculates the distance between two grid features.
     */
@@ -176,8 +176,8 @@ private:
                             std::vector<Handle>& handles);
 
     void removeTopFromHeap_(Heap& cluster_heads,
-                         QTCluster const& cluster,
-                         ElementMapping& element_mapping);
+                            QTCluster const& cluster,
+                            ElementMapping& element_mapping);
 
     void createConsensusFeature_(ConsensusFeature &feature, double quality, 
                                  NeighborMap const& elements);
