@@ -311,6 +311,8 @@ namespace OpenMS
     while (cluster_heads.top().isInvalid())
     {
       removeTopFromHeap_(cluster_heads, cluster_heads.top(), element_mapping);
+      
+      // if the last remaining cluster was invalid, no consensus feature is created
       if (cluster_heads.empty()) return false;
     }
 
@@ -323,7 +325,6 @@ namespace OpenMS
          << best->getQuality() << " invalid " << best->isInvalid() << std::endl;
     #endif
 
-    // create consensus feature from best cluster:
     createConsensusFeature_(feature, best.getCurrentQuality(), elements);
 
     #ifdef DEBUG_QTCLUSTERFINDER
@@ -334,11 +335,6 @@ namespace OpenMS
       std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
     }
     #endif
-
-    // update the clustering:
-    // 1. remove current "best" cluster from list
-    // 2. update all clusters accordingly by removing already used elements
-    // 3. Invalidate elements whose central has been used already
 
     updateClustering_(element_mapping, grid, elements, cluster_heads, handles, best.getId());
 
@@ -360,6 +356,27 @@ namespace OpenMS
     cluster_heads.pop();
   }
 
+void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, NeighborMap const& elements)
+  {
+    feature.setQuality(quality);
+    for (NeighborMap::const_iterator
+         it = elements.begin(); it != elements.end(); ++it)
+    {
+      // Store the id of already used features (important: needs to be done
+      // before updateClustering())
+      already_used_.insert(it->second.second);
+
+      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second.second->getFeature());
+      feature.insert(it->first, elem_feat);
+      if (elem_feat.metaValueExists("dc_charge_adducts"))
+      {
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
+      }
+    }
+
+    feature.computeConsensus();
+  }
+
   void QTClusterFinder::updateClustering_(ElementMapping &element_mapping,
                                           Grid const &grid, 
                                           NeighborMap const& elements,
@@ -372,7 +389,11 @@ namespace OpenMS
     {
       GridFeature* curr_feature = it->second.second;
 
+      // ids of clusters the current feature belonged to
       unordered_set<Size>& cluster_ids = element_mapping[curr_feature];
+
+      // delete the id of the current best cluster (important)
+      cluster_ids.erase(best_id);
 
       // Identify all features that could potentially have been touched by this
       // Get all clusters that may potentially need updating
@@ -386,9 +407,9 @@ namespace OpenMS
 
         QTCluster& cluster = *handles[*id_it]; 
 
-        // we do not want to update invalid features or the current best
+        // we do not want to update invalid features
         // (saves time and does not recompute the quality)
-        if (!(cluster.isInvalid() || cluster.getId() == best_id))
+        if (!cluster.isInvalid())
         {
           // remove the elements of the new feature from the cluster
 
@@ -437,38 +458,8 @@ namespace OpenMS
       }
     }
 
-    // erase ids of the soon removed cluster from element mapping
-    // this must happen AFTER the above loop
-    for (NeighborMap::const_iterator feature_it = elements.begin(); 
-        feature_it != elements.end(); ++feature_it)
-    {
-      unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
-      cluster_ids.erase(best_id);
-    }
-
     // remove the current best from the heap
     cluster_heads.pop();
-  }
-
-  void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, NeighborMap const& elements)
-  {
-    feature.setQuality(quality);
-    for (NeighborMap::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
-    {
-      // Store the id of already used features (important: needs to be done
-      // before updateClustering)
-      already_used_.insert(it->second.second);
-
-      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second.second->getFeature());
-      feature.insert(it->first, elem_feat);
-      if (elem_feat.metaValueExists("dc_charge_adducts"))
-      {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
-      }
-    }
-
-    feature.computeConsensus();
   }
 
   void QTClusterFinder::addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,

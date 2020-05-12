@@ -46,7 +46,6 @@
 
 #include <list>
 #include <vector>
-#include <set>
 #include <unordered_set>
 #include <utility> // for pair<>
 
@@ -126,7 +125,8 @@ namespace OpenMS
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
     
-    typedef NeighborMap ClusterElementsMap;
+    /// Map of elements of a cluster (neighbors + center)
+    typedef NeighborMap ElementsMap;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
@@ -150,9 +150,8 @@ private:
     FeatureDistance feature_distance_;
 
     /// Set of features already used
-    std::set<OpenMS::GridFeature*> already_used_;
+    std::unordered_set<OpenMS::GridFeature*> already_used_;
 
-    
     /**
        @brief Calculates the distance between two grid features.
     */
@@ -175,16 +174,26 @@ private:
                             std::vector<QTCluster::Data_>& cluster_data,
                             std::vector<Handle>& handles);
 
+    /// Removes ids of current top cluster in the heap from element mapping and pops the heap
     void removeTopFromHeap_(Heap& cluster_heads,
                             QTCluster const& cluster,
                             ElementMapping& element_mapping);
-
+    
+    /// creates a consensus feature from the given elements
     void createConsensusFeature_(ConsensusFeature &feature, double quality, 
-                                 NeighborMap const& elements);
+                                 ElementsMap const& elements);
 
+    /** 
+     * @brief update the clustering:
+     *
+     * 1. remove current "best" cluster from list
+     * 2. update all clusters accordingly by removing already used elements
+     * 3. Invalidate elements whose central has been used already
+     * 
+     */
     void updateClustering_(ElementMapping &element_mapping,
                            Grid const &grid, 
-                           NeighborMap const& elements,
+                           ElementsMap const& elements,
                            Heap& cluster_heads,
                            std::vector<Handle> const& handles,
                            Size best_id);

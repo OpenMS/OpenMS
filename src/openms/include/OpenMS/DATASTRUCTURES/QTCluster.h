@@ -118,15 +118,21 @@ public:
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
-    // For hot-cold-splitting
+    /** 
+     * @brief Class to store the bulk internal data (neihgbors, annotations, etc.)
+     * 
+     * Has no functionality without a QTCluster (-head) pointing to it.
+     * Create object of this class before calling constructor of QTCluster
+     */
     class OPENMS_DLLAPI Data_
     {
+      /// QTCluster can access and manage all members of Data_
       friend class QTCluster;
 
       /// Pointer to the cluster center
       GridFeature* center_point_;
 
-      /// id of this cluster
+      /// unique id of this cluster
       Size id_;
 
       /**
@@ -165,14 +171,14 @@ public:
       std::set<AASequence> annotations_;
     };
 
-    // construct/copy/destruct
-
     /**
      * @brief Detailed constructor
+     * @param data Pointer to internal data
      * @param center_point Pointer to the center point
      * @param num_maps Number of input maps
      * @param max_distance Maximum allowed distance of two points
      * @param use_IDs Use peptide annotations?
+     * @param id Unique ID of this cluster
      */
 
     QTCluster(Data_* data, GridFeature* center_point, 
@@ -180,12 +186,19 @@ public:
               bool use_IDs, Int x_coord, Int y_coord,
               Size id);
 
+    /// Default constructor not accessible
     QTCluster() = delete;
 
+    /// use this only when you actually want to move, but an interface can only copy
     QTCluster(QTCluster const& rhs) = default;
+
+    /// use this only when you actually want to move, but an interface can only copy
     QTCluster(QTCluster && rhs) = default;
 
+    /// cheap move because the bulk data lies in Data_ 
     QTCluster& operator=(QTCluster const& rhs) = default;
+
+    /// cheap move because the bulk data lies outside of this class
     QTCluster& operator=(QTCluster && rhs) = default;
 
     ~QTCluster() = default;
@@ -267,6 +280,7 @@ public:
     /// Get all current neighbors
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors() const;
 
+    /// avoids copying of neighbor map in getAllNeighbors
     NeighborMap const& getAllNeighborsDirect() const;
 
     void makeSeq_table(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;

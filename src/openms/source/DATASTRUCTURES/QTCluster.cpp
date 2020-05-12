@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <numeric> // for make_pair
-#include <iostream>
 
 using std::map;
 using std::vector;
@@ -225,14 +224,11 @@ namespace OpenMS
     // get references on member that is used in this function
     NeighborMap & neighbors_ = data_->neighbors_;
 
-    // if (&neighbors_ == &removed) std::cout << "neighbors and removed is the same" << std::endl;
-    // std::cout << neighbors_.size() << std::endl;
-
     // update cluster contents, remove those elements we find in our cluster
     for (NeighborMap::const_iterator
         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
-      NeighborMap::iterator pos = neighbors_.find(rm_it->first); //SEGFAULT here ... whyyy????
+      NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
       {
         continue; // no points from this map
