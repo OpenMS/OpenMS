@@ -2175,8 +2175,7 @@ namespace OpenMS
     bool skip_first_run,
     map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
     map<Size, vector<pair<String, String>>>& run_to_search_engines,
-    vector<pair<String, String>>& secondary_search_engines,
-    vector<vector<pair<String, String>>>& secondary_search_engines_settings)
+    map<Size, vector<vector<pair<String, String>>>>& run_to_search_engine_settings)
   {
     size_t run_index(0);
     for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
@@ -2188,20 +2187,18 @@ namespace OpenMS
         continue;
       }
 
-      size_t hit_index = std::distance(prot_ids.begin(), it);
-      const String &search_engine_name = prot_ids[hit_index]->getSearchEngine();
-      const String &search_engine_version = prot_ids[hit_index]->getSearchEngineVersion();
-      const String &search_engine_score_type = prot_ids[hit_index]->getScoreType();
+      const String &search_engine_name = prot_ids[run_index]->getSearchEngine();
+      const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
+      const String &search_engine_score_type = prot_ids[run_index]->getScoreType();
       search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
       run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
 
-
       vector<String> mvkeys;
-      const ProteinIdentification::SearchParameters& sp2 = prot_ids[hit_index]->getSearchParameters();
+      const ProteinIdentification::SearchParameters& sp2 = prot_ids[run_index]->getSearchParameters();
       sp2.getKeys(mvkeys);
-      if (prot_ids[hit_index]->metaValueExists("percolator"))
+      if (prot_ids[run_index]->metaValueExists("percolator"))
       {
-        secondary_search_engines.emplace_back(make_pair("Percolator", sp2.getMetaValue("percolator")));
+        run_to_search_engines[run_index].push_back(make_pair("Percolator", sp2.getMetaValue("percolator")));
       }
       for (const String & mvkey : mvkeys)
       {
@@ -2210,20 +2207,20 @@ namespace OpenMS
         // and that these settings were taken over into the ones for PercolatorAdapter
         if (mvkey.hasPrefix("SE:"))
         {
-          secondary_search_engines.emplace_back(make_pair(mvkey.substr(3), sp2.getMetaValue(mvkey)));
+          run_to_search_engines[run_index].push_back(make_pair(mvkey.substr(3), sp2.getMetaValue(mvkey)));
         }
       }
-      secondary_search_engines_settings.resize(secondary_search_engines.size());
-      for (const String & mvkey : mvkeys)
+
+      for (const auto& run_se_ver : run_to_search_engines[run_index])
       {
-        for (size_t s = 0; s < secondary_search_engines.size(); ++s)
+        const auto& se_setting_pairs = prot_ids[run_index]->getSearchEngineSettingsAsPairs(run_se_ver.first);
+        auto it_inserted = run_to_search_engine_settings.emplace(run_index, vector<vector<pair<String, String>>>{se_setting_pairs});
+        if (!it_inserted.second)
         {
-          if (mvkey.hasPrefix(secondary_search_engines[s].first))
-          {
-            secondary_search_engines_settings[s].emplace_back(make_pair(mvkey.substr(secondary_search_engines[s].first.size()+1), sp2.getMetaValue(mvkey)));
-          }
+          it_inserted.first->second.emplace_back(se_setting_pairs);
         }
       }
+
       ++run_index;
     }
   }
@@ -2578,8 +2575,6 @@ Not sure how to handle these:
   void MzTab::addSearchMetaData_(
     const ProteinIdentification& prot_id, 
     const map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
-    const vector<pair<String, String>>& secondary_search_engines, 
-    const vector<vector<pair<String, String>>>& secondary_search_engines_settings,
     MzTabMetaData& meta_data,
     MzTabString& db,
     MzTabString& db_version)
@@ -2611,14 +2606,30 @@ Not sure how to handle these:
     //TODO make software a list?? super weird to fill it like this.
     Size sw_idx(meta_data.software.size() + 1); //+1 since we always start with 1 anyway.
     Size cnt(0);
-    for (auto const & se : secondary_search_engines)
+
+    vector<String> mvkeys;
+    sp.getKeys(mvkeys);
+    vector<pair<String,String>> tmp_ses;
+    for (const String & mvkey : mvkeys)
     {
+      // currently only supported for SEs overwritten by PercolatorAdapter
+      // we also do not support different settings across runs but assume that they were run with the same settings
+      // and that these settings were taken over into the ones for PercolatorAdapter
+      if (mvkey.hasPrefix("SE:"))
+      {
+        tmp_ses.emplace_back(mvkey.substr(3), sp.getMetaValue(mvkey));
+      }
+    }
+
+    for (auto const & se : tmp_ses)
+    {
+      const auto& tmp_se_settings = prot_id.getSearchEngineSettingsAsPairs(se.first);
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
       sesoftware.fromCellString("[,," + se.first + "," + se.second + "]");
       sesoftwaremd.software = sesoftware;
       Size cnt2(1);
-      for (auto const & sesetting : secondary_search_engines_settings[cnt])
+      for (auto const & sesetting : tmp_se_settings)
       {
         sesoftwaremd.setting[cnt2] = MzTabString(sesetting.first + ":" + sesetting.second);
         cnt2++;
@@ -2682,19 +2693,14 @@ Not sure how to handle these:
 
     // Determine search engines used in the different MS runs.
     map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
-    // old/secondary/overwritten search engines and versions.
-    // TODO we could potentially make a map too, but our mzTabs currently do not support
-    //  associating a PSM with multiple SEs in the metadata section. (we write them as opt_ cols)
-    vector<pair<String, String>> secondary_search_engines;
-    vector<vector<pair<String, String>>> secondary_search_engines_settings;
+
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
-      secondary_search_engines,
-      secondary_search_engines_settings);
+      run_to_search_engines_settings_);
 
     ///////////////////////////////////////
     // create column names from meta values
@@ -2757,9 +2763,7 @@ Not sure how to handle these:
       // add search settings to software meta data
       MzTab::addSearchMetaData_(
         *prot_ids_[0], 
-        search_engine_to_runs, 
-        secondary_search_engines, 
-        secondary_search_engines_settings,
+        search_engine_to_runs,
         meta_data_,
         db_, 
         db_version_);
@@ -3208,19 +3212,14 @@ state0:
 
     // Determine search engines used in the different MS runs.
     map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
-    // old/secondary/overwritten search engines and versions.
-    // TODO we could potentially make a map too, but our mzTabs currently do not support
-    //  associating a PSM with multiple SEs in the metadata section. (we write them as opt_ cols)
-    vector<pair<String, String>> secondary_search_engines;
-    vector<vector<pair<String, String>>> secondary_search_engines_settings;
+
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
-      secondary_search_engines,
-      secondary_search_engines_settings);
+      run_to_search_engines_settings_);
 
     // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide hit level.
     // These are stored in optional columns of the PEP section.
@@ -3275,9 +3274,7 @@ state0:
       // add search settings to software meta data
       MzTab::addSearchMetaData_(
         *prot_ids_[0], 
-        search_engine_to_runs, 
-        secondary_search_engines, 
-        secondary_search_engines_settings,
+        search_engine_to_runs,
         meta_data_,
         db_, 
         db_version_);

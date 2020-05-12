@@ -482,6 +482,7 @@ set(analysis_executables_list
   IDMapper_test
   IDMergerAlgorithm_test
   IDRipper_test
+  IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test

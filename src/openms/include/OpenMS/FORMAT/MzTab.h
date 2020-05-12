@@ -966,6 +966,7 @@ public:
          std::map<Size, std::set<Size>> pg2prot_;
          std::map<String, size_t> idrunid_2_idrunindex_;
          std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
          std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
          std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
 
@@ -1030,6 +1031,7 @@ public:
          std::map<Size, std::set<Size>> pg2prot_;
          std::map<String, size_t> idrunid_2_idrunindex_;
          std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
          std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
          std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
 
@@ -1172,8 +1174,7 @@ public:
       bool skip_first_run,
       std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
-      std::vector<std::pair<String, String>>& secondary_search_engines,
-      std::vector<std::vector<std::pair<String, String>>>& secondary_search_engines_settings);
+      std::map<Size, std::vector<std::vector<std::pair<String, String>>>>& run_to_search_engines_settings);
 
     static std::map<Size, std::set<Size>> mapGroupsToProteins_(
       const std::vector<ProteinIdentification::ProteinGroup>& groups, 
@@ -1182,8 +1183,6 @@ public:
     static void addSearchMetaData_(
       const ProteinIdentification& prot_id, 
       const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
-      const std::vector<std::pair<String, String>>& secondary_search_engines, 
-      const std::vector<std::vector<std::pair<String, String>>>& secondary_search_engines_settings,
       MzTabMetaData& meta_data,
       MzTabString& db,
       MzTabString& db_version);

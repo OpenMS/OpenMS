@@ -526,6 +526,39 @@ namespace OpenMS
     return ok;
   }
 
+  vector<pair<String,String>> ProteinIdentification::getSearchEngineSettingsAsPairs(const String& se) const
+  {
+    vector<pair<String,String>> result;
+    const auto& params = this->getSearchParameters();
+    if (se.empty() || this->getSearchEngine() == se)
+    {
+      result.emplace_back("db", params.db);
+      result.emplace_back("db_version", params.db_version);
+      result.emplace_back("enzyme", params.digestion_enzyme.getName());
+      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
+      result.emplace_back("precursor_mass_tolerance_ppm", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("fragment_mass_tolerance", params.fragment_mass_tolerance);
+      result.emplace_back("fragment_mass_tolerance_ppm", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("charges", params.charges);
+      result.emplace_back("missed_cleavages", params.missed_cleavages);
+      result.emplace_back("fixed_modificiations", ListUtils::concatenate(params.fixed_modifications," "));
+      result.emplace_back("variable_modificiations", ListUtils::concatenate(params.variable_modifications," "));
+    }
+    else
+    {
+      vector<String> mvkeys;
+      params.getKeys(mvkeys);
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix(se))
+        {
+          result.emplace_back(mvkey.substr(se.size()+1), params.getMetaValue(mvkey));
+        }
+      }
+    }
+    return result;
+  }
+
 
   // Equality operator
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
