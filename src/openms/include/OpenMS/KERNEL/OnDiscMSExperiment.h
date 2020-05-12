@@ -208,7 +208,7 @@ public:
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
-      return indexed_mzml_file_.getSpectrumById(id);
+      return indexed_mzml_file_.getSpectrumById((int)id);
     }
 
     /**

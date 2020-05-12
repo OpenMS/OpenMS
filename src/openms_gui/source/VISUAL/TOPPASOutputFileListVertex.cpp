@@ -186,7 +186,6 @@ namespace OpenMS
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
-                // look for <name>_type (more generic, supporting more than just 'out')
                 if (p.exists(out_type))
                 {
                   ft = FileTypes::nameToType(p.getValue(out_type));
@@ -197,11 +196,8 @@ namespace OpenMS
           }
         }
 
-        if (ft != FileTypes::UNKNOWN)
-        { // replace old suffix by new suffix
-          String new_suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
-        }
+        // replace old suffix by new suffix
+        FileHandler::swapExtension(new_file, ft);
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));

@@ -159,6 +159,28 @@ START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
   rd.digest(id_data);
 
   TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
+
+  /// multiple occurrences of the same oligo:
+  IdentificationData id_data2;
+  rna.sequence = "ACUGACUGG";
+  id_data2.registerParentMolecule(rna);
+
+  rd.digest(id_data2, 2);
+
+  TEST_EQUAL(id_data2.getIdentifiedOligos().size(), 1);
+  ABORT_IF(id_data2.getIdentifiedOligos().empty());
+  IdentificationData::IdentifiedOligoRef ref = id_data2.getIdentifiedOligos().begin();
+  TEST_EQUAL(ref->parent_matches.size(), 1);
+  ABORT_IF(ref->parent_matches.empty());
+  // oligo sequence matches in two locations:
+  const set<IdentificationData::MoleculeParentMatch>& matches =
+    ref->parent_matches.begin()->second;
+  TEST_EQUAL(matches.size(), 2);
+  ABORT_IF(matches.size() < 2);
+  auto match_it = matches.begin();
+  TEST_EQUAL(match_it->start_pos, 0);
+  ++match_it;
+  TEST_EQUAL(match_it->start_pos, 4);
 }
 END_SECTION
 

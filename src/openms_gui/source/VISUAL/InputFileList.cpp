@@ -85,10 +85,12 @@ namespace OpenMS
 
     void InputFileList::dropEvent(QDropEvent* e)
     {
+      QStringList files;
       for (const QUrl& url : e->mimeData()->urls())
       {
-        ui_->input_file_list->addItem(url.toLocalFile());
+        files  << url.toLocalFile();
       }
+      addFiles_(files);
     }
 
     void InputFileList::dragMoveEvent(QDragMoveEvent* p_event)
@@ -130,11 +132,7 @@ namespace OpenMS
     void InputFileList::showFileDialog()
     {
       QStringList file_names = QFileDialog::getOpenFileNames(this, tr("Select input file(s)"), cwd_);
-      if (!file_names.isEmpty())
-      {
-        ui_->input_file_list->addItems(file_names);
-        cwd_ = File::path(file_names.back()).toQString();
-      }
+      addFiles_(file_names);
     }
 
     void InputFileList::removeSelected()
@@ -160,6 +158,17 @@ namespace OpenMS
       }
     }
 
+    StringList InputFileList::getFilenames() const
+    {
+      int nr_files = ui_->input_file_list->count();
+      StringList files;
+      for (int i = 0; i < nr_files; ++i)
+      {
+        files.push_back(ui_->input_file_list->item(i)->text());
+      }
+      return files;
+    }
+
     void OpenMS::Internal::InputFileList::setFilenames(const QStringList& files)
     {
       ui_->input_file_list->addItems(files);
@@ -170,9 +179,13 @@ namespace OpenMS
       return cwd_;
     }
 
-    void OpenMS::Internal::InputFileList::setCWD(const QString& cwd)
+    void OpenMS::Internal::InputFileList::setCWD(const QString& cwd, bool force)
     {
-      cwd_ = cwd;
+      if (force || cwd_.isEmpty())
+      {
+        cwd_ = cwd;
+        emit updatedCWD(cwd_);
+      }
     }
 
     void InputFileList::editCurrentItem()
@@ -186,6 +199,15 @@ namespace OpenMS
       if (tifd.exec())
       {
         item->setText(tifd.getFilename());
+      }
+    }
+
+    void InputFileList::addFiles_(const QStringList& files)
+    {
+      if (!files.isEmpty())
+      {
+        ui_->input_file_list->addItems(files);
+        setCWD(File::path(files.back()).toQString()); // emit the signal
       }
     }
 

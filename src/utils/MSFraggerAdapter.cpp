@@ -647,7 +647,7 @@ protected:
     }
 
     // convert from pepXML to idXML
-    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
+    String pepxmlfile = FileHandler::swapExtension(input_file, FileTypes::PEPXML);
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);

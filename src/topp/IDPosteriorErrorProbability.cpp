@@ -267,6 +267,22 @@ protected:
         }
       }
     }
+    // Unfortunately this cannot go into the algorithm since
+    // you would overwrite some score types before they are extracted when you
+    // do split_charge
+    for (auto& pep : peptide_ids)
+    {
+      if (prob_correct)
+      {
+        pep.setScoreType("Posterior Probability");
+        pep.setHigherScoreBetter(true);
+      }
+      else
+      {
+        pep.setScoreType("Posterior Error Probability");
+        pep.setHigherScoreBetter(false);
+      }
+    }
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
