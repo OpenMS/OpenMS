@@ -2580,9 +2580,11 @@ Not sure how to handle these:
     Size cnt(1);
     for (const auto& prot_run : prot_ids)
     {
+      // TODO make "protein_search_engine_score" unique like the psm/peptide versions?
       meta_data.protein_search_engine_score[cnt] = getProteinScoreType_(*prot_run);
       cnt++;
       // TODO add settings for inference tools?
+
       if (prot_run->hasInferenceData())
       {
         MzTabSoftwareMetaData sesoftwaremd;
