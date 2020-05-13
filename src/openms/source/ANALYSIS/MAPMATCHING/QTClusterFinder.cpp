@@ -263,7 +263,7 @@ namespace OpenMS
     for (Heap::iterator it = cluster_heads.begin();
          it != cluster_heads.end(); ++it)
     {
-      NeighborMap const& neigh = it->getAllNeighborsDirect();
+      const NeighborMap& neigh = it->getAllNeighborsDirect();
       for (NeighborMap::const_iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
         GridFeature* gf_ptr = n_it->second.second;
@@ -305,7 +305,7 @@ namespace OpenMS
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               Grid& grid,
-                                              vector<Handle> const& handles)
+                                              const vector<Handle>& handles)
   {
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
@@ -316,7 +316,7 @@ namespace OpenMS
       if (cluster_heads.empty()) return false;
     }
 
-    QTCluster const& best = cluster_heads.top();
+    const QTCluster& best = cluster_heads.top();
 
     ClusterElementsMap const elements = best.getElements();
 
@@ -342,7 +342,7 @@ namespace OpenMS
   }
 
   void QTClusterFinder::removeTopFromHeap_(Heap& cluster_heads,
-                                           QTCluster const& cluster,
+                                           const QTCluster& cluster,
                                            ElementMapping& element_mapping)
   {
     ClusterElementsMap const elements = cluster.getElements();
@@ -356,7 +356,7 @@ namespace OpenMS
     cluster_heads.pop();
   }
 
-void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, ClusterElementsMap const& elements)
+void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double quality, const ClusterElementsMap& elements)
   {
     feature.setQuality(quality);
     for (ClusterElementsMap::const_iterator
@@ -377,11 +377,11 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double 
     feature.computeConsensus();
   }
 
-  void QTClusterFinder::updateClustering_(ElementMapping &element_mapping,
-                                          Grid const &grid, 
-                                          ClusterElementsMap const& elements,
+  void QTClusterFinder::updateClustering_(ElementMapping& element_mapping,
+                                          const Grid& grid, 
+                                          const ClusterElementsMap& elements,
                                           Heap& cluster_heads,
-                                          vector<Handle> const& handles,
+                                          const vector<Handle>& handles,
                                           Size best_id)
   {
     for (ClusterElementsMap::const_iterator

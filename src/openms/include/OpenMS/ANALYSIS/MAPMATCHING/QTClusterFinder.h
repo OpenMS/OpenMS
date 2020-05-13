@@ -166,7 +166,7 @@ private:
                                ConsensusFeature& feature,
                                ElementMapping& element_mapping,
                                Grid& grid,
-                               std::vector<Handle> const& handles);
+                               const std::vector<Handle>& handles);
 
     /// Computes an initial QT clustering of the points in the hash grid
     void computeClustering_(Grid& grid,
@@ -176,12 +176,12 @@ private:
 
     /// Removes ids of current top cluster in the heap from element mapping and pops the heap
     void removeTopFromHeap_(Heap& cluster_heads,
-                            QTCluster const& cluster,
+                            const QTCluster& cluster,
                             ElementMapping& element_mapping);
     
     /// creates a consensus feature from the given elements
-    void createConsensusFeature_(ConsensusFeature &feature, double quality, 
-                                 ClusterElementsMap const& elements);
+    void createConsensusFeature_(ConsensusFeature& feature, double quality, 
+                                 const ClusterElementsMap& elements);
 
     /** 
      * @brief update the clustering:
@@ -191,11 +191,11 @@ private:
      * 3. Invalidate elements whose central has been used already
      * 
      */
-    void updateClustering_(ElementMapping &element_mapping,
-                           Grid const &grid, 
-                           ClusterElementsMap const& elements,
+    void updateClustering_(ElementMapping& element_mapping,
+                           const Grid& grid, 
+                           const ClusterElementsMap& elements,
                            Heap& cluster_heads,
-                           std::vector<Handle> const& handles,
+                           const std::vector<Handle>& handles,
                            Size best_id);
 
     /// Runs the algorithm on feature maps or consensus maps

@@ -191,16 +191,16 @@ public:
     QTCluster() = delete;
 
     /// use this only when you actually want to move, but an interface can only copy
-    QTCluster(QTCluster const& rhs) = default;
+    QTCluster(const QTCluster& rhs) = default;
 
     /// cheap move because the bulk data lies in the Data_ member
-    QTCluster(QTCluster && rhs) = default;
+    QTCluster(QTCluster&& rhs) = default;
 
     /// use this only when you actually want to move, but an interface can only copy
-    QTCluster& operator=(QTCluster const& rhs) = default;
+    QTCluster& operator=(const QTCluster& rhs) = default;
 
     /// cheap move because the bulk data lies in the Data_ member
-    QTCluster& operator=(QTCluster && rhs) = default;
+    QTCluster& operator=(QTCluster&& rhs) = default;
 
     ~QTCluster() = default;
 
@@ -226,7 +226,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(QTCluster const& cluster);
+    bool operator<(const QTCluster& cluster);
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -246,7 +246,7 @@ public:
      *
      * @return Whether the cluster composition has changed due to the update
      */
-    bool update(ClusterElementsMap const& removed);
+    bool update(const ClusterElementsMap& removed);
 
     /// Returns the cluster quality and recomputes if necessary
     double getQuality();
@@ -282,7 +282,7 @@ public:
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors() const;
 
     /// avoids copying of neighbor map in getAllNeighbors
-    NeighborMap const& getAllNeighborsDirect() const;
+    const NeighborMap& getAllNeighborsDirect() const;
 
     private:
       // total size of this class in memory should be 24 byte
@@ -341,12 +341,12 @@ public:
       double optimizeAnnotations_();
 
       /// compute seq table, mapping: peptides -> best distance per input map
-      void makeSeq_table_(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
+      void makeSeq_table_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
       
       /// report elements that are compatible with the optimal annotation
       void recompute_neighbors_();
   };
 
   // needed for the heap
-  bool operator<(QTCluster const& q1, QTCluster const& q2);
+  bool operator<(const QTCluster& q1, const QTCluster& q2);
 } // namespace OpenMS
