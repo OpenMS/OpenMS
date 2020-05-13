@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
-#include <OpenMS/FORMAT/FastOStream.h>
 
 namespace OpenMS
 {
