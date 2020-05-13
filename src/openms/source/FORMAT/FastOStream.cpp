@@ -58,6 +58,33 @@ namespace OpenMS
     return *this;
   }
 
+  inline void FastOStream::write(const OpenMS::String& s, Size len)
+  {
+    uint64_t pos = os_.rdbuf()->sputn(s.c_str(), len);
+    if (pos != len)
+    {
+      throw;
+    }
+  }
+
+  inline void FastOStream::write(const std::string& s, Size len)
+  {
+    uint64_t pos = os_.rdbuf()->sputn(s.c_str(), len);
+    if (pos != len)
+    {
+      throw;
+    }
+  }
+
+  inline void FastOStream::write(const char* const s, Size len)
+  {
+    uint64_t pos = os_.rdbuf()->sputn(s, len);
+    if (pos != len)
+    {
+      throw;
+    }
+  }
+
   FastOStream& operator << (FastOStream& os, const DataValue& p)
   {
     /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision

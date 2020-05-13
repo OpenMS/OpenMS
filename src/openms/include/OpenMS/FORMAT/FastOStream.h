@@ -59,6 +59,12 @@ public:
 
     FastOStream& operator << (const char* const s);
 
+    void write(const String& s);
+
+    void write(const std::string& s);
+
+    void write(const char* const s);
+
     template <typename T>
     FastOStream& operator << (const T& s)
     {
