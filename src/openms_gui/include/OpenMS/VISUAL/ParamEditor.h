@@ -163,15 +163,15 @@ protected slots:
 
   
   /**
-      @brief A GUI for editing or viewing a Param object
+    @brief A GUI for editing or viewing a Param object
 
-      It supports two display modes:
-      - normal mode: only the main parameters are displayed, advanced parameters are hidden.
-      - advanced mode: all parameters are displayed.
+    It supports two display modes:
+    - normal mode: only the main parameters are displayed, advanced parameters are hidden.
+    - advanced mode: all parameters are displayed (only available when advanced parameters are provided)
 
-      @image html ParamEditor.png
+    @image html ParamEditor.png
 
-      @ingroup Visual
+    @ingroup Visual
   */
   class OPENMS_GUI_DLLAPI ParamEditor :
     public QWidget
@@ -182,18 +182,18 @@ public:
     /// Role of the entry
     enum
     {
-      NODE,                           ///< Section
+      NODE,                     ///< Section
       NORMAL_ITEM,              ///< Item that is always shown
       ADVANCED_ITEM             ///< Item that is shown only in advanced mode
     };
 
     /// constructor
-    ParamEditor(QWidget * parent = nullptr);
+    ParamEditor(QWidget* parent = nullptr);
     /// destructor
     virtual ~ParamEditor();
     
     /// load method for Param object
-    void load(Param & param);
+    void load(Param& param);
     /// store edited data in Param object
     void store();
     /// Indicates if the data changed since last save
@@ -221,9 +221,9 @@ protected:
     void storeRecursive_(QTreeWidgetItem * child, String path, std::map<String, String> & section_descriptions);
 
     /// Pointer to the tree widget
-    Internal::ParamTree * tree_;
+    Internal::ParamTree* tree_;
     /// The data to edit
-    Param * param_;
+    Param* param_;
     /// Indicates that the data was modified since last store/load operation
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated

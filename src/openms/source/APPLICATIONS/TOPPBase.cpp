@@ -416,14 +416,14 @@ namespace OpenMS
       sw.start();
       result = main_(argc, argv);
       sw.stop();
-      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
-
-      // useful for benchmarking
-      if (debug_level_ >= 1)
+      // useful for benchmarking and for execution on clusters with schedulers
+      String mem_usage;
       {
         size_t mem_virtual(0);
-        writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+        SysInfo::getProcessPeakMemoryConsumption(mem_virtual);
+        if (mem_virtual != 0) mem_usage = String("; Peak Memory Usage: ") + (mem_virtual / 1024) + " MB";
       }
+      OPENMS_LOG_INFO << this->tool_name_ << " tooks " << sw.toString() << mem_usage << "." << std::endl;
     } // end try{}
     //----------------------------------------------------------
     //error handling
@@ -1596,21 +1596,10 @@ namespace OpenMS
       writeLog_("Exit code: " + String(qp.exitCode()));
       if (any_failure)
       {
-        qp.close();
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
 
-    if (debug_level_ >= 10)
-    {
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
-      writeDebug_(external_sout, 10);
-      writeDebug_(external_serr, 10);
-    }
-
-    qp.close();
     writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }

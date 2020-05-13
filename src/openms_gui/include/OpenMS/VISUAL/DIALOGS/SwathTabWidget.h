@@ -37,6 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <QTabWidget>
 
 namespace Ui
@@ -46,23 +47,52 @@ namespace Ui
 
 namespace OpenMS
 {
+  class InputFile;
+  class OutputDirectory;
+  class ParamEditor;
+
   namespace Internal
   {
     /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
     class OPENMS_GUI_DLLAPI SwathTabWidget : public QTabWidget
     {
-        Q_OBJECT
+      Q_OBJECT
 
     public:
-        explicit SwathTabWidget(QWidget *parent = nullptr);
-        ~SwathTabWidget();
+      explicit SwathTabWidget(QWidget *parent = nullptr);
+      ~SwathTabWidget();
     
     private slots:
-      void on_pushButton_clicked();
+      void on_run_swath_clicked();
+      void on_edit_advanced_parameters_clicked();
+      /// update the current working directory for all file input fields
+      void broadcastNewCWD_(const QString& new_cwd);
 
     private:
-        Ui::SwathTabWidget *ui;
+      /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
+      void updateSwathParamFromWidgets_();
+
+      /// update Widgets given a param object
+      void updateWidgetsfromSwathParam_();
+
+      /// append text to the log tab
+      /// @param text The text to write
+      /// @param new_section Start a new block with a date and time
+      void writeLog_(const QString& text, bool new_section = false);
+
+      /// Ensure all input widgets are filled with data by the user
+      /// If anything is missing: show a Messagebox and return false.
+      bool checkInputReady_();
+
+      Ui::SwathTabWidget *ui;
+      Param swath_param_; ///< the global Swath parameters which will be passed to OpenSwathWorkflow.exe, once updated with parameters the Wizard holds separately
+      Param swath_param_wizard_; ///< small selection of important parameters which the user can directly change in the Wizard
     };
 
   }
-}
+} // ns OpenMS
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a InputFile member
+using InputFile = OpenMS::InputFile;
+using OutputDirectory = OpenMS::OutputDirectory;
+using ParamEditor = OpenMS::ParamEditor;

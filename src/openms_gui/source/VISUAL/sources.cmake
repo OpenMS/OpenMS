@@ -12,6 +12,8 @@ EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
+InputFile.cpp
+InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerData.cpp
@@ -19,6 +21,8 @@ ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
+OutputDirectory.cpp
+OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
 SpectraIdentificationViewWidget.cpp
