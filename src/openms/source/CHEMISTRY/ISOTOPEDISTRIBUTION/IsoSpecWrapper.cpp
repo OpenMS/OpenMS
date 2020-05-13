@@ -49,6 +49,7 @@
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
 #include "IsoSpec/misc.cpp"
+#include "IsoSpec/fasta.cpp"
 
 using namespace std;
 using namespace IsoSpec;
@@ -151,15 +152,13 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob_hint)
   {};
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint)
   {};
 
 
@@ -221,13 +220,17 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double total_prob,
                     bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
-  {};
+  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob),
+  target_prob(total_prob)
+  {
+    assert(!do_p_trim); // Not supported yet.
+  };
 
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
                     double total_prob,
                     bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob),
+  target_prob(total_prob)
   {};
 
 
@@ -237,8 +240,14 @@ namespace OpenMS
     // There is no sensible way to precalculate the number of configurations 
     // in IsoLayeredGenerator
 
-    while (ILG.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+    double acc_prob = 0.0;
+
+    while (acc_prob < target_prob && ILG.advanceToNextConfiguration())
+    {
+	double p = ILG.prob();
+	acc_prob += p;
+        distribution.emplace_back(Peak1D(ILG.mass(), p));
+    }
 
     IsotopeDistribution ID;
 
