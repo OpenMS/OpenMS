@@ -33,16 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename,
                                          const String& input_filename,
-                                         bool ms1_scores, 
+                                         bool ms1_scores,
                                          bool sonar) :
-    ofs(output_filename.c_str()),
+    nos_(output_filename.c_str()),
+    ofs_(nos_),
     input_filename_(input_filename),
     doWrite_(!output_filename.empty()),
     use_ms1_traces_(ms1_scores),
@@ -57,7 +59,7 @@ namespace OpenMS
 
     void OpenSwathTSVWriter::writeHeader()
     {
-      ofs << "transition_group_id" << "\t" 
+      ofs_ << "transition_group_id" << "\t"
           << "peptide_group_label" << "\t"
           << "run_id" << "\t"
           << "filename"<< "\t"\
@@ -87,21 +89,21 @@ namespace OpenMS
         "\tvar_yseries_score\tvar_elution_model_fit_score";
       if (use_ms1_traces_)
       {
-        ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
+        ofs_ << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
       }
-      ofs << "\txx_lda_prelim_score\txx_swath_prelim_score";
+      ofs_ << "\txx_lda_prelim_score\txx_swath_prelim_score";
       if (sonar_)
       {
-        ofs << "\tvar_sonar_lag\tvar_sonar_shape\tvar_sonar_log_sn\tvar_sonar_log_diff\tvar_sonar_log_trend\tvar_sonar_rsq";
+        ofs_ << "\tvar_sonar_lag\tvar_sonar_shape\tvar_sonar_log_sn\tvar_sonar_log_diff\tvar_sonar_log_trend\tvar_sonar_rsq";
       }
       if (use_ms1_traces_)
       {
-        ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
+        ofs_ << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t" 
+      ofs_ << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t"
           << "rt_fwhm" << "\t"
           << "masserror_ppm";
-      ofs << "\n";
+      ofs_ << "\n";
     }
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
@@ -185,7 +187,7 @@ namespace OpenMS
             main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
           }
 
-          String line = 
+          String line =
             id + "_run0"
             + "\t" + group_label
             + "\t" + "0"
@@ -283,8 +285,7 @@ namespace OpenMS
 
     void OpenSwathTSVWriter::writeLines(const std::vector<String>& to_output)
     {
-      for (const auto& s : to_output) ofs << s;
+      for (const auto& s : to_output) ofs_ << s;
     }
 
 }
-

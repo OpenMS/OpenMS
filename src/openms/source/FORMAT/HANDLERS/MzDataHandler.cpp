@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <OpenMS/FORMAT/Base64.h>
 
@@ -581,8 +582,9 @@ namespace OpenMS
       }
     }
 
-    void MzDataHandler::writeTo(std::ostream & os)
+    void MzDataHandler::writeTo(std::ostream & nos)
     {
+      FastOStream os(nos);
       logger_.startProgress(0, cexp_->size(), "storing mzData file");
 
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -1439,7 +1441,7 @@ namespace OpenMS
       //std::cout << "End of MzDataHander::cvParam_" << std::endl;
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(FastOStream& os, double value, const String & acc, const String & name, UInt indent) const
     {
       if (value != 0.0)
       {
@@ -1447,7 +1449,7 @@ namespace OpenMS
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(FastOStream& os, const String & value, const String & acc, const String & name, UInt indent) const
     {
       if (value != "")
       {
@@ -1455,7 +1457,7 @@ namespace OpenMS
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, UInt value, UInt map, const String & acc, const String & name, UInt indent)
+    inline void MzDataHandler::writeCVS_(FastOStream& os, UInt value, UInt map, const String & acc, const String & name, UInt indent)
     {
       //abort when receiving a wrong map index
       if (map >= cv_terms_.size())
@@ -1472,7 +1474,7 @@ namespace OpenMS
       writeCVS_(os, cv_terms_[map][value], acc, name, indent);
     }
 
-    inline void MzDataHandler::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent)
+    inline void MzDataHandler::writeUserParam_(FastOStream& os, const MetaInfoInterface & meta, UInt indent)
     {
       std::vector<String> keys;
       meta.getKeys(keys);
@@ -1485,7 +1487,7 @@ namespace OpenMS
       }
     }
 
-    inline void MzDataHandler::writeBinary_(std::ostream & os, Size size, const String & tag, const String & name, SignedSize id)
+    inline void MzDataHandler::writeBinary_(FastOStream& os, Size size, const String & tag, const String & name, SignedSize id)
     {
       os << "\t\t\t<" << tag;
       if (tag == "supDataArrayBinary" || tag == "supDataArray")

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <fstream>
 
@@ -75,12 +76,14 @@ namespace OpenMS
     }
 
     //open stream
-    std::ofstream os(filename.c_str());
-    if (!os)
+    std::ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -146,7 +149,7 @@ namespace OpenMS
     os << "</TrafoXML>\n";
 
     //close stream
-    os.close();
+    nos.close();
   }
 
   void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)

@@ -36,6 +36,7 @@
 
 // Interfaces
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -128,7 +129,8 @@ namespace OpenMS
    */
   class OPENMS_DLLAPI OpenSwathTSVWriter
   {
-    std::ofstream ofs;
+    std::ofstream nos_;
+    FastOStream ofs_;
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
@@ -182,5 +184,3 @@ namespace OpenMS
   };
 
 }
-
-

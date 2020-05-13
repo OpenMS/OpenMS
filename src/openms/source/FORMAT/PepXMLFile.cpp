@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -70,11 +71,13 @@ namespace OpenMS
 
   void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
-    ofstream f(filename.c_str());
-    if (!f)
+    ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
+
+    FastOStream f(nos);
 
     String search_engine_name;
     ProteinIdentification::SearchParameters search_params;
@@ -100,7 +103,7 @@ namespace OpenMS
       }
     }
 
-    f.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
     String raw_data;
     String base_name;
     SpectrumMetaDataLookup lookup;
@@ -637,7 +640,7 @@ namespace OpenMS
     f << "</msms_run_summary>" << "\n";
     f << "</msms_pipeline_analysis>" << "\n";
 
-    f.close();
+    nos.close();
   }
 
   void PepXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
