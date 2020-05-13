@@ -126,7 +126,7 @@ namespace OpenMS
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
     
     /// Map of elements of a cluster (neighbors + center)
-    typedef NeighborMap ElementsMap;
+    typedef NeighborMap ClusterElementsMap;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
@@ -181,7 +181,7 @@ private:
     
     /// creates a consensus feature from the given elements
     void createConsensusFeature_(ConsensusFeature &feature, double quality, 
-                                 ElementsMap const& elements);
+                                 ClusterElementsMap const& elements);
 
     /** 
      * @brief update the clustering:
@@ -193,7 +193,7 @@ private:
      */
     void updateClustering_(ElementMapping &element_mapping,
                            Grid const &grid, 
-                           ElementsMap const& elements,
+                           ClusterElementsMap const& elements,
                            Heap& cluster_heads,
                            std::vector<Handle> const& handles,
                            Size best_id);

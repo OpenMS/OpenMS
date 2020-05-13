@@ -118,6 +118,7 @@ public:
     typedef std::pair<double, GridFeature*> NeighborPairType;
     typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
 
+    typedef NeighborMap ClusterElementsMap;
     /** 
      * @brief Class to store the bulk internal data (neihgbors, annotations, etc.)
      * 
@@ -236,7 +237,7 @@ public:
     void add(GridFeature* element, double distance);
 
     /// Gets the clustered elements meaning neighbors + cluster center
-    NeighborMap getElements() const;
+    ClusterElementsMap getElements() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
@@ -245,7 +246,7 @@ public:
      *
      * @return Whether the cluster composition has changed due to the update
      */
-    bool update(NeighborMap const& removed);
+    bool update(ClusterElementsMap const& removed);
 
     /// Returns the cluster quality and recomputes if necessary
     double getQuality();

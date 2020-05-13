@@ -54,6 +54,7 @@ using namespace std;
 
 QTCluster* qtc_ptr = nullptr;
 QTCluster* qtc_nullPointer = nullptr;
+QTCluster::Data_* qtc_data_ptr = new QTCluster::Data_;
 
 BaseFeature bf;
 bf.setRT(1.1);
@@ -67,9 +68,9 @@ hit.setSequence(AASequence::fromString("CCC"));
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 
-START_SECTION((QTCluster(GridFeature* center_point, Size num_maps, double max_distance, bool use_IDs)))
+START_SECTION((QTCluster(QTCluster::Data_* data, GridFeature* center_point, Size num_maps, double max_distance, bool use_IDs, Int x_coord, Int y_coord, Size id)))
 {
-  qtc_ptr = new QTCluster(&gf, 2, 11.1, false, 0, 0);
+  qtc_ptr = new QTCluster(qtc_data_ptr, &gf, 2, 11.1, false, 0, 0, 0);
   TEST_NOT_EQUAL(qtc_ptr, qtc_nullPointer);
 }
 END_SECTION
@@ -77,10 +78,12 @@ END_SECTION
 START_SECTION((~QTCluster()))
 {
   delete qtc_ptr;
+  delete qtc_data_ptr;
 }
 END_SECTION
 
-QTCluster cluster(&gf, 2, 11.1, true, 7, 9);
+QTCluster::Data_ qtc_data;
+QTCluster cluster(&qtc_data, &gf, 2, 11.1, true, 7, 9, 1);
 
 START_SECTION((double getCenterRT() const))
 {
@@ -106,6 +109,11 @@ START_SECTION((Int getYCoord() const))
 }
 END_SECTION
 
+START_SECTION((Size getId() const))
+{
+  TEST_EQUAL(cluster.getId(), 1);
+}
+END_SECTION
 
 START_SECTION((Size size() const))
 {
@@ -126,18 +134,18 @@ END_SECTION
 
 START_SECTION((bool operator<(QTCluster& cluster)))
 {
-  QTCluster cluster2(&gf, 2, 11.1, false, 0, 0);
+  QTCluster::Data_ data;
+  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
   TEST_EQUAL(cluster2 < cluster, true);
 }
 END_SECTION
 
-START_SECTION((void getElements(boost::unordered::unordered_map<Size, GridFeature*>& elements)))
+START_SECTION((void getElements()))
 {
-  boost::unordered::unordered_map<Size, GridFeature*> elements;
-  cluster.getElements(elements);
+  QTCluster::ClusterElementsMap elements = cluster.getElements();
   TEST_EQUAL(elements.size(), 2);
-  TEST_EQUAL(elements[123], &gf);
-  TEST_EQUAL(elements[789], &gf2);
+  TEST_EQUAL(elements[123].second, &gf);
+  TEST_EQUAL(elements[789].second, &gf2);
 }
 END_SECTION
 
@@ -146,7 +154,8 @@ START_SECTION((OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getA
   GridFeature gf3(bf, 789, 1012);
   GridFeature gf4(bf, 222, 1011);
 
-  QTCluster cluster2(&gf, 2, 11.1, false, 0, 0);
+  QTCluster::Data_ data;
+  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
   TEST_EQUAL(cluster2.getAllNeighbors().size(), 0)
   cluster2.initializeCluster();
   cluster2.add(&gf2, 3.3);
@@ -176,14 +185,43 @@ START_SECTION((OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getA
 }
 END_SECTION
 
-
-START_SECTION((bool update(const boost::unordered::unordered_map<Size, GridFeature*>& removed)))
+START_SECTION(NeighborMap const& getAllNeighborsDirect() const)
 {
-  boost::unordered::unordered_map<Size, GridFeature*> removed;
-  removed[789] = &gf2;
+  QTCluster::NeighborMap const& neigh_direct = cluster.getAllNeighborsDirect();
+  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > neigh = cluster.getAllNeighbors();
+  bool success = true;
+
+  for(auto && elem : neigh_direct) 
+  {
+    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> >::const_iterator it = neigh.find(elem.first);
+    if (it != neigh.end())
+    {
+      success = success && (it->second[0] == elem.second.second);
+    }
+    else success = false;
+  }
+  
+  for(auto && elem : neigh)
+  {
+    QTCluster::NeighborMap::const_iterator it = neigh_direct.find(elem.first);
+    if (it != neigh_direct.end())
+    {
+      success = success && (it->second.second == elem.second[0]);
+    }
+    else success = false;
+  } 
+
+  TEST_EQUAL(success, true);
+}
+END_SECTION
+
+START_SECTION(bool update(const ClusterElementsMap& removed))
+{
+  QTCluster::ClusterElementsMap removed;
+  removed[789].second = &gf2;
   TEST_EQUAL(cluster.update(removed), true);
   TEST_EQUAL(cluster.size(), 1);
-  removed[123] = &gf;
+  removed[123].second = &gf;
 
   // removing the center invalidates the cluster:
   TEST_EQUAL(cluster.update(removed), false);
@@ -195,7 +233,9 @@ START_SECTION((double getQuality()))
 {
   // cluster is invalid, we shouldnt use it any more -> create a new one
   TEST_EQUAL(cluster.isInvalid(), true);
-  cluster = QTCluster(&gf, 2, 11.1, true, 7, 9);
+
+  qtc_data = QTCluster::Data_();
+  cluster = QTCluster(&qtc_data, &gf, 2, 11.1, true, 7, 9, 3);
 
   cluster.initializeCluster();
   cluster.add(&gf2, 3.3);
@@ -205,12 +245,19 @@ START_SECTION((double getQuality()))
 }
 END_SECTION
 
+START_SECTION(double getCurrentQuality() const)
+{
+  TEST_EQUAL(cluster.getCurrentQuality(), cluster.getQuality());
+}
+END_SECTION
+
 START_SECTION((const set<AASequence>& getAnnotations()))
 {
   TEST_EQUAL(cluster.getAnnotations().size(), 2);
   TEST_EQUAL(*(cluster.getAnnotations().begin()), AASequence::fromString("AAA"));
   TEST_EQUAL(*(cluster.getAnnotations().rbegin()), AASequence::fromString("CCC"));
-  QTCluster cluster2(&gf, 2, 11.1, false, 0, 0);
+  QTCluster::Data_ data;
+  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
   TEST_EQUAL(cluster2.getAnnotations().empty(), true);
 }
 END_SECTION

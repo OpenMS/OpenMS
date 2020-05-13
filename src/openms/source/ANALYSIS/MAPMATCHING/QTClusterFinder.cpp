@@ -318,7 +318,7 @@ namespace OpenMS
 
     QTCluster const& best = cluster_heads.top();
 
-    NeighborMap const elements = best.getElements();
+    ClusterElementsMap const elements = best.getElements();
 
     #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
@@ -345,8 +345,8 @@ namespace OpenMS
                                            QTCluster const& cluster,
                                            ElementMapping& element_mapping)
   {
-    NeighborMap const elements = cluster.getElements();
-    for(NeighborMap::const_iterator feature_it = elements.begin(); 
+    ClusterElementsMap const elements = cluster.getElements();
+    for(ClusterElementsMap::const_iterator feature_it = elements.begin(); 
         feature_it != elements.end(); ++feature_it)
     {
       unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
@@ -356,10 +356,10 @@ namespace OpenMS
     cluster_heads.pop();
   }
 
-void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, NeighborMap const& elements)
+void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double quality, ClusterElementsMap const& elements)
   {
     feature.setQuality(quality);
-    for (NeighborMap::const_iterator
+    for (ClusterElementsMap::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
       // Store the id of already used features (important: needs to be done
@@ -379,12 +379,12 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature &feature, double 
 
   void QTClusterFinder::updateClustering_(ElementMapping &element_mapping,
                                           Grid const &grid, 
-                                          NeighborMap const& elements,
+                                          ClusterElementsMap const& elements,
                                           Heap& cluster_heads,
                                           vector<Handle> const& handles,
                                           Size best_id)
   {
-    for (NeighborMap::const_iterator
+    for (ClusterElementsMap::const_iterator
         it = elements.begin(); it != elements.end(); ++it)
     {
       GridFeature* curr_feature = it->second.second;

@@ -189,7 +189,7 @@ namespace OpenMS
     }
   }
 
-  QTCluster::NeighborMap QTCluster::getElements() const
+  QTCluster::ClusterElementsMap QTCluster::getElements() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -203,7 +203,7 @@ namespace OpenMS
     return neighbors_copy;
   }
 
-  bool QTCluster::update(NeighborMap const& removed)
+  bool QTCluster::update(ClusterElementsMap const& removed)
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
@@ -257,6 +257,10 @@ namespace OpenMS
 
   double QTCluster::getCurrentQuality() const
   {
+    // ensure cluster is finalized
+    OPENMS_PRECONDITION(finalized_,
+        "Cannot perform operation on cluster that is finalized")
+  
     return quality_;
   }
 
