@@ -79,19 +79,16 @@ namespace OpenMS
     int dimNumber = isotopeNr.size();
 
     // Convert vector of vector to double**
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
+    std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
+    std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
     for (int i=0; i<dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM.get(), IP.get());
     
-    delete[] IM;
-    delete[] IP;
-
     return ret;
   }
 
