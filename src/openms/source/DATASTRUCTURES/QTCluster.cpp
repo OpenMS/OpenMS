@@ -349,7 +349,7 @@ namespace OpenMS
     // mapping: peptides -> best distance per input map
     map<set<AASequence>, vector<double> > seq_table;
 
-    makeSeq_table(seq_table);
+    makeSeq_table_(seq_table);
 
     // get copies of members that are used in this function
     Size num_maps_ = data_->num_maps_;
@@ -393,14 +393,13 @@ namespace OpenMS
       data_->annotations_ = best_pos->first;
     }
 
-    // report elements that are compatible with the optimal annotation:
-    initialize_neighbors_();
+    recompute_neighbors_();
 
     // one "max_dist." too many (from the input map of the cluster center):
     return best_total - max_distance_;
   }
 
-  void QTCluster::initialize_neighbors_()
+  void QTCluster::recompute_neighbors_()
   {
     // get references on members that are used in this function
     NeighborMap & neighbors_ = data_->neighbors_;
@@ -425,7 +424,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::makeSeq_table(map<set<AASequence>, vector<double>> &seq_table) const
+  void QTCluster::makeSeq_table_(map<set<AASequence>, vector<double>> &seq_table) const
   {
 
     // get copies of members that are used in this function

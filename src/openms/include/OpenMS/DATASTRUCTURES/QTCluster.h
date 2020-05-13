@@ -284,10 +284,6 @@ public:
     /// avoids copying of neighbor map in getAllNeighbors
     NeighborMap const& getAllNeighborsDirect() const;
 
-    void makeSeq_table(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
-
-    void initialize_neighbors_();
-
     private:
       // total size of this class in memory should be 24 byte
 
@@ -343,6 +339,12 @@ public:
        * @returns The total distance between cluster elements and the center.
        */
       double optimizeAnnotations_();
+
+      /// compute seq table, mapping: peptides -> best distance per input map
+      void makeSeq_table_(std::map<std::set<AASequence>, std::vector<double>> &seq_table) const;
+      
+      /// report elements that are compatible with the optimal annotation
+      void recompute_neighbors_();
   };
 
   // needed for the heap
