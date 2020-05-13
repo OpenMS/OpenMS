@@ -70,7 +70,8 @@ namespace OpenMS
 
   void FastOStream::write(const char* const s, uint64_t len)
   {
-    os_.rdbuf()->sputn(s, len);
+    uint64_t written = os_.rdbuf()->sputn(s, len);
+    if (written != len) os_.setstate(std::ios_base::badbit);
   }
 
   FastOStream& operator << (FastOStream& os, const DataValue& p)
