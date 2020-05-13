@@ -58,31 +58,19 @@ namespace OpenMS
     return *this;
   }
 
-  inline void FastOStream::write(const OpenMS::String& s, Size len)
+  void FastOStream::write(const OpenMS::String& s, uint64_t len)
   {
-    uint64_t pos = os_.rdbuf()->sputn(s.c_str(), len);
-    if (pos != len)
-    {
-      throw;
-    }
+    write(s.c_str(), len);
   }
 
-  inline void FastOStream::write(const std::string& s, Size len)
+  void FastOStream::write(const std::string& s, uint64_t len)
   {
-    uint64_t pos = os_.rdbuf()->sputn(s.c_str(), len);
-    if (pos != len)
-    {
-      throw;
-    }
+    write(s.c_str(), len);
   }
 
-  inline void FastOStream::write(const char* const s, Size len)
+  void FastOStream::write(const char* const s, uint64_t len)
   {
-    uint64_t pos = os_.rdbuf()->sputn(s, len);
-    if (pos != len)
-    {
-      throw;
-    }
+    os_.rdbuf()->sputn(s, len);
   }
 
   FastOStream& operator << (FastOStream& os, const DataValue& p)

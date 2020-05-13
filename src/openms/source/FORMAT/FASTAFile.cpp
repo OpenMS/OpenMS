@@ -50,11 +50,12 @@ namespace OpenMS
   typedef seqan::RecordReader<std::fstream, seqan::SinglePass<> > FASTARecordReader;
 
   FASTAFile::FASTAFile()
-  : reader_(std::nullptr_t()), // point to nothing
+  : outfile_(ofs_),
+    reader_(std::nullptr_t()), // point to nothing
     entries_read_(0)
   {
   }
-  
+
   FASTAFile::~FASTAFile()
   {
     // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
@@ -88,7 +89,7 @@ namespace OpenMS
       firstline = infile_.tellg();
     }
     infile_.seekg(firstline);
-  
+
     // automatically deletes old handles
     reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),
       [](void* ptr)
@@ -102,7 +103,7 @@ namespace OpenMS
   bool FASTAFile::readNext(FASTAEntry& protein)
   {
     if (seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
-    { 
+    {
       // do NOT close(), since we still might want to seek to certain positions
       return false;
     }
@@ -169,9 +170,9 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension; expected '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
     }
 
-    outfile_.open(filename.c_str(), ofstream::out);
+    ofs_.open(filename.c_str(), ofstream::out);
 
-    if (!outfile_.good())
+    if (!ofs_.good())
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
@@ -200,7 +201,7 @@ namespace OpenMS
 
   void FASTAFile::writeEnd()
   {
-    outfile_.close();
+    ofs_.close();
   }
 
   void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data)

@@ -180,7 +180,7 @@ namespace OpenMS
     return ListUtils::concatenate(xtandem_mods, ",");
   }
 
-  void XTandemInfile::writeTo_(ostream& os, bool ignore_member_parameters)
+  void XTandemInfile::writeTo_(FastOStream& os, bool ignore_member_parameters)
   {
     os << "<?xml version=\"1.0\"?>" << "\n"
        << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"

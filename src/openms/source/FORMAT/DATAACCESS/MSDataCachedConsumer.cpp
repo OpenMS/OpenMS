@@ -42,7 +42,8 @@
 namespace OpenMS
 {
   MSDataCachedConsumer::MSDataCachedConsumer(const String& filename, bool clearData) :
-    ofs_(filename.c_str(), std::ios::binary),
+    nos_(filename.c_str(), std::ios::binary),
+    ofs_(nos_),
     clearData_(clearData),
     spectra_written_(0),
     chromatograms_written_(0)
@@ -59,8 +60,8 @@ namespace OpenMS
 
     // Close file stream: close() _should_ call flush() but it might not in
     // all cases. To be sure call flush() first.
-    ofs_.flush();
-    ofs_.close();
+    nos_.flush();
+    nos_.close();
   }
 
   void MSDataCachedConsumer::consumeSpectrum(SpectrumType & s)

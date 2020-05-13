@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <functional>
 #include <fstream>
@@ -53,10 +54,10 @@ namespace OpenMS
 
     You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
-    
+
     Or use single read/write of protein sequences using readStart(), readNext()
     and writeStart(), writeNext(), writeEnd() for more memory efficiency.
-    Reading from one and writing to another FASTA file can be handled by 
+    Reading from one and writing to another FASTA file can be handled by
     one single FASTAFile instance.
 
   */
@@ -92,7 +93,7 @@ public:
         sequence(seq)
       {
       }
-      
+
       FASTAEntry(const FASTAEntry& rhs)
         :
         identifier(rhs.identifier),
@@ -105,7 +106,7 @@ public:
        :
         identifier(::std::move(rhs.identifier)),
         description(::std::move(rhs.description)),
-        sequence(::std::move(rhs.sequence)) 
+        sequence(::std::move(rhs.sequence))
       {
       }
 
@@ -124,13 +125,13 @@ public:
                && description == rhs.description
                && sequence == rhs.sequence;
       }
-    
+
       bool headerMatches(const FASTAEntry& rhs) const
       {
-        return identifier == rhs.identifier && 
+        return identifier == rhs.identifier &&
   	     description == rhs.description;
       }
- 
+
       bool sequenceMatches(const FASTAEntry& rhs) const
       {
         return sequence == rhs.sequence;
@@ -192,7 +193,7 @@ public:
 
     */
     void writeEnd();
-    
+
 
     /**
       @brief loads a FASTA file given by 'filename' and stores the information in 'data'
@@ -206,7 +207,7 @@ public:
 
   /**
       @brief stores the data given by 'data' at the file 'filename'
-      
+
       This uses more RAM than writeStart() and writeNext().
 
       @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
@@ -215,10 +216,10 @@ public:
 
 protected:
     std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
-    std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
+    std::ofstream ofs_; ///< filestream for writing; init using FastaFile::writeStart()
+    FastOStream outfile_; ///< fast wrapper for the file stream
     std::unique_ptr<void, std::function<void(void*) > > reader_; ///< filestream for reading; init using FastaFile::readStart(); needs to be a pointer, since its not copy-constructable; we use void* here, to avoid pulling in seqan includes
     Size entries_read_; ///< some internal book-keeping during reading
   };
 
 } // namespace OpenMS
-

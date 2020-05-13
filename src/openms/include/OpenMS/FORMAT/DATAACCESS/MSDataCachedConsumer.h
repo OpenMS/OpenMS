@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 
 namespace OpenMS
@@ -102,7 +103,8 @@ namespace OpenMS
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {;}
 
     protected:
-      std::ofstream ofs_;
+      std::ofstream nos_;
+      FastOStream ofs_;
       bool clearData_;
       Size spectra_written_;
       Size chromatograms_written_;
@@ -110,4 +112,3 @@ namespace OpenMS
     };
 
 } //end namespace OpenMS
-
