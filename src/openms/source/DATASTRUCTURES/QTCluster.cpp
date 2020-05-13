@@ -148,7 +148,6 @@ namespace OpenMS
 
     // get references on more members that are used in this function
     OpenMS::GridFeature & center_point = *(data_->center_point_);
-    NeighborMap & neighbors_ = data_->neighbors_;
     
     // Ensure we only add compatible peptide annotations. If the cluster center
     // has an annotation, then each added neighbor should have the same
@@ -180,6 +179,8 @@ namespace OpenMS
     // the element is closer than the current element for that map
     if (map_index != center_point.getMapIndex())
     {
+      NeighborMap & neighbors_ = data_->neighbors_;
+      
       if (neighbors_.find(map_index) == neighbors_.end() ||
           distance < neighbors_[map_index].first)
       {
