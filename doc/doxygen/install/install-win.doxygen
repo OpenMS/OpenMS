@@ -225,7 +225,7 @@
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
-        @note If you build Qt5 from source, the build directories will be located at <tt><path_to_qt>/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
         @note Example CMAKE_PREFIX_PATH: <tt>C:\dev\qt-5.9\mkspecs\winrt-x64-msvc2017</tt>
         
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
