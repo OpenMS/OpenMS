@@ -193,13 +193,13 @@ public:
     /// use this only when you actually want to move, but an interface can only copy
     QTCluster(QTCluster const& rhs) = default;
 
-    /// use this only when you actually want to move, but an interface can only copy
+    /// cheap move because the bulk data lies in the Data_ member
     QTCluster(QTCluster && rhs) = default;
 
-    /// cheap move because the bulk data lies in Data_ 
+    /// use this only when you actually want to move, but an interface can only copy
     QTCluster& operator=(QTCluster const& rhs) = default;
 
-    /// cheap move because the bulk data lies outside of this class
+    /// cheap move because the bulk data lies in the Data_ member
     QTCluster& operator=(QTCluster && rhs) = default;
 
     ~QTCluster() = default;
