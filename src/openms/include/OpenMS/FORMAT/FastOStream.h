@@ -32,6 +32,8 @@
 // $Authors: Tom Lukas Lankenau, Anton Kriese $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <ostream>
