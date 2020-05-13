@@ -530,19 +530,22 @@ namespace OpenMS
   {
     vector<pair<String,String>> result;
     const auto& params = this->getSearchParameters();
-    if (se.empty() || this->getSearchEngine() == se)
+    if (se.empty() || (this->getSearchEngine() == se
+                        && this->getSearchEngine() != "Percolator" //meaningless settings
+                        && !this->getSearchEngine().hasPrefix("ConsensusID"))) //meaningless settings
     {
+      //TODO add spectra_data?
       result.emplace_back("db", params.db);
       result.emplace_back("db_version", params.db_version);
-      result.emplace_back("enzyme", params.digestion_enzyme.getName());
-      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
-      result.emplace_back("precursor_mass_tolerance_ppm", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
       result.emplace_back("fragment_mass_tolerance", params.fragment_mass_tolerance);
-      result.emplace_back("fragment_mass_tolerance_ppm", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("fragment_mass_tolerance_unit", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
+      result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("enzyme", params.digestion_enzyme.getName());
       result.emplace_back("charges", params.charges);
       result.emplace_back("missed_cleavages", params.missed_cleavages);
-      result.emplace_back("fixed_modificiations", ListUtils::concatenate(params.fixed_modifications," "));
-      result.emplace_back("variable_modificiations", ListUtils::concatenate(params.variable_modifications," "));
+      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications," "));
+      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications," "));
     }
     else
     {

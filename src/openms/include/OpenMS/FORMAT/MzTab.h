@@ -1174,18 +1174,19 @@ public:
       bool skip_first_run,
       std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
-      std::map<Size, std::vector<std::vector<std::pair<String, String>>>>& run_to_search_engines_settings);
+      std::map<Size, std::vector<std::vector<std::pair<String, String>>>>& run_to_search_engines_settings,
+      std::map<String, std::vector<std::pair<String, String>>>& search_engine_to_settings);
 
     static std::map<Size, std::set<Size>> mapGroupsToProteins_(
       const std::vector<ProteinIdentification::ProteinGroup>& groups, 
       const std::vector<ProteinHit>& proteins);
 
     static void addSearchMetaData_(
-      const ProteinIdentification& prot_id, 
-      const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
-      MzTabMetaData& meta_data,
-      MzTabString& db,
-      MzTabString& db_version);
+        const std::vector<const ProteinIdentification*>& prot_ids,
+        const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
+        const std::map<String, std::vector<std::pair<String,String>>>& search_engine_to_settings,
+        MzTabMetaData& meta_data,
+        bool first_run_inference_only);
 
     static void mapIDRunFileIndex2MSFileIndex_(
       const std::vector<const ProteinIdentification*>& prot_ids,
