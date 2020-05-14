@@ -107,7 +107,7 @@ namespace OpenMS
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id) const
+        const FeatureMap& output, const String& id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -151,11 +151,11 @@ namespace OpenMS
               full_peptide_name += pep.sequence[loc];
             }
             // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
-            for (Size modloc = 0; modloc < pep.modifications.size(); modloc++)
+            for (auto modification : pep.modifications)
             {
-              if (pep.modifications[modloc].location == loc)
+              if (modification.location == loc)
               {
-                full_peptide_name += "(UniMod:" + String(pep.modifications[modloc].unimod_id) + ")";
+                full_peptide_name += "(UniMod:" + String(modification.unimod_id) + ")";
               }
             }
           }
@@ -186,7 +186,7 @@ namespace OpenMS
             main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
           }
 
-          String line =
+          result +=
             id + "_run0"
             + "\t" + group_label
             + "\t" + "0"
@@ -249,18 +249,18 @@ namespace OpenMS
 
             if (use_ms1_traces_)
             {
-              line += "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
+              result += "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
               + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_correlation")
               + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_overlap")
               + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
               + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_shape");
             }
 
-            line += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
+            result += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score");
             if (sonar_)
             {
-              line += "\t" + (String)feature_it->getMetaValue("var_sonar_lag")
+              result += "\t" + (String)feature_it->getMetaValue("var_sonar_lag")
               + "\t" + (String)feature_it->getMetaValue("var_sonar_shape")
               + "\t" + (String)feature_it->getMetaValue("var_sonar_log_sn")
               + "\t" + (String)feature_it->getMetaValue("var_sonar_log_diff")
@@ -270,14 +270,13 @@ namespace OpenMS
             }
             if (use_ms1_traces_)
             {
-              line += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
+              result += "\t" + ListUtils::concatenate(aggr_prec_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_prec_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
             }
-            line += "\t" + ListUtils::concatenate(aggr_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_Fragment_Annotation, ";");
-            line += "\t" + ListUtils::concatenate(rt_fwhm, ";");
-            line += "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "");
+            result += "\t" + ListUtils::concatenate(aggr_Peak_Area, ";") + "\t" + ListUtils::concatenate(aggr_Peak_Apex, ";") + "\t" + ListUtils::concatenate(aggr_Fragment_Annotation, ";");
+            result += "\t" + ListUtils::concatenate(rt_fwhm, ";");
+            result += "\t" + (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "");
 
-            line += "\n";
-            result += line;
+            result += "\n";
         } // end of iteration
       return result;
     }
