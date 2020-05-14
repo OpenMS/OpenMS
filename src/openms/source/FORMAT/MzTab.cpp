@@ -2712,15 +2712,15 @@ Not sure how to handle these:
     protein_hit_user_value_keys_.erase("Description"); // already used in Description column
 
     // construct optional column names
-    for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.push_back("opt_global_" + k); 
-    for (const auto& k : peptide_id_user_value_keys_) psm_optional_column_names_.push_back("opt_global_" + k); 
-    for (const auto& k : peptide_hit_user_value_keys_) psm_optional_column_names_.push_back("opt_global_" + k); 
+    for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
+    for (const auto& k : peptide_id_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
+    for (const auto& k : peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     
     // rename some of them to be compatible with PRIDE
     std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
-    prt_optional_column_names_.push_back("opt_global_protein_group_type");
+    prt_optional_column_names_.emplace_back("opt_global_protein_group_type");
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
-    psm_optional_column_names_.push_back("opt_global_cv_MS:1000889_peptidoform_sequence");
+    psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
  
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
