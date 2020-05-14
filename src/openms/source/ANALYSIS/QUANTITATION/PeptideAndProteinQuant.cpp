@@ -591,6 +591,11 @@ namespace OpenMS
     stats_.n_fractions = ed.getNumberOfFractions();
     stats_.n_ms_files = ed.getNumberOfMSFiles();
 
+    OPENMS_LOG_DEBUG << "Reading quant data: " << endl;
+    OPENMS_LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
+    OPENMS_LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
+    OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
+
     stats_.total_features = peptides.size();
 
     countPeptides_(peptides);
@@ -600,7 +605,6 @@ namespace OpenMS
     {
       StringList ms_files;
       proteins[i].getPrimaryMSRunPath(ms_files);
-
       if (ms_files.empty()) 
       {
         throw Exception::MissingInformation(
@@ -618,7 +622,9 @@ namespace OpenMS
           "More than one ms file annotated in protein identification.");
       }
       identifier_to_ms_file[proteins[i].getIdentifier()] = ms_files[0];
+      OPENMS_LOG_DEBUG << "  run index : MS file " << i << " : " << ListUtils::concatenate(ms_files, ", ") << endl;
     }
+
 
     for (auto & p : peptides)
     {
@@ -634,12 +640,26 @@ namespace OpenMS
       auto row = find_if(begin(run_section), end(run_section), 
         [&ms_file_path](const ExperimentalDesign::MSFileSectionEntry& r)
           { 
-            return r.path == ms_file_path; 
+            return File::basename(r.path) == File::basename(ms_file_path); 
           });
+
+      if (row == end(run_section))
+      {
+        OPENMS_LOG_ERROR << "MS file: " << ms_file_path << " not found in experimental design." << endl;
+        for (const auto& r : run_section)
+        {
+          OPENMS_LOG_ERROR << r.path << endl;
+        }
+        throw Exception::MissingInformation(
+          __FILE__, 
+          __LINE__, 
+          OPENMS_PRETTY_FUNCTION, 
+          "MS file annotated in protein identification doesn't match to experimental design.");
+      }
+
       size_t sample = row->sample;
       size_t fraction = row->fraction;
 
-      // TODO MULTIPLEXING: think about how id-based quant is done for SILAC, TMT, etc.
       // count peptides in the different fractions, charge states, and samples
       pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] += 1;
     }
