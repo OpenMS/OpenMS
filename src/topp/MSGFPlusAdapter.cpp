@@ -468,8 +468,9 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
+    File::TempDir dir;
     String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeAutoRemoveTempDirectory_();
+    temp_dir = dir.getPath();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)

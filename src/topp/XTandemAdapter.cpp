@@ -195,7 +195,8 @@ protected:
     }
 
     // write input xml file
-    String temp_directory = makeAutoRemoveTempDirectory_();
+    File::TempDir dir;
+    String temp_directory = dir.getPath();
     String input_filename = temp_directory + "tandem_input.xml";
     String tandem_input_filename = in;
     String tandem_output_filename = temp_directory + "tandem_output.xml";

@@ -233,7 +233,8 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir dir;
+    String tmp_dir = dir.getPath();
 
     // parameter file
     String tmp_param = tmp_dir + "param.txt";    

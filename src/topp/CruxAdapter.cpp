@@ -255,7 +255,8 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir dir;
+    String tmp_dir = dir.getPath();
 
     String output_dir = tmp_dir + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());

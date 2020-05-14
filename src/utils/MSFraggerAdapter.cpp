@@ -522,7 +522,8 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      QString working_directory = this->makeAutoRemoveTempDirectory_().toQString();
+      File::TempDir dir;
+      QString working_directory = dir.getPath().toQString();
       const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 

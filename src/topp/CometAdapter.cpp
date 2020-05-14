@@ -578,7 +578,8 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir dir;
+    String tmp_dir = dir.getPath();
 
     writeDebug_("Comet is writing the default parameter file...", 1);
     runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());

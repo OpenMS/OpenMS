@@ -113,7 +113,6 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    working_dir_keep_debug_lvl_(-1),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -143,11 +142,6 @@ namespace OpenMS
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
-    }
-
-    if (!working_dir_.empty())
-    {
-      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
     }
   }
 
@@ -1515,43 +1509,6 @@ namespace OpenMS
            << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
            << param
            << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
-    }
-  }
-
-  String TOPPBase::makeTempDirectory_() const
-  {
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
-    return temp_dir;
-  }
-
-  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
-  {
-    if (working_dir_.empty())
-    {
-      working_dir_ = makeTempDirectory_();
-      working_dir_keep_debug_lvl_ = keep_debug;
-    }
-    return working_dir_;
-  }
-
-  void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if ((keep_debug > 0) && (debug_level_ >= keep_debug))
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or lower to remove them.", keep_debug);
-    }
-    else
-    {
-      if ((keep_debug > 0) && (debug_level_ > 0) && (debug_level_ < keep_debug))
-      {
-        writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or higher to keep it.", debug_level_);
-      }
-      File::removeDirRecursively(temp_dir);
     }
   }
 

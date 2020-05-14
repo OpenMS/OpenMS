@@ -490,7 +490,8 @@ protected:
     }
 
     //tmp_dir
-    String temp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir dir;
+    String temp_dir = dir.getPath();
 
     // create a temporary config file for LuciPHOr2 parameters
     String conf_file = temp_dir + "luciphor2_input_template.txt";
