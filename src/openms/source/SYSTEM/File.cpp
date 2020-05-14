@@ -65,6 +65,30 @@ using namespace std;
 namespace OpenMS
 {
 
+  File::TempDir::TempDir(bool keep_dir) {
+    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir << "'" << std::endl;
+    QDir d;
+    d.mkpath(temp_dir.toQString());
+    temp_dir_ = temp_dir;
+    keep_dir_ = keep_dir;
+  };
+
+  File::TempDir::~TempDir() {
+    if (temp_dir_.empty()) return;
+
+    if (keep_dir_) {
+      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
+      return;
+    }
+
+    File::removeDirRecursively(temp_dir_);
+  };
+
+  const String& File::TempDir::getPath() {
+    return temp_dir_;
+  }
+
   String File::getExecutablePath()
   {
     // see http://stackoverflow.com/questions/1023306/finding-current-executables-path-without-proc-self-exe/1024937#1024937 for more OS' (if needed)
