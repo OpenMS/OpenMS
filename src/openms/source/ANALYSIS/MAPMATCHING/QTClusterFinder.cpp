@@ -291,7 +291,7 @@ namespace OpenMS
       bool made_feature = makeConsensusFeature_(cluster_heads, consensus_feature, 
                                                 element_mapping, grid, handles);
 
-      if(made_feature)
+      if (made_feature)
       {
         result_map.push_back(consensus_feature);
       }
@@ -346,7 +346,7 @@ namespace OpenMS
                                            ElementMapping& element_mapping)
   {
     ClusterElementsMap const elements = cluster.getElements();
-    for(ClusterElementsMap::const_iterator feature_it = elements.begin(); 
+    for (ClusterElementsMap::const_iterator feature_it = elements.begin(); 
         feature_it != elements.end(); ++feature_it)
     {
       unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
