@@ -946,11 +946,11 @@ namespace OpenMS
           //scan polarity
           if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
           {
-            os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
+            os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Positive\"/>\n";
           }
           else if (spec.getInstrumentSettings().getPolarity() == IonSource::NEGATIVE)
           {
-            os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
+            os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
           }
 
           //Retention time already in TimeInSeconds
