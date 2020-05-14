@@ -204,12 +204,6 @@ private:
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
 
-    /// An optional temporary working directory.
-    ///String working_dir_;
-
-    /// Debug level at which to keep working dir.
-    ///Int working_dir_keep_debug_lvl_;
-
     /// No default constructor.  It is "declared away".
     TOPPBase();
 
