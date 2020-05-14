@@ -2588,7 +2588,7 @@ Not sure how to handle these:
       {
         String eng = prot_run->getInferenceEngine();
         String ver = prot_run->getInferenceEngineVersion();
-        protein_settings.emplace(make_pair<String,String>(std::move(eng), std::move(ver)),vector<pair<String,String>>{});
+        protein_settings.emplace(make_pair(std::move(eng), std::move(ver)),vector<pair<String,String>>{});
         // TODO add settings for inference tools?
       }
       if (first_run_inference_only) break;
