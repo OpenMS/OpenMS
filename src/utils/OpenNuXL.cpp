@@ -2092,7 +2092,10 @@ static void scoreXLIons_(
       dist_file << mz << "\t" << peak_density.getBinIntensity(mz) << "\n";
     }
     dist_file.close();
-    MzMLFile().store("debug_filtering.mzML", exp); 
+
+    #ifdef DEBUG_OpenNuXL
+      MzMLFile().store("debug_filtering.mzML", exp); 
+    #endif
   }
 
   void filterTopNAnnotations_(vector<vector<AnnotatedHit>>& ahs, const Size top_hits)
@@ -4846,8 +4849,21 @@ static void scoreXLIons_(
       }
     } 
 
+    StringList meta_values_to_export;
+    meta_values_to_export.push_back("NuXL:total_loss_score");  
+    meta_values_to_export.push_back("NuXL:partial_loss_score");  
+    meta_values_to_export.push_back("CountSequenceIsTop");  
+    meta_values_to_export.push_back("CountSequenceCharges");  
+    meta_values_to_export.push_back("CountSequenceIsXL");  
+    meta_values_to_export.push_back("CountSequenceIsPeptide");  
+    meta_values_to_export.push_back("NuXL:MIC");  
+    meta_values_to_export.push_back("NuXL:pl_pc_MIC");  
+    meta_values_to_export.push_back("NuXL:pl_MIC");  
+    meta_values_to_export.push_back("nr_candidates");
+    meta_values_to_export.push_back("isotope_error");  
+
     // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
 #ifdef ANNOTATED_QUANTILES
       for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
@@ -5486,13 +5502,13 @@ variable_modifications  -0.0944707
           IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
 	  // annotate RNPxl related information to hits and create report
-          vector<RNPxlReportRow> csv_rows_percolator = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+          vector<RNPxlReportRow> csv_rows_percolator = RNPxlReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
 
           // save report
           if (!out_tsv.empty())
           {
             TextFile csv_file;
-            csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
+            csv_file.addLine(RNPxlReportRowHeader().getString("\t", meta_values_to_export));
             for (const RNPxlReportRow r : csv_rows_percolator)
             {
               csv_file.addLine(r.getString("\t"));
@@ -5576,7 +5592,7 @@ variable_modifications  -0.0944707
     if (!out_tsv.empty())
     {
       TextFile csv_file;
-      csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
+      csv_file.addLine(RNPxlReportRowHeader().getString("\t", meta_values_to_export));
       for (Size i = 0; i != csv_rows.size(); ++i)
       {
         csv_file.addLine(csv_rows[i].getString("\t"));

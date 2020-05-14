@@ -50,41 +50,47 @@ namespace OpenMS
 struct OPENMS_DLLAPI RNPxlReportRow
 {
   bool no_id;
+
+  // columns
   double rt;
   double original_mz;
   String accessions;
-  String RNA;
   String peptide;
+  String NA;
+  Int charge;
+  double score;
+  int rank;
   double best_localization_score;
   String localization_scores;
   String best_localization;
-  Int charge;
-  double score;
   double peptide_weight;
-  double RNA_weight;
+  double NA_weight;
   double xl_weight;
+  StringList meta_values; // the actual values of exported metadata
+  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
   double abs_prec_error;
   double rel_prec_error;
-  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
   double m_H;
   double m_2H;
   double m_3H;
-  double m_4H;  
-  int rank;
+  double m_4H;
+  String fragment_annotation;
   String getString(const String& separator) const;
-
 };
 
 /// create header line
 struct OPENMS_DLLAPI RNPxlReportRowHeader
 {
-  static String getString(const String& separator);
+  static String getString(const String& separator, const StringList& meta_values_to_export);
 };
 
 /// create report
 struct OPENMS_DLLAPI RNPxlReport
 {
-  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance);
+  static std::vector<RNPxlReportRow> annotate(const PeakMap& spectra, 
+    std::vector<PeptideIdentification>& peptide_ids, 
+    const StringList& meta_values_to_export,
+    double marker_ions_tolerance);
 };
 
 }

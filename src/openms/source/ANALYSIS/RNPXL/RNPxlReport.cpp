@@ -43,23 +43,37 @@ namespace OpenMS
     StringList sl;
 
     // rt mz
-    sl << String::number(rt, 3) << String::number(original_mz, 4);
+    sl << String::number(rt, 3) 
+       << String::number(original_mz, 4);
 
     // id if available
     if (no_id)
     {
-      sl << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "" << "";
+      for (Size i = 0; i != 12; ++i) sl << "";
     }
     else
     {
-      sl << accessions << RNA << peptide << String(charge) << String(score)
-         << best_localization_score  << localization_scores << best_localization
-         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4)
-         << String::number(peptide_weight + RNA_weight, 4);
+      sl << accessions 
+         << peptide 
+         << NA 
+         << String(charge) 
+         << String(score)
+         << String(rank)
+         << best_localization_score 
+         << localization_scores 
+         << best_localization
+         << String::number(peptide_weight, 4) << String::number(NA_weight, 4)
+         << String::number(peptide_weight + NA_weight, 4);
+    }
+
+    // write out meta value columns
+    for (const String& v : meta_values)
+    {
+      sl << v;
     }
 
     // marker ions
-    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (auto it = marker_ions.cbegin(); it != marker_ions.cend(); ++it)
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
@@ -70,8 +84,7 @@ namespace OpenMS
     // id error and multiple charged mass
     if (no_id)
     {
-      sl << "" << "" << ""
-         << "" << "" << "" << "";
+      for (Size i = 0; i != 7; ++i) sl << "";
     }
     else
     {
@@ -84,19 +97,32 @@ namespace OpenMS
          << String::number(m_2H, 4)
          << String::number(m_3H, 4)
          << String::number(m_4H, 4);
-      // rank
-      sl << String(rank);
+
+      sl << fragment_annotation;
     }
 
     return ListUtils::concatenate(sl, separator);
   }
 
-  String RNPxlReportRowHeader::getString(const String& separator)
+  String RNPxlReportRowHeader::getString(const String& separator, const StringList& meta_values_to_export)
   {
     StringList sl;
-    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
-       << "best localization score" << "localization scores" << "best localization(s)"
-       << "peptide weight" << "RNA weight" << "cross-link weight";
+    sl << "#RT" 
+       << "m/z" 
+       << "proteins" 
+       << "peptide"
+       << "NA" 
+       << "charge" 
+       << "score"
+       << "rank"
+       << "best localization score" 
+       << "localization scores" 
+       << "best localization(s)"
+       << "peptide weight" 
+       << "NA weight" 
+       << "cross-link weight";
+
+    for (const String& s : meta_values_to_export) sl << s;
 
     // marker ion fields
     RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
@@ -107,11 +133,17 @@ namespace OpenMS
         sl << String(ma.first + "_" + ma.second[i].first);
       }
     }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "rank";
+    sl << "abs prec. error Da" 
+       << "rel. prec. error ppm" 
+       << "M+H" 
+       << "M+2H" 
+       << "M+3H" 
+       << "M+4H"
+       << Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM; 
     return ListUtils::concatenate(sl, separator);
   }
 
-  std::vector<RNPxlReportRow> RNPxlReport::annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, double marker_ions_tolerance)
+  std::vector<RNPxlReportRow> RNPxlReport::annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, const StringList& meta_values_to_export, double marker_ions_tolerance)
   {
     std::map<Size, Size> map_spectra_to_id;
     for (Size i = 0; i != peptide_ids.size(); ++i)
@@ -159,7 +191,15 @@ namespace OpenMS
         for (PeptideHit& ph : phs)
         {
           ++rank;
-          // total weight = precursor RNA weight + peptide weight
+          
+          for (const String& meta_key : meta_values_to_export)
+          {
+            row.meta_values.emplace_back(ph.getMetaValue(meta_key).toString());
+          }
+
+          PeptideHit::PeakAnnotation::writePeakAnnotationsString_(row.fragment_annotation, ph.getPeakAnnotations()); 
+
+          // total weight = precursor NA weight + peptide weight
           // this ensures that sequences with additional reported partial loss match the total weight
           // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
           String sequence_string = ph.getSequence().toString();
@@ -200,12 +240,12 @@ namespace OpenMS
           row.rt = rt;
           row.original_mz = mz;
           row.accessions = protein_accessions;
-          row.RNA = rna_name;
+          row.NA = rna_name;
           row.peptide = ph.getSequence().toString();
           row.charge = charge;
           row.score = ph.getScore();
           row.peptide_weight = peptide_weight;
-          row.RNA_weight = rna_weight;
+          row.NA_weight = rna_weight;
           row.xl_weight = peptide_weight + rna_weight;
           row.rank = rank;
 
@@ -244,44 +284,6 @@ namespace OpenMS
           ph.setMetaValue("NuXL:z3 mass", (double)weight_z3);
           ph.setMetaValue("NuXL:z4 mass", (double)weight_z4);
           csv_rows.push_back(row);
-
-
-/*
-          // In the last annotation step we add the oligo as delta mass modification
-          // to get the proper theoretical mass annotated in the PeptideHit
-          // Try to add it to the C- then N-terminus.
-          // If already modified search for an unmodified amino acid and add it there
-          if (rna_weight > 0)
-          {
-            AASequence aa = ph.getSequence();
-            const String seq = ph.getSequence().toString();
-
-            if (!aa.hasCTerminalModification())
-            {
-              aa = AASequence::fromString(seq + ".[" + String(rna_weight + Residue::getInternalToCTerm().getMonoWeight()) + "]");
-              ph.setSequence(aa);
-            }
-            else if (!aa.hasNTerminalModification())
-            {
-              aa = AASequence::fromString("[" + String(rna_weight + Residue::getInternalToNTerm().getMonoWeight()) + "]." + seq);
-              ph.setSequence(aa);
-            }
-            else // place it anywhere
-            {
-              Size index(0);
-              for (auto & a : aa)
-              {
-                if (!a.isModified())
-                {
-                  aa.setModification(index, "[+" + String(rna_weight) + "]");
-                  break;
-                }
-                ++index;
-              } 
-              ph.setSequence(aa);            
-            }
-          }
-*/          
       }
     }
   }
