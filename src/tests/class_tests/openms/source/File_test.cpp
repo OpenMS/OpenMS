@@ -294,6 +294,34 @@ START_SECTION(static String findSiblingTOPPExecutable(const OpenMS::String& tool
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
 }
 END_SECTION
+
+START_SECTION(File::TempDir(bool keep_dir = false))
+{
+  File::TempDir* dir = new File::TempDir();
+  File::TempDir* nullPointer = nullptr;
+  TEST_NOT_EQUAL(dir, nullPointer)
+  TEST_EQUAL(File::exists((*dir).getPath()),1)
+}
+END_SECTION
+
+START_SECTION(File::~TempDir())
+{
+    File::TempDir* dir = new File::TempDir();
+    String path = (*dir).getPath();
+    TEST_EQUAL(File::exists(path), 1)
+    delete dir;
+    TEST_EQUAL(File::exists(path), 0)
+    if (File::exists(path)) File::removeDir(path.toQString());
+
+    File::TempDir* dir2 = new File::TempDir(true);
+    String path2 = (*dir2).getPath();
+    TEST_EQUAL(File::exists(path2), 1)
+    delete dir2;
+    TEST_EQUAL(File::exists(path2), 1)
+    File::removeDir(path2.toQString());
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
