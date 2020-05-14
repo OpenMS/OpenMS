@@ -34,9 +34,11 @@
 
 #pragma once
 
-#include <vector>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <vector>
 #include <ostream>
+#include <cstring>
 
 namespace OpenMS
 {
@@ -58,7 +60,7 @@ namespace OpenMS
 
       @ingroup FileIO
   */
-  class OPENMS_DLLAPI FastOStream
+  class FastOStream
   {
 public:
     // Rule of six
@@ -85,13 +87,23 @@ public:
 
          @returns reference to this
     */
-    FastOStream& operator << (const String& s);
+    inline FastOStream& operator << (const OpenMS::String& s)
+    {
+      os_.rdbuf()->sputn(s.c_str(), s.size());
+      return *this;
+    }
 
-    FastOStream& operator << (const std::string& s);
+    inline FastOStream& operator << (const std::string& s)
+    {
+      os_.rdbuf()->sputn(s.c_str(), s.size());
+      return *this;
+    }
 
-    FastOStream& operator << (const char* const s);
-
-    FastOStream& operator << (const QString* const s);
+    inline FastOStream& operator << (const char* const s)
+    {
+      os_.rdbuf()->sputn(s, strlen(s));
+      return *this;
+    }
 
     /**
          @brief template overload for operator << ()
@@ -128,7 +140,7 @@ public:
          @returns reference to this
     */
     template <typename T>
-    FastOStream& operator << (const T& s)
+    inline FastOStream& operator << (const T& s)
     {
       if constexpr (std::is_arithmetic<typename std::decay<T>::type>::value)
       {
@@ -149,21 +161,60 @@ public:
          @param s Any kind of string (std::string, OpenMS::String, QString, char*)
          @param len Length to be written into the stream.
     */
-    void write(const String& s, uint64_t len);
+    inline void write(const OpenMS::String& s, uint64_t len)
+    {
+      write(s.c_str(), len);
+    }
 
-    void write(const std::string& s, uint64_t len);
+    inline void write(const std::string& s, uint64_t len)
+    {
+      write(s.c_str(), len);
+    }
 
-    void write(const char* const s, uint64_t len);
+    inline void write(const char* const s, uint64_t len)
+    {
+      uint64_t written = os_.rdbuf()->sputn(s, len);
+      if (written != len) os_.setstate(std::ios_base::badbit);
+    }
 
     /**
          @brief Get-Function to access the wrapped ostream
 
          @returns reference to the ostream
     */
-    std::ostream& getStream();
+    std::ostream& getStream()
+    {
+      return os_;
+    }
 
 private:
     std::ostream& os_; ///< Reference to the ostream that is written to
     String buffer_; ///< String, used to convert arithmetic values into String
   };
+
+
+  /**
+       @brief Free function overloading FastOStream::operator<<(const DataValue&)
+
+       @param os The FastOStream to write the DataValue to
+       @param p The DataValue to write to the FOS
+
+       @returns reference to FastOStream
+  */
+  inline FastOStream& operator << (FastOStream& os, const DataValue& p)
+  {
+    /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision
+
+    switch (p.value_type_)
+    {
+      case DataValue::STRING_VALUE: os << *(p.data_.str_); break;
+      case DataValue::STRING_LIST: os << *(p.data_.str_list_); break;
+      case DataValue::INT_LIST: os << *(p.data_.int_list_); break;
+      case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
+      case DataValue::INT_VALUE: os << p.data_.ssize_; break; // using our String conversion (faster than std::ofstream)
+      case DataValue::DOUBLE_VALUE: os << p.data_.dou_; break; // using our String conversion (faster than std::ofstream)
+      case DataValue::EMPTY_VALUE: break;
+    }
+    return os;
+  }
 }
