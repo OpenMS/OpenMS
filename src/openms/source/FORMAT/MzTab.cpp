@@ -2577,23 +2577,39 @@ Not sure how to handle these:
     MzTabMetaData& meta_data,
     bool first_run_inference_only)
   {
-    Size cnt(1);
+
+    set<String> protein_scoretypes;
+    map<pair<String, String>, vector<pair<String,String>>> protein_settings;
     for (const auto& prot_run : prot_ids)
     {
-      // TODO make "protein_search_engine_score" unique like the psm/peptide versions?
-      meta_data.protein_search_engine_score[cnt] = getProteinScoreType_(*prot_run);
-      cnt++;
-      // TODO add settings for inference tools?
-
+      //TODO this is a little hack to convert back and from
+      protein_scoretypes.insert(getProteinScoreType_(*prot_run).toCellString());
       if (prot_run->hasInferenceData())
       {
-        MzTabSoftwareMetaData sesoftwaremd;
-        MzTabParameter sesoftware;
-        sesoftware.fromCellString("[,," + prot_run->getInferenceEngine() + "," + prot_run->getInferenceEngineVersion() + "]");
-        sesoftwaremd.software = sesoftware;
-        meta_data.software[meta_data.software.size() + 1] = sesoftwaremd;
+        String eng = prot_run->getInferenceEngine();
+        String ver = prot_run->getInferenceEngineVersion();
+        protein_settings.emplace(make_pair<String,String>(std::move(eng), std::move(ver)),vector<pair<String,String>>{});
+        // TODO add settings for inference tools?
       }
       if (first_run_inference_only) break;
+    }
+
+    Size cnt(1);
+    for (const auto& mztpar : protein_scoretypes)
+    {
+      MzTabParameter p{};
+      p.fromCellString(mztpar);
+      meta_data.protein_search_engine_score[cnt] = p;
+      cnt++;
+    }
+
+    for (const auto& eng_ver_settings : protein_settings)
+    {
+      MzTabSoftwareMetaData sesoftwaremd;
+      MzTabParameter sesoftware;
+      sesoftware.fromCellString("[,," + eng_ver_settings.first.first + "," + eng_ver_settings.first.second + "]");
+      sesoftwaremd.software = sesoftware;
+      meta_data.software[meta_data.software.size() + 1] = sesoftwaremd;
     }
 
     //TODO make software a list?? super weird to fill it like this.
@@ -2609,7 +2625,7 @@ Not sure how to handle these:
       Size cnt2(1);
       for (auto const & sesetting : search_engine_to_settings.at(get<0>(name_ver_score_to_runs.first)))
       {
-        sesoftwaremd.setting[cnt2] = MzTabString(sesetting.first + ":" + sesetting.second);
+        sesoftwaremd.setting[cnt2] = MzTabString(sesetting.first + ":" + (!sesetting.second.empty() ? sesetting.second : "null"));
         cnt2++;
       }
       meta_data.software[sw_idx] = sesoftwaremd;
@@ -2753,7 +2769,6 @@ Not sure how to handle these:
       db_basename.substitute("\\", "/"); // substitute windows backslash
       db_ = MzTabString(FileHandler::stripExtension(File::basename(db_basename)));
       db_version_ = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
-
     }
 
     // condense consecutive unique MS runs to get the different MS files

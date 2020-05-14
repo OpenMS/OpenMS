@@ -9,15 +9,15 @@ MTD	psm_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
 MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-12]
 MTD	software[2]	[, , MS-GF+, Release (v2017.08.23)]
 MTD	software[2]-setting[1]	db:D:\data\proteome-databases-OpenMS\uniprot_Escherichia-coli_June-2017_canonical-without-isoforms_reviewed_plus_shuffled.fasta
-MTD	software[2]-setting[2]	db_version:
+MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	precursor_mass_tolerance:10.0
 MTD	software[2]-setting[4]	precursor_mass_tolerance_unit:ppm
 MTD	software[2]-setting[5]	fragment_mass_tolerance:0.0
 MTD	software[2]-setting[6]	fragment_mass_tolerance_unit:Da
 MTD	software[2]-setting[7]	enzyme:Trypsin
-MTD	software[2]-setting[8]	charges:
+MTD	software[2]-setting[8]	charges:null
 MTD	software[2]-setting[9]	missed_cleavages:1000
-MTD	software[2]-setting[10]	fixed_modificiations:Carboxymethyl (C) Dimethyl (N-term) Dimethyl (K)
+MTD	software[2]-setting[10]	fixed_modificiations:Carboxymethyl (C),Dimethyl (N-term),Dimethyl (K)
 MTD	software[2]-setting[11]	variable_modificiations:
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:6, Carboxymethyl, ]
 MTD	fixed_mod[1]-site	C

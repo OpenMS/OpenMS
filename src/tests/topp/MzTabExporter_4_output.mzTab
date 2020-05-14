@@ -10,16 +10,16 @@ MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-1
 MTD	software[2]	[, , Epifany, 2.6.0-pre-feature-cXMLProtGroups-2020-04-06]
 MTD	software[3]	[, , XTandem, ]
 MTD	software[3]-setting[1]	db:/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta
-MTD	software[3]-setting[2]	db_version:
+MTD	software[3]-setting[2]	db_version:null
 MTD	software[3]-setting[3]	enzyme:Trypsin
 MTD	software[3]-setting[4]	precursor_mass_tolerance:5.0
 MTD	software[3]-setting[5]	precursor_mass_tolerance_ppm:ppm
 MTD	software[3]-setting[6]	fragment_mass_tolerance:0.1
 MTD	software[3]-setting[7]	fragment_mass_tolerance_ppm:Da
-MTD	software[3]-setting[8]	charges:
+MTD	software[3]-setting[8]	charges:null
 MTD	software[3]-setting[9]	missed_cleavages:1
 MTD	software[3]-setting[10]	fixed_modificiations:Carbamidomethyl (C)
-MTD	software[3]-setting[11]	variable_modificiations:Acetyl (N-term) Gln->pyro-Glu (N-term Q) Glu->pyro-Glu (N-term E)
+MTD	software[3]-setting[11]	variable_modificiations:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E)
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere

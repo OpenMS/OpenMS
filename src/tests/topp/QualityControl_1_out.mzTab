@@ -4,23 +4,21 @@ MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule XTandem, ]
-MTD	protein_search_engine_score[2]	[, , one-peptide-rule XTandem, ]
-MTD	protein_search_engine_score[3]	[, , one-peptide-rule XTandem, ]
 MTD	peptide_search_engine_score[1]	[, , XTandem XTandem, ]
 MTD	psm_search_engine_score[1]	[, , XTandem XTandem, ]
 MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-13]
 MTD	software[2]	[, , XTandem, ]
 MTD	software[2]-setting[1]	db:C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\006_DecoyDatabase\out\crap_to_database_minimal_mrgd.fasta
-MTD	software[2]-setting[2]	db_version:
+MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	fragment_mass_tolerance:0.3
 MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[2]-setting[5]	precursor_mass_tolerance:10.0
 MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:ppm
 MTD	software[2]-setting[7]	enzyme:Trypsin
-MTD	software[2]-setting[8]	charges:
+MTD	software[2]-setting[8]	charges:null
 MTD	software[2]-setting[9]	missed_cleavages:1
 MTD	software[2]-setting[10]	fixed_modifications:Carbamidomethyl (C)
-MTD	software[2]-setting[11]	variable_modifications:Acetyl (N-term) Gln->pyro-Glu (N-term Q) Glu->pyro-Glu (N-term E) Oxidation (M)
+MTD	software[2]-setting[11]	variable_modifications:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E),Oxidation (M)
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere
@@ -67,7 +65,7 @@ MTD	study_variable[2]-description	no description given
 MTD	study_variable[3]-assay_refs	assay[3]
 MTD	study_variable[3]-description	no description given
 
-PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	opt_global_cv_PRIDE:0000303_decoy_hit	opt_global_protein_group_type
+PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	opt_global_cv_PRIDE:0000303_decoy_hit	opt_global_protein_group_type
 PRT	ES-0001a_PROKKA_00009	null	null	null	crap_to_database_minimal_mrgd	null	null	0.0	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	single_protein
 PRT	ES-0001a_PROKKA_00014	null	null	null	crap_to_database_minimal_mrgd	null	null	0.0	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	single_protein
 PRT	ES-0001a_PROKKA_00038	null	null	null	crap_to_database_minimal_mrgd	null	null	0.0	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	0	single_protein

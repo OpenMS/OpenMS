@@ -10,7 +10,7 @@ MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-1
 MTD	software[2]	[, , TOPPProteinInference, 2.6.0-pre-fix-mzTabMTD-2020-05-12]
 MTD	software[3]	[, , OMSSA, 2.1.4]
 MTD	software[3]-setting[1]	db:18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
-MTD	software[3]-setting[2]	db_version:
+MTD	software[3]-setting[2]	db_version:null
 MTD	software[3]-setting[3]	fragment_mass_tolerance:0.3
 MTD	software[3]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[3]-setting[5]	precursor_mass_tolerance:0.05
@@ -19,7 +19,7 @@ MTD	software[3]-setting[7]	enzyme:Trypsin
 MTD	software[3]-setting[8]	charges:+1-+3
 MTD	software[3]-setting[9]	missed_cleavages:1
 MTD	software[3]-setting[10]	fixed_modifications:
-MTD	software[3]-setting[11]	variable_modifications:Carbamidomethyl (C) Oxidation (M)
+MTD	software[3]-setting[11]	variable_modifications:Carbamidomethyl (C),Oxidation (M)
 MTD	variable_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	variable_mod[1]-site	C
 MTD	variable_mod[1]-position	Anywhere

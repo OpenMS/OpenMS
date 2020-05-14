@@ -544,8 +544,8 @@ namespace OpenMS
       result.emplace_back("enzyme", params.digestion_enzyme.getName());
       result.emplace_back("charges", params.charges);
       result.emplace_back("missed_cleavages", params.missed_cleavages);
-      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications," "));
-      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications," "));
+      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));
+      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications,","));
     }
     else
     {
