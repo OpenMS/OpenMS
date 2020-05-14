@@ -574,13 +574,13 @@ namespace OpenMS
         }
 
         auto score =
-        -0.4318 * log10(pg.perChargeSNR[charge] + 1e-3)
-        - 0.2366 * log10(preChargeMaxIntensity[j] + 1)
-        - 1.0932 * log10(pg.totalSNR + 1e-3)
-        + 2.8047 * pg.isotopeCosineScore
-        - 1.2686 * pg.chargeCosineScore
-        - 0.2606 * log10(pg.intensity + 1)
-        + 2.325;
+        -0.5495 * log10(pg.perChargeSNR[charge] + 1e-3)
+        - 0.3263 * log10(preChargeMaxIntensity[j] + 1)
+        - 0.9337 * log10(pg.totalSNR + 1e-3)
+        + 2.8442 * pg.isotopeCosineScore
+        - 0.9721 * pg.chargeCosineScore
+        - 0.1885 * log10(pg.intensity + 1)
+        + 1.9703;
         score = -score;
 
         if (score < pg.qScore)
@@ -629,7 +629,7 @@ namespace OpenMS
     {
       filterPeakGroupsByIsotopeCosine(mc);
     }else{
-      filterPeakGroupsByPredictionScore(mc);
+      filterPeakGroupsByQScore(mc);
     }
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
@@ -673,7 +673,7 @@ namespace OpenMS
     newPeakGroups.swap(peakGroups);
   }
 
-  void PeakGroupScoring::filterPeakGroupsByPredictionScore(int currentMaxMassCount)
+  void PeakGroupScoring::filterPeakGroupsByQScore(int currentMaxMassCount)
   {
     if (currentMaxMassCount <= 0 || peakGroups.size() <= (Size) currentMaxMassCount)
     {

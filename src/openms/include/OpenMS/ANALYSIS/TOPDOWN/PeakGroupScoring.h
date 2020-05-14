@@ -53,7 +53,7 @@ namespace OpenMS
         PeakGroup &pg);
 
     void filterPeakGroupsByIsotopeCosine(int currentMaxMassCount);
-    void filterPeakGroupsByPredictionScore(int currentMaxMassCount);
+    void filterPeakGroupsByQScore(int currentMaxMassCount);
 
     void filterPeakGroupsByIntensity(int currentMaxMassCount);
 

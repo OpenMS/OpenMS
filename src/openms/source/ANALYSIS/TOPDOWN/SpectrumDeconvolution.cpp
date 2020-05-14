@@ -208,7 +208,7 @@ namespace OpenMS
         {
           break;
         }
-        massBins[j] = true;
+        massBins[j] = true;// TODO
       }
     }
   }
@@ -445,6 +445,7 @@ namespace OpenMS
     long binSize = (long) massBins.size();
 
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
+    //auto toSkip = (candidateMassBinsForThisSpectrum & massBins.flip()).flip(); // TODO
     auto toSkip = (candidateMassBinsForThisSpectrum | massBins).flip();
     massBins.reset();
     //massBinsForThisSpectrum.reset();
@@ -543,25 +544,13 @@ namespace OpenMS
                                                                  mzBinMinValue,
                                                                  msLevel);
 
-    // if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
-    {
 
-      //pringMasses(candidateMassBins, massBinMinValue,  binWidth); //
-    }
 
     auto perMassChargeRanges = updateMassBins_(candidateMassBins,
                                                massIntensities,
                                                binThresholdMinMass,
                                                binThresholdMaxMass,
                                                msLevel);
-
-    //if (spec.getRT() < 3582.10 && spec.getRT() > 3582.08)
-    {
-      // pringMasses(massBins, massBinMinValue,  binWidth); //
-    }
-
-    //if(msLevel>1)
-    // pringMasses(massBins, massBinMinValue,  binWidth);
 
     return perMassChargeRanges;
   }

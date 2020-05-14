@@ -336,7 +336,7 @@ protected:
         }
       }
 
-      auto numMS2perMS1 = round(ms2Cntr/ms1Cntr);
+      //auto numMS2perMS1 = round(ms2Cntr/ms1Cntr);
       param.numOverlappedScans.clear();
 
       double rtDelta = rtDuration / ms1Cntr;
@@ -456,7 +456,7 @@ protected:
 
         if (param.trainOut)
         {
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, 0); // TODO
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, -100, 2); // TODO
         }
 
         if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())

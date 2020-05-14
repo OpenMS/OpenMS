@@ -30,7 +30,7 @@ namespace OpenMS
     ~DeconvolutedSpectrum();
 
     void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
-    void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold);
+    void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
     void writeTopFD(std::fstream &fs, int id);
 
     static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
@@ -46,7 +46,7 @@ namespace OpenMS
 
     PeakGroup *precursorPeakGroup = nullptr;
     LogMzPeak *precursorPeak = nullptr;
-    Peak1D *originalPrecursorPeak = nullptr;
+    //double originalPrecursorIntensity = 0;
     std::string activationMethod;
 
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
