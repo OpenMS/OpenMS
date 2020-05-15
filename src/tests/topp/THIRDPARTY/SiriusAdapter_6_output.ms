@@ -4,10 +4,10 @@
 >rt 657.849900000000
 ##fmz 398.092212485532002
 ##fid 7231120865591443173
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 398.092212485532 196533184.351695001125
 399.095098696873 26599570.664368100464
@@ -43,10 +43,10 @@
 >parentmass 409.114078518168
 >charge -1
 >rt 635.158860000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 409.114078518168 657895.812500000000
 
@@ -60,10 +60,10 @@
 >parentmass 414.066417938389
 >charge -1
 >rt 636.770880000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 414.066417938389 892802.562500000000
 
@@ -81,10 +81,10 @@
 >parentmass 398.092218003740
 >charge -1
 >rt 639.851040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 398.092218003740 5505568.500000000000
 
@@ -105,10 +105,10 @@
 >parentmass 466.079766775402
 >charge -1
 >rt 639.851040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 466.079766775402 737734.500000000000
 
@@ -129,10 +129,10 @@
 >parentmass 420.074165192656
 >charge -1
 >rt 639.851040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 420.074165192656 731321.062500000000
 
@@ -153,10 +153,10 @@
 >parentmass 408.082377334138
 >charge -1
 >rt 640.654800000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 408.082377334138 100355.289062500000
 
@@ -178,10 +178,10 @@
 >parentmass 452.922900000000
 >charge -1
 >rt 642.224160000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 452.922900000000 1431123.250000000000
 
@@ -202,10 +202,10 @@
 >parentmass 482.054139526986
 >charge -1
 >rt 642.224160000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 482.054139526986 130792.101562500000
 
@@ -226,10 +226,10 @@
 >parentmass 602.055005965531
 >charge -1
 >rt 643.816680000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 602.055005965531 192931.609375000000
 
@@ -250,10 +250,10 @@
 >parentmass 588.897900000000
 >charge -1
 >rt 644.614260000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 588.897900000000 1233694.375000000000
 
@@ -274,10 +274,10 @@
 >parentmass 400.909359872837
 >charge -1
 >rt 644.614260000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 400.909359872837 569672.750000000000
 
@@ -298,10 +298,10 @@
 >parentmass 398.092177220084
 >charge -1
 >rt 645.366780000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 398.092177220084 4337261.000000000000
 
@@ -323,10 +323,10 @@
 >parentmass 670.042786026349
 >charge -1
 >rt 645.366780000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 670.042786026349 109127.148437500000
 
@@ -349,10 +349,10 @@
 >parentmass 656.885600000000
 >charge -1
 >rt 645.366780000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 656.885600000000 627614.187500000000
 
@@ -374,10 +374,10 @@
 >parentmass 420.074362248786
 >charge -1
 >rt 646.171020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 420.074362248786 1106828.250000000000
 
@@ -398,10 +398,10 @@
 >parentmass 468.896600000000
 >charge -1
 >rt 646.171020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 468.896600000000 649306.625000000000
 
@@ -422,10 +422,10 @@
 >parentmass 384.935449775622
 >charge -1
 >rt 646.970280000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 384.935449775622 6614561.500000000000
 385.938836772050 547023.250000000000
@@ -447,10 +447,10 @@
 >parentmass 724.873200000000
 >charge -1
 >rt 647.725560000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 724.873200000000 574929.437500000000
 
@@ -471,10 +471,10 @@
 >parentmass 536.884400000000
 >charge -1
 >rt 648.491760000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 536.884400000000 483935.093750000000
 
@@ -496,10 +496,10 @@
 >parentmass 624.036046217308
 >charge -1
 >rt 649.284420000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 624.036046217308 266142.500000000000
 
@@ -519,10 +519,10 @@
 >parentmass 520.910100000000
 >charge -1
 >rt 649.284420000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 520.910100000000 3411542.000000000000
 
@@ -542,10 +542,10 @@
 >parentmass 792.860800000000
 >charge -1
 >rt 650.057160000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 792.860800000000 523014.406250000000
 
@@ -566,10 +566,10 @@
 >parentmass 398.092122358423
 >charge -1
 >rt 650.857020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 398.092122358423 4008986.500000000000
 
@@ -590,10 +590,10 @@
 >parentmass 588.897900000000
 >charge -1
 >rt 650.857020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 588.897900000000 2328566.500000000000
 
@@ -615,10 +615,10 @@
 >parentmass 420.074449702016
 >charge -1
 >rt 652.412040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 420.074449702016 1177527.750000000000
 
@@ -639,10 +639,10 @@
 >parentmass 488.061833722764
 >charge -1
 >rt 653.212800000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 488.061833722764 944744.250000000000
 
@@ -663,10 +663,10 @@
 >parentmass 602.055113103032
 >charge -1
 >rt 653.212800000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 602.055113103032 226390.109375000000
 
@@ -687,10 +687,10 @@
 >parentmass 414.066411324583
 >charge -1
 >rt 653.212800000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 414.066411324583 130545.601562500000
 
@@ -711,10 +711,10 @@
 >parentmass 452.922900000000
 >charge -1
 >rt 654.015540000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 452.922900000000 5641118.000000000000
 
@@ -735,10 +735,10 @@
 >parentmass 656.885500000000
 >charge -1
 >rt 654.015540000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 656.885500000000 1206969.000000000000
 
@@ -759,10 +759,10 @@
 >parentmass 420.074370494077
 >charge -1
 >rt 658.645140000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 420.074370494077 1717486.875000000000
 
@@ -783,10 +783,10 @@
 >parentmass 488.061780273438
 >charge -1
 >rt 658.645140000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 488.061780273438 1188660.750000000000
 
@@ -807,10 +807,10 @@
 >parentmass 468.896800000000
 >charge -1
 >rt 658.645140000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 468.896800000000 1005724.875000000000
 
@@ -831,10 +831,10 @@
 >parentmass 414.066073286381
 >charge -1
 >rt 659.445660000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 414.066073286381 235501.500000000000
 
@@ -855,10 +855,10 @@
 >parentmass 482.053282362254
 >charge -1
 >rt 660.248400000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 482.053282362254 160178.765625000000
 
@@ -879,10 +879,10 @@
 >parentmass 452.922900000000
 >charge -1
 >rt 661.045800000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 452.922900000000 2462594.500000000000
 
@@ -904,10 +904,10 @@
 >parentmass 534.067167545687
 >charge -1
 >rt 661.787040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 534.067167545687 423175.687500000000
 
@@ -929,10 +929,10 @@
 >parentmass 520.910300000000
 >charge -1
 >rt 661.787040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 520.910300000000 1065204.250000000000
 
@@ -954,10 +954,10 @@
 >parentmass 504.036135944250
 >charge -1
 >rt 661.787040000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 504.036135944250 118912.375000000000
 
@@ -979,10 +979,10 @@
 >parentmass 615.212274781312
 >charge -1
 >rt 662.593440000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 615.212274781312 84719.304687500000
 
@@ -1003,10 +1003,10 @@
 >parentmass 466.079703118647
 >charge -1
 >rt 664.918140000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 466.079703118647 1140998.625000000000
 
@@ -1028,10 +1028,10 @@
 >parentmass 602.054595799514
 >charge -1
 >rt 665.714280000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 602.054595799514 122526.851562500000
 
@@ -1050,10 +1050,10 @@
 >parentmass 556.049835868136
 >charge -1
 >rt 666.487020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 556.049835868136 145157.984375000000
 
@@ -1074,10 +1074,10 @@
 >parentmass 550.041153388311
 >charge -1
 >rt 667.285020000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 550.041153388311 102207.851562500000
 
@@ -1097,10 +1097,10 @@
 >parentmass 452.923000000000
 >charge -1
 >rt 668.053260000000
-##des UNKNOWN
-##specref_format [MS, MS:1000768, Thermo nativeID format]
-##source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
-##source format [MS, MS:1000563, Thermo RAW format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000768, Thermo nativeID format]
+#source file file:///Y:\AG backups\licha\20160714 Ketone bodies Barbara Kofler\Neuroblastom Sepideh Aminzadeh\Plasmaproben\201801 2nd study C vs MCT Realproben\HILIC\neg
+#source format [MS, MS:1000563, Thermo RAW format,]
 >ms1merged
 452.923000000000 391322.406250000000
 

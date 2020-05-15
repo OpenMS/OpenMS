@@ -4,10 +4,10 @@
 >rt 410.145000000000
 ##fmz 292.121752827682997
 ##fid 13442776035824190606
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.121752827683 5446638.265330639668
 293.124863183735 668010.447580512962
@@ -137,10 +137,10 @@
 >parentmass 292.118520142944
 >charge 1
 >rt 404.455000000020
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.118520142944 1915.000000000000
 >ms1peaks
@@ -156,10 +156,10 @@
 >parentmass 292.121468920531
 >charge 1
 >rt 404.875000000020
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 292.121468920531 5829.000000000000
 >ms1peaks
@@ -176,10 +176,10 @@
 >parentmass 296.123099065922
 >charge 1
 >rt 406.816999999980
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.123099065922 1194.000000000000
 >ms1peaks
@@ -200,10 +200,10 @@
 >parentmass 296.123821549630
 >charge 1
 >rt 407.245000000020
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.123821549630 1828.000000000000
 >ms1peaks
@@ -227,10 +227,10 @@
 >parentmass 296.125008105473
 >charge 1
 >rt 407.655000000000
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 296.125008105473 3131.000000000000
 >ms1peaks
@@ -258,10 +258,10 @@
 >parentmass 295.187072485748
 >charge 1
 >rt 418.393999999980
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 295.187072485748 607.000000000000
 >ms1peaks
@@ -283,10 +283,10 @@
 >parentmass 290.124002639251
 >charge 1
 >rt 420.444000000000
-##des UNKNOWN
-##specref_format [MS, MS:1000770, WIFF nativeID format]
-##source file file://.
-##source format [MS, MS:1000562, ABI WIFF format,]
+#des UNKNOWN
+#specref_format [MS, MS:1000770, WIFF nativeID format]
+#source file file://.
+#source format [MS, MS:1000562, ABI WIFF format,]
 >ms1merged
 290.124002639251 1184.000000000000
 >ms1peaks

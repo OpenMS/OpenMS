@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 
 namespace OpenMS
 {
@@ -90,7 +91,7 @@ namespace OpenMS
     {
       double mz = 0.;
       double rt = 0.;
-      OpenMS::String native_id;
+      OpenMS::StringList native_ids;
       int scan_index = -1;
       int scan_number = -1;
       OpenMS::String feature_id;
@@ -122,7 +123,11 @@ namespace OpenMS
                      const Size& top_n_hits,
                      MzTab& result);
 
+    static std::map< String, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+
   };
+
+
 
 }
 

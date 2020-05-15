@@ -74,7 +74,9 @@ public:
     String source_file; ///< sourcefile for mztab-m
     String source_format; ///< format of the sourcefile for mztab-m
     std::vector<String> native_ids; ///< native ids of the associated spectra
-    std::vector<String> mids; ///< native ids and identifier for multiple possible identification via AMS
+    String native_ids_id; ///< concatenated list of the associated spectra
+    std::vector<String> mids; ///< native ids and identifier for multiple possible identification via AMS ("|" separator)
+    String mids_id; ///< concatenated list of native ids and identifier for multiple possible identification via AMS ("|" separator) used for mapping of compounds and the annotated spectrum.
     std::vector<String> scan_indices; ///< index of the associated spectra
     std::vector<String> specrefs; ///< spectra reference for mztab-m
   };

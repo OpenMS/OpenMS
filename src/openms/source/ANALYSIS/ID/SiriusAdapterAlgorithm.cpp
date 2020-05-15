@@ -50,6 +50,7 @@ namespace OpenMS
   // Set subtool parameters
   // ###################
 
+    using ProjectName = String;
     using SiriusName = String;
     using FingeridName = String;
     using PassatuttoName = String;
@@ -60,12 +61,14 @@ namespace OpenMS
     SiriusAdapterAlgorithm::SiriusAdapterAlgorithm() :
       DefaultParamHandler("SiriusAdapterAlgorithm"),
       preprocessing(Preprocessing(this)),
+      project(Project(this)),
       sirius(Sirius(this)),
       fingerid(Fingerid(this)),
       passatutto(Passatutto(this))
     {
       // Defines the Parameters for preprocessing and SIRIUS subtools
       preprocessing.parameters();
+      project.parameters();
       sirius.parameters();
       fingerid.parameters();
       passatutto.parameters();
@@ -122,7 +125,7 @@ namespace OpenMS
           );
     }
 
-    void SiriusAdapterAlgorithm::Sirius::parameters()
+    void SiriusAdapterAlgorithm::Project::parameters()
     {
 
       // This will be called internal using the "out_project_space" parameter (SiriusAdapter)
@@ -148,36 +151,35 @@ namespace OpenMS
       // this maximum mz. All other compounds in the input file
       // are ignored.
       parameter(
-          SiriusName("maxmz"),
-                 DefaultValue(),
-                 Description("Just consider compounds with a precursor mz lower or equal\n"
-                             "this maximum mz. All other compounds in the input file\n"
-                             "are ignored.")
-               );
+          ProjectName("maxmz"),
+          DefaultValue(),
+          Description("Just consider compounds with a precursor mz lower or equal\n"
+                      "this maximum mz. All other compounds in the input file\n"
+                      "are ignored.")
+      );
 
       // --cores, --processors=<numOfCores>
       // Number of cpu cores to use. If not specified Sirius uses
       // all available cores.
       parameter(
-          SiriusName("processors"),
-                 DefaultValue(1),
-                 Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
-               );
+          ProjectName("processors"),
+          DefaultValue(1),
+          Description("Number of cpu cores to use. If not specified SIRIUS uses all available cores.")
+      );
 
       // --ignore-formula
       // Ignore given molecular formula in .ms or .mgf file format,
       flag(
-          SiriusName("ignore-formula"),
-            Description("Ignore given molecular formula in internal .ms format, while processing.")
-          );
+          ProjectName("ignore-formula"),
+          Description("Ignore given molecular formula in internal .ms format, while processing.")
+      );
 
       // -q  suppress shell output
       flag(
-          SiriusName("q"),
-            Description("Suppress shell output")
-          );
+          ProjectName("q"),
+          Description("Suppress shell output")
+      );
 
-      // TODO: Needed?
       // --compound-buffer, --initial-compound-buffer=<initialInstanceBuffer>
       // Number of compounds that will be loaded into the Memory. A
       // larger buffer ensures that there are enough compounds
@@ -185,13 +187,15 @@ namespace OpenMS
       // computation. A smaller buffer saves Memory. To load all
       // compounds immediately set it to 0. Default: 2 * --cores
 
-      // TODO: Needed?
       // --recompute
       // Recompute ALL results of ALL SubTools that are already
       // present. By defaults already present results of an
       // instance will be preserved and the instance will be
       // skipped for the corresponding Task/Tool
+    }
 
+    void SiriusAdapterAlgorithm::Sirius::parameters()
+    {
       // --ppm-max=<ppmMax>
       // Maximum allowed mass deviation in ppm for decomposing masses.
       parameter(
@@ -232,7 +236,7 @@ namespace OpenMS
       // Disable Recalibration of input Spectra
       flag(
             SiriusName("no-recalibration"),
-            Description("Disable Recalibration of input Spectra")
+            Description("Disable recalibration of input spectra")
           );
 
       // -p, --profile=<profile>
@@ -348,9 +352,28 @@ namespace OpenMS
       parameter(
                  SiriusName("db"),
                  DefaultValue("all"),
-                 Description("Search formulas in given database: all, pubchem, bio, "
-                             "kegg, hmdb")
-               ).withValidStrings({"all", "pubchem", "bio", "kegg", "hmdb"});
+                 Description("Search formulas in given database.")
+               ).withValidStrings({"all",
+                                   "pubchem",
+                                   "mesh",
+                                   "hmdb",
+                                   "knapsack",
+                                   "chebi",
+                                   "pubmed",
+                                   "bio",
+                                   "kegg",
+                                   "hsdb",
+                                   "maconda",
+                                   "metacyc",
+                                   "gnps",
+                                   "zincbio",
+                                   "train",
+                                   "undp",
+                                   "pantcyc",
+                                   "ymdb",
+                                   "keggmine",
+                                   "ecocycmine",
+                                   "ymdbmine"});
 
       // -I, --ions-enforced=<ionsEnforced>
       // The iontype/adduct of the MS/MS data. Example: [M+H]+,
@@ -379,27 +402,17 @@ namespace OpenMS
                  DefaultValue(10),
                  Description("Number of molecular structure candidates in the output.")
                ).withMinInt(1);
-
-      // TODO: Not sure how to work custom databases in (?)
-      // TODO: Could use some predefinded custom1 custom2 custom3 custom4,
-      // TODO: Which would have to be renamed and but in the appropriate
-      // TODO: location in the SIRIUS directory
+      
       // -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
       // Search structure in given database. By default the same database
       // for molecular formula search is also used for structure search.
       // If no database is used for molecular formula search, PubChem is
       // used for structure search.
 
-      // TODO: should always use the same as SIRIUS?
-
-      //TODO: set valid strings
       parameter(
-                 FingeridName("fingerid-db"),
+                 FingeridName("db"),
                  DefaultValue("all"),
-                 Description("Search structure in given database. By default the same database\n"
-                             "for molecular formula search is also used for structure search.\n"
-                             "If no database is used for molecular formula search, PubChem is\n"
-                             "used for structure search.")
+                 Description("Search structure in given database.")
                 ).withValidStrings({"all",
                                     "pubchem",
                                     "mesh",
@@ -420,13 +433,17 @@ namespace OpenMS
                                     "ymdb",
                                     "keggmine",
                                     "ecocycmine",
-                                    "ymdbmine"});
+                                    "ymdbmine",
+                                    "custom",
+                                    "custom_1",
+                                    "custom_2",
+                                    "custom_3",
+                                    "custom_4"});
 
       // -s, --formula-score=<predictors>
       // Specifies the Score that is used to rank the list Molecular
       // Formula Identifications before the thresholds for CSI:FingerID
       // predictions are calculated.
-      //TODO: set valid strings - what should be the default?
       //parameter(
       //           FingeridName("formula-score"),
       //           DefaultValue(""),
@@ -477,12 +494,19 @@ namespace OpenMS
       // if executable was not provided
       if (executable.empty())
       {
-        const String& qsiriuspathenv = QProcessEnvironment::systemEnvironment().value("SIRIUS_PATH");
+        const String &qsiriuspathenv = QProcessEnvironment::systemEnvironment().value("SIRIUS_PATH");
         if (qsiriuspathenv.empty())
         {
-            const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
-            OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
+          throw Exception::InvalidValue(__FILE__,
+                                        __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
+                                        "");
         }
+        executable = qsiriuspathenv;
+      }
+      const String exe = QFileInfo(executable.toQString()).canonicalFilePath().toStdString();
+      OPENMS_LOG_WARN << "Executable is: " + exe << std::endl;
       return exe;
     }
     
@@ -538,11 +562,11 @@ namespace OpenMS
       return tmp_ms_file_;
     }
     
-    void SiriusAdapterAlgorithm::preprocessing(const String& featureinfo,
-                                               const MSExperiment& spectra,
-                                               std::vector<FeatureMap>& v_fp,
-                                               KDTreeFeatureMaps& fp_map_kd,
-                                               FeatureMapping::FeatureToMs2Indices& feature_mapping)
+    void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
+                                                     const MSExperiment& spectra,
+                                                     std::vector<FeatureMap>& v_fp,
+                                                     KDTreeFeatureMaps& fp_map_kd,
+                                                     FeatureMapping::FeatureToMs2Indices& feature_mapping)
     {
       // if fileparameter is given and should be not empty
       if (!featureinfo.empty())
@@ -623,34 +647,30 @@ namespace OpenMS
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
-                                                                         String& executable, // TODO: why not const.
-                                                                         const String& out_csifingerid)
+                                                                         String& executable,
+                                                                         const String& out_csifingerid,
+                                                                         const String& out_decoys)
 
     {
       // get the command line parameters from all the subtools
       QStringList sirius_params = sirius.getCommandLine();
       QStringList fingerid_params = fingerid.getCommandLine();
 
-      const bool run_csifingerid = ! out_csifingerid.empty();
+      const bool run_csifingerid = !out_csifingerid.empty();
+      const bool run_passatutto = !out_decoys.empty();
 
       // structure of the command line passed to NightSky
-      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project-space", tmp_out_dir.toQString()}) + sirius_params;
+      QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
 
-      // TODO: add passatutto - where does this parameter come from, since it will be an initial parameter of the SiriusAdaper?
-      // TODO: e.g. add .msp output as spectral library - with target and decoys based on SIRIUS / Passatutto
-      // TODO: look at https://github.com/OpenMS/OpenMS/blob/develop/src/openms/source/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.cpp
-      // TODO: Parser already for SIRIUS (targets) - SiriusFragmentAnnotation.cpp
-      // TODO: e.g. MSPGenericFile::store based on MSExperiment (handling exact mass switch beforehand if needed, by SiriusAdapter::export)
-      // TODO: annotate
-      // if (run_passatutto)
-      //{
-      //  command_line << "passatutto";
-      //}
+      // TODO: MSP-File output for spectra + decoys?
+      if (run_passatutto)
+      {
+        command_line << "passatutto";
+      }
 
-      // TODO: add fingerid params (see above)
       if (run_csifingerid)
       {
-        command_line << "fingerid " << fingerid_params;
+        command_line << "fingerid" << fingerid_params;
       }
 
       OPENMS_LOG_INFO << "Running SIRIUS with the following command line parameters: " << endl;
@@ -662,10 +682,13 @@ namespace OpenMS
 
       // the actual process
       QProcess qp;
-      QString exe = executable.toQString();
+      QString executable_qstring = SiriusAdapterAlgorithm::determineSiriusExecutable(executable).toQString();
       QString wd = File::path(executable).toQString();
       qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
-      qp.start(exe, process_params); // does automatic escaping etc... start
+      //since library paths are relative to sirius executable path
+      qp.setWorkingDirectory(File::path(executable).toQString());
+      qp.start(executable_qstring, command_line); // does automatic escaping etc... start
+
       std::stringstream ss;
       ss << "COMMAND: " << executable_qstring.toStdString();
       for (QStringList::const_iterator it = command_line.begin(); it != command_line.end(); ++it)
@@ -676,7 +699,6 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Executing: " + executable_qstring.toStdString() << std::endl;
 
       const bool success = qp.waitForFinished(-1);
-
 
       if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
       {

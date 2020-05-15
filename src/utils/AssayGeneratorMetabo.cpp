@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -154,7 +153,7 @@ protected:
     registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
+    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
 
     // transition extraction 
@@ -183,7 +182,7 @@ protected:
 
     // sirius 
     registerFullParam_(algorithm.getDefaults());
-    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);  
+    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
   static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
@@ -414,10 +413,12 @@ protected:
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
+        String out_decoys;
         subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
             sirius_tmp.getTmpOutDir(),
             executable,
-            out_csifingerid);
+            out_csifingerid,
+            out_decoys);
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
@@ -459,11 +460,10 @@ protected:
         {
           for (const auto& spec_fa : annotated_spectra)
           {
-            // mid is saved in Name of the spectrum
-            if (std::any_of(cmp.mids.begin(), cmp.mids.end(), [spec_fa](const String &str){ return str == spec_fa.getName();}))
+            if (cmp.mids_id == spec_fa.getName())
             {
               MetaboTargetedAssay::CompoundSpectrumPair csp;
-              csp.compoundspectrumpair = std::make_pair(cmp,spec_fa);
+              csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
               v_cmp_spec.push_back(std::move(csp));
             }
           }

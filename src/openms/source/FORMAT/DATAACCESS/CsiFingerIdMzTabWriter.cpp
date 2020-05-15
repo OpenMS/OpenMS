@@ -54,9 +54,10 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
 
   for (const auto& it : sirius_output_paths)
   {
-   
-    // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
-    String ext_nid;
+
+    // TODO: change or extract class/method
+    // extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
+    StringList ext_nid;
     double ext_mz = 0.0;
     double ext_rt = 0.0;
     const String sirius_spectrum_ms = it + "/spectrum.ms";
@@ -66,7 +67,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
       const String nid_prefix = "##nid";
       const String rt_prefix = ">rt";
       const String pmass_prefix = ">parentmass";
-      const String ms1peaks = ">ms1peaks";
       String line;
       while (getline(spectrum_ms_file, line))
       {
@@ -76,15 +76,12 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         }
         else if (line.hasPrefix(rt_prefix))
         {
+           line = line.erase(line.find("s"), 1); // >rt 418.39399999998s - remove unit "s"
            ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
         }
         else if (line.hasPrefix(nid_prefix))
         {
-           ext_nid = line.erase(line.find(nid_prefix), nid_prefix.size());
-        }
-        else if (line.hasPrefix(ms1peaks))
-        {
-           break; // only run till >ms1peaks
+           ext_nid.emplace_back(line.erase(line.find(nid_prefix), nid_prefix.size()));
         }
       }
       spectrum_ms_file.close();
@@ -125,28 +122,41 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         String unassigned = "null";
 
+        // extract column name and index from header
+        StringList header_row;
+        std::map< String, Size > columnname_to_columnindex; // TODO: need to be done probably only once for the workspace!
+        compounds.getRow(0, header_row);
+
+        for (size_t i = 0; i < header_row.size(); i++)
+        {
+          columnname_to_columnindex.insert(make_pair(header_row[i], i));
+        }
+
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
         {
           StringList sl;
           compounds.getRow(j, sl);
           CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
-          csi_hit.inchikey2D = sl[0];
-          csi_hit.inchi = sl[1];
-          csi_hit.molecular_formula = sl[2];
-          csi_hit.rank = sl[3].toInt();
-          csi_hit.score = sl[4].toDouble();
-          csi_hit.name = sl[5];
-          csi_hit.smiles = sl[6];
-          sl[8].split(';', csi_hit.pubchemids);
-          sl[9].split(';', csi_hit.links);
+          csi_hit.inchikey2D = sl[columnname_to_columnindex.at("InChIkey2D")];
+          csi_hit.inchi = sl[columnname_to_columnindex.at("InChI")];
+          csi_hit.molecular_formula = sl[columnname_to_columnindex.at("molecularFormula")];
+          csi_hit.rank = sl[columnname_to_columnindex.at("rank")].toInt();
+          csi_hit.formula_rank = sl[columnname_to_columnindex.at("formulaRank")].toInt();
+          csi_hit.adduct = sl[columnname_to_columnindex.at("adduct")];
+          csi_hit.score = sl[columnname_to_columnindex.at("CSI:FingerID_Score")].toDouble();
+          csi_hit.name = sl[columnname_to_columnindex.at("name")];
+          csi_hit.smiles = sl[columnname_to_columnindex.at("smiles")];
+          csi_hit.xlogp = sl[columnname_to_columnindex.at("xlogp")];
+          sl[columnname_to_columnindex.at("pubchemids")].split(';', csi_hit.pubchemids);
+          sl[columnname_to_columnindex.at("links")].split(';', csi_hit.links);
 
           csi_id.hits.push_back(csi_hit);
         }
 
         csi_id.mz = ext_mz;
         csi_id.rt = ext_rt;
-        csi_id.native_id = ext_nid;
+        csi_id.native_ids = ext_nid;
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
         // check if results were assigned to a feature
@@ -166,11 +176,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-4.0.1");
+        md.description = MzTabString("CSI:FingerID-4.4.17"); //TODO: automate??
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
-        smallmolecule_search_engine_score[1].setName("score");
+        smallmolecule_search_engine_score[1].setName("CSI:FingerID_Score");
         md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
         result.setMetaData(md);
 
@@ -213,16 +223,31 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
             smsr.retention_time = rt_list;
             
             MzTabOptionalColumnEntry rank = make_pair("opt_global_rank", MzTabString(hit.rank));
+            MzTabOptionalColumnEntry formula_rank = make_pair("opt_global_formulaRank", MzTabString(hit.formula_rank));
             MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
             MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
             MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
-            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
+            MzTabOptionalColumnEntry adduct = make_pair("opt_global_adduct", MzTabString(hit.adduct));
+            MzTabOptionalColumnEntry xlogp = make_pair("opt_global_rank", MzTabString(hit.xlogp));
+
+            vector<MzTabString> m_native_ids;
+            MzTabStringList ml_native_ids;
+            ml_native_ids.setSeparator('|');
+            for (auto element : id.native_ids)
+            {
+              m_native_ids.emplace_back(MzTabString(element));
+            }
+            ml_native_ids.set(m_native_ids);
+
+            MzTabOptionalColumnEntry native_ids = make_pair("opt_global_native_id", MzTabString(ml_native_ids.toCellString()));
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);
-            smsr.opt_.push_back(native_id);
+            smsr.opt_.push_back(native_ids);
+            smsr.opt_.push_back(adduct);
+            smsr.opt_.push_back(xlogp);
             smsd.push_back(smsr);
           } 
         }

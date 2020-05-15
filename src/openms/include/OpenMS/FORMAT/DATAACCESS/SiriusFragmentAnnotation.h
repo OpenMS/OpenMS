@@ -105,6 +105,17 @@ namespace OpenMS
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false); 
+          static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
+
+          /**
+          @brief extractCompoundRankingAndFilename
+          Extract compound ranking and filename   (./formula_candidates.csv).
+
+          @return a map with specified rank and filename (formula_adduct.csv) (based on the annotation)
+
+          @param path_to_sirius_workspace: Path to SIRIUS workspace.
+          */
+          static std::map< Size, String > extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace);
+
   };
 } // namespace OpenMS

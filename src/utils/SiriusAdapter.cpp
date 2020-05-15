@@ -144,6 +144,9 @@ protected:
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
+    registerOutputFile_("out_decoys","<file>", "", "Experimental output in project space.", false, true);
+    setValidFormats_("out_decoys", ListUtils::create<String>("mzTab"));
+
     registerOutputFile_("out_results","<file>", "", "MzTab-m output file for all results (depending on parameters used)", false);
     setValidFormats_("out_results", ListUtils::create<String>("mzTab"));
 
@@ -168,6 +171,7 @@ protected:
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
+    String out_decoys = getStringOption_("out_decoys");
     String featureinfo = getStringOption_("in_featureinfo");
     String out_ms = getStringOption_("out_ms");
     String sirius_workspace_directory = getStringOption_("out_project_space");
@@ -227,7 +231,8 @@ protected:
     subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
                                            sirius_tmp.getTmpOutDir(),
                                            executable,
-                                           out_csifingerid);
+                                           out_csifingerid,
+                                           out_decoys);
     
     //-------------------------------------------------------------
     // writing output
@@ -237,22 +242,21 @@ protected:
     std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
 
     // convert sirius_output to mztab and store file
-    const int candidates = algorithm.getNumberOfCandidates();
+    const int candidates = algorithm.getNumberOfSiriusCandidates();
     MzTab sirius_result;
     MzTabFile siriusfile;
     SiriusMzTabWriter::read(subdirs, in, candidates, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
-    // TODO Currently CSI:FingerID parameters are not yet finalized
     // convert sirius_output to mztab and store file
-//    if (!out_csifingerid.empty())
-//    {
-//      int top_n_hits = sirius_algo.getTopNHits();
-//      MzTab csi_result;
-//      MzTabFile csifile;
-//      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
-//      csifile.store(out_csifingerid, csi_result);
-//    }
+    if (!out_csifingerid.empty())
+    {
+      int top_n_hits = algorithm.getNumberOfCSIFingerIDCandidates();
+      MzTab csi_result;
+      MzTabFile csifile;
+      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
+      csifile.store(out_csifingerid, csi_result);
+    }
 
     // should the sirius workspace be retained
     if (!sirius_workspace_directory.empty())

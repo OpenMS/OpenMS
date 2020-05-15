@@ -82,8 +82,6 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-
-
     @param spectra: Input of MSExperiment with spectra information
     @param feature_ms2_spectra_map: FeatureMapping class with associated MS2 spectra
     @param precursor_rt_tol: Retention time tolerance of the precursor

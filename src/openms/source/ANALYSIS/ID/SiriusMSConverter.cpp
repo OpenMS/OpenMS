@@ -327,10 +327,10 @@ namespace OpenMS
               cmpinfo.fmz = feature_mz;
               cmpinfo.fid = feature_id;
             }
-            os << "#des " << String(v_description[k]) << "\n";
-            os << "#specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
-            os << "#source file " << ainfo.sf_path << endl;
-            os << "#source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
+            os << "##des " << String(v_description[k]) << "\n";
+            os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
+            os << "##source file " << ainfo.sf_path << endl;
+            os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
             cmpinfo.des = String(v_description[k]);
             cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
             cmpinfo.source_file = ainfo.sf_path;
@@ -422,6 +422,8 @@ namespace OpenMS
           }
         }
       }
+      cmpinfo.native_ids_id = ListUtils::concatenate(cmpinfo.native_ids, "|");
+      cmpinfo.mids_id = ListUtils::concatenate(cmpinfo.mids, "|");
       v_cmpinfo.push_back(std::move(cmpinfo));
     }
   }

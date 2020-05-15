@@ -459,7 +459,7 @@ namespace OpenMS
       float threshold_noise = min_int * 1.1;
       int transition_counter = 0;
 
-      // extract current StringDataArry with annotations/explanations;
+      // extract current StringDataArray with annotations/explanations;
       OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
 
       // check which entry is saved in the FloatDataArry (control for "use_exact_mass")

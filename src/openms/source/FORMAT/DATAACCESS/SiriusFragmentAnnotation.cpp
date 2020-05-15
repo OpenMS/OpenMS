@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <QtCore/QDir>
@@ -57,6 +58,7 @@ namespace OpenMS
   // first native id in the spectrum.ms
   OpenMS::String SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
+    vector< String > ext_nids;
     String ext_nid;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
@@ -69,10 +71,9 @@ namespace OpenMS
         if (line.hasPrefix(nid_prefix))
         {
            String nid = line.erase(line.find(nid_prefix), nid_prefix.size());
-           ext_nid = nid;
-           break;
+           ext_nids.emplace_back(nid);
         }
-        else if (line == ">ms1peaks")
+        else if (spectrum_ms_file.eof())
         {
            OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
            break;
@@ -80,6 +81,7 @@ namespace OpenMS
       }
       spectrum_ms_file.close(); 
     }
+    ext_nid = ListUtils::concatenate(ext_nids, "|");
     return ext_nid;
   }
 
@@ -87,6 +89,7 @@ namespace OpenMS
   // first mid id in the spectrum.ms
   OpenMS::String SiriusFragmentAnnotation::extractMIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
+    vector< String > ext_mids;
     String ext_mid;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
     ifstream spectrum_ms_file(sirius_spectrum_ms);
@@ -99,32 +102,65 @@ namespace OpenMS
         if (line.hasPrefix(mid_prefix))
         {
           String mid = line.erase(line.find(mid_prefix), mid_prefix.size());
-          ext_mid = mid;
-          break;
+          ext_mids.emplace_back(mid);
         }
-        else if (line == ">ms1peaks")
+        else if (spectrum_ms_file.eof())
         {
-          OPENMS_LOG_WARN << "No native id was found - please check your input mzML. " << std::endl;
+          OPENMS_LOG_WARN << "No SiriusAdapter_MID id was found - please check your input mzML. " << std::endl;
           break;
         }
       }
       spectrum_ms_file.close();
     }
+    ext_mid = ListUtils::concatenate(ext_mids, "|");
     return ext_mid;
+  }
+
+   // provides a mapping of rank and the file it belongs to since this is not encoded in the directory structure/filename
+   std::map< Size, String > SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace)
+  {
+    map< Size, String > rank_filename;
+    String line;
+
+    const String sirius_formula_candidates = path_to_sirius_workspace + "/formula_candidates.csv"; // based on SIRIUS annotation
+    ifstream fcandidates(sirius_formula_candidates);
+    if (fcandidates)
+    {
+      CsvFile candidates(sirius_formula_candidates, '\t');
+      const UInt rowcount = candidates.rowCount();
+
+      std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+
+      // i starts at 1, due to header
+      for (size_t i = 1; i < rowcount; i++)
+      {
+        StringList sl;
+        candidates.getRow(i, sl);
+        String adduct = sl[columnname_to_columnindex.at("adduct")];
+        adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
+        rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".csv")));
+      }
+    }
+    fcandidates.close();
+    return rank_filename;
   }
   
   // use the first ranked sumformula (works for known and known_unkowns)
+  // currently only supports sumformula from rank 1
   void SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
     if (!msspectrum_to_fill.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
     }
+
+    std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
     if (dir.exists())
     {
-
       if (use_exact_mass)
       {
         msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
@@ -135,26 +171,27 @@ namespace OpenMS
       }
 
       // use first file in folder (rank 1)
-      dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-      QFileInfoList list = dir.entryInfoList();
-      QFileInfo firstfile = list[0]; 
+      String filename = rank_filename.at(1); // rank 1
+      QFileInfo firstfile(dir,filename.toQString());
 
-      // filename: 1_sumformula_adduct.ms - save sumformula and adduct as metavalue
-      String filename = firstfile.fileName().toStdString();
-      String current_sumformula = filename.substr(filename.find_first_of("_") + 1, filename.find_last_of("_") - filename.find_first_of("_") - 1);
+      // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
+      String current_sumformula = filename.substr(0, filename.find_last_of("_"));
       String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
       msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
       msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
 
       // read file and save in MSSpectrum
+      std::cout << "firstfile: " << firstfile.absoluteFilePath().toStdString() << std::endl;
       ifstream fragment_annotation_file(firstfile.absoluteFilePath().toStdString());
       if (fragment_annotation_file)
       {
-        // mz  intensity   rel.intensity   exactmass   explanation
-        // 56.050855   20794.85    10.20   56.049476   C3H5N
+        //mz  intensity   rel.intensity   exactmass   formula ionization
+        //51.023137   713.15  9.36    51.022927   C4H2    [M + H]+
+
         std::vector<Peak1D> fragments_mzs_ints;
         MSSpectrum::FloatDataArray fragments_exactmasses;
         MSSpectrum::StringDataArray fragments_explanations;
+        MSSpectrum::StringDataArray fragments_ionization;
         if (use_exact_mass)
         {
           fragments_exactmasses.setName("mz");
@@ -184,12 +221,14 @@ namespace OpenMS
           }
           fragment_mz_int.setIntensity(splitted_line[1].toDouble());
           fragments_mzs_ints.push_back(fragment_mz_int);
-          fragments_explanations.push_back(splitted_line[4]); 
+          fragments_explanations.push_back(splitted_line[4]);
+          fragments_ionization.push_back(splitted_line[5]);
         }
         msspectrum_to_fill.setMSLevel(2);
         msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
         msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
         msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
+        msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);
       } 
     }
     else

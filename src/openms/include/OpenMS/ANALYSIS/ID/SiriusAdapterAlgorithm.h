@@ -72,13 +72,7 @@ namespace OpenMS
        * Accessors for Sirius Parameters
        */
 
-      int getNumberOfCandidates() const { return nightsky_sirius.getValue("candidates");  }
-
-      /*
-       *  Accessors for Fingerid Parameters
-       */
-
-      // TODO: needed?
+      int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
 
       /**
        * Updates all parameters that already exist in this DefaultParamHandler
@@ -96,7 +90,11 @@ namespace OpenMS
        */
       bool hasFullNameParameter(const String &name) const;
 
-      /// Struct for temporary folder structure
+
+      int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
+
+
+    /// Struct for temporary folder structure
       struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
       public:
@@ -173,10 +171,10 @@ namespace OpenMS
       const vector<String> callSiriusQProcess(const String& tmp_ms_file,
                                               const String& tmp_out_dir,
                                               String& executable,
-                                              const String& out_csifingerid);
+                                              const String& out_csifingerid,
+                                              const String& out_decoys);
 
     private:
-
     class ParameterModifier
     {
       const String openms_param_name;
@@ -268,6 +266,14 @@ namespace OpenMS
       void parameters() override;
     };
 
+    class Project final : public SiriusSubtool
+    {
+      String sectionName() const override { return "project"; }
+    public:
+      explicit Project(SiriusAdapterAlgorithm *enclose) : ParameterSection(enclose) {}
+      void parameters() override;
+    };
+
     class Sirius final : public SiriusSubtool
     {
       String sectionName() const override { return "sirius"; }
@@ -293,6 +299,7 @@ namespace OpenMS
      };
 
     Preprocessing preprocessing;
+    Project project;
     Sirius sirius;
     Fingerid fingerid;
     Passatutto passatutto;

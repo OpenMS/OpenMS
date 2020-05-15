@@ -48,18 +48,31 @@ int SiriusMzTabWriter::extract_scan_index(const String &path)
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
+std::map< String, Size > SiriusMzTabWriter::extract_columnname_to_columnindex(CsvFile& csvfile)
+{
+  StringList header_row;
+  std::map< String, Size > columnname_to_columnindex;
+  csvfile.getRow(0, header_row);
+
+  for (size_t i = 0; i < header_row.size(); i++)
+  {
+    columnname_to_columnindex.insert(make_pair(header_row[i], i));
+  }
+
+  return columnname_to_columnindex;
+};
+
 void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
                              const String& original_input_mzml,
                              const Size& top_n_hits,
                              MzTab& result)
 {
-
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
   for (const auto& it : sirius_output_paths)
   {
-    // extract mz, rt and nativeID of the corresponding precursor spectrum in the spectrum.ms file
-    String ext_nid;
+    // extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
+    StringList ext_nid; // multiple possible MS2 spectra
     double ext_mz = 0.0;
     double ext_rt = 0.0;
     const String sirius_spectrum_ms = it + "/spectrum.ms";
@@ -69,7 +82,6 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
       const String nid_prefix = "##nid";
       const String rt_prefix = ">rt";
       const String pmass_prefix = ">parentmass";
-      const String ms1peaks = ">ms1peaks";
       String line;
       while (getline(spectrum_ms_file, line))
       {
@@ -79,21 +91,18 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         }
         else if (line.hasPrefix(rt_prefix))
         {
+           line = line.erase(line.find("s"), 1); // >rt 418.39399999998s - remove unit "s"
            ext_rt = String(line.erase(line.find(rt_prefix), rt_prefix.size())).toDouble();
         }
         else if (line.hasPrefix(nid_prefix))
         {
-           ext_nid = line.erase(line.find(nid_prefix), nid_prefix.size());
-        }
-        else if (line.hasPrefix(ms1peaks))
-        {
-           break; // only run till >ms1peaks
+           ext_nid.emplace_back(line.erase(line.find(nid_prefix), nid_prefix.size()));
         }
       }
       spectrum_ms_file.close();
     }
 
-    // extract data from summary_sirius.csv
+    // extract data from formula_candidates.csv
     const std::string pathtosiriuscsv = it + "/formula_candidates.csv";
 
     ifstream file(pathtosiriuscsv);
@@ -110,7 +119,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
-        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id{};
+        SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
@@ -129,6 +138,8 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         String unassigned = "null";
 
+        std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(compounds);
+
         // formula	adduct	precursorFormula	rank	rankingScore	IsotopeScore	TreeScore	siriusScore	explainedPeaks	explainedIntensity
         // j = 1 because of .csv file format (header)
         for (Size j = 1; j <= top_n_hits_cor; ++j)
@@ -137,24 +148,26 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
           compounds.getRow(j, sl);
           SiriusMzTabWriter::SiriusAdapterHit sirius_hit;
 
+          // maybe should check columnname instead?
+          // rank	molecularFormula	adduct	precursorFormula	rankingScore	TreeIsotope_Score	Tree_Score	Isotope_Score	explainedPeaks	explainedIntensity
           // parse single candidate hit
-          sirius_hit.formula = sl[0];
-          sirius_hit.adduct = sl[1];
-          sirius_hit.precursor_formula = sl[2];
-          sirius_hit.rank = sl[3].toInt();
-          sirius_hit.rank_score = sl[4].toDouble();
-          sirius_hit.iso_score = sl[5].toDouble();
-          sirius_hit.tree_score = sl[6].toDouble();
-          sirius_hit.sirius_score = sl[7].toDouble();
-          sirius_hit.explainedpeaks = sl[8].toInt();
-          sirius_hit.explainedintensity = sl[9].toDouble();
+          sirius_hit.formula = sl[columnname_to_columnindex.at("molecularFormula")];
+          sirius_hit.adduct = sl[columnname_to_columnindex.at("adduct")];
+          sirius_hit.precursor_formula = sl[columnname_to_columnindex.at("precursorFormula")];
+          sirius_hit.rank = sl[columnname_to_columnindex.at("rank")].toInt();
+          // sirius_hit.rank_score = sl[columnname_to_columnindex.at("rankingScore")].toDouble(); // removed SIRIUS 4.4.7
+          sirius_hit.iso_score = sl[columnname_to_columnindex.at("Isotope_Score")].toDouble();
+          sirius_hit.tree_score = sl[columnname_to_columnindex.at("Tree_Score")].toDouble();
+          sirius_hit.sirius_score = sl[columnname_to_columnindex.at("TreeIsotope_Score")].toDouble();
+          sirius_hit.explainedpeaks = sl[columnname_to_columnindex.at("explainedPeaks")].toInt();
+          sirius_hit.explainedintensity = sl[columnname_to_columnindex.at("explainedIntensity")].toDouble();
 
           sirius_id.hits.push_back(sirius_hit);
         }
 
         sirius_id.mz = ext_mz;
         sirius_id.rt = ext_rt;
-        sirius_id.native_id = ext_nid;
+        sirius_id.native_ids = ext_nid;
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
         // check if results were assigned to a feature
@@ -173,14 +186,14 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("Sirius-4.3.0");
+        md.description = MzTabString("Sirius-4.4.17");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
         smallmolecule_search_engine_score[1].setName("sirius_score");
         smallmolecule_search_engine_score[2].setName("tree_score");
         smallmolecule_search_engine_score[3].setName("iso_score");
-        smallmolecule_search_engine_score[4].setName("rank_score");
+        //smallmolecule_search_engine_score[4].setName("rank_score");
         md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
         result.setMetaData(md);
 
@@ -198,7 +211,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             engine_score[1] = MzTabDouble(hit.sirius_score);
             engine_score[2] = MzTabDouble(hit.tree_score);
             engine_score[3] = MzTabDouble(hit.iso_score);
-            engine_score[4] = MzTabDouble(hit.rank_score);
+            //engine_score[4] = MzTabDouble(hit.rank_score);
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.formula);
@@ -218,7 +231,17 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             MzTabOptionalColumnEntry compoundId = make_pair("opt_global_compoundId", MzTabString(id.scan_index));
             MzTabOptionalColumnEntry compoundScanNumber = make_pair("opt_global_compoundScanNumber", MzTabString(id.scan_number));
             MzTabOptionalColumnEntry featureId = make_pair("opt_global_featureId", MzTabString(id.feature_id));
-            MzTabOptionalColumnEntry native_id = make_pair("opt_global_native_id", MzTabString(id.native_id));
+
+            vector<MzTabString> m_native_ids;
+            MzTabStringList ml_native_ids;
+            ml_native_ids.setSeparator('|');
+            for (auto element : id.native_ids)
+            {
+              m_native_ids.emplace_back(MzTabString(element));
+            }
+            ml_native_ids.set(m_native_ids);
+
+            MzTabOptionalColumnEntry native_ids = make_pair("opt_global_native_id", MzTabString(ml_native_ids.toCellString()));
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(precursor_formula);
@@ -228,7 +251,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
             smsr.opt_.push_back(featureId);
-            smsr.opt_.push_back(native_id);
+            smsr.opt_.push_back(native_ids);
             smsd.push_back(smsr);
           }
         }  
