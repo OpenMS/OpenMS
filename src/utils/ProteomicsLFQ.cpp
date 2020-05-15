@@ -773,6 +773,168 @@ protected:
     OPENMS_LOG_INFO << "Transfered IDs: " << n_transferred_ids << endl;
     return transfer_ids;
   }
+
+  ExitCodes checkSingleRunPerID_(const vector<ProteinIdentification>& protein_ids, const String& id_file_abs_path)
+  {
+    if (protein_ids.size() != 1)
+    {
+      OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+
+    StringList run_paths;
+    protein_ids[0].getPrimaryMSRunPath(run_paths);
+    if (run_paths.size() != 1)
+    {
+      OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+    
+    return EXECUTION_OK;
+  }
+
+  ExitCodes switchScoreType_(vector<PeptideIdentification>& peptide_ids, const String& id_file_abs_path)
+  {
+    // Check of score types are valid. TODO
+    try
+    {
+      IDScoreSwitcherAlgorithm switcher;
+      Size c = 0;
+      switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
+    }
+    catch(Exception::MissingInformation&)
+    {
+      OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+    return EXECUTION_OK;
+  }
+
+  ExitCodes loadAndCleanupIDFile_(
+    const String& id_file_abs_path,
+    const String& mz_file,
+    const Size& fraction_group,
+    const Size& fraction,
+    vector<ProteinIdentification>& protein_ids, 
+    vector<PeptideIdentification>& peptide_ids,
+    set<String>& fixed_modifications,  // adds to
+    set<String>& variable_modifications) // adds to
+  {
+    const String& mz_file_abs_path = File::absolutePath(mz_file);
+    IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+    ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
+    if (e != EXECUTION_OK) return e;
+
+    e = switchScoreType_(peptide_ids, id_file_abs_path);
+    if (e != EXECUTION_OK) return e;
+   
+    IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
+    IDFilter::removeDecoyHits(peptide_ids);
+    IDFilter::removeDecoyHits(protein_ids);
+    IDFilter::removeEmptyIdentifications(peptide_ids);
+    IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
+
+    if (peptide_ids.empty())
+    {
+      OPENMS_LOG_FATAL_ERROR << "No peptide identifications present after removing decoys " << id_file_abs_path << endl;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+    }
+ 
+    // add to the (global) set of fixed and variable modifications
+    const vector<String>& var_mods = protein_ids[0].getSearchParameters().variable_modifications;
+    const vector<String>& fixed_mods = protein_ids[0].getSearchParameters().fixed_modifications;
+    std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin())); 
+    std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end())); 
+
+    // delete meta info to free some space
+    for (PeptideIdentification & pid : peptide_ids)
+    {
+      // we currently can't clear the PeptideIdentification meta data
+      // because the spectrum_reference is stored in the meta value (which it probably shouldn't)
+      // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
+      for (PeptideHit & ph : pid.getHits())
+      {
+        // TODO: keep target_decoy information for QC
+        ph.clearMetaInfo();
+      }
+    }
+
+    ///////////////////////////////////////////////////////
+    // annotate experimental design
+    // check and reannotate mzML file in ID
+    StringList id_msfile_ref;
+    protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+
+    // fix other problems like missing MS run path annotations
+    if (id_msfile_ref.empty())
+    {
+      OPENMS_LOG_WARN  << "MS run path not set in ID file: " << id_file_abs_path << endl
+                       << "Resetting reference to MS file provided at same input position." << endl;
+    }
+    else if (id_msfile_ref.size() == 1)
+    {
+      // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
+      const String& in_bn = FileHandler::stripExtension(File::basename(mz_file_abs_path));
+      const String& id_primaryMSRun_bn = FileHandler::stripExtension(File::basename(id_msfile_ref[0]));
+
+      if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
+      {
+        OPENMS_LOG_WARN << "MS run path referenced from ID file does not match MS file at same input position: " << id_file_abs_path << endl
+                        << "Resetting reference to MS file provided at same input position." << endl;
+      }
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "Multiple MS files referenced from ID file: " << id_file_abs_path << endl
+                      << "Resetting reference to MS file provided at same input position." << endl;
+    }
+    id_msfile_ref = StringList{mz_file};
+    protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
+    protein_ids[0].setMetaValue("fraction_group", fraction_group);
+    protein_ids[0].setMetaValue("fraction", fraction);
+
+    // update identifiers to make them unique
+    // fixes some bugs related to users splitting the original mzML and id files before running the analysis
+    // in that case these files might have the same identifier
+    const String old_identifier = protein_ids[0].getIdentifier();
+    const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
+    protein_ids[0].setIdentifier(new_identifier);
+    for (PeptideIdentification & p : peptide_ids)
+    {
+      if (p.getIdentifier() == old_identifier)
+      {
+        p.setIdentifier(new_identifier);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
+      }
+    }
+
+    bool missing_spec_ref(false);
+    for (const PeptideIdentification & pid : peptide_ids)
+    {
+      if (!pid.metaValueExists("spectrum_reference") 
+        || pid.getMetaValue("spectrum_reference").toString().empty()) 
+      {          
+        missing_spec_ref = true;
+        break;
+      }
+    }
+    // reannotate spectrum references if missing
+    if (missing_spec_ref)
+    {
+      OPENMS_LOG_WARN << "Warning: The identification files don't contain a meta value with the spectrum native id.\n"
+                         "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
+
+      SpectrumMetaDataLookup::addMissingSpectrumReferences(
+        peptide_ids, 
+        mz_file_abs_path,
+        true);
+    }
+    return EXECUTION_OK;
+  }
  
   ExitCodes quantifyFraction_(
     const pair<unsigned int, std::vector<String> > & ms_files, 
@@ -798,160 +960,33 @@ protected:
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
 
-    // for each MS file of current fraction
+    // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
     for (String const & mz_file : ms_files.second)
     { 
       // centroid spectra (if in profile mode) and correct precursor masses
       MSExperiment ms_centroided;    
-      ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
-      if (e != EXECUTION_OK) { return e; }
 
+      {
+        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
+        if (e != EXECUTION_OK) { return e; }
+      }
+
+      // load and clean identification data associated with MS run
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
-      IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
 
-      if (protein_ids.size() != 1)
       {
-        OPENMS_LOG_FATAL_ERROR << "Exactly one protein identification run must be annotated in " << id_file_abs_path << endl;
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+        ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
+        if (e != EXECUTION_OK) return e;
       }
 
-      for (const ProteinIdentification& p : protein_ids)
-      {
-        StringList run_paths;
-        p.getPrimaryMSRunPath(run_paths);
-        if (run_paths.size() != 1)
-        {
-            OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ does not support merged ID runs. ID file: " << id_file_abs_path << endl;
-            return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-        }
-      }
-
-      // Check of score types are valid. TODO
-      try
-      {
-        IDScoreSwitcherAlgorithm switcher;
-        Size c = 0;
-        switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
-      }
-      catch(Exception::MissingInformation&)
-      {
-        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-      }
-
-      IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-      IDFilter::removeDecoyHits(peptide_ids);
-      IDFilter::removeDecoyHits(protein_ids);
-      IDFilter::removeEmptyIdentifications(peptide_ids);
-      IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
-
-      if (peptide_ids.empty())
-      {
-        OPENMS_LOG_FATAL_ERROR << "No peptide identifications present after removing decoys " << id_file_abs_path << endl;
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-      }
-   
-      // add to the (global) set of fixed and variable modifications
-      for (auto & p : protein_ids)
-      {
-        const vector<String>& var_mods = p.getSearchParameters().variable_modifications;
-        const vector<String>& fixed_mods = p.getSearchParameters().fixed_modifications;
-        std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin())); 
-        std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end())); 
-      }
-
-      // delete meta info to free some space
-      for (PeptideIdentification & pid : peptide_ids)
-      {
-        // we currently can't clear the PeptideIdentification meta data
-        // because the spectrum_reference is stored in the meta value (which it probably shouldn't)
-        // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
-        for (PeptideHit & ph : pid.getHits())
-        {
-          // TODO: keep target_decoy information for QC
-          ph.clearMetaInfo();
-        }
-      }
-
-      // annotate experimental design
-
-      // check and reannotate mzML file in ID
       StringList id_msfile_ref;
       protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
       id_MS_run_ref.push_back(id_msfile_ref[0]);
-
-      // fix other problems like missing MS run path annotations
-      if (id_msfile_ref.empty())
-      {
-        OPENMS_LOG_WARN  << "MS run path not set in ID file: " << id_file_abs_path << endl
-                         << "Resetting reference to MS file provided at same input position." << endl;
-      }
-      else if (id_msfile_ref.size() == 1)
-      {
-        // Check if the annotated primary MS run filename matches the mzML filename (comparison by base name)
-        const String& in_bn = FileHandler::stripExtension(File::basename(mz_file_abs_path));
-        const String& id_primaryMSRun_bn = FileHandler::stripExtension(File::basename(id_msfile_ref[0]));
-
-        if (in_bn != id_primaryMSRun_bn)  // mismatch between annotation in ID file and provided mzML file
-        {
-          OPENMS_LOG_WARN << "MS run path referenced from ID file does not match MS file at same input position: " << id_file_abs_path << endl
-                          << "Resetting reference to MS file provided at same input position." << endl;
-        }
-      }
-      else
-      {
-        OPENMS_LOG_WARN << "Multiple MS files referenced from ID file: " << id_file_abs_path << endl
-                        << "Resetting reference to MS file provided at same input position." << endl;
-      }
-      id_msfile_ref = StringList{mz_file};
-      protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
-      protein_ids[0].setMetaValue("fraction_group", fraction_group);
-      protein_ids[0].setMetaValue("fraction", fraction);
-
-      // update identifiers to make them unique
-      // fixes some bugs related to users splitting the original mzML and id files before running the analysis
-      // in that case these files might have the same identifier
-      const String old_identifier = protein_ids[0].getIdentifier();
-      const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
-      protein_ids[0].setIdentifier(new_identifier);
-      for (PeptideIdentification & p : peptide_ids)
-      {
-        if (p.getIdentifier() == old_identifier)
-        {
-          p.setIdentifier(new_identifier);
-        }
-        else
-        {
-          OPENMS_LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
-        }
-      }
-
-      bool missing_spec_ref(false);
-      for (const PeptideIdentification & pid : peptide_ids)
-      {
-        if (!pid.metaValueExists("spectrum_reference") 
-          || pid.getMetaValue("spectrum_reference").toString().empty()) 
-        {          
-          missing_spec_ref = true;
-          break;
-        }
-      }
-      // reannotate spectrum references if missing
-      if (missing_spec_ref)
-      {
-        OPENMS_LOG_WARN << "Warning: The identification files don't contain a meta value with the spectrum native id.\n"
-                           "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
-
-        SpectrumMetaDataLookup::addMissingSpectrumReferences(
-          peptide_ids, 
-          mz_file_abs_path,
-          true);
-      }
-
+     
       //-------------------------------------------------------------
       // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
       //-------------------------------------------------------------
@@ -1095,13 +1130,12 @@ protected:
         getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
     }
 
-    const StringList & mz_files(ms_files.second);
     ////////////////////////////////////////////////////////////
     // Annotate experimental design in consensus map
     ////////////////////////////////////////////////////////////
     Size j(0);
     // for each MS file (as provided in the experimental design)
-    for (String const & mz_file : mz_files) 
+    for (String const & mz_file : ms_files.second) 
     {
       const Size curr_fraction_group = j + 1;
       consensus_fraction.getColumnHeaders()[j].label = "label-free";
@@ -1395,6 +1429,12 @@ protected:
         OPENMS_PRETTY_FUNCTION, "Number of spectra file (" + String(in.size()) + ") must match number of ID files (" + String(in_ids.size()) + ").");
     }
 
+    if (getStringOption_("quantification_method") == "spectral_counting" && !out_msstats.empty())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "MSstats export for spectral counting data not supported. Please remove output file.");
+    }
+
     //-------------------------------------------------------------
     // Experimental design: read or generate default
     //-------------------------------------------------------------      
@@ -1573,6 +1613,73 @@ protected:
         ConsensusXMLFile().store("debug_after_normalization.consensusXML", consensus);
       }
     }
+    else if (getStringOption_("quantification_method") == "spectral_counting")
+    {
+      OPENMS_LOG_INFO << "Performing spectral counting-based quantification." << endl;
+
+      // init consensus map with basic experimental design information
+      consensus.setExperimentType("label-free");
+
+      auto& all_protein_ids = consensus.getProteinIdentifications();
+      auto& all_peptide_ids = consensus.getUnassignedPeptideIdentifications();
+
+      Size run_index(0);
+      for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
+      {
+        const Size& fraction = ms_files.first;
+
+        // debug output
+        writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
+        for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
+
+        // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
+        StringList id_MS_run_ref;
+        StringList in_MS_run = ms_files.second;
+
+        // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
+        Size fraction_group{1};
+        for (String const & mz_file : ms_files.second)
+        { 
+          // load and clean identification data associated with MS run
+          vector<ProteinIdentification> protein_ids;
+          vector<PeptideIdentification> peptide_ids;
+          const String& mz_file_abs_path = File::absolutePath(mz_file);
+          const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
+
+          {
+            ExitCodes e = loadAndCleanupIDFile_(id_file_abs_path, mz_file, fraction_group, fraction, protein_ids, peptide_ids, fixed_modifications, variable_modifications);
+            if (e != EXECUTION_OK) return e;
+          }
+
+          StringList id_msfile_ref;
+          protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+          id_MS_run_ref.push_back(id_msfile_ref[0]);
+
+          // append to consensus map
+          all_protein_ids.emplace_back(std::move(protein_ids[0]));
+          all_peptide_ids.insert(all_peptide_ids.end(), 
+            std::make_move_iterator(peptide_ids.begin()), 
+            std::make_move_iterator(peptide_ids.end()));
+        }
+
+        ////////////////////////////////////////////////////////////
+        // Annotate experimental design in consensus map
+        ////////////////////////////////////////////////////////////
+        Size j(0);
+        // for each MS file (as provided in the experimental design)
+        for (String const & mz_file : ms_files.second) 
+        {
+          const Size curr_fraction_group = j + 1;
+          consensus.getColumnHeaders()[run_index].label = "label-free";
+          consensus.getColumnHeaders()[run_index].filename = mz_file;
+          consensus.getColumnHeaders()[run_index].unique_id = 1 + run_index;
+          consensus.getColumnHeaders()[run_index].setMetaValue("fraction", fraction);
+          consensus.getColumnHeaders()[run_index].setMetaValue("fraction_group", curr_fraction_group);
+          ++j;
+          ++run_index;
+        }
+      }
+    }
 
     //-------------------------------------------------------------
     // ID related algorithms
@@ -1700,48 +1807,10 @@ protected:
       pq_param.setValue("top", 0); // all 
       pq_param.setValue("consensus:normalize", "false");
       quantifier.setParameters(pq_param);
-      // TODO: what about the other options?
-
-      OPENMS_LOG_INFO << "Performing spectral counting-based quantification." << endl;
-      auto& all_protein_ids = consensus.getProteinIdentifications();
-      auto& all_peptide_ids = consensus.getUnassignedPeptideIdentifications();
-      for (const auto& idfile : in_ids)
-      {
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
-        IdXMLFile().load(idfile, protein_ids, peptide_ids);
-
-        // add to the (global) set of fixed and variable modifications
-        for (auto & p : protein_ids)
-        {
-          const vector<String>& var_mods = p.getSearchParameters().variable_modifications;
-          const vector<String>& fixed_mods = p.getSearchParameters().fixed_modifications;
-          std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin())); 
-          std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end())); 
-        }
-
-        IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
-
-        // from above we already know that there is exact one protein ID run
-
-        // reannotate MS run if not present
-        StringList id_msfile_ref;
-        protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
-        if (id_msfile_ref.empty())
-        {
-          id_msfile_ref.push_back(idfile2mzfile.at(idfile));
-          protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
-        }
-        // append
-        all_protein_ids.emplace_back(std::move(protein_ids[0]));
-        all_peptide_ids.insert(all_peptide_ids.end(), 
-          std::make_move_iterator(peptide_ids.begin()), 
-          std::make_move_iterator(peptide_ids.end()));
-      }
 
       quantifier.readQuantData(
-       all_protein_ids,
-       all_peptide_ids,
+       consensus.getProteinIdentifications(),
+       consensus.getUnassignedPeptideIdentifications(),
        design);
     }
 
