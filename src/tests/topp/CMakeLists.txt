@@ -2826,7 +2826,6 @@ add_test("UTILS_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
          -design
          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
-         -Alignment:max_rt_shift 0
          -fasta
          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
          -quantification_method spectral_counting
