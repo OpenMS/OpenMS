@@ -503,7 +503,7 @@ namespace OpenMS
       // int progress = 0;
 
       FastOStream os(nos);
-      
+
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
       os << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
 
@@ -1773,7 +1773,7 @@ namespace OpenMS
           os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
           if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
           {
-            os << " value=\"" << cit->getValue().toString() << "\"";
+            os << " value=\"" << cit->getValue() << "\"";
           }
 
           if (cit->hasUnit())

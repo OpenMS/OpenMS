@@ -104,18 +104,18 @@ namespace OpenMS
         switch (it->value.valueType())
         {
         case DataValue::INT_VALUE:
-          os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         case DataValue::DOUBLE_VALUE:
-          os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         case DataValue::STRING_VALUE:
         case DataValue::STRING_LIST:
         case DataValue::INT_LIST:
         case DataValue::DOUBLE_LIST:
-          os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         default:         // no other value types are supported!
