@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -341,4 +342,6 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS

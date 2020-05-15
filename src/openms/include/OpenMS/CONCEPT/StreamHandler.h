@@ -36,7 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <map>
-#include <ostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

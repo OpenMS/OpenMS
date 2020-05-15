@@ -49,7 +49,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <ostream>
+#include <iosfwd>
+#include <string>
 #include <cmath>
 #include <vector>
 
@@ -227,7 +228,7 @@ protected:
 
   inline void CentroidPeak::setExtraPeakInfo(std::string in)
   {
-    extraPeakInfo_ = in;
+    extraPeakInfo_ = std::move(in);
   }
 
   inline void CentroidPeak::setRetentionTime(double in)

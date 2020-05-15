@@ -22,11 +22,11 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND)
+                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND, OPENMS_GIT_LC_DATE_FORMAT)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -41,6 +41,12 @@ import re
 import shutil
 import time
 
+if OPEN_MS_GIT_BRANCH == "nightly":
+    package_name = "pyopenms_nightly"
+    package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
+else:
+    package_name = "pyopenms"
+    package_version = OPEN_MS_VERSION
 
 os.environ["CC"] = OPEN_MS_COMPILER
 # AFAIK distutils does not care about CXX (set it to be safe)
@@ -78,16 +84,8 @@ if not single_threaded:
     import Cython.Distutils.build_ext
     distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
-
-# create version information
-ctime = os.stat("pyopenms").st_mtime
-ts = time.gmtime(ctime)
-timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
-
-version = OPEN_MS_VERSION
-
 with open("pyopenms/version.py", "w") as fp:
-    print("version=%r" % version, file=fp)
+    print("version=%r" % package_version, file=fp)
 
 # parse config
 
@@ -118,12 +116,18 @@ else:
     print("\n")
     exit()
 
-library_dirs = [OPEN_MS_BUILD_DIR,
+if (iswin):
+    library_dirs = [OPEN_MS_BUILD_DIR,
+                    j(OPEN_MS_BUILD_DIR, "lib", "Release"),
+                    j(OPEN_MS_BUILD_DIR, "bin", "Release"),
+                    j(OPEN_MS_BUILD_DIR, "Release"),
+                    QT_INSTALL_BINS,
+                    QT_INSTALL_LIBS,
+                    ]
+else:
+    library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "lib"),
-                j(OPEN_MS_BUILD_DIR, "lib", "Release"),
                 j(OPEN_MS_BUILD_DIR, "bin"),
-                j(OPEN_MS_BUILD_DIR, "bin", "Release"),
-                j(OPEN_MS_BUILD_DIR, "Release"),
                 QT_INSTALL_BINS,
                 QT_INSTALL_LIBS,
                 ]
@@ -242,14 +246,14 @@ if sys.platform == "darwin":
 
 setup(
 
-    name="pyopenms",
+    name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
 	install_requires=[
           'numpy',
     ],
 
-    version=version,
+    version=package_version,
 
     maintainer="Uwe Schmitt",
     maintainer_email="uschmitt@mineway.de",

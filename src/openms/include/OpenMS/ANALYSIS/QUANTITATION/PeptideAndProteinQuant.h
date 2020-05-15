@@ -192,7 +192,8 @@ public:
     static void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
-      const UInt n_samples);
+      const UInt n_samples,
+      bool remove_unquantified = true);
 
 private:
 

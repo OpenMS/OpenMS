@@ -145,7 +145,8 @@ protected:
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
+    registerStringOption_("add_decoys", "<choice>", "false", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.", false, true);
+    setValidStrings_("add_decoys", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
@@ -186,6 +187,17 @@ protected:
     
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
+
+    registerIntOption_("max_missed_cleavages", "<num>", -1, "Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)", false);
+    setMinInt_("max_missed_cleavages", -1);
+
+    registerIntOption_("tasks", "<num>", 0, "(Override the number of tasks to use on the threads; Default: (internally calculated based on inputs))\n"
+                                             "   More tasks than threads will reduce the memory requirements of the search, but will be slower (how much depends on the inputs).\n"
+                                             "   1 <= tasks <= numThreads: will create one task per thread, which is the original behavior.\n"
+                                             "   tasks = 0: use default calculation - minimum of: (threads*3) and (numSpectra/250).\n"
+                                             "   tasks < 0: multiply number of threads by abs(tasks) to determine number of tasks (i.e., -2 means \"2 * numThreads\" tasks).\n"
+                                             "   One task per thread will use the most memory, but will usually finish the fastest.\n"
+                                             "   2-3 tasks per thread will use comparably less memory, but may cause the search to take 1.5 to 2 times as long.", false);
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -297,6 +309,7 @@ protected:
       // load only MS2 spectra:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
+      f.getOptions().setFillData(false);
       f.load(exp_name, exp);
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
@@ -338,8 +351,10 @@ protected:
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
     if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
-    String position = mod->getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
-    if (position == "none") position = "any";
+    String position = mod->getTermSpecificityName();
+    if (position == "Protein N-term") position = "Prot-N-term";
+    else if (position == "Protein C-term") position = "Prot-C-term";
+    else if (position == "none") position = "any";
     return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
@@ -494,7 +509,7 @@ protected:
                    << "-d" << db_name.toQString()
                    << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString::number(int(getFlag_("add_decoys")))
+                   << "-tda" << QString::number(int(getStringOption_("add_decoys") == "true"))
                    << "-m" << QString::number(fragment_method_code)
                    << "-inst" << QString::number(instrument_code)
                    << "-e" << QString::number(enzyme_code)
@@ -504,8 +519,10 @@ protected:
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
+                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
+                   << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
     if (!mod_file.empty())
@@ -538,6 +555,8 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
 
+      vector<ProteinIdentification> protein_ids;
+      vector<PeptideIdentification> peptide_ids;
 
       if (getFlag_("legacy_conversion"))
       {
@@ -585,7 +604,6 @@ protected:
         search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
 
         // create idXML file
-        vector<ProteinIdentification> protein_ids;
         ProteinIdentification protein_id;
         protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
 
@@ -714,7 +732,6 @@ protected:
         protein_ids.push_back(protein_id);
 
         // iterate over map and create a vector of peptide identifications
-        vector<PeptideIdentification> peptide_ids;
         PeptideIdentification pep;
         for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
              it != peptide_identifications.end(); ++it)
@@ -723,24 +740,33 @@ protected:
           pep.sort();
           peptide_ids.push_back(pep);
         }
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
       }
-      else
+      else // no legacy conversion
       {
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
-        // set the MS-GF+ spectral e-value as new peptide identification score
-        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+
+        // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
+        for (auto& pid : protein_ids)
         {
-          switchScores_(*pep_it);
+          pid.getSearchParameters().missed_cleavages = 1000; // use a high value (1000 was used in previous MSGF+ version)
         }
+        // set the MS-GF+ spectral e-value as new peptide identification score
+        for (auto& pep : peptide_ids) { switchScores_(pep); }
 
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
       }
+
+      // use OpenMS meta value key
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        for (PeptideHit& psm : pid.getHits())
+        {
+          auto v = psm.getMetaValue("IsotopeError");
+          psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
+          psm.removeMetaValue("IsotopeError");
+        }
+      }
+      IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
     //-------------------------------------------------------------

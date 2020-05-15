@@ -75,6 +75,43 @@ public:
     /// Hit type definition
     typedef ProteinHit HitType;
 
+    /// two way mapping from ms-run-path to protID|pepID-identifier
+    struct Mapping
+    {
+      std::map<String, StringList> identifier_to_msrunpath;
+      std::map<StringList, String> runpath_to_identifier;
+
+      Mapping() = default;
+
+      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        create(prot_ids);
+      }
+      void create(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        identifier_to_msrunpath.clear();
+        runpath_to_identifier.clear();
+        StringList filenames;
+        for (const ProteinIdentification& prot_id : prot_ids)
+        {
+          prot_id.getPrimaryMSRunPath(filenames);
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+          }
+          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+          const auto& it = runpath_to_identifier.find(filenames);
+          if (it != runpath_to_identifier.end())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+                                          ListUtils::concatenate(filenames, ","));
+          }
+          runpath_to_identifier[filenames] = prot_id.getIdentifier();
+        }
+      }
+    };
+
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
@@ -414,6 +451,9 @@ public:
     */
     void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
 
+    /// get the number of primary MS runs involve in this ID run
+    Size nrPrimaryMSRunPaths(bool raw = false) const;
+
     /// Checks if this object has inference data. Looks for "InferenceEngine" metavalue.
     /// If not, falls back to old behaviour of reading the search engine name.
     bool hasInferenceData() const;
@@ -425,6 +465,11 @@ public:
     /// given an @param experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
+
+    /// Collects all search engine settings registered for the given search engine @param se.
+    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
+
     //@}
 
 protected:

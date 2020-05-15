@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -812,12 +811,14 @@ protected:
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
-      // protein inference results in the consensusXML?
+      bool inference_in_cxml = false;
+      // protein inference results in the consensusXML or from external ID-only file?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
           (!consensus.getProteinIdentifications()[0].getHits().empty()))
       {
         proteins_ = consensus.getProteinIdentifications()[0];
+        inference_in_cxml = true;
       }
 
       quantifier.readQuantData(consensus, ed);
@@ -830,9 +831,15 @@ protected:
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
-        vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
-        proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
-        consensus.setProteinIdentifications(proteins);
+        if (!inference_in_cxml)
+        {
+          auto& prots = consensus.getProteinIdentifications();
+          prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
+        }
+        else
+        {
+          std::swap(consensus.getProteinIdentifications()[0], proteins_);
+        }
 /*
  *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
@@ -843,7 +850,7 @@ protected:
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, true, report_unidentified_features, report_unmapped, report_subfeatures);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, !inference_in_cxml, report_unidentified_features, report_unmapped, report_subfeatures);
         MzTabFile().store(mztab, m);
       }
     }

@@ -677,6 +677,10 @@ namespace OpenMS
               {
                 ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
               }
+              else if (ph.metaValueExists("OMS:precursor_mz_error_ppm")) // for legacy reasons added in OpenMS 2.5
+              {
+                ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
+              }
               else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
               {
                 double exp_precursor = first_precursor.getMZ();

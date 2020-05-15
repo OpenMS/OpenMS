@@ -36,7 +36,7 @@
 #pragma once
 
 #include <vector>
-#include <ostream>
+#include <iosfwd>
 
 #include <OpenMS/config.h>
 

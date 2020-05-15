@@ -43,6 +43,7 @@
 #include <QtCore/QString>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/karma.hpp>
+#include <boost/type_traits.hpp>
 
 #include <string>
 #include <vector>
@@ -59,8 +60,49 @@ namespace OpenMS
     template <typename T> 
     class BK_PrecPolicy : public boost::spirit::karma::real_policies<T>
     {
+        typedef boost::spirit::karma::real_policies<T> base_policy_type;
     public:
-      static unsigned int precision(T) { return writtenDigits<T>(T()); }
+        static unsigned precision(T /*n*/) 
+        {
+            /* The following would be the only way for a lossless double-string-double
+            * rountrip but:
+            * a) We only care about speed
+            * b) Many tests have to be changed
+            * c) In the end boost::karma is bugged and hard limits the fractional digits
+            *    even though you have leading zeros (basically forcing scientific notation)
+            *    for full precision https://github.com/boostorg/spirit/issues/585
+            if (BK_PrecPolicy::floatfield(n))
+            {
+                T abs_n = boost::spirit::traits::get_absolute_value(n);
+                if (abs_n >= 1)
+                {
+                    return std::numeric_limits<T>::max_digits10 - (floor(log10(abs_n)) + 1);
+                }
+                else
+                {
+                    return std::numeric_limits<T>::max_digits10 - (floor(log10(abs_n)));
+                }  
+            }
+            else
+            {
+                return std::numeric_limits<T>::max_digits10 - 1;
+            }
+            */
+            return writtenDigits<T>();
+        }
+        
+        //  we want the numbers always to be in scientific format
+        static unsigned floatfield(T n)
+        {
+            if (boost::spirit::traits::test_zero(n))
+                return base_policy_type::fmtflags::fixed;
+
+            T abs_n = boost::spirit::traits::get_absolute_value(n);
+            // this is due to a bug in downstream thirdparty tools that only can read
+            // up to 19 digits. https://github.com/OpenMS/OpenMS/issues/4627
+            return (abs_n >= 1e4 || abs_n < 1e-2) 
+                ? base_policy_type::fmtflags::scientific : base_policy_type::fmtflags::fixed;
+        }
     };
     typedef boost::spirit::karma::real_generator<float, BK_PrecPolicy<float> > BK_PrecPolicyFloat_type;
     const BK_PrecPolicyFloat_type BK_PrecPolicyFloat;

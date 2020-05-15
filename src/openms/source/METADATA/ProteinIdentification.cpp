@@ -455,7 +455,7 @@ namespace OpenMS
     String meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
-      for (const String& filename : s)
+      for (const String &filename : s)
       {
         FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
@@ -473,6 +473,13 @@ namespace OpenMS
   void ProteinIdentification::addPrimaryMSRunPath(const String& s, bool raw)
   {
     addPrimaryMSRunPath(StringList({s}), raw);
+  }
+
+  Size ProteinIdentification::nrPrimaryMSRunPaths(bool raw) const
+  {
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
+    return spectra_data.size();
   }
 
   //TODO find a more robust way to figure that out. CV Terms?
@@ -519,6 +526,42 @@ namespace OpenMS
     return ok;
   }
 
+  vector<pair<String,String>> ProteinIdentification::getSearchEngineSettingsAsPairs(const String& se) const
+  {
+    vector<pair<String,String>> result;
+    const auto& params = this->getSearchParameters();
+    if (se.empty() || (this->getSearchEngine() == se
+                        && this->getSearchEngine() != "Percolator" //meaningless settings
+                        && !this->getSearchEngine().hasPrefix("ConsensusID"))) //meaningless settings
+    {
+      //TODO add spectra_data?
+      result.emplace_back("db", params.db);
+      result.emplace_back("db_version", params.db_version);
+      result.emplace_back("fragment_mass_tolerance", params.fragment_mass_tolerance);
+      result.emplace_back("fragment_mass_tolerance_unit", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
+      result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("enzyme", params.digestion_enzyme.getName());
+      result.emplace_back("charges", params.charges);
+      result.emplace_back("missed_cleavages", params.missed_cleavages);
+      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));
+      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications,","));
+    }
+    else
+    {
+      vector<String> mvkeys;
+      params.getKeys(mvkeys);
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix(se))
+        {
+          result.emplace_back(mvkey.substr(se.size()+1), params.getMetaValue(mvkey));
+        }
+      }
+    }
+    return result;
+  }
+
 
   // Equality operator
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
@@ -548,11 +591,11 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
     }
     else
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
     }
   }
 

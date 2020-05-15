@@ -109,7 +109,7 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = File::removeExtension(File::basename(mz_file));
+      base_name = FileHandler::stripExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
       PeakMap experiment;
@@ -119,7 +119,7 @@ namespace OpenMS
     }
     else
     {
-      base_name = File::removeExtension(File::basename(filename));
+      base_name = FileHandler::stripExtension(File::basename(filename));
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
@@ -272,7 +272,7 @@ namespace OpenMS
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
         PeptideHit h = *hit;
-        AASequence seq = h.getSequence();
+        const AASequence& seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
         int scan_index = count;
@@ -715,9 +715,9 @@ namespace OpenMS
 
     file_ = filename; // filename for error messages in XMLHandler
 
-    if (experiment_name != "")
+    if (!experiment_name.empty())
     {
-      exp_name_ = File::removeExtension(experiment_name);
+      exp_name_ = FileHandler::stripExtension(experiment_name);
       lookup_ = &lookup;
     }
 
