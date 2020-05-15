@@ -306,19 +306,21 @@ END_SECTION
 
 START_SECTION(File::~TempDir())
 {
-    File::TempDir* dir = new File::TempDir();
-    String path = (*dir).getPath();
-    TEST_EQUAL(File::exists(path), 1)
-    delete dir;
+    String path;
+    {
+      File::TempDir dir;
+      path = dir.getPath();
+      TEST_EQUAL(File::exists(path), 1)
+    }
     TEST_EQUAL(File::exists(path), 0)
     if (File::exists(path)) File::removeDir(path.toQString());
-
-    File::TempDir* dir2 = new File::TempDir(true);
-    String path2 = (*dir2).getPath();
-    TEST_EQUAL(File::exists(path2), 1)
-    delete dir2;
-    TEST_EQUAL(File::exists(path2), 1)
-    File::removeDir(path2.toQString());
+    {
+      File::TempDir dir2(true);
+      path = dir2.getPath();
+      TEST_EQUAL(File::exists(path), 1)
+    }
+    TEST_EQUAL(File::exists(path), 1)
+    if (File::exists(path)) File::removeDir(path.toQString());
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

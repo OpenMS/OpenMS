@@ -65,7 +65,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  File::TempDir::TempDir(bool keep_dir) {
+  File::TempDir::TempDir(bool keep_dir)
+  {
     String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
     OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir << "'" << std::endl;
     QDir d;
@@ -74,9 +75,8 @@ namespace OpenMS
     keep_dir_ = keep_dir;
   };
 
-  File::TempDir::~TempDir() {
-    if (temp_dir_.empty()) return;
-
+  File::TempDir::~TempDir()
+  {
     if (keep_dir_) {
       OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
       return;
@@ -85,7 +85,8 @@ namespace OpenMS
     File::removeDirRecursively(temp_dir_);
   };
 
-  const String& File::TempDir::getPath() {
+  const String& File::TempDir::getPath() const
+  {
     return temp_dir_;
   }
 

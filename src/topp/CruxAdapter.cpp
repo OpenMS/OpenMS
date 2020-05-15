@@ -255,7 +255,7 @@ protected:
     }
 
     //tmp_dir
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String tmp_dir = dir.getPath();
 
     String output_dir = tmp_dir + "crux-output";

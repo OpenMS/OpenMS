@@ -578,7 +578,7 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String tmp_dir = dir.getPath();
 
     writeDebug_("Comet is writing the default parameter file...", 1);

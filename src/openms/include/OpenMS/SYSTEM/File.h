@@ -72,7 +72,7 @@ public:
       ~TempDir();
 
       /// Return path to temporary folder
-      const String& getPath();
+      const String& getPath() const;
 
     private:
       /// Make class noncopyable
@@ -351,8 +351,6 @@ private:
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

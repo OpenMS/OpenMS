@@ -233,7 +233,7 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String tmp_dir = dir.getPath();
 
     // parameter file

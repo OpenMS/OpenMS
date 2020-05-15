@@ -853,7 +853,7 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String temp_directory_body = dir.getPath();
     
     String txt_designator = File::getUniqueName();

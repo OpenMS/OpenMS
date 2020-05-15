@@ -490,7 +490,7 @@ protected:
     }
 
     //tmp_dir
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String temp_dir = dir.getPath();
 
     // create a temporary config file for LuciPHOr2 parameters

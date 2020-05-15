@@ -195,7 +195,7 @@ protected:
     }
 
     // write input xml file
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String temp_directory = dir.getPath();
     String input_filename = temp_directory + "tandem_input.xml";
     String tandem_input_filename = in;

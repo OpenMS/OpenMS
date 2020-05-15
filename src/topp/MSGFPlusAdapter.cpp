@@ -468,7 +468,7 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String temp_dir, mzid_temp, mod_file;
     temp_dir = dir.getPath();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"

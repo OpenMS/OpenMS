@@ -310,7 +310,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    File::TempDir dir;
+    File::TempDir dir(debug_level_ >= 2);
     String temp_directory_body = dir.getPath();
 
     double pcut = getDoubleOption_("pcut");
