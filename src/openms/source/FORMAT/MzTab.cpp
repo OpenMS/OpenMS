@@ -2373,7 +2373,7 @@ namespace OpenMS
     if (coverage >= 0) { protein_row.coverage = MzTabDouble(coverage); }
 
     // Store quantitative value attached to abundances in study variables
-    if (group.getFloatDataArrays().size() == 1
+    if (!group.getFloatDataArrays().empty()
       && group.getFloatDataArrays()[0].getName() == "abundances")
     {
       const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];

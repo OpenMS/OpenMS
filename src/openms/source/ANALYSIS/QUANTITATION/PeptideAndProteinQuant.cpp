@@ -35,7 +35,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <iterator>
 
 using namespace std;
 
@@ -244,8 +243,8 @@ namespace OpenMS
             for (auto & sa : ca.second) // loop over all psm counts
             {
               const UInt64 & sample_id = sa.first;
-              const double & sample_abundance = sa.second;
-              pep_q.second.total_psm_counts[sample_id] += sample_abundance;
+              const double & sample_counts = sa.second;
+              pep_q.second.total_psm_counts[sample_id] += sample_counts;
             }
           }
         }
@@ -408,13 +407,11 @@ namespace OpenMS
       // summarize abundances and counts between different peptidoforms       
       for (auto const & sta : pep_q.second.total_abundances)
       {
-        String peptide = pep_q.first.toUnmodifiedString();
         prot_quant_[accession].abundances[peptide][sta.first] += sta.second;
       }
 
       for (auto const & sta : pep_q.second.total_psm_counts)
       {
-        String peptide = pep_q.first.toUnmodifiedString();
         prot_quant_[accession].psm_counts[peptide][sta.first] += sta.second;
       }
     }
@@ -789,12 +786,14 @@ namespace OpenMS
         psm_counts.setName("psm_count");
         psm_counts.resize(n_samples);
 
+        OPENMS_LOG_DEBUG << "Abundances:\n";
         for (auto const& a : id_group->accessions)
         {
           OPENMS_LOG_DEBUG << a << "\t";
         }
         OPENMS_LOG_DEBUG << "\n";
 
+        OPENMS_LOG_DEBUG << "PSMs:\n";
         for (auto const & s : total_abundances)
         {
           // Note: sample indices are one-based
