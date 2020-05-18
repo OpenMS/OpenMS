@@ -81,7 +81,6 @@ public:
       const String& getPath() const;
 
     private:
-
       String temp_dir_;
       bool keep_dir_;
     };
