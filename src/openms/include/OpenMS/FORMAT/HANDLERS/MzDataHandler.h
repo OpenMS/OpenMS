@@ -172,6 +172,19 @@ protected:
       inline void writeCVS_(FastOStream& os, const String & value, const String & acc, const String & name, UInt indent = 4) const;
 
       /**
+          @brief write cvParam containing strings to stream
+
+          @p value integer value
+          @p acc accession number defined by ontology
+          @p name term defined by ontology
+          @p indent number of tabs used in front of tag
+
+          Example:
+          &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+      */
+      inline void writeCVS_(FastOStream& os, Int value, const String & acc, const String & name, UInt indent) const;
+
+      /**
           @brief write cvParam element to stream
 
           @p os Output stream

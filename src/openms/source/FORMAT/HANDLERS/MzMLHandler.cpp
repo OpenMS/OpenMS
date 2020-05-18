@@ -3451,7 +3451,6 @@ namespace OpenMS
         }
         else
         {
-
           bool writtenAsCVTerm = false;
           if (cv_.hasTermWithName(*key))
           {
