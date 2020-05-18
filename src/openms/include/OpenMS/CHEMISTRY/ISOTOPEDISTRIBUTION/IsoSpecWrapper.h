@@ -417,6 +417,7 @@ public:
 protected:
     IsoSpec::IsoLayeredGenerator ILG;
     const double target_prob;
+    const bool do_p_trim;
   };
 
   /**
