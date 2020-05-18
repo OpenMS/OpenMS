@@ -2577,7 +2577,6 @@ Not sure how to handle these:
     MzTabMetaData& meta_data,
     bool first_run_inference_only)
   {
-
     set<String> protein_scoretypes;
     map<pair<String, String>, vector<pair<String,String>>> protein_settings;
     for (const auto& prot_run : prot_ids)

@@ -1187,7 +1187,6 @@ protected:
     vector<ProteinIdentification>& inferred_protein_ids, 
     vector<PeptideIdentification>& inferred_peptide_ids)
   {
-
     // Since we cant completely work on ConsensusXML yet,
     // load the IDs again and merge
     IDMergerAlgorithm merger{String("all_merged")};
