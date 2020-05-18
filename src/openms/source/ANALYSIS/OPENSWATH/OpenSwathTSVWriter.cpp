@@ -110,7 +110,8 @@ namespace OpenMS
         const OpenSwath::LightTransition * transition,
         const FeatureMap& output, const String& id) const
     {
-        std::stringstream result;
+        std::stringstream sstream;
+        FastOStream result(sstream);
         String decoy = "0"; // 0 = false
         if (transition->decoy)
         {
@@ -279,7 +280,7 @@ namespace OpenMS
 
             result << "\n";
         } // end of iteration
-      return result.str();
+      return sstream.str();
     }
 
     void OpenSwathTSVWriter::writeLines(const std::vector<String>& to_output)
