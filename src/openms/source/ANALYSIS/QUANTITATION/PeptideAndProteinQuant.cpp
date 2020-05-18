@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <iterator>
 
 using namespace std;
 
@@ -70,26 +71,28 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-
+  // doesn't only count but also some initialization TODO: rename
   void PeptideAndProteinQuant::countPeptides_(
-    vector<PeptideIdentification>& peptides)
+    vector<PeptideIdentification>& peptides, 
+    const Size& n_fractions)
   {
-    // TODO FRACTION: map ids to fractions
-    const int fraction = 1; //TODO: determine from ID?
     for (auto & pep : peptides)
     {
-      if (!pep.getHits().empty())
-      {
-        pep.sort();
-        const PeptideHit& hit = pep.getHits()[0]; // get best hit
-        PeptideData& data = pep_quant_[hit.getSequence()];
-        data.id_count++;
-        data.abundances[fraction][hit.getCharge()]; // insert empty element for charge
+      if (pep.getHits().empty()) continue;
+      pep.sort(); // TODO: move this out of count peptides
+      const PeptideHit& hit = pep.getHits()[0]; // get best hit
+      PeptideData& data = pep_quant_[hit.getSequence()];
+      data.psm_count++;
 
-        // add protein accessions:
-        set<String> protein_accessions = hit.extractProteinAccessionsSet();
-        data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
+      // TODO: why is this needed
+      for (Size i = 1; i <= n_fractions; ++i)
+      {
+        data.abundances[i][hit.getCharge()]; // insert empty element for charge
       }
+
+      // add protein accessions:
+      set<String> protein_accessions = hit.extractProteinAccessionsSet();
+      data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
     }
   }
 
@@ -214,10 +217,14 @@ namespace OpenMS
         {
           pep_q.second.total_abundances[sa.first] = sa.second;
         }
+        // spectral counting according to the best fraction and charge state only:
+        for (auto & sa : pep_q.second.psm_counts[best_fraction_and_charge.first][best_fraction_and_charge.second])
+        {
+          pep_q.second.total_psm_counts[sa.first] = sa.second;
+        }
       }
       else
       { // sum up sample abundances over all fractions and charge states:
-
         for (auto & fa : pep_q.second.abundances)  // for all fractions 
         {
           for (auto & ca : fa.second) // for all charge states
@@ -227,6 +234,18 @@ namespace OpenMS
               const UInt64 & sample_id = sa.first;
               const double & sample_abundance = sa.second;
               pep_q.second.total_abundances[sample_id] += sample_abundance;
+            }
+          }
+        }
+        for (auto & fa : pep_q.second.psm_counts) // for all fractions 
+        {
+          for (auto & ca : fa.second) // for all charge states
+          {  
+            for (auto & sa : ca.second) // loop over all psm counts
+            {
+              const UInt64 & sample_id = sa.first;
+              const double & sample_abundance = sa.second;
+              pep_q.second.total_psm_counts[sample_id] += sample_abundance;
             }
           }
         }
@@ -370,21 +389,33 @@ namespace OpenMS
 
     // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
 
+    set<String> unique_peptide_sequences;
     for (auto const& pep_q : pep_quant_)
     {
       String accession = getAccession_(pep_q.second.accessions,
                                        accession_to_leader);
       OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
-      if (!accession.empty()) // proteotypic peptide
+
+      // not enough evidence or mapping to multiple groups
+      if (accession.empty()) continue;
+
+      // proteotypic peptide
+      const String peptide = pep_q.first.toUnmodifiedString();
+
+      prot_quant_[accession].psm_count += pep_q.second.psm_count;
+
+      // transfer abundances and counts from peptides->protein
+      // summarize abundances and counts between different peptidoforms       
+      for (auto const & sta : pep_q.second.total_abundances)
       {
-        prot_quant_[accession].id_count += pep_q.second.id_count;
-        for (auto const & sta : pep_q.second.total_abundances)
-        {
-          // add up contributions of same peptide with different mods:
-          String raw_peptide = pep_q.first.toUnmodifiedString();
-          prot_quant_[accession].abundances[raw_peptide][sta.first] +=
-            sta.second;
-        }
+        String peptide = pep_q.first.toUnmodifiedString();
+        prot_quant_[accession].abundances[peptide][sta.first] += sta.second;
+      }
+
+      for (auto const & sta : pep_q.second.total_psm_counts)
+      {
+        String peptide = pep_q.first.toUnmodifiedString();
+        prot_quant_[accession].psm_counts[peptide][sta.first] += sta.second;
       }
     }
 
@@ -427,16 +458,30 @@ namespace OpenMS
           peptides.push_back(ab.first);
         }
       }
-
-      map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+      // done selecting peptides for quantification
 
       // consider only the selected peptides for quantification:
-      for (auto & pep : peptides)
-      {       
-        for (auto & sa : prot_q.second.abundances[pep])
+      map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+      map<UInt64, DoubleList> psm_counts; // all PSM counts by sample
+      for (const auto & pep : peptides) // for all selected peptides
+      { 
+        for (auto & sa : prot_q.second.abundances[pep]) // copy over abundances
         {
           abundances[sa.first].push_back(sa.second);
         }
+
+        for (auto & sa : prot_q.second.psm_counts[pep]) // copy over psm counts
+        {
+          psm_counts[sa.first].push_back(sa.second);
+        }
+      }
+
+      // summarize all peptides of this protein to get map: sample->psm_count
+      // note: we take all for spectral counting (not only the top n ones) and always sum up
+      for (auto & c : psm_counts)
+      {
+        double psm_count_result = Math::sum(c.second.begin(), c.second.end());
+        prot_q.second.total_psm_counts[c.first] = psm_count_result;
       }
 
       for (auto & ab : abundances)
@@ -455,14 +500,14 @@ namespace OpenMS
           ab.second.resize(top); // remove all but best "top" values
         }
 
-        double result;
+        double abundance_result;
         if (average == "median")
         {
-          result = Math::median(ab.second.begin(), ab.second.end());
+          abundance_result = Math::median(ab.second.begin(), ab.second.end());
         }
         else if (average == "mean")
         {
-          result = Math::mean(ab.second.begin(), ab.second.end());
+          abundance_result = Math::mean(ab.second.begin(), ab.second.end());
         }
         else if (average == "weighted_mean")
         {
@@ -473,13 +518,14 @@ namespace OpenMS
             sum_intensities += in;
             sum_intensities_squared += in * in;
           }
-          result = sum_intensities_squared / sum_intensities;
+          abundance_result = sum_intensities_squared / sum_intensities;
         }
         else // "sum"
         {
-          result = Math::sum(ab.second.begin(), ab.second.end());
+          abundance_result = Math::sum(ab.second.begin(), ab.second.end());
         }
-        prot_q.second.total_abundances[ab.first] = result;
+        
+        prot_q.second.total_abundances[ab.first] = abundance_result;
       }
 
       // update statistics:
@@ -495,7 +541,6 @@ namespace OpenMS
   }
 
 
-  // FRACTIONS: DONE
   void PeptideAndProteinQuant::readQuantData(
     FeatureMap& features,
     const ExperimentalDesign& ed)
@@ -515,13 +560,14 @@ namespace OpenMS
         stats_.blank_features++;
         continue;
       }
-      countPeptides_(f.getPeptideIdentifications());
+       
+      countPeptides_(f.getPeptideIdentifications(), 1);
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
       const size_t fraction(1), sample(1);
       quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
     }
-    countPeptides_(features.getUnassignedPeptideIdentifications());
+    countPeptides_(features.getUnassignedPeptideIdentifications(), 1);
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
@@ -560,7 +606,7 @@ namespace OpenMS
         continue;
       }
 
-      countPeptides_(c.getPeptideIdentifications());
+      countPeptides_(c.getPeptideIdentifications(), stats_.n_fractions);
       PeptideHit hit = getAnnotation_(c.getPeptideIdentifications());
       for (auto const & f : c.getFeatures())
       {
@@ -573,7 +619,7 @@ namespace OpenMS
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }
-    countPeptides_(consensus.getUnassignedPeptideIdentifications());
+    countPeptides_(consensus.getUnassignedPeptideIdentifications(), stats_.n_fractions);
     stats_.total_peptides = pep_quant_.size();
     stats_.ambig_features = stats_.total_features - stats_.blank_features -
                             stats_.quant_features;
@@ -598,7 +644,7 @@ namespace OpenMS
 
     stats_.total_features = peptides.size();
 
-    countPeptides_(peptides);
+    countPeptides_(peptides, stats_.n_fractions);
 
     map<String, String> identifier_to_ms_file;
     for (Size i = 0; i < proteins.size(); ++i)
@@ -730,12 +776,18 @@ namespace OpenMS
       if (id_group != id_groups.end())
       {
         // copy abundances to float data array
-        SampleAbundances total_abundances = q.second.total_abundances;
-        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(1);
+        const SampleAbundances& total_abundances = q.second.total_abundances;
+        const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
+
+       // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
+        id_group->getFloatDataArrays().resize(2);
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         abundances.setName("abundances");        
         abundances.resize(n_samples);
+
+        auto & psm_counts = id_group->getFloatDataArrays()[1];
+        psm_counts.setName("psm_count");
+        psm_counts.resize(n_samples);
 
         for (auto const& a : id_group->accessions)
         {
@@ -747,6 +799,13 @@ namespace OpenMS
         {
           // Note: sample indices are one-based
           abundances[s.first - 1] = s.second;
+          OPENMS_LOG_DEBUG << s.second << "\t";
+        }
+        OPENMS_LOG_DEBUG << endl;
+
+        for (auto const & s : total_psm_counts)
+        {
+          psm_counts[s.first - 1] = s.second;
           OPENMS_LOG_DEBUG << s.second << "\t";
         }
         OPENMS_LOG_DEBUG << endl;
