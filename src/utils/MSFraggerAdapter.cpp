@@ -195,9 +195,9 @@ public:
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
-    working_directory(""),
     java_exe(""),
     exe(""),
+    working_directory(debug_level_ >= 2),
     parameter_file_path(""),
     input_file(),
     output_file()
@@ -522,13 +522,11 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      File::TempDir dir(debug_level_ >= 2);
-      QString working_directory = dir.getPath().toQString();
-      const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
+      const QFileInfo tmp_param_file(this->working_directory.getPath().toQString(), "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
-      writeDebug_("Working Directory: '" + String(this->working_directory) + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + this->working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -621,7 +619,7 @@ protected:
         << input_file;
 
     QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(this->working_directory);
+    process_msfragger.setWorkingDirectory(this->working_directory.getPath().toQString());
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
@@ -683,7 +681,7 @@ protected:
 
 private:
 
-  QString working_directory;
+  File::TempDir working_directory;
 
   String java_exe;
   String exe;
