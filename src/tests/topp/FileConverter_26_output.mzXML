@@ -2,7 +2,7 @@
 <mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" 
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
  xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1 http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd">
-	<msRun scanCount="10" startTime="PT20.8713S" endTime="PT39.9708S" >
+	<msRun scanCount="10" startTime="PT20.871300000000002S" endTime="PT39.970799999999997S" >
 		<parentFile fileName="FileFilter_1_input.mzML" fileType="processedData" fileSha1="c56be74ff5f1c9db82513482a4dc8454ec316b08"/>
 		<msInstrument>
 			<msManufacturer category="msManufacturer" value="Thermo Scientific"/>
@@ -24,7 +24,7 @@
 			<software type="processing" name="FileConverter" version="version_string" completionTime="1999-12-31T23:59:59"/>
 			<processingOperation name="parameter: mode" value="test_mode"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="787" polarity="+" scanType="Full" retentionTime="PT20.8713S" lowMz="500.14581298828125" highMz="1497.2769775390625" basePeakMz="541.21673583984375" basePeakIntensity="4680.564453125" totIonCurrent="2.6094803125e05">
+		<scan num="1" msLevel="1" peaksCount="787" polarity="+" scanType="Full" retentionTime="PT20.871300000000002S" lowMz="500.14581298828125" highMz="1497.2769775390625" basePeakMz="541.21673583984375" basePeakIntensity="4680.564453125" totIonCurrent="2.6094803125e05">
 			<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
@@ -44,14 +44,14 @@
  compressionType="none"
  compressedLen="0" >RAmEgkMYUENEDUPuQrzIZUQRORlDnSP9</peaks>
 			</scan>
-			<scan num="4" msLevel="2" peaksCount="5" polarity="+" scanType="Full" retentionTime="PT27.8168S" lowMz="519.0" highMz="781.87274169921875" basePeakMz="756.11700439453125" basePeakIntensity="304.62847900390625" totIonCurrent="456.8590087890625">
+			<scan num="4" msLevel="2" peaksCount="5" polarity="+" scanType="Full" retentionTime="PT27.816800000000001S" lowMz="519.0" highMz="781.87274169921875" basePeakMz="756.11700439453125" basePeakIntensity="304.62847900390625" totIonCurrent="456.8590087890625">
 				<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
  compressionType="none"
  compressedLen="0" >RAHAAEG9enJEPQd9Q5hQckQ9w5NCkeDnRD5AAEG9en5EQ3fbQf9fjQ==</peaks>
 			</scan>
-			<scan num="5" msLevel="2" peaksCount="8" polarity="+" scanType="Full" retentionTime="PT25.3972S" lowMz="501.6507568359375" highMz="830.85308837890625" basePeakMz="518.4620361328125" basePeakIntensity="427.97955322265625" totIonCurrent="1508.73095703125">
+			<scan num="5" msLevel="2" peaksCount="8" polarity="+" scanType="Full" retentionTime="PT25.397200000000002S" lowMz="501.6507568359375" highMz="830.85308837890625" basePeakMz="518.4620361328125" basePeakIntensity="427.97955322265625" totIonCurrent="1508.73095703125">
 				<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
@@ -59,7 +59,7 @@
  compressedLen="0" >Q/rTTENiU3RD+1YwQi4QFEP8UHVCliscQ/4dKkNQFwhEAZ2SQ9X9YkQD0PhDFRiKRAkUoENc9oRET7aZQx2tQg==</peaks>
 			</scan>
 		</scan>
-		<scan num="6" msLevel="1" peaksCount="885" polarity="+" scanType="Full" retentionTime="PT31.2627S" lowMz="500.37017822265625" highMz="1486.6737060546875" basePeakMz="517.36236572265625" basePeakIntensity="21105.62109375" totIonCurrent="9.182670625e05">
+		<scan num="6" msLevel="1" peaksCount="885" polarity="+" scanType="Full" retentionTime="PT31.262699999999999S" lowMz="500.37017822265625" highMz="1486.6737060546875" basePeakMz="517.36236572265625" basePeakIntensity="2.110562109375e04" totIonCurrent="9.182670625e05">
 			<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
@@ -72,7 +72,7 @@
  compressionType="none"
  compressedLen="0" >Q/peZ0IJTApD/GIHQ6OTvUQB2ZpB1r0YRBBCVEPcbMpES89hQxp1Vw==</peaks>
 			</scan>
-			<scan num="8" msLevel="2" peaksCount="7" polarity="+" scanType="Full" retentionTime="PT34.2968S" lowMz="500.10009765625" highMz="850.07781982421875" basePeakMz="500.10009765625" basePeakIntensity="729.6771240234375" totIonCurrent="1280.466064453125">
+			<scan num="8" msLevel="2" peaksCount="7" polarity="+" scanType="Full" retentionTime="PT34.296799999999998S" lowMz="500.10009765625" highMz="850.07781982421875" basePeakMz="500.10009765625" basePeakIntensity="729.6771240234375" totIonCurrent="1280.466064453125">
 				<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
@@ -87,7 +87,7 @@
  compressedLen="0" >Q/9dt0JwRS9ECjkyQkmnoEQNN/ZCOH4O</peaks>
 			</scan>
 		</scan>
-		<scan num="10" msLevel="1" peaksCount="763" polarity="+" scanType="Full" retentionTime="PT39.9708S" lowMz="500.120208740234375" highMz="1484.451904296875" basePeakMz="517.27642822265625" basePeakIntensity="38920.1171875" totIonCurrent="1.0884205e06">
+		<scan num="10" msLevel="1" peaksCount="763" polarity="+" scanType="Full" retentionTime="PT39.970799999999997S" lowMz="500.120208740234375" highMz="1484.451904296875" basePeakMz="517.27642822265625" basePeakIntensity="3.89201171875e04" totIonCurrent="1.0884205e06">
 			<peaks precision="32"
  byteOrder="network"
  contentType="m/z-int"
@@ -96,16 +96,16 @@
 		</scan>
 	</msRun>
 <index name = "scan" >
-<offset id = "1" >1612</offset>
-<offset id = "2" >10396</offset>
-<offset id = "3" >18058</offset>
-<offset id = "4" >18484</offset>
-<offset id = "5" >18922</offset>
-<offset id = "6" >19411</offset>
-<offset id = "7" >29229</offset>
-<offset id = "8" >29680</offset>
-<offset id = "9" >30144</offset>
-<offset id = "10" >30581</offset>
+<offset id = "1" >1634</offset>
+<offset id = "2" >10429</offset>
+<offset id = "3" >18091</offset>
+<offset id = "4" >18517</offset>
+<offset id = "5" >18966</offset>
+<offset id = "6" >19466</offset>
+<offset id = "7" >29298</offset>
+<offset id = "8" >29749</offset>
+<offset id = "9" >30224</offset>
+<offset id = "10" >30661</offset>
 </index>
-<indexOffset>39114</indexOffset>
+<indexOffset>39208</indexOffset>
 </mzXML>
