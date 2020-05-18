@@ -514,7 +514,7 @@ START_SECTION(( void IsoSpecTotalProbWrapper::run() ))
 
   // human insulin
   IsotopeDistribution iso_result3 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), total_prob, do_trim).run();
-  TEST_EQUAL(iso_result3.size(), 19616);
+  TEST_EQUAL(iso_result3.size(), 19615);
 
   IsotopeDistribution iso_result4 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.99, do_trim).run();
   TEST_EQUAL(iso_result4.size(), 1756);
