@@ -233,16 +233,15 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    File::TempDir dir(debug_level_ >= 2);
-    String tmp_dir = dir.getPath();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     // parameter file
-    String tmp_param = tmp_dir + "param.txt";    
+    String tmp_param = tmp_dir.getPath() + "param.txt";    
     ofstream os(tmp_param.c_str());
     createParamFile_(os);
 
     // convert mzML to mgf format
-    String tmp_mgf = tmp_dir + "tmp_mgf.mgf";
+    String tmp_mgf = tmp_dir.getPath() + "tmp_mgf.mgf";
     {
       MSDataTransformingConsumer c{};
       std::ofstream ofs;
@@ -267,7 +266,7 @@ protected:
     // process
     //-------------------------------------------------------------
 
-    String tmp_out = tmp_dir + "tmp_out_novor.csv";
+    String tmp_out = tmp_dir.getPath() + "tmp_out_novor.csv";
 
     QStringList process_params;
     process_params << java_memory

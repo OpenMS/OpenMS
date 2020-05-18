@@ -468,16 +468,15 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    File::TempDir dir(debug_level_ >= 2);
-    String temp_dir, mzid_temp, mod_file;
-    temp_dir = dir.getPath();
+    File::TempDir tmp_dir(debug_level_ >= 2);
+    String mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
-    mzid_temp = temp_dir + "msgfplus_output.mzid";
+    mzid_temp = tmp_dir.getPath() + "msgfplus_output.mzid";
     if (!no_mods)
     {
-      mod_file = temp_dir + "msgfplus_mods.txt";
+      mod_file = tmp_dir.getPath() + "msgfplus_mods.txt";
       writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
     }
 
@@ -562,7 +561,7 @@ protected:
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
-        String tsv_out = temp_dir + "msgfplus_converted.tsv";
+        String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
         process_params << java_memory;

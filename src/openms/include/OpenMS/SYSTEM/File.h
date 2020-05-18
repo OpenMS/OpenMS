@@ -71,13 +71,16 @@ public:
       /// Destroy temporary folder (can be prohibited in Constructor)
       ~TempDir();
 
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
       /// Return path to temporary folder
       const String& getPath() const;
 
     private:
-      /// Make class noncopyable
-      TempDir(const TempDir&);
-      TempDir& operator=(const TempDir&);
 
       String temp_dir_;
       bool keep_dir_;

@@ -66,13 +66,12 @@ namespace OpenMS
 {
 
   File::TempDir::TempDir(bool keep_dir)
+    : keep_dir_(keep_dir)
   {
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir << "'" << std::endl;
+    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'" << std::endl;
     QDir d;
-    d.mkpath(temp_dir.toQString());
-    temp_dir_ = temp_dir;
-    keep_dir_ = keep_dir;
+    d.mkpath(temp_dir_.toQString());
   };
 
   File::TempDir::~TempDir()

@@ -853,26 +853,25 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    File::TempDir dir(debug_level_ >= 2);
-    String temp_directory_body = dir.getPath();
+    File::TempDir tmp_dir(debug_level_ >= 2);
     
     String txt_designator = File::getUniqueName();
     String pin_file;
     if (getStringOption_("out_pin").empty())
     {
-      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+      pin_file = tmp_dir.getPath() + txt_designator + "_pin.tab";
     }
     else
     {
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
-    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
-    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
-    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
-    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
-    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
+    String pout_target_file(tmp_dir.getPath() + txt_designator + "_target_pout_psms.tab");
+    String pout_decoy_file(tmp_dir.getPath() + txt_designator + "_decoy_pout_psms.tab");
+    String pout_target_file_peptides(tmp_dir.getPath() + txt_designator + "_target_pout_peptides.tab");
+    String pout_decoy_file_peptides(tmp_dir.getPath() + txt_designator + "_decoy_pout_peptides.tab");
+    String pout_target_file_proteins(tmp_dir.getPath() + txt_designator + "_target_pout_proteins.tab");
+    String pout_decoy_file_proteins(tmp_dir.getPath() + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
