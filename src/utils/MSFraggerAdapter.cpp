@@ -195,9 +195,9 @@ public:
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
+    working_directory(debug_level_ >= 2),
     java_exe(""),
     exe(""),
-    working_directory(debug_level_ >= 2),
     parameter_file_path(""),
     input_file(),
     output_file()
