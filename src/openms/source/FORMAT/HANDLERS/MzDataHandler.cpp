@@ -1434,7 +1434,7 @@ namespace OpenMS
         warning(LOAD, String("Unexpected cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in tag " + parent_tag);
       }
 
-      if (error.empty())
+      if (!error.empty())
       {
         warning(LOAD, String("Invalid cvParam: accession=\"") + accession + "\" value=\"" + value + "\" in " + error);
       }
@@ -1451,7 +1451,7 @@ namespace OpenMS
 
     inline void MzDataHandler::writeCVS_(FastOStream& os, const String & value, const String & acc, const String & name, UInt indent) const
     {
-      if (value.empty())
+      if (!value.empty())
       {
         os << String(indent, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:" << acc << "\" name=\"" << name << "\" value=\"" << value << "\"/>\n";
       }

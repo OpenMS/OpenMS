@@ -87,7 +87,7 @@ public:
 
          @returns reference to this
     */
-    inline FastOStream& operator << (const String& s)
+    inline FastOStream& operator << (const OpenMS::String& s)
     {
       os_.rdbuf()->sputn(s.c_str(), s.size());
       return *this;
@@ -161,7 +161,7 @@ public:
          @param s Any kind of string (std::string, OpenMS::String, QString, char*)
          @param len Length to be written into the stream.
     */
-    inline void write(const String& s, uint64_t len)
+    inline void write(const OpenMS::String& s, uint64_t len)
     {
       write(s.c_str(), len);
     }
