@@ -295,9 +295,5 @@ namespace OpenMS
     IsotopeDistribution ID;
     ID.set(std::move(distribution));
     return ID;
-
 }
-
-
-}
-
+}  // namespace OpenMS
