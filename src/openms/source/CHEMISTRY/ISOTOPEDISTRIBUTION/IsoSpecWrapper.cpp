@@ -248,18 +248,18 @@ namespace OpenMS
         distribution.emplace_back(Peak1D(ILG.mass(), p));
     }
 
-    if(do_p_trim)
+    if (do_p_trim)
     {
         // the p_trim: extract the rest of the last layer, and perform quickselect
 
-        while(ILG.advanceToNextConfigurationWithinLayer())
+        while (ILG.advanceToNextConfigurationWithinLayer())
             distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
 
         size_t start = 0;
         size_t end = distribution.size();
         double sum_to_start = 0.0;
 
-        while(start < end)
+        while (start < end)
         {
             // Partition part
             size_t len = end - start;
@@ -270,8 +270,8 @@ namespace OpenMS
             double new_csum = sum_to_start;
 
             size_t loweridx = start;
-            for(size_t ii = start; ii < end-1; ii++)
-                if(distribution[ii].getIntensity() > pprob)
+            for (size_t ii = start; ii < end-1; ii++)
+                if (distribution[ii].getIntensity() > pprob)
                 {
                     std::swap<Peak1D>(distribution[ii], distribution[loweridx]);
                     new_csum += distribution[loweridx].getIntensity();
@@ -281,7 +281,7 @@ namespace OpenMS
             std::swap<Peak1D>(distribution[end-1], distribution[loweridx]);
 
             // Selection part
-            if(new_csum < target_prob)
+            if (new_csum < target_prob)
             {
                 start = loweridx + 1;
                 sum_to_start = new_csum + distribution[loweridx].getIntensity();
