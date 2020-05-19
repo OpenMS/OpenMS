@@ -578,14 +578,14 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
     {
-      std::ifstream ifs(tmp_dir + "/comet.params.new");
+      std::ifstream ifs(tmp_dir.getPath() + "/comet.params.new");
       getline(ifs, comet_version);
     }
     writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
@@ -615,15 +615,15 @@ protected:
     }
 
     //tmp_dir
-    String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.pin";
+    String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
+    String tmp_pin = tmp_dir.getPath() + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
     //default params given or to be written
     if (default_params.empty())
     {
-        tmp_file = tmp_dir + "param.txt";
+        tmp_file = tmp_dir.getPath() + "param.txt";
         ofstream os(tmp_file.c_str());
         createParamFile_(os, comet_version);
         os.close();
