@@ -157,6 +157,24 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
     /**
+        @brief Iterates over all children of parent recurisively.
+        @param x Function that gets the child-Strings passed. Must return bool.
+                 Used for comparisons and / or to set captured variables.
+    */
+    template <class LAMBDA>
+    bool iterateAllChildren(const String& parent, LAMBDA x) const
+    {
+      for (const auto& child : getTerm(parent).children)
+      {
+        if (x(child)) return true;
+        else if (iterateAllChildren(child, x)) return true;
+      }
+      return false;
+    }
+
+    const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
+
+    /**
         @brief Returns if @p child is a child of @p parent
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
