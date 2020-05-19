@@ -193,81 +193,81 @@ namespace OpenMS
             << "\t" << group_label
             << "\t" << "0"
             << "\t" << input_filename_
-            << "\t" << (String)feature_it->getRT()
+            << "\t" << feature_it->getRT()
             << "\t" << "f_" << feature_it->getUniqueId()  // TODO might not be unique!!!
-            << "\t" << (String)pep.sequence
+            << "\t" << pep.sequence
             << "\t" << (feature_it->metaValueExists("missedCleavages") ? (String)feature_it->getMetaValue("missedCleavages") : "")
             << "\t" << full_peptide_name
-            << "\t" << (String)pep.charge
-            << "\t" << (String)transition->precursor_mz
-            << "\t" << (String)feature_it->getIntensity()
+            << "\t" << pep.charge
+            << "\t" << transition->precursor_mz
+            << "\t" << feature_it->getIntensity()
             << "\t" << protein_name
             << "\t" << gene_name
             << "\t" << decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
-            << "\t" << (String)feature_it->getMetaValue("assay_rt")
-            << "\t" << (String)feature_it->getMetaValue("delta_rt")
-            << "\t" << (String)feature_it->getMetaValue("leftWidth")
+            << "\t" << feature_it->getMetaValue("assay_rt")
+            << "\t" << feature_it->getMetaValue("delta_rt")
+            << "\t" << feature_it->getMetaValue("leftWidth")
             << "\t" << main_var
-            << "\t" << (String)feature_it->getMetaValue("norm_RT")
-            << "\t" << (String)feature_it->getMetaValue("nr_peaks")
-            << "\t" << (String)feature_it->getMetaValue("peak_apices_sum")
-            << "\t" << (String)feature_it->getMetaValue("potentialOutlier")
-            << "\t" << (String)feature_it->getMetaValue("initialPeakQuality")
-            << "\t" << (String)feature_it->getMetaValue("rightWidth")
-            << "\t" << (String)feature_it->getMetaValue("rt_score")
-            << "\t" << (String)feature_it->getMetaValue("sn_ratio")
-            << "\t" << (String)feature_it->getMetaValue("total_xic")
-            << "\t" << (String)feature_it->getMetaValue("var_bseries_score")
-            << "\t" << (String)feature_it->getMetaValue("var_dotprod_score")
-            << "\t" << (String)feature_it->getMetaValue("var_intensity_score")
-            << "\t" << (String)feature_it->getMetaValue("var_isotope_correlation_score")
-            << "\t" << (String)feature_it->getMetaValue("var_isotope_overlap_score")
-            << "\t" << (String)feature_it->getMetaValue("var_library_corr")
-            << "\t" << (String)feature_it->getMetaValue("var_library_dotprod")
-            << "\t" << (String)feature_it->getMetaValue("var_library_manhattan")
-            << "\t" << (String)feature_it->getMetaValue("var_library_rmsd")
-            << "\t" << (String)feature_it->getMetaValue("var_library_rootmeansquare")
-            << "\t" << (String)feature_it->getMetaValue("var_library_sangle")
-            << "\t" << (String)feature_it->getMetaValue("var_log_sn_score")
-            << "\t" << (String)feature_it->getMetaValue("var_manhatt_score")
-            << "\t" << (String)feature_it->getMetaValue("var_massdev_score")
-            << "\t" << (String)feature_it->getMetaValue("var_massdev_score_weighted")
-            << "\t" << (String)feature_it->getMetaValue("var_norm_rt_score")
-            << "\t" << (String)feature_it->getMetaValue("var_xcorr_coelution")
-            << "\t" << (String)feature_it->getMetaValue("var_xcorr_coelution_weighted")
-            << "\t" << (String)feature_it->getMetaValue("var_xcorr_shape")
-            << "\t" << (String)feature_it->getMetaValue("var_xcorr_shape_weighted")
+            << "\t" << feature_it->getMetaValue("norm_RT")
+            << "\t" << feature_it->getMetaValue("nr_peaks")
+            << "\t" << feature_it->getMetaValue("peak_apices_sum")
+            << "\t" << feature_it->getMetaValue("potentialOutlier")
+            << "\t" << feature_it->getMetaValue("initialPeakQuality")
+            << "\t" << feature_it->getMetaValue("rightWidth")
+            << "\t" << feature_it->getMetaValue("rt_score")
+            << "\t" << feature_it->getMetaValue("sn_ratio")
+            << "\t" << feature_it->getMetaValue("total_xic")
+            << "\t" << feature_it->getMetaValue("var_bseries_score")
+            << "\t" << feature_it->getMetaValue("var_dotprod_score")
+            << "\t" << feature_it->getMetaValue("var_intensity_score")
+            << "\t" << feature_it->getMetaValue("var_isotope_correlation_score")
+            << "\t" << feature_it->getMetaValue("var_isotope_overlap_score")
+            << "\t" << feature_it->getMetaValue("var_library_corr")
+            << "\t" << feature_it->getMetaValue("var_library_dotprod")
+            << "\t" << feature_it->getMetaValue("var_library_manhattan")
+            << "\t" << feature_it->getMetaValue("var_library_rmsd")
+            << "\t" << feature_it->getMetaValue("var_library_rootmeansquare")
+            << "\t" << feature_it->getMetaValue("var_library_sangle")
+            << "\t" << feature_it->getMetaValue("var_log_sn_score")
+            << "\t" << feature_it->getMetaValue("var_manhatt_score")
+            << "\t" << feature_it->getMetaValue("var_massdev_score")
+            << "\t" << feature_it->getMetaValue("var_massdev_score_weighted")
+            << "\t" << feature_it->getMetaValue("var_norm_rt_score")
+            << "\t" << feature_it->getMetaValue("var_xcorr_coelution")
+            << "\t" << feature_it->getMetaValue("var_xcorr_coelution_weighted")
+            << "\t" << feature_it->getMetaValue("var_xcorr_shape")
+            << "\t" << feature_it->getMetaValue("var_xcorr_shape_weighted")
 
-            << "\t" << (String)feature_it->getMetaValue("var_im_xcorr_shape")
-            << "\t" << (String)feature_it->getMetaValue("var_im_xcorr_coelution")
-            << "\t" << (String)feature_it->getMetaValue("var_im_delta_score")
-            << "\t" << (String)feature_it->getMetaValue("var_im_ms1_delta_score")
-            << "\t" << (String)feature_it->getMetaValue("im_drift")
-            << "\t" << (String)feature_it->getMetaValue("im_drift_weighted")
+            << "\t" << feature_it->getMetaValue("var_im_xcorr_shape")
+            << "\t" << feature_it->getMetaValue("var_im_xcorr_coelution")
+            << "\t" << feature_it->getMetaValue("var_im_delta_score")
+            << "\t" << feature_it->getMetaValue("var_im_ms1_delta_score")
+            << "\t" << feature_it->getMetaValue("im_drift")
+            << "\t" << feature_it->getMetaValue("im_drift_weighted")
 
-            << "\t" << (String)feature_it->getMetaValue("var_yseries_score")
-            << "\t" << (String)feature_it->getMetaValue("var_elution_model_fit_score");
+            << "\t" << feature_it->getMetaValue("var_yseries_score")
+            << "\t" << feature_it->getMetaValue("var_elution_model_fit_score");
 
             if (use_ms1_traces_)
             {
-                result << "\t" << (String)feature_it->getMetaValue("var_ms1_ppm_diff")
-              << "\t" << (String)feature_it->getMetaValue("var_ms1_isotope_correlation")
-              << "\t" << (String)feature_it->getMetaValue("var_ms1_isotope_overlap")
-              << "\t" << (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
-              << "\t" << (String)feature_it->getMetaValue("var_ms1_xcorr_shape");
+                result << "\t" << feature_it->getMetaValue("var_ms1_ppm_diff")
+              << "\t" << feature_it->getMetaValue("var_ms1_isotope_correlation")
+              << "\t" << feature_it->getMetaValue("var_ms1_isotope_overlap")
+              << "\t" << feature_it->getMetaValue("var_ms1_xcorr_coelution")
+              << "\t" << feature_it->getMetaValue("var_ms1_xcorr_shape");
             }
 
-            result  << "\t" << (String)feature_it->getMetaValue("xx_lda_prelim_score")
-            << "\t" << (String)feature_it->getMetaValue("xx_swath_prelim_score");
+            result  << "\t" <<feature_it->getMetaValue("xx_lda_prelim_score")
+            << "\t" << feature_it->getMetaValue("xx_swath_prelim_score");
             if (sonar_)
             {
-              result << "\t" << (String)feature_it->getMetaValue("var_sonar_lag")
-              << "\t" << (String)feature_it->getMetaValue("var_sonar_shape")
-              << "\t" << (String)feature_it->getMetaValue("var_sonar_log_sn")
-              << "\t" << (String)feature_it->getMetaValue("var_sonar_log_diff")
-              << "\t" << (String)feature_it->getMetaValue("var_sonar_log_trend")
-              << "\t" << (String)feature_it->getMetaValue("var_sonar_rsq");
+              result << "\t" << feature_it->getMetaValue("var_sonar_lag")
+              << "\t" << feature_it->getMetaValue("var_sonar_shape")
+              << "\t" << feature_it->getMetaValue("var_sonar_log_sn")
+              << "\t" << feature_it->getMetaValue("var_sonar_log_diff")
+              << "\t" << feature_it->getMetaValue("var_sonar_log_trend")
+              << "\t" << feature_it->getMetaValue("var_sonar_rsq");
 
             }
             if (use_ms1_traces_)
