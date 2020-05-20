@@ -172,6 +172,11 @@ public:
       return false;
     }
 
+    /**
+        @brief Searches the existing terms for the given @p name
+
+        @return const Pointer to found term. When term is not found, returns nullptr
+    */
     const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
 
     /**

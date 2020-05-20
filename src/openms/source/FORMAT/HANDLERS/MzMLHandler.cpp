@@ -3378,7 +3378,6 @@ namespace OpenMS
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator)
     {
       // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
-      // When not used as static function variable (when constructed in writeUserParam_() and passed by reference), we lose half of the speed-up
       const auto it = cached_terms_.find(std::make_pair(path, c.id));
       if (it != cached_terms_.end())
       {
