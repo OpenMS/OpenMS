@@ -246,34 +246,18 @@ namespace OpenMS
     Heap cluster_heads;
 
     // handles to cluster heads to reach them (index == cluster.id_) in cluster_heads for updating
-    vector<Handle> handles;
+    vector<Heap::handle_type> handles;
 
     // "cold" cluster bodies, where most of their data lies
-    vector<QTCluster::Data_> cluster_data;
+    vector<QTCluster::BulkData> cluster_data;
 
     // map to get ids from clusters, who contain a certain grid feature
     ElementMapping element_mapping;
 
-    computeClustering_(grid, cluster_heads, cluster_data, handles);
+    computeClustering_(grid, cluster_heads, cluster_data, handles, element_mapping);
 
     // number of clusters == number of data points:
     Size size = cluster_heads.size();
-
-    // fill the element mapping
-    for (Heap::iterator it = cluster_heads.begin();
-         it != cluster_heads.end(); ++it)
-    {
-      const NeighborMap& neigh = it->getAllNeighborsDirect();
-      for (NeighborMap::const_iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
-      {
-        GridFeature* gf_ptr = n_it->second.second;
-        element_mapping[gf_ptr].insert(it->getId());
-      }
-
-      // ensure that the cluster center is in the list as well
-      OpenMS::GridFeature* center_feature = it->getCenterPoint();
-      element_mapping[center_feature].insert(it->getId());
-    }
 
     ProgressLogger logger;
     Size progress = 0;
@@ -305,69 +289,77 @@ namespace OpenMS
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
                                               Grid& grid,
-                                              const vector<Handle>& handles)
+                                              const vector<Heap::handle_type>& handles)
   {
     // pop until the top is valid
     while (cluster_heads.top().isInvalid())
     {
-      removeTopFromHeap_(cluster_heads, cluster_heads.top(), element_mapping);
-      
+      removeFromElementMapping_(cluster_heads.top(), element_mapping);
+      cluster_heads.pop();
+
       // if the last remaining cluster was invalid, no consensus feature is created
       if (cluster_heads.empty()) return false;
     }
 
     const QTCluster& best = cluster_heads.top();
 
-    ClusterElementsMap const elements = best.getElements();
+    QTCluster::Elements const elements = best.getElements();
 
-    #ifdef DEBUG_QTCLUSTERFINDER
+#ifdef DEBUG_QTCLUSTERFINDER
     std::cout << "Elements: " << elements.size() << " with best "
          << best->getQuality() << " invalid " << best->isInvalid() << std::endl;
-    #endif
+#endif
 
     createConsensusFeature_(feature, best.getCurrentQuality(), elements);
 
-    #ifdef DEBUG_QTCLUSTERFINDER
+#ifdef DEBUG_QTCLUSTERFINDER
     std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << std::endl;
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
       std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
     }
-    #endif
+#endif
 
     updateClustering_(element_mapping, grid, elements, cluster_heads, handles, best.getId());
 
+    // made a consensus feature
     return true;
   }
 
-  void QTClusterFinder::removeTopFromHeap_(Heap& cluster_heads,
-                                           const QTCluster& cluster,
-                                           ElementMapping& element_mapping)
+  void QTClusterFinder::removeFromElementMapping_(const QTCluster& cluster,
+                                                  ElementMapping& element_mapping)
   {
-    ClusterElementsMap const elements = cluster.getElements();
-    for (ClusterElementsMap::const_iterator feature_it = elements.begin(); 
-        feature_it != elements.end(); ++feature_it)
+    /* We have to erase all references to this cluster from the element mapping
+     * before it is popped from the heap and deleted.
+     * This function is called in makeConsensusFeature() for clusters who were
+     * invalidated because their center feature was used by a better cluster.
+     * The neighbor features of this cluster have not necessarily been used
+     * and might still be "active", i.e. their element mapping may still be accessed.
+     * Therefore it should not contain references to a deleted cluster.
+    */
+    Size id = cluster.getId();
+    for (const auto& element : cluster.getElements())
     {
-      unordered_set<Size>& cluster_ids = element_mapping[feature_it->second.second];
-      cluster_ids.erase(cluster.getId());
+      element_mapping[element.feature].erase(id);
     }
-
-    cluster_heads.pop();
   }
 
-void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double quality, const ClusterElementsMap& elements)
+void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, 
+                                              double quality, 
+                                              const QTCluster::Elements& elements)
   {
     feature.setQuality(quality);
-    for (ClusterElementsMap::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
+
+    // the features of the current best cluster are inserted into the new consesus feature
+    for (const auto& element : elements)
     {
       // Store the id of already used features (important: needs to be done
-      // before updateClustering())
-      already_used_.insert(it->second.second);
+      // before updateClustering()) (not to be confused with the cluster id)
+      already_used_.insert(element.feature);
 
-      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second.second->getFeature());
-      feature.insert(it->first, elem_feat);
+      BaseFeature& elem_feat = const_cast<BaseFeature&>(element.feature->getFeature());
+      feature.insert(element.map_index, elem_feat);
       if (elem_feat.metaValueExists("dc_charge_adducts"))
       {
         feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
@@ -379,20 +371,20 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
 
   void QTClusterFinder::updateClustering_(ElementMapping& element_mapping,
                                           const Grid& grid, 
-                                          const ClusterElementsMap& elements,
+                                          const QTCluster::Elements& elements,
                                           Heap& cluster_heads,
-                                          const vector<Handle>& handles,
+                                          const vector<Heap::handle_type>& handles,
                                           Size best_id)
   {
-    for (ClusterElementsMap::const_iterator
-        it = elements.begin(); it != elements.end(); ++it)
+    for (const auto& element : elements)
     {
-      GridFeature* curr_feature = it->second.second;
+      const GridFeature* const curr_feature = element.feature;
 
       // ids of clusters the current feature belonged to
       unordered_set<Size>& cluster_ids = element_mapping[curr_feature];
 
-      // delete the id of the current best cluster (important)
+      // delete the id of the current best cluster
+      // we do not want to unnecessarily update it in the loop below
       cluster_ids.erase(best_id);
 
       // Identify all features that could potentially have been touched by this
@@ -400,12 +392,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
 
       ElementMapping tmp_element_mapping; // modify copy, then update
 
-      for (unordered_set<Size>::iterator
-           id_it  = cluster_ids.begin();
-           id_it != cluster_ids.end(); ++id_it)
+      for (const Size curr_id : cluster_ids)
       {
-
-        QTCluster& cluster = *handles[*id_it]; 
+        QTCluster& cluster = *handles[curr_id]; 
 
         // we do not want to update invalid features
         // (saves time and does not recompute the quality)
@@ -418,42 +407,35 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
             // If update returns true, it means that at least one element was
             // removed from the cluster and we need to update that cluster
 
-            // Get the coordinates of the current cluster
-            const Int x = cluster.getXCoord();
-            const Int y = cluster.getYCoord();
-
             ////////////////////////////////////////
             // Step 1: Iterate through all neighboring grid features and try to
             // add elements to the current cluster to replace the ones we just
             // removed
-            const GridFeature* center_feature = cluster.getCenterPoint();
-
-            addClusterElements_(x, y, grid, cluster, center_feature);
+            addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
-            cluster_heads.update_lazy(handles[*id_it]);
+            cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
             // Step 2: update element_mapping as the best feature for each
             // cluster may have changed
 
-            NeighborMap neigh = cluster.getAllNeighborsDirect();
-            for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+            for (const auto& neighbor : cluster.getAllNeighbors())
             {
-              GridFeature* gf_ptr = n_it->second.second;
-              tmp_element_mapping[gf_ptr].insert(cluster.getId());
+              tmp_element_mapping[neighbor.feature].insert(curr_id);
             }
           }
         }
       }
 
-      for (ElementMapping::iterator it = tmp_element_mapping.begin();
-          it != tmp_element_mapping.end(); ++it )
+      // we merge the tmp_element_mapping into the element_mapping after all clusters
+      // that contained one feature of the current best cluster have been updated,
+      // i.e. after every iteration of the outer loop
+      for (const auto& cluster_ids: tmp_element_mapping)
       {
-        for (unordered_set<Size>::iterator it2 = it->second.begin();
-            it2 != it->second.end(); ++it2)
+        for (const Size id : cluster_ids.second)
         {
-          element_mapping[ it->first ].insert(*it2);
+          element_mapping[cluster_ids.first].insert(id);
         }
       }
     }
@@ -462,19 +444,21 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
     cluster_heads.pop();
   }
 
-  void QTClusterFinder::addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
-    const OpenMS::GridFeature* center_feature)
+  void QTClusterFinder::addClusterElements_(const Grid& grid, QTCluster& cluster)
   {
     cluster.initializeCluster();
 
-    #ifdef DEBUG_QTCLUSTERFINDER
+#ifdef DEBUG_QTCLUSTERFINDER
     std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
     std::set<AASequence> a = cluster.getAnnotations();
     std::cout << " with annotations: ";
     for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
     std::cout << std::endl;
-    #endif
+#endif
 
+    const int x = cluster.getXCoord(); 
+    const int y = cluster.getYCoord(); 
+    const GridFeature* center_feature = cluster.getCenterPoint();
 
     // iterate over neighboring grid cells (1st dimension):
     for (int i = x - 1; i <= x + 1; ++i)
@@ -491,9 +475,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
           {
             OpenMS::GridFeature* neighbor_feature = it_cell->second;
 
-            #ifdef DEBUG_QTCLUSTERFINDER
+#ifdef DEBUG_QTCLUSTERFINDER
             std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< std::endl;
-            #endif
+#endif
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
@@ -522,7 +506,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
 
     cluster.finalizeCluster();
 
-    #ifdef DEBUG_QTCLUSTERFINDER
+#ifdef DEBUG_QTCLUSTERFINDER
     OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
     // this shouldn't be done anymore
     // cluster.getElements(elements);
@@ -539,7 +523,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
       for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
-    #endif
+#endif
 
 
   }
@@ -558,8 +542,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
 
   void QTClusterFinder::computeClustering_(Grid& grid,
                                            Heap& cluster_heads,
-                                           vector<QTCluster::Data_>& cluster_data,
-                                           vector<Handle>& handles)
+                                           vector<QTCluster::BulkData>& cluster_data,
+                                           vector<Heap::handle_type>& handles,
+                                           ElementMapping& element_mapping)
   {
     cluster_heads.clear();
     already_used_.clear();
@@ -567,6 +552,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
     handles.clear();
 
     // do not remove this (will lead to segfault)
+    // we need the pointers to cluster_data to stay valid,
+    // therefore no reallocation is allowed to happen
+    // we also reserve handles, because we don't know if we are allowed to move the handles
+    // (the documentation of boost::heap does not tell us a lot about the handles)
     cluster_data.reserve(grid.size());
     handles.reserve(grid.size());
 
@@ -584,15 +573,22 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, double 
       OpenMS::GridFeature* center_feature = it->second;
 
       // construct empty data body for the new cluster and create the head afterwards
-      cluster_data.emplace_back();
+      cluster_data.emplace_back(center_feature, num_maps_, 
+                                max_distance, x, y, id);
       
-      QTCluster cluster(&cluster_data.back(), center_feature, num_maps_, 
-                                        max_distance, use_IDs_, x, y, id);
+      QTCluster cluster(&cluster_data.back(), use_IDs_);
 
-      addClusterElements_(x, y, grid, cluster, center_feature);
+      addClusterElements_(grid, cluster);
 
       // push the cluster head of the new cluster into the heap
-      handles[id] = cluster_heads.push(cluster);
+      // and the returned handle into our handle vector
+      handles.push_back(cluster_heads.push(cluster));
+
+      // register the new cluster for all its elements in the element mapping
+      for (const auto& element : (*handles.back()).getElements())
+      {
+        element_mapping[element.feature].insert(id);
+      }
 
       // next cluster gets the next id
       ++id;

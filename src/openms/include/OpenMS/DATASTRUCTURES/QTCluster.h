@@ -112,26 +112,46 @@ namespace OpenMS
 public:
 
     // need to store more than one
-    typedef std::multimap<double, GridFeature*> NeighborListType;
-    typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMapMulti;
+    typedef std::multimap<double, const GridFeature*> NeighborList;
+    typedef OpenMSBoost::unordered_map<Size, NeighborList> NeighborMapMulti;
 
-    typedef std::pair<double, GridFeature*> NeighborPairType;
-    typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
+    struct Neighbor
+    {
+      double distance;
+      const GridFeature* feature;
+    };
 
-    typedef NeighborMap ClusterElementsMap;
+    typedef OpenMSBoost::unordered_map<Size, Neighbor> NeighborMap;
+
+    struct Element
+    {
+      Size map_index;
+      const GridFeature* feature;
+    };
+
+    typedef std::vector<Element> Elements;
+
     /** 
-     * @brief Class to store the bulk internal data (neihgbors, annotations, etc.)
+     * @brief Class to store the bulk internal data (neighbors, annotations, etc.)
      * 
-     * Has no functionality without a QTCluster (-head) pointing to it.
+     * Has no functionality without a QTCluster pointing to it.
      * Create object of this class before calling constructor of QTCluster
      */
-    class OPENMS_DLLAPI Data_
+    struct BulkData
     {
-      /// QTCluster can access and manage all members of Data_
-      friend class QTCluster;
-
+      /**
+       * @brief Detailed constructor of the cluster body
+       * @param center_point Pointer to the center point
+       * @param num_maps Number of input maps
+       * @param max_distance Maximum allowed distance of two points
+       * @param id Unique ID of this cluster
+       */
+      BulkData(const OpenMS::GridFeature* const center_point, 
+               Size num_maps, double max_distance,
+               Int x_coord, Int y_coord, Size id);
+      
       /// Pointer to the cluster center
-      GridFeature* center_point_;
+      const GridFeature* const center_point_;
 
       /// unique id of this cluster
       Size id_;
@@ -173,39 +193,41 @@ public:
     };
 
     /**
-     * @brief Detailed constructor
+     * @brief Detailed constructor of the cluster head
      * @param data Pointer to internal data
-     * @param center_point Pointer to the center point
-     * @param num_maps Number of input maps
-     * @param max_distance Maximum allowed distance of two points
      * @param use_IDs Use peptide annotations?
-     * @param id Unique ID of this cluster
      */
 
-    QTCluster(Data_* data, GridFeature* center_point, 
-              Size num_maps, double max_distance, 
-              bool use_IDs, Int x_coord, Int y_coord,
-              Size id);
+    QTCluster(BulkData* const data, bool use_IDs);
 
-    /// Default constructor not accessible
+    /** 
+     * @brief Default constructor not accessible
+     * Objects of this class should only exist with a valid BulkData* given.
+     * Otherwise most of the member functions are undefined behavior or produce segfaults
+     */
     QTCluster() = delete;
 
-    /// use this only when you actually want to move, but an interface can only copy
+    /** 
+     * @brief Cheap copy ctor because most of the data lies outside of this class (BulkData*)
+     * Be very careful with this copy constructor. The copy will point to the same
+     * BulkData object as the given QTCluster. The latter one shouldn't be used anymore.
+     * This operation is only allowed because the boost::heap interface needs it.
+     */
     QTCluster(const QTCluster& rhs) = default;
 
-    /// cheap move because the bulk data lies in the Data_ member
-    QTCluster(QTCluster&& rhs) = default;
-
-    /// use this only when you actually want to move, but an interface can only copy
+    /// Cheap copy assignment, see copy ctor for details
     QTCluster& operator=(const QTCluster& rhs) = default;
 
-    /// cheap move because the bulk data lies in the Data_ member
+    /// cheap move ctor because most of the data lies outside of this class (BulkData*)
+    QTCluster(QTCluster&& rhs) = default;
+
+    /// cheap move assignment because most of the data lies outside of this class (BulkData*)
     QTCluster& operator=(QTCluster&& rhs) = default;
 
     ~QTCluster() = default;
 
     /// Returns the cluster center
-    GridFeature* getCenterPoint() const;
+    const GridFeature* getCenterPoint() const;
 
     /// returns the clusters id
     Size getId() const;
@@ -234,10 +256,10 @@ public:
      * @param element The element to be added
      * @param distance Distance of the element to the center point
      */
-    void add(GridFeature* element, double distance);
+    void add(const GridFeature* const element, double distance);
 
     /// Gets the clustered elements meaning neighbors + cluster center
-    ClusterElementsMap getElements() const;
+    Elements getElements() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
@@ -246,7 +268,7 @@ public:
      *
      * @return Whether the cluster composition has changed due to the update
      */
-    bool update(const ClusterElementsMap& removed);
+    bool update(const Elements& removed);
 
     /// Returns the cluster quality and recomputes if necessary
     double getQuality();
@@ -279,43 +301,9 @@ public:
     void finalizeCluster();
 
     /// Get all current neighbors
-    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors() const;
-
-    /// avoids copying of neighbor map in getAllNeighbors
-    const NeighborMap& getAllNeighborsDirect() const;
+    Elements getAllNeighbors() const;
 
     private:
-      // total size of this class in memory should be 24 byte
-
-      /// Quality of the cluster
-      double quality_;
-
-      /// Whether current cluster is valid
-      bool valid_;
-
-      /// Has the cluster changed (if yes, quality needs to be recomputed)?
-      bool changed_;
-
-      /// Keep track of peptide IDs and use them for matching?
-      bool use_IDs_;
-
-      /** 
-       * @brief Whether initial collection of all neighbors is needed
-       *
-       * This variable stores whether we need to collect all annotations first
-       * before we can decide upon the best set of cluster points. This is
-       * usually only necessary if the center point does not have an annotation
-       * but we want to use ids.
-       *
-      */
-      bool collect_annotations_;
-
-      /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
-      bool finalized_;
-
-      /// Pointer to data members
-      Data_* data_;
-
       /// Computes the quality of the cluster
       void computeQuality_();
 
@@ -341,10 +329,39 @@ public:
       double optimizeAnnotations_();
 
       /// compute seq table, mapping: peptides -> best distance per input map
-      void makeSeq_table_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
+      void makeSeqTable_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
       
       /// report elements that are compatible with the optimal annotation
-      void recompute_neighbors_();
+      void recomputeNeighbors_();
+
+      /// Quality of the cluster
+      double quality_;
+
+      /// Pointer to data members
+      BulkData* data_;
+
+      /// Whether current cluster is valid
+      bool valid_;
+
+      /// Has the cluster changed (if yes, quality needs to be recomputed)?
+      bool changed_;
+
+      /// Keep track of peptide IDs and use them for matching?
+      bool use_IDs_;
+
+      /** 
+       * @brief Whether initial collection of all neighbors is needed
+       *
+       * This variable stores whether we need to collect all annotations first
+       * before we can decide upon the best set of cluster points. This is
+       * usually only necessary if the center point does not have an annotation
+       * but we want to use ids.
+       *
+      */
+      bool collect_annotations_;
+
+      /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
+      bool finalized_;
   };
 
   // needed for the heap

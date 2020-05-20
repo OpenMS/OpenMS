@@ -49,27 +49,32 @@ using std::iterator;
 
 namespace OpenMS
 {
-  QTCluster::QTCluster(QTCluster::Data_* data, OpenMS::GridFeature* center_point, 
-                       Size num_maps, double max_distance,
-                       bool use_IDs, Int x_coord, Int y_coord, Size id) :
+  QTCluster::BulkData::BulkData(const OpenMS::GridFeature* const center_point, 
+                                Size num_maps, double max_distance,
+                                Int x_coord, Int y_coord, Size id) :
+    center_point_(center_point),
+    id_(id),
+    neighbors_(),
+    tmp_neighbors_(),
+    max_distance_(max_distance),
+    num_maps_(num_maps),
+    x_coord_(x_coord),
+    y_coord_(y_coord),
+    annotations_()
+  {}
+
+  QTCluster::QTCluster(QTCluster::BulkData* const data, bool use_IDs) :
     quality_(0.0),
+    data_(data),
     valid_(true),
     changed_(false),
     use_IDs_(use_IDs),
     collect_annotations_(false),
-    finalized_(true),
-    data_(data)
+    finalized_(true)
   {
-    data_->center_point_ = center_point;
-    data_->id_ = id;
-    data_->max_distance_ = max_distance;
-    data_->num_maps_ = num_maps;
-    data_->x_coord_ = x_coord;
-    data_->y_coord_ = y_coord;
-
     if (use_IDs)
     {
-      data_->annotations_ = center_point->getAnnotations();
+      data_->annotations_ = data_->center_point_->getAnnotations();
     }
     if (use_IDs_ && data_->center_point_->getAnnotations().empty())
     { 
@@ -77,7 +82,7 @@ namespace OpenMS
     }
   }
 
-  GridFeature* QTCluster::getCenterPoint() const
+  const GridFeature* QTCluster::getCenterPoint() const
   {
     return data_->center_point_;
   }
@@ -130,9 +135,9 @@ namespace OpenMS
     return quality_ < rhs.quality_;
   }
 
-  void QTCluster::add(OpenMS::GridFeature* element, double distance)
+  void QTCluster::add(const OpenMS::GridFeature* const element, double distance)
   {
-    // get references on member that is used in this function
+    // get reference on member that is used in this function
     NeighborMapMulti& tmp_neighbors_ = data_->tmp_neighbors_;
 
     OPENMS_PRECONDITION(!finalized_,
@@ -146,8 +151,8 @@ namespace OpenMS
 
     Size map_index = element->getMapIndex();
 
-    // get references on more members that are used in this function
-    OpenMS::GridFeature& center_point = *(data_->center_point_);
+    // get reference on member that is used in this function
+    const OpenMS::GridFeature& center_point = *(data_->center_point_);
     
     // Ensure we only add compatible peptide annotations. If the cluster center
     // has an annotation, then each added neighbor should have the same
@@ -182,41 +187,40 @@ namespace OpenMS
       NeighborMap& neighbors_ = data_->neighbors_;
       
       if (neighbors_.find(map_index) == neighbors_.end() ||
-          distance < neighbors_[map_index].first)
+          distance < neighbors_[map_index].distance)
       {
-        neighbors_[map_index] = make_pair(distance, element);
+        neighbors_[map_index] = Neighbor{distance, element};
         changed_ = true;
       }
     }
   }
 
-  QTCluster::ClusterElementsMap QTCluster::getElements() const
+  QTCluster::Elements QTCluster::getElements() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
-    // copy neighbor map
-    NeighborMap neighbors_copy = data_->neighbors_;
+    // get the neighbors and then insert the cluster center
+    Elements elements = getAllNeighbors();
 
     // add center point to the copy
-    neighbors_copy[data_->center_point_->getMapIndex()].second = data_->center_point_;
+    elements.push_back({data_->center_point_->getMapIndex(), data_->center_point_});
 
     // Named return value optimization (no additional copy or move when returning by value)
-    return neighbors_copy;
+    return elements;
   }
 
-  bool QTCluster::update(const ClusterElementsMap& removed)
+  bool QTCluster::update(const Elements& removed)
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
     // check if the cluster center was removed:
-    for (NeighborMap::const_iterator
-        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
+    for (const auto& removed_element : removed)
     {
       // If center point was removed, then we are done and no more work is
       // required
-      if (rm_it->second.second == data_->center_point_)
+      if (removed_element.feature == data_->center_point_)
       {
         this->setInvalid();
         return false;
@@ -227,17 +231,16 @@ namespace OpenMS
     NeighborMap& neighbors_ = data_->neighbors_;
 
     // update cluster contents, remove those elements we find in our cluster
-    for (NeighborMap::const_iterator
-        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
+    for (const auto& removed_element : removed)
     {
-      NeighborMap::iterator pos = neighbors_.find(rm_it->first);
+      NeighborMap::iterator pos = neighbors_.find(removed_element.map_index);
       if (pos == neighbors_.end())
       {
         continue; // no points from this map
       }
 
-      const NeighborPairType current_feature = pos->second;
-      if (current_feature.second == rm_it->second.second) // remove this neighbor
+      const GridFeature* const current_feature = pos->second.feature;
+      if (current_feature == removed_element.feature) // remove this neighbor
       {
         changed_ = true;
         neighbors_.erase(pos);
@@ -287,14 +290,12 @@ namespace OpenMS
       // if the cluster center is annotated with peptide IDs, the neighbors can
       // consist only of features with compatible IDs, so we don't need to
       // check again here
-      Size counter = 0;
-      for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
+      for (const auto& neighbor : neighbors_)
       {
-        internal_distance += it->second.first;
-        counter++;
+        internal_distance += neighbor.second.distance;
       }
       // add max. distance for missing cluster elements:
-      internal_distance += (num_other - counter) * max_distance_;
+      internal_distance += (num_other - neighbors_.size()) * max_distance_;
     }
     else // find the annotation that gives the best quality
     {
@@ -306,28 +307,18 @@ namespace OpenMS
     quality_ = (max_distance_ - internal_distance) / max_distance_;
   }
 
-  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors() const
+  QTCluster::Elements QTCluster::getAllNeighbors() const
   {
     OPENMS_PRECONDITION(finalized_,
         "Cannot perform operation on cluster that is not finalized")
 
-    // get references on member that is used in this function
-    NeighborMap& neighbors_ = data_->neighbors_;
-
-    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > tmp;
-    for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
+    // copy the important info about the neighbors
+    Elements elements;
+    for (const auto& neighbor : data_->neighbors_)
     {
-      tmp[ it->first ].push_back(it->second.second);
+      elements.push_back({neighbor.first, neighbor.second.feature});
     }
-    return tmp;
-  }
-
-  const QTCluster::NeighborMap& QTCluster::getAllNeighborsDirect() const
-  {
-    OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
-        
-    return data_->neighbors_;
+    return elements;
   }
 
   const set<AASequence>& QTCluster::getAnnotations()
@@ -351,7 +342,7 @@ namespace OpenMS
     // mapping: peptides -> best distance per input map
     map<set<AASequence>, vector<double> > seq_table;
 
-    makeSeq_table_(seq_table);
+    makeSeqTable_(seq_table);
 
     // get copies of members that are used in this function
     Size num_maps_ = data_->num_maps_;
@@ -395,13 +386,13 @@ namespace OpenMS
       data_->annotations_ = best_pos->first;
     }
 
-    recompute_neighbors_();
+    recomputeNeighbors_();
 
     // one "max_dist." too many (from the input map of the cluster center):
     return best_total - max_distance_;
   }
 
-  void QTCluster::recompute_neighbors_()
+  void QTCluster::recomputeNeighbors_()
   {
     // get references on members that are used in this function
     NeighborMap& neighbors_ = data_->neighbors_;
@@ -413,20 +404,20 @@ namespace OpenMS
     for (NeighborMapMulti::const_iterator n_it = tmp_neighbors_.begin();
          n_it != tmp_neighbors_.end(); ++n_it)
     {
-      for (std::multimap<double, GridFeature*>::const_iterator df_it =
+      for (std::multimap<double, const GridFeature*>::const_iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
         const std::set<AASequence>& current = df_it->second->getAnnotations();
         if (current.empty() || (current == annotations_))
         {
-          neighbors_[n_it->first] = make_pair(df_it->first, df_it->second);
+          neighbors_[n_it->first] = Neighbor{df_it->first, df_it->second};
           break; // found the best element for this input map
         }
       }
     }
   }
 
-  void QTCluster::makeSeq_table_(map<set<AASequence>, vector<double>>& seq_table) const
+  void QTCluster::makeSeqTable_(map<set<AASequence>, vector<double>>& seq_table) const
   {
 
     // get copies of members that are used in this function
@@ -440,7 +431,7 @@ namespace OpenMS
          n_it != tmp_neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (NeighborListType::iterator df_it = n_it->second.begin();
+      for (NeighborList::iterator df_it = n_it->second.begin();
           df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
