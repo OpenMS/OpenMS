@@ -369,7 +369,7 @@ protected:
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {});
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
 
       /// Helper method that writes a software
       void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
@@ -390,7 +390,7 @@ protected:
       String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
 
       /// Helper method to validate if the given CV is allowed in the current location (path)
-      bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator);
+      bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
 
       /// Helper method to look up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
@@ -439,7 +439,7 @@ protected:
       /// The data processing list: id => Instrument
       Map<String, Instrument> instruments_;
       /// CV terms that have been checked in validateCV_()
-      Map<std::pair<String, String>, bool> cached_terms_;
+      mutable Map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
       Map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)

@@ -166,8 +166,7 @@ public:
     {
       for (const auto& child : getTerm(parent).children)
       {
-        if (x(child)) return true;
-        else if (iterateAllChildren(child, x)) return true;
+        if (x(child) || iterateAllChildren(child, x)) return true;
       }
       return false;
     }

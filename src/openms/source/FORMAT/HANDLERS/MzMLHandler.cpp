@@ -3375,7 +3375,7 @@ namespace OpenMS
       }
     }
 
-    bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator)
+    bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
       // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
       const auto it = cached_terms_.find(std::make_pair(path, c.id));
@@ -3432,7 +3432,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude)
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;

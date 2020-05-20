@@ -477,7 +477,6 @@ namespace OpenMS
     ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
  
     // extract accession by name
-    //std::set<String> terms;
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     auto lambda = [&ainfo, &cv] (const String& child)
