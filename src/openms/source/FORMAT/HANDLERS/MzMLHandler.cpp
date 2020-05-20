@@ -3375,12 +3375,12 @@ namespace OpenMS
       }
     }
 
-    bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
+    bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator)
     {
       // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
-      static std::map<std::pair<String, String>, bool> cachedTerms;
-      const auto it = cachedTerms.find(std::make_pair(path, c.id));
-      if (it != cachedTerms.end())
+      // When not used as static function variable (when constructed in writeUserParam_() and passed by reference), we lose half of the speed-up
+      const auto it = cached_terms_.find(std::make_pair(path, c.id));
+      if (it != cached_terms_.end())
       {
         return it->second;
       }
@@ -3392,7 +3392,7 @@ namespace OpenMS
       sc.has_unit_name = false;
 
       bool isValid = validator.SemanticValidator::locateTerm(path, sc);
-      cachedTerms[std::make_pair(path, c.id)] = isValid;
+      cached_terms_[std::make_pair(path, c.id)] = isValid;
       return isValid;
     }
 
@@ -3433,7 +3433,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude)
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;

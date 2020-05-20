@@ -500,8 +500,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
     Map<String, String>::const_iterator it = namesToIds_.find(name);
-    if (it == namesToIds_.end())
-      return nullptr;
+    if (it == namesToIds_.end()) return nullptr;
     return &terms_[it->second];
   }
 
