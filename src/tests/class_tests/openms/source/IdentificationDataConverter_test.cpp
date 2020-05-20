@@ -50,7 +50,7 @@ using namespace std;
 
 struct ComparePIdSize
 {
-      bool operator()(const ProteinIdentification lhs, const ProteinIdentification rhs) const
+      bool operator()(const ProteinIdentification& lhs, const ProteinIdentification& rhs) const
       {
         return lhs.getHits().size() < rhs.getHits().size();
       }
@@ -111,6 +111,9 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   TEST_EQUAL(proteins_in[1].getHits().size(), proteins_out[1].getHits().size() )
   TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true)
   TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true)
+
+  TEST_EQUAL(proteins_in[0].getSearchParameters() == proteins_out[0].getSearchParameters(), true)
+  TEST_EQUAL(proteins_in[1].getSearchParameters() == proteins_out[1].getSearchParameters(), true)
 
   // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);

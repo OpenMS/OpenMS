@@ -47,6 +47,7 @@ namespace OpenMS
     {
       enum MoleculeType molecule_type;
       enum MassType mass_type;
+      enum Trypticity trypticity;
 
       String database;
       String database_version;
@@ -64,6 +65,7 @@ namespace OpenMS
 
       // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
       const DigestionEnzyme* digestion_enzyme;
+      Size nr_termini;
       Size missed_cleavages;
       Size min_length;
       Size max_length;
@@ -73,7 +75,8 @@ namespace OpenMS
         mass_type(MassType::MONOISOTOPIC),
         precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
         precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(0), missed_cleavages(0), min_length(0), max_length(0)
+        digestion_enzyme(nullptr), nr_termini(0),
+        missed_cleavages(0), min_length(0), max_length(0)
       {
       }
 
@@ -86,7 +89,7 @@ namespace OpenMS
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
                          precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages, min_length, max_length) <
+                         nr_termini, missed_cleavages, min_length, max_length) <
                 std::tie(other.molecule_type, other.mass_type,
                          other.database, other.database_version, other.taxonomy,
                          other.charges, other.fixed_mods, other.variable_mods,
@@ -94,7 +97,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
+                         other.digestion_enzyme,
+                         other.nr_termini, other.missed_cleavages,
                          other.min_length, other.max_length));
       }
 
@@ -104,7 +108,7 @@ namespace OpenMS
                          database_version, taxonomy, charges, fixed_mods,
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme,
+                         precursor_tolerance_ppm, digestion_enzyme, nr_termini,
                          missed_cleavages, min_length, max_length) ==
                 std::tie(other.molecule_type, other.mass_type,
                          other.database, other.database_version, other.taxonomy,
@@ -113,7 +117,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
+                         other.digestion_enzyme, other.nr_termini,
+                         other.missed_cleavages,
                          other.min_length, other.max_length));
       }
     };

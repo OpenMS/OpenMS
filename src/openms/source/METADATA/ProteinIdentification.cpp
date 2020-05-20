@@ -123,7 +123,8 @@ namespace OpenMS
     fragment_mass_tolerance_ppm(false),
     precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme", "")
+    digestion_enzyme("unknown_enzyme", ""),
+    nr_termini(UNKNOWN)
   {
   }
 
@@ -141,7 +142,8 @@ namespace OpenMS
            fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
            precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
            precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
-           digestion_enzyme == rhs.digestion_enzyme;
+           digestion_enzyme == rhs.digestion_enzyme &&
+           nr_termini == rhs.nr_termini;
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
@@ -164,7 +166,8 @@ namespace OpenMS
         this->fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
         this->charges != sp.charges ||
         this->digestion_enzyme != sp.digestion_enzyme ||
-        this->taxonomy != sp.taxonomy)
+        this->taxonomy != sp.taxonomy ||
+        this->nr_termini != sp.nr_termini)
     {
       return false;
     }
@@ -275,9 +278,7 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::~ProteinIdentification()
-  {
-  }
+  ProteinIdentification::~ProteinIdentification() = default;
 
   void ProteinIdentification::setDateTime(const DateTime& date)
   {

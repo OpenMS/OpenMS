@@ -185,6 +185,10 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
+      if (params[i].nr_termini != ProteinIdentification::UNKNOWN)
+      {
+        os << "\t\t\t\t<UserParam name=\"NumberTrypticTermini\" type=\"int\" value=\"" << params[i].nr_termini << "\" />\n";
+      }
 
       os << "\t</SearchParameters>\n";
     }
@@ -856,6 +860,12 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
+      if (last_meta_->metaValueExists("NumberTrypticTermini"))
+      {
+        Size ntt = last_meta_->getMetaValue("NumberTrypticTermini");
+        if (ntt >= 0 && ntt <= 2)
+          param_.nr_termini = static_cast<ProteinIdentification::Trypticity>(ntt);
+      }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
     }

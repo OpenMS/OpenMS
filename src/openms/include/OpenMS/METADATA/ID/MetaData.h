@@ -77,6 +77,14 @@ namespace OpenMS
     };
 
 
+    enum Trypticity
+    {
+      NONE,
+      SEMI,
+      FULL,
+      UNKNOWN
+    };
+
     // Input files that were processed:
     typedef std::set<String> InputFiles;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;

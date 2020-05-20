@@ -825,7 +825,7 @@ protected:
         }
       }
 
-      // Check of score types are valid. TODO
+      // Check if score types are valid.
       try
       {
         IDScoreSwitcherAlgorithm switcher;
@@ -1336,15 +1336,10 @@ protected:
 
     //-------------------------------------------------------------
     // ID related algorithms
-    // TODO allow all Merging, Error Estimation, Indexing, Inference to work on ConsensusMaps
-    //  Would be nice to have a separate ID datastructure in ConsensusMaps not mangled into the features.
-    //  Problem: We have to think about how to combine Assigned and Unassigned.
-    //  Or at least offer a "view" or "iterator" (still, then we have to change most of the algorithms,
-    //  since they require continuous vectors.
-    // Merging, FDR, Inference mostly done. IDPEP and PepIdxer missing.
+    // TODO we could switch to work on the IDs in ConsensusXML
+    //  but not all algorithms are available on Cons.Maps yet.
     //-------------------------------------------------------------
 
-    // Since we cant completely work on ConsensusXML yet,
     // load the IDs again and merge
     IDMergerAlgorithm merger{String("all_merged")};
 
@@ -1356,6 +1351,20 @@ protected:
       vector<PeptideIdentification> peptide_ids;
       f.load(idfile, protein_ids, peptide_ids);
 
+      // Check if score types are valid.
+      try
+      {
+        IDScoreSwitcherAlgorithm switcher;
+        Size c = 0;
+        switcher.switchToGeneralScoreType(peptide_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
+      }
+      catch(Exception::MissingInformation&)
+      {
+        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
+      }
+
+      //TODO we could think about removing this limitation
       IDFilter::keepBestPeptideHits(peptide_ids, false); // strict = false
 
       // reannotate MS run if not present
