@@ -137,59 +137,65 @@ public:
      * Has no functionality without a QTCluster pointing to it.
      * Create object of this class before calling constructor of QTCluster
      */
-    struct BulkData
+    class BulkData
     {
-      /**
-       * @brief Detailed constructor of the cluster body
-       * @param center_point Pointer to the center point
-       * @param num_maps Number of input maps
-       * @param max_distance Maximum allowed distance of two points
-       * @param id Unique ID of this cluster
-       */
-      BulkData(const OpenMS::GridFeature* const center_point, 
-               Size num_maps, double max_distance,
-               Int x_coord, Int y_coord, Size id);
+      friend class QTCluster;
+
+      public:
+
+        /**
+         * @brief Detailed constructor of the cluster body
+         * @param center_point Pointer to the center point
+         * @param num_maps Number of input maps
+         * @param max_distance Maximum allowed distance of two points
+         * @param id Unique ID of this cluster
+         */
+        BulkData(const OpenMS::GridFeature* const center_point, 
+                Size num_maps, double max_distance,
+                Int x_coord, Int y_coord, Size id);
       
-      /// Pointer to the cluster center
-      const GridFeature* const center_point_;
+      private:
 
-      /// unique id of this cluster
-      Size id_;
+        /// Pointer to the cluster center
+        const GridFeature* const center_point_;
 
-      /**
-       * @brief Map that keeps track of the best current feature for each map
-       *
-       */
-      NeighborMap neighbors_;
+        /// unique id of this cluster
+        Size id_;
 
-      /**
-       * @brief Temporary map tracking *all* neighbors
-       *
-       * For each input run, a multimap which contains pointers to all
-       * neighboring elements and the respective distance.
-       *
-       */
-      NeighborMapMulti tmp_neighbors_;
+        /**
+         * @brief Map that keeps track of the best current feature for each map
+         *
+         */
+        NeighborMap neighbors_;
 
-      /// Maximum distance of a point that can still belong to the cluster
-      double max_distance_;
+        /**
+         * @brief Temporary map tracking *all* neighbors
+         *
+         * For each input run, a multimap which contains pointers to all
+         * neighboring elements and the respective distance.
+         *
+         */
+        NeighborMapMulti tmp_neighbors_;
 
-      /// Number of input maps
-      Size num_maps_;
+        /// Maximum distance of a point that can still belong to the cluster
+        double max_distance_;
 
-      /// x coordinate in the grid cell
-      Int x_coord_;
+        /// Number of input maps
+        Size num_maps_;
 
-      /// y coordinate in the grid cell
-      Int y_coord_;
+        /// x coordinate in the grid cell
+        Int x_coord_;
 
-      /**
-       * @brief Set of annotations of the cluster
-       *
-       * The set of peptide sequences that is compatible to the cluster center
-       * and results in the best cluster quality.
-       */
-      std::set<AASequence> annotations_;
+        /// y coordinate in the grid cell
+        Int y_coord_;
+
+        /**
+         * @brief Set of annotations of the cluster
+         *
+         * The set of peptide sequences that is compatible to the cluster center
+         * and results in the best cluster quality.
+         */
+        std::set<AASequence> annotations_;
     };
 
     /**

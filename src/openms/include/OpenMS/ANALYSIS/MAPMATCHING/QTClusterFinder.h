@@ -155,7 +155,7 @@ namespace OpenMS
      * @brief Extract the best cluster from cluster_heads and turn it into a consensus feature
      * 
      * @param cluster_heads the heap where the clusters are stored, must not be empty
-     * @param feature the resulting consensus feature is constructed in this variable
+     * @param[out] feature The resulting consensus feature which is constructed here
      * @param element_mapping the element mapping is used to update clusters when features are removed
      * @param grid the grid is used to find new features for clusters that have to be updated
      * @param handles used to access clusters if we know their id from the element mapping
@@ -165,7 +165,7 @@ namespace OpenMS
     bool makeConsensusFeature_(Heap& cluster_heads,
                                ConsensusFeature& feature,
                                ElementMapping& element_mapping,
-                               Grid& grid,
+                               const Grid& grid,
                                const std::vector<Heap::handle_type>& handles);
 
     /**
@@ -177,7 +177,7 @@ namespace OpenMS
      * @param handles vector where handles of the inserted clusters are stored
      * @param element_mapping the element mapping where all the clusters get registered for their features
      */
-    void computeClustering_(Grid& grid,
+    void computeClustering_(const Grid& grid,
                             Heap& cluster_heads,
                             std::vector<QTCluster::BulkData>& cluster_data,
                             std::vector<Heap::handle_type>& handles,
@@ -195,13 +195,13 @@ namespace OpenMS
     /** 
      * @brief creates a consensus feature from the given elements
      * 
-     * @param feature the resulting consensus feature is constructed in this variable
+     * @param[out] feature The resulting consensus feature which is constructed here
      * @param quality the quality of the new consensus feature
      * @param elements the original features that from the new consensus feature
      * 
      * @note the features from elements are registered in the already_used_ member of this class
      */
-    void createConsensusFeature_(ConsensusFeature& feature, double quality, 
+    void createConsensusFeature_(ConsensusFeature& feature, const double quality, 
                                  const QTCluster::Elements& elements);
 
     /** 

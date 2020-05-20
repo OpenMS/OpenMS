@@ -288,7 +288,7 @@ namespace OpenMS
   bool QTClusterFinder::makeConsensusFeature_(Heap& cluster_heads,
                                               ConsensusFeature& feature,
                                               ElementMapping& element_mapping,
-                                              Grid& grid,
+                                              const Grid& grid,
                                               const vector<Heap::handle_type>& handles)
   {
     // pop until the top is valid
@@ -346,7 +346,7 @@ namespace OpenMS
   }
 
 void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature, 
-                                              double quality, 
+                                              const double quality, 
                                               const QTCluster::Elements& elements)
   {
     feature.setQuality(quality);
@@ -507,9 +507,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     cluster.finalizeCluster();
 
 #ifdef DEBUG_QTCLUSTERFINDER
-    OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*> elements;
-    // this shouldn't be done anymore
-    // cluster.getElements(elements);
+    QTCluster::Elements elements = cluster.getElements();
     std::cout << " Done with cluster -> get quality " << cluster.getQuality() << " and nr elements " << elements.size() << std::endl;
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
@@ -540,7 +538,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     run_(input_maps, result_map);
   }
 
-  void QTClusterFinder::computeClustering_(Grid& grid,
+  void QTClusterFinder::computeClustering_(const Grid& grid,
                                            Heap& cluster_heads,
                                            vector<QTCluster::BulkData>& cluster_data,
                                            vector<Heap::handle_type>& handles,
@@ -565,12 +563,12 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     const double max_distance = 1.0;
 
     // iterate over all grid cells:
-    for (Grid::iterator it = grid.begin(); it != grid.end(); ++it)
+    for (Grid::const_iterator it = grid.begin(); it != grid.end(); ++it)
     {
       const Grid::CellIndex& act_coords = it.index();
       const Int x = act_coords[0], y = act_coords[1];
 
-      OpenMS::GridFeature* center_feature = it->second;
+      const OpenMS::GridFeature* const center_feature = it->second;
 
       // construct empty data body for the new cluster and create the head afterwards
       cluster_data.emplace_back(center_feature, num_maps_, 

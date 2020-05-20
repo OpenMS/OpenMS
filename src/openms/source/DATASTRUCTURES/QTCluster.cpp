@@ -421,7 +421,6 @@ namespace OpenMS
 
   void QTCluster::makeSeqTable_(map<set<AASequence>, vector<double>>& seq_table) const
   {
-
     // get copies of members that are used in this function
     Size num_maps_ = data_->num_maps_;
     double max_distance_ = data_->max_distance_;
