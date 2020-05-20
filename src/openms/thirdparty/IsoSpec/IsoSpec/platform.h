@@ -119,6 +119,8 @@
 
 #if ISOSPEC_BUILDING_R || !defined(__cpp_if_constexpr)
 #define constexpr_if if
+#define ISOSPEC_MAYBE_UNUSED
 #else
 #define constexpr_if if constexpr
+#define ISOSPEC_MAYBE_UNUSED [[maybe_unused]]
 #endif

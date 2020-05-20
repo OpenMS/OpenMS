@@ -428,7 +428,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 
     double* ttmasses = this->_masses;
     double* ttprobs = this->_probs;
-    [[maybe_unused]] int* ttconfs;
+    ISOSPEC_MAYBE_UNUSED int* ttconfs;
     constexpr_if(tgetConfs)
         ttconfs = _confs;
 
