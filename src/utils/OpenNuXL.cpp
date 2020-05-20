@@ -1964,12 +1964,11 @@ static void scoreXLIons_(
     ThresholdMower threshold_mower_filter;
     threshold_mower_filter.filterPeakMap(exp);
 
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
       MSSpectrum & spec = exp[exp_index];
+
       // sort by mz
       spec.sortByPosition();
 
@@ -1983,7 +1982,9 @@ static void scoreXLIons_(
                                          single_charge_spectra, 
                                          annotate_charge,
                                          false, // no iso peak count annotation
-                                         false); // no isotope model
+                                         true, // decreasing isotope model
+                                         2, // enforce only starting from second peak
+                                         true); // add up intensities
     }
 
 
@@ -2006,7 +2007,9 @@ static void scoreXLIons_(
 
     NLargest nlargest_filter = NLargest(400);
 
+    #ifdef DEBUG_OpenNuXL
     BinnedSpectrum peak_density(MSSpectrum(), 0.05, false, 0, 0);
+    #endif
 
 #pragma omp parallel for
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
@@ -2069,11 +2072,13 @@ static void scoreXLIons_(
           cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
 
+#ifdef DEBUG_OpenNuXL
       BinnedSpectrum bs(spec, 0.05, false, 0, 0);
       bs.getBins().coeffs().cwiseMax(1);
 
 #pragma omp critical (peak_density_access)
       peak_density.getBins() += bs.getBins();
+#endif
 
       // calculate TIC and store in float data array
       double TIC = std::accumulate(spec.begin(), spec.end(), 0.0, 
@@ -2084,6 +2089,7 @@ static void scoreXLIons_(
       spec.getFloatDataArrays()[0].setName("TIC");
     }
 
+#ifdef DEBUG_OpenNuXL
     ofstream dist_file;
     dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
     dist_file << "m/z\tfragments" << "\n";
@@ -2093,9 +2099,8 @@ static void scoreXLIons_(
     }
     dist_file.close();
 
-    #ifdef DEBUG_OpenNuXL
-      MzMLFile().store("debug_filtering.mzML", exp); 
-    #endif
+    MzMLFile().store("debug_filtering.mzML", exp); 
+#endif
   }
 
   void filterTopNAnnotations_(vector<vector<AnnotatedHit>>& ahs, const Size top_hits)
@@ -4820,6 +4825,8 @@ static void scoreXLIons_(
                      purities,
                      nr_candidates);
     progresslogger.endProgress();
+
+    protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in_mzml)});
 
     // reindex ids
     PeptideIndexing indexer;

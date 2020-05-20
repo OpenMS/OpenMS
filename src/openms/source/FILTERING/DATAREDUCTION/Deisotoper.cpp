@@ -67,9 +67,6 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
 		    OPENMS_PRETTY_FUNCTION,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
-
-  if (spec.empty()) { return; }
-
   Size charge_index(0);
   Size iso_peak_count_index(0);
 
@@ -81,6 +78,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
     spec.getIntegerDataArrays().back().setName("charge");
     charge_index = spec.getIntegerDataArrays().size()-1;
   }
+
   // reserve integer data array to store number of isotopic peaks for each isotopic pattern
   if (annotate_iso_peak_count)
   {
@@ -88,6 +86,9 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
     spec.getIntegerDataArrays().back().setName("iso_peak_count");
     iso_peak_count_index = spec.getIntegerDataArrays().size()-1;
   }
+
+  // in case of an empty spectrum we still create the integer data arrays and return.
+  if (spec.empty()) { return; }
 
   // during discovery phase, work on a constant reference (just to make sure we do not modify spec)
   const MSSpectrum& old_spectrum = spec;
