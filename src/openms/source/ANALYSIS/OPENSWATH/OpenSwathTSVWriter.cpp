@@ -110,176 +110,176 @@ namespace OpenMS
         const OpenSwath::LightTransition * transition,
         const FeatureMap& output, const String& id) const
     {
-        std::stringstream sstream;
-        FastOStream result(sstream);
-        String decoy = "0"; // 0 = false
-        if (transition->decoy)
+      std::stringstream sstream;
+      FastOStream result(sstream);
+      String decoy = "0"; // 0 = false
+      if (transition->decoy)
+      {
+        decoy = "1";
+      }
+
+      // iterator over MRMFeatures
+      for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
+      {
+        StringList aggr_Peak_Area, aggr_Peak_Apex, aggr_Fragment_Annotation;
+        StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;
+        StringList rt_fwhm;
+        String gene_name;
+        for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
         {
-          decoy = "1";
+          if (sub_it->metaValueExists("FeatureLevel"))
+          {
+            if (sub_it->getMetaValue("FeatureLevel") == "MS2")
+            {
+              aggr_Peak_Area.push_back((String)sub_it->getIntensity());
+              aggr_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
+              aggr_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
+              rt_fwhm.push_back((String)sub_it->getMetaValue("width_at_50"));
+            }
+            else if (sub_it->getMetaValue("FeatureLevel") == "MS1")
+            {
+              aggr_prec_Peak_Area.push_back((String)sub_it->getIntensity());
+              aggr_prec_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
+              aggr_prec_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
+            }
+          }
         }
 
-        // iterator over MRMFeatures
-        for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
+        String full_peptide_name = "";
+        for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
         {
-          StringList aggr_Peak_Area, aggr_Peak_Apex, aggr_Fragment_Annotation;
-          StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;
-          StringList rt_fwhm;
-          String gene_name;
-          for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
+          if (loc > -1 && loc < (int)pep.sequence.size())
           {
-            if (sub_it->metaValueExists("FeatureLevel"))
+            full_peptide_name += pep.sequence[loc];
+          }
+          // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
+          for (auto modification : pep.modifications)
+          {
+            if (modification.location == loc)
             {
-              if (sub_it->getMetaValue("FeatureLevel") == "MS2")
-              {
-                aggr_Peak_Area.push_back((String)sub_it->getIntensity());
-                aggr_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
-                aggr_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
-                rt_fwhm.push_back((String)sub_it->getMetaValue("width_at_50"));
-              }
-              else if (sub_it->getMetaValue("FeatureLevel") == "MS1")
-              {
-                aggr_prec_Peak_Area.push_back((String)sub_it->getIntensity());
-                aggr_prec_Peak_Apex.push_back(String((double)sub_it->getMetaValue("peak_apex_int")));
-                aggr_prec_Fragment_Annotation.push_back((String)sub_it->getMetaValue("native_id"));
-              }
+              full_peptide_name += "(UniMod:" + String(modification.unimod_id) + ")";
             }
           }
+        }
 
-          String full_peptide_name = "";
-          for (int loc = -1; loc <= (int)pep.sequence.size(); loc++)
-          {
-            if (loc > -1 && loc < (int)pep.sequence.size())
-            {
-              full_peptide_name += pep.sequence[loc];
-            }
-            // C-terminal and N-terminal modifications may be at positions -1 or pep.sequence
-            for (auto modification : pep.modifications)
-            {
-              if (modification.location == loc)
-              {
-                full_peptide_name += "(UniMod:" + String(modification.unimod_id) + ")";
-              }
-            }
-          }
+        // Compute peptide group label (use the provided label or use the
+        // transition group).
+        String group_label = pep.peptide_group_label;
+        // legacy fix since there are many TraMLs floating around which have "light"/"NA" in there
+        if (group_label.empty() || group_label == "light" || group_label == "NA")
+        {
+          group_label = id;
+        }
 
-          // Compute peptide group label (use the provided label or use the
-          // transition group).
-          String group_label = pep.peptide_group_label;
-          // legacy fix since there are many TraMLs floating around which have "light"/"NA" in there
-          if (group_label.empty() || group_label == "light" || group_label == "NA")
-          {
-            group_label = id;
-          }
+        // If a protein is present, take the first one
+        String protein_name = "";
+        if (!pep.protein_refs.empty() )
+        {
+          protein_name = pep.protein_refs[0];
+        }
 
-          // If a protein is present, take the first one
-          String protein_name = "";
-          if (!pep.protein_refs.empty() )
-          {
-            protein_name = pep.protein_refs[0];
-          }
-
-          String main_var = "0";
-          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
-          {
-            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
-          }
-          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
-          {
-            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
-          }
+        String main_var = "0";
+        if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
+        {
+          main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
+        }
+        else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
+        {
+          main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
+        }
 
 
-          result << id << "_run0"
-            << "\t" << group_label
-            << "\t" << "0"
-            << "\t" << input_filename_
-            << "\t" << feature_it->getRT()
-            << "\t" << "f_" << feature_it->getUniqueId()  // TODO might not be unique!!!
-            << "\t" << pep.sequence
-            << "\t" << (feature_it->metaValueExists("missedCleavages") ? (String)feature_it->getMetaValue("missedCleavages") : "")
-            << "\t" << full_peptide_name
-            << "\t" << pep.charge
-            << "\t" << transition->precursor_mz
-            << "\t" << feature_it->getIntensity()
-            << "\t" << protein_name
-            << "\t" << gene_name
-            << "\t" << decoy
-            // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
-            << "\t" << feature_it->getMetaValue("assay_rt")
-            << "\t" << feature_it->getMetaValue("delta_rt")
-            << "\t" << feature_it->getMetaValue("leftWidth")
-            << "\t" << main_var
-            << "\t" << feature_it->getMetaValue("norm_RT")
-            << "\t" << feature_it->getMetaValue("nr_peaks")
-            << "\t" << feature_it->getMetaValue("peak_apices_sum")
-            << "\t" << feature_it->getMetaValue("potentialOutlier")
-            << "\t" << feature_it->getMetaValue("initialPeakQuality")
-            << "\t" << feature_it->getMetaValue("rightWidth")
-            << "\t" << feature_it->getMetaValue("rt_score")
-            << "\t" << feature_it->getMetaValue("sn_ratio")
-            << "\t" << feature_it->getMetaValue("total_xic")
-            << "\t" << feature_it->getMetaValue("var_bseries_score")
-            << "\t" << feature_it->getMetaValue("var_dotprod_score")
-            << "\t" << feature_it->getMetaValue("var_intensity_score")
-            << "\t" << feature_it->getMetaValue("var_isotope_correlation_score")
-            << "\t" << feature_it->getMetaValue("var_isotope_overlap_score")
-            << "\t" << feature_it->getMetaValue("var_library_corr")
-            << "\t" << feature_it->getMetaValue("var_library_dotprod")
-            << "\t" << feature_it->getMetaValue("var_library_manhattan")
-            << "\t" << feature_it->getMetaValue("var_library_rmsd")
-            << "\t" << feature_it->getMetaValue("var_library_rootmeansquare")
-            << "\t" << feature_it->getMetaValue("var_library_sangle")
-            << "\t" << feature_it->getMetaValue("var_log_sn_score")
-            << "\t" << feature_it->getMetaValue("var_manhatt_score")
-            << "\t" << feature_it->getMetaValue("var_massdev_score")
-            << "\t" << feature_it->getMetaValue("var_massdev_score_weighted")
-            << "\t" << feature_it->getMetaValue("var_norm_rt_score")
-            << "\t" << feature_it->getMetaValue("var_xcorr_coelution")
-            << "\t" << feature_it->getMetaValue("var_xcorr_coelution_weighted")
-            << "\t" << feature_it->getMetaValue("var_xcorr_shape")
-            << "\t" << feature_it->getMetaValue("var_xcorr_shape_weighted")
+        result << id << "_run0"
+          << "\t" << group_label
+          << "\t" << "0"
+          << "\t" << input_filename_
+          << "\t" << feature_it->getRT()
+          << "\t" << "f_" << feature_it->getUniqueId()  // TODO might not be unique!!!
+          << "\t" << pep.sequence
+          << "\t" << (feature_it->metaValueExists("missedCleavages") ? (String)feature_it->getMetaValue("missedCleavages") : "")
+          << "\t" << full_peptide_name
+          << "\t" << pep.charge
+          << "\t" << transition->precursor_mz
+          << "\t" << feature_it->getIntensity()
+          << "\t" << protein_name
+          << "\t" << gene_name
+          << "\t" << decoy
+          // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
+          << "\t" << feature_it->getMetaValue("assay_rt")
+          << "\t" << feature_it->getMetaValue("delta_rt")
+          << "\t" << feature_it->getMetaValue("leftWidth")
+          << "\t" << main_var
+          << "\t" << feature_it->getMetaValue("norm_RT")
+          << "\t" << feature_it->getMetaValue("nr_peaks")
+          << "\t" << feature_it->getMetaValue("peak_apices_sum")
+          << "\t" << feature_it->getMetaValue("potentialOutlier")
+          << "\t" << feature_it->getMetaValue("initialPeakQuality")
+          << "\t" << feature_it->getMetaValue("rightWidth")
+          << "\t" << feature_it->getMetaValue("rt_score")
+          << "\t" << feature_it->getMetaValue("sn_ratio")
+          << "\t" << feature_it->getMetaValue("total_xic")
+          << "\t" << feature_it->getMetaValue("var_bseries_score")
+          << "\t" << feature_it->getMetaValue("var_dotprod_score")
+          << "\t" << feature_it->getMetaValue("var_intensity_score")
+          << "\t" << feature_it->getMetaValue("var_isotope_correlation_score")
+          << "\t" << feature_it->getMetaValue("var_isotope_overlap_score")
+          << "\t" << feature_it->getMetaValue("var_library_corr")
+          << "\t" << feature_it->getMetaValue("var_library_dotprod")
+          << "\t" << feature_it->getMetaValue("var_library_manhattan")
+          << "\t" << feature_it->getMetaValue("var_library_rmsd")
+          << "\t" << feature_it->getMetaValue("var_library_rootmeansquare")
+          << "\t" << feature_it->getMetaValue("var_library_sangle")
+          << "\t" << feature_it->getMetaValue("var_log_sn_score")
+          << "\t" << feature_it->getMetaValue("var_manhatt_score")
+          << "\t" << feature_it->getMetaValue("var_massdev_score")
+          << "\t" << feature_it->getMetaValue("var_massdev_score_weighted")
+          << "\t" << feature_it->getMetaValue("var_norm_rt_score")
+          << "\t" << feature_it->getMetaValue("var_xcorr_coelution")
+          << "\t" << feature_it->getMetaValue("var_xcorr_coelution_weighted")
+          << "\t" << feature_it->getMetaValue("var_xcorr_shape")
+          << "\t" << feature_it->getMetaValue("var_xcorr_shape_weighted")
 
-            << "\t" << feature_it->getMetaValue("var_im_xcorr_shape")
-            << "\t" << feature_it->getMetaValue("var_im_xcorr_coelution")
-            << "\t" << feature_it->getMetaValue("var_im_delta_score")
-            << "\t" << feature_it->getMetaValue("var_im_ms1_delta_score")
-            << "\t" << feature_it->getMetaValue("im_drift")
-            << "\t" << feature_it->getMetaValue("im_drift_weighted")
+          << "\t" << feature_it->getMetaValue("var_im_xcorr_shape")
+          << "\t" << feature_it->getMetaValue("var_im_xcorr_coelution")
+          << "\t" << feature_it->getMetaValue("var_im_delta_score")
+          << "\t" << feature_it->getMetaValue("var_im_ms1_delta_score")
+          << "\t" << feature_it->getMetaValue("im_drift")
+          << "\t" << feature_it->getMetaValue("im_drift_weighted")
 
-            << "\t" << feature_it->getMetaValue("var_yseries_score")
-            << "\t" << feature_it->getMetaValue("var_elution_model_fit_score");
+          << "\t" << feature_it->getMetaValue("var_yseries_score")
+          << "\t" << feature_it->getMetaValue("var_elution_model_fit_score");
 
-            if (use_ms1_traces_)
-            {
-                result << "\t" << feature_it->getMetaValue("var_ms1_ppm_diff")
-              << "\t" << feature_it->getMetaValue("var_ms1_isotope_correlation")
-              << "\t" << feature_it->getMetaValue("var_ms1_isotope_overlap")
-              << "\t" << feature_it->getMetaValue("var_ms1_xcorr_coelution")
-              << "\t" << feature_it->getMetaValue("var_ms1_xcorr_shape");
-            }
+        if (use_ms1_traces_)
+        {
+            result << "\t" << feature_it->getMetaValue("var_ms1_ppm_diff")
+          << "\t" << feature_it->getMetaValue("var_ms1_isotope_correlation")
+          << "\t" << feature_it->getMetaValue("var_ms1_isotope_overlap")
+          << "\t" << feature_it->getMetaValue("var_ms1_xcorr_coelution")
+          << "\t" << feature_it->getMetaValue("var_ms1_xcorr_shape");
+        }
 
-            result  << "\t" <<feature_it->getMetaValue("xx_lda_prelim_score")
-            << "\t" << feature_it->getMetaValue("xx_swath_prelim_score");
-            if (sonar_)
-            {
-              result << "\t" << feature_it->getMetaValue("var_sonar_lag")
-              << "\t" << feature_it->getMetaValue("var_sonar_shape")
-              << "\t" << feature_it->getMetaValue("var_sonar_log_sn")
-              << "\t" << feature_it->getMetaValue("var_sonar_log_diff")
-              << "\t" << feature_it->getMetaValue("var_sonar_log_trend")
-              << "\t" << feature_it->getMetaValue("var_sonar_rsq");
+        result  << "\t" <<feature_it->getMetaValue("xx_lda_prelim_score")
+        << "\t" << feature_it->getMetaValue("xx_swath_prelim_score");
+        if (sonar_)
+        {
+          result << "\t" << feature_it->getMetaValue("var_sonar_lag")
+          << "\t" << feature_it->getMetaValue("var_sonar_shape")
+          << "\t" << feature_it->getMetaValue("var_sonar_log_sn")
+          << "\t" << feature_it->getMetaValue("var_sonar_log_diff")
+          << "\t" << feature_it->getMetaValue("var_sonar_log_trend")
+          << "\t" << feature_it->getMetaValue("var_sonar_rsq");
+        }
 
-            }
-            if (use_ms1_traces_)
-            {
-              result << "\t" << ListUtils::concatenate(aggr_prec_Peak_Area, ";") << "\t" << ListUtils::concatenate(aggr_prec_Peak_Apex, ";") << "\t" << ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
-            }
-            result << "\t" << ListUtils::concatenate(aggr_Peak_Area, ";") << "\t" << ListUtils::concatenate(aggr_Peak_Apex, ";") << "\t" << ListUtils::concatenate(aggr_Fragment_Annotation, ";");
-            result << "\t" << ListUtils::concatenate(rt_fwhm, ";");
-            result << "\t" << (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "");
+        if (use_ms1_traces_)
+        {
+          result << "\t" << ListUtils::concatenate(aggr_prec_Peak_Area, ";") << "\t" << ListUtils::concatenate(aggr_prec_Peak_Apex, ";") << "\t" << ListUtils::concatenate(aggr_prec_Fragment_Annotation, ";");
+        }
+        result << "\t" << ListUtils::concatenate(aggr_Peak_Area, ";") << "\t" << ListUtils::concatenate(aggr_Peak_Apex, ";") << "\t" << ListUtils::concatenate(aggr_Fragment_Annotation, ";");
+        result << "\t" << ListUtils::concatenate(rt_fwhm, ";");
+        result << "\t" << (feature_it->metaValueExists("masserror_ppm") ? ListUtils::concatenate(feature_it->getMetaValue("masserror_ppm").toDoubleList(), ";") : "");
 
-            result << "\n";
-        } // end of iteration
+        result << "\n";
+      } // end of iteration
       return sstream.str();
     }
 
