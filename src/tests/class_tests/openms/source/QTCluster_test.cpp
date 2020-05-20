@@ -54,7 +54,7 @@ using namespace std;
 
 QTCluster* qtc_ptr = nullptr;
 QTCluster* qtc_nullPointer = nullptr;
-QTCluster::Data_* qtc_data_ptr = new QTCluster::Data_;
+QTCluster::BulkData* qtc_data_ptr = nullptr;
 
 BaseFeature bf;
 bf.setRT(1.1);
@@ -68,9 +68,16 @@ hit.setSequence(AASequence::fromString("CCC"));
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 
-START_SECTION((QTCluster(QTCluster::Data_* data, GridFeature* center_point, Size num_maps, double max_distance, bool use_IDs, Int x_coord, Int y_coord, Size id)))
+START_SECTION((QTCluster::BulkData(const OpenMS::GridFeature* const center_point, Size num_maps, double max_distance, Int x_coord, Int y_coord, Size id)))
 {
-  qtc_ptr = new QTCluster(qtc_data_ptr, &gf, 2, 11.1, false, 0, 0, 0);
+  qtc_data_ptr = new QTCluster::BulkData(&gf, 2, 11.1, 0, 0, 0);
+  TEST_NOT_EQUAL(qtc_data_ptr, qtc_nullPointer);
+}
+END_SECTION
+
+START_SECTION((QTCluster(BulkData* const data, bool use_IDs)))
+{
+  qtc_ptr = new QTCluster(qtc_data_ptr, false);
   TEST_NOT_EQUAL(qtc_ptr, qtc_nullPointer);
 }
 END_SECTION
@@ -78,12 +85,17 @@ END_SECTION
 START_SECTION((~QTCluster()))
 {
   delete qtc_ptr;
+}
+END_SECTION
+
+START_SECTION((QTCluster::~BulkData()))
+{
   delete qtc_data_ptr;
 }
 END_SECTION
 
-QTCluster::Data_ qtc_data;
-QTCluster cluster(&qtc_data, &gf, 2, 11.1, true, 7, 9, 1);
+QTCluster::BulkData qtc_data(&gf, 2, 11.1, 7, 9, 1);
+QTCluster cluster(&qtc_data, true);
 
 START_SECTION((double getCenterRT() const))
 {
@@ -123,7 +135,7 @@ END_SECTION
 
 GridFeature gf2(bf, 789, 1011);
 
-START_SECTION((void add(GridFeature* element, double distance)))
+START_SECTION((void add(const GridFeature* const element, double distance)))
 {
   cluster.initializeCluster();
   cluster.add(&gf2, 3.3);
@@ -134,43 +146,50 @@ END_SECTION
 
 START_SECTION((bool operator<(QTCluster& cluster)))
 {
-  QTCluster::Data_ data;
-  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
+  QTCluster::BulkData data(&gf, 2, 11.1, 0, 0, 2);
+  QTCluster cluster2(&data, false);
   TEST_EQUAL(cluster2 < cluster, true);
 }
 END_SECTION
 
-START_SECTION((void getElements()))
+START_SECTION((QTCuster::Elements getElements() const))
 {
-  QTCluster::ClusterElementsMap elements = cluster.getElements();
+  QTCluster::Elements elements = cluster.getElements();
   TEST_EQUAL(elements.size(), 2);
-  TEST_EQUAL(elements[123].second, &gf);
-  TEST_EQUAL(elements[789].second, &gf2);
+
+  if (elements[0].feature != &gf)
+  {
+    TEST_EQUAL(elements[0].feature, &gf2);
+    TEST_EQUAL(elements[1].feature, &gf);
+  }
+  else
+  {
+    TEST_EQUAL(elements[0].feature, &gf);
+    TEST_EQUAL(elements[1].feature, &gf2);
+  }
 }
 END_SECTION
 
-START_SECTION((OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors() ))
+START_SECTION((QTCluster::Elements getAllNeighbors() const))
 {
   GridFeature gf3(bf, 789, 1012);
   GridFeature gf4(bf, 222, 1011);
 
-  QTCluster::Data_ data;
-  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
+  QTCluster::BulkData data(&gf, 2, 11.1, 0, 0, 2);
+  QTCluster cluster2(&data, false);
   TEST_EQUAL(cluster2.getAllNeighbors().size(), 0)
   cluster2.initializeCluster();
   cluster2.add(&gf2, 3.3);
   cluster2.finalizeCluster();
   TEST_EQUAL(cluster2.getAllNeighbors().size(), 1)
-  TEST_EQUAL(cluster2.getAllNeighbors()[789].size(), 1)
-  TEST_EQUAL(cluster2.getAllNeighbors()[789][0], &gf2)
+  TEST_EQUAL(cluster2.getAllNeighbors()[0].feature, &gf2)
 
   // adding a better feature from the same map does not increase neighbor size
   cluster2.initializeCluster();
   cluster2.add(&gf3, 3.0);
   cluster2.finalizeCluster();
   TEST_EQUAL(cluster2.getAllNeighbors().size(), 1)
-  TEST_EQUAL(cluster2.getAllNeighbors()[789].size(), 1)
-  TEST_EQUAL(cluster2.getAllNeighbors()[789][0], &gf3)
+  TEST_EQUAL(cluster2.getAllNeighbors()[0].feature, &gf3)
 
   // adding features from a new map will increase neighbor size
   cluster2.initializeCluster();
@@ -179,49 +198,30 @@ START_SECTION((OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getA
   cluster2.add(&gf4, 3.1);
   cluster2.add(&gf4, 3.8);
   cluster2.finalizeCluster();
-  TEST_EQUAL(cluster2.getAllNeighbors().size(), 2)
-  TEST_EQUAL(cluster2.getAllNeighbors()[789].size(), 1)
-  TEST_EQUAL(cluster2.getAllNeighbors()[222].size(), 1)
-}
-END_SECTION
-
-START_SECTION(NeighborMap const& getAllNeighborsDirect() const)
-{
-  QTCluster::NeighborMap const& neigh_direct = cluster.getAllNeighborsDirect();
-  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > neigh = cluster.getAllNeighbors();
-  bool success = true;
-
-  for(auto && elem : neigh_direct) 
-  {
-    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> >::const_iterator it = neigh.find(elem.first);
-    if (it != neigh.end())
-    {
-      success = success && (it->second[0] == elem.second.second);
-    }
-    else success = false;
-  }
   
-  for(auto && elem : neigh)
-  {
-    QTCluster::NeighborMap::const_iterator it = neigh_direct.find(elem.first);
-    if (it != neigh_direct.end())
-    {
-      success = success && (it->second.second == elem.second[0]);
-    }
-    else success = false;
-  } 
+  QTCluster::Elements neighbors = cluster2.getAllNeighbors();
 
-  TEST_EQUAL(success, true);
+  TEST_EQUAL(neighbors.size(), 2)
+  if (neighbors[0].feature != &gf3)
+  {
+    TEST_EQUAL(neighbors[0].feature, &gf4);
+    TEST_EQUAL(neighbors[1].feature, &gf3);
+  }
+  else
+  {
+    TEST_EQUAL(neighbors[0].feature, &gf3);
+    TEST_EQUAL(neighbors[1].feature, &gf4);
+  }
 }
 END_SECTION
 
-START_SECTION(bool update(const ClusterElementsMap& removed))
+START_SECTION(bool update(const QTCluster::Elements& removed))
 {
-  QTCluster::ClusterElementsMap removed;
-  removed[789].second = &gf2;
+  QTCluster::Elements removed;
+  removed.push_back({789, &gf2});
   TEST_EQUAL(cluster.update(removed), true);
   TEST_EQUAL(cluster.size(), 1);
-  removed[123].second = &gf;
+  removed.push_back({123, &gf});
 
   // removing the center invalidates the cluster:
   TEST_EQUAL(cluster.update(removed), false);
@@ -229,13 +229,14 @@ START_SECTION(bool update(const ClusterElementsMap& removed))
 }
 END_SECTION
 
+QTCluster::BulkData qtc_data2(&gf, 2, 11.1, 7, 9, 3);
+
 START_SECTION((double getQuality()))
 {
   // cluster is invalid, we shouldnt use it any more -> create a new one
   TEST_EQUAL(cluster.isInvalid(), true);
 
-  qtc_data = QTCluster::Data_();
-  cluster = QTCluster(&qtc_data, &gf, 2, 11.1, true, 7, 9, 3);
+  cluster = QTCluster(&qtc_data2, true);
 
   cluster.initializeCluster();
   cluster.add(&gf2, 3.3);
@@ -256,8 +257,8 @@ START_SECTION((const set<AASequence>& getAnnotations()))
   TEST_EQUAL(cluster.getAnnotations().size(), 2);
   TEST_EQUAL(*(cluster.getAnnotations().begin()), AASequence::fromString("AAA"));
   TEST_EQUAL(*(cluster.getAnnotations().rbegin()), AASequence::fromString("CCC"));
-  QTCluster::Data_ data;
-  QTCluster cluster2(&data, &gf, 2, 11.1, false, 0, 0, 2);
+  QTCluster::BulkData data(&gf, 2, 11.1, 0, 0, 2);
+  QTCluster cluster2(&data, false);
   TEST_EQUAL(cluster2.getAnnotations().empty(), true);
 }
 END_SECTION
