@@ -281,7 +281,7 @@ namespace OpenMS
       // iterate over the input string until in_it points to an address in 256-bit memory alignment
       // or until the input string ends
       const size_t mask{0b11111};
-      while((reinterpret_cast<size_t>(in_it) & mask) && in_it != in_end)
+      while ((reinterpret_cast<size_t>(in_it) & mask) && in_it != in_end)
       {
         *out_it = *in_it;
         ++in_it; ++out_it; 
@@ -292,7 +292,7 @@ namespace OpenMS
       simde__m128i* sse_out_it = reinterpret_cast<simde__m128i*>(out_it);
 
       // if there is more than 256 bit of data in the input string left, use SSE
-      while(sse_in_it + 2 <= sse_in_end)
+      while (sse_in_it + 2 <= sse_in_end)
       {
         simde_mm_storeu_si128(sse_out_it, 
           simde_mm_packus_epi16(simde_mm_load_si128(sse_in_it),
@@ -306,7 +306,7 @@ namespace OpenMS
 
       // iterate over the rest of the input string, which SSE can't handle
       // because the large registers would overlap at the end of the input string
-      while(in_it != in_end)
+      while (in_it != in_end)
       {
         *out_it = *in_it;
         ++in_it; ++out_it; 
