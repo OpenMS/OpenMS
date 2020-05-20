@@ -157,9 +157,11 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
     /**
-        @brief Iterates over all children of parent recurisively.
+        @brief Iterates over all children of parent recursively.
         @param x Function that gets the child-Strings passed. Must return bool.
                  Used for comparisons and / or to set captured variables.
+                 If the lambda return true, the iterating is exited prematurely.
+                 E.g. if you have found your search, you don't need to continue searching.
     */
     template <class LAMBDA>
     bool iterateAllChildren(const String& parent, LAMBDA x) const

@@ -324,7 +324,7 @@ namespace OpenMS
             if (child == parsed_term.accession)
             {
               allowed = true;
-              counter++;
+              ++counter;
               return true;
             }
             return false;
