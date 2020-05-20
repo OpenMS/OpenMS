@@ -47,7 +47,6 @@ namespace OpenMS
     {
       enum MoleculeType molecule_type;
       enum MassType mass_type;
-      enum Trypticity trypticity;
 
       String database;
       String database_version;
@@ -65,7 +64,7 @@ namespace OpenMS
 
       // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
       const DigestionEnzyme* digestion_enzyme;
-      Size nr_termini;
+      enum Trypticity nr_termini;
       Size missed_cleavages;
       Size min_length;
       Size max_length;
@@ -75,7 +74,7 @@ namespace OpenMS
         mass_type(MassType::MONOISOTOPIC),
         precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
         precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(nullptr), nr_termini(0),
+        digestion_enzyme(nullptr), nr_termini(UNKNOWN),
         missed_cleavages(0), min_length(0), max_length(0)
       {
       }

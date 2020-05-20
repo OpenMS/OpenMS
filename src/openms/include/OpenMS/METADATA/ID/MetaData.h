@@ -79,10 +79,12 @@ namespace OpenMS
 
     enum Trypticity
     {
-      NONE,
-      SEMI,
-      FULL,
-      UNKNOWN
+      NONE = 0,
+      SEMI = 1,
+      FULL = 2,
+      NOCTERM = 8,
+      NONTERM = 9,
+      UNKNOWN = 10
     };
 
     // Input files that were processed:

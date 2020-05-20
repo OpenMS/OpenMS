@@ -602,6 +602,7 @@ protected:
         }
 
         search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
+        search_parameters.nr_termini = static_cast<ProteinIdentification::Trypticity>(tryptic_code);
 
         // create idXML file
         ProteinIdentification protein_id;
