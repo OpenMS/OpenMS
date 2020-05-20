@@ -156,8 +156,10 @@ double get_loggamma_nominator(int x)
 
 int verify_atom_cnt(int atomCnt)
 {
+    #if !ISOSPEC_BUILDING_OPENMS
     if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
         throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
+    #endif
     return atomCnt;
 }
 

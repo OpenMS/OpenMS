@@ -117,7 +117,7 @@
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
 
-#if ISOSPEC_BUILDING_R && !defined(__cpp_if_constexpr)
+#if ISOSPEC_BUILDING_R || !defined(__cpp_if_constexpr)
 #define constexpr_if if
 #else
 #define constexpr_if if constexpr

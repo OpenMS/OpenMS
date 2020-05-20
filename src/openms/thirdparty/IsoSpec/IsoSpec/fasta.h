@@ -30,4 +30,16 @@ extern const double aa_elem_probabilities[19];
 
 extern const int aa_symbol_to_elem_counts[256*6];
 
+inline void parse_fasta(const char* fasta, int atomCounts[6])
+{
+    memset(atomCounts, 0, sizeof(decltype(atomCounts[0]))*6);
+
+    for(size_t idx = 0; fasta[idx] != '\0'; ++idx)
+    {
+        const int* counts = &aa_symbol_to_elem_counts[fasta[idx]*6];
+        for(int ii = 0; ii < 6; ++ii)
+            atomCounts[ii] += counts[ii];
+    }
+}
+
 }  // namespace IsoSpec

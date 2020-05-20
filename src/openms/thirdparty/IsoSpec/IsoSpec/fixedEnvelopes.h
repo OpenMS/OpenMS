@@ -117,7 +117,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         constexpr_if(tgetConfs) { generator.get_conf_signature(tconfs); tconfs += allDim; }
     }
 
-    ISOSPEC_FORCE_INLINE void store_conf(double mass, double prob)
+    ISOSPEC_FORCE_INLINE void store_conf(double _mass, double _prob)
     {
         if(_confs_no == current_size)
         {
@@ -125,8 +125,8 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
             reallocate_memory<false>(current_size);
         }
 
-        *tprobs = prob;
-        *tmasses = mass;
+        *tprobs = _prob;
+        *tmasses = _mass;
         tprobs++;
         tmasses++;
 

@@ -14,6 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#include <cstring>
 
 #include "element_tables.h"
 #include "fasta.h"

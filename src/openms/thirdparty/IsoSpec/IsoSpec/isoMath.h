@@ -22,8 +22,13 @@
 #if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
 // 10M should be enough for anyone, right?
 // Actually, yes. If anyone tries to input a molecule that has more than 10M atoms,
-// he deserves to get an exception thrown in his face.
-#define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+// he deserves to get an exception thrown in his face. OpenMS guys don't want to alloc
+// a table of 10M to memoize the necessary values though, use something smaller for them.
+  #if ISOSPEC_BUILDING_OPENMS
+    #define ISOSPEC_G_FACT_TABLE_SIZE 1024
+  #else
+    #define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+  #endif
 #endif
 
 namespace IsoSpec
@@ -35,6 +40,10 @@ static inline double minuslogFactorial(int n)
 {
     if (n < 2)
         return 0.0;
+    #if ISOSPEC_BUILDING_OPENMS
+    if (n >= ISOSPEC_G_FACT_TABLE_SIZE)
+        return -lgamma(n+1);
+    #endif
     if (g_lfact_table[n] == 0.0)
         g_lfact_table[n] = -lgamma(n+1);
 

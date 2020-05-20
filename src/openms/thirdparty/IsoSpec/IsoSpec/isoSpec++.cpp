@@ -158,19 +158,14 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 
 Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
 {
-    int atomCounts[6] = {0, 0, 0, 0, 0, 0};
+    int atomCounts[6];
+
+    parse_fasta(fasta, atomCounts);
 
     if(add_water)
     {
-        atomCounts[1] = 2;
-        atomCounts[3] = 1;
-    }
-
-    for(size_t idx = 0; fasta[idx] != '\0'; ++idx)
-    {
-        const int* counts = &aa_symbol_to_elem_counts[fasta[idx]*6];
-        for(int ii = 0; ii < 6; ++ii)
-            atomCounts[ii] += counts[ii];
+        atomCounts[1] += 2;
+        atomCounts[3] += 1;
     }
 
     const int dimNr = atomCounts[5] > 0 ? 6 : 5;

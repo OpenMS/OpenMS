@@ -49,11 +49,11 @@ other._confs_no = 0;
 other.total_prob = 0.0;
 }
 
-FixedEnvelope::FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
-_masses(masses),
-_probs(probs),
+FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, size_t in_confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
+_masses(in_masses),
+_probs(in_probs),
 _confs(nullptr),
-_confs_no(confs_no),
+_confs_no(in_confs_no),
 allDim(0),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
@@ -397,8 +397,6 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    // NON-fixme: Deliberately not handling out-of-memory condition here. On systems with overcommit_memory (or equivalent) (which is
-    // probably like 99% of our users) we'll get a non-NULL pointer here, and get killed by OOM killer when we use it.
     _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
     if(_masses == nullptr)
         throw std::bad_alloc();
@@ -443,6 +441,9 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 
     this->_confs_no = tab_size;
 }
+
+template void FixedEnvelope::threshold_init<true>(Iso&& iso, double threshold, bool absolute);
+template void FixedEnvelope::threshold_init<false>(Iso&& iso, double threshold, bool absolute);
 
 
 template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
@@ -565,5 +566,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 
     this->_confs_no = end;
 }
+
+template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_total_prob, bool optimize);
+template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
+
 
 }  // namespace IsoSpec
