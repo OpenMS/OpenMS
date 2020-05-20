@@ -318,6 +318,8 @@ namespace OpenMS
     {
       elements.push_back({neighbor.first, neighbor.second.feature});
     }
+
+    // Named return value optimization (no additional copy or move when returning by value)
     return elements;
   }
 
