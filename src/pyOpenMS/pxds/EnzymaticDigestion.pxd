@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
         EnzymaticDigestion(EnzymaticDigestion) nogil except +
         EnzymaticDigestion() nogil except +
 
-        # const String NamesOfSpecificity[SIZE_OF_SPECIFICITY]
+        # const String NamesOfSpecificity[SPEC_UNKNOWN]
         # const String UnspecificCleavage
 
         Size getMissedCleavages() nogil except +

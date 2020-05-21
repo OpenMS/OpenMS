@@ -106,7 +106,7 @@ public:
     void setSpecificity(Specificity spec);
 
     /// convert spec string name to enum
-    /// returns SIZE_OF_SPECIFICITY if @p name is not valid
+    /// returns SPEC_UNKNOWN if @p name is not valid
     static Specificity getSpecificityByName(const String& name);
 
     /**
