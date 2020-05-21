@@ -1360,7 +1360,9 @@ protected:
       }
       catch(Exception::MissingInformation&)
       {
-        OPENMS_LOG_FATAL_ERROR << "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: " << id_file_abs_path << endl;
+        OPENMS_LOG_FATAL_ERROR <<
+          "ProteomicsLFQ expects a Posterior Error Probability score in all Peptide IDs. ID file: "
+          << idfile << endl;
         return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
