@@ -829,13 +829,18 @@ public:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
+        //TODO we could read and double-check missed cleavages as well
         if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_))
         {
-          PeptideProteinMatchInformation match;
-          match.protein_index = idx_prot;
-          match.position = position;
-          match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
-          match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
+          PeptideProteinMatchInformation match
+          {
+            idx_prot,
+            position,
+            (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1],
+            (position + len_pep >= seq_prot.size()) ?
+                            PeptideEvidence::C_TERMINAL_AA :
+                            seq_prot[position + len_pep]
+          };
           pep_to_prot[idx_pep].insert(match);
           ++filter_passed;
         }

@@ -96,9 +96,7 @@ using namespace std;
     defaultsToParam_();
   }
 
-    PeptideIndexing::~PeptideIndexing()
-  {
-  }
+  PeptideIndexing::~PeptideIndexing() = default;
 
 
   void PeptideIndexing::updateMembers_()
