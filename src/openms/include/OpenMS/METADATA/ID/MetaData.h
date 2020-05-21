@@ -75,18 +75,6 @@ namespace OpenMS
       AVERAGE,
       SIZE_OF_MASSTYPE
     };
-
-
-    enum Trypticity
-    {
-      NONE = 0,
-      SEMI = 1,
-      FULL = 2,
-      NOCTERM = 8,
-      NONTERM = 9,
-      UNKNOWN = 10
-    };
-
     // Input files that were processed:
     typedef std::set<String> InputFiles;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;

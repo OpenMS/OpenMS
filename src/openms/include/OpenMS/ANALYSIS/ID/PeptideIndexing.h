@@ -210,8 +210,24 @@ public:
       // parsing parameters, correcting xtandem and MSGFPlus parameters
       //---------------------------------------------------------------
       ProteaseDigestion enzyme;
-      enzyme.setEnzyme(enzyme_name_);
-      enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
+      if (!enzyme_name_.empty())
+      {
+        enzyme.setEnzyme(enzyme_name_);
+      }
+      else
+      {
+        // this assumes all runs used the same enzyme
+        enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
+      }
+
+      if (!enzyme_specificity_.empty())
+      {
+        enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
+      }
+      else
+      {
+        enzyme.setSpecificity(prot_ids[0].getSearchParameters().nr_termini);
+      }
 
       bool xtandem_fix_parameters = true;
       bool msgfplus_fix_parameters = true;

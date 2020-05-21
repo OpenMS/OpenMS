@@ -696,8 +696,9 @@ protected:
     protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     // seems like version is not correctly parsed from pepXML. Overwrite it here.
     protein_identifications[0].setSearchEngineVersion(comet_version);
+    // TODO let this be parsed by the pepXML parser if this info is present there.
     protein_identifications[0].getSearchParameters().nr_termini =
-        static_cast<ProteinIdentification::Trypticity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+        static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -185,9 +186,9 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
-      if (params[i].nr_termini != ProteinIdentification::UNKNOWN)
+      if (params[i].nr_termini != EnzymaticDigestion::SPEC_UNKNOWN)
       {
-        os << "\t\t\t\t<UserParam name=\"NumberTrypticTermini\" type=\"int\" value=\"" << params[i].nr_termini << "\" />\n";
+        os << "\t\t\t\t<UserParam name=\"NumberEnzymaticTermini\" type=\"int\" value=\"" << params[i].nr_termini << "\" />\n";
       }
 
       os << "\t</SearchParameters>\n";
@@ -860,11 +861,11 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
-      if (last_meta_->metaValueExists("NumberTrypticTermini"))
+      if (last_meta_->metaValueExists("NumberEnzymaticTermini"))
       {
-        Size ntt = last_meta_->getMetaValue("NumberTrypticTermini");
+        Size ntt = last_meta_->getMetaValue("NumberEnzymaticTermini");
         if (ntt >= 0 && ntt <= 2)
-          param_.nr_termini = static_cast<ProteinIdentification::Trypticity>(ntt);
+          param_.nr_termini = static_cast<EnzymaticDigestion::Specificity>(ntt);
       }
       last_meta_ = nullptr;
       parameters_[id_] = param_;

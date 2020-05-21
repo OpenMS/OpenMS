@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 
 namespace OpenMS
@@ -64,7 +65,7 @@ namespace OpenMS
 
       // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
       const DigestionEnzyme* digestion_enzyme;
-      enum Trypticity nr_termini;
+      EnzymaticDigestion::Specificity nr_termini;
       Size missed_cleavages;
       Size min_length;
       Size max_length;
@@ -74,7 +75,7 @@ namespace OpenMS
         mass_type(MassType::MONOISOTOPIC),
         precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
         precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(nullptr), nr_termini(UNKNOWN),
+        digestion_enzyme(nullptr), nr_termini(EnzymaticDigestion::SPEC_UNKNOWN),
         missed_cleavages(0), min_length(0), max_length(0)
       {
       }

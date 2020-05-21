@@ -2987,6 +2987,8 @@ namespace OpenMS
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
+      int minCharge = 0;
+      int maxCharge = 0;
       for (map<String, DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
         if (upit->first == "taxonomy")
@@ -2997,11 +2999,24 @@ namespace OpenMS
         {
           sp.charges = upit->second.toString();
         }
+        else if (upit->first == "MinCharge")
+        {
+          minCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "MaxCharge")
+        {
+          maxCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "NumTolerableTermini")
+        {
+          sp.nr_termini = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+        }
         else
         {
           sp.setMetaValue(upit->first, upit->second);
         }
       }
+      sp.charges = String(minCharge) + "-" + String(maxCharge);
       return sp;
     }
 

@@ -124,7 +124,7 @@ namespace OpenMS
     precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
     digestion_enzyme("unknown_enzyme", ""),
-    nr_termini(UNKNOWN)
+    nr_termini(EnzymaticDigestion::SPEC_UNKNOWN)
   {
   }
 
@@ -543,6 +543,7 @@ namespace OpenMS
       result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
       result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
       result.emplace_back("enzyme", params.digestion_enzyme.getName());
+      result.emplace_back("nr_termini", params.nr_termini);
       result.emplace_back("charges", params.charges);
       result.emplace_back("missed_cleavages", params.missed_cleavages);
       result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));

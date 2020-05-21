@@ -38,9 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
-
-
 
 #include <set>
 
@@ -252,17 +251,6 @@ public:
       SIZE_OF_PEAKMASSTYPE
     };
 
-    /// Trypticity
-    enum Trypticity
-    {
-      NONE = 0,
-      SEMI = 1,
-      FULL = 2,
-      NOCTERM = 8,
-      NONTERM = 9,
-      UNKNOWN = 10
-    };
-
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
@@ -283,7 +271,7 @@ public:
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
-      Trypticity nr_termini; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
+      EnzymaticDigestion::Specificity nr_termini; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
 
       SearchParameters();
       /// Copy constructor
