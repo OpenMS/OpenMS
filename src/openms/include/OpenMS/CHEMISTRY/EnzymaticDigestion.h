@@ -157,7 +157,7 @@ public:
        @param filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
        @return Whether the sequence should be filtered out.
      */
-    bool filterByMissedCleavages(const String& sequence, std::function<bool(const Int)> filter) const;
+    bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
 
 protected:
 

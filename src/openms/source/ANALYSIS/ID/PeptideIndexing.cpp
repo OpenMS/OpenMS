@@ -53,8 +53,9 @@ using namespace std;
 
     defaults_.setValue("enzyme:name", "", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input");
 
-    StringList enzymes;
+    StringList enzymes{};
     ProteaseDB::getInstance()->getAllNames(enzymes);
+    enzymes.emplace_back("");
     defaults_.setValidStrings("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", "", "Specificity of the enzyme. Default: deduce from input."
@@ -63,7 +64,7 @@ using namespace std;
       "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': allow all peptide hits no matter their context."
                                                             " Therefore, the enzyme chosen does not play a role here");
 
-    defaults_.setValidStrings("enzyme:specificity", {EnzymaticDigestion::NamesOfSpecificity[2],
+    defaults_.setValidStrings("enzyme:specificity", {"",EnzymaticDigestion::NamesOfSpecificity[2],
                                                      EnzymaticDigestion::NamesOfSpecificity[1],
                                                      EnzymaticDigestion::NamesOfSpecificity[0]});
 

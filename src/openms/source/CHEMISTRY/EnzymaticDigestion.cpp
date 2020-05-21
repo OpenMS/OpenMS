@@ -130,7 +130,7 @@ namespace OpenMS
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
-  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, std::function<bool(Int)> filter) const
+  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
     return filter(Int(tokenize_(sequence).size() - 1));
   }

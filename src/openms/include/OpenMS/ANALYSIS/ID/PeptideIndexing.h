@@ -216,17 +216,17 @@ public:
       }
       else
       {
-        // this assumes all runs used the same enzyme
-        enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
-      }
-
-      if (!enzyme_specificity_.empty())
-      {
-        enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
-      }
-      else
-      {
-        enzyme.setSpecificity(prot_ids[0].getSearchParameters().nr_termini);
+        const auto& enz = prot_ids[0].getSearchParameters().digestion_enzyme;
+        if (enz.getName() == "unknown_enzyme")
+        {
+          OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin" << std::endl;
+          enzyme.setEnzyme("Trypsin");
+        }
+        else
+        {
+          // this assumes all runs used the same enzyme
+          enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
+        }
       }
 
       bool xtandem_fix_parameters = true;
@@ -246,6 +246,24 @@ public:
       {
         OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
+      }
+
+      if (!enzyme_specificity_.empty())
+      {
+        enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(enzyme_specificity_));
+      }
+      else
+      {
+        const auto& spec = prot_ids[0].getSearchParameters().nr_termini;
+        if (spec != ProteaseDigestion::SPEC_UNKNOWN)
+        {
+          enzyme.setSpecificity(spec);
+        }
+        else
+        {
+          OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'";
+          enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
+        }
       }
 
       //-------------------------------------------------------------
