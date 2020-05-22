@@ -922,7 +922,7 @@ START_SECTION((String& removeWhitespaces()))
 
   s.removeWhitespaces();
   TEST_EQUAL(s,"");
-  
+
   s = " \t \n ";
   s.removeWhitespaces();
   TEST_EQUAL(s, "");
@@ -1037,7 +1037,7 @@ END_SECTION
 
 START_SECTION((String& operator+= (long long unsigned int i)))
   String s = "test";
-  s += (uint64_t)(7);
+  s += (long long unsigned int)(7);
   TEST_EQUAL(s, "test7")
 END_SECTION
 
@@ -1140,4 +1140,3 @@ END_SECTION
 END_TEST
 
 #pragma clang diagnostic pop
-
