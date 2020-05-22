@@ -426,7 +426,7 @@ namespace OpenMS
       map<UInt64, DoubleList> psm_counts; // all PSM counts by sample
       for (auto const & pep2sa : pd.psm_counts)
       {
-        const String& pep = pep2sa.first;
+        //const String& pep = pep2sa.first;
         const SampleAbundances& sas = pep2sa.second; 
         for (auto const & sa : sas)
         {
