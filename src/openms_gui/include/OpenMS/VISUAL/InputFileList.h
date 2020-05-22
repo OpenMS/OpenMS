@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QWidget>
@@ -68,13 +69,15 @@ namespace OpenMS
         
         /// Stores the list of all filenames in the list widget in @p files
         void getFilenames(QStringList& files) const;
+        /// Stores the list of all filenames in the list widget in @p files
+        StringList getFilenames() const;
         /// Set the list of all filenames in the list widget
         void setFilenames(const QStringList& files);
 
         /// get the CWD (according to most recently added file)
         const QString& getCWD() const;
-        /// set the current working directory (for opening files) 
-        void setCWD(const QString& cwd);
+        /// set the current working directory (for opening files). If the input is not empty, the cwd will not be altered, unless @p force is used
+        void setCWD(const QString& cwd, bool force = false);
 
         /// support Ctrl+C to copy currently selected items to clipboard
         void keyPressEvent(QKeyEvent* e) override;
@@ -90,8 +93,14 @@ namespace OpenMS
       /// Shows a TOPPASInputFileDialog which edits the current item
       void editCurrentItem();
 
+    signals:
+      /// emitted when a new file is added (by drag'n'drop or 'Add..' button)
+      void updatedCWD(QString new_cwd);
 
     protected:
+      /// add files to the list, and update 'cwd_' by using the path of the last filename
+      void addFiles_(const QStringList& files);
+
       QString cwd_; ///< current working dir, i.e. the last position a file was added from
 
     private:

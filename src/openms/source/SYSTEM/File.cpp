@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
@@ -63,6 +64,30 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  File::TempDir::TempDir(bool keep_dir)
+    : keep_dir_(keep_dir)
+  {
+    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'" << std::endl;
+    QDir d;
+    d.mkpath(temp_dir_.toQString());
+  };
+
+  File::TempDir::~TempDir()
+  {
+    if (keep_dir_) {
+      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
+      return;
+    }
+
+    File::removeDirRecursively(temp_dir_);
+  };
+
+  const String& File::TempDir::getPath() const
+  {
+    return temp_dir_;
+  }
 
   String File::getExecutablePath()
   {
@@ -509,15 +534,6 @@ namespace OpenMS
     return found;
   }
 
-  String File::removeExtension(const OpenMS::String& file)
-  {
-    if (!file.has('.'))
-      return file;
-
-    SignedSize ext_length = file.suffix('.').size() + 1;
-    return file.chop(ext_length);
-  }
-
   bool File::isDirectory(const String& path)
   {
     QFileInfo fi(path.toQString());
@@ -790,8 +806,8 @@ namespace OpenMS
 
       if (ignore_extension)
       {
-        sl1_name = File::removeExtension(sl1_name);
-        sl2_name = File::removeExtension(sl2_name);
+        sl1_name = FileHandler::stripExtension(sl1_name);
+        sl2_name = FileHandler::stripExtension(sl2_name);
       }
 
       sl1_set.insert(sl1_name);

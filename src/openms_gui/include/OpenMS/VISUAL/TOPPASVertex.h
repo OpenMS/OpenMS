@@ -175,9 +175,9 @@ public:
     /// The color of a vertex during depth-first search
     enum SUBSTREESTATUS
     {
-      TV_ALLFINISHED,  // all downstream nodes are done (including the ones which are feed by a parallel subtree)
-      TV_UNFINISHED,   // some direct downstream node is not done
-      TV_UNFINISHED_INBRANCH // a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
+      TV_ALLFINISHED,  ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
+      TV_UNFINISHED,   ///< some direct downstream node is not done
+      TV_UNFINISHED_INBRANCH ///< a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
     };
 
     /// Default Constructor

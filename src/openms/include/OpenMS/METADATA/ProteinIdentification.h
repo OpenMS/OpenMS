@@ -465,6 +465,11 @@ public:
     /// given an @param experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
+
+    /// Collects all search engine settings registered for the given search engine @param se.
+    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
+
     //@}
 
 protected:

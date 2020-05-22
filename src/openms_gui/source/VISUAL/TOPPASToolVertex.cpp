@@ -1130,7 +1130,7 @@ namespace OpenMS
   String TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
+    String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
       workflow_dir = "Untitled_workflow";

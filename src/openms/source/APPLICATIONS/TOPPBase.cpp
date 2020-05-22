@@ -113,7 +113,6 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    working_dir_keep_debug_lvl_(-1),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -143,11 +142,6 @@ namespace OpenMS
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
-    }
-
-    if (!working_dir_.empty())
-    {
-      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
     }
   }
 
@@ -416,14 +410,14 @@ namespace OpenMS
       sw.start();
       result = main_(argc, argv);
       sw.stop();
-      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
-
-      // useful for benchmarking
-      if (debug_level_ >= 1)
+      // useful for benchmarking and for execution on clusters with schedulers
+      String mem_usage;
       {
         size_t mem_virtual(0);
-        writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+        SysInfo::getProcessPeakMemoryConsumption(mem_virtual);
+        if (mem_virtual != 0) mem_usage = String("; Peak Memory Usage: ") + (mem_virtual / 1024) + " MB";
       }
+      OPENMS_LOG_INFO << this->tool_name_ << " tooks " << sw.toString() << mem_usage << "." << std::endl;
     } // end try{}
     //----------------------------------------------------------
     //error handling
@@ -1518,43 +1512,6 @@ namespace OpenMS
     }
   }
 
-  String TOPPBase::makeTempDirectory_() const
-  {
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
-    return temp_dir;
-  }
-
-  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
-  {
-    if (working_dir_.empty())
-    {
-      working_dir_ = makeTempDirectory_();
-      working_dir_keep_debug_lvl_ = keep_debug;
-    }
-    return working_dir_;
-  }
-
-  void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if ((keep_debug > 0) && (debug_level_ >= keep_debug))
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or lower to remove them.", keep_debug);
-    }
-    else
-    {
-      if ((keep_debug > 0) && (debug_level_ > 0) && (debug_level_ < keep_debug))
-      {
-        writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or higher to keep it.", debug_level_);
-      }
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
     QProcess qp;
@@ -1596,21 +1553,10 @@ namespace OpenMS
       writeLog_("Exit code: " + String(qp.exitCode()));
       if (any_failure)
       {
-        qp.close();
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
 
-    if (debug_level_ >= 10)
-    {
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
-      writeDebug_(external_sout, 10);
-      writeDebug_(external_serr, 10);
-    }
-
-    qp.close();
     writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }

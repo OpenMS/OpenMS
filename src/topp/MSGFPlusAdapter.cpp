@@ -188,6 +188,17 @@ protected:
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
 
+    registerIntOption_("max_missed_cleavages", "<num>", -1, "Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)", false);
+    setMinInt_("max_missed_cleavages", -1);
+
+    registerIntOption_("tasks", "<num>", 0, "(Override the number of tasks to use on the threads; Default: (internally calculated based on inputs))\n"
+                                             "   More tasks than threads will reduce the memory requirements of the search, but will be slower (how much depends on the inputs).\n"
+                                             "   1 <= tasks <= numThreads: will create one task per thread, which is the original behavior.\n"
+                                             "   tasks = 0: use default calculation - minimum of: (threads*3) and (numSpectra/250).\n"
+                                             "   tasks < 0: multiply number of threads by abs(tasks) to determine number of tasks (i.e., -2 means \"2 * numThreads\" tasks).\n"
+                                             "   One task per thread will use the most memory, but will usually finish the fastest.\n"
+                                             "   2-3 tasks per thread will use comparably less memory, but may cause the search to take 1.5 to 2 times as long.", false);
+
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
@@ -298,6 +309,7 @@ protected:
       // load only MS2 spectra:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
+      f.getOptions().setFillData(false);
       f.load(exp_name, exp);
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
@@ -339,8 +351,10 @@ protected:
     const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
     char residue = mod->getOrigin();
     if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
-    String position = mod->getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
-    if (position == "none") position = "any";
+    String position = mod->getTermSpecificityName();
+    if (position == "Protein N-term") position = "Prot-N-term";
+    else if (position == "Protein C-term") position = "Prot-C-term";
+    else if (position == "none") position = "any";
     return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
@@ -454,15 +468,15 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
+    String mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
-    mzid_temp = temp_dir + "msgfplus_output.mzid";
+    mzid_temp = tmp_dir.getPath() + "msgfplus_output.mzid";
     if (!no_mods)
     {
-      mod_file = temp_dir + "msgfplus_mods.txt";
+      mod_file = tmp_dir.getPath() + "msgfplus_mods.txt";
       writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
     }
 
@@ -505,8 +519,10 @@ protected:
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
+                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
+                   << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
     if (!mod_file.empty())
@@ -545,7 +561,7 @@ protected:
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
-        String tsv_out = temp_dir + "msgfplus_converted.tsv";
+        String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
         process_params << java_memory;

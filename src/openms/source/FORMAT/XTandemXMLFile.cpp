@@ -219,10 +219,10 @@ namespace OpenMS
                                    ResidueModification::N_TERM);
         }
         else if (mod_pos >= Int(aa_seq.size() - 1)) // C-terminal mod?
-          {
-            mod_def_set_.findMatches(matches, mass_shift, aa,
-                                     ResidueModification::C_TERM);
-          }
+        {
+        mod_def_set_.findMatches(matches, mass_shift, aa,
+                                    ResidueModification::C_TERM);
+        }
         if (matches.empty())
         {
           mod_def_set_.findMatches(matches, mass_shift, aa,

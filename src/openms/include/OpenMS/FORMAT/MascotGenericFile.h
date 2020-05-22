@@ -117,7 +117,6 @@ public:
         ++spectrum_number;
       } // next spectrum
 
-
       endProgress();
     }
 
@@ -129,6 +128,9 @@ public:
       The @p filename can later be found in the Mascot response.
     */
     std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
+
+    /// writes a spectrum in MGF format to an ostream
+    void writeSpectrum(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
 
 protected:
 
@@ -147,9 +149,6 @@ protected:
 
      /// writes the full header
     void writeHeader_(std::ostream& os);
-
-    /// writes the spectrum
-    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
 
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);

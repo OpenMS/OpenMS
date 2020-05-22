@@ -74,10 +74,12 @@ public:
     @brief Stores an MRMFeatureQC file.
 
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
+
+    @param[in] filename The path to the input file
+    @param[in] mrmfqc The output class which will contain the criteria
+    @param[in] is_component_group true if the user intends to store ComponentGroupQCs data, false otherwise
   */
-//  void store(const String& filename, const MRMFeatureQC& mrmfqc);
-
-
+  void store(const String& filename, const MRMFeatureQC& mrmfqc, const bool is_component_group);
 protected:
   /**
     @brief Save values from a line to a `ComponentQCs`.

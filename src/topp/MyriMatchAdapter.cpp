@@ -459,7 +459,7 @@ protected:
 
     writeDebug_("Reading output of MyriMatch", 5);
     String exp_name = File::basename(inputfile_name);
-    String pep_file = tmp_dir + File::removeExtension(exp_name) + ".pepXML";
+    String pep_file = tmp_dir + FileHandler::swapExtension(exp_name, FileTypes::PEPXML);
 
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;

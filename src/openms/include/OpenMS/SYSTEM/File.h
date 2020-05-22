@@ -55,6 +55,36 @@ public:
 
     friend class TOPPBase;
 
+    /**
+      @brief Class representing a temporary directory
+    
+    */
+
+    class OPENMS_DLLAPI TempDir
+    {
+    public:
+      
+      /// Construct temporary folder
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      TempDir(bool keep_dir = false);
+
+      /// Destroy temporary folder (can be prohibited in Constructor)
+      ~TempDir();
+
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
+      /// Return path to temporary folder
+      const String& getPath() const;
+
+    private:
+      String temp_dir_;
+      bool keep_dir_;
+    };
+
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
@@ -123,15 +153,6 @@ public:
 
     /// Returns the path of the file (without the file name).
     static String path(const String& file);
-
-    /**
-      Returns the file name without the extension
-
-      The extension is the suffix of the string up to and including the last dot.
-
-      If no extension is found, the whole file name is returned
-    */
-    static String removeExtension(const String& file);
 
     /// Return true if the file exists and is readable
     static bool readable(const String& file);
@@ -238,7 +259,7 @@ public:
       Note: this does not require the file to have executable permission set (this is not tested)
       The returned content of @p exe_filename is only valid if true is returned.
 
-      @param [in/out] exe_filename The executable to search for.
+      @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
     static bool findExecutable(OpenMS::String& exe_filename);
@@ -332,8 +353,6 @@ private:
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

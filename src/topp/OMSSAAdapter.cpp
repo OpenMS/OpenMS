@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -777,66 +778,50 @@ protected:
 
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
-    Size ms2_spec_count(0);
-    ProteinIdentification protein_identification;    
+    ProteinIdentification protein_identification;
+    Size cnt(0);
     { // local scope to free memory after conversion to MGF format is done
-      FileHandler fh;
-      FileTypes::Type in_type = fh.getType(inputfile_name);
-      PeakMap peak_map;
-      fh.getOptions().addMSLevel(2);
-      fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
-      protein_identification.setPrimaryMSRunPath({inputfile_name}, peak_map);
+        MSDataTransformingConsumer c{};
 
-      ms2_spec_count = peak_map.size();
-      writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
-
-      if (peak_map.getSpectra().empty())
-      {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-      }
-
-      // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType spectrum_type = peak_map[0].getType();
-
-      if (spectrum_type == SpectrumSettings::PROFILE)
-      {
-        if (!getFlag_("force"))
+        std::ofstream ofs;
+        MascotGenericFile mgf;
+        int chunk_size(getIntOption_("chunk_size"));
+        int chunk(0);
+        ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
+        bool empty = true;
+        auto f = [&ofs,&unique_input_name,&mgf,&cnt,&chunk,&chunk_size,&empty](const MSSpectrum& s)
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-        }
-      }
+            if (chunk_size > 0 && cnt > 0 && cnt % chunk_size == 0)
+            {
+                ofs.close();
+                ofs.clear();
+                chunk++;
+                ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
+                empty = true;
+            }
+            
+            UInt lvl = s.getMSLevel();
+            bool profile = s.getType() == MSSpectrum::SpectrumType::PROFILE;
+            if (lvl == 2 && !profile)
+            {
+                mgf.writeSpectrum(ofs, s, "omssainput", "UNKNOWN");
+                ++cnt;
+                empty = false;
+            }
+        };
+        
+        c.setSpectraProcessingFunc(f);
+        MzMLFile().transform(inputfile_name, &c, true);
+        ofs.close();
+        if (empty) chunk--;
+        if (chunk < 0) throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
 
-      int chunk(0);
-      int chunk_size(getIntOption_("chunk_size"));
-      if (chunk_size <= 0)
-      {
-        writeLog_("Chunk size is <=0; disabling chunking of input! If OMSSA crashes due to memory allocation errors, try setting 'chunk_size' to a value below 30000 (e.g., 10000 is usually ok).");
-        chunk_size = (int) peak_map.getSpectra().size();
-      }
-
-      for (Size i = 0; i < peak_map.size(); i += chunk_size)
-      {
-        PeakMap map_chunk;
-        PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
-        // prepare a chunk
-        if (static_cast<int>(peak_map.size()) <= chunk_size)
-        { // we have only one chunk; avoid duplicating the whole data (could be a lot)
-          // we do not use swap() since someone might want to access 'map' later and would find it empty
-          chunk_ptr = &peak_map;
-        }
-        else
+        for (Size ch = 0; ch <= Size(chunk); ch++)
         {
-          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), peak_map.getSpectra().begin() + i, peak_map.getSpectra().begin() + std::min(
-                  peak_map.size(), i + chunk_size));
+            String filename_chunk = unique_input_name + String(ch) + ".mgf";
+            file_spectra_chunks_in.push_back(filename_chunk);
+            file_spectra_chunks_out.push_back(unique_output_name + String(ch) + ".xml");
         }
-        MascotGenericFile omssa_infile;
-        String filename_chunk = unique_input_name + String(chunk) + ".mgf";
-        file_spectra_chunks_in.push_back(filename_chunk);
-        writeDebug_("Storing input file: " + filename_chunk, 5);
-        omssa_infile.store(filename_chunk, *chunk_ptr);
-        file_spectra_chunks_out.push_back(unique_output_name + String(chunk) + ".xml");
-        ++chunk;
-      }
     }
     //-------------------------------------------------------------
     // calculations
@@ -940,7 +925,7 @@ protected:
         }
         it->setHits(hits);
       }
-
+      std::cout << "nr proteins: " << protein_identification_chunk.getHits().size() << std::endl;
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
       // across chunks. So we only retain this information if there is a single chunk (no splitting occurred)
       if (file_spectra_chunks_in.size() == 1)
@@ -1041,9 +1026,8 @@ protected:
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
-    OPENMS_LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
-
+    OpenMS_Log_info << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << cnt << " = " << int(peptide_ids.size() * 100.0 / cnt) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

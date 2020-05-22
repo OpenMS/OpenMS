@@ -141,7 +141,16 @@ class TOPPFeatureFinderCentroided :
 {
 public:
   TOPPFeatureFinderCentroided() :
-    TOPPBase("FeatureFinderCentroided", "Detects two-dimensional features in LC-MS data.")
+    TOPPBase("FeatureFinderCentroided", 
+             "Detects two-dimensional features in LC-MS data.",
+             true,
+             {
+               Citation{ "Sturm M",
+                         "A novel feature detection algorithm for centroided data",
+                         "Dissertation, 2010-09-15, p.37 ff",
+                         "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf"
+                       }
+             })
   {}
 
 protected:
