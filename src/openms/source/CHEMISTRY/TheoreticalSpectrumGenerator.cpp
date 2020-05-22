@@ -363,21 +363,7 @@ namespace OpenMS
   {
     const String charge_str((Size)abs(charge), '+');
     const String residue_str(Residue::residueTypeToIonLetter(res_type));
-    const String ion_ordinal_str(String(ion_ordinal) + "-")sesFaster_(PeakSpectrum& spectrum,
-                         double mz,
-                         const std::set<EmpiricalFormula>& f_losses,
-                         int ion_ordinal,
-                         DataArrays::StringDataArray& ion_names,
-                         DataArrays::IntegerDataArray& charges,
-                         double intensity,
-                         const Residue::ResidueType res_type,
-                         bool add_metainfo,
-                         int charge) const
-  {
-    const String charge_str((Size)abs(charge), '+');
-    const String residue_str(Residue::residueTypeToIonLetter(res_type));
     const String ion_ordinal_str(String(ion_ordinal) + "-");
-;
 
     for (auto& formula : f_losses)
     {
