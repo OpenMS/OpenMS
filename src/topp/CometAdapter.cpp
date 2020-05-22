@@ -365,7 +365,10 @@ protected:
       //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
       if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 3 and -1 should be equal for now.
@@ -373,7 +376,10 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 2 and -1 should be equal for now.
@@ -381,13 +387,19 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 0;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 1;
       }
