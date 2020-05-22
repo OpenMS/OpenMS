@@ -179,9 +179,7 @@ namespace OpenMS
         if (pos != pep_info.end()) // sequence found in protein inference data
         {
           OPENMS_LOG_DEBUG << "Accessions: ";
-          for (auto & a : pos->second) {
-            OPENMS_LOG_DEBUG << a << "\t";
-          }
+          for (auto & a : pos->second) { OPENMS_LOG_DEBUG << a << "\t"; }
           OPENMS_LOG_DEBUG << "\n";
           pep_q.second.accessions = pos->second; // replace accessions
           filtered.insert(pep_q);
@@ -191,7 +189,7 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << "not found in inference data." << endl;
         }
       }
-      pep_quant_ = filtered;
+      pep_quant_ = std::move(filtered);
     }
 
     //////////////////////////////////////////////////////
@@ -388,7 +386,6 @@ namespace OpenMS
 
     // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
 
-    set<String> unique_peptide_sequences;
     for (auto const& pep_q : pep_quant_)
     {
       String accession = getAccession_(pep_q.second.accessions,
@@ -423,10 +420,31 @@ namespace OpenMS
 
     for (auto & prot_q : prot_quant_)
     {
-      if ((top > 0) && (prot_q.second.abundances.size() < top))
+      const ProteinData& pd = prot_q.second;
+
+      // calculate PSM counts based on all (!) peptides of a protein (group)
+      map<UInt64, DoubleList> psm_counts; // all PSM counts by sample
+      for (auto const & pep2sa : pd.psm_counts)
       {
+        const String& pep = pep2sa.first;
+        const SampleAbundances& sas = pep2sa.second; 
+        for (auto const & sa : sas)
+        {
+          psm_counts[sa.first].push_back(sa.second);
+        }
+      }
+      // summarize all peptides of this protein to get map: sample->psm_count
+      for (auto & c : psm_counts)
+      {
+        double psm_count_result = Math::sum(c.second.begin(), c.second.end());
+        prot_q.second.total_psm_counts[c.first] = psm_count_result;
+      }
+
+      // select which peptides of the current protein (group) are quantified 
+      if ((top > 0) && (prot_q.second.abundances.size() < top))
+      { // not enough proteotypic peptides? skip protein (except if user chose to include the nevertheless)
         stats_.too_few_peptides++;
-        if (!include_all) { continue; } // not enough proteotypic peptides
+        if (!include_all) { continue; }
       }
 
       vector<String> peptides; // peptides selected for quantification
@@ -459,26 +477,12 @@ namespace OpenMS
 
       // consider only the selected peptides for quantification:
       map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-      map<UInt64, DoubleList> psm_counts; // all PSM counts by sample
       for (const auto & pep : peptides) // for all selected peptides
       { 
         for (auto & sa : prot_q.second.abundances[pep]) // copy over abundances
         {
           abundances[sa.first].push_back(sa.second);
         }
-
-        for (auto & sa : prot_q.second.psm_counts[pep]) // copy over psm counts
-        {
-          psm_counts[sa.first].push_back(sa.second);
-        }
-      }
-
-      // summarize all peptides of this protein to get map: sample->psm_count
-      // note: we take all for spectral counting (not only the top n ones) and always sum up
-      for (auto & c : psm_counts)
-      {
-        double psm_count_result = Math::sum(c.second.begin(), c.second.end());
-        prot_q.second.total_psm_counts[c.first] = psm_count_result;
       }
 
       for (auto & ab : abundances)
