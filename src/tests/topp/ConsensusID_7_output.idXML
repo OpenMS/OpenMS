@@ -29,7 +29,7 @@
 			<UserParam type="float" name="Mascot:precursor_mass_tolerance" value="10.0"/>
 			<UserParam type="int" name="Mascot:precursor_mass_tolerance_ppm" value="0"/>
 			<UserParam type="string" name="Mascot:digestion_enzyme" value="Trypsin"/>
-			<UserParam type="int" name="Mascot:nr_enzymatic_termini" value="10"/>
+			<UserParam type="int" name="Mascot:nr_enzymatic_termini" value="3"/>
 			<UserParam type="string" name="SE:OMSSA" value="2.1.4"/>
 			<UserParam type="string" name="OMSSA:db" value="/nfs/wsi/bs/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.psq"/>
 			<UserParam type="string" name="OMSSA:db_version" value=""/>
