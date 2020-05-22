@@ -6,7 +6,7 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule XTandem, ]
 MTD	peptide_search_engine_score[1]	[, , XTandem XTandem, ]
 MTD	psm_search_engine_score[1]	[, , XTandem XTandem, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-13]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-scoreCheckSwitchPLFQ-2020-05-22]
 MTD	software[2]	[, , XTandem, ]
 MTD	software[2]-setting[1]	db:C:\Users\bielow\AppData\Local\Temp\20190911_152818_14688_1\QualityControl\006_DecoyDatabase\out\crap_to_database_minimal_mrgd.fasta
 MTD	software[2]-setting[2]	db_version:null
@@ -15,10 +15,11 @@ MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[2]-setting[5]	precursor_mass_tolerance:10.0
 MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:ppm
 MTD	software[2]-setting[7]	enzyme:Trypsin
-MTD	software[2]-setting[8]	charges:null
-MTD	software[2]-setting[9]	missed_cleavages:1
-MTD	software[2]-setting[10]	fixed_modifications:Carbamidomethyl (C)
-MTD	software[2]-setting[11]	variable_modifications:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E),Oxidation (M)
+MTD	software[2]-setting[8]	nr_enzymatic_termini:10
+MTD	software[2]-setting[9]	charges:null
+MTD	software[2]-setting[10]	missed_cleavages:1
+MTD	software[2]-setting[11]	fixed_modifications:Carbamidomethyl (C)
+MTD	software[2]-setting[12]	variable_modifications:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E),Oxidation (M)
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere

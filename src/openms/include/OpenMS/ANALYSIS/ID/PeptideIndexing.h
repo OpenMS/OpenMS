@@ -216,8 +216,7 @@ public:
       }
       else
       {
-        const auto& enz = prot_ids[0].getSearchParameters().digestion_enzyme;
-        if (enz.getName() == "unknown_enzyme")
+        if (prot_ids.empty() || prot_ids[0].getSearchParameters().digestion_enzyme.getName() == "unknown_enzyme")
         {
           OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin" << std::endl;
           enzyme.setEnzyme("Trypsin");
@@ -254,15 +253,14 @@ public:
       }
       else
       {
-        const auto& spec = prot_ids[0].getSearchParameters().nr_termini;
-        if (spec != ProteaseDigestion::SPEC_UNKNOWN)
-        {
-          enzyme.setSpecificity(spec);
-        }
-        else
+        if (prot_ids.empty() || prot_ids[0].getSearchParameters().nr_enzymatic_termini == ProteaseDigestion::SPEC_UNKNOWN)
         {
           OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'";
           enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
+        }
+        else
+        {
+          enzyme.setSpecificity(prot_ids[0].getSearchParameters().nr_enzymatic_termini);
         }
       }
 

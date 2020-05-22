@@ -3009,14 +3009,17 @@ namespace OpenMS
         }
         else if (upit->first == "NumTolerableTermini")
         {
-          sp.nr_termini = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+          sp.nr_enzymatic_termini = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
         }
         else
         {
           sp.setMetaValue(upit->first, upit->second);
         }
       }
-      sp.charges = String(minCharge) + "-" + String(maxCharge);
+      if (minCharge != 0 || maxCharge != 0) // this means "MinCharge" and "MaxCharge" get preference over "charges"
+      {
+        sp.charges = String(minCharge) + "-" + String(maxCharge);
+      }
       return sp;
     }
 

@@ -6,19 +6,20 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
 MTD	peptide_search_engine_score[1]	[, , Mascot, ]
 MTD	psm_search_engine_score[1]	[, , Mascot, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-mzTabMTD-2020-05-12]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-scoreCheckSwitchPLFQ-2020-05-22]
 MTD	software[2]	[, , Mascot, ]
-MTD	software[2]-setting[1]	db:
-MTD	software[2]-setting[2]	db_version:
+MTD	software[2]-setting[1]	db:null
+MTD	software[2]-setting[2]	db_version:null
 MTD	software[2]-setting[3]	fragment_mass_tolerance:0.0
 MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[2]-setting[5]	precursor_mass_tolerance:0.0
 MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:Da
 MTD	software[2]-setting[7]	enzyme:unknown_enzyme
-MTD	software[2]-setting[8]	charges:
-MTD	software[2]-setting[9]	missed_cleavages:0
-MTD	software[2]-setting[10]	fixed_modifications:
-MTD	software[2]-setting[11]	variable_modifications:
+MTD	software[2]-setting[8]	nr_enzymatic_termini:10
+MTD	software[2]-setting[9]	charges:null
+MTD	software[2]-setting[10]	missed_cleavages:0
+MTD	software[2]-setting[11]	fixed_modifications:null
+MTD	software[2]-setting[12]	variable_modifications:null
 MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]

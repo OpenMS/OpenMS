@@ -186,9 +186,9 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
-      if (params[i].nr_termini != EnzymaticDigestion::SPEC_UNKNOWN)
+      if (params[i].nr_enzymatic_termini != EnzymaticDigestion::SPEC_UNKNOWN)
       {
-        os << "\t\t\t\t<UserParam name=\"NumberEnzymaticTermini\" type=\"int\" value=\"" << params[i].nr_termini << "\" />\n";
+        os << "\t\t\t\t<UserParam name=\"NumberEnzymaticTermini\" type=\"int\" value=\"" << params[i].nr_enzymatic_termini << "\" />\n";
       }
 
       os << "\t</SearchParameters>\n";
@@ -865,7 +865,7 @@ namespace OpenMS
       {
         Size ntt = last_meta_->getMetaValue("NumberEnzymaticTermini");
         if (ntt >= 0 && ntt <= 2)
-          param_.nr_termini = static_cast<EnzymaticDigestion::Specificity>(ntt);
+          param_.nr_enzymatic_termini = static_cast<EnzymaticDigestion::Specificity>(ntt);
       }
       last_meta_ = nullptr;
       parameters_[id_] = param_;

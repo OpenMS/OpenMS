@@ -271,7 +271,7 @@ public:
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
-      EnzymaticDigestion::Specificity nr_termini; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
+      EnzymaticDigestion::Specificity nr_enzymatic_termini; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
 
       SearchParameters();
       /// Copy constructor

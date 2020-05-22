@@ -492,7 +492,7 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
         all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
-        all_sp.setMetaValue(SE+":nr_termini",sp.nr_termini);
+        all_sp.setMetaValue(SE+":nr_enzymatic_termini",sp.nr_enzymatic_termini);
         //TODO maybe add all the files in file origin that were searched with this SE. then we can do a lookup later
         // for every PepID based on its file_origin, with which SEs and settings it was identified.
         
