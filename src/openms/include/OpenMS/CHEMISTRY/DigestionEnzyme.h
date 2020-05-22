@@ -53,19 +53,6 @@ namespace OpenMS
   {
   public:
 
-    /// Terminus Specificity
-    ///@todo Currently this is just here for encapsulation
-    ///  and not used in any logic inside this class
-    enum TermSpecificity
-    {
-      NONE = 0,
-      SEMI = 1,
-      FULL = 2,
-      NOCTERM = 8,
-      NONTERM = 9,
-      UNKNOWN = 10
-    };
-
     /** @name Constructors
     */
     //@{

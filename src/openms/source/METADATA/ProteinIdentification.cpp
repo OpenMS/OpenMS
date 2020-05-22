@@ -57,7 +57,7 @@ namespace OpenMS
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return (probability == rhs.probability) && (accessions == rhs.accessions);
+    return std::tie(probability, accessions) == std::tie(rhs.probability, rhs.accessions);
   }
 
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
@@ -130,20 +130,14 @@ namespace OpenMS
 
   bool ProteinIdentification::SearchParameters::operator==(const SearchParameters& rhs) const
   {
-    return db == rhs.db &&
-           db_version == rhs.db_version &&
-           taxonomy == rhs.taxonomy &&
-           charges == rhs.charges &&
-           mass_type == rhs.mass_type &&
-           fixed_modifications == rhs.fixed_modifications &&
-           variable_modifications == rhs.variable_modifications &&
-           missed_cleavages == rhs.missed_cleavages &&
-           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
-           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
-           precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
-           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
-           digestion_enzyme == rhs.digestion_enzyme &&
-           nr_enzymatic_termini == rhs.nr_enzymatic_termini;
+    return
+        std::tie(db, db_version, taxonomy, charges, mass_type, fixed_modifications, variable_modifications,
+            missed_cleavages, fragment_mass_tolerance, fragment_mass_tolerance_ppm, precursor_mass_tolerance,
+            precursor_mass_tolerance_ppm, digestion_enzyme, nr_enzymatic_termini) ==
+        std::tie(rhs.db, rhs.db_version, rhs.taxonomy, rhs.charges, rhs.mass_type, rhs.fixed_modifications,
+            rhs.variable_modifications, rhs.missed_cleavages, rhs.fragment_mass_tolerance,
+            rhs.fragment_mass_tolerance_ppm, rhs.precursor_mass_tolerance,
+            rhs.precursor_mass_tolerance_ppm, rhs.digestion_enzyme, rhs.nr_enzymatic_termini);
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
@@ -569,18 +563,14 @@ namespace OpenMS
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
-           id_ == rhs.id_ &&
-           search_engine_ == rhs.search_engine_ &&
-           search_engine_version_ == rhs.search_engine_version_ &&
-           search_parameters_ == rhs.search_parameters_ &&
-           date_ == rhs.date_ &&
-           protein_hits_ == rhs.protein_hits_ &&
-           protein_groups_ == rhs.protein_groups_ &&
-           indistinguishable_proteins_ == rhs.indistinguishable_proteins_ &&
-           protein_score_type_ == rhs.protein_score_type_ &&
-           protein_significance_threshold_ == rhs.protein_significance_threshold_ &&
-           higher_score_better_ == rhs.higher_score_better_;
-
+            std::tie(id_, search_engine_, search_engine_version_,
+                search_parameters_, date_, protein_hits_, protein_groups_,
+                indistinguishable_proteins_, protein_score_type_,
+                protein_significance_threshold_, higher_score_better_) ==
+            std::tie(rhs.id_, rhs.search_engine_, rhs.search_engine_version_,
+                     rhs.search_parameters_, rhs.date_, rhs.protein_hits_, rhs.protein_groups_,
+                     rhs.indistinguishable_proteins_, rhs.protein_score_type_,
+                     rhs.protein_significance_threshold_, rhs.higher_score_better_);
   }
 
   // Inequality operator
@@ -609,7 +599,7 @@ namespace OpenMS
     UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    float tmpscore = lit->getScore();
+    double tmpscore = lit->getScore();
     while (lit != protein_hits_.end())
     {
       lit->setRank(rank);

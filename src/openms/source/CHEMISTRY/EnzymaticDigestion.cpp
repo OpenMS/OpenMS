@@ -41,7 +41,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"none","semi","full","unknown","unknown","unknown","unknown","unknown","no-cterm","no-nterm","unknown"};
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"none","semi","full","unknown","unknown","unknown","unknown","unknown","no-cterm","no-nterm"};
   const std::string EnzymaticDigestion::NoCleavage = "no cleavage";
   const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
@@ -80,7 +80,7 @@ namespace OpenMS
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
   {
-    for (Size i = 0; i < SPEC_UNKNOWN; ++i)
+    for (Size i = 0; i < SIZE_OF_SPECIFICITY; ++i)
     {
       if (name == NamesOfSpecificity[i]) return Specificity(i);
     }

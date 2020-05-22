@@ -68,12 +68,13 @@ public:
       SPEC_NONE = 0, ///< no requirements on start / end
       SPEC_SEMI = 1, ///< semi specific, i.e., one of the two cleavage sites must fulfill requirements
       SPEC_FULL = 2, ///< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+      SPEC_UNKNOWN = 3,
       SPEC_NOCTERM = 8, ///< no requirements on CTerm (currently not supported in the class)
       SPEC_NONTERM = 9, ///< no requirements on NTerm (currently not supported in the class)
-      SPEC_UNKNOWN = 10
+      SIZE_OF_SPECIFICITY = 10
     };
     /// Names of the Specificity
-    static const std::string NamesOfSpecificity[SPEC_UNKNOWN+1];
+    static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
 
     /// Name for no cleavage
     static const std::string NoCleavage;
