@@ -139,19 +139,40 @@ public:
          @param s Any other type
          @returns reference to this
     */
+    // if constexpr() IS ONLY ALLOWED FROM c++17!
+    //template <typename T>
+    //inline FastOStream& operator << (const T& s)
+    //{
+    //  if constexpr (std::is_arithmetic<typename std::decay<T>::type>::value)
+    //  {
+    //    buffer_.clear();
+    //    buffer_ += s; // use internal buffer, instead of String(s), which would allocate
+    //    os_.rdbuf()->sputn(buffer_.c_str(), buffer_.size());
+    //  }
+    //  else
+    //  {
+    //    os_ << s;
+    //  }
+    //  return *this;
+    //}
+
+    // if input type is arithmetic
     template <typename T>
-    inline FastOStream& operator << (const T& s)
+    inline typename std::enable_if<std::is_arithmetic<typename std::decay<T>::type>::value, FastOStream&>::type
+    operator << (const T& value)
     {
-      if constexpr (std::is_arithmetic<typename std::decay<T>::type>::value)
-      {
-        buffer_.clear();
-        buffer_ += s; // use internal buffer, instead of String(s), which would allocate
-        os_.rdbuf()->sputn(buffer_.c_str(), buffer_.size());
-      }
-      else
-      {
-        os_ << s;
-      }
+      buffer_.clear();
+      buffer_ += value; // use internal buffer, instead of String(s), which would allocate
+      os_.rdbuf()->sputn(buffer_.c_str(), buffer_.size());
+      return *this;
+    }
+
+    // if input type is NOT arithmetic
+    template <typename T>
+    inline typename std::enable_if<!std::is_arithmetic<typename std::decay<T>::type>::value, FastOStream&>::type
+    operator << (const T& value)
+    {
+      os_ << value;
       return *this;
     }
 
