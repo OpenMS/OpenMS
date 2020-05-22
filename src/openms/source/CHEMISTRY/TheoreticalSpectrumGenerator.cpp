@@ -356,6 +356,7 @@ namespace OpenMS
                          int ion_ordinal,
                          DataArrays::StringDataArray& ion_names,
                          DataArrays::IntegerDataArray& charges,
+                         const std::map<EmpiricalFormula, String>& formula_str_cache,
                          double intensity,
                          const Residue::ResidueType res_type,
                          bool add_metainfo,
@@ -371,11 +372,7 @@ namespace OpenMS
 
       if (add_metainfo)
       {
-        String& loss_name = formula_str_cache_[formula];
-        if (loss_name.empty())
-        {
-          loss_name = formula.toString();
-        }
+        const String& loss_name = formula_str_cache.at(formula);
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         ion_names.emplace_back(residue_str);
         //note: size of Residue::residueTypeToIonLetter(res_type) : 1;
@@ -510,6 +507,20 @@ namespace OpenMS
     double mono_weight(Constants::PROTON_MASS_U * charge);
 
     std::set<EmpiricalFormula> fx_losses;
+    std::map<EmpiricalFormula, String> formula_str_cache;
+
+    // precompute formula_str_cache
+    for (auto& p : peptide)
+    {
+      for (auto& formula : p.getLossFormulas())
+      {
+        String& loss_name = formula_str_cache[formula];
+        if (loss_name.empty())
+        {
+          loss_name = formula.toString();
+        }
+      }
+    }
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
@@ -581,7 +592,7 @@ namespace OpenMS
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
             addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
-                              i + 1, ion_names, charges, intensity * rel_loss_intensity_,
+                              i + 1, ion_names, charges, formula_str_cache, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
             chunks.add(false); // unfortunately, the losses are not always inserted in sorted order
           }
@@ -671,7 +682,7 @@ namespace OpenMS
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
             addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
-                              peptide.size() - i, ion_names, charges, intensity * rel_loss_intensity_,
+                              peptide.size() - i, ion_names, charges, formula_str_cache, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
             chunks.add(false); // losses are not always added in sorted order
           }
