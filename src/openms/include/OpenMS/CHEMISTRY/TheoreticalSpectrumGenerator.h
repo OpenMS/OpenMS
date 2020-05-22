@@ -113,8 +113,11 @@ namespace OpenMS
     /// helper for mapping residue type to letter
     static char residueTypeToIonLetter_(const Residue::ResidueType res_type);
 
-    /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    /// helper to add full neutral loss ladders (for isotope clusters), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
+
+    /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, bool add_metainfo, int charge) const;
 
     bool add_b_ions_;
     bool add_y_ions_;
@@ -144,5 +147,8 @@ namespace OpenMS
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
+
+    // formula.toString() is extremely expensive, so we use a member map to remember what String belongs to which formula
+    mutable std::map<EmpiricalFormula, String> formula_str_cache_;
   };
 }

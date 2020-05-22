@@ -141,31 +141,39 @@ namespace OpenMS
     }
 
     MSSpectrum::Chunks chunks(spectrum);
-    PeakSpectrum::StringDataArray ion_names;
-    PeakSpectrum::IntegerDataArray charges;
+    PeakSpectrum::StringDataArray* ion_names;
+    PeakSpectrum::IntegerDataArray* charges;
 
     if (add_metainfo_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
-        charges = std::move(spectrum.getIntegerDataArrays()[0]);
+        charges = new PeakSpectrum::IntegerDataArray;
       }
-      if (spectrum.getStringDataArrays().size() > 0)
+      else
       {
-        ion_names = std::move(spectrum.getStringDataArrays()[0]);
+        charges = &(spectrum.getIntegerDataArrays()[0]);
       }
-      ion_names.setName("IonNames");
-      charges.setName("Charges");
+      if (spectrum.getStringDataArrays().empty())
+      {
+        ion_names = new PeakSpectrum::StringDataArray;
+      }
+      else
+      {
+        ion_names = &(spectrum.getStringDataArrays()[0]);
+      }
+      ion_names->setName("IonNames");
+      charges->setName("Charges");
     }
 
     for (Int z = min_charge; z <= max_charge; ++z)
     {
-      if (add_b_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::BIon, z);
-      if (add_y_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::YIon, z);
-      if (add_a_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::AIon, z);
-      if (add_c_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::CIon, z);
-      if (add_x_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::XIon, z);
-      if (add_z_ions_) addPeaks_(spectrum, peptide, ion_names, charges, chunks, Residue::ZIon, z);
+      if (add_b_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::BIon, z);
+      if (add_y_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::YIon, z);
+      if (add_a_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::AIon, z);
+      if (add_c_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::CIon, z);
+      if (add_x_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::XIon, z);
+      if (add_z_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::ZIon, z);
     }
 
     if (add_precursor_peaks_)
@@ -174,40 +182,34 @@ namespace OpenMS
       {
         for (Int z = min_charge; z <= max_charge; ++z)
         {
-          addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
+          addPrecursorPeaks_(spectrum, peptide, *ion_names, *charges, z);
           chunks.add(false);
         }
       }
       else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
-        addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
+        addPrecursorPeaks_(spectrum, peptide, *ion_names, *charges, max_charge);
         chunks.add(false);
       }
     }
 
     if (add_abundant_immonium_ions_)
     {
-      addAbundantImmoniumIons_(spectrum, peptide, ion_names, charges);
+      addAbundantImmoniumIons_(spectrum, peptide, *ion_names, *charges);
       chunks.add(true); // this chunk is ordered, as the if-statements in addAbundantImmoniumIons_() are in ascending order (by MZ)
     }
 
     if (add_metainfo_)
     {
-      if (spectrum.getIntegerDataArrays().size() > 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
-        spectrum.getIntegerDataArrays()[0] = std::move(charges);
+        spectrum.getIntegerDataArrays().push_back(std::move(*charges));
+        delete charges;
       }
-      else
+      if (spectrum.getStringDataArrays().empty())
       {
-        spectrum.getIntegerDataArrays().push_back(std::move(charges));
-      }
-      if (spectrum.getStringDataArrays().size() > 0)
-      {
-        spectrum.getStringDataArrays()[0] = std::move(ion_names);
-      }
-      else
-      {
-        spectrum.getStringDataArrays().push_back(std::move(ion_names));
+        spectrum.getStringDataArrays().push_back(std::move(*ion_names));
+        delete ion_names;
       }
     }
 
@@ -348,7 +350,7 @@ namespace OpenMS
     }
   }
 
-  void addLosses_faster_(PeakSpectrum& spectrum,
+  void TheoreticalSpectrumGenerator::addLossesFaster_(PeakSpectrum& spectrum,
                          double mz,
                          const std::set<EmpiricalFormula>& f_losses,
                          int ion_ordinal,
@@ -357,14 +359,25 @@ namespace OpenMS
                          double intensity,
                          const Residue::ResidueType res_type,
                          bool add_metainfo,
-                         int charge)
+                         int charge) const
+  {
+    const String charge_str((Size)abs(charge), '+');
+    const String residue_str(Residue::residueTypeToIonLetter(res_type));
+    const String ion_ordinal_str(String(ion_ordinal) + "-")sesFaster_(PeakSpectrum& spectrum,
+                         double mz,
+                         const std::set<EmpiricalFormula>& f_losses,
+                         int ion_ordinal,
+                         DataArrays::StringDataArray& ion_names,
+                         DataArrays::IntegerDataArray& charges,
+                         double intensity,
+                         const Residue::ResidueType res_type,
+                         bool add_metainfo,
+                         int charge) const
   {
     const String charge_str((Size)abs(charge), '+');
     const String residue_str(Residue::residueTypeToIonLetter(res_type));
     const String ion_ordinal_str(String(ion_ordinal) + "-");
-
-    // formula.toString() is extremely expensive, so we use a static map to remember what String belongs to which formula
-    static std::map<EmpiricalFormula, String> formula_str_cache;
+;
 
     for (auto& formula : f_losses)
     {
@@ -372,7 +385,7 @@ namespace OpenMS
 
       if (add_metainfo)
       {
-        String& loss_name = formula_str_cache[formula];
+        String& loss_name = formula_str_cache_[formula];
         if (loss_name.empty())
         {
           loss_name = formula.toString();
@@ -581,7 +594,7 @@ namespace OpenMS
             {
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
-            addLosses_faster_(spectrum, mono_weight + ion_offset, fx_losses,
+            addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
                               i + 1, ion_names, charges, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
             chunks.add(false); // unfortunately, the losses are not always inserted in sorted order
@@ -671,7 +684,7 @@ namespace OpenMS
             {
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
-            addLosses_faster_(spectrum, mono_weight + ion_offset, fx_losses,
+            addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
                               peptide.size() - i, ion_names, charges, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
             chunks.add(false); // losses are not always added in sorted order
