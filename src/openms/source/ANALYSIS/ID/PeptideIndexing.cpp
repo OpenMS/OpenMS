@@ -59,14 +59,14 @@ using namespace std;
     defaults_.setValidStrings("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", "", "Specificity of the enzyme. Default: deduce from input."
-      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': both internal cleavage sites must match."
-      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': allow all peptide hits no matter their context."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL] + "': both internal cleavage sites must match."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI] + "': one of two internal cleavage sites must match."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE] + "': allow all peptide hits no matter their context."
                                                             " Therefore, the enzyme chosen does not play a role here");
 
-    defaults_.setValidStrings("enzyme:specificity", {"",EnzymaticDigestion::NamesOfSpecificity[2],
-                                                     EnzymaticDigestion::NamesOfSpecificity[1],
-                                                     EnzymaticDigestion::NamesOfSpecificity[0]});
+    defaults_.setValidStrings("enzyme:specificity", {"",EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL],
+                                                     EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI],
+                                                     EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE]});
 
     defaults_.setValue("write_protein_sequence", "false", "If set, the protein sequences are stored as well.");
     defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("true,false"));
