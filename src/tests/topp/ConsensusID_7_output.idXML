@@ -43,7 +43,7 @@
 			<UserParam type="float" name="OMSSA:precursor_mass_tolerance" value="0.01"/>
 			<UserParam type="int" name="OMSSA:precursor_mass_tolerance_ppm" value="0"/>
 			<UserParam type="string" name="OMSSA:digestion_enzyme" value="Trypsin"/>
-			<UserParam type="int" name="OMSSA:nr_enzymatic_termini" value="10"/>
+			<UserParam type="int" name="OMSSA:nr_enzymatic_termini" value="3"/>
 			<UserParam type="string" name="SE:XTandem" value=""/>
 			<UserParam type="string" name="XTandem:db" value="/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.pro"/>
 			<UserParam type="string" name="XTandem:db_version" value=""/>
