@@ -137,7 +137,7 @@ public:
      * Has no functionality without a QTCluster pointing to it.
      * Create object of this class before calling constructor of QTCluster
      */
-    class BulkData
+    class OPENMS_DLLAPI BulkData
     {
       friend class QTCluster;
 
