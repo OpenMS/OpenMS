@@ -214,11 +214,6 @@ namespace OpenMS
         {
           pep_q.second.total_abundances[sa.first] = sa.second;
         }
-        // spectral counting according to the best fraction and charge state only:
-        for (auto & sa : pep_q.second.psm_counts[best_fraction_and_charge.first][best_fraction_and_charge.second])
-        {
-          pep_q.second.total_psm_counts[sa.first] = sa.second;
-        }
       }
       else
       { // sum up sample abundances over all fractions and charge states:
@@ -234,16 +229,18 @@ namespace OpenMS
             }
           }
         }
-        for (auto & fa : pep_q.second.psm_counts) // for all fractions 
-        {
-          for (auto & ca : fa.second) // for all charge states
-          {  
-            for (auto & sa : ca.second) // loop over all psm counts
-            {
-              const UInt64 & sample_id = sa.first;
-              const double & sample_counts = sa.second;
-              pep_q.second.total_psm_counts[sample_id] += sample_counts;
-            }
+      }
+
+      // for PSM counts we cover all fractions and charge states
+      for (auto & fa : pep_q.second.psm_counts) // for all fractions 
+      {
+        for (auto & ca : fa.second) // for all charge states
+        {  
+          for (auto & sa : ca.second) // loop over all psm counts
+          {
+            const UInt64 & sample_id = sa.first;
+            const double & sample_counts = sa.second;
+            pep_q.second.total_psm_counts[sample_id] += sample_counts;
           }
         }
       }
