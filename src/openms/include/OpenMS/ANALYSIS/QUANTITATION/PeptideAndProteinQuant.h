@@ -100,6 +100,9 @@ public:
       /// spectral counting-based abundances
       SampleAbundances total_psm_counts;
 
+      /// number of distinct peptide sequences
+      SampleAbundances total_distinct_peptides;
+
       /// total number of PSMs mapping to this protein
       Size psm_count = 0;
 

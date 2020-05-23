@@ -423,21 +423,16 @@ namespace OpenMS
       const ProteinData& pd = prot_q.second;
 
       // calculate PSM counts based on all (!) peptides of a protein (group)
-      map<UInt64, DoubleList> psm_counts; // all PSM counts by sample
       for (auto const & pep2sa : pd.psm_counts)
-      {
-        const String& pep = pep2sa.first;
-        const SampleAbundances& sas = pep2sa.second; 
+      { // for all peptides of this protein (group)
+        const SampleAbundances& sas = pep2sa.second;
         for (auto const & sa : sas)
         {
-          psm_counts[sa.first].push_back(sa.second);
+          const Size& sample_id = sa.first;
+          const Size& psms = sa.second;
+          if (psms > 0) prot_q.second.total_distinct_peptides[sample_id]++; // count this peptide sequence once if observed in sample
+          prot_q.second.total_psm_counts[sample_id] += psms; // count all PSMs of this protein in this sample
         }
-      }
-      // summarize all peptides of this protein to get map: sample->psm_count
-      for (auto & c : psm_counts)
-      {
-        double psm_count_result = Math::sum(c.second.begin(), c.second.end());
-        prot_q.second.total_psm_counts[c.first] = psm_count_result;
       }
 
       // select which peptides of the current protein (group) are quantified 
@@ -779,9 +774,10 @@ namespace OpenMS
         // copy abundances to float data array
         const SampleAbundances& total_abundances = q.second.total_abundances;
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
+        const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
 
        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(2);
+        id_group->getFloatDataArrays().resize(3);
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         abundances.setName("abundances");        
         abundances.resize(n_samples);
@@ -789,6 +785,10 @@ namespace OpenMS
         auto & psm_counts = id_group->getFloatDataArrays()[1];
         psm_counts.setName("psm_count");
         psm_counts.resize(n_samples);
+
+        auto & peptide_counts = id_group->getFloatDataArrays()[2];
+        peptide_counts.setName("distinct_peptides");
+        peptide_counts.resize(n_samples);
 
         OPENMS_LOG_DEBUG << "Abundances:\n";
         for (auto const& a : id_group->accessions)
@@ -809,6 +809,13 @@ namespace OpenMS
         for (auto const & s : total_psm_counts)
         {
           psm_counts[s.first - 1] = s.second;
+          OPENMS_LOG_DEBUG << s.second << "\t";
+        }
+        OPENMS_LOG_DEBUG << endl;
+
+        for (auto const & s : total_distinct_peptides)
+        {
+          peptide_counts[s.first - 1] = s.second;
           OPENMS_LOG_DEBUG << s.second << "\t";
         }
         OPENMS_LOG_DEBUG << endl;
