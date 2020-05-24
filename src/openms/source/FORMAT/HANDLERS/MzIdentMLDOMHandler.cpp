@@ -3009,7 +3009,7 @@ namespace OpenMS
         }
         else if (upit->first == "NumTolerableTermini")
         {
-          sp.nr_enzymatic_termini = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
         }
         else
         {

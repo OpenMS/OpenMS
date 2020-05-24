@@ -25,11 +25,11 @@
 			<UserParam type="string" name="Mascot:variable_modifications" value="Oxidation (M)"/>
 			<UserParam type="int" name="Mascot:missed_cleavages" value="1"/>
 			<UserParam type="float" name="Mascot:fragment_mass_tolerance" value="0.5"/>
-			<UserParam type="int" name="Mascot:fragment_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="Mascot:fragment_mass_tolerance_unit" value="Da"/>
 			<UserParam type="float" name="Mascot:precursor_mass_tolerance" value="10.0"/>
-			<UserParam type="int" name="Mascot:precursor_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="Mascot:precursor_mass_tolerance_unit" value="Da"/>
 			<UserParam type="string" name="Mascot:digestion_enzyme" value="Trypsin"/>
-			<UserParam type="int" name="Mascot:nr_enzymatic_termini" value="3"/>
+			<UserParam type="string" name="Mascot:enzyme_term_specificity" value="unknown"/>
 			<UserParam type="string" name="SE:OMSSA" value="2.1.4"/>
 			<UserParam type="string" name="OMSSA:db" value="/nfs/wsi/bs/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.psq"/>
 			<UserParam type="string" name="OMSSA:db_version" value=""/>
@@ -39,11 +39,11 @@
 			<UserParam type="string" name="OMSSA:variable_modifications" value="Oxidation (M)"/>
 			<UserParam type="int" name="OMSSA:missed_cleavages" value="1"/>
 			<UserParam type="float" name="OMSSA:fragment_mass_tolerance" value="0.5"/>
-			<UserParam type="int" name="OMSSA:fragment_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="OMSSA:fragment_mass_tolerance_unit" value="Da"/>
 			<UserParam type="float" name="OMSSA:precursor_mass_tolerance" value="0.01"/>
-			<UserParam type="int" name="OMSSA:precursor_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="OMSSA:precursor_mass_tolerance_unit" value="Da"/>
 			<UserParam type="string" name="OMSSA:digestion_enzyme" value="Trypsin"/>
-			<UserParam type="int" name="OMSSA:nr_enzymatic_termini" value="3"/>
+			<UserParam type="string" name="OMSSA:enzyme_term_specificity" value="unknown"/>
 			<UserParam type="string" name="SE:XTandem" value=""/>
 			<UserParam type="string" name="XTandem:db" value="/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.pro"/>
 			<UserParam type="string" name="XTandem:db_version" value=""/>
@@ -53,11 +53,11 @@
 			<UserParam type="string" name="XTandem:variable_modifications" value="Oxidation (M)"/>
 			<UserParam type="int" name="XTandem:missed_cleavages" value="1"/>
 			<UserParam type="float" name="XTandem:fragment_mass_tolerance" value="0.5"/>
-			<UserParam type="int" name="XTandem:fragment_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="XTandem:fragment_mass_tolerance_unit" value="Da"/>
 			<UserParam type="float" name="XTandem:precursor_mass_tolerance" value="10.0"/>
-			<UserParam type="int" name="XTandem:precursor_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="XTandem:precursor_mass_tolerance_unit" value="Da"/>
 			<UserParam type="string" name="XTandem:digestion_enzyme" value="unknown_enzyme"/>
-			<UserParam type="int" name="XTandem:nr_enzymatic_termini" value="10"/>
+			<UserParam type="string" name="XTandem:enzyme_term_specificity" value="unknown"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="695.364599999999996" RT="2233.105000000000018" spectrum_reference="index=1" >
 			<PeptideHit score="0.54" sequence="QRESTATDILQK" charge="2" aa_before="K R X" aa_after="N G X" protein_refs="PH_0 PH_0 PH_0" >

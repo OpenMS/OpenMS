@@ -124,7 +124,7 @@ namespace OpenMS
       precursor_mass_tolerance(0.0),
       precursor_mass_tolerance_ppm(false),
       digestion_enzyme("unknown_enzyme", ""),
-      nr_enzymatic_termini(EnzymaticDigestion::SPEC_UNKNOWN)
+      enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN)
   {
   }
 
@@ -133,11 +133,11 @@ namespace OpenMS
     return
         std::tie(db, db_version, taxonomy, charges, mass_type, fixed_modifications, variable_modifications,
             missed_cleavages, fragment_mass_tolerance, fragment_mass_tolerance_ppm, precursor_mass_tolerance,
-            precursor_mass_tolerance_ppm, digestion_enzyme, nr_enzymatic_termini) ==
+            precursor_mass_tolerance_ppm, digestion_enzyme, enzyme_term_specificity) ==
         std::tie(rhs.db, rhs.db_version, rhs.taxonomy, rhs.charges, rhs.mass_type, rhs.fixed_modifications,
             rhs.variable_modifications, rhs.missed_cleavages, rhs.fragment_mass_tolerance,
             rhs.fragment_mass_tolerance_ppm, rhs.precursor_mass_tolerance,
-            rhs.precursor_mass_tolerance_ppm, rhs.digestion_enzyme, rhs.nr_enzymatic_termini);
+            rhs.precursor_mass_tolerance_ppm, rhs.digestion_enzyme, rhs.enzyme_term_specificity);
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
@@ -161,7 +161,7 @@ namespace OpenMS
         this->charges != sp.charges ||
         this->digestion_enzyme != sp.digestion_enzyme ||
         this->taxonomy != sp.taxonomy ||
-         this->nr_enzymatic_termini != sp.nr_enzymatic_termini)
+         this->enzyme_term_specificity != sp.enzyme_term_specificity)
     {
       return false;
     }
@@ -537,7 +537,7 @@ namespace OpenMS
       result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
       result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
       result.emplace_back("enzyme", params.digestion_enzyme.getName());
-      result.emplace_back("nr_enzymatic_termini", params.nr_enzymatic_termini);
+      result.emplace_back("enzyme_term_specificity", EnzymaticDigestion::NamesOfSpecificity[params.enzyme_term_specificity]);
       result.emplace_back("charges", params.charges);
       result.emplace_back("missed_cleavages", params.missed_cleavages);
       result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));

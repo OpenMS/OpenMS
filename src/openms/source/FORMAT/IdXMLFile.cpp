@@ -186,9 +186,9 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
-      if (params[i].nr_enzymatic_termini != EnzymaticDigestion::SPEC_UNKNOWN)
+      if (params[i].enzyme_term_specificity != EnzymaticDigestion::SPEC_UNKNOWN)
       {
-        os << "\t\t\t\t<UserParam name=\"NumberEnzymaticTermini\" type=\"int\" value=\"" << params[i].nr_enzymatic_termini << "\" />\n";
+        os << "\t\t\t\t<UserParam name=\"EnzymeTermSpecificity\" type=\"string\" value=\"" << EnzymaticDigestion::NamesOfSpecificity[params[i].enzyme_term_specificity] << "\" />\n";
       }
 
       os << "\t</SearchParameters>\n";
@@ -861,11 +861,11 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
-      if (last_meta_->metaValueExists("NumberEnzymaticTermini"))
+      if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
       {
-        Size ntt = last_meta_->getMetaValue("NumberEnzymaticTermini");
-        if (ntt >= 0 && ntt <= 2)
-          param_.nr_enzymatic_termini = static_cast<EnzymaticDigestion::Specificity>(ntt);
+        String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        if (spec != "unknown")
+          param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
       }
       last_meta_ = nullptr;
       parameters_[id_] = param_;

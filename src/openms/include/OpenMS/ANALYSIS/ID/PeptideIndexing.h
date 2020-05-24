@@ -253,14 +253,14 @@ public:
       }
       else
       {
-        if (prot_ids.empty() || prot_ids[0].getSearchParameters().nr_enzymatic_termini == ProteaseDigestion::SPEC_UNKNOWN)
+        if (prot_ids.empty() || prot_ids[0].getSearchParameters().enzyme_term_specificity == ProteaseDigestion::SPEC_UNKNOWN)
         {
           OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'";
           enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
         }
         else
         {
-          enzyme.setSpecificity(prot_ids[0].getSearchParameters().nr_enzymatic_termini);
+          enzyme.setSpecificity(prot_ids[0].getSearchParameters().enzyme_term_specificity);
         }
       }
 

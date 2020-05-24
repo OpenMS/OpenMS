@@ -15,7 +15,7 @@ MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[2]-setting[5]	precursor_mass_tolerance:0.0
 MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:Da
 MTD	software[2]-setting[7]	enzyme:unknown_enzyme
-MTD	software[2]-setting[8]	nr_enzymatic_termini:10
+MTD	software[2]-setting[8]	enzyme_term_specificity:unknown
 MTD	software[2]-setting[9]	charges:null
 MTD	software[2]-setting[10]	missed_cleavages:0
 MTD	software[2]-setting[11]	fixed_modifications:null

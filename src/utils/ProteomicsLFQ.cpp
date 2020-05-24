@@ -1352,6 +1352,7 @@ protected:
       f.load(idfile, protein_ids, peptide_ids);
 
       // Check if score types are valid.
+      //TODO do that in the inference algorithms? Epifany only does it for consensusXML
       try
       {
         IDScoreSwitcherAlgorithm switcher;
@@ -1397,7 +1398,6 @@ protected:
     {
       PeptideIndexing indexer;
       Param param_pi = indexer.getParameters();
-      param_pi.setValue("enzyme:specificity", "none");  // TODO: derive from id files!
       param_pi.setValue("missing_decoy_action", "silent");
       param_pi.setValue("write_protein_sequence", "true");
       param_pi.setValue("write_protein_description", "true");
@@ -1707,6 +1707,10 @@ protected:
     //-------------------------------------------------------------
 
     // Annotate quants to protein(groups) for easier export in mzTab
+    // NOTE: This removes unquantified protein groups per default
+    // TODO: think about what makes sense to present. It might be worth knowing
+    //  that a group is confidently identified by search engine scores
+    //  but no features/unique spectral counts exist.
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
 
     if (debug_level_ >= 666)
