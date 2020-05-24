@@ -210,8 +210,23 @@ public:
       // parsing parameters, correcting xtandem and MSGFPlus parameters
       //---------------------------------------------------------------
       ProteaseDigestion enzyme;
-      enzyme.setEnzyme(enzyme_name_);
-      enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
+      if (!enzyme_name_.empty())
+      {
+        enzyme.setEnzyme(enzyme_name_);
+      }
+      else
+      {
+        if (prot_ids.empty() || prot_ids[0].getSearchParameters().digestion_enzyme.getName() == "unknown_enzyme")
+        {
+          OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin" << std::endl;
+          enzyme.setEnzyme("Trypsin");
+        }
+        else
+        {
+          // this assumes all runs used the same enzyme
+          enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
+        }
+      }
 
       bool xtandem_fix_parameters = true;
       bool msgfplus_fix_parameters = true;
@@ -230,6 +245,23 @@ public:
       {
         OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
+      }
+
+      if (!enzyme_specificity_.empty())
+      {
+        enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(enzyme_specificity_));
+      }
+      else
+      {
+        if (prot_ids.empty() || prot_ids[0].getSearchParameters().enzyme_term_specificity == ProteaseDigestion::SPEC_UNKNOWN)
+        {
+          OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'";
+          enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
+        }
+        else
+        {
+          enzyme.setSpecificity(prot_ids[0].getSearchParameters().enzyme_term_specificity);
+        }
       }
 
       //-------------------------------------------------------------
@@ -795,13 +827,18 @@ public:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
+        //TODO we could read and double-check missed cleavages as well
         if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_))
         {
-          PeptideProteinMatchInformation match;
-          match.protein_index = idx_prot;
-          match.position = position;
-          match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
-          match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
+          PeptideProteinMatchInformation match
+          {
+            idx_prot,
+            position,
+            (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1],
+            (position + len_pep >= seq_prot.size()) ?
+                            PeptideEvidence::C_TERMINAL_AA :
+                            seq_prot[position + len_pep]
+          };
           pep_to_prot[idx_pep].insert(match);
           ++filter_passed;
         }

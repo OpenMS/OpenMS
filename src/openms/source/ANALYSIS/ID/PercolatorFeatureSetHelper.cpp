@@ -488,10 +488,11 @@ namespace OpenMS
         all_sp.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
         all_sp.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
         all_sp.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-        all_sp.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+        all_sp.setMetaValue(SE+":fragment_mass_tolerance_unit", sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
         all_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
-        all_sp.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+        all_sp.setMetaValue(SE+":precursor_mass_tolerance_unit", sp.precursor_mass_tolerance_ppm ? "ppm" : "Da");
         all_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+        all_sp.setMetaValue(SE+":enzyme_term_specificity",sp.enzyme_term_specificity);
         //TODO maybe add all the files in file origin that were searched with this SE. then we can do a lookup later
         // for every PepID based on its file_origin, with which SEs and settings it was identified.
         

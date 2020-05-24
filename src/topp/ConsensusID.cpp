@@ -341,7 +341,7 @@ protected:
           {
             sp.precursor_mass_tolerance = (double) prot.getMetaValue(mvkey);
           }
-          else if (mvkey.hasSuffix("pprecursor_mass_tolerance_ppm"))
+          else if (mvkey.hasSuffix("precursor_mass_tolerance_ppm"))
           {
             sp.precursor_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
           }
@@ -349,6 +349,10 @@ protected:
           {
             Protease p = *(ProteaseDB::getInstance()->getEnzyme(prot.getMetaValue(mvkey)));
             sp.digestion_enzyme = p;
+          }
+          else if (mvkey.hasSuffix("enzyme_term_specificity"))
+          {
+            sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) prot.getMetaValue(mvkey));
           }
         }
       }
@@ -381,10 +385,11 @@ protected:
       prot_id.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
       prot_id.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
       prot_id.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-      prot_id.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+      prot_id.setMetaValue(SE+":fragment_mass_tolerance_unit",sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
       prot_id.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
-      prot_id.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+      prot_id.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       prot_id.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+      prot_id.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));

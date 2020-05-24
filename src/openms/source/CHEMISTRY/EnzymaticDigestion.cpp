@@ -41,7 +41,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"none","semi","full","unknown","unknown","unknown","unknown","unknown","no-cterm","no-nterm"};
   const std::string EnzymaticDigestion::NoCleavage = "no cleavage";
   const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
@@ -84,7 +84,7 @@ namespace OpenMS
     {
       if (name == NamesOfSpecificity[i]) return Specificity(i);
     }
-    return SIZE_OF_SPECIFICITY;
+    return SPEC_UNKNOWN;
   }
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificity() const
@@ -130,7 +130,7 @@ namespace OpenMS
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
-  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, std::function<bool(Int)> filter) const
+  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
     return filter(Int(tokenize_(sequence).size() - 1));
   }
