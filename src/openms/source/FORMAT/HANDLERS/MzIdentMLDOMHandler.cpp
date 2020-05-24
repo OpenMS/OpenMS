@@ -1040,6 +1040,11 @@ namespace OpenMS
                 {
                   OPENMS_LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
                 }
+                if (missedCleavages < 0)
+                {
+                  OPENMS_LOG_WARN << "missedCleavages has a negative value. Assuming unlimited and setting it to 1000." << endl;
+                  missedCleavages = 1000;
+                }
                 sp.missed_cleavages = missedCleavages;
 
 //                String semiSpecific = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
