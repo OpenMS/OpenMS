@@ -1712,7 +1712,8 @@ protected:
         auto& pids = c.getPeptideIdentifications();
         for (auto& pid : pids)
         {
-          for (auto& ph : pid.getHits())
+          auto& hits = pid.getHits();
+          for (auto& ph : hits)
           {
             std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
             pes.erase(std::remove_if(pes.begin(), 
@@ -1721,13 +1722,23 @@ protected:
                  pes.end());
             ph.setPeptideEvidences(std::move(pes));
           }
+        // erase hits without reference to proteins
+        hits.erase(std::remove_if(hits.begin(), hits.end(),
+                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
+               hits.end());
         }
+        // erase peptide ids without peptide hits
+        pids.erase(std::remove_if(pids.begin(), 
+                         pids.end(),
+                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
+               pids.end());
       }
 
       auto& pids = consensus.getUnassignedPeptideIdentifications();
       for (auto& pid : pids)
       {
-        for (auto& ph : pid.getHits())
+        auto& hits = pid.getHits();
+        for (auto& ph : hits)
         {
           std::vector<PeptideEvidence> pes = ph.getPeptideEvidences();
           pes.erase(std::remove_if(pes.begin(), 
@@ -1736,7 +1747,18 @@ protected:
                pes.end());
           ph.setPeptideEvidences(std::move(pes));
         }
+
+        // erase hits without reference to proteins
+        hits.erase(std::remove_if(hits.begin(), hits.end(),
+                              [](PeptideHit& x){ return x.getPeptideEvidences().empty(); }),
+               hits.end());
       }
+
+     // erase peptide ids without peptide hits
+     pids.erase(std::remove_if(pids.begin(), 
+                         pids.end(),
+                         [](PeptideIdentification& x){ return x.getHits().empty(); }),
+          pids.end());
     }
 
     // clean up references (assigned and unassigned)
@@ -1797,7 +1819,8 @@ protected:
     //-------------------------------------------------------------
 
     // Annotate quants to protein(groups) for easier export in mzTab
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
+    // Note: we keep protein groups that have not been quantified
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups(), false);
 
     if (debug_level_ >= 666)
     {
