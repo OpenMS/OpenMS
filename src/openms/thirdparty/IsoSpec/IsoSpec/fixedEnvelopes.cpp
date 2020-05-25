@@ -87,7 +87,7 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
     if(nprobs == nullptr)
         throw std::bad_alloc();
     //  deepcode ignore CMemoryLeak: It's not a memleak: the memory is passed to FixedEnvelope which
-    //  takes ownership of it, and will properly free() it in destructor.
+    //  deepcode ignore CMemoryLeak: takes ownership of it, and will properly free() it in destructor.
     double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
     if(nmasses == nullptr)
     {
