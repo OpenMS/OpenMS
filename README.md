@@ -1,13 +1,14 @@
 OpenMS
-====== 
+=======
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/93e71bad214f46d2a534ec92dbc2efc9)](https://www.codacy.com/app/OpenMS/OpenMS?utm_source=github.com&utm_medium=referral&utm_content=OpenMS/OpenMS&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS)
 [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.openhub.net/p/open-ms)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
-[![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/index.html)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms-meta/README.html)
+[![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
 
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 

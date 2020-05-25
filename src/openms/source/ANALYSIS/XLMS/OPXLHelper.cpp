@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -872,7 +872,7 @@ namespace OpenMS
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK, DataValue(i + 1));
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, alpha_term);
       ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, beta_term);
-      ph_alpha.setMetaValue(Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION, top_csms_spectrum[i].precursor_correction);
+      ph_alpha.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, top_csms_spectrum[i].precursor_correction);
 
       if (scan_index_heavy != scan_index)
       {
@@ -1198,7 +1198,7 @@ namespace OpenMS
     feature_set
       << Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM
       << Constants::UserParam::OPENPEPXL_SCORE
-      << Constants::UserParam::PRECURSOR_ASSIGNMENT_CORRECTION
+      << Constants::UserParam::ISOTOPE_ERROR
       << "OpenPepXL:xquest_score"
       << "OpenPepXL:xcorr xlink"
       << "OpenPepXL:xcorr common"

@@ -23,8 +23,9 @@ File.h
 FileWatcher.h
 JavaInfo.h
 NetworkGetRequest.h
-StopWatch.h
+PythonInfo.h
 RWrapper.h
+StopWatch.h
 SysInfo.h
 UpdateCheck.h
 )

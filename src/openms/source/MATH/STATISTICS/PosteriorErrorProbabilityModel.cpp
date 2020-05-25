@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,6 +70,12 @@ namespace OpenMS
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
       defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
+      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers:\n"
+                                                                   "- ignore_iqr_outliers: ignore outliers outside of 3*IQR from Q1/Q3 for fitting\n"
+                                                                   "- set_iqr_to_closest_valid: set IQR-based outliers to the last valid value for fitting\n"
+                                                                   "- ignore_extreme_percentiles: ignore everything outside 99th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
+                                                                   "- none: do nothing");
+      defaults_.setValidStrings("outlier_handling", {"ignore_iqr_outliers","set_iqr_to_closest_valid","ignore_extreme_percentiles","none"});
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -77,7 +83,7 @@ namespace OpenMS
 
     PosteriorErrorProbabilityModel::~PosteriorErrorProbabilityModel() = default;
 
-    bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores)
+    bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores, const String& outlier_handling)
     {
       // nothing to fit?
       if (search_engine_scores.empty()) { return false; }
@@ -93,6 +99,8 @@ namespace OpenMS
 
       //transform to a positive range
       for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
+
+      processOutliers_(x_scores, outlier_handling);
 
       incorrectly_assigned_fit_gumbel_param_.a = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
       incorrectly_assigned_fit_gumbel_param_.b = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_gumbel_param_.a);
@@ -132,6 +140,7 @@ namespace OpenMS
       //-------------------------------------------------------------
       // Estimate Parameters - EM algorithm
       //-------------------------------------------------------------
+      bool good_fit = true;
       bool stop_em_init = false;
       Int max_itns = param_.getValue("max_nr_iterations");
       int delta = param_.getValue("neg_log_delta");
@@ -192,9 +201,9 @@ namespace OpenMS
         sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
         negative_prior_ = sumIncorrectPosteriors / x_scores.size();
 
-        if (std::isnan(new_maxlike - maxlike)
-            || new_maxlike < maxlike)
+        if (std::isnan(new_maxlike - maxlike))
         {
+          OPENMS_LOG_WARN << "Numerical instabilities. Aborting." << endl;
           return false;
         }
 
@@ -203,11 +212,19 @@ namespace OpenMS
         {
           if (itns >= max_itns)
           {
-            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last log likelihood increase: " << (new_maxlike - maxlike) << endl;
             OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
           }
           stop_em_init = true;
+          good_fit = true;
         }
+        else if (new_maxlike < maxlike)
+          {
+            OPENMS_LOG_WARN << "Log Likelihood of fit decreased: " << (new_maxlike - maxlike) << ". Abort fitting. Please check"
+                                                                                                 " the gnuplot scripts and adapt search engine settings or outlier settings of IDPEP."<< endl;
+            stop_em_init = true;
+            good_fit = false;
+          }
 
         if (output_plots)
         {
@@ -239,10 +256,10 @@ namespace OpenMS
         file.store((String)param_.getValue("out_plot"));
         tryGnuplot((String)param_.getValue("out_plot"));
       }
-      return true;
+      return good_fit;
     }
 
-    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores)
+    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, const String& outlier_handling)
     {
       // nothing to fit?
       if (search_engine_scores.empty()) { return false; }
@@ -258,6 +275,8 @@ namespace OpenMS
 
       //transform to a positive range
       for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
+
+      processOutliers_(x_scores, outlier_handling);
 
       negative_prior_ = 0.7;
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
@@ -309,6 +328,7 @@ namespace OpenMS
       // Estimate Parameters - EM algorithm
       //-------------------------------------------------------------
       bool stop_em_init = false;
+      bool good_fit = true;
       Int max_itns = param_.getValue("max_nr_iterations");
       int delta = param_.getValue("neg_log_delta");
       int itns = 0;
@@ -357,9 +377,9 @@ namespace OpenMS
         sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
         negative_prior_ = sumIncorrectPosteriors / x_scores.size();
 
-        if (std::isnan(new_maxlike - maxlike) 
-          || new_maxlike < maxlike)
+        if (std::isnan(new_maxlike - maxlike))
         {
+          OPENMS_LOG_WARN << "Numerical instabilities. Aborting." << endl;
           return false;
         }
 
@@ -368,10 +388,18 @@ namespace OpenMS
         {
           if (itns >= max_itns)
           {
-            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last log likelihood increase: " << (new_maxlike - maxlike) << endl;
             OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
           }
           stop_em_init = true;
+          good_fit = true;
+        }
+        else if (new_maxlike < maxlike)
+        {
+          OPENMS_LOG_WARN << "Log Likelihood of fit decreased: " << (new_maxlike - maxlike) << ". Abort fitting. Please check"
+                             " the gnuplot scripts and adapt search engine settings or outlier settings of IDPEP."<< endl;
+          stop_em_init = true;
+          good_fit = false;
         }
 
         if (output_plots)
@@ -411,12 +439,12 @@ namespace OpenMS
         file.store((String)param_.getValue("out_plot"));
         tryGnuplot((String)param_.getValue("out_plot"));
       }
-      return true;
+      return good_fit;
     }
 
-    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, vector<double>& probabilities)
+    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, vector<double>& probabilities, const String& outlier_handling)
     {
-      bool return_value = fit(search_engine_scores);
+      bool return_value = fit(search_engine_scores, outlier_handling);
 
       if (!return_value) return false;
 
@@ -781,27 +809,111 @@ namespace OpenMS
 
     }
 
-    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit)
+    void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const String& outlier_handling) const
+    {
+      if (x_scores.empty()) return; //shouldnt happen, but be safe.
+      if (outlier_handling != "none")
+      {
+        Size nr_outliers = 0;
+        Size before = x_scores.size();
+        auto q1 = Math::quantile1st(x_scores.begin(),x_scores.end(), true);
+        auto q3 = Math::quantile3rd(x_scores.begin(),x_scores.end(), true);
+        double iqr = q3 - q1;
+        if (outlier_handling == "ignore_iqr_outliers")
+        {
+          x_scores.erase(
+              std::remove_if(x_scores.begin(),x_scores.end(),
+                  [&q1,&q3,&iqr](double x){ return x < q1 - 3 * iqr || x > q3 + 3 * iqr;}),
+                  x_scores.end()
+          );
+          nr_outliers = before - x_scores.size();
+        }
+        else if (outlier_handling == "set_iqr_to_closest_valid")
+        {
+          auto closest_lower = std::lower_bound(x_scores.begin(), x_scores.end(), q1 - 3 * iqr);
+          auto closest_upper = --std::upper_bound(x_scores.begin(), x_scores.end(), q3 + 3 * iqr);
+
+          for (auto it = x_scores.begin(); it != closest_lower; ++it)
+          {
+            nr_outliers++;
+            *it = *closest_lower;
+          }
+          auto it = closest_upper;
+          it++;
+          for (; it != x_scores.end(); ++it)
+          {
+            nr_outliers++;
+            *it = *closest_upper;
+          }
+        }
+        else //"ignore_extreme_percentiles"
+        {
+          Size ninetyninth_idx = x_scores.size() * 99.9 / 100.;
+          double ninetyninth_value = x_scores[ninetyninth_idx];
+          Size first_idx = (x_scores.size() * 1. / 100.) + 1;
+          double first_value = x_scores[first_idx];
+          x_scores.erase(
+              std::remove_if(x_scores.begin(),x_scores.end(),
+                             [&first_value,&ninetyninth_value](double x){ return x <= first_value || x >= ninetyninth_value;}),
+              x_scores.end()
+          );
+          nr_outliers = before - x_scores.size();
+        }
+
+        double outlier_percent = nr_outliers * 100. / before;
+        if (outlier_percent > 2.1)
+        {
+          OPENMS_LOG_WARN << "Warning: " << outlier_percent << "% outliers detected and corrected. Please double check"
+                                                               " the score distribution.\n";
+        }
+        else
+        {
+          std::cout << nr_outliers << " outliers detected.\n";
+        }
+      }
+    }
+
+    double PosteriorErrorProbabilityModel::getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type)
+    {
+        for (const auto& requested_score_type : requested_score_types)
+        {
+            if (actual_score_type == requested_score_type)
+            {
+                return hit.getScore();
+            }
+            else
+            {
+                if (hit.metaValueExists(requested_score_type))
+                {
+                    return static_cast<double>(hit.getMetaValue(requested_score_type));
+                }
+                if (hit.metaValueExists(requested_score_type+"_score"))
+                {
+                    return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
+                }
+            }
+        }
+        std::cout << actual_score_type << std::endl;
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, ',') + " for search engine found");
+        return 0.;
+    }
+
+
+    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit, const String& current_score_type)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
-      //Set fixed e-value threshold
-      //rather take min to be safe even with optimizations
-      //const double smallest_e_value_ = numeric_limits<double>::denorm_min();
-      const double smallest_e_value_ = numeric_limits<double>::min();
 
-      //TODO we don't care about score types here? What if the data was processed with
-      // IDPEP or Percolator already?
       if (engine == "OMSSA")
       {
-        return (-1) * log10(max(hit.getScore(), smallest_e_value_));
+        return (-1) * log10(getScore_({"OMSSA"}, hit, current_score_type)); //OMSSA??? TODO make sure to fix in new ID datastructure
       }
-      else if (engine == "MYRIMATCH" ) 
+      else if (engine == "MYRIMATCH") 
       {
-        return hit.getScore();
+        return getScore_({"mvh"}, hit, current_score_type);
       }
       else if (engine == "XTANDEM")
       {
-        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
+        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
       }
       else if (engine == "MASCOT")
       {
@@ -811,47 +923,23 @@ namespace OpenMS
           return numeric_limits<double>::quiet_NaN();
         }
         // end issue #740
-        if (hit.metaValueExists("EValue"))
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
-        }
-        if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-        }
+        return (-1) * log10(getScore_({"EValue","expect"}, hit, current_score_type));
       }
       else if (engine == "SPECTRAST")
       {
-        return 100 * hit.getScore(); // f-val
+        return 100 * getScore_({"f-val"}, hit, current_score_type); // f-val
       }
       else if (engine == "SIMTANDEM")
       {
-        if (hit.metaValueExists("E-Value"))
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
-        }
+        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
       }
       else if ((engine == "MSGFPLUS") || (engine == "MS-GF+"))
       {
-        if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
-        }
-        else if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-        }
+        return (-1) * log10(getScore_({"MS:1002053","expect"}, hit, current_score_type));
       }
       else if (engine == "COMET")
       {
-        if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
-        }
-        else if (hit.metaValueExists("expect"))
-        {
-          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-        }
+        return (-1) * log10(getScore_({"MS:1002257","expect"}, hit, current_score_type));
       }
 
       throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
@@ -913,7 +1001,7 @@ namespace OpenMS
                   {
                     if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                     {
-                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0]);
+                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0], pep.getScoreType());
                       if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
@@ -938,7 +1026,7 @@ namespace OpenMS
                     {
                       if (!split_charge || (hit.getCharge() == *charge_it))
                       {
-                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit);
+                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit, pep.getScoreType());
                         if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                         {
                           scores.push_back(score);
@@ -1015,7 +1103,7 @@ namespace OpenMS
                 {
                   double score;
                   hit.setMetaValue(score_type, hit.getScore());
-                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit);
+                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType());
 
                   //TODO they should be ignored during fitting already!
                   // and in this issue the -log(10^99) should actually be an acceptable value.
@@ -1043,16 +1131,6 @@ namespace OpenMS
                 }
               }
               pep.setHits(hits);
-            }
-            if (prob_correct)
-            {
-              pep.setScoreType("Posterior Probability");
-              pep.setHigherScoreBetter(true);
-            }
-            else
-            {
-              pep.setScoreType("Posterior Error Probability");
-              pep.setHigherScoreBetter(false);
             }
           }
         }

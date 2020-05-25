@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <ostream>
 
 using namespace std;
 
@@ -288,12 +289,12 @@ namespace OpenMS
   std::set<String> PeptideHit::extractProteinAccessionsSet() const
   {
     set<String> accessions;
-    for (vector<PeptideEvidence>::const_iterator it = peptide_evidences_.begin(); it != peptide_evidences_.end(); ++it)
+    for (const auto& ev : peptide_evidences_)
     {
       // don't return empty accessions
-      if (!it->getProteinAccession().empty())
+      if (!ev.getProteinAccession().empty())
       {
-        accessions.insert(it->getProteinAccession());
+        accessions.insert(ev.getProteinAccession());
       }
     }
     return accessions;
@@ -306,7 +307,14 @@ namespace OpenMS
 
   void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
-    fragment_annotations_ = frag_annotations;
+    fragment_annotations_ = std::move(frag_annotations);
+  }
+
+  std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
+  {
+    return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
+           "', charge " + String(hit.getCharge()) + ", score " +
+           String(hit.getScore());
   }
 
 } // namespace OpenMS

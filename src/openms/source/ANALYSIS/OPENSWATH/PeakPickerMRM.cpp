@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -231,6 +231,12 @@ namespace OpenMS
   void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+
+    // copy meta data of the input chromatogram
+    picked_chrom.clear(true);
+    picked_chrom.ChromatogramSettings::operator=(chromatogram);
+    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setName(chromatogram.getName());
 
     std::vector<double> time;
     std::vector<double> intensity;

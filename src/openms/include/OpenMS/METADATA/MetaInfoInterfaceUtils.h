@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,12 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <algorithm>
 #include <map>
 #include <vector>
+
 
 namespace OpenMS
 {
@@ -52,7 +54,12 @@ namespace OpenMS
   class /*OPENMS_DLLAPI -- disabled since it's template code only */ MetaInfoInterfaceUtils
   {
 public:
-    
+    /// hide c'tors to avoid instantiation of utils class
+    MetaInfoInterfaceUtils() = delete;
+    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&) = delete;
+    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&) = delete;
+    // no Move semantics for utils class
+
     ///@name Methods to find key sets
     //@{
     /**
@@ -99,13 +106,6 @@ public:
       }
       return common_keys;
     }
-
-private:
-    /// hide c'tors to avoid instantiation of utils class
-    MetaInfoInterfaceUtils();
-    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&);
-    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&);
-    // no Move semantics for utils class
   
   }; // class
 

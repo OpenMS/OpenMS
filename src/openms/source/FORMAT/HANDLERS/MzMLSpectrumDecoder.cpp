@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -546,10 +546,11 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
+  std::string MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
     static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
+    static const XMLCh* id_tag = xercesc::XMLString::transcode("id");
     static const XMLCh* binary_data_array_tag = xercesc::XMLString::transcode("binaryDataArray");
 
     //-------------------------------------------------------------
@@ -592,6 +593,8 @@ namespace OpenMS
           in, "Root element does not contain defaultArrayLength XML tag.");
     }
     int default_array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
+    OpenMS::Internal::StringManager sm;
+    std::string id = sm.convert(elementRoot->getAttribute(id_tag));
 
     // Extract the binaryDataArray elements (there may be multiple) and process them
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
@@ -604,6 +607,7 @@ namespace OpenMS
     }
 
     delete parser;
+    return id;
   }
 
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
@@ -616,15 +620,17 @@ namespace OpenMS
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, MSSpectrum& s)
   {
     std::vector<BinaryData> data;
-    domParseString_(in, data);
+    std::string id = domParseString_(in, data);
     decodeBinaryDataMSSpectrum_(data, s);
+    s.setNativeID(id);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, MSChromatogram& c)
   {
     std::vector<BinaryData> data;
-    domParseString_(in, data);
+    std::string id = domParseString_(in, data);
     decodeBinaryDataMSChrom_(data, c);
+    c.setNativeID(id);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)

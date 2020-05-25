@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -175,9 +175,9 @@ public:
     /// The color of a vertex during depth-first search
     enum SUBSTREESTATUS
     {
-      TV_ALLFINISHED,  // all downstream nodes are done (including the ones which are feed by a parallel subtree)
-      TV_UNFINISHED,   // some direct downstream node is not done
-      TV_UNFINISHED_INBRANCH // a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
+      TV_ALLFINISHED,  ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
+      TV_UNFINISHED,   ///< some direct downstream node is not done
+      TV_UNFINISHED_INBRANCH ///< a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
     };
 
     /// Default Constructor

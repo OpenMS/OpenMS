@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -394,7 +394,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.setPeakData(map);
     new_layer.setOnDiscPeakData(od_map);
 
@@ -433,7 +433,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getFeatureMap() = map;
     new_layer.type = LayerData::DT_FEATURE;
 
@@ -452,7 +452,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getConsensusMap() = map;
     new_layer.type = LayerData::DT_CONSENSUS;
 
@@ -472,7 +472,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.peptides.swap(peptides);
     new_layer.type = LayerData::DT_IDENT;
 

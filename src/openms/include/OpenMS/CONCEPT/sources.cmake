@@ -11,9 +11,11 @@ FactoryBase.h
 FuzzyStringComparator.h
 GlobalExceptionHandler.h
 Helpers.h
+Init.h
 LogConfigHandler.h
 LogStream.h
 Macros.h
+MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
 SingletonRegistry.h

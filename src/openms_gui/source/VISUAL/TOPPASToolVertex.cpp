@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1130,7 +1130,7 @@ namespace OpenMS
   String TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
+    String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
       workflow_dir = "Untitled_workflow";

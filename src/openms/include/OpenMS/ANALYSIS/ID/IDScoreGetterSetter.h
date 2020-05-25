@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,9 +51,9 @@ namespace OpenMS
   /// target decoy annotation as second member of the pair. Target = true.
   /// Target+decoy for peptides = target. Protein groups with at least one target = target.
   struct ScoreToTgtDecLabelPairs // Not a typedef to allow forward declaration.
-      : public std::vector<std::pair<double, bool>>
+      : public std::vector<std::pair<double, double>>
   {
-    typedef std::vector<std::pair<double, bool>> Base;
+    typedef std::vector<std::pair<double, double>> Base;
     using Base::Base;
   };
 
@@ -246,7 +246,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -255,7 +255,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, int charge)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, charge); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -264,7 +264,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, const String &identifier)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -273,7 +273,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, int charge, const String &identifier)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, charge, identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -282,7 +282,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, all_hits); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -291,7 +291,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, all_hits, charge); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -300,7 +300,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, const String &identifier)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, all_hits, identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -309,7 +309,7 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const ConsensusMap &cmap, bool include_unassigned_peptides, bool all_hits, int charge, const String &identifier)
     {
-      std::function<void(const PeptideIdentification &)> f =
+      auto f =
           [&](const PeptideIdentification &id) -> void
           { getScores_(scores_labels, id, all_hits, charge, identifier); };
       cmap.applyFunctionOnPeptideIDs(f, include_unassigned_peptides);
@@ -562,7 +562,7 @@ namespace OpenMS
                                  bool keep_decoy)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      std::function<void(PeptideIdentification &)> f =
+      auto f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
               higher_better, keep_decoy); };
@@ -577,7 +577,7 @@ namespace OpenMS
                                         int charge)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      std::function<void(PeptideIdentification &)> f =
+      auto f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
                        higher_better, keep_decoy, charge); };
@@ -592,7 +592,7 @@ namespace OpenMS
                                         const String& run_identifier)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      std::function<void(PeptideIdentification &)> f =
+      auto f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
                        higher_better, keep_decoy, run_identifier); };
@@ -608,7 +608,7 @@ namespace OpenMS
                                         const String& run_identifier)
     {
       //Note: Gcc4.8 cannot handle variadic templates in lambdas
-      std::function<void(PeptideIdentification &)> f =
+      auto f =
           [&](PeptideIdentification &id) -> void
           { setScores_(scores_to_FDR, id, score_type,
                        higher_better, keep_decoy, charge, run_identifier); };
