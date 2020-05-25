@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@
     %OpenMS supports the wrapping of external tools (like msconvert from ProteoWizard), 
     thus allowing you to build scripts and/or TOPPAS pipelines containing external tools. 
 
-    \include TOOLS/EXTERNAL/ReadMe.txt
+    @see share/OpenMS/TOOLS/EXTERNAL/ReadMe.txt for details.
 
 
 */

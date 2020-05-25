@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,13 @@
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
@@ -555,7 +556,7 @@ namespace OpenMS
     Size i(0);
     for (auto const & p : s)
     {
-      if (!p.hasSuffix("mzML"))
+      if (!p.hasSuffix("mzML") && !p.hasSuffix("mzml"))
       {
         OPENMS_LOG_WARN << "To ensure tracability of results please prefer mzML files as primary MS run." << std::endl
                         << "Filename: '" << p << "'" << std::endl;                          
@@ -730,92 +731,113 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return true;
   }
 
-  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(PeptideHit&)>& f, bool include_unassigned)
+  std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
   {
-    for (auto& feat : *this)
-    {
-      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
-    }
-    if (include_unassigned)
-    {
-      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
-    }
-  }
+    Size numbr_exps = column_description_.size();
+    std::vector<FeatureMap>fmaps(numbr_exps);
 
-  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(PeptideIdentification&)>& f, bool include_unassigned)
-  {
-    for (auto& feat : *this)
-    {
-      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
-    }
-    if (include_unassigned)
-    {
-      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
-    }
-  }
+    // Check for Isobaric Analyzer
+    bool iso_analyze = QCBase::isLabeledExperiment(*this);
 
-  void ConsensusMap::applyFunctionOnPeptideHits(std::function<void(const PeptideHit&)>& f, bool include_unassigned) const
-  {
-    for (const auto& feat : *this)
+    for (const auto& cf : *this)
     {
-      applyFunctionOnPeptideHits_(feat.getPeptideIdentifications(), f);
-    }
-    if (include_unassigned)
-    {
-      applyFunctionOnPeptideHits_(this->getUnassignedPeptideIdentifications(), f);
-    }
-  }
-
-  void ConsensusMap::applyFunctionOnPeptideIDs(std::function<void(const PeptideIdentification&)>& f, bool include_unassigned) const
-  {
-    for (const auto& feat : *this)
-    {
-      applyFunctionOnPeptideIDs_(feat.getPeptideIdentifications(), f);
-    }
-    if (include_unassigned)
-    {
-      applyFunctionOnPeptideIDs_(this->getUnassignedPeptideIdentifications(), f);
-    }
-  }
-
-
-  void ConsensusMap::applyFunctionOnPeptideIDs_(vector<PeptideIdentification>& idvec, std::function<void(PeptideIdentification&)>& f)
-  {
-    for (auto& id : idvec)
-    {
-      f(id);
-    }
-  }
-
-  void ConsensusMap::applyFunctionOnPeptideHits_(vector<PeptideIdentification>& idvec, std::function<void(PeptideHit&)>& f)
-  {
-    for (auto& id : idvec)
-    {
-      for (auto& hit : id.getHits())
+      UInt64 min_index = std::numeric_limits<UInt64>::max();
+      // Create new Features from FeatureHandles
+      std::map<UInt64, BaseFeature> new_feats;
+      for (const FeatureHandle& fh : cf.getFeatures())
       {
-        f(hit);
+        UInt64 index = fh.getMapIndex();
+        // GCC-OPT 4.8 does not compile with:  new_feats.emplace(index, fh);
+        // , thus we use:
+        new_feats[index] = BaseFeature(fh);
+        min_index = std::min(index, min_index);
+      }
+
+      if (iso_analyze)
+      {
+        if (min_index != 0)
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "File seems to have gone through IsobaricAnalyzer, but there was no feature with map index 0 found. Check Input!");
+        }
+      }
+
+      // Add PeptideIdentifications to ...
+      for (const PeptideIdentification& pep_id : cf.getPeptideIdentifications())
+      {
+        // ... the first Feature.
+        if (iso_analyze)
+        {
+          (*new_feats.begin()).second.getPeptideIdentifications().push_back(pep_id);
+          continue;
+        }
+
+        // ... the corresponding Feature by map_index.
+        if (!pep_id.metaValueExists("map_index"))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
+        }
+        new_feats[pep_id.getMetaValue("map_index")].getPeptideIdentifications().push_back(pep_id);
+      }
+
+      // handle MetaValues of current CF
+      switch (mode)
+      {
+        case SplitMeta::DISCARD :
+          break;
+
+        case SplitMeta::COPY_ALL :
+          for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
+          {
+            (it->second).MetaInfoInterface::operator=(cf);
+          }
+          break;
+
+        case SplitMeta::COPY_FIRST :
+          if (min_index != 0)
+          {
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "No feature with map index 0 to copy MetaValues to. Check Input or switch mode!");
+          }
+          new_feats.begin()->second.MetaInfoInterface::operator=(cf);
+          break;
+      }
+
+      // Add new Features to corresponding FeatureMap.
+      for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
+      {
+        fmaps[it->first].emplace_back(std::move(it->second));
       }
     }
-  }
 
-  void ConsensusMap::applyFunctionOnPeptideIDs_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideIdentification&)>& f) const
-  {
-    for (const auto& id : idvec)
+    // Add unassigned PeptideIdentifications to ...
+    if (iso_analyze)
     {
-      f(id);
+      // ... the first FeatureMap.
+      fmaps[0].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
+      fmaps[0].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
     }
-  }
-
-  void ConsensusMap::applyFunctionOnPeptideHits_(const vector<PeptideIdentification>& idvec, std::function<void(const PeptideHit&)>& f) const
-  {
-    for (const auto& id : idvec)
+    else
     {
-      for (const auto& hit : id.getHits())
+      // ... the corresponding FeatureMap by map_index.
+      for (const PeptideIdentification& upep_id : this->getUnassignedPeptideIdentifications())
       {
-        f(hit);
+        if (!upep_id.metaValueExists("map_index"))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
+        }
+        fmaps[upep_id.getMetaValue("map_index")].getUnassignedPeptideIdentifications().push_back(upep_id);
       }
     }
-  }
 
+    for (auto& fm : fmaps)
+    {
+      fm.getDataProcessing() = this->getDataProcessing();
+    }
+
+    return fmaps;
+  }
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,6 +129,7 @@ public:
     */
     double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
     double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
 
     /// simpler reimplemetation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
@@ -152,6 +153,15 @@ public:
     /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
     double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const;
+
+    //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
+    //But since they have different cutoff types and it is more generic, I leave it like this.
+    /// calculates the area of the difference between estimated and empirical FDR on the fly. Does not store results.
+    double diffEstimatedEmpirical(const ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff = 1.0) const;
+
+    /// calculates AUC of empirical FDR up to the first fpCutoff false positives on the fly. Does not store results.
+    /// use e.g. fpCutoff = scores_labels.size() for complete AUC
+    double rocN(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /**
        @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
@@ -196,15 +206,6 @@ private:
     /// order afterwards. Since I never understood our other algorithm, I can not explain the difference.
     /// @note Formula used depends on Param "conservative": false -> (D+1)/T, true (e.g. used in Fido) -> (D+1)/(T+D)
     void calculateFDRBasic_(std::map<double,double>& scores_to_FDR, ScoreToTgtDecLabelPairs& scores_labels, bool qvalue, bool higher_score_better) const;
-
-    //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
-    //But since they have different cutoff types and it is more generic, I leave it like this.
-    /// calculates the area of the difference between estimated and empirical FDR on the fly. Does not store results.
-    double diffEstimatedEmpirical_(const ScoreToTgtDecLabelPairs& scores_labels, double pepCutoff = 1.0) const;
-
-    /// calculates AUC of empirical FDR up to the first fpCutoff false positives on the fly. Does not store results.
-    /// use e.g. fpCutoff = scores_labels.size() for complete AUC
-    double rocN_(const ScoreToTgtDecLabelPairs& scores_labels, Size fpCutoff = 50) const;
 
     /// calculates the error area around the x=x line between two consecutive values of expected and actual
     /// i.e. it assumes exp2 > exp1

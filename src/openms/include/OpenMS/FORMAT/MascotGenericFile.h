@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
     @brief Read/write Mascot generic files (MGF).
 
     For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
-    
+
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -74,11 +74,11 @@ public:
     void updateMembers_() override;
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(const String& filename, const PeakMap& experiment, 
+    void store(const String& filename, const PeakMap& experiment,
                bool compact = false);
 
     /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(std::ostream& os, const String& filename, 
+    void store(std::ostream& os, const String& filename,
                const PeakMap& experiment, bool compact = false);
 
     /**
@@ -117,7 +117,6 @@ public:
         ++spectrum_number;
       } // next spectrum
 
-
       endProgress();
     }
 
@@ -129,6 +128,9 @@ public:
       The @p filename can later be found in the Mascot response.
     */
     std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
+
+    /// writes a spectrum in MGF format to an ostream
+    void writeSpectrum(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
 
 protected:
 
@@ -148,9 +150,6 @@ protected:
      /// writes the full header
     void writeHeader_(std::ostream& os);
 
-    /// writes the spectrum
-    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
-
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
@@ -159,8 +158,8 @@ protected:
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
       spectrum.resize(0);
-
       spectrum.setNativeID(String("index=") + (spectrum_number));
+
       if (spectrum.metaValueExists("TITLE"))
       {
         spectrum.removeMetaValue("TITLE");
@@ -199,7 +198,7 @@ protected:
                 line.substitute('\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
                 if (line.split(' ', split, false))
                 {
-                  try 
+                  try
                   {
                     p.setPosition(split[0].toDouble());
                     p.setIntensity(split[1].toDouble());
@@ -292,12 +291,19 @@ protected:
                   }
                 }
               }
-              else // just write the title as metainfo to the spectrum
+              else // just write the title as metainfo to the spectrum and add native ID to make the titles unique
               {
                 Size firstEqual = line.find('=', 4);
                 if (firstEqual != std::string::npos)
                 {
-                  spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring(spectrum.getNativeID()))
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                  }
+                  else
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1) + "_" + spectrum.getNativeID());
+                  }
                 }
               }
             }
@@ -311,4 +317,3 @@ protected:
   };
 
 } // namespace OpenMS
-

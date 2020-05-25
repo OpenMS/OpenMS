@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,6 +58,8 @@ namespace OpenMS
                                                                                     const double& precursor_mz_distance,
                                                                                     const double& cosine_sim_threshold,
                                                                                     const double& transition_threshold,
+                                                                                    const double& min_fragment_mz,
+                                                                                    const double& max_fragment_mz,
                                                                                     const bool& method_consensus_spectrum,
                                                                                     const bool& exclude_ms2_precursor,
                                                                                     const unsigned int& file_counter)
@@ -307,7 +309,8 @@ namespace OpenMS
 
         // write row for each transition
         // current int has to be higher than transition threshold and should not be smaller than threshold noise
-        if (current_int > threshold_transition && current_int > threshold_noise)
+        // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
+        if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
         {
           float rel_int = current_int / max_int;
 
@@ -338,6 +341,8 @@ namespace OpenMS
   // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector < CompoundSpectrumPair >& v_cmp_spec,
                                                                                                       const double& transition_threshold,
+                                                                                                      const double& min_fragment_mz,
+                                                                                                      const double& max_fragment_mz,
                                                                                                       const bool& use_exact_mass,
                                                                                                       const bool& exclude_ms2_precursor,
                                                                                                       const unsigned int& file_counter)
@@ -475,8 +480,9 @@ namespace OpenMS
         String current_explanation = explanation_array[peak_index];
 
         // write row for each transition
-        // current int has to be higher than transition thresold and should not be smaller than threshold noise
-        if (current_int > threshold_transition && current_int > threshold_noise)
+        // current int has to be higher than transition threshold and should not be smaller than threshold noise
+        // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
+        if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
         {
           float rel_int = current_int / max_int;
 

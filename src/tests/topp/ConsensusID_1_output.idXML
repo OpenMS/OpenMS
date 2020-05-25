@@ -4,27 +4,27 @@
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2019-08-12T14:32:59" search_engine="OpenMS/ConsensusID_PEPMatrix" search_engine_version="2.4.0-fix-primary-ms-2019-08-09" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-05-08T15:38:33" search_engine="OpenMS/ConsensusID_PEPMatrix" search_engine_version="2.6.0-pre-feature-consensusIDPerSpectrum-2020-05-07" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="695.364599999999996" RT="2233.105000000000018" >
-			<PeptideHit score="0.271111111111111" sequence="QRESTATDILQK" charge="2" >
+			<PeptideHit score="0.271111111111111" sequence="QRESTATDILQK" charge="2" aa_before="K R" aa_after="N G" >
 				<UserParam type="float" name="consensus_support" value="1.0"/>
 			</PeptideHit>
-			<PeptideHit score="0.485" sequence="EIEEDSLEGLKK" charge="2" >
+			<PeptideHit score="0.485" sequence="EIEEDSLEGLKK" charge="2" aa_before="K" aa_after="L" >
 				<UserParam type="float" name="consensus_support" value="0.5"/>
 			</PeptideHit>
 			<PeptideHit score="0.537641938481099" sequence="EQSATEQDILKK" charge="2" >
 				<UserParam type="float" name="consensus_support" value="0.331395348837209"/>
 			</PeptideHit>
-			<PeptideHit score="0.65315968" sequence="EDNMAIQSIIKK" charge="2" >
+			<PeptideHit score="0.65315968" sequence="EDNMAIQSIIKK" charge="2" aa_before="R" aa_after="E" >
 				<UserParam type="float" name="consensus_support" value="0.226744186046512"/>
 			</PeptideHit>
 			<PeptideHit score="0.729375" sequence="GIEDDLMDLIKK" charge="2" >
 				<UserParam type="float" name="consensus_support" value="0.166666666666667"/>
 			</PeptideHit>
-			<PeptideHit score="0.738922314049587" sequence="ISCAEGALEALKK" charge="2" >
+			<PeptideHit score="0.738922314049587" sequence="ISCAEGALEALKK" charge="2" aa_before="R" aa_after="T" >
 				<UserParam type="float" name="consensus_support" value="0.154761904761905"/>
 			</PeptideHit>
 			<PeptideHit score="0.767518144971251" sequence="WSVEEEELLKK" charge="2" >
@@ -39,10 +39,10 @@
 			<PeptideHit score="0.9099609375" sequence="NTNNHNGHILKK" charge="2" >
 				<UserParam type="float" name="consensus_support" value="0.033333333333333"/>
 			</PeptideHit>
-			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" >
+			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" aa_before="K" aa_after="V" >
 				<UserParam type="float" name="consensus_support" value="0.0"/>
 			</PeptideHit>
-			<PeptideHit score="0.95" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" >
+			<PeptideHit score="0.95" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" aa_before="R" aa_after="E" >
 				<UserParam type="float" name="consensus_support" value="0.0"/>
 			</PeptideHit>
 			<PeptideHit score="0.957209302325582" sequence="IFHDFNIDLQK" charge="2" >

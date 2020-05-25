@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,50 +94,50 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       PeptideIdentification pe1;
       pe1.setIdentifier("PR1");
       pe1.getHits().push_back(ph0);
-      pe1.setMetaValue("map_index",0);
+      pe1.setMetaValue("id_merge_index",0);
 
       PeptideIdentification pe2;
       pe2.setIdentifier("PR1");
       pe2.getHits().push_back(ph1);
       pe2.getHits().push_back(ph11);
-      pe2.setMetaValue("map_index",0);
+      pe2.setMetaValue("id_merge_index",0);
 
       PeptideIdentification pe3;
       pe3.setIdentifier("PR2");
       pe3.getHits().push_back(ph0); // how to handle accessions that are not in the corresponding list of proteins?
       //currently ignore and add nonetheless.
-      pe3.setMetaValue("map_index",0);
+      pe3.setMetaValue("id_merge_index",0);
 
       PeptideIdentification pe4;
       pe4.setIdentifier("PR2");
       pe4.getHits().push_back(ph2);
       pe4.getHits().push_back(ph3);
-      pe4.setMetaValue("map_index",1);
+      pe4.setMetaValue("id_merge_index",1);
 
       PeptideIdentification pe5;
       pe5.setIdentifier("PR3");
       pe5.getHits().push_back(ph2);
-      pe5.setMetaValue("map_index",0);
+      pe5.setMetaValue("id_merge_index",0);
 
       PeptideIdentification pe6;
       pe6.setIdentifier("PR3");
       pe6.getHits().push_back(ph3);
-      pe6.setMetaValue("map_index",1);
+      pe6.setMetaValue("id_merge_index",1);
 
       PeptideIdentification pe7;
       pe7.setIdentifier("PR3");
       pe7.getHits().push_back(ph4);
-      pe7.setMetaValue("map_index",0);
+      pe7.setMetaValue("id_merge_index",0);
 
       PeptideIdentification pe8;
       pe8.setIdentifier("PR3");
       pe8.getHits().push_back(ph5);
-      pe8.setMetaValue("map_index",0); //can happen if second file had no IDs
+      pe8.setMetaValue("id_merge_index",0); //can happen if second file had no IDs
 
       PeptideIdentification pe9;
       pe9.setIdentifier("PR5"); // non-existent run: this will be ignored
       pe9.getHits().push_back(ph5);
-      pe9.setMetaValue("map_index",564);
+      pe9.setMetaValue("id_merge_index",564);
 
       vector<PeptideIdentification> pes{pe1,pe2,pe3,pe4,pe5,pe6,pe7,pe8,pe9};
       vector<ProteinIdentification> prs{pr1,pr2,pr3,pr4};
@@ -152,7 +152,7 @@ START_TEST(IDMergerAlgorithm, "$Id$")
       TEST_EQUAL(prres.getHits().size(), 7)
       StringList toFill; prres.getPrimaryMSRunPath(toFill);
       TEST_EQUAL(toFill.size(), 7)
-      TEST_EQUAL(static_cast<int>(peres[2].getMetaValue("map_index")), 2)
+      TEST_EQUAL(static_cast<int>(peres[2].getMetaValue("id_merge_index")), 2)
 
     }
     END_SECTION

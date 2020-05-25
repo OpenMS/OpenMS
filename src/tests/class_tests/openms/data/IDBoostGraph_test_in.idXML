@@ -30,21 +30,21 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<UserParam type="int" name="map_index" value="0"/>
+			<UserParam type="int" name="id_merge_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.2" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<UserParam type="int" name="map_index" value="0"/>
+			<UserParam type="int" name="id_merge_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.25" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<UserParam type="int" name="map_index" value="1"/>
+			<UserParam type="int" name="id_merge_index" value="1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.4" sequence="LVTLAESPRAPSP" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_3 PH_4" >
@@ -55,14 +55,14 @@
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<UserParam type="int" name="map_index" value="1"/>
+			<UserParam type="int" name="id_merge_index" value="1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.8621" MZ="0" RT="0" >
 			<PeptideHit score="0.1" sequence="FIANGE" charge="2" aa_before="D" aa_after="R" start="1" end="6" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<UserParam type="int" name="map_index" value="1"/>
+			<UserParam type="int" name="id_merge_index" value="1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

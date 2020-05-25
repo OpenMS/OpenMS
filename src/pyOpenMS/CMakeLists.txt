@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -400,6 +400,20 @@ endif()
 if(NOT PY_NUM_MODULES)
   set(PY_NUM_MODULES 8)
 endif()
+
+# set data variable nightly builds use repository last change date
+# yyyy-mm-dd 08:04:17 +0200 -> yyyymmdd
+string(REPLACE "-" "" OPENMS_GIT_LC_DATE_REPLACED ${OPENMS_GIT_LC_DATE})
+set(OPENMS_GIT_LC_DATE_REPLACED_LIST "${OPENMS_GIT_LC_DATE_REPLACED}")
+separate_arguments(OPENMS_GIT_LC_DATE_REPLACED_LIST)
+list(GET OPENMS_GIT_LC_DATE_REPLACED_LIST 0 OPENMS_GIT_LC_DATE_FORMAT)
+
+###debug
+set(OPENMS_GIT_LC_DATE ${OPENMS_GIT_LC_DATE})
+###debug 
+
+set(OPENMS_GIT_LC_DATE_FORMAT ${OPENMS_GIT_LC_DATE_FORMAT})
+
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 

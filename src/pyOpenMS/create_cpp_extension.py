@@ -23,11 +23,17 @@ if iswin and IS_DEBUG:
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import autowrap.Main
+import autowrap.CodeGenerator
+import autowrap.DeclResolver
 import glob
 import pickle
 import os.path
 import os
 import shutil
+
+classdocu_base = "http://www.openms.de/current_doxygen/html/"
+autowrap.CodeGenerator.special_class_doc = "\n    Documentation is available at " + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html\n"
+autowrap.DeclResolver.default_namespace = "OpenMS"
 
 def chunkIt(seq, num):
     avg = len(seq) / float(num)

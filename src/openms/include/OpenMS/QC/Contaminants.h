@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_set>
 #include <OpenMS/QC/QCBase.h>
+
+#include <unordered_set>
 
 
 namespace OpenMS
@@ -55,13 +56,13 @@ namespace OpenMS
     /// structure for storing results
     struct ContaminantsSummary
     {
-      ///(# contaminants in assigned/ #peptides in assigned)
+      ///(\#contaminants in assigned/ \#peptides in assigned)
       double assigned_contaminants_ratio;
       
-      ///(# contaminants in unassigned/ #peptides in unassigned)
+      ///(\#contaminants in unassigned/ \#peptides in unassigned)
       double unassigned_contaminants_ratio;
       
-      ///(# all contaminants/ #peptides in all)
+      ///(\#all contaminants/ \#peptides in all)
       double all_contaminants_ratio;
       
       ///(intensity of contaminants in assigned/ intensity of peptides in assigned)
