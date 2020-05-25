@@ -24,7 +24,7 @@
 namespace IsoSpec {
 
 typedef double RealType;
-typedef ssize_t IntType;
+typedef int64_t IntType;
 
 
 static const RealType btrd_binomial_table[10] = {

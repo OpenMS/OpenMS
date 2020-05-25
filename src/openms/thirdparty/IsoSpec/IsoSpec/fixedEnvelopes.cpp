@@ -500,7 +500,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         prob_at_last_switch = prob_so_far;
 
         layer_delta = sum_above - log1p(-prob_so_far);
-        layer_delta = std::max(std::min(layer_delta, -0.1), -5.0);
+        layer_delta = (std::max)((std::min)(layer_delta, -0.1), -5.0);
     } while(generator.nextLayer(layer_delta));
 
     if(!optimize || prob_so_far <= target_total_prob)

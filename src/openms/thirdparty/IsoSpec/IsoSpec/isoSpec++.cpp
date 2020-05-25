@@ -161,7 +161,7 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 {
     if(fullcopy)
     {
-        for(ssize_t ii = 0; ii < dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginals[ii] = new Marginal(*other.marginals[ii]);
     }
 }
@@ -575,7 +575,7 @@ size_t IsoThresholdGenerator::count_confs()
 
     std::unique_ptr<const double* []> lProbs_restarts(new const double*[dimNumber]);
 
-    for(ssize_t ii = 0; ii < dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
         lProbs_restarts[ii] = lProbs_ptr_l;
 
     size_t count = 0;
@@ -657,7 +657,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
     currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
-    lastLThreshold = std::numeric_limits<double>::min();
+    lastLThreshold = (std::numeric_limits<double>::min)();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
     marginalsNeedSorting = doMarginalsNeedSorting();
