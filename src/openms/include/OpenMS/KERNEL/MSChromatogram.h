@@ -416,6 +416,16 @@ public:
 
     ///@}
 
+    /**
+      @brief Adds all the ChromatogramPeaks from another MSChromatogram and updates the metadata to indicate a merge
+
+      @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
+      undefined.
+
+      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+    */
+    void mergePeaks(MSChromatogram& other);
+
 protected:
 
     /// Name
