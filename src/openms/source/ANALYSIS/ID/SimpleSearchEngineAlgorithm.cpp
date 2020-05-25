@@ -495,7 +495,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
 
-#pragma omp atomic
+      #pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -531,6 +531,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         // skip peptides that have already been processed
         if (already_processed) { continue; }
 
+        #pragma omp atomic
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;
