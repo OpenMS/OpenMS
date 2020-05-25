@@ -423,7 +423,7 @@ void MSChromatogram::mergePeaks(MSChromatogram& other)
   this->clear(false);
   for(iterator it = temp.begin(); it != temp.end(); it++)
   {
-    if(it->getRT() == (it + 1)->getRT())
+    if( (it + 1) != temp.end() && it->getRT() == (it + 1)->getRT())
     {
       it->setIntensity(it->getIntensity() + (it + 1)->getIntensity());
       this->push_back(*it);
