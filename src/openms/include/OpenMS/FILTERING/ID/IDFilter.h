@@ -401,19 +401,20 @@ public:
 
       /// Filter function on min max cutoff values to be used with remove_if
       /// returns true if peptide should be removed (does not pass filter)
-      bool operator()(PeptideHit& p)
+      bool operator()(PeptideHit& p) const
       {
+        const auto& fun = [&](const Int missed_cleavages)
+        {
+
+          bool max_filter = max_cleavages_ != disabledValue() ?
+                            missed_cleavages > max_cleavages_ : false;
+          bool min_filter = min_cleavages_ != disabledValue() ?
+                            missed_cleavages < min_cleavages_ : false;
+          return max_filter || min_filter;
+        };
         return digestion_.filterByMissedCleavages(
           p.getSequence().toUnmodifiedString(),
-          [&](const Int missed_cleavages)
-          {
-
-            bool max_filter = max_cleavages_ != disabledValue() ?
-                              missed_cleavages > max_cleavages_ : false;
-            bool min_filter = min_cleavages_ != disabledValue() ?
-                              missed_cleavages < min_cleavages_ : false;
-            return max_filter || min_filter;
-          });
+          fun);
       }
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)

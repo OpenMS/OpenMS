@@ -16,10 +16,11 @@ MTD	software[3]-setting[4]	fragment_mass_tolerance_unit:Da
 MTD	software[3]-setting[5]	precursor_mass_tolerance:5.0
 MTD	software[3]-setting[6]	precursor_mass_tolerance_unit:ppm
 MTD	software[3]-setting[7]	enzyme:Trypsin
-MTD	software[3]-setting[8]	charges:null
-MTD	software[3]-setting[9]	missed_cleavages:1
-MTD	software[3]-setting[10]	fixed_modifications:Carbamidomethyl (C)
-MTD	software[3]-setting[11]	variable_modifications:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E)
+MTD	software[3]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[3]-setting[9]	charges:null
+MTD	software[3]-setting[10]	missed_cleavages:1
+MTD	software[3]-setting[11]	fixed_modifications:Carbamidomethyl (C)
+MTD	software[3]-setting[12]	variable_modifications:Acetyl (N-term),Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E)
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere

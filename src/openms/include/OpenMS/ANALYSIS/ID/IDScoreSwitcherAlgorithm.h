@@ -176,8 +176,15 @@ namespace OpenMS
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
+      if (new_type.hasSuffix("_score"))
+      {
+        new_score_type_ = new_type.chop(6);
+      }
+      else
+      {
+        new_score_type_ = new_type;
+      }
       new_score_ = new_type;
-      new_score_type_ = new_type;
 
       if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
       {

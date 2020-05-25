@@ -65,10 +65,13 @@ public:
     /// when querying for valid digestion products, this determines if the specificity of the two peptide ends is considered important
     enum Specificity
     {
-      SPEC_FULL, ///< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
-      SPEC_SEMI, ///< semi specific, i.e., one of the two cleavage sites must fulfill requirements
-      SPEC_NONE, ///< no requirements on start / end
-      SIZE_OF_SPECIFICITY
+      SPEC_NONE = 0, ///< no requirements on start / end
+      SPEC_SEMI = 1, ///< semi specific, i.e., one of the two cleavage sites must fulfill requirements
+      SPEC_FULL = 2, ///< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+      SPEC_UNKNOWN = 3,
+      SPEC_NOCTERM = 8, ///< no requirements on CTerm (currently not supported in the class)
+      SPEC_NONTERM = 9, ///< no requirements on NTerm (currently not supported in the class)
+      SIZE_OF_SPECIFICITY = 10
     };
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
@@ -104,7 +107,7 @@ public:
     void setSpecificity(Specificity spec);
 
     /// convert spec string name to enum
-    /// returns SIZE_OF_SPECIFICITY if @p name is not valid
+    /// returns SPEC_UNKNOWN if @p name is not valid
     static Specificity getSpecificityByName(const String& name);
 
     /**
@@ -155,7 +158,7 @@ public:
        @param filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
        @return Whether the sequence should be filtered out.
      */
-    bool filterByMissedCleavages(const String& sequence, std::function<bool(const Int)> filter) const;
+    bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
 
 protected:
 

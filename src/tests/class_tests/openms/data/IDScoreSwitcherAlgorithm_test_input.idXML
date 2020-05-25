@@ -23,9 +23,9 @@ ma-instance">
 			<UserParam type="string" name="Comet:variable_modifications" value="Oxidation (M)"/>
 			<UserParam type="int" name="Comet:missed_cleavages" value="2"/>
 			<UserParam type="float" name="Comet:fragment_mass_tolerance" value="0.015"/>
-			<UserParam type="int" name="Comet:fragment_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="Comet:fragment_mass_tolerance_unit" value="Da"/>
 			<UserParam type="float" name="Comet:precursor_mass_tolerance" value="5.0"/>
-			<UserParam type="int" name="Comet:precursor_mass_tolerance_ppm" value="1"/>
+			<UserParam type="string" name="Comet:precursor_mass_tolerance_unit" value="ppm"/>
 			<UserParam type="string" name="Comet:digestion_enzyme" value="Trypsin"/>
 			<UserParam type="string" name="SE:MS-GF+" value="Release (v2020.03.14)"/>
 			<UserParam type="string" name="MS-GF+:db" value="/local/scratch/nextflow-test-data-openms/work/61/6e4a0eff62aa6ca3b536c41ec9a0f1/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
@@ -36,9 +36,9 @@ ma-instance">
 			<UserParam type="string" name="MS-GF+:variable_modifications" value="Oxidation (M)"/>
 			<UserParam type="int" name="MS-GF+:missed_cleavages" value="1000"/>
 			<UserParam type="float" name="MS-GF+:fragment_mass_tolerance" value="0.0"/>
-			<UserParam type="int" name="MS-GF+:fragment_mass_tolerance_ppm" value="0"/>
+			<UserParam type="string" name="MS-GF+:fragment_mass_tolerance_unit" value="Da"/>
 			<UserParam type="float" name="MS-GF+:precursor_mass_tolerance" value="5.0"/>
-			<UserParam type="int" name="MS-GF+:precursor_mass_tolerance_ppm" value="1"/>
+			<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 			<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="395.239898031899941" RT="1933.400000000000091" spectrum_reference="spectrum=2811" >
