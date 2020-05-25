@@ -63,7 +63,14 @@ total_prob(_total_prob)
 FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 {
     double* nprobs  = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
+    if(nprobs == nullptr)
+        throw std::bad_alloc();
     double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
+    if(nmasses == nullptr)
+    {
+        free(nprobs);
+        throw std::bad_alloc();
+    }
 
     memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
     memcpy(nmasses, _masses, sizeof(double) * _confs_no);
@@ -77,7 +84,14 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
     double* nprobs =  reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
+    if(nprobs == nullptr)
+        throw std::bad_alloc();
     double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
+    if(nmasses == nullptr)
+    {
+        free(nprobs);
+        throw std::bad_alloc();
+    }
 
     size_t tgt_idx = 0;
 
@@ -209,7 +223,14 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
         ret_size += spectra[ii]->_confs_no;
 
     double* newprobs  = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
+    if(newprobs == nullptr)
+        throw std::bad_alloc();
     double* newmasses = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
+    if(newmasses == nullptr)
+    {
+        free(newprobs);
+        throw std::bad_alloc();
+    }
 
     size_t cntr = 0;
     for(size_t ii = 0; ii < size; ii++)
