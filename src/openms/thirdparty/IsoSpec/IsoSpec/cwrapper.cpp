@@ -342,4 +342,11 @@ void freeReleasedArray(void* array)
 {
     free(array);
 }
+
+void parse_fasta_c(const char* fasta, int atomCounts[6])
+{
+    // Same thing, only this time with C linkage
+    parse_fasta(fasta, atomCounts);
+}
+
 }  //  extern "C" ends here

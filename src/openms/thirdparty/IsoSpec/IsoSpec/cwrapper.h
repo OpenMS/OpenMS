@@ -132,6 +132,7 @@ void* linearCombination(void* const * const envelopes, const double* intensities
 void sortEnvelopeByMass(void* envelope);
 void sortEnvelopeByProb(void* envelope);
 
+void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
 
 #ifdef __cplusplus

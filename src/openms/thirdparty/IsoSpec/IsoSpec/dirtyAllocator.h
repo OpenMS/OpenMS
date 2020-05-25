@@ -53,24 +53,6 @@ class DirtyAllocator
 
         return ret;
     }
-
-    inline void* makeCopy(const void* conf)
-    {
-        void* currentPlace = newConf();
-
-        memcpy(currentPlace, conf, cellSize);
-
-        return currentPlace;
-    }
-
-    inline void* makeExternalCopy(const void* conf)
-    {
-        void* res = malloc(cellSize);
-
-        memcpy(res, conf, cellSize);
-
-        return res;
-    }
 };
 
 }  // namespace IsoSpec

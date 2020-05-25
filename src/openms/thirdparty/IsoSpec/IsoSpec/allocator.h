@@ -64,14 +64,6 @@ template <typename T> class Allocator
 
         return currentPlace;
     }
-
-    inline T* makeExternalCopy(const T* conf)
-    {
-        T* res = new T[dim];
-        copyConf( conf, res, dim );
-
-        return res;
-    }
 };
 
 }  // namespace IsoSpec
