@@ -1257,7 +1257,8 @@ namespace OpenMS
     // Dealing with an unknown modification
     // -----------------------------------
 
-    const ResidueModification* new_mod = ResidueModification::createUnknownFromMass(mass, delta_mass, specificity, residue);
+    // local var "mass" might be modified on the way -> parse "mod" string again.
+    const ResidueModification* new_mod = ResidueModification::createUnknownFromMass(String(mod).toDouble();, delta_mass, specificity, residue);
 
     // Notes on mass calculation: AASequence::getMonoWeight uses DiffMonoMass
     // for its calculation of C/N-terminal modification mass and it uses
