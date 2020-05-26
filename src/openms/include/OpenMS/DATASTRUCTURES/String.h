@@ -512,6 +512,9 @@ public:
       if (size_ > other.size_) return false;
 
       // same size
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return false;
+
       const char * b = begin_;
       const char * bo = other.begin_;
       
@@ -522,6 +525,25 @@ public:
       }
  
       return false;
+    }
+
+    bool operator==(const StringView other) const
+    {
+      if (size_ != other.size_) return false;
+
+      //same size
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return true;
+
+      const char * b = begin_;
+      const char * bo = other.begin_;
+
+      for (Size i = 0; i != size_; ++i, ++b, ++bo)
+      {
+        if (*b != *bo) return false;
+      }
+
+      return true;
     }
 
     /// create view that references a substring of the original string

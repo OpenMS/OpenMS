@@ -77,7 +77,9 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
-        return a.score > b.score;
+        if (a.score != b.score) return a.score > b.score;
+        if (!(a.sequence == b.sequence)) return b.sequence < a.sequence;
+        return b.peptide_mod_index < a.peptide_mod_index;
       }
     };
 
