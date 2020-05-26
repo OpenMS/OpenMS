@@ -17,6 +17,7 @@
 
 #include "isoMath.h"
 #include <cstdlib>
+#include <cstdint>
 #include <cmath>
 #include <limits>
 
