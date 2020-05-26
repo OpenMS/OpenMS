@@ -410,7 +410,7 @@ public:
     /// Returns the type of search engine used
     const String& getSearchEngine() const;
     /// Return the type of search engine that was first applied (e.g., before percolator or consensusID) or "Unknown"
-    const String& getOriginalSearchEngineName() const;
+    const String getOriginalSearchEngineName() const;
     /// Sets the search engine version
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
