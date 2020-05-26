@@ -340,6 +340,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
     }
 
+#ifdef _OPENMP
+    // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
+    std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+    {
+      return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+    });
+#endif
+
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
