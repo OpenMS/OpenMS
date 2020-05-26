@@ -35,7 +35,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <boost/functional/hash.hpp>
 
@@ -444,48 +443,48 @@ namespace OpenMS
     tmp.insert(tmp.end(), s.begin(), s.end());
     return tmp;
   }
-
-  String& String::operator+=(int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(unsigned int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(short int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(short unsigned int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(long int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(long unsigned int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
-
-  String& String::operator+=(long long unsigned int i)
-  {
-    StringConversions::append(i, *this);
-    return *this;
-  }
+  //
+  // String& String::operator+=(int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(unsigned int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(short int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(short unsigned int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(long int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(long unsigned int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
+  //
+  // String& String::operator+=(long long unsigned int i)
+  // {
+  //   StringConversions::append(i, *this);
+  //   return *this;
+  // }
 
   String& String::operator+=(float f)
   {
