@@ -36,7 +36,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
+// #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm> // for "min"
 #include <string>
@@ -367,27 +367,23 @@ public:
     /** @name Append operator overloads
     */
     //@{
-    // /// Sum operator for an integer
-    // OPENMS_DLLAPI String& operator+=(int i);
-    // /// Sum operator for an unsigned integer
-    // OPENMS_DLLAPI String& operator+=(unsigned int i);
-    // /// Sum operator for an integer
-    // OPENMS_DLLAPI String& operator+=(short int i);
-    // /// Sum operator for an unsigned integer
-    // OPENMS_DLLAPI String& operator+=(short unsigned int i);
-    // /// Sum operator for an integer
-    // OPENMS_DLLAPI String& operator+=(long int i);
-    // /// Sum operator for an unsigned integer
-    // OPENMS_DLLAPI String& operator+=(long unsigned int i);
-    // /// Sum operator for an unsigned integer
-    // OPENMS_DLLAPI String& operator+=(long long unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(int i);
+    /// Sum operator for an unsigned integer
+    OPENMS_DLLAPI String& operator+=(unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(short int i);
+    /// Sum operator for an unsigned integer
+    OPENMS_DLLAPI String& operator+=(short unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(long int i);
+    /// Sum operator for an unsigned integer
+    OPENMS_DLLAPI String& operator+=(long unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(long long i);
+    /// Sum operator for an unsigned integer
+    OPENMS_DLLAPI String& operator+=(long long unsigned int i);
 
-    template <typename T>
-    typename std::enable_if<std::is_integral<T>::value, String&>::type
-    operator+= (T i){
-        StringConversions::append(i, *this);
-        return *this;
-    }
 
     /// Sum operator for float
     OPENMS_DLLAPI String& operator+=(float f);
