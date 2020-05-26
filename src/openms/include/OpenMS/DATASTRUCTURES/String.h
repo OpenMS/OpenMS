@@ -39,6 +39,7 @@
 
 #include <algorithm> // for "min"
 #include <string>
+#include <cstring>
 #include <vector>
 
 class QString;
@@ -515,16 +516,7 @@ public:
       // same sequence, if both Views point to the same start
       if (begin_ == other.begin_) return false;
 
-      const char * b = begin_;
-      const char * bo = other.begin_;
-      
-      for (Size i = 0; i != size_; ++i, ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-        if (*b > *bo) return false;
-      }
- 
-      return false;
+      return strncmp(begin_, other.begin_, size_) < 0;
     }
 
     bool operator==(const StringView other) const
@@ -535,15 +527,7 @@ public:
       // same sequence, if both Views point to the same start
       if (begin_ == other.begin_) return true;
 
-      const char * b = begin_;
-      const char * bo = other.begin_;
-
-      for (Size i = 0; i != size_; ++i, ++b, ++bo)
-      {
-        if (*b != *bo) return false;
-      }
-
-      return true;
+      return strncmp(begin_, other.begin_, size_) == 0;
     }
 
     /// create view that references a substring of the original string
