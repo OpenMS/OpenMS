@@ -571,10 +571,10 @@ namespace OpenMS
     return id_.empty() && !full_id_.empty();
   }
 
-  const ResidueModification* ResidueModification::createUnknownFromMass(double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue)
+  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod, double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue)
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
-    String mod = String(mass);
+
     // -----------------------------------
     // Dealing with an unknown modification
     // -----------------------------------

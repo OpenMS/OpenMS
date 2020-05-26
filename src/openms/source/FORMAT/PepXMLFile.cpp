@@ -1554,11 +1554,16 @@ namespace OpenMS
         {
           try
           {
-            double mod_mass = mod_split[0].toDouble();
             const Residue* res = &temp_aa_sequence.getResidue(it->second - 1);
-            //TODO check if there can be delta_masses? I dont think so.
-            const ResidueModification* new_mod = ResidueModification::createUnknownFromMass(mod_mass, false,
-                ResidueModification::TermSpecificity::ANYWHERE, res);
+            //TODO check if there can be delta_masses in pepXML? I dont think so.
+            //TODO double-check that the following produces correct results for terminal mods as well
+            //We assume that non-delta masses are internal residue mass (no H2O) + mod. mass.
+            //Internal residue mass will be substracted in the function
+            const ResidueModification* new_mod = ResidueModification::createUnknownFromMassString(mod_split[0],
+                                                                                                  mod_split[0].toDouble(),
+                                                                                                  false,
+                                                                                                  ResidueModification::TermSpecificity::ANYWHERE,
+                                                                                                  res);
             // Note: this calls setModification_ on a new Residue which changes its
             // weight to the weight of the modification (set above)
             temp_aa_sequence.setModification(it->second - 1,ResidueDB::getInstance()->
