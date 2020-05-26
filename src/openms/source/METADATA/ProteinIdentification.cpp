@@ -796,6 +796,7 @@ namespace OpenMS
 
   const String& ProteinIdentification::getOriginalSearchEngineName() const
   {
+    // TODO: extend to multiple search engines and merging
     String engine = search_engine_;
     if (engine != "Percolator" && !engine.hasSubstring("ConsensusID"))
     {

@@ -234,7 +234,7 @@ public:
       // determine if search engine is solely xtandem or MSGFPlus
       for (const auto& prot_id : prot_ids)
       {
-        String search_engine = prot_id.getSearchEngine();
+        String search_engine = prot_id.getOriginalSearchEngineName();
         StringUtils::toUpper(search_engine);
         if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
         if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+")) { msgfplus_fix_parameters = false; }
