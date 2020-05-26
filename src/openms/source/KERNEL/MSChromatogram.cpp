@@ -415,3 +415,24 @@ void MSChromatogram::clear(bool clear_meta_data)
     integer_data_arrays_.clear();
   }
 }
+
+void MSChromatogram::mergePeaks(MSChromatogram& other)
+{
+  vector<ChromatogramPeak> temp;
+  std::merge(this->begin(), this->end(), other.begin(), other.end(), std::back_inserter(temp), ChromatogramPeak::RTLess());
+  this->clear(false);
+  for(iterator it = temp.begin(); it != temp.end(); it++)
+  {
+    if( (it + 1) != temp.end() && round( ( it->getRT() ) * 1000) == round( ( (it + 1)->getRT()  * 1000 ) ) )
+    {
+      it->setIntensity(it->getIntensity() + (it + 1)->getIntensity());
+      this->push_back(*it);
+      ++it; //skip the next element since we already have added it
+    }
+    else
+    {
+      this->push_back(*it);
+    }
+    this->setMetaValue("merged_with",String(other.getMZ()));   
+  }
+}
