@@ -1094,7 +1094,6 @@ START_SECTION(void mergePeaks(MSChromatogram & other) )
   a.mergePeaks(b);
   c.setMetaValue("merged_with",String(c.getMZ()));
   TEST_EQUAL(a, c)
-
 }
 END_SECTION
 
