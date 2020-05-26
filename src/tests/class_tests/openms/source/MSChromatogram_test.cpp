@@ -79,7 +79,11 @@ p3.setRT(30.0);
 
 ChromatogramPeak p4;
 p4.setIntensity(6.0f);
-p4.setRT(30.0);
+p4.setRT(30);
+
+ChromatogramPeak p5;
+p5.setIntensity(3.0f);
+p5.setRT(30.0001);
 
 
 START_SECTION((const String& getName() const ))
@@ -1080,7 +1084,7 @@ START_SECTION(void mergePeaks(MSChromatogram & other) )
   a.push_back(p1);
   b.push_back(p2);
   a.push_back(p3);
-  b.push_back(p3);
+  b.push_back(p5);
   c.push_back(p1);
   c.push_back(p2);
   c.push_back(p4);

@@ -419,11 +419,11 @@ void MSChromatogram::clear(bool clear_meta_data)
 void MSChromatogram::mergePeaks(MSChromatogram& other)
 {
   vector<ChromatogramPeak> temp;
-  std::merge(this->begin(), this->end(), other.begin(), other.end(), temp.begin(), ChromatogramPeak::RTLess());
+  std::merge(this->begin(), this->end(), other.begin(), other.end(), std::back_inserter(temp), ChromatogramPeak::RTLess());
   this->clear(false);
   for(iterator it = temp.begin(); it != temp.end(); it++)
   {
-    if( (it + 1) != temp.end() && it->getRT() == (it + 1)->getRT())
+    if( (it + 1) != temp.end() && round( ( it->getRT() ) * 1000) == round( ( (it + 1)->getRT()  * 1000 ) ) )
     {
       it->setIntensity(it->getIntensity() + (it + 1)->getIntensity());
       this->push_back(*it);
