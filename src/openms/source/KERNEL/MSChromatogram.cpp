@@ -432,6 +432,7 @@ void MSChromatogram::mergePeaks(MSChromatogram& other)
     else
     {
       this->push_back(*it);
-    }   
+    }
+    this->setMetaValue("merged_with",String(other.getMZ()));   
   }
 }
