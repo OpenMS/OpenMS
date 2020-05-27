@@ -416,23 +416,36 @@ void MSChromatogram::clear(bool clear_meta_data)
   }
 }
 
+
+OpenMS::MSChromatogram::Iterator set_sum_similar_union(OpenMS::MSChromatogram::Iterator first1,
+                    OpenMS::MSChromatogram::Iterator last1,
+                    OpenMS::MSChromatogram::Iterator first2,
+                    OpenMS::MSChromatogram::Iterator last2,
+                    OpenMS::MSChromatogram::Iterator d_first)
+{
+    for (; first1 != last1; ++d_first) {
+        if (first2 == last2)
+            return std::copy(first1, last1, d_first);
+        if ( round( ( first1->getRT() ) * 1000) == round( (first2->getRT()  * 1000 ) ) )
+        {
+          *d_first = *first1++;
+          d_first->setIntensity(d_first->getIntensity() + first2->getIntensity());
+          first2++;
+        }
+        else if (first2->getRT() < first1->getRT()) {
+            *d_first = *first2++;
+        } else {
+            *d_first = *first1++;
+        }
+    }
+    return std::copy(first2, last2, d_first);
+}
+
+
 void MSChromatogram::mergePeaks(MSChromatogram& other)
 {
   vector<ChromatogramPeak> temp;
-  std::merge(this->begin(), this->end(), other.begin(), other.end(), std::back_inserter(temp), ChromatogramPeak::RTLess());
-  this->clear(false);
-  for(iterator it = temp.begin(); it != temp.end(); it++)
-  {
-    if( (it + 1) != temp.end() && round( ( it->getRT() ) * 1000) == round( ( (it + 1)->getRT()  * 1000 ) ) )
-    {
-      it->setIntensity(it->getIntensity() + (it + 1)->getIntensity());
-      this->push_back(*it);
-      ++it; //skip the next element since we already have added it
-    }
-    else
-    {
-      this->push_back(*it);
-    }
-    this->setMetaValue("merged_with",String(other.getMZ()));   
-  }
+  temp.reserve((this->end() - this->begin()) + (other.end() - other.begin()) );
+  ContainerType::assign(temp.begin(), set_sum_similar_union(this->begin(), this->end(), other.begin(), other.end(), temp.begin()));
+  this->setMetaValue("merged_with",String(other.getMZ()));   
 }
