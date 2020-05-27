@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
-// #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <algorithm> // for "min"
 #include <string>
