@@ -378,8 +378,12 @@ public:
     OPENMS_DLLAPI String& operator+=(long int i);
     /// Sum operator for an unsigned integer
     OPENMS_DLLAPI String& operator+=(long unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(long long i);
     /// Sum operator for an unsigned integer
     OPENMS_DLLAPI String& operator+=(long long unsigned int i);
+
+
     /// Sum operator for float
     OPENMS_DLLAPI String& operator+=(float f);
     /// Sum operator for double

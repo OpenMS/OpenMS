@@ -57,12 +57,12 @@ namespace OpenMS
   {
 
     // Karma full precision float policy
-    template <typename T> 
+    template <typename T>
     class BK_PrecPolicy : public boost::spirit::karma::real_policies<T>
     {
         typedef boost::spirit::karma::real_policies<T> base_policy_type;
     public:
-        static unsigned precision(T /*n*/) 
+        static unsigned precision(T /*n*/)
         {
             /* The following would be the only way for a lossless double-string-double
             * rountrip but:
@@ -81,7 +81,7 @@ namespace OpenMS
                 else
                 {
                     return std::numeric_limits<T>::max_digits10 - (floor(log10(abs_n)));
-                }  
+                }
             }
             else
             {
@@ -90,7 +90,7 @@ namespace OpenMS
             */
             return writtenDigits<T>();
         }
-        
+
         //  we want the numbers always to be in scientific format
         static unsigned floatfield(T n)
         {
@@ -100,7 +100,7 @@ namespace OpenMS
             T abs_n = boost::spirit::traits::get_absolute_value(n);
             // this is due to a bug in downstream thirdparty tools that only can read
             // up to 19 digits. https://github.com/OpenMS/OpenMS/issues/4627
-            return (abs_n >= 1e4 || abs_n < 1e-2) 
+            return (abs_n >= 1e4 || abs_n < 1e-2)
                 ? base_policy_type::fmtflags::scientific : base_policy_type::fmtflags::fixed;
         }
     };
@@ -110,7 +110,7 @@ namespace OpenMS
     const BK_PrecPolicyDouble_type BK_PrecPolicyDouble;
     typedef boost::spirit::karma::real_generator<long double, BK_PrecPolicy<long double> > BK_PrecPolicyLongDouble_type;
     const BK_PrecPolicyLongDouble_type BK_PrecPolicyLongDouble;
-    
+
     // toString functions (single argument)
 
     /// fallback template for general purpose using Boost::Karma; more specializations below
@@ -133,7 +133,7 @@ namespace OpenMS
       append(i, str);
       return str;
     }
-    
+
 
     /// low precision (3 fractional digits) conversion to string (Karma default)
     /// does NOT clear the input string @p target, so appending is as efficient as possible
@@ -228,7 +228,7 @@ namespace OpenMS
       return str;
     }
 
-    
+
     inline void append(const DataValue& d, bool full_precision, String& target)
     {
       target += d.toString(full_precision);
@@ -683,7 +683,7 @@ public:
       }
 
       // at this point we are sure that there are at least two components
-      return true; 
+      return true;
     }
 
     static bool split(const String & this_s, const String& splitter, std::vector<String>& substrings)
@@ -788,7 +788,7 @@ public:
       return substrings.size() > 1;
     }
 
-    static QString toQString(const String & this_s) 
+    static QString toQString(const String & this_s)
     {
       return QString(this_s.c_str());
     }
@@ -957,7 +957,7 @@ public:
 
     The original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955.
     Can be removed if Boost 1.60 or above is required
-    
+
   */
   template <typename T>
   struct real_policies_NANfixed_ : boost::spirit::qi::real_policies<T>
@@ -993,7 +993,7 @@ public:
       return false;
     }
   };
-  
+
   // Qi parsers using the 'real_policies_NANfixed_' template which allows for 'nan'
   // (the original Boost implementation has a bug, see https://svn.boost.org/trac/boost/ticket/6955)
   static boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> > parse_double_;
@@ -1002,4 +1002,3 @@ public:
   };
 
 } // namespace OPENMS
-
