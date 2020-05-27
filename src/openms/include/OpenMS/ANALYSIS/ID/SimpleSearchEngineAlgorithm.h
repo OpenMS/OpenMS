@@ -78,8 +78,10 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
         if (a.score != b.score) return a.score > b.score;
-        if (!(a.sequence == b.sequence)) return b.sequence < a.sequence;
-        return b.peptide_mod_index < a.peptide_mod_index;
+        // compare the mod_index first, as it is cheaper than the strncmp() of the sequences
+        // there doesn't have to be a certain ordering (that makes sense), we just need it to be thread-safe
+        if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
+        return a.sequence < b.sequence;
       }
     };
 
