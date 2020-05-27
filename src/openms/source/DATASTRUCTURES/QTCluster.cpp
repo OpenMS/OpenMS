@@ -145,7 +145,6 @@ namespace OpenMS
     // ensure we only add compatible peptide annotations
     OPENMS_PRECONDITION(distance <= data_->max_distance_,
         "Distance cannot be larger than max_distance")
-    // collect_annotations_ implies tmp_neighbors_ != NULL, 
 
     Size map_index = element->getMapIndex();
 
