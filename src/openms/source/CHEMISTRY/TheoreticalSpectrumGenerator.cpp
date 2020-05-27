@@ -510,14 +510,17 @@ namespace OpenMS
     std::map<EmpiricalFormula, String> formula_str_cache;
 
     // precompute formula_str_cache
-    for (auto& p : peptide)
+    if (add_losses_)
     {
-      for (auto& formula : p.getLossFormulas())
+      for (auto& p : peptide)
       {
-        String& loss_name = formula_str_cache[formula];
-        if (loss_name.empty())
+        for (auto& formula : p.getLossFormulas())
         {
-          loss_name = formula.toString();
+          String& loss_name = formula_str_cache[formula];
+          if (loss_name.empty())
+          {
+            loss_name = formula.toString();
+          }
         }
       }
     }
