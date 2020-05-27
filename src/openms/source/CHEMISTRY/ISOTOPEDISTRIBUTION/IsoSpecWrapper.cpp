@@ -43,6 +43,10 @@
 #include <string>
 #include <utility>
 
+#define ISOSPEC_GOT_SYSTEM_MMAN false
+#define ISOSPEC_GOT_MMAN false
+#define ISOSPEC_BUILDING_OPENMS true
+
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
