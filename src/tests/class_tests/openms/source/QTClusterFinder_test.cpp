@@ -74,6 +74,7 @@ START_SECTION((static BaseGroupFinder* create()))
 	BaseGroupFinder* base_ptr = nullptr;
 	base_ptr = QTClusterFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer);
+  delete base_ptr;
 }
 END_SECTION
 
