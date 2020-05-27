@@ -146,8 +146,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(distance <= data_->max_distance_,
         "Distance cannot be larger than max_distance")
     // collect_annotations_ implies tmp_neighbors_ != NULL, 
-    OPENMS_PRECONDITION(!collect_annotations_ || !tmp_neighbors_.empty(), 
-        "Initialize the cluster first before adding elements")
 
     Size map_index = element->getMapIndex();
 
@@ -462,8 +460,6 @@ namespace OpenMS
 
   void QTCluster::finalizeCluster()
   {
-    OPENMS_PRECONDITION(!data_->tmp_neighbors_.empty(),
-        "Try to finalize QTCluster that was not initialized")
     OPENMS_PRECONDITION(!finalized_,
         "Try to finalize QTCluster that was not initialized")
 
