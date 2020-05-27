@@ -24,6 +24,7 @@
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
+#include "fasta.h"
 
 using namespace IsoSpec;  // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 

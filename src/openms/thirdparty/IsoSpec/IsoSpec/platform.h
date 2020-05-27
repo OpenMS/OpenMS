@@ -29,7 +29,7 @@
 #endif
 
 #if !defined(ISOSPEC_BUILDING_OPENMS)
-#define ISOSPEC_BUILDING_OPENMS false
+#define ISOSPEC_BUILDING_OPENMS true
 #endif
 
 #if defined(__unix__) || defined(__unix) || \
@@ -117,7 +117,7 @@
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
 
-#if ISOSPEC_BUILDING_R || !defined(__cpp_if_constexpr)
+#if !defined(__cpp_if_constexpr)
 #define constexpr_if if
 #define ISOSPEC_MAYBE_UNUSED
 #else
