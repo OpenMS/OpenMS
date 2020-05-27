@@ -269,7 +269,7 @@ namespace OpenMS
             size_t len = end - start;
             size_t pivot = len/2 + start;
             double pprob = distribution[pivot].getIntensity();
-            std::swap<Peak1D>(distribution[pivot], distribution[end-1]);
+            std::swap(distribution[pivot], distribution[end-1]);
 
             double new_csum = sum_to_start;
 
@@ -277,12 +277,12 @@ namespace OpenMS
             for (size_t ii = start; ii < end-1; ii++)
                 if (distribution[ii].getIntensity() > pprob)
                 {
-                    std::swap<Peak1D>(distribution[ii], distribution[loweridx]);
+                    std::swap(distribution[ii], distribution[loweridx]);
                     new_csum += distribution[loweridx].getIntensity();
                     loweridx++;
                 }
 
-            std::swap<Peak1D>(distribution[end-1], distribution[loweridx]);
+            std::swap(distribution[end-1], distribution[loweridx]);
 
             // Selection part
             if (new_csum < target_prob)
