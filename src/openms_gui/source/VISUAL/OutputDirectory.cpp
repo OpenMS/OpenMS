@@ -88,7 +88,7 @@ namespace OpenMS
     }
   }
   
-  void OutputDirectory::textEditChanged_(const QString& new_text)
+  void OutputDirectory::textEditChanged_(const QString& /*new_text*/)
   {
     emit directoryChanged(getDirectory());
   }

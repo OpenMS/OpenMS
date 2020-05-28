@@ -96,7 +96,6 @@ namespace OpenMS
       String tmp_file = File::getTemporaryFile();
       if (ep_.run(this, getOSWExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), true, true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
-        
         exit(1);
       }
         
@@ -260,7 +259,6 @@ namespace OpenMS
 
     void SwathTabWidget::checkPyProphetInput_()
     {
-      String dir = getCurrentOutDir_();
       QString text;
       for (const auto& file : getPyProphetInputFiles())
       {
@@ -273,11 +271,9 @@ namespace OpenMS
         {
           text += QString("<font color=#ff0000>%1</font><br>").arg(file.first.toQString());
         }
-
       }
       ui->input_py_pqps->clear();
       ui->input_py_pqps->setHtml(text);
-
     }
 
     void SwathTabWidget::writeLog_(const QString& text, bool new_section)

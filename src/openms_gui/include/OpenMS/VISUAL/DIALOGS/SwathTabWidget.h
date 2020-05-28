@@ -91,7 +91,7 @@ namespace OpenMS
 
       /// default Ctor; callbacks for stdout/stderr are empty
       ExternalProcess()
-      : ExternalProcess([&](const String& out) {}, [&](const String& out) {}) // call other Ctor to connect signals!
+      : ExternalProcess([&](const String& /*out*/) {}, [&](const String& /*out*/) {}) // call other Ctor to connect signals!
       {
       }
 
