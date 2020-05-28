@@ -455,16 +455,12 @@ void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
   ContainerType::assign(temp.begin(), set_sum_similar_union(this->begin(), this->end(), other.begin(), other.end(), temp.begin()));
   if (add_meta)
   {
-    if (this->getMetaValue("merged_with") == DataValue::EMPTY)
+    DoubleList ls = DoubleList();
+    if (this->getMetaValue(Constants::UserParam::MERGED_WITH) != DataValue::EMPTY)
     {
-      this->setMetaValue("merged_with",DoubleList(other.getMZ()));
+      ls = this->getMetaValue(Constants::UserParam::MERGED_WITH).toDoubleList();
     }
-    else
-    {
-      DoubleList ls = this->getMetaValue("merged_with").toDoubleList();
-      ls.push_back(other.getMZ());
-      this->setMetaValue("merged_with", ls);
-    }
-
+    ls.push_back(other.getMZ());
+    this->setMetaValue(Constants::UserParam::MERGED_WITH, ls);
   }
 }

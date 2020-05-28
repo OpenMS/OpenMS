@@ -422,9 +422,11 @@ public:
       @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
       undefined.
 
+      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+
       @param other a reference to the MSChromatogram to take ChromatogramPeaks from
     */
-    void mergePeaks(MSChromatogram& other, bool add_meta=true);
+    void mergePeaks(MSChromatogram& other, bool add_meta=false);
 
 protected:
 
