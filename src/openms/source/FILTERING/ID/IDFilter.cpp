@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -236,6 +236,82 @@ namespace OpenMS
     }
   }
 
+  map<String,vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
+  {
+    // collect accessions that are referenced by peptides for each ID run:
+    map<String, unordered_set<String> > run_to_accessions;
+
+    for (const auto& f : cmap)
+    {
+      for (const auto& pepid : f.getPeptideIdentifications())
+      {
+        const String& run_id = pepid.getIdentifier();
+        // extract protein accessions of each peptide hit:
+        for (vector<PeptideHit>::const_iterator hit_it =
+            pepid.getHits().begin(); hit_it != pepid.getHits().end();
+             ++hit_it)
+        {
+
+          const set<String>& current_accessions =
+              hit_it->extractProteinAccessionsSet();
+
+          run_to_accessions[run_id].insert(current_accessions.begin(),
+                                           current_accessions.end());
+        }
+      }
+    }
+
+    vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
+
+    map<String,vector<ProteinHit>> result{};
+    for (vector<ProteinIdentification>::iterator prot_it = prots.begin();
+         prot_it != prots.end(); ++prot_it)
+    {
+      const String& run_id = prot_it->getIdentifier();
+      auto target = result.emplace(run_id, vector<ProteinHit>{});
+      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      moveMatchingItems(prot_it->getHits(), std::not1(acc_filter), target.first->second);
+    }
+    return result;
+  }
+
+  void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
+  {
+    // collect accessions that are referenced by peptides for each ID run:
+    map<String, unordered_set<String> > run_to_accessions;
+
+    auto add_references_to_map =
+        [&run_to_accessions](const PeptideIdentification& pepid)
+    {
+      const String& run_id = pepid.getIdentifier();
+      // extract protein accessions of each peptide hit:
+      for (vector<PeptideHit>::const_iterator hit_it =
+          pepid.getHits().begin(); hit_it != pepid.getHits().end();
+           ++hit_it)
+      {
+
+        const set<String>& current_accessions =
+            hit_it->extractProteinAccessionsSet();
+
+        run_to_accessions[run_id].insert(current_accessions.begin(),
+                                         current_accessions.end());
+      }
+    };
+    cmap.applyFunctionOnPeptideIDs(add_references_to_map,include_unassigned);
+
+    vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
+
+    for (vector<ProteinIdentification>::iterator prot_it = prots.begin();
+         prot_it != prots.end(); ++prot_it)
+    {
+      const String& run_id = prot_it->getIdentifier();
+      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      keepMatchingItems(prot_it->getHits(), acc_filter);
+    }
+  }
+
 
   void IDFilter::removeUnreferencedProteins(
     vector<ProteinIdentification>& proteins,
@@ -252,7 +328,6 @@ namespace OpenMS
              pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
       {
-
         const set<String>& current_accessions = 
           hit_it->extractProteinAccessionsSet();
 
@@ -290,7 +365,7 @@ namespace OpenMS
       }
     }
 
-    function<void(PeptideIdentification&)> f = [&run_to_accessions,&remove_peptides_without_reference]
+    auto check_prots_avail = [&run_to_accessions,&remove_peptides_without_reference]
         (PeptideIdentification& pep_it) -> void
     {
       const String& run_id = pep_it.getIdentifier();
@@ -316,7 +391,7 @@ namespace OpenMS
       }
     };
 
-    cmap.applyFunctionOnPeptideIDs(f);
+    cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
 
   void IDFilter::updateProteinReferences(

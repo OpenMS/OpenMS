@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -267,6 +267,27 @@ START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool
   TEST_REAL_SIMILAR(cg_qcs[3].meta_value_qc.at("peak_apex_int").second, 1e12);
   TEST_REAL_SIMILAR(cg_qcs[3].meta_value_qc.at("sn_score").first, 0.0);
   TEST_REAL_SIMILAR(cg_qcs[3].meta_value_qc.at("sn_score").second, 1e12);
+}
+END_SECTION
+
+START_SECTION(void store(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group))
+{
+  MRMFeatureQCFile mrmfqcfile;
+  MRMFeatureQC mrmfqc, mrmfqc_test;
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc, false); // components file
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2.csv"), mrmfqc, true); // component groups file
+  mrmfqcfile.store(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1_test.csv"), mrmfqc, false); // components file
+  mrmfqcfile.store(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2_test.csv"), mrmfqc, true); // component groups file
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1_test.csv"), mrmfqc_test, false); // components file
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2_test.csv"), mrmfqc_test, true); // component groups file
+  TEST_EQUAL(mrmfqc.component_qcs.size(), mrmfqc_test.component_qcs.size());
+  for (size_t i = 0; i < mrmfqc.component_qcs.size(); ++i) {
+    TEST_EQUAL(mrmfqc.component_qcs.at(i) == mrmfqc_test.component_qcs.at(i), true);
+  }
+  TEST_EQUAL(mrmfqc.component_group_qcs.size(), mrmfqc_test.component_group_qcs.size());
+  for (size_t i = 0; i < mrmfqc.component_group_qcs.size(); ++i) {
+    TEST_EQUAL(mrmfqc.component_group_qcs.at(i) == mrmfqc_test.component_group_qcs.at(i), true);
+  }
 }
 END_SECTION
 

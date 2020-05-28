@@ -12,11 +12,14 @@ EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
+InputFile.h
+InputFileList.h
 LayerData.h
 ListEditor.h
 MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
+OutputDirectory.h
 ParamEditor.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h

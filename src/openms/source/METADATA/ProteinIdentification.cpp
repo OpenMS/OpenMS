@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,7 @@ namespace OpenMS
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return (probability == rhs.probability) && (accessions == rhs.accessions);
+    return std::tie(probability, accessions) == std::tie(rhs.probability, rhs.accessions);
   }
 
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
@@ -111,42 +111,83 @@ namespace OpenMS
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
-    db(),
-    db_version(),
-    taxonomy(),
-    charges(),
-    mass_type(MONOISOTOPIC),
-    fixed_modifications(),
-    variable_modifications(),
-    missed_cleavages(0),
-    fragment_mass_tolerance(0.0),
-    fragment_mass_tolerance_ppm(false),
-    precursor_mass_tolerance(0.0),
-    precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme", "")
+      db(),
+      db_version(),
+      taxonomy(),
+      charges(),
+      mass_type(MONOISOTOPIC),
+      fixed_modifications(),
+      variable_modifications(),
+      missed_cleavages(0),
+      fragment_mass_tolerance(0.0),
+      fragment_mass_tolerance_ppm(false),
+      precursor_mass_tolerance(0.0),
+      precursor_mass_tolerance_ppm(false),
+      digestion_enzyme("unknown_enzyme", ""),
+      enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN)
   {
   }
 
   bool ProteinIdentification::SearchParameters::operator==(const SearchParameters& rhs) const
   {
-    return db == rhs.db &&
-           db_version == rhs.db_version &&
-           taxonomy == rhs.taxonomy &&
-           charges == rhs.charges &&
-           mass_type == rhs.mass_type &&
-           fixed_modifications == rhs.fixed_modifications &&
-           variable_modifications == rhs.variable_modifications &&
-           missed_cleavages == rhs.missed_cleavages &&
-           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
-           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
-           precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
-           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
-           digestion_enzyme == rhs.digestion_enzyme;
+    return
+        std::tie(db, db_version, taxonomy, charges, mass_type, fixed_modifications, variable_modifications,
+            missed_cleavages, fragment_mass_tolerance, fragment_mass_tolerance_ppm, precursor_mass_tolerance,
+            precursor_mass_tolerance_ppm, digestion_enzyme, enzyme_term_specificity) ==
+        std::tie(rhs.db, rhs.db_version, rhs.taxonomy, rhs.charges, rhs.mass_type, rhs.fixed_modifications,
+            rhs.variable_modifications, rhs.missed_cleavages, rhs.fragment_mass_tolerance,
+            rhs.fragment_mass_tolerance_ppm, rhs.precursor_mass_tolerance,
+            rhs.precursor_mass_tolerance_ppm, rhs.digestion_enzyme, rhs.enzyme_term_specificity);
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
   {
     return !(*this == rhs);
+  }
+
+  bool ProteinIdentification::SearchParameters::mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const
+  {
+    String spdb = sp.db;
+    spdb.substitute("\\","/");
+    String pdb = this->db;
+    pdb.substitute("\\","/");
+
+    if  (this->precursor_mass_tolerance != sp.precursor_mass_tolerance ||
+        this->precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
+        File::basename(pdb) != File::basename(spdb) ||
+        this->db_version != sp.db_version ||
+        this->fragment_mass_tolerance != sp.fragment_mass_tolerance ||
+        this->fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
+        this->charges != sp.charges ||
+        this->digestion_enzyme != sp.digestion_enzyme ||
+        this->taxonomy != sp.taxonomy ||
+         this->enzyme_term_specificity != sp.enzyme_term_specificity)
+    {
+      return false;
+    }
+
+    set<String> fixed_mods(this->fixed_modifications.begin(), this->fixed_modifications.end());
+    set<String> var_mods(this->variable_modifications.begin(), this->variable_modifications.end());
+    set<String> curr_fixed_mods(sp.fixed_modifications.begin(), sp.fixed_modifications.end());
+    set<String> curr_var_mods(sp.variable_modifications.begin(), sp.variable_modifications.end());
+    if (fixed_mods != curr_fixed_mods ||
+        var_mods != curr_var_mods)
+    {
+      if (experiment_type != "labeled_MS1")
+      {
+        return false;
+      }
+      else
+      {
+        //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
+        //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
+        //TODO actually you would probably need an experimental design here, because
+        //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
+        //Or just ignore labelling mods during the check
+        return true;
+      }
+    }
+    return true;
   }
 
   int ProteinIdentification::SearchParameters::getChargeValue_(String& charge_str) const
@@ -231,9 +272,7 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::~ProteinIdentification()
-  {
-  }
+  ProteinIdentification::~ProteinIdentification() = default;
 
   void ProteinIdentification::setDateTime(const DateTime& date)
   {
@@ -411,7 +450,7 @@ namespace OpenMS
     String meta_name = raw ? "spectra_data_raw" : "spectra_data";
     if (!raw) // mzML files expected
     {
-      for (const String& filename : s)
+      for (const String &filename : s)
       {
         FileTypes::Type filetype = FileHandler::getTypeByFileName(filename);
         if (filetype != FileTypes::MZML)
@@ -431,6 +470,13 @@ namespace OpenMS
     addPrimaryMSRunPath(StringList({s}), raw);
   }
 
+  Size ProteinIdentification::nrPrimaryMSRunPaths(bool raw) const
+  {
+    String meta_name = raw ? "spectra_data_raw" : "spectra_data";
+    StringList spectra_data = getMetaValue(meta_name, DataValue(StringList()));
+    return spectra_data.size();
+  }
+
   //TODO find a more robust way to figure that out. CV Terms?
   bool ProteinIdentification::hasInferenceData() const
   {
@@ -448,22 +494,83 @@ namespace OpenMS
         se == "ProteinInference";
   }
 
+  bool ProteinIdentification::peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const
+  {
+    const String& warn = " You probably do not want to merge the results with this tool."
+                         " For merging searches with different engines/settings please use ConsensusID or PercolatorAdapter"
+                         " to create a comparable score.";
+    const String& engine = this->getSearchEngine();
+    const String& version = this->getSearchEngineVersion();
+
+    bool ok = true;
+
+    if (id_run.getSearchEngine() != engine || id_run.getSearchEngineVersion() != version)
+    {
+      ok = false;
+      OPENMS_LOG_WARN << "Search engine " + id_run.getSearchEngine() + "from IDRun " + id_run.getIdentifier()
+                         + " does not match with the others." + warn;
+    }
+    const ProteinIdentification::SearchParameters& params = this->getSearchParameters();
+    const ProteinIdentification::SearchParameters& sp = id_run.getSearchParameters();
+    if (!params.mergeable(sp, experiment_type))
+    {
+      ok = false;
+      OPENMS_LOG_WARN << "Searchengine settings or modifications from IDRun " + id_run.getIdentifier() + " do not match with the others." + warn;
+    }
+    // TODO else merge as far as possible (mainly mods I guess)
+    return ok;
+  }
+
+  vector<pair<String,String>> ProteinIdentification::getSearchEngineSettingsAsPairs(const String& se) const
+  {
+    vector<pair<String,String>> result;
+    const auto& params = this->getSearchParameters();
+    if (se.empty() || (this->getSearchEngine() == se
+                        && this->getSearchEngine() != "Percolator" //meaningless settings
+                        && !this->getSearchEngine().hasPrefix("ConsensusID"))) //meaningless settings
+    {
+      //TODO add spectra_data?
+      result.emplace_back("db", params.db);
+      result.emplace_back("db_version", params.db_version);
+      result.emplace_back("fragment_mass_tolerance", params.fragment_mass_tolerance);
+      result.emplace_back("fragment_mass_tolerance_unit", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
+      result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("enzyme", params.digestion_enzyme.getName());
+      result.emplace_back("enzyme_term_specificity", EnzymaticDigestion::NamesOfSpecificity[params.enzyme_term_specificity]);
+      result.emplace_back("charges", params.charges);
+      result.emplace_back("missed_cleavages", params.missed_cleavages);
+      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));
+      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications,","));
+    }
+    else
+    {
+      vector<String> mvkeys;
+      params.getKeys(mvkeys);
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix(se))
+        {
+          result.emplace_back(mvkey.substr(se.size()+1), params.getMetaValue(mvkey));
+        }
+      }
+    }
+    return result;
+  }
+
+
   // Equality operator
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
-           id_ == rhs.id_ &&
-           search_engine_ == rhs.search_engine_ &&
-           search_engine_version_ == rhs.search_engine_version_ &&
-           search_parameters_ == rhs.search_parameters_ &&
-           date_ == rhs.date_ &&
-           protein_hits_ == rhs.protein_hits_ &&
-           protein_groups_ == rhs.protein_groups_ &&
-           indistinguishable_proteins_ == rhs.indistinguishable_proteins_ &&
-           protein_score_type_ == rhs.protein_score_type_ &&
-           protein_significance_threshold_ == rhs.protein_significance_threshold_ &&
-           higher_score_better_ == rhs.higher_score_better_;
-
+            std::tie(id_, search_engine_, search_engine_version_,
+                search_parameters_, date_, protein_hits_, protein_groups_,
+                indistinguishable_proteins_, protein_score_type_,
+                protein_significance_threshold_, higher_score_better_) ==
+            std::tie(rhs.id_, rhs.search_engine_, rhs.search_engine_version_,
+                     rhs.search_parameters_, rhs.date_, rhs.protein_hits_, rhs.protein_groups_,
+                     rhs.indistinguishable_proteins_, rhs.protein_score_type_,
+                     rhs.protein_significance_threshold_, rhs.higher_score_better_);
   }
 
   // Inequality operator
@@ -476,11 +583,11 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
     }
     else
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
     }
   }
 
@@ -492,7 +599,7 @@ namespace OpenMS
     UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    float tmpscore = lit->getScore();
+    double tmpscore = lit->getScore();
     while (lit != protein_hits_.end())
     {
       lit->setRank(rank);

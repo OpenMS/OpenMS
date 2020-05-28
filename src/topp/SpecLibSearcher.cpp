@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -528,7 +528,7 @@ protected:
             DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
             hit.setMetaValue("lib:RT", RT);
             hit.setMetaValue("lib:MZ", MZ);
-            hit.setMetaValue("isotope_error", iso);
+            hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, iso);
             hit.setScore(score);
             PeptideEvidence pe;
             pe.setProteinAccession(pr_hit.getAccession());

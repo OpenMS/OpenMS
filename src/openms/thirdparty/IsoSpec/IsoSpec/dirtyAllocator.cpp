@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -8,14 +8,13 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
 
-#include <iostream>
 #include <stdlib.h>
 #include "dirtyAllocator.h"
 
@@ -23,13 +22,13 @@ namespace IsoSpec
 {
 
 DirtyAllocator::DirtyAllocator(
-    const int dim, const int tabSize
-): tabSize(tabSize)
+    const int dim, const int tabSize_
+): tabSize(tabSize_)
 {
     cellSize        = sizeof(double) + sizeof(int) * dim;
     // Fix memory alignment problems for SPARC
     if(cellSize % sizeof(double) != 0)
-    	cellSize += sizeof(double) - cellSize % sizeof(double);
+        cellSize += sizeof(double) - cellSize % sizeof(double);
     currentTab      = malloc( cellSize * tabSize );
     currentConf     = currentTab;
     endOfTablePtr = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
@@ -51,5 +50,5 @@ void DirtyAllocator::shiftTables()
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 

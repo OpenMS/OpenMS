@@ -3,6 +3,7 @@
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="1:5" enzyme="trypsin/p" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-MzTab-stream-2020-05-05"/>
 				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
 				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="0"/>
 				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
@@ -15,6 +16,7 @@
 				<UserParam type="int" name="nr_found_peptides" value="2"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.1,PH_0"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="31.862100000000002" MZ="0.0" RT="0.0" >
 			<PeptideHit score="0.9" sequence="ELEFANT" charge="2" aa_before="[" aa_after="K" start="0" end="6" protein_refs="PH_0" >

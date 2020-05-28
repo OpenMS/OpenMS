@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -403,7 +403,7 @@ namespace OpenMS
     {
       bool add_precursor =
         ((add_precursor_peaks_ && add_all_precursor_charges_) ||
-         (add_precursor_peaks_ && (z == abs(max_charge))));
+         (add_precursor_peaks_ && (z == (uint)abs(max_charge))));
       addChargedSpectrum_(spectrum, uncharged_spectrum, z * sign,
                           add_precursor);
     }

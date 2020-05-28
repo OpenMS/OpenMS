@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,10 +74,12 @@ public:
     @brief Stores an MRMFeatureQC file.
 
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
+
+    @param[in] filename The path to the input file
+    @param[in] mrmfqc The output class which will contain the criteria
+    @param[in] is_component_group true if the user intends to store ComponentGroupQCs data, false otherwise
   */
-//  void store(const String& filename, const MRMFeatureQC& mrmfqc);
-
-
+  void store(const String& filename, const MRMFeatureQC& mrmfqc, const bool is_component_group);
 protected:
   /**
     @brief Save values from a line to a `ComponentQCs`.

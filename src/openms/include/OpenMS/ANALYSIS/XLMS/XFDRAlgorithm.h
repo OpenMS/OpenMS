@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,6 @@ namespace OpenMS
   //-------------------------------------------------------------
 
   /**
-      @page TOPP_XFDR XFDR
-
       @brief Calculates false discovery rate estimates on crosslink identifications.
 
       This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
@@ -61,27 +59,7 @@ namespace OpenMS
 
       @experimental This tool is work in progress and usage and input requirements might change.
 
-      <center>
-          <table>
-              <tr>
-                  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-                  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ XFDR \f$ \longrightarrow \f$</td>
-                  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-              </tr>
-              <tr>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
-                  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
-              </tr>
-              <tr>
-              </tr>
-          </table>
-      </center>
 
-      <B>The command line parameters of this tool are:</B>
-      @verbinclude UTILS_XFDR.cli
-      <B>INI file documentation of this tool:</B>
-      @htmlinclude UTILS_XFDR.html
   */
 
   class OPENMS_DLLAPI XFDRAlgorithm :

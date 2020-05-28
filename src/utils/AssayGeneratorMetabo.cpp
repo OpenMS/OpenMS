@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -155,10 +155,12 @@ protected:
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
 
     // transition extraction 
-    registerIntOption_("min_transitions", "<int>", 3, "minimal number of transitions", false);
-    registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
+    registerIntOption_("min_transitions", "<int>", 3, "Minimal number of transitions", false);
+    registerIntOption_("max_transitions", "<int>", 3, "Maximal number of transitions", false);
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
-    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
+    registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
+    registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
+    registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
 
     registerTOPPSubsection_("deisotoping", "deisotoping");
     registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
@@ -205,6 +207,8 @@ protected:
 
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
+    double min_fragment_mz = getDoubleOption_("min_fragment_mz");
+    double max_fragment_mz = getDoubleOption_("max_fragment_mz");
 
     double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
@@ -526,6 +530,8 @@ protected:
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
                                                                                     transition_threshold,
+                                                                                    min_fragment_mz,
+                                                                                    max_fragment_mz,
                                                                                     use_exact_mass,
                                                                                     exclude_ms2_precursor,
                                                                                     file_counter);
@@ -538,6 +544,8 @@ protected:
                                                                   precursor_mz_distance,
                                                                   cosine_sim_threshold,
                                                                   transition_threshold,
+                                                                  min_fragment_mz,
+                                                                  max_fragment_mz,
                                                                   method_consensus_spectrum,
                                                                   exclude_ms2_precursor,
                                                                   file_counter);

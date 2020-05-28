@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
+#include <ostream>
 
 namespace OpenMS
 {
@@ -681,7 +683,7 @@ namespace OpenMS
                   residue = it->sequence[mit->location];
                 }
                 const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
-                String modname = rmod->getId();
+                const String& modname = rmod->getId();
                 os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
@@ -1730,7 +1732,7 @@ namespace OpenMS
       {
         os << String(2 * indent, ' ') << "<userParam name=\"" << writeXMLEscape(keys[i]) << "\" type=\"";
 
-        DataValue d = meta.getMetaValue(keys[i]);
+        const DataValue& d = meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -1748,6 +1750,37 @@ namespace OpenMS
       }
     }
 
+    void TraMLHandler::writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const
+    {
+      writeCVList_(os, cv_terms.getCVTerms(), indent);
+    }
+
+    void TraMLHandler::writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const
+    {
+      writeCVList_(os, cv_terms.getCVTerms(), indent);
+    }
+
+    void TraMLHandler::writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    {
+      for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
+           it != cv_terms.end(); ++it)
+      {
+        for (std::vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
+        {
+          os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
+          if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
+          {
+            os << " value=\"" << cit->getValue().toString() << "\"";
+          }
+
+          if (cit->hasUnit())
+          {
+            os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
+          }
+          os << "/>" << "\n";
+        }
+      }
+    }
   } //namespace Internal
 } // namespace OpenMS
 

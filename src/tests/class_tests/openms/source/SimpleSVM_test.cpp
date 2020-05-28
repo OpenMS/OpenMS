@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,10 +113,12 @@ START_SECTION((void setup(PredictorMap& predictors,
   TEST_EXCEPTION(Exception::IllegalArgument, svm.setup(empty_pred, labels));
   map<Size, Int> bad_labels;
   bad_labels[0] = 1;
+  SimpleSVM::PredictorMap tmp(predictors); // copy predictors to prevent rescaling to 0..1
   TEST_EXCEPTION(Exception::MissingInformation,
-                 svm.setup(predictors, bad_labels));
+                 svm.setup(tmp, bad_labels));
   bad_labels[100] = 0;
-  TEST_EXCEPTION(Exception::InvalidValue, svm.setup(predictors, bad_labels));
+  tmp = predictors; // copy predictors to prevent rescaling to 0..1
+  TEST_EXCEPTION(Exception::InvalidValue, svm.setup(tmp, bad_labels));
 
   svm.setup(predictors, labels);
 
@@ -180,6 +182,46 @@ START_SECTION((void getFeatureWeights(map<String, double> feature_weights)
   TEST_EQUAL(feat_weights.size(), predictors.size());
 }
 END_SECTION
+
+START_SECTION((map<String, pair<double, double>> void getScaling()
+               const))
+{
+  map<String, double> feat_weights;
+  auto scaling = svm.getScaling();
+   
+  TEST_REAL_SIMILAR(scaling["main_var_xx_swath_prelim_score"].first, -8.88447);
+  TEST_REAL_SIMILAR(scaling["main_var_xx_swath_prelim_score"].second, 4.96923);
+  TEST_REAL_SIMILAR(scaling["peak_apices_sum"].first, 1333.54);
+  TEST_REAL_SIMILAR(scaling["peak_apices_sum"].second, 16131200);
+  TEST_REAL_SIMILAR(scaling["rt_delta"].first, 0.0);
+  TEST_REAL_SIMILAR(scaling["rt_delta"].second, 308.866);
+  TEST_REAL_SIMILAR(scaling["sn_ratio"].first, 0.460926);
+  TEST_REAL_SIMILAR(scaling["sn_ratio"].second, 176.142);
+  TEST_REAL_SIMILAR(scaling["var_elution_model_fit_score"].first, -0.0801376);
+  TEST_REAL_SIMILAR(scaling["var_elution_model_fit_score"].second, 0.998876);
+  TEST_REAL_SIMILAR(scaling["var_intensity_score"].first,  0.00847651);
+  TEST_REAL_SIMILAR(scaling["var_intensity_score"].second, 0.994559);
+  TEST_REAL_SIMILAR(scaling["var_isotope_correlation_score"].first, -0.407676);
+  TEST_REAL_SIMILAR(scaling["var_isotope_correlation_score"].second, 0.999652);
+  TEST_REAL_SIMILAR(scaling["var_isotope_overlap_score"].first, 0.0);
+  TEST_REAL_SIMILAR(scaling["var_isotope_overlap_score"].second, 1.0);
+  TEST_REAL_SIMILAR(scaling["var_library_sangle"].first, 0.00104554)
+  TEST_REAL_SIMILAR(scaling["var_library_sangle"].second, 1.17082);
+  TEST_REAL_SIMILAR(scaling["var_log_sn_score"].first, 0.0);
+  TEST_REAL_SIMILAR(scaling["var_log_sn_score"].second, 5.17129);
+  TEST_REAL_SIMILAR(scaling["var_massdev_score"].first, 0.0)
+  TEST_REAL_SIMILAR(scaling["var_massdev_score"].second, 34.4887);
+  TEST_REAL_SIMILAR(scaling["var_xcorr_coelution"].first, 0.0)
+  TEST_REAL_SIMILAR(scaling["var_xcorr_coelution"].second, 73.397);
+  TEST_REAL_SIMILAR(scaling["var_xcorr_shape"].first, 0.333333)
+  TEST_REAL_SIMILAR(scaling["var_xcorr_shape"].second, 0.999965);
+  TEST_REAL_SIMILAR(scaling["xx_lda_prelim_score"].first, -4.61057)
+  TEST_REAL_SIMILAR(scaling["xx_lda_prelim_score"].second, 7.95003);
+
+  TEST_EQUAL(scaling.size(), predictors.size()); // one min/max entry for every predictor
+}
+END_SECTION
+
 
 START_SECTION((void writeXvalResults(const String& path) const))
 {
