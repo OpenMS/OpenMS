@@ -523,8 +523,10 @@ protected:
       progress_logger.setProgress(cons_i);
     } // end of for-loop across features
     progress_logger.endProgress();
-    
+
     // delete / dealloc mem resources
+    output_file.close();
+
     mzml_file_paths.clear();
     delete [] mzml_files;
     delete [] specs_list;
