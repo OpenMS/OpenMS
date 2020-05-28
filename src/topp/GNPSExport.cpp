@@ -281,7 +281,7 @@ protected:
     setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
 
     registerIntOption_("peptide_cutoff", "<num>", DEF_PEPT_CUTOFF, "Number of most intense peptides to consider per consensus element; -1 to consider all identifications", false);
-    registerIntOption_("msmap_cache", "<num>", DEF_MSMAP_CACHE, "Number of msmaps that can be cached during export for optimized performance", false, true);
+    // registerIntOption_("msmap_cache", "<num>", DEF_MSMAP_CACHE, "Number of msmaps that can be cached during export for optimized performance", false, true);
     registerDoubleOption_("ms2_bin_size", "<num>", DEF_MERGE_BIN_SIZE, "Bin size (Da) for fragment ions when merging ms2 scans", false);
 
     registerOutputFile_("out", "<file>", "", "Output MGF file");
@@ -301,7 +301,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    int max_msmap_cache(getIntOption_("msmap_cache"));
+    // int max_msmap_cache(getIntOption_("msmap_cache"));
     int pept_cutoff(getIntOption_("peptide_cutoff"));
 
     double cos_sim_threshold(getDoubleOption_("merged_spectra:cos_similarity"));
@@ -314,7 +314,6 @@ protected:
     
 
     ofstream output_file(out);
-    // int num_msmaps_cached = 0;
 
     //-------------------------------------------------------------
     // reading input
@@ -329,20 +328,20 @@ protected:
     // preprocessing: allocate memory
     //-------------------------------------------------------------
     // max_msmap_cache = std::min(max_msmap_cache, static_cast<int>(mzml_file_paths.size()));
-    max_msmap_cache = static_cast<int>(mzml_file_paths.size());
+    int max_msmap_cache = static_cast<int>(mzml_file_paths.size());
     MzMLFile* mzml_files = new MzMLFile[max_msmap_cache];
     MSExperiment* specs_list = new MSExperiment[max_msmap_cache];
 
-    
     map<int,int> msmaps_cached; // <K, V> = <map_index, mzml_files index>
     size_t num_msmaps_cached = 0;
-    bool msmaps_cache_fwd = true;
+    // bool msmaps_cache_fwd = true;
 
 
     //-------------------------------------------------------------
     // write output (+ merge computations)
     //-------------------------------------------------------------
     ProgressLogger progress_logger;
+    progress_logger.setLogType(log_type_);
     progress_logger.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
     for (Size cons_i = 0; cons_i < consensus_map.size(); ++cons_i)
     {
@@ -375,8 +374,11 @@ protected:
         int map_index = (pepts[0]).first;
         int spec_index = (pepts[0]).second;      
 
+        printf("map_index %d\n", map_index);
+
         if (msmaps_cached.find(map_index) == msmaps_cached.end())
-        {          
+        {
+          printf("\tloading new map index\n");
           MzMLFile mzmlfile;
           mzml_files[num_msmaps_cached] = mzmlfile;
 
@@ -390,7 +392,7 @@ protected:
         }
 
         MzMLFile mzml_file = mzml_files[msmaps_cached[map_index]];
-        MSExperiment specs = specs_list[msmaps_cached[map_index]];        
+        MSExperiment specs = specs_list[msmaps_cached[map_index]];
 
         vector<pair<double,double>> mz_int_pairs;
         auto spec = specs[spec_index];
@@ -435,9 +437,7 @@ protected:
         // printf("pepts.size() %lu\n", pepts.size());
         for (vector<pair<int,int>>::iterator pepts_iter=pepts.begin(); pepts_iter!=pepts.end(); pepts_iter++)
         {
-          int map_index = pepts_iter->first;
-          int spec_index = pepts_iter->second;
-          // printf("\tmap,spectra = %d,%d\n", map_index,spec_index);
+          int map_index = pepts_iter->first;          
 
           // load missing MzMLFile files + MSExperiment specs
           if (msmaps_cached.find(map_index) == msmaps_cached.end())
@@ -519,7 +519,8 @@ protected:
         element_maps.clear();
         pepts.clear();
       }
-      progress_logger.setProgress(cons_i+1);
+      
+      progress_logger.setProgress(cons_i);
     } // end of for-loop across features
     progress_logger.endProgress();
     
