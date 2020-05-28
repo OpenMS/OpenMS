@@ -775,13 +775,17 @@ set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerg
 #------------------------------------------------------------------------------
 # GNPSExport tests
 # test mostintense output
-add_test("TOPP_GNPSExport_1" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_in1.mzML ${DATA_DIR_TOPP}/GNPSExport_in2.mzML -out GNPSExport_1_out.tmp)
+add_test("TOPP_GNPSExport_1" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_1_out.tmp)
 add_test("TOPP_GNPSExport_1_out" ${DIFF} -in1 GNPSExport_1_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_1_out.mgf)
 set_tests_properties("TOPP_GNPSExport_1_out" PROPERTIES DEPENDS "TOPP_GNPSExport_1")
 # test mergedspectra test
-add_test("TOPP_GNPSExport_2" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_2_merged.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_in1.mzML ${DATA_DIR_TOPP}/GNPSExport_in2.mzML -out GNPSExport_2_out.tmp)
+add_test("TOPP_GNPSExport_2" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_2_merged.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_2_out.tmp)
 add_test("TOPP_GNPSExport_2_out" ${DIFF} -in1 GNPSExport_2_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_2_out.mgf)
 set_tests_properties("TOPP_GNPSExport_2_out" PROPERTIES DEPENDS "TOPP_GNPSExport_2")
+# test ms2_bin_size
+add_test("TOPP_GNPSExport_3" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_3_binsize.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_3_out.tmp)
+add_test("TOPP_GNPSExport_3_out" ${DIFF} -in1 GNPSExport_3_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_3_out.mgf)
+set_tests_properties("TOPP_GNPSExport_3_out" PROPERTIES DEPENDS "TOPP_GNPSExport_3")
 
 #------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
