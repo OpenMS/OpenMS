@@ -283,6 +283,9 @@ namespace OpenMS
     }
 
     if (do_progress) logger.endProgress();
+
+    // clear the deleted ids for the next run_internal_ call
+    deleted_ids_.clear();
   }
 
   bool QTClusterFinder::makeConsensusFeature_(Heap& cluster_heads,
@@ -295,6 +298,10 @@ namespace OpenMS
     while (cluster_heads.top().isInvalid())
     {
       removeFromElementMapping_(cluster_heads.top(), element_mapping);
+
+      // remember that we deleted this id
+      deleted_ids_.insert(cluster_heads.top().getId());
+
       cluster_heads.pop();
 
       // if the last remaining cluster was invalid, no consensus feature is created
@@ -394,6 +401,11 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
       for (const Size curr_id : cluster_ids)
       {
+        // if we deleted the current id already, we shouldn't work with it
+        // otherwise a segfault will happen
+        // this is an ugly/quick fix and a better solution should be found in the future
+        if (deleted_ids_.find(curr_id) != deleted_ids_.end()) continue;
+
         QTCluster& cluster = *handles[curr_id]; 
 
         // we do not want to update invalid features
@@ -440,7 +452,8 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
     }
 
-    // remove the current best from the heap
+    // remove the current best from the heap and remember its id
+    deleted_ids_.insert(best_id);
     cluster_heads.pop();
   }
 
