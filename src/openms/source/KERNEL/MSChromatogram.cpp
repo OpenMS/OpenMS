@@ -432,10 +432,16 @@ OpenMS::MSChromatogram::Iterator set_sum_similar_union(OpenMS::MSChromatogram::I
           d_first->setIntensity(d_first->getIntensity() + first2->getIntensity());
           first2++;
         }
-        else if (first2->getRT() < first1->getRT()) {
+        else
+        {
+          if (first2->getRT() < first1->getRT())
+          {
             *d_first = *first2++;
-        } else {
+          }
+          else 
+          {
             *d_first = *first1++;
+          }
         }
     }
     return std::copy(first2, last2, d_first);
