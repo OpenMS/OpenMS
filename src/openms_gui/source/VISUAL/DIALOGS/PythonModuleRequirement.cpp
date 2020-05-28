@@ -67,9 +67,13 @@ namespace OpenMS
         else missing_modules.push_back(s);
       }
       emit valueChanged(valid_modules, missing_modules);
-      ui_->lbl_modules->setText(QString("<ul><li> [<code style = \"color: red\">%1</code>] missing"\
-                                        "    <li> [<code style = \"color: green\">%2</code>] present"\
-                                        "</ul>").arg(valid_modules.join(", "), missing_modules.join(", ")));
+      QString text = "<ul>";
+      if (!valid_modules.empty()) text += QString("<li> [<code style = \"color: green\">%1</code>] present").arg(valid_modules.join(", "));
+      if (!missing_modules.empty()) text += QString("<li> [<code style = \"color: red\">%1</code>] missing").arg(missing_modules.join(", "));
+      text += "</ul>";
+      ui_->lbl_modules->setText(text);
+      // if no modules are missing, we are good to go...
+      is_ready_ = missing_modules.empty();
     }
 
     PythonModuleRequirement::~PythonModuleRequirement()
