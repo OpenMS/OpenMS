@@ -58,7 +58,8 @@ namespace OpenMS
     completer->setModel(dir_model);
     ui_->line_edit->setCompleter(completer);
 
-    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+    connect(ui_->browse_button, &QPushButton::clicked, this, &OutputDirectory::showFileDialog);
+    connect(ui_->line_edit, &QLineEdit::textChanged, this, &OutputDirectory::textEditChanged_);
   }
 
   OutputDirectory::~OutputDirectory()
@@ -69,6 +70,7 @@ namespace OpenMS
   void OutputDirectory::setDirectory(const QString& dir)
   {
     ui_->line_edit->setText(dir);
+    emit directoryChanged(dir);
   }
 
   QString OutputDirectory::getDirectory() const
@@ -80,11 +82,17 @@ namespace OpenMS
   {
     QString dir = File::exists(File::path(getDirectory())) ? File::path(getDirectory()).toQString() : "";
     QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
-    if (selected_dir != "")
+    if (!selected_dir.isEmpty())
     {
-      ui_->line_edit->setText(selected_dir);
+      setDirectory(selected_dir); // emits directoryChanged()
     }
   }
+  
+  void OutputDirectory::textEditChanged_(const QString& new_text)
+  {
+    emit directoryChanged(getDirectory());
+  }
+  
 
   bool OutputDirectory::dirNameValid() const
   {
