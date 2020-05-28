@@ -435,7 +435,7 @@ protected:
         // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
         if (pepts.size() > (unsigned long) pept_cutoff) { pepts.erase(pepts.begin()+pept_cutoff, pepts.end()); }        
         // printf("pepts.size() %lu\n", pepts.size());
-        for (vector<pair<int,int>>::iterator pepts_iter=pepts.begin(); pepts_iter!=pepts.end(); pepts_iter++)
+        for (vector<pair<int,int>>::iterator pepts_iter=pepts.begin(); pepts_iter!=pepts.end(); ++pepts_iter)
         {
           int map_index = pepts_iter->first;          
 
