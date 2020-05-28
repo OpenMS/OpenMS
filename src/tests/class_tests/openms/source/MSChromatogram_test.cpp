@@ -1092,9 +1092,8 @@ START_SECTION(void mergePeaks(MSChromatogram & other) )
   b.sortByPosition();
   c.sortByPosition();
   a.mergePeaks(b, true);
-  DoubleList dl = DoubleList();
-  dl.push_back(b.getMZ());
-  c.setMetaValue(Constants::UserParam::MERGED_WITH, dl);
+  DoubleList dl = { b.getMZ() };
+  c.setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, dl);
   TEST_EQUAL(a, c)
 }
 END_SECTION

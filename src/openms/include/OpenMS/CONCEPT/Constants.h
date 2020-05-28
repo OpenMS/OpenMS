@@ -258,7 +258,7 @@ namespace OpenMS
       /** User parameter name for the M/Z of other chromatograms which have been merged into this one
               String
        */
-      extern OPENMS_DLLAPI const std::string   MERGED_WITH;
+      extern OPENMS_DLLAPI const std::string   MERGED_CHROMATOGRAM_MZS;
 
       /** User parameter name for precursor mz error in ppm
               String
