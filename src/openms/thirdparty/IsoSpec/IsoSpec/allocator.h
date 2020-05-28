@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -17,8 +17,7 @@
 #pragma once
 
 #include <vector>
-#include <iostream>
-#include <string.h>
+#include <cstring>
 #include "conf.h"
 
 namespace IsoSpec
@@ -31,15 +30,20 @@ template <typename T> inline void copyConf(
     memcpy(destination, source, dim*sizeof(T));
 }
 
-template <typename T> class Allocator{
-private:
+template <typename T> class Allocator
+{
+ private:
     T*      currentTab;
     int currentId;
     const int       dim, tabSize;
     std::vector<T*>  prevTabs;
-public:
-    Allocator(const int dim, const int tabSize = 10000);
+
+ public:
+    explicit Allocator(const int dim, const int tabSize = 10000);
     ~Allocator();
+
+    Allocator(const Allocator& other) = delete;
+    Allocator& operator=(const Allocator& other) = delete;
 
     void shiftTables();
 
@@ -60,15 +64,6 @@ public:
 
         return currentPlace;
     }
-
-    inline T* makeExternalCopy(const T* conf)
-    {
-        T* res = new T[dim];
-        copyConf( conf, res, dim );
-
-        return res;
-    }
 };
 
-}
-
+}  // namespace IsoSpec
