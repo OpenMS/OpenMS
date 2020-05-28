@@ -144,27 +144,28 @@ namespace OpenMS
     PeakSpectrum::StringDataArray* ion_names;
     PeakSpectrum::IntegerDataArray* charges;
 
-    if (add_metainfo_)
+    bool charges_dynamic = false, ion_names_dynamic = false;
+
+    if (spectrum.getIntegerDataArrays().empty())
     {
-      if (spectrum.getIntegerDataArrays().empty())
-      {
-        charges = new PeakSpectrum::IntegerDataArray;
-      }
-      else
-      {
-        charges = &(spectrum.getIntegerDataArrays()[0]);
-      }
-      if (spectrum.getStringDataArrays().empty())
-      {
-        ion_names = new PeakSpectrum::StringDataArray;
-      }
-      else
-      {
-        ion_names = &(spectrum.getStringDataArrays()[0]);
-      }
-      ion_names->setName("IonNames");
-      charges->setName("Charges");
+      charges = new PeakSpectrum::IntegerDataArray();
+      charges_dynamic = true;
     }
+    else
+    {
+      charges = &(spectrum.getIntegerDataArrays()[0]);
+    }
+    if (spectrum.getStringDataArrays().empty())
+    {
+      ion_names = new PeakSpectrum::StringDataArray();
+      ion_names_dynamic = true;
+    }
+    else
+    {
+      ion_names = &(spectrum.getStringDataArrays()[0]);
+    }
+    ion_names->setName("IonNames");
+    charges->setName("Charges");
 
     for (Int z = min_charge; z <= max_charge; ++z)
     {
@@ -204,14 +205,15 @@ namespace OpenMS
       if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().push_back(std::move(*charges));
-        delete charges;
       }
       if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().push_back(std::move(*ion_names));
-        delete ion_names;
       }
     }
+
+    if (charges_dynamic) delete charges;
+    if (ion_names_dynamic) delete ion_names;
 
     if (sort_by_position_) spectrum.sortByPositionPresorted(chunks.getChunks());
   }
