@@ -448,10 +448,23 @@ OpenMS::MSChromatogram::Iterator set_sum_similar_union(OpenMS::MSChromatogram::I
 }
 
 
-void MSChromatogram::mergePeaks(MSChromatogram& other)
+void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
 {
   vector<ChromatogramPeak> temp;
   temp.reserve((this->end() - this->begin()) + (other.end() - other.begin()) );
   ContainerType::assign(temp.begin(), set_sum_similar_union(this->begin(), this->end(), other.begin(), other.end(), temp.begin()));
-  this->setMetaValue("merged_with",String(other.getMZ()));   
+  if (add_meta)
+  {
+    if (this->getMetaValue("merged_with") == DataValue::EMPTY)
+    {
+      this->setMetaValue("merged_with",DoubleList(other.getMZ()));
+    }
+    else
+    {
+      DoubleList ls = this->getMetaValue("merged_with").toDoubleList();
+      ls.push_back(other.getMZ());
+      this->setMetaValue("merged_with", ls);
+    }
+
+  }
 }

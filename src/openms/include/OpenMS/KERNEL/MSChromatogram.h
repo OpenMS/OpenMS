@@ -424,7 +424,7 @@ public:
 
       @param other a reference to the MSChromatogram to take ChromatogramPeaks from
     */
-    void mergePeaks(MSChromatogram& other);
+    void mergePeaks(MSChromatogram& other, bool add_meta=true);
 
 protected:
 
