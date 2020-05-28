@@ -150,8 +150,8 @@ class TOPPGNPSExport : public TOPPBase
 {
 public:
   TOPPGNPSExport() :
-    TOPPBase("GNPSExport", "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format. \
-    See the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms", false) {}
+    TOPPBase("GNPSExport", "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format. " +
+    "See the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms", false) {}
 
   void generateMSMSSpectrumBins(
     vector<pair<double,double>>& mz_int_pairs,
@@ -197,7 +197,7 @@ public:
       count++;
     }
     //remaining scans in last bucket
-    if(count > 0)
+    if (count > 0)
     {
       mz_merged.push_back(sum_mz/count);
       intensity_merged.push_back(sum_intensity);
@@ -205,7 +205,7 @@ public:
 
     // map mz and intensity
     // map<double,double>* ms2_block = new map<double,double>();
-    for(unsigned int ms2_block_index = 0; ms2_block_index < mz_merged.size(); ms2_block_index++)
+    for (unsigned int ms2_block_index = 0; ms2_block_index < mz_merged.size(); ms2_block_index++)
     {
       ms2_block[mz_merged[ms2_block_index]] = intensity_merged[ms2_block_index];
     }
@@ -258,14 +258,14 @@ public:
   }
 
 private:
-  constexpr double static DEF_COSINE_SIMILARITY = 0.9;
-  constexpr double static DEF_MERGE_BIN_SIZE = BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES;
+  static constexpr double DEF_COSINE_SIMILARITY = 0.9;
+  static constexpr double DEF_MERGE_BIN_SIZE = BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES;
 
-  constexpr double static DEF_PREC_MASS_TOL = 0.5;
-  constexpr bool static DEF_PREC_MASS_TOL_ISPPM = false;
+  static constexpr double DEF_PREC_MASS_TOL = 0.5;
+  static constexpr bool DEF_PREC_MASS_TOL_ISPPM = false;
 
-  constexpr double static DEF_PEPT_CUTOFF = 5;
-  constexpr double static DEF_MSMAP_CACHE = 50;
+  static constexpr double DEF_PEPT_CUTOFF = 5;
+  static constexpr double DEF_MSMAP_CACHE = 50;
   // double DEF_PRECURSOR_MZ_TOLERANCE = 0.0001;
   // double DEF_PRECURSOR_RT_TOLERANCE = 5;
 
