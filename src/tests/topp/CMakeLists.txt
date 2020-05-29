@@ -770,10 +770,6 @@ set_tests_properties("TOPP_GNPSExport_2_out" PROPERTIES DEPENDS "TOPP_GNPSExport
 add_test("TOPP_GNPSExport_3" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_3_binsize.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_3_out.tmp)
 add_test("TOPP_GNPSExport_3_out" ${DIFF} -in1 GNPSExport_3_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_3_out.mgf)
 set_tests_properties("TOPP_GNPSExport_3_out" PROPERTIES DEPENDS "TOPP_GNPSExport_3")
-# large test of 3500 features
-add_test("TOPP_GNPSExport_4" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_4_bigtest.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_4_cons.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_4_mzml0.mzML ${DATA_DIR_TOPP}/GNPSExport_4_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_4_mzml2.mzML ${DATA_DIR_TOPP}/GNPSExport_4_mzml3.mzML ${DATA_DIR_TOPP}/GNPSExport_4_mzml4.mzML ${DATA_DIR_TOPP}/GNPSExport_4_mzml5.mzML -out GNPSExport_4_out.tmp)
-add_test("TOPP_GNPSExport_4_out" ${DIFF} -in1 GNPSExport_4_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out.mgf)
-set_tests_properties("TOPP_GNPSExport_4_out" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
 
 #------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
