@@ -150,8 +150,7 @@ class TOPPGNPSExport : public TOPPBase
 {
 public:
   TOPPGNPSExport() :
-    TOPPBase("GNPSExport", "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format. " +
-    "See the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms", false) {}
+    TOPPBase("GNPSExport", "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format. See the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms", false) {}
 
   void generateMSMSSpectrumBins(
     vector<pair<double,double>>& mz_int_pairs,
