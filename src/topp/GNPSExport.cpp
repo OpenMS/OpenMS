@@ -266,7 +266,7 @@ private:
     // return will be reformatted vector<PeptideIdentification> pepts passed in by value
   }
 
-  MSExperiment& getSpectrumAtMapIndex(const StringList& mzml_file_paths, vector<MSExperiment>& specs_list, int map_index) {
+  MSExperiment& getSpectraAtIndex(const StringList& mzml_file_paths, vector<MSExperiment>& specs_list, int map_index) {
     MSExperiment& specs = specs_list.at(map_index);
     
     if (specs.empty())
@@ -387,7 +387,7 @@ protected:
         // printf("map_index %d\n", map_index);
 
         // MSExperiment specs = specs_list->at(map_index);
-        MSExperiment& specs = getSpectrumAtMapIndex(mzml_file_paths, specs_list, map_index);
+        MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
         // if (specs.empty())
         // {
         //   mzml_file.load(mzml_file_paths[map_index], specs);
@@ -444,7 +444,7 @@ protected:
         // {
         //   mzml_file.load(mzml_file_paths[best_mapi], best_specs);
         // }
-        MSExperiment& best_specs = getSpectrumAtMapIndex(mzml_file_paths, specs_list, best_mapi);
+        MSExperiment& best_specs = getSpectraAtIndex(mzml_file_paths, specs_list, best_mapi);
         auto& best_spec = best_specs[best_speci];
 
         if (output_type == "merged_spectra")
@@ -458,7 +458,7 @@ protected:
             int map_index = pept.first;
             int spec_index = pept.second;
 
-            MSExperiment& specs = getSpectrumAtMapIndex(mzml_file_paths, specs_list, map_index);
+            MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
 
             auto& test_spec = specs[spec_index];
             const BinnedSpectrum binned_spectrum(test_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
