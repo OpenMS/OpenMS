@@ -72,23 +72,22 @@ namespace OpenMS
           if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
-            fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+            ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
             break;
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            UInt& counter = fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
-            auto searcher = [&parsed_term, &allowed, &counter] (const String& child)
+            auto searcher = [&parsed_term] (const String& child)
             {
-              if (child == parsed_term.accession)
-              {
-                allowed = true;
-                ++counter;
-                return true;
-              }
-              return false;
+              return child == parsed_term.accession;
             };
-            cv_.iterateAllChildren(term.getAccession(), searcher);
+
+            if (cv_.iterateAllChildren(term.getAccession(), searcher))
+            {
+              allowed = true;
+              ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
+              break;
+            }
           }
         }
       }
@@ -113,19 +112,19 @@ namespace OpenMS
               if (term.units.find(parsed_term.unit_accession) == term.units.end())
               {
                 // last chance, a child term of the units was used
-                bool found_unit(false);
-                auto lambda = [&parsed_term, &found_unit] (const String& child)
+                auto lambda = [&parsed_term] (const String& child)
                 {
-                  if (child == parsed_term.unit_accession)
-                  {
-                    found_unit = true;
-                    return true;
-                  }
-                  return false;
+                  return child == parsed_term.unit_accession;
                 };
+
+                bool found_unit(false);
                 for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
-                  if (cv_.iterateAllChildren(*it, lambda)) break;
+                  if (cv_.iterateAllChildren(*it, lambda))
+                  {
+                    found_unit = true;
+                    break;
+                  }
                 }
 
                 if (!found_unit)

@@ -158,17 +158,19 @@ public:
 
     /**
         @brief Iterates over all children of parent recursively.
-        @param x Function that gets the child-Strings passed. Must return bool.
+        @param lbd Function that gets the child-Strings passed. Must return bool.
                  Used for comparisons and / or to set captured variables.
-                 If the lambda return true, the iterating is exited prematurely.
+                 If the lambda returns true, the iteration is exited prematurely.
                  E.g. if you have found your search, you don't need to continue searching.
+                 Otherwise, if you want to go through the whole tree (e.g. to fill a vector)
+                 you can just return false always to not quit early.
     */
     template <class LAMBDA>
-    bool iterateAllChildren(const String& parent, LAMBDA x) const
+    bool iterateAllChildren(const String& parent, LAMBDA lbd) const
     {
       for (const auto& child : getTerm(parent).children)
       {
-        if (x(child) || iterateAllChildren(child, x)) return true;
+        if (lbd(child) || iterateAllChildren(child, lbd)) return true;
       }
       return false;
     }
