@@ -438,7 +438,7 @@ protected:
       Map<String, Software> software_;
       /// The data processing list: id => Instrument
       Map<String, Instrument> instruments_;
-      /// CV terms that have been checked in validateCV_()
+      /// CV terms-path-combinations that have been checked in validateCV_()
       mutable Map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
       Map<String, std::vector< DataProcessingPtr > > processing_;

@@ -3377,7 +3377,11 @@ namespace OpenMS
 
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
-      // static map<<Path, c.id>, isValid> for storing, if a cvterm is valid in the given path
+      // We remember already validated path-term-combinations in cached_terms_
+      // This avoids recomputing SemanticValidator::locateTerm() multiple times for the same terms and paths
+      // validateCV_() is called very often for the same path-term-combinations, so we save lots of repetitive computations
+      // By caching these combinations we save about 99% of the runtime of validateCV_()
+
       const auto it = cached_terms_.find(std::make_pair(path, c.id));
       if (it != cached_terms_.end())
       {
