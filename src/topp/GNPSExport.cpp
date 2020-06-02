@@ -292,7 +292,7 @@ private:
         {
           int map_index = pept_id.getMetaValue("map_index");
           int spec_index = pept_id.getMetaValue("spectrum_index");
-          pept_indices.push_back(pair<int,int>(map_index,spec_index));
+          pept_indices.emplace_back(map_index,spec_index);
           break;
         }
       }
