@@ -402,7 +402,7 @@ namespace OpenMS
                  DefaultValue(10),
                  Description("Number of molecular structure candidates in the output.")
                ).withMinInt(1);
-      
+
       // -d, --db , --fingeriddb, --fingerid-db, --fingerid_db=<database>
       // Search structure in given database. By default the same database
       // for molecular formula search is also used for structure search.

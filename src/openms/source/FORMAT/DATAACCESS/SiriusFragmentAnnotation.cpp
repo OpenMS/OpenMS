@@ -79,7 +79,7 @@ namespace OpenMS
            break;
         }
       }
-      spectrum_ms_file.close(); 
+      spectrum_ms_file.close();
     }
     ext_nid = ListUtils::concatenate(ext_nids, "|");
     return ext_nid;
@@ -122,9 +122,11 @@ namespace OpenMS
     map< Size, String > rank_filename;
     String line;
 
-    const String sirius_formula_candidates = path_to_sirius_workspace + "/formula_candidates.csv"; // based on SIRIUS annotation
+    const String sirius_formula_candidates = path_to_sirius_workspace + "/formula_candidates.tsv"; // based on SIRIUS annotation
     ifstream fcandidates(sirius_formula_candidates);
     if (fcandidates)
+
+
     {
       CsvFile candidates(sirius_formula_candidates, '\t');
       const UInt rowcount = candidates.rowCount();
@@ -139,7 +141,7 @@ namespace OpenMS
         String adduct = sl[columnname_to_columnindex.at("adduct")];
         adduct.erase(std::remove_if(adduct.begin(), adduct.end(), ::isspace), adduct.end());
         rank_filename.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
-                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".csv")));
+                              String(sl[columnname_to_columnindex.at("molecularFormula")] + "_" + adduct + ".tsv")));
       }
     }
     fcandidates.close();
@@ -181,7 +183,6 @@ namespace OpenMS
       msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
 
       // read file and save in MSSpectrum
-      std::cout << "firstfile: " << firstfile.absoluteFilePath().toStdString() << std::endl;
       ifstream fragment_annotation_file(firstfile.absoluteFilePath().toStdString());
       if (fragment_annotation_file)
       {

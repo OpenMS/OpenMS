@@ -87,7 +87,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String>& sirius_output_paths
       spectrum_ms_file.close();
     } 
    
-    const std::string pathtocsicsv = it + "/structure_candidates.csv";
+    const std::string pathtocsicsv = it + "/structure_candidates.tsv";
 
     ifstream file(pathtocsicsv);
 
