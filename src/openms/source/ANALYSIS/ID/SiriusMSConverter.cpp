@@ -464,7 +464,7 @@ namespace OpenMS
 
     // create temporary input file (.ms)
     os.open(msfile.c_str());
-     if (!os)
+    if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
@@ -477,18 +477,20 @@ namespace OpenMS
     ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
  
     // extract accession by name
-    std::set<String> terms;
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.getAllChildTerms(terms, "MS:1000560");
-    for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+    auto lambda = [&ainfo, &cv] (const String& child)
     {
-      if (cv.getTerm(*it).name == ainfo.sf_type)
+      const ControlledVocabulary::CVTerm& c = cv.getTerm(child);
+      if (c.name == ainfo.sf_type)
       {
-          cv.getTerm(*it);
-          ainfo.sf_accession = cv.getTerm(*it).id;
+        ainfo.sf_accession = c.id;
+        return true;
       }
-    }  
+      return false;
+    };
+    cv.iterateAllChildren("MS:1000560", lambda);
+
     // native_id
     ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
     ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
