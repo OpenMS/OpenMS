@@ -177,22 +177,22 @@ private:
     ofstream& output_file,
     const map<double,int> ms2_block, 
     const String& output_type,
-    const int scan_index,
-    const String feature_id,
-    const String feature_charge,
-    const String feature_mz,
-    const String spec_index,
-    const String feature_rt
+    const int& scan_index,
+    const String& feature_id,
+    const int& feature_charge,
+    const String& feature_mz,
+    const String& spec_index,
+    const String& feature_rt
   ) 
   {
     output_file << "BEGIN IONS" << "\n";
     output_file << "OUTPUT=" << output_type << "\n";
     
     output_file << "SCANS=" << scan_index << "\n";
-    output_file << "FEATURE_ID=" << feature_id << "\n";
+    output_file << "FEATURE_ID=e_" << feature_id << "\n";
 
     output_file << "MSLEVEL=2" << "\n";
-    output_file << "CHARGE=" << feature_charge << "\n";
+    output_file << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n";
     output_file << "PEPMASS=" << feature_mz << "\n";
     output_file << "FILE_INDEX=" << spec_index << "\n";
     output_file << "RTINSECONDS=" << feature_rt << "\n";
@@ -488,7 +488,7 @@ protected:
 
         // write output
         writeMS2BlockToFile(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
-                            charge, feature.getMZ(), best_speci, feature.getRT());
+                            charge, feature.getMZ(), best_speci, best_spec.getRT());
 
         // delete allocated resources
         mz_int_pairs.clear();         
