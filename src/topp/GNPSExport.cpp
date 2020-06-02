@@ -88,8 +88,7 @@ Options for outputing GNPSExport spectral processing are:
 	    The fragment ions of merged MS/MS scans are binned in m/z (or Da) range defined by the Binning width parameter.    
       .
 	  -# Most intense: most_intense - For each consensusElement, the GNPSExport will output the most intense MS/MS scan (with the highest precursor ion intensity) as consensus MS/MS spectrum.
-      .
-    -# All MS/MS: full_spectra - For each consensusElement, the GNPSExport will output All MS/MS scans.
+      .    
 
 Note that mass accuracy and the retention time window for the pairing between MS/MS scans and a LC-MS feature
 or consensusElement is defined at the IDMapper tool step.
@@ -174,30 +173,66 @@ private:
   static constexpr double DEF_MSMAP_CACHE = 50;
 
 
+  void writeMS2BlockToFile(
+    ofstream& output_file,
+    const map<double,int> ms2_block, 
+    const String& output_type,
+    const int scan_index,
+    const String feature_id,
+    const String feature_charge,
+    const String feature_mz,
+    const String spec_index,
+    const String feature_rt
+  ) 
+  {
+    output_file << "BEGIN IONS" << "\n";
+    output_file << "OUTPUT=" << output_type << "\n";
+    
+    output_file << "SCANS=" << scan_index << "\n";
+    output_file << "FEATURE_ID=" << feature_id << "\n";
+
+    output_file << "MSLEVEL=2" << "\n";
+    output_file << "CHARGE=" << feature_charge << "\n";
+    output_file << "PEPMASS=" << feature_mz << "\n";
+    output_file << "FILE_INDEX=" << spec_index << "\n";
+    output_file << "RTINSECONDS=" << feature_rt << "\n";
+
+    for (const pair<double,int>& ms2 : ms2_block)
+    {
+      if (ms2.second > 0)
+      {
+        output_file << ms2.first << "\t" << ms2.second << "\n";
+      }
+    }
+
+    output_file << "END IONS" << "\n\n";
+  }
+
   void generateMSMSSpectrumBins(
-    const vector<pair<double,double>>& sorted_mz_int_pairs,
+    const vector<pair<double,int>>& sorted_mz_int_pairs,
     double delta_mz,
-    map<double,double>& ms2_block
+    map<double,int>& ms2_block
   )
   {
-    //
     // generate new spectrum
-    //
     vector<double> mz_merged;
     vector<double> intensity_merged;
+
     // double last_mz = numeric_limits<double>::min();
     double last_mz = sorted_mz_int_pairs[0].first;    
     double sum_mz = 0;
-    double sum_intensity = 0;
+    int sum_intensity = 0;
     double count = 0;
     for (const auto mz_int : sorted_mz_int_pairs)
     {
       if (abs(mz_int.first - last_mz) > delta_mz && count > 0)
       {
-        double mz_merged = sum_mz/count;
-        double int_merged = sum_intensity;
-
-        ms2_block[mz_merged] = int_merged;
+        if (sum_intensity > 0)
+        {
+          double mz_merged = sum_mz/count;
+          int int_merged = sum_intensity;
+          ms2_block[mz_merged] = int_merged;
+        }
 
         last_mz = mz_int.first;
         sum_mz = 0;
@@ -210,7 +245,7 @@ private:
       count++;
     }
     //remaining scans in last bucket
-    if (count > 0)
+    if (count > 0 && sum_intensity > 0)
     {
       double mz_merged = sum_mz/count;
       double int_merged = sum_intensity;
@@ -218,7 +253,7 @@ private:
       ms2_block[mz_merged] = int_merged;
     }
 
-    // return would be the reformatted map<double,double> ms2_block passed in by value
+    // return would be the reformatted map<double,int> ms2_block passed in by value
   }
 
   void sortElementMapsByIntensity(const ConsensusFeature& feature, vector<pair<int,double>>& element_maps)
@@ -294,7 +329,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mgf"));
 
     registerStringOption_("output_type", "<choice>", "most_intense", "specificity of mgf output information", false);
-    setValidStrings_("output_type", ListUtils::create<String>("full_spectra,merged_spectra,most_intense"));
+    setValidStrings_("output_type", ListUtils::create<String>("merged_spectra,most_intense"));
 
     addEmptyLine_();
 
@@ -395,117 +430,69 @@ protected:
         auto spec = specs[spec_index];
         spec.sortByIntensity(true);
 
-        vector<pair<double,double>> mz_int_pairs;
+        vector<pair<double,int>> mz_int_pairs;
         for (auto spec_iter=spec.begin(); spec_iter!=spec.end(); ++spec_iter)        
         {
-          mz_int_pairs.emplace_back(spec_iter->getMZ(), spec_iter->getIntensity());
+          mz_int_pairs.emplace_back(spec_iter->getMZ(), static_cast<int>(spec_iter->getIntensity()));
         }
         sort(mz_int_pairs.begin(), mz_int_pairs.end());
         
-        map<double,double> ms2_block;
+        map<double,int> ms2_block;
         generateMSMSSpectrumBins(mz_int_pairs, bin_width, ms2_block);      
 
         // write output
-        output_file << "BEGIN IONS" << "\n";
-        output_file << "OUTPUT=" << output_type << "\n";
+        writeMS2BlockToFile(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
+                            charge, feature.getMZ(), spec_index, spec.getRT());
 
-        output_file << "SCANS=" << (cons_i+1) << "\n";
-        output_file << "FEATURE_ID=e_" << feature.getUniqueId() << "\n";
-
-        output_file << "MSLEVEL=2" << "\n";
-        output_file << "CHARGE=" << to_string(charge == 0 ? 1 : charge) << "+" << "\n";
-        output_file << "PEPMASS=" << feature.getMZ() << "\n";
-        output_file << "FILE_INDEX=" << spec_index << "\n";
-        output_file << "RTINSECONDS=" << spec.getRT() << "\n";
-
-        output_file << fixed << setprecision(4);        
-        
-        for (const pair<double,double>& ms2 : ms2_block)
-        {
-          if ((int) ms2.second > 0)
-          {
-            output_file << ms2.first << "\t" << (int) ms2.second << "\n";
-          }
-        }
-      
-        output_file << "END IONS" << "\n\n";
-      }
-      // else output selection is 'merged_spectra' or 'full_spectra'
-      else
+        mz_int_pairs.clear();
+      }      
+      else if (output_type == "merged_spectra")
       {
         // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
-        if (pepts.size() > (unsigned long) pept_cutoff) { pepts.erase(pepts.begin()+pept_cutoff, pepts.end()); }        
-        // printf("pepts.size() %lu\n", pepts.size());
+        if (pepts.size() > (unsigned long) pept_cutoff) { pepts.erase(pepts.begin()+pept_cutoff, pepts.end()); }                
 
         int best_mapi = pepts[0].first;
         int best_speci = pepts[0].second;
-        // MSExperiment &best_specs = specs_list.at(best_mapi);
-        // if (best_specs.empty())
-        // {
-        //   mzml_file.load(mzml_file_paths[best_mapi], best_specs);
-        // }
+
         MSExperiment& best_specs = getSpectraAtIndex(mzml_file_paths, specs_list, best_mapi);
         auto& best_spec = best_specs[best_speci];
+        BinnedSpectrum binned_highest_int(best_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-        if (output_type == "merged_spectra")
+        vector<pair<double,int>> mz_int_pairs;
+
+        for (pair<int,int> pept : pepts)
         {
-          BinnedSpectrum binned_highest_int(best_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+          int map_index = pept.first;
+          int spec_index = pept.second;
 
-          vector<pair<double,double>> mz_int_pairs;
+          MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
 
-          for (pair<int,int> pept : pepts)
+          auto& test_spec = specs[spec_index];
+          const BinnedSpectrum binned_spectrum(test_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+
+          BinnedSpectralContrastAngle bsca;
+          double cos_sim = bsca(binned_highest_int, binned_spectrum);
+
+          if (cos_sim >= cos_sim_threshold)
           {
-            int map_index = pept.first;
-            int spec_index = pept.second;
-
-            MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
-
-            auto& test_spec = specs[spec_index];
-            const BinnedSpectrum binned_spectrum(test_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-            BinnedSpectralContrastAngle bsca;
-            double cos_sim = bsca(binned_highest_int, binned_spectrum);
-
-            if (cos_sim >= cos_sim_threshold)
+            for (auto spec_iter = test_spec.begin(); spec_iter < test_spec.end(); spec_iter++)
             {
-              for (auto spec_iter = test_spec.begin(); spec_iter < test_spec.end(); spec_iter++)
-              {
-                mz_int_pairs.push_back(pair<double,double>(spec_iter->getMZ(), spec_iter->getIntensity()));
-              }
+              mz_int_pairs.emplace_back(spec_iter->getMZ(), spec_iter->getIntensity());
             }
           }
-          sort(mz_int_pairs.begin(), mz_int_pairs.end());
-          map<double,double> ms2_block;
-          generateMSMSSpectrumBins(mz_int_pairs, bin_width, ms2_block);
-
-          // write output
-          output_file << "BEGIN IONS" << "\n";
-          output_file << "OUTPUT=" << output_type << "\n";
-
-          output_file << "SCANS=" << (cons_i+1) << "\n";
-          output_file << "FEATURE_ID=e_" << feature.getUniqueId() << "\n";
-
-          output_file << "MSLEVEL=2" << "\n";
-          output_file << "CHARGE=" << to_string(charge == 0 ? 1 : charge) << "+" << "\n";
-          output_file << "PEPMASS=" << feature.getMZ() << "\n";
-          output_file << "FILE_INDEX=" << best_speci << "\n";
-          output_file << "RTINSECONDS=" << best_spec.getRT() << "\n";
-
-          output_file << fixed << setprecision(4);
-          
-          for (const pair<double,double>& ms2 : ms2_block)
-          {
-            if ((int) ms2.second > 0)
-            {
-              output_file << ms2.first << "\t" << (int) ms2.second << "\n";
-            }
-          }
-
-          output_file << "END IONS" << "\n\n";
-
-          // delete allocated resources
-          mz_int_pairs.clear();         
         }
+        sort(mz_int_pairs.begin(), mz_int_pairs.end());
+
+        map<double,int> ms2_block;
+        generateMSMSSpectrumBins(mz_int_pairs, bin_width, ms2_block);
+
+        // write output
+        writeMS2BlockToFile(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
+                            charge, feature.getMZ(), best_speci, feature.getRT());
+
+        // delete allocated resources
+        mz_int_pairs.clear();         
+      
 
         element_maps.clear();
         pepts.clear();
