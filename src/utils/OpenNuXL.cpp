@@ -70,13 +70,16 @@
 
 // preprocessing and filtering
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
@@ -557,7 +560,7 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter"}); 
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter"}); 
   }
 
 
@@ -3839,6 +3842,7 @@ static void scoreXLIons_(
     bool filter_bad_partial_loss_scores = find(filter.begin(), filter.end(), "filter_bad_partial_loss_scores") != filter.end();
     bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
+    bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
 
     // autotune (only works if non-XL peptides present)
     set<String> skip_peptide_spectrum;
@@ -3853,10 +3857,10 @@ static void scoreXLIons_(
       p.setValue("fragment:mass_tolerance", fragment_mass_tolerance);
       p.setValue("fragment:mass_tolerance_unit", getStringOption_("fragment:mass_tolerance_unit"));
       StringList var_mods = getStringList_("modifications:variable");
-      if (find(var_mods.begin(), var_mods.end(), "Phospho (S)") != var_mods.end()) { var_mods.push_back("Phospho (S)"); }
-      if (find(var_mods.begin(), var_mods.end(), "Phospho (T)") != var_mods.end()) { var_mods.push_back("Phospho (T)"); }
-      if (find(var_mods.begin(), var_mods.end(), "Phospho (Y)") != var_mods.end()) { var_mods.push_back("Phospho (Y)"); }
-      if (find(var_mods.begin(), var_mods.end(), "Oxidation (M)") != var_mods.end()) { var_mods.push_back("Oxidation (M)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (S)") == var_mods.end()) { var_mods.push_back("Phospho (S)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (T)") == var_mods.end()) { var_mods.push_back("Phospho (T)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Phospho (Y)") == var_mods.end()) { var_mods.push_back("Phospho (Y)"); }
+      if (find(var_mods.begin(), var_mods.end(), "Oxidation (M)") == var_mods.end()) { var_mods.push_back("Oxidation (M)"); }
       StringList fixed_mods = getStringList_("modifications:fixed");
       p.setValue("modifications:fixed", fixed_mods);
       p.setValue("modifications:variable", var_mods);
@@ -3879,6 +3883,8 @@ static void scoreXLIons_(
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
         if (!percolator_executable.empty() && sufficient_PSMs_for_score_recalibration) // only try to call percolator if we have some PSMs
         {
+          IdXMLFile().store(out_idxml, prot_ids, pep_ids);
+
           // run percolator on idXML
           String perc_out = out_idxml;
           perc_out.substitute(".idXML", "_sse_perc.idXML");
@@ -3892,7 +3898,7 @@ static void scoreXLIons_(
                        << "-train-best-positive" 
                        << "-score_type" << "q-value"
                        << "-post-processing-tdc";
-//                       << "-nested-xval-bins" << "3"
+//                       << "-nested-xval-bins" << "3";
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
 //                       << "-weights" << weights_out.toQString();
                        
@@ -3925,6 +3931,78 @@ static void scoreXLIons_(
           {
             skip_peptide_spectrum.insert((String)pi.getMetaValue("spectrum_reference")); // get native id
           }
+        }
+
+        if (spectrumclusterfilter)
+        {
+          Size skipped_similar_spectra(0);
+          // load MS2 map
+          PeakMap spectra;
+          MzMLFile f;
+          f.setLogType(log_type_);
+          PeakFileOptions options;
+          options.clearMSLevels();
+          options.addMSLevel(2);
+          f.getOptions() = options;
+          f.load(in_mzml, spectra);
+          spectra.sortSpectra(true);
+          SpectrumLookup lookup;
+          lookup.readSpectra(spectra);
+          // build kdtree
+          Param p;
+          p.setValue("rt_tol", 60.0);
+          p.setValue("mz_tol", precursor_mass_tolerance);
+          p.setValue("mz_unit", "ppm");
+          FeatureMap fmap;
+          for (Size i = 0; i != spectra.size(); ++i)
+          {
+            const MSSpectrum& s = spectra[i];
+            
+            Feature feat;
+            feat.setMZ(s.getPrecursors()[0].getMZ());
+            feat.setRT(s.getRT());
+            feat.setMetaValue("native_id", s.getNativeID());
+            fmap.push_back(feat);
+          }
+          vector<FeatureMap> fmaps;
+          fmaps.push_back(std::move(fmap));
+          KDTreeFeatureMaps kdtree(fmaps, p);
+
+          // filter all coeluting MS2 with high spectral similarity to identified one
+          for (const auto& pi : perc_pep_ids)
+          {
+            String this_native_id = (String)pi.getMetaValue("spectrum_reference");
+
+            std::vector<Size> result_indices;
+
+            // find neighbors
+            double m = Math::ppmToMass(precursor_mass_tolerance, pi.getMZ());
+            kdtree.queryRegion(pi.getRT() - 60.0, pi.getRT() + 60.0, pi.getMZ() - m, pi.getMZ() + m, result_indices);
+            
+            if (result_indices.size() > 1)
+            {
+              for (Size ix : result_indices)
+              {
+                auto f = kdtree.feature(ix);
+                const String other_native_id = f->getMetaValue("native_id");
+
+                // skip self-comparison and already identified spectra
+                if (this_native_id == other_native_id || skip_peptide_spectrum.count(other_native_id) > 0) continue;
+
+                const MSSpectrum& this_spec = spectra[lookup.findByNativeID(this_native_id)];
+                const MSSpectrum& other_spec = spectra[lookup.findByNativeID(other_native_id)];
+                BinnedSpectrum bs1 (this_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_LOWRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+                BinnedSpectrum bs2 (other_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_LOWRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES); 
+                const float contrast_angle = BinnedSpectralContrastAngle()(bs1, bs2);
+                if (contrast_angle > 0.9) 
+                {
+                  skip_peptide_spectrum.insert(other_native_id);
+                  skipped_similar_spectra++;
+                }
+              }
+            }
+          }
+          cout << "Excluded coelution precursors with high spectral similarity: " << skipped_similar_spectra << endl;           
         }
       }
 ////////// end percolator part

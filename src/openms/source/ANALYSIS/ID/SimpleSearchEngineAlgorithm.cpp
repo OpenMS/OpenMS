@@ -164,8 +164,20 @@ namespace OpenMS
     fragment_mass_tolerance_unit_ = param_.getValue("fragment:mass_tolerance_unit");
 
     modifications_fixed_ = param_.getValue("modifications:fixed");
+    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
+    if (fixed_unique.size() != modifications_fixed_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate fixed modification provided. Making them unique." << endl;
+      modifications_fixed_.assign(fixed_unique.begin(), fixed_unique.end());
+    }
 
     modifications_variable_ = param_.getValue("modifications:variable");
+    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
+    if (var_unique.size() != modifications_variable_.size())
+    {
+      OPENMS_LOG_WARN << "Duplicate variable modification provided. Making them unique." << endl;
+      modifications_variable_.assign(var_unique.begin(), var_unique.end());
+    }
 
     modifications_max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
 
@@ -361,6 +373,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.precursor_mass_tolerance_ppm = precursor_mass_tolerance_unit_ppm == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = fragment_mass_tolerance_unit_ppm == "ppm";
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
+
+    // for post-processing
+    search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+    StringList feature_set{"score"};
+    if (annotation_fragment_error_ppm) feature_set.push_back(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
+    protein_ids[0].setSearchParameters(search_parameters);
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
@@ -370,21 +390,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
-
-    set<String> fixed_unique(modifications_fixed_.begin(), modifications_fixed_.end());
-
-    if (fixed_unique.size() != modifications_fixed_.size())
-    {
-      cout << "duplicate fixed modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
-
-    set<String> var_unique(modifications_variable_.begin(), modifications_variable_.end());
-    if (var_unique.size() != modifications_variable_.size())
-    {
-      cout << "duplicate variable modification provided." << endl;
-      return ExitCodes::ILLEGAL_PARAMETERS;
-    }
 
     ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
