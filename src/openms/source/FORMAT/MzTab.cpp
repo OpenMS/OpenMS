@@ -2270,8 +2270,8 @@ namespace OpenMS
 
     // optional column for protein groups
     MzTabOptionalColumnEntry opt_column_entry;
-    opt_column_entry.first = "opt_global_protein_group_type";
-    opt_column_entry.second = MzTabString("single_protein");
+    opt_column_entry.first = "opt_global_result_type";
+    opt_column_entry.second = MzTabString("protein_details");
     protein_row.opt_.push_back(opt_column_entry);
 
     remapTargetDecoyProteinSection_(protein_row.opt_);
@@ -2308,8 +2308,8 @@ namespace OpenMS
     protein_row.coverage = MzTabDouble();
 
     MzTabOptionalColumnEntry opt_column_entry;
-    opt_column_entry.first = "opt_global_protein_group_type";
-    opt_column_entry.second = MzTabString("protein_group");
+    opt_column_entry.first = "opt_global_result_type";
+    opt_column_entry.second = MzTabString("general_protein_group");
     protein_row.opt_.push_back(opt_column_entry);
 
     remapTargetDecoyProteinSection_(protein_row.opt_);
@@ -2355,12 +2355,12 @@ namespace OpenMS
 
     // annotate if group contains only one or multiple proteins
     MzTabOptionalColumnEntry opt_column_entry;
-    opt_column_entry.first = "opt_global_protein_group_type";
+    opt_column_entry.first = "opt_global_result_type";
 
     // TODO: we could count the number of targets or set it to target if at least one target is inside the group
-    // we will always call them "indistinguishable_proteins" to differentiate between e.g.
-    // protein scores based on grouping or on single proteins
-    opt_column_entry.second = MzTabString("indistinguishable_proteins");
+
+    const String col_name = entries.size() == 1 ? "single_protein" :  "indistinguishable_protein_group";
+    opt_column_entry.second = MzTabString(col_name);
     protein_row.opt_.push_back(opt_column_entry);
 
     // column: coverage
@@ -2373,7 +2373,7 @@ namespace OpenMS
     if (coverage >= 0) { protein_row.coverage = MzTabDouble(coverage); }
 
     // Store quantitative value attached to abundances in study variables
-    if (group.getFloatDataArrays().size() == 1
+    if (!group.getFloatDataArrays().empty()
       && group.getFloatDataArrays()[0].getName() == "abundances")
     {
       const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];
@@ -2577,7 +2577,6 @@ Not sure how to handle these:
     MzTabMetaData& meta_data,
     bool first_run_inference_only)
   {
-
     set<String> protein_scoretypes;
     map<pair<String, String>, vector<pair<String,String>>> protein_settings;
     for (const auto& prot_run : prot_ids)
@@ -2718,7 +2717,7 @@ Not sure how to handle these:
     
     // rename some of them to be compatible with PRIDE
     std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
-    prt_optional_column_names_.emplace_back("opt_global_protein_group_type");
+    prt_optional_column_names_.emplace_back("opt_global_result_type");
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
     psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
  
@@ -3309,7 +3308,7 @@ state0:
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(prt_optional_column_names_.begin(), prt_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_PRIDE:0000303_decoy_hit")); // for PRIDE
-    prt_optional_column_names_.emplace_back("opt_global_protein_group_type");
+    prt_optional_column_names_.emplace_back("opt_global_result_type");
 
     // determine number of samples
     ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);

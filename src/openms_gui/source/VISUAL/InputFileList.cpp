@@ -142,11 +142,13 @@ namespace OpenMS
       {
         ui_->input_file_list->takeItem(ui_->input_file_list->row(item));
       }
+      updateCWD_();
     }
 
     void InputFileList::removeAll()
     {
       ui_->input_file_list->clear();
+      updateCWD_();
     }
 
     void InputFileList::getFilenames(QStringList& files) const
@@ -171,7 +173,7 @@ namespace OpenMS
 
     void OpenMS::Internal::InputFileList::setFilenames(const QStringList& files)
     {
-      ui_->input_file_list->addItems(files);
+      addFiles_(files);
     }
 
     const QString& InputFileList::getCWD() const
@@ -181,11 +183,11 @@ namespace OpenMS
 
     void OpenMS::Internal::InputFileList::setCWD(const QString& cwd, bool force)
     {
-      if (force || cwd_.isEmpty())
+      if (force || (cwd_.isEmpty() && !cwd.isEmpty())) // do not set cwd_ as empty (does not help the user in browsing for files)
       {
         cwd_ = cwd;
-        emit updatedCWD(cwd_);
       }
+      emit updatedCWD(cwd_);
     }
 
     void InputFileList::editCurrentItem()
@@ -199,6 +201,7 @@ namespace OpenMS
       if (tifd.exec())
       {
         item->setText(tifd.getFilename());
+        updateCWD_();
       }
     }
 
@@ -209,6 +212,13 @@ namespace OpenMS
         ui_->input_file_list->addItems(files);
         setCWD(File::path(files.back()).toQString()); // emit the signal
       }
+    }
+
+    void OpenMS::Internal::InputFileList::updateCWD_()
+    {
+      QListWidgetItem* item = ui_->input_file_list->currentItem();
+      // also update with empty, to ensure emitting the updatedCWD() signal
+      setCWD(item ? item->text() : "", false);
     }
 
   } //namespace Internal

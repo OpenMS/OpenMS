@@ -249,30 +249,6 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-  String getOriginalSearchEngineName_(const ProteinIdentification& prot)
-  {
-    String engine = prot.getSearchEngine();
-    if (engine != "Percolator")
-    {
-      return engine;
-    }
-    else
-    {
-      String original_SE = "Unknown";
-      vector<String> mvkeys;
-      prot.getKeys(mvkeys);
-      for (const String& mvkey : mvkeys)
-      {
-        if (mvkey.hasPrefix("SE:"))
-        {
-          original_SE = mvkey.substr(3);
-          break; // multiSE percolator before consensusID not allowed; we take first only
-        }
-      }
-      return original_SE;
-    }
-  }
-
   tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
   {
     String engine = prot.getSearchEngine();
@@ -341,7 +317,7 @@ protected:
           {
             sp.precursor_mass_tolerance = (double) prot.getMetaValue(mvkey);
           }
-          else if (mvkey.hasSuffix("pprecursor_mass_tolerance_ppm"))
+          else if (mvkey.hasSuffix("precursor_mass_tolerance_ppm"))
           {
             sp.precursor_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
           }
@@ -349,6 +325,10 @@ protected:
           {
             Protease p = *(ProteaseDB::getInstance()->getEnzyme(prot.getMetaValue(mvkey)));
             sp.digestion_enzyme = p;
+          }
+          else if (mvkey.hasSuffix("enzyme_term_specificity"))
+          {
+            sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) prot.getMetaValue(mvkey));
           }
         }
       }
@@ -381,10 +361,11 @@ protected:
       prot_id.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
       prot_id.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
       prot_id.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-      prot_id.setMetaValue(SE+":fragment_mass_tolerance_ppm",sp.fragment_mass_tolerance_ppm);
+      prot_id.setMetaValue(SE+":fragment_mass_tolerance_unit",sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
       prot_id.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
-      prot_id.setMetaValue(SE+":precursor_mass_tolerance_ppm",sp.precursor_mass_tolerance_ppm);
+      prot_id.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       prot_id.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+      prot_id.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
@@ -431,7 +412,7 @@ protected:
       id_mapping[prot.getIdentifier()] = i;
       if (keep_old_scores_)
       {
-        runid_to_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+        runid_to_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
       }
     }
 
@@ -534,7 +515,7 @@ protected:
             runid_to_old_run_idx[prot.getIdentifier()] = idx++;
             if (keep_old_scores_)
             {
-              runid_to_old_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+              runid_to_old_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
             }
             StringList original_files;
             prot.getPrimaryMSRunPath(original_files);
@@ -643,7 +624,7 @@ protected:
           id_mapping[prot_ids[i].getIdentifier()] = i;
           if (keep_old_scores_)
           {
-            runid_to_se[prot_ids[i].getIdentifier()] = getOriginalSearchEngineName_(prot_ids[i]);
+            runid_to_se[prot_ids[i].getIdentifier()] = prot_ids[i].getOriginalSearchEngineName();
           }
         }
 

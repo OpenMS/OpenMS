@@ -113,6 +113,9 @@ public:
   }
 
 protected:
+
+  map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
+
   void registerOptionsAndFlags_() override
   {
 
@@ -307,12 +310,6 @@ protected:
     {
       enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
     }
- 
-    map<string,int> num_enzyme_termini;
-    num_enzyme_termini["semi"] = 1;
-    num_enzyme_termini["fully"] = 2;
-    num_enzyme_termini["C-term unspecific"] = 8;
-    num_enzyme_termini["N-term unspecific"] = 9;
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "search_enzyme2_number = " << enzyme2_number << "\n";              // second enzyme; set to 0 if no second enzyme
@@ -365,7 +362,10 @@ protected:
       //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
       if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 3 and -1 should be equal for now.
@@ -373,7 +373,10 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 2 and -1 should be equal for now.
@@ -381,13 +384,19 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 0;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 1;
       }
@@ -578,14 +587,14 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
     {
-      std::ifstream ifs(tmp_dir + "/comet.params.new");
+      std::ifstream ifs(tmp_dir.getPath() + "/comet.params.new");
       getline(ifs, comet_version);
     }
     writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
@@ -615,15 +624,15 @@ protected:
     }
 
     //tmp_dir
-    String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.pin";
+    String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
+    String tmp_pin = tmp_dir.getPath() + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
     //default params given or to be written
     if (default_params.empty())
     {
-        tmp_file = tmp_dir + "param.txt";
+        tmp_file = tmp_dir.getPath() + "param.txt";
         ofstream os(tmp_file.c_str());
         createParamFile_(os, comet_version);
         os.close();
@@ -699,6 +708,9 @@ protected:
     protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
     // seems like version is not correctly parsed from pepXML. Overwrite it here.
     protein_identifications[0].setSearchEngineVersion(comet_version);
+    // TODO let this be parsed by the pepXML parser if this info is present there.
+    protein_identifications[0].getSearchParameters().enzyme_term_specificity =
+        static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

@@ -872,6 +872,7 @@ namespace OpenMS
       dbsp.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
     }
     dbsp.missed_cleavages = pisp.missed_cleavages;
+    dbsp.enzyme_term_specificity = pisp.enzyme_term_specificity;
     static_cast<MetaInfoInterface&>(dbsp) = pisp;
 
     return id_data.registerDBSearchParam(dbsp);

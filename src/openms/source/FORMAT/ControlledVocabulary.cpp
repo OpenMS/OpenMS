@@ -461,11 +461,11 @@ namespace OpenMS
   void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
     //cerr << "Parent: " << parent << "\n";
-    for (const auto& it : getTerm(parent).children)
+    for (const auto& child : getTerm(parent).children)
     {
-      terms.insert(it);
+      terms.insert(child);
       //TODO: This is not safe for cyclic graphs. Are they allowed in CVs?
-      getAllChildTerms(terms, it);
+      getAllChildTerms(terms, child);
     }
   }
 
@@ -495,6 +495,13 @@ namespace OpenMS
   bool ControlledVocabulary::exists(const String& id) const
   {
     return terms_.has(id);
+  }
+
+  const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
+  {
+    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    if (it == namesToIds_.end()) return nullptr;
+    return &terms_[it->second];
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const

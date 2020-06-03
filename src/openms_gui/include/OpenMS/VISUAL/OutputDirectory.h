@@ -70,12 +70,21 @@ namespace OpenMS
     
     /// check if the current directory exists and is writeable
     bool dirNameValid() const;
-public slots:
+
+  signals:
+    /// emitted whenever the outputdirectory is changed (also when setDirectory() is used)
+    void directoryChanged(const QString& dir);
+
+  public slots:
 
     /// Lets the user select the file via a file dialog
     void showFileDialog();
     
-private:
+  private slots:
+    /// forward internal textEdit::textChanged to directoryChanged signal
+    void textEditChanged_(const QString& new_text);
+
+  private:
     Ui::OutputDirectoryTemplate* ui_;
   };
 
