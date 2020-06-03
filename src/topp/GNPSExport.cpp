@@ -175,7 +175,7 @@ private:
 
   void writeMS2BlockToFile(
     ofstream& output_file,
-    const map<double,int> ms2_block, 
+    const map<double,int>& ms2_block, 
     const String& output_type,
     const int& scan_index,
     const String& feature_id,
