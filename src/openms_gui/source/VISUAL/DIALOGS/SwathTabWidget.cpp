@@ -58,8 +58,9 @@ namespace OpenMS
   {
 
     GUILock::GUILock(SwathTabWidget* stw)
-      : old_(stw->currentWidget()),
+      : 
       stw_(stw),
+      old_(stw->currentWidget()),
       was_enabled_(stw->isEnabled())
     {
       stw->setCurrentWidget(stw->ui->tab_log);
@@ -486,10 +487,12 @@ namespace OpenMS
       progress.close();
     }
 
+    void SwathTabWidget::on_btn_pyresults_clicked()
+    {
+      GUIHelpers::openFolder(getCurrentOutDir_());
+    }
+
   }   //namespace Internal
 } //namspace OpenMS
 
-void OpenMS::Internal::SwathTabWidget::on_btn_pyresults_clicked()
-{
-    GUIHelpers::openFolder(getCurrentOutDir_());
-}
+

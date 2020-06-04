@@ -52,7 +52,7 @@ using namespace std;
   const QStringList args_broken = QStringList() << "/C" << "doesnotexist";
 #else
   const QString exe = "ls";
-  const QStringList args("--help");
+  const QStringList args("-l");
   const QStringList args_broken = QStringList() << "-0";
 #endif // 
 
