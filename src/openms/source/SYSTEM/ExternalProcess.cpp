@@ -79,7 +79,7 @@ namespace OpenMS
     return run(parent, exe, args, working_dir, verbose, error_msg);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(QWidget* /*parent*/, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
   {
     error_msg.clear();
     if (!working_dir.isEmpty())
@@ -106,12 +106,11 @@ namespace OpenMS
       }
     }
 
-    bool any_failure = qp_->exitStatus() != QProcess::NormalExit || qp_->exitCode() != 0;
     if (qp_->exitStatus() != QProcess::NormalExit)
     {
       error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
       if (verbose) callbackStdErr_(error_msg + '\n');
-      RETURNSTATE::CRASH;
+      return RETURNSTATE::CRASH;
     }
     else if (qp_->exitCode() != 0)
     {

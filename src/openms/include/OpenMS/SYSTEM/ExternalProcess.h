@@ -66,7 +66,7 @@ namespace OpenMS
 
   public:
     /// result of calling an external executable
-    enum class OPENMS_DLLAPI RETURNSTATE
+    enum class RETURNSTATE
     {
       SUCCESS,  ///< everything went smoothly (exit-code = 0)
       NONZERO_EXIT, /// finished, but returned with an exit-code other than 0

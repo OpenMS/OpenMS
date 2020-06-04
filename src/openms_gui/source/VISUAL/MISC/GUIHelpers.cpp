@@ -53,13 +53,13 @@ namespace OpenMS
 #if defined(__APPLE__)
     QProcess p;
     p.setProcessChannelMode(QProcess::ForwardedChannels);
-    p->start("/usr/bin/open", QStringList() << folder);
-    if (!p->waitForStarted())
+    p.start("/usr/bin/open", QStringList() << folder);
+    if (!p.waitForStarted())
     {
       // execution failed
       QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
       OPENMS_LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
-      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
     }
 #else
     if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
