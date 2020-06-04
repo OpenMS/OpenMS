@@ -107,13 +107,19 @@ namespace OpenMS
     }
 
     bool any_failure = qp_->exitStatus() != QProcess::NormalExit || qp_->exitCode() != 0;
-    if (any_failure)
+    if (qp_->exitStatus() != QProcess::NormalExit)
     {
-      error_msg = "Process '" + exe + "' did not finish successfully. Please check the log.";
+      error_msg = "Process '" + exe + "' crashed hard (segfault-like). Please check the log.";
       if (verbose) callbackStdErr_(error_msg + '\n');
-      if (qp_->exitCode() != 0) return RETURNSTATE::NONZERO_EXIT;
-      else return RETURNSTATE::CRASH;
+      RETURNSTATE::CRASH;
     }
+    else if (qp_->exitCode() != 0)
+    {
+      error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + qp_->exitCode() + "). Please check the log.";
+      if (verbose) callbackStdErr_(error_msg + '\n');
+      return RETURNSTATE::NONZERO_EXIT;
+    }
+    
     if (verbose) callbackStdOut_("Executed '" + String(exe) + "' successfully!\n");
     return RETURNSTATE::SUCCESS;
   }
