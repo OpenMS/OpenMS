@@ -377,25 +377,22 @@ Just provide the required DDA input files.</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label_8">
+         <item row="3" column="2">
+          <widget class="QPushButton" name="btn_pyresults">
            <property name="text">
-            <string>Automatically determined input files to pyProphet</string>
+            <string>open result folder</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+         <item row="2" column="0" rowspan="2" colspan="2">
+          <widget class="QLabel" name="lbl_pyOutDir">
+           <property name="text">
+            <string> ... where to find the results...</string>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>232</width>
-             <height>20</height>
-            </size>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
-          </spacer>
+          </widget>
          </item>
          <item row="1" column="0" colspan="3">
           <widget class="QTextEdit" name="input_py_pqps">
@@ -404,6 +401,13 @@ Just provide the required DDA input files.</string>
            </property>
            <property name="placeholderText">
             <string>select mzML input files in 'LC-MS files' tab first and pick an output directory in 'Run OpenSwath' tab</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="2">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Automatically determined input files to pyProphet</string>
            </property>
           </widget>
          </item>
