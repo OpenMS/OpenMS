@@ -486,8 +486,7 @@ protected:
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
       if (no_peak_picking) arguments << "--noPeakPicking";
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(net_executable.toQString(), arguments);
-      return exit_code;
+      return runExternalProcess_(net_executable.toQString(), arguments);
     }
     else if (in_type == FileTypes::EDTA)
     {
