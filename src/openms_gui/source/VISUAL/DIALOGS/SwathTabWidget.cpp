@@ -356,7 +356,7 @@ namespace OpenMS
       QStringList args;
       ArgLoop loop;
 
-      Command(QString e, QStringList a , ArgLoop l) :
+      Command(const QString& e, const QStringList& a, const ArgLoop& l) :
         exe(e),
         args(a),
         loop(l) {}
@@ -368,12 +368,17 @@ namespace OpenMS
     {
       if (!ui->py_pyprophet->isReady())
       {
-        QMessageBox::warning(NULL, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
+        QMessageBox::warning(this, "Error", "Could not find all requirements for 'pyprophet & tric' (see 'Config' tab). Install modules via 'pip install <modulename>' and make sure it's available in $PATH");
         return;
       }
       GUILock lock(this); // forbid user interaction
 
       auto inputs = getPyProphetInputFiles();
+      if (inputs.empty())
+      {
+        QMessageBox::warning(this, "Error", "Provide at least one input file for pyProphet and TRIC in the 'LC-MS files' tab.");
+        return;
+      }
       QStringList osws;
       QStringList osws_orig;
       QStringList osws_reduced;
@@ -382,7 +387,7 @@ namespace OpenMS
       {
         if (file.second == false)
         {
-          QMessageBox::warning(NULL, "Error", String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it").toQString());
+          QMessageBox::warning(this, "Error", String("Required input file '" + file.first + "' not found. Please run OpenSwathWorkflow first to create it").toQString());
           return;
         }
         osws_orig << file.first.toQString();
@@ -394,7 +399,7 @@ namespace OpenMS
       QString library = ui->input_tr->getFilename();
       if (library.isEmpty())
       {
-        QMessageBox::warning(NULL, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
+        QMessageBox::warning(this, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
         return;
       }
       QString pp = "pyprophet";
@@ -421,7 +426,7 @@ namespace OpenMS
       String feature_alignment_py = "feature_alignment.py";
       if (!File::findExecutable(feature_alignment_py))
       {
-        QMessageBox::warning(NULL, "Error", String("Could not find 'feature_alignment' from the msproteomicstool package. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        QMessageBox::warning(this, "Error", String("Could not find 'feature_alignment' from the msproteomicstool package. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
         return;
       }
       calls.emplace_back("python", QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
@@ -433,32 +438,6 @@ namespace OpenMS
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
       progress.setValue(0);
-      // pyprophet merge --template=library.pqp --out=merged.osw osw*.osw
-      // pyprophet score --in=model.osw --level=ms1ms2
-      // --> creates merged_ms1ms2_report.pdf
-
-      // apply:
-      //loop
-      //pyprophet score --in osw*.osw --apply_weights=model.osw --level=ms1ms2
-
-      // merge again for peptide and protein error rate control
-      //pyprophet merge --template=model.osw --out=model_global.osw osw*.osw
-      //pyprophet peptide --in=model_global.osw --context=global
-      //pyprophet protein --in=model_global.osw --context=global
-
-      // loop:
-      //pyprophet backpropagate --in=osw*.osw --apply_scores=model_global.osw
-      //loop
-      //pyprophet export --in=osw*.osw --out=legacy.tsv --max_global_peptide_qvalue=0.01 --max_global_protein_qvalue=0.01
-
-      // TRIC requires 'msproteomicstools' pip
-      // in C:\WinPython\3.7\python-3.7.0.amd64\Scripts\ (should be in PATH)
-      /*feature_alignment.py --in file1_input.csv file2_input.csv file3_input.csv
-              --out aligned.csv
-              --out_matrix {output.matrix}
-              --method best_overall --realign_method LocalMST --max_rt_diff 90
-              --fdr_cutoff 0.01 --max_fdr_quality 0.05
-      */
 
       // first - copy all original osw files, since augmenting them once with model information will lead to crashes when doing a second run on them
       for (int i = 0; i < osws_orig.size(); ++i)
@@ -497,7 +476,7 @@ namespace OpenMS
         progress.setValue(++step);
         if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
         {
-          QMessageBox::warning(NULL, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
+          QMessageBox::warning(this, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
           break;
         }
         if (progress.wasCanceled())
