@@ -77,7 +77,7 @@
 </CENTER>
 
     MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    The following MS-GF+ version is required: MS-GF+ Beta (v10089) (7/31/2014). At the time of writing, it could be downloaded from http://omics.pnl.gov/software/ms-gf. Older versions will not work properly.
+    The following MS-GF+ version is required: MS-GF+ 2019/07/03. At the time of writing, it could be downloaded from https://github.com/MSGFPlus/msgfplus/releases. Older versions will not work properly.
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
@@ -535,7 +535,7 @@ protected:
     {
       if (!File::exists(mzid_temp))
       {
-        OPENMS_LOG_ERROR << "Temporary output file '" << mzid_temp << "' was not created by MSGF+. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
+        OPENMS_LOG_ERROR << "MSGF+ failed. Temporary output file '" << mzid_temp << "' was not created. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
@@ -561,7 +561,7 @@ protected:
                        << "-unroll" << "1";
         writeLog_("Running MzIDToTSVConverter...");
         exit_code = runExternalProcess_(java_executable.toQString(), process_params);
-        if (exit_code != 0)
+        if (exit_code != EXECUTION_OK)
         {
           return exit_code;
         }
