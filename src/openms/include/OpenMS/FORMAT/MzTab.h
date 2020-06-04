@@ -1169,6 +1169,9 @@ public:
       std::swap(keys, tmp_keys);
     }
 
+    // determine spectrum reference identifier type (e.g., Thermo nativeID) from spectrum references
+    static MzTabParameter getMSRunSpectrumIdentifierType_(const std::vector<const PeptideIdentification*>& peptide_ids_);
+
     static void mapBetweenRunAndSearchEngines_(
       const std::vector<const ProteinIdentification*>& prot_ids,
       bool skip_first_run,

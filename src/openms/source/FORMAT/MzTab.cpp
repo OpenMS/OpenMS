@@ -2052,7 +2052,7 @@ namespace OpenMS
     
     MzTabParameterList search_engines;
 
-    //TODO support columns for multiple search engines/scores
+    //TODO support columns for multiple search engines/scores    
     pair<String, String> name_version = *run_to_search_engines[run_index].begin();
     search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
     row.search_engine = search_engines;
@@ -2173,7 +2173,7 @@ namespace OpenMS
     map<Size, vector<pair<String, String>>>& run_to_search_engines,
     map<Size, vector<vector<pair<String, String>>>>& run_to_search_engine_settings,
     map<String, vector<pair<String, String>>>& search_engine_to_settings)
-  {
+  {    
     size_t run_index(0);
     for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
     {
@@ -2188,6 +2188,8 @@ namespace OpenMS
       const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
       const String &search_engine_score_type = prot_ids[run_index]->getScoreType();
       search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
+
+      // store main search engine as first entry in run_to_search_engines
       run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
 
       vector<String> mvkeys;
@@ -2648,6 +2650,23 @@ Not sure how to handle these:
     }
   }
 
+  MzTabParameter MzTab::getMSRunSpectrumIdentifierType_(const vector<const PeptideIdentification*>& peptide_ids)
+  {
+    MzTabParameter p;
+    p.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+    for (const auto pid : peptide_ids)
+    {
+      String spec_ref = pid->getMetaValue("spectrum_reference", "");
+      // note: don't change order as some may contain the other terms as well. Taken from mzTab specification document
+      if (spec_ref.hasSubstring("controllerNumber=")) { p.fromCellString("[MS,MS:1000768,Thermo nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("process=")) { p.fromCellString("[MS,MS:1000769,Waters nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("cycle=")) { p.fromCellString("[MS,MS:1000770,WIFF nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("scan=")) { p.fromCellString("[MS,MS:1000776,scan number only nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("spectrum=")) { p.fromCellString("[MS,MS:1000777,spectrum identifier nativeID format,]"); return p; }
+      return p;
+    }    
+  }
+
   MzTab::IDMzTabStream::IDMzTabStream(
     const std::vector<const ProteinIdentification*>& prot_ids,
     const std::vector<const PeptideIdentification*>& peptide_ids,
@@ -2706,6 +2725,8 @@ Not sure how to handle these:
       protein_hit_user_value_keys_,
       peptide_id_user_value_keys_,
       peptide_hit_user_value_keys_);
+
+    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids_);      
 
     // filter out redundant meta values
     protein_hit_user_value_keys_.erase("Description"); // already used in Description column
@@ -2782,7 +2803,7 @@ Not sure how to handle these:
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]"); // TODO: determine from data
+      mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
       if (!m.hasPrefix("file://")) {m = String("file://") + m; }
