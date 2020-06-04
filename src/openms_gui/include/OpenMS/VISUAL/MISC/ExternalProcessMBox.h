@@ -54,7 +54,6 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI ExternalProcessMBox
   {
   public:
-
     /// default Ctor; callbacks for stdout/stderr are empty
     ExternalProcessMBox();
 

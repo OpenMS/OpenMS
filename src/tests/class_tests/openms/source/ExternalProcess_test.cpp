@@ -93,7 +93,6 @@ START_SECTION(RETURNSTATE run(QWidget* parent, const QString& exe, const QString
     r = ep.run(nullptr, exe, args_broken, "", true, error_msg);
     TEST_EQUAL(r == ExternalProcess::RETURNSTATE::NONZERO_EXIT, true)
     TEST_NOT_EQUAL(error_msg.size(), 0);
-
   }
   { // with callbacks
     String all_out, all_err;
@@ -125,7 +124,6 @@ START_SECTION(RETURNSTATE run(QWidget* parent, const QString& exe, const QString
     TEST_EQUAL(all_err.size(), 0)
     all_out.clear();
     all_err.clear();
-
   }
 }
 END_SECTION
