@@ -3418,13 +3418,11 @@ state0:
       }
       else if (experiment_type == "labeled_MS1")
       {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
+        quantification_reagent.fromCellString("[PRIDE,PRIDE:0000316,MS1 based isotope labeling," + c.second.label + "]");
       }
       else if (experiment_type == "labeled_MS2")
-      {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
+      {       
+        quantification_reagent.fromCellString("[PRIDE,PRIDE:0000317,MS2 based isotope labeling," + c.second.label + "]");
       }
       
       // look up run index by filename
