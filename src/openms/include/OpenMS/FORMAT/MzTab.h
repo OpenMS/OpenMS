@@ -910,10 +910,11 @@ public:
         const String& title = "ID export from OpenMS");
 
 
-    /// Generate MzTab style list of PTMs from AASequence object.
+    /// Generate MzTab style list of PTMs from PeptideHit (PSM) object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
-    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
+    /// If meta values for modification localization are found, this information is added.
+    static MzTabModificationList extractModificationListFromAASequence(const PeptideHit& pep_hit, const std::vector<String>& fixed_mods = std::vector<String>(), const std::vector<String>& localization_mods = std::vector<String>());
 
 	/**
 	 * @brief export linked peptide features aka consensus map
