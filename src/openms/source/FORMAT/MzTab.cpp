@@ -2654,7 +2654,7 @@ Not sure how to handle these:
   {
     MzTabParameter p;
     p.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
-    for (const auto pid : peptide_ids)
+    for (const auto& pid : peptide_ids)
     {
       String spec_ref = pid->getMetaValue("spectrum_reference", "");
       // note: don't change order as some may contain the other terms as well. Taken from mzTab specification document
