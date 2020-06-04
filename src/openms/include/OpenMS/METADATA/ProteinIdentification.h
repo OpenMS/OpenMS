@@ -38,9 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
-
-
 
 #include <set>
 
@@ -251,6 +250,7 @@ public:
       AVERAGE,
       SIZE_OF_PEAKMASSTYPE
     };
+
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
@@ -271,6 +271,7 @@ public:
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
+      EnzymaticDigestion::Specificity enzyme_term_specificity; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
 
       SearchParameters();
       /// Copy constructor
@@ -408,6 +409,8 @@ public:
     void setSearchEngine(const String& search_engine);
     /// Returns the type of search engine used
     const String& getSearchEngine() const;
+    /// Return the type of search engine that was first applied (e.g., before percolator or consensusID) or "Unknown"
+    const String getOriginalSearchEngineName() const;
     /// Sets the search engine version
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
@@ -465,6 +468,11 @@ public:
     /// given an @param experiment_type .
     /// Checks search engine and search engine settings.
     bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
+
+    /// Collects all search engine settings registered for the given search engine @param se.
+    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
+
     //@}
 
 protected:

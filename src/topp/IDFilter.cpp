@@ -139,7 +139,7 @@ protected:
     StringList specificity;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
+    specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));

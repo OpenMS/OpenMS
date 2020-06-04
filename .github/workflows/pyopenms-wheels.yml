@@ -78,6 +78,7 @@ jobs:
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
 
+            ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
             # pip install all the stuff
             pip install -U setuptools
             pip install -U pip
@@ -385,6 +386,7 @@ jobs:
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           echo "Found wheel $CURRENT_WHL : Testing.."
 
+          python -m pip install --upgrade pip
           # pip install all the stuff
           pip install -U pip
           pip install $CURRENT_WHL

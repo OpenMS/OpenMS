@@ -115,6 +115,7 @@
 #cmakedefine OPENMS_HAS_SYS_TYPES_H
 #cmakedefine OPENMS_HAS_SYS_TIMES_H
 #cmakedefine OPENMS_HAS_SYS_TIME_H
+#cmakedefine OPENMS_HAS_SYS_RESOURCE_H
 
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF

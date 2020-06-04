@@ -12,9 +12,9 @@
 				<UserParam type="string" name="XTandem:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="XTandem:missed_cleavages" value="1"/>
 				<UserParam type="float" name="XTandem:fragment_mass_tolerance" value="0.5"/>
-				<UserParam type="int" name="XTandem:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="XTandem:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="XTandem:precursor_mass_tolerance" value="10"/>
-				<UserParam type="int" name="XTandem:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="XTandem:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="XTandem:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:hyperscore,XTANDEM:deltascore"/>

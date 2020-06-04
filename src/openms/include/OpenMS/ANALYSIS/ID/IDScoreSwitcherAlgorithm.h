@@ -124,8 +124,17 @@ namespace OpenMS
         // also already have the correct score set
         return;
       }
+
+      if (t.hasSuffix("_score"))
+      {
+        new_score_type_ = t.chop(6);
+      }
+      else
+      {
+        new_score_type_ = t;
+      }
       new_score_ = t;
-      new_score_type_ = t;
+
       if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
       {
         OPENMS_LOG_WARN << "Requested non-raw score type does not match the expected score direction. Correcting!\n";
@@ -167,8 +176,15 @@ namespace OpenMS
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
+      if (new_type.hasSuffix("_score"))
+      {
+        new_score_type_ = new_type.chop(6);
+      }
+      else
+      {
+        new_score_type_ = new_type;
+      }
       new_score_ = new_type;
-      new_score_type_ = new_type;
 
       if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
       {
@@ -202,7 +218,8 @@ namespace OpenMS
         const auto& hit = id.getHits()[0];
         for (const auto& poss_str : possible_types)
         {
-          if (hit.metaValueExists(poss_str) || hit.metaValueExists(poss_str + "_score")) return poss_str;
+          if (hit.metaValueExists(poss_str)) return poss_str;
+          else if (hit.metaValueExists(poss_str + "_score")) return poss_str + "_score";
         }
         OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
         return "";

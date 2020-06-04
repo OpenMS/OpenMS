@@ -154,6 +154,9 @@ namespace OpenMS
 
     namespace UserParam
     {
+      // User parameter name for the M/Z of other chromatograms which have been merged into this one
+      const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
+
       // User parameter name for precursor mz error in ppm
       const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 

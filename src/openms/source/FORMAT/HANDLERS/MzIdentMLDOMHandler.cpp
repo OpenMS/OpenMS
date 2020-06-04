@@ -1040,6 +1040,11 @@ namespace OpenMS
                 {
                   OPENMS_LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
                 }
+                if (missedCleavages < 0)
+                {
+                  OPENMS_LOG_WARN << "missedCleavages has a negative value. Assuming unlimited and setting it to 1000." << endl;
+                  missedCleavages = 1000;
+                }
                 sp.missed_cleavages = missedCleavages;
 
 //                String semiSpecific = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
@@ -2987,6 +2992,8 @@ namespace OpenMS
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
+      int minCharge = 0;
+      int maxCharge = 0;
       for (map<String, DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
         if (upit->first == "taxonomy")
@@ -2997,10 +3004,26 @@ namespace OpenMS
         {
           sp.charges = upit->second.toString();
         }
+        else if (upit->first == "MinCharge")
+        {
+          minCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "MaxCharge")
+        {
+          maxCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "NumTolerableTermini")
+        {
+          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+        }
         else
         {
           sp.setMetaValue(upit->first, upit->second);
         }
+      }
+      if (minCharge != 0 || maxCharge != 0) // this means "MinCharge" and "MaxCharge" get preference over "charges"
+      {
+        sp.charges = String(minCharge) + "-" + String(maxCharge);
       }
       return sp;
     }

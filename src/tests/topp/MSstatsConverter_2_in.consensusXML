@@ -44,9 +44,9 @@
 				<UserParam type="string" name="MS-GF+:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="MS-GF+:missed_cleavages" value="1000"/>
 				<UserParam type="float" name="MS-GF+:fragment_mass_tolerance" value="0.0"/>
-				<UserParam type="int" name="MS-GF+:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="MS-GF+:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="MS-GF+:precursor_mass_tolerance" value="10.0"/>
-				<UserParam type="int" name="MS-GF+:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
@@ -223,9 +223,9 @@
 				<UserParam type="string" name="MS-GF+:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="MS-GF+:missed_cleavages" value="1000"/>
 				<UserParam type="float" name="MS-GF+:fragment_mass_tolerance" value="0.0"/>
-				<UserParam type="int" name="MS-GF+:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="MS-GF+:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="MS-GF+:precursor_mass_tolerance" value="10.0"/>
-				<UserParam type="int" name="MS-GF+:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>

@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -185,6 +186,10 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
+      if (params[i].enzyme_term_specificity != EnzymaticDigestion::SPEC_UNKNOWN)
+      {
+        os << "\t\t\t\t<UserParam name=\"EnzymeTermSpecificity\" type=\"string\" value=\"" << EnzymaticDigestion::NamesOfSpecificity[params[i].enzyme_term_specificity] << "\" />\n";
+      }
 
       os << "\t</SearchParameters>\n";
     }
@@ -856,6 +861,12 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
+      if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
+      {
+        String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        if (spec != "unknown")
+          param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+      }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
     }

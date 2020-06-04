@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -112,6 +113,9 @@ public:
   }
 
 protected:
+
+  map<string,int> num_enzyme_termini {{"semi",1},{"fully",2},{"C-term unspecific", 8},{"N-term unspecific",9}};
+
   void registerOptionsAndFlags_() override
   {
 
@@ -306,12 +310,6 @@ protected:
     {
       enzyme2_number = String(ProteaseDB::getInstance()->getEnzyme(second_enzyme_name)->getCometID());
     }
- 
-    map<string,int> num_enzyme_termini;
-    num_enzyme_termini["semi"] = 1;
-    num_enzyme_termini["fully"] = 2;
-    num_enzyme_termini["C-term unspecific"] = 8;
-    num_enzyme_termini["N-term unspecific"] = 9;
 
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "search_enzyme2_number = " << enzyme2_number << "\n";              // second enzyme; set to 0 if no second enzyme
@@ -364,7 +362,10 @@ protected:
       //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
       if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 3 and -1 should be equal for now.
@@ -372,7 +373,10 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         // Since users need to specify mods that apply to multiple residues/terms separately
         // 2 and -1 should be equal for now.
@@ -380,13 +384,19 @@ protected:
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
       {
-        residues = "n";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "n";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 0;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
       {
-        residues = "c";
+        if (mod.getOrigin() == 'X')
+        {
+          residues = "c";
+        } // else stays mod.getOrigin()
         term_distance = 0;
         nc_term = 1;
       }
@@ -428,7 +438,7 @@ protected:
     else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
     {
       OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
-    };
+    }
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
     os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
@@ -541,9 +551,14 @@ protected:
           String name = r->getName();
           os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << fm.getDiffMonoMass() << endl;
         }
-        else
+        else if (term_specificity == "N-term" || term_specificity == "C-term")
         {
           os << "add_" << term_specificity.erase(1,1) << "_peptide = " << fm.getDiffMonoMass() << endl;
+        }
+        else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
+        {
+          term_specificity.erase(0,8); // remove "Protein "
+          os << "add_" << term_specificity.erase(1,1) << "_protein = " << fm.getDiffMonoMass() << endl;
         }
       }
     }
@@ -572,11 +587,11 @@ protected:
 
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
     
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.toQString());
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     if (exit_code != EXECUTION_OK)
     {
       return EXTERNAL_PROGRAM_ERROR;
@@ -584,7 +599,7 @@ protected:
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
     {
-      std::ifstream ifs(tmp_dir + "/comet.params.new");
+      std::ifstream ifs(tmp_dir.getPath() + "/comet.params.new");
       getline(ifs, comet_version);
     }
     writeDebug_("Comet Version extracted is: '" + comet_version + "\n", 2);
@@ -614,15 +629,15 @@ protected:
     }
 
     //tmp_dir
-    String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.pin";
+    String tmp_pepxml = tmp_dir.getPath() + "result.pep.xml";
+    String tmp_pin = tmp_dir.getPath() + "result.pin";
     String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
     //default params given or to be written
     if (default_params.empty())
     {
-        tmp_file = tmp_dir + "param.txt";
+        tmp_file = tmp_dir.getPath() + "param.txt";
         ofstream os(tmp_file.c_str());
         createParamFile_(os, comet_version);
         os.close();
@@ -632,41 +647,36 @@ protected:
         tmp_file = default_params;
     }
 
-    PeakMap exp;
-    MzMLFile mzml_file;
-    mzml_file.getOptions().setFillData(false); // only load metadata for spectra
-    mzml_file.getOptions().setMSLevels({2, 3}); // only load MS2 and MS3
-    mzml_file.setLogType(log_type_);
-    mzml_file.load(inputfile_name, exp);
+    int ms_level = getIntOption_("ms_level");
+    const auto& centroid_info = MzMLFile().getCentroidInfo(inputfile_name);
+    const auto& lvl_info = centroid_info.find(ms_level);
+    if (lvl_info == centroid_info.end())
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS spectra for the given MS level in input file.");
+    if (lvl_info->second.second > 0 && !getFlag_("force"))
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS spectra expected. To enforce processing of the data set the -force flag.");
 
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    for (const auto& s : exp)
-    {
-      if (s.getType() == SpectrumSettings::PROFILE && !getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
 
     // check for mzML index (comet requires one)
+    MSExperiment exp;
+    MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
     auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
     if (index_offset == (std::streampos)-1)
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
-      mzml_file.getOptions().setFillData(true); // load all data
-      mzml_file.load(inputfile_name, exp);
+      // Low memory conversion
       // write mzML with index again
       auto tmp_file = File::getTemporaryFile();
-      mzml_file.store(tmp_file, exp);
+      PlainMSDataWritingConsumer consumer(tmp_file);
+      consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
+      bool skip_full_count = true;
+      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
       input_file_with_index = tmp_file;
     }
+
+    mzml_file.getOptions().setMetadataOnly(true);
+    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
 
     //-------------------------------------------------------------
     // calculations
@@ -701,6 +711,11 @@ protected:
 
     //Whatever the pepXML says, overwrite origin as the input mzML
     protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
+    // seems like version is not correctly parsed from pepXML. Overwrite it here.
+    protein_identifications[0].setSearchEngineVersion(comet_version);
+    // TODO let this be parsed by the pepXML parser if this info is present there.
+    protein_identifications[0].getSearchParameters().enzyme_term_specificity =
+        static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     //-------------------------------------------------------------

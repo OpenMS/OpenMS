@@ -204,12 +204,6 @@ private:
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
 
-    /// An optional temporary working directory.
-    String working_dir_;
-
-    /// Debug level at which to keep working dir.
-    Int working_dir_keep_debug_lvl_;
-
     /// No default constructor.  It is "declared away".
     TOPPBase();
 
@@ -823,22 +817,6 @@ protected:
 
     /// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
     void writeDebug_(const String& text, const Param& param, UInt min_level) const;
-    //@}
-
-    ///@name Temporary directories
-    //@{
-    /// Creates a unique temporary directory and returns its name (you have to clean it up yourself)
-    String makeTempDirectory_() const;
-
-    /// Creates a unique temporary directory and returns its name (will be cleaned up automatically if debug level is high enough)
-    String makeAutoRemoveTempDirectory_(Int keep_debug = 2);
-
-    /**
-       @brief Removes a (temporary) directory
-
-       If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
-    */
-    void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
     //@}
 
     ///@name External processes (TODO consider creating another AdapterBase class)
