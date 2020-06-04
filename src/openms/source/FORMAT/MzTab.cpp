@@ -2726,7 +2726,8 @@ Not sure how to handle these:
       peptide_id_user_value_keys_,
       peptide_hit_user_value_keys_);
 
-    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids_);      
+    // determine nativeID format
+    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids);      
 
     // filter out redundant meta values
     protein_hit_user_value_keys_.erase("Description"); // already used in Description column
@@ -3227,6 +3228,9 @@ state0:
     StringList var_mods;
     MzTab::getSearchModifications_(prot_ids_, var_mods, fixed_mods_);
 
+    // determine nativeID format
+    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids_);
+
     // Determine search engines used in the different MS runs.
     map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
     map<String, vector<pair<String,String>>> search_engine_to_settings;
@@ -3381,7 +3385,7 @@ state0:
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]"); // TODO: determine from data
+      mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
       if (!m.hasPrefix("file://")) {m = String("file://") + m; }
