@@ -89,7 +89,6 @@ namespace OpenMS
     /**
       @brief Runs a program and calls the callback functions from time to time if output from the external program is available.
 
-      @param parent Optional parent widget, used to show QMesssageBoxes (see @p verbose_GUI)
       @param exe The program to call (can contain spaces in path, no problem)
       @param args A list of extra arguments (can be empty)
       @param verbose Report the call command and errors via the callbacks (default: false)
@@ -97,12 +96,12 @@ namespace OpenMS
       @param[out] error_string Message to display to the user if something went wrong (if return != SUCCESS)
       @return Did the external program succeed (SUCCESS) or did something go wrong?
     */
-    RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg);
+    RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg);
     
     /**
       @brief Same as other overload, just without a returned error message
      */
-    ExternalProcess::RETURNSTATE run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose);
+    ExternalProcess::RETURNSTATE run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose);
 
   private slots:
     void processStdOut_();

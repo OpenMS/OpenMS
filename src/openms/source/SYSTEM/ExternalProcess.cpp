@@ -73,13 +73,13 @@ namespace OpenMS
   }
 
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
   {
     String error_msg;
-    return run(parent, exe, args, working_dir, verbose, error_msg);
+    return run(exe, args, working_dir, verbose, error_msg);
   }
 
-  ExternalProcess::RETURNSTATE ExternalProcess::run(QWidget* /*parent*/, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
+  ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
   {
     error_msg.clear();
     if (!working_dir.isEmpty())
