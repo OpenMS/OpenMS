@@ -988,9 +988,35 @@ namespace OpenMS
       }
       String protein = attributeAsString_(attributes, "protein");
       pe.setProteinAccession(protein);
-      peptide_hit_.addPeptideEvidence(pe);
+
       ProteinHit hit;
       hit.setAccession(protein);
+
+      if (has_decoys_)
+      {
+        String curr_status("");
+        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        if (peptide_hit_.metaValueExists("target_decoy"))
+        {
+          curr_status = peptide_hit_.getMetaValue("target_decoy");
+        }
+        if (curr_status.empty())
+        {
+          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        }
+        else if (curr_status == "target" && current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        else if (curr_status == "decoy" && !current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+
+        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+      }
+      peptide_hit_.addPeptideEvidence(pe);
+
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
@@ -1106,16 +1132,15 @@ namespace OpenMS
               break;
           }
         }
-        /* TODO support internal decoy searches from e.g. Comet
         else if (name == "decoy_search")
         {
-          contains_decoy_ = attributeAsInt_(attributes, "value");
+          has_decoys_ = attributeAsInt_(attributes, "value");
         }
-        else if (name == "decoy_search")
+        else if (name == "decoy_prefix")
         {
           decoy_prefix_ = attributeAsString_(attributes, "value");
         }
-        */
+
       }
       else
       {
@@ -1204,9 +1229,34 @@ namespace OpenMS
       String protein = attributeAsString_(attributes, "protein");
       PeptideEvidence pe;
       pe.setProteinAccession(protein);
-      peptide_hit_.addPeptideEvidence(pe);
+
       ProteinHit hit;
       hit.setAccession(protein);
+
+      if (has_decoys_)
+      {
+        String curr_status("");
+        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        if (peptide_hit_.metaValueExists("target_decoy"))
+        {
+          curr_status = peptide_hit_.getMetaValue("target_decoy");
+        }
+        if (curr_status.empty())
+        {
+          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        }
+        else if (curr_status == "target" && current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        else if (curr_status == "decoy" && !current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+      }
+      peptide_hit_.addPeptideEvidence(pe);
+
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->

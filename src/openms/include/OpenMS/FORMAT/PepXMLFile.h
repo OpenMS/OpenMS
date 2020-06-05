@@ -250,6 +250,12 @@ private:
     /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
     bool checked_base_name_;
 
+    /// Does the file have decoys (e.g. from Comet's internal decoy search)
+    bool has_decoys_;
+
+    /// In case it has decoys, what is the prefix?
+    String decoy_prefix_;
+
     /// current base name
     String current_base_name_;
 
