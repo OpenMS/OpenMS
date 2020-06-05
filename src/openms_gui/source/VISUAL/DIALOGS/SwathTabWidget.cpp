@@ -50,6 +50,8 @@
 #include <QProgressDialog>
 #include <QSignalBlocker>
 
+#include <algorithm>
+
 using namespace std;
 
 namespace OpenMS
@@ -305,6 +307,10 @@ namespace OpenMS
       }
       ui->log_text->append(text);
     }
+    void SwathTabWidget::writeLog_(const String& text, bool new_section)
+    {
+      writeLog_(text.toQString(), new_section);
+    }
     
     bool SwathTabWidget::checkOSWInputReady_()
     {
@@ -346,24 +352,71 @@ namespace OpenMS
     struct Args
     {
       QStringList loop_arg; ///< list of arguments to insert; one for every loop
-      int insert_pos;       ///< where to insert in the target argument list
+      size_t insert_pos;       ///< where to insert in the target argument list (index is 0-based)
     };
     
     typedef std::vector<Args> ArgLoop;
 
+    /// Allows running and executable with arguments
+    /// Multiple execution in a loop is supported by the ArgLoop argument
+    /// e.g. running 'ls -la .' and 'ls -la ..'
+    /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })
+    /// All lists in loop[i].loop_arg should have the same size (i.e. same number of loops)
     struct Command
     {
-      QString exe;
+      String exe;
       QStringList args;
       ArgLoop loop;
 
-      Command(const QString& e, const QStringList& a, const ArgLoop& l) :
+      Command(const String& e, const QStringList& a, const ArgLoop& l) :
         exe(e),
         args(a),
         loop(l) {}
+
+      /// how many loops can we make according to the ArgLoop provided?
+      /// if ArgLoop is empty, we just do a single invokation
+      size_t getLoopCount() const
+      {
+        if (loop.empty()) return 1;
+        size_t common_size = loop[0].loop_arg.size();
+        for (const auto& l : loop)
+        {
+          if (l.loop_arg.size() != common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
+          if (l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
+        }
+        return common_size;
+      }
+      /// for a given loop, return the substituted arguments
+      /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
+      QStringList getArgs(const int loop_number) const
+      {
+        if (loop_number >= getLoopCount())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
+        }
+        if (loop.empty()) return args; // no looping available
+
+        QStringList arg_l = args;
+        for (const auto& largs : loop) // replace all args for the current round
+        {
+          arg_l[largs.insert_pos] = args[largs.insert_pos].arg(largs.loop_arg[loop_number]);
+        }
+        return arg_l;
+      }
     };
 
-
+    bool SwathTabWidget::findPythonScript_(const String& path_to_python_exe, String& script_name)
+    {
+      String path = File::path(path_to_python_exe);
+      String script_backup = script_name;
+      script_name = path + "/Scripts/" + script_backup; // Windows uses the Script subdirectory
+      if (File::readable(script_name)) return true;
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", true);
+      script_name = path + "/" + script_backup;
+      if (File::readable(script_name)) return true;
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", true);
+      return false;
+    }
 
     void SwathTabWidget::on_btn_runPyProphet_clicked()
     {
@@ -403,8 +456,16 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", String("The assay library is not specified. Please go to the 'database' tab and specify it.").toQString());
         return;
       }
-      QString pp = "pyprophet";
-
+#ifdef OPENMS_WINDOWSPLATFORM
+      String pp = "pyprophet.exe"; // we need the full path for findPythonScript_
+#else
+      String pp = "pyprophet";
+#endif
+      if (!findPythonScript_(ui->py_selector->getLastPython(), pp)) // searches Script in Python installation
+      {
+        QMessageBox::warning(this, "Error", String("Could not find 'pyprophet' in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        return;
+      }
       // list of calls to make: exe, args, [optional] list of args to append one-by-one in a loop
       std::vector<Command> calls;
       // merge all osws ...
@@ -425,12 +486,12 @@ namespace OpenMS
       calls.emplace_back(pp, QStringList() << "export" << "--format=legacy_merged" << "--max_global_peptide_qvalue=0.01" << "--max_global_protein_qvalue=0.01" 
                                             << "--in=%1" << "--out=%1", ArgLoop{ Args{osws, 4}, Args{tsvs, 5} });
       String feature_alignment_py = "feature_alignment.py";
-      if (!File::findExecutable(feature_alignment_py))
+      if (!findPythonScript_(ui->py_selector->getLastPython(), feature_alignment_py)) // searches Script in Python installation
       {
-        QMessageBox::warning(this, "Error", String("Could not find 'feature_alignment' from the msproteomicstool package. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
+        QMessageBox::warning(this, "Error", String("Could not find 'feature_alignment.py' from the msproteomicstool package in the python installation '" + ui->py_selector->getLastPython() + "'. Please make sure it is installed. Visit http://openswath.org/en/latest/docs/tric.html for details.").toQString());
         return;
       }
-      calls.emplace_back("python", QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
+      calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
                                             << "--out" << "tric_aligned.tsv" << "--out_matrix" << "tric_aligned_matrix.tsv" 
                                             << "--method" << "LocalMST" << "--realign_method" << "lowess" << "--max_rt_diff" << "90" 
                                             << "--fdr_cutoff" << "0.01" << "--alignment_score" << "0.01", ArgLoop{});
@@ -448,40 +509,24 @@ namespace OpenMS
       }
 
       int step = 0;
-        
       for (const auto& call : calls)
       { 
-        const QString& exe = call.exe;
-        const QStringList& args = call.args;
-        const std::vector<Args>& loop = call.loop;
-        ExternalProcess::RETURNSTATE returnstate;
-        if (loop.empty())
+        // this might just be one loop... depending on the call...
+        for (int i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
         {
-          returnstate = ep_.run(this, exe, args, getCurrentOutDir_(), true);
-        }
-        else
-        {
-          for (int i_loop = 0; i_loop < loop[0].loop_arg.size(); ++i_loop)
+          auto returnstate = ep_.run(this, call.exe.toQString(), call.getArgs(i_loop), getCurrentOutDir_(), true);
+          if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
           {
-            QStringList loop_args = args; // template
-            for (const auto& args : loop) // replace all args for the current round
-            {
-              if (args.insert_pos >= loop_args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Argument index too big for list.");
-              loop_args[args.insert_pos] = loop_args[args.insert_pos].arg(args.loop_arg[i_loop]);
-            }
-            returnstate = ep_.run(this, exe, loop_args, "", true);
-            if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS) break;
+            QMessageBox::warning(this, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
+            return;
+          }
+          if (progress.wasCanceled())
+          {
+            return;
           }
         }
 
         progress.setValue(++step);
-        if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
-        {
-          QMessageBox::warning(this, "Error", String("Running pyprophet/TRIC failed at step " + String(step) + "/" + String(calls.size()) + ". Please see log for details").toQString());
-          break;
-        }
-        if (progress.wasCanceled())
-          break;
       }
       
       progress.close();
