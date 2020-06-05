@@ -672,9 +672,9 @@ protected:
     }
 
     // store which modifications have been localized
-    for (auto& p : prot_ids]
+    for (auto& p : prot_ids)
     {
-      prot_ids.setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
+      p.setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
     IdXMLFile().store(out, prot_ids, pep_out);
 
