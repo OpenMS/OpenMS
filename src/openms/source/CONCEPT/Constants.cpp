@@ -155,6 +155,9 @@ namespace OpenMS
     namespace UserParam
     {
       // User parameter name for precursor mz error in ppm
+      const std::string LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
+
+      // User parameter name for precursor mz error in ppm
       const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
       // User parameter name for fragment mz error in ppm
