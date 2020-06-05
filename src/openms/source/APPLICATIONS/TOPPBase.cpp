@@ -34,35 +34,34 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/SYSTEM/UpdateCheck.h>
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
-
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <QDir>
 #include <QFile>
-#include <QProcess>
 #include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -1514,50 +1513,23 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
-    QProcess qp;
-    if (!workdir.isEmpty())
-    {
-      qp.setWorkingDirectory(workdir);
+    String sstdout, sstderr; // collect all output (might be useful if program crashes, see below)
+    // callbacks: invoked whenever output is available.
+    auto lam_out = [&](const String& out) { sstdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { sstderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    ExternalProcess ep(lam_out, lam_err);
+
+    const auto& rt = ep.run(nullptr, executable, arguments, workdir, true); // does automatic escaping etc... start
+    if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    { // error occured: if not written already in callback, do it now
+      writeLog_("Standard output: " + sstdout);
+      writeLog_("Standard error: " + sstderr);
     }
-    qp.start(executable, arguments); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << String(executable);
-    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-        ss << " " << it->toStdString();
-    }
-    OPENMS_LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart)
-    {
-      OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-    if (debug_level_ >= 4 || any_failure)
-    {
-      if (any_failure)
-      {
-        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
-      }
-      else
-      {
-        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
-      }
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeLog_("Standard output: " + external_sout);
-      writeLog_("Standard error: " + external_serr);
-      writeLog_("Exit code: " + String(qp.exitCode()));
-      if (any_failure)
-      {
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-    }
-
-    writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }
 

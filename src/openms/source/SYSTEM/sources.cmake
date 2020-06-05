@@ -3,6 +3,7 @@ set(directory source/SYSTEM)
 
 ### list all filenames of the directory here
 set(sources_list
+ExternalProcess.cpp
 File.cpp
 FileWatcher.cpp
 JavaInfo.cpp
