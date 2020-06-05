@@ -69,6 +69,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 // preprocessing and filtering
+#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
@@ -560,7 +561,7 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter"}); 
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration"}); 
   }
 
 
@@ -3843,6 +3844,9 @@ static void scoreXLIons_(
     bool autotune = find(filter.begin(), filter.end(), "autotune") != filter.end();
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
+    bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
+
+    InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
 
     // autotune (only works if non-XL peptides present)
     set<String> skip_peptide_spectrum;
@@ -4052,6 +4056,12 @@ static void scoreXLIons_(
       {
          OPENMS_LOG_INFO << "autotune: too few non-cross-linked peptides found. Will keep parameters as-is." << endl;
       }
+
+      if (pcrecalibration)
+      {
+        ic.setLogType(log_type_);
+        ic.fillCalibrants(pep_ids, precursor_mass_tolerance);
+      }
     }
    
     OPENMS_LOG_INFO << "IDFilter excludes " << skip_peptide_spectrum.size() << " spectra." << endl;
@@ -4185,6 +4195,36 @@ static void scoreXLIons_(
     f.getOptions() = options;
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
+
+    // only executed if we have a pre-search with enough calibrants
+    if (ic.getCalibrationPoints().size() > 1)
+    {
+      MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC;
+      bool use_RANSAC = true;
+
+      Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+      Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+      MZTrafoModel::setRANSACParams(p);
+
+      // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
+      MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
+
+      IntList ms_level = {1};
+      double rt_chunk = 300.0; // 5 minutes covered by each linear model
+      String qc_residual_path, qc_residual_png_path;
+
+      if (!ic.calibrate(spectra, ms_level, md, rt_chunk, use_RANSAC, 
+              10.0,
+              5.0, 
+              "",                      
+              "",
+              qc_residual_path,
+              qc_residual_png_path,
+              "Rscript"))
+      {
+         OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
+      }        
+    }
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     const bool convert_to_single_charge = false;  // whether to convert fragment peaks with isotopic patterns to single charge
