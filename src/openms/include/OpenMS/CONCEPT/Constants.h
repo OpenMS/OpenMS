@@ -255,6 +255,10 @@ namespace OpenMS
 
     namespace UserParam
     {
+      /** Metavalue to list unimod modifications used in site localization
+      */    
+      extern OPENMS_DLLAPI const std::string   LOCALIZED_MODIFICATIONS_USERPARAM;
+
       /** User parameter name for the M/Z of other chromatograms which have been merged into this one
               String
        */

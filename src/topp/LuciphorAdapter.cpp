@@ -670,6 +670,12 @@ protected:
       new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
     }
+
+    // store which modifications have been localized
+    for (auto& p : prot_ids)
+    {
+      p.setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
+    }
     IdXMLFile().store(out, prot_ids, pep_out);
 
     return EXECUTION_OK;
