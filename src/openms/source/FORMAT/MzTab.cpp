@@ -1689,7 +1689,7 @@ namespace OpenMS
     const AASequence& aas = best_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
-    row.modifications = extractModificationListFromAASequence(best_ph, fixed_mods);
+    row.modifications = extractModificationList(best_ph, fixed_mods, vector<String>());
 
     const set<String>& accessions = best_ph.extractProteinAccessionsSet();
     const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
@@ -1841,7 +1841,7 @@ namespace OpenMS
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
       // annotate variable modifications (no fixed ones)
-      row.modifications = extractModificationListFromAASequence(best_ph, fixed_mods);
+      row.modifications = extractModificationList(best_ph, fixed_mods, vector<String>());
 
       const set<String>& accessions = best_ph.extractProteinAccessionsSet();
       const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
@@ -2001,6 +2001,13 @@ namespace OpenMS
     size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
+
+    StringList localization_mods;
+    if (prot_ids[run_index]->metaValueExists(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM))
+    {
+      localization_mods = prot_ids[run_index]->getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM);
+    }
+
     size_t msfile_index(0);
     if (filenames.size() <= 1) //either none or only one file for this run
     {
@@ -2030,7 +2037,6 @@ namespace OpenMS
       row.spectra_ref.setSpecRef(spectrum_nativeID);
     }
 
-
     const vector<PeptideHit>& phs = pid.getHits();
 
     // add the row and continue to next PepID, if the current one was an empty one
@@ -2047,8 +2053,10 @@ namespace OpenMS
     const AASequence& aas = best_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
-    // extract all modifications in the current sequence for reporting. In contrast to peptide and protein section all modifications are reported.
-    row.modifications = extractModificationListFromAASequence(best_ph);
+    // extract all modifications in the current sequence for reporting.
+    // In contrast to peptide and protein section where fixed modifications are not reported we now report all modifications.
+    // If localization mods are specified we add localization scores
+    row.modifications = extractModificationList(best_ph, vector<String>(), localization_mods);
     
     MzTabParameterList search_engines;
 
@@ -2995,14 +3003,15 @@ state0:
     return m;
   }
 
-  MzTabModificationList MzTab::extractModificationListFromAASequence(const PeptideHit& pep_hit, const vector<String>& fixed_mods, const vector<String>& localization_mods)
+  MzTabModificationList MzTab::extractModificationList(const PeptideHit& pep_hit, const vector<String>& fixed_mods, const vector<String>& localization_mods)
   {
     const AASequence& aas = pep_hit.getSequence();
     MzTabModificationList mod_list;
     vector<MzTabModification> mods;
 
+    bool has_loc_mods = !localization_mods.empty();
     MzTabParameter localization_score;
-    if (pep_hit.metaValueExists("Luciphor_global_flr"))
+    if (has_loc_mods && pep_hit.metaValueExists("Luciphor_global_flr"))
     {
       localization_score.fromCellString("[MS,MS:1002380,false localization rate," + String(pep_hit.getMetaValue("Luciphor_global_flr"))+"]");
     }
@@ -3040,21 +3049,14 @@ state0:
             String unimod = res_mod.getUniModAccession();
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
-            pos.emplace_back(ai + 1, MzTabParameter());
-            mod.setPositionsAndParameters(pos);
-            mod.setModificationIdentifier(unimod_accession);
-            mods.push_back(mod);
-          }
-
-          // add localization if in localization_mods 
-          bool is_localized = std::find(localization_mods.begin(), localization_mods.end(), res_mod.getId()) != localization_mods.end();
-          if (is_localized)
-          {
-            // MzTab standard is to just report Unimod accession.
-            String unimod = res_mod.getUniModAccession();
-            MzTabString unimod_accession = MzTabString(unimod.toUpper());
-            vector<std::pair<Size, MzTabParameter> > pos;
-            pos.emplace_back(ai + 1, localization_score);
+            if (has_loc_mods && std::find(localization_mods.begin(), localization_mods.end(), res_mod.getFullId()) != localization_mods.end())
+            { // store localization score for this mod
+              pos.emplace_back(ai + 1, localization_score);
+            }
+            else
+            {
+              pos.emplace_back(ai + 1, MzTabParameter());
+            }
             mod.setPositionsAndParameters(pos);
             mod.setModificationIdentifier(unimod_accession);
             mods.push_back(mod);
