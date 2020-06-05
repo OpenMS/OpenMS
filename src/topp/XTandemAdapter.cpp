@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -42,13 +43,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
 
 #include <fstream>
 
@@ -118,17 +115,17 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file containing MS2 spectra");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerOutputFile_("out", "<file>", "", "Output file containing search results", false);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", {"idXML"});
     registerOutputFile_("xml_out", "<file>", "", "Raw output file directly from X! Tandem. Either 'out' or 'xml_out' are required. They can be used together.", false);
-    setValidFormats_("xml_out", ListUtils::create<String>("xml"));
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
+    setValidFormats_("xml_out", {"xml"});
+    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, {"skipexists"});
+    setValidFormats_("database", {"FASTA"});
     registerInputFile_("xtandem_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
       // X! Tandem compiles as tandem on OSX and tandem.exe on any other platform
@@ -137,9 +134,9 @@ protected:
 #else
       "tandem.exe",
 #endif
-      "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("default_config_file", ListUtils::create<String>("xml"));
+      "X! Tandem executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
+    registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, {"skipexists"});
+    setValidFormats_("default_config_file", {"xml"});
     registerFlag_("ignore_adapter_param", "Set this to use the configuration given in 'default_config_file' exclusively, ignoring other parameters (apart from 'in', 'out', 'database', 'xtandem_executable') set via this adapter.");
 
     addEmptyLine_();
@@ -151,7 +148,7 @@ protected:
 
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    vector<String> valid_strings = ListUtils::create<String>("ppm,Da");
+    vector<String> valid_strings = {"ppm", "Da"};
     setValidStrings_("precursor_error_units", valid_strings);
     setValidStrings_("fragment_error_units", valid_strings);
 
@@ -160,14 +157,14 @@ protected:
 
     registerFlag_("no_isotope_error", "By default, misassignment to the first and second isotopic 13C peak are also considered. Set this flag to disable.", false);
 
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", {"Carbamidomethyl (C)"}, "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", {"Oxidation (M)"}, "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
-    registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment mz", false);
+    registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment m/z", false);
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllXTandemNames(all_enzymes);
@@ -177,13 +174,12 @@ protected:
     registerFlag_("semi_cleavage", "Require only peptide end to have a valid cleavage site, not both.");
 
     registerStringOption_("output_results", "<choice>", "all", "Which hits should be reported. All, valid ones (passing the E-Value threshold), or stochastic (failing the threshold)", false);
-    valid_strings = ListUtils::create<String>("all,valid,stochastic", ',');
-    setValidStrings_("output_results", valid_strings);
+    setValidStrings_("output_results", { "all", "valid", "stochastic" });
 
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -199,11 +195,11 @@ protected:
     }
 
     // write input xml file
-    String temp_directory = makeTempDirectory_();
-    String input_filename = temp_directory + "tandem_input.xml";
+    File::TempDir dir(debug_level_ >= 2);
+    String input_filename = dir.getPath() + "tandem_input.xml";
     String tandem_input_filename = in;
-    String tandem_output_filename = temp_directory + "tandem_output.xml";
-    String tandem_taxonomy_filename = temp_directory + "tandem_taxonomy.xml";
+    String tandem_output_filename = dir.getPath() + "tandem_output.xml";
+    String tandem_taxonomy_filename = dir.getPath() + "tandem_taxonomy.xml";
 
     //-------------------------------------------------------------
     // reading input
@@ -225,9 +221,13 @@ protected:
       db_name = full_db_name;
     }
 
+    /// check if X!Tandem is available (warn early, since loading/storing of mzML below will delay the error -- which is not user friendly)
+    String xtandem_executable = getStringOption_("xtandem_executable");
+
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
+    mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
 
@@ -239,7 +239,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -315,21 +315,15 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    String xtandem_executable(getStringOption_("xtandem_executable"));
-    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
-    if (status != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("X! Tandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the X! Tandem executable exist?");
-      // clean temporary files
-      removeTempDirectory_(temp_directory);
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     vector<ProteinIdentification> protein_ids;
     ProteinIdentification protein_id;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    protein_id.setPrimaryMSRunPath(ms_runs);
+    protein_id.setPrimaryMSRunPath({in}, exp);
     vector<PeptideIdentification> peptide_ids;
 
     // read the output of X! Tandem and write it to idXML
@@ -355,7 +349,7 @@ protected:
       }
       else
       {
-        LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
+        OPENMS_LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
       }
     }
 
@@ -364,22 +358,13 @@ protected:
     //-------------------------------------------------------------
 
     if (!xml_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(xml_out.toQString()) &&
-          !QFile::remove(xml_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(tandem_output_filename, xml_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + xml_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(tandem_output_filename.toQString(), xml_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary X! Tandem XML file to '" + xml_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
+    
     if (!out.empty())
     {
       // handle the search parameters
@@ -412,20 +397,17 @@ protected:
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
-    /// Deletion of temporary files
-    removeTempDirectory_(temp_directory);
-
     // some stats (note that only MS2 spectra were loaded into "exp"):
     Int percent = peptide_ids.size() * 100.0 / exp.size();
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "- identified MS2 spectra: " << peptide_ids.size() << " / "
              << exp.size() << " = " << percent << "%";
     if (output_results != "all")
     {
-      LOG_INFO << " (with E-value " << (output_results == "valid" ? "< " : "> ")
+      OPENMS_LOG_INFO << " (with E-value " << (output_results == "valid" ? "< " : "> ")
                << String(max_evalue) << ")";
     }
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
     return EXECUTION_OK;
   }

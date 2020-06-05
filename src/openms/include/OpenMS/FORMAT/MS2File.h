@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MS2FILE_H
-#define OPENMS_FORMAT_MS2FILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -176,7 +175,7 @@ public:
           p.setPosition(split[0].toDouble());
           p.setIntensity(split[1].toFloat());
         }
-        catch (Exception::ConversionError /*&e*/)
+        catch ( Exception::ConversionError& )
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
         }
@@ -204,4 +203,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MS2FILE_H

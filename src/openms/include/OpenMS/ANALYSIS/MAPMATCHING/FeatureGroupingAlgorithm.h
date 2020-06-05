@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -55,7 +54,7 @@ public:
     FeatureGroupingAlgorithm();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithm();
+    ~FeatureGroupingAlgorithm() override;
 
     ///Applies the algorithm. The features in the input @p maps are grouped and the output is written to the consensus map @p out
     virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) = 0;
@@ -71,14 +70,58 @@ public:
     /// Register all derived classes in this method
     static void registerChildren();
 
+protected:
+
+    /// after grouping by the subclasses, postprocess unassigned IDs, protein IDs and sort results in a
+    /// consistent way
+    template<class MapType>
+    void postprocess_(const std::vector<MapType>& maps, ConsensusMap& out)
+    {
+      // add protein IDs and unassigned peptide IDs to the result map here,
+      // to keep the same order as the input maps (useful for output later):
+      auto& newIDs = out.getUnassignedPeptideIdentifications();
+      Size map_idx = 0;
+
+      for (typename std::vector<MapType>::const_iterator map_it = maps.begin();
+           map_it != maps.end(); ++map_it)
+      {
+        // add protein identifications to result map:
+        out.getProteinIdentifications().insert(
+            out.getProteinIdentifications().end(),
+            map_it->getProteinIdentifications().begin(),
+            map_it->getProteinIdentifications().end());
+
+        // assign the map_index to unassigned PepIDs as well.
+        // for the assigned ones, this has to be done in the subclass.
+        for (const PeptideIdentification& pepID : map_it->getUnassignedPeptideIdentifications())
+        {
+          auto newPepID = pepID;
+          // Note: during linking of _consensus_Maps we have the problem that old identifications
+          // should already have a map_index associated. Since we group the consensusFeatures only anyway
+          // (without keeping the subfeatures) the method for now is to "re"-index based on the input file/map index.
+          // Subfeatures have to be transferred in postprocessing if required
+          // (see FeatureGroupingAlgorithm::transferSubelements as used in the TOPP tools, i.e. FeatureLinkerBase),
+          // which also takes care of a re-re-indexing if the old map_index of the IDs was saved.
+          newPepID.setMetaValue("map_index", map_idx);
+          newIDs.push_back(newPepID);
+        }
+        map_idx++;
+      }
+
+      // canonical ordering for checking the results:
+      out.sortByQuality();
+      out.sortByMaps();
+      out.sortBySize();
+    }
 private:
     ///Copy constructor is not implemented -> private
     FeatureGroupingAlgorithm(const FeatureGroupingAlgorithm &);
     ///Assignment operator is not implemented -> private
     FeatureGroupingAlgorithm & operator=(const FeatureGroupingAlgorithm &);
 
+
+
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H

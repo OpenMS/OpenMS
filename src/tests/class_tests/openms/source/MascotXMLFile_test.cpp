@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ vector<String> references;
 
 date.set("2006-03-09 11:31:52");
 
-MascotXMLFile* nullPointer = 0;
+MascotXMLFile* nullPointer = nullptr;
 START_SECTION((MascotXMLFile()))
   ptr = new MascotXMLFile();
   TEST_NOT_EQUAL(ptr, nullPointer)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,10 +54,10 @@ namespace OpenMS
   }
 
   Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer & rhs) :
-    std::list<Annotation1DItem *>()
+    std::list<Annotation1DItem *>() //@todo all: why can't we use the copy constructor of the base container?
   {
     //copy annotations
-    Annotation1DItem * new_item = 0;
+    Annotation1DItem * new_item = nullptr;
     for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
     {
       const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
@@ -96,7 +96,7 @@ namespace OpenMS
       //clear list
       clear();
       //copy annotations
-      Annotation1DItem * new_item = 0;
+      Annotation1DItem * new_item = nullptr;
       for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
       {
         const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
@@ -142,13 +142,13 @@ namespace OpenMS
         return *it;
       }
     }
-    return 0;
+    return nullptr;
   }
 
   void Annotations1DContainer::selectItemAt(const QPoint & pos)
   {
     Annotation1DItem * item = getItemAt(pos);
-    if (item != 0)
+    if (item != nullptr)
     {
       item->setSelected(true);
     }
@@ -157,7 +157,7 @@ namespace OpenMS
   void Annotations1DContainer::deselectItemAt(const QPoint & pos)
   {
     Annotation1DItem * item = getItemAt(pos);
-    if (item != 0)
+    if (item != nullptr)
     {
       item->setSelected(false);
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>     // std::cout
 #include <algorithm>    // std::find
-#include <math.h>    // std::log
+#include <cmath>    // std::log
 
 namespace OpenMS
 {
@@ -158,7 +158,7 @@ namespace OpenMS
     }
     else
     {
-      LOG_INFO << "weight " + weight + " is not supported.";
+      OPENMS_LOG_INFO << "weight " + weight + " is not supported.";
     }
     return valid;
   }
@@ -168,14 +168,14 @@ namespace OpenMS
     double datum_checked = datum;
     if (datum >= datum_max)
     {
-      LOG_INFO << "datum " << datum << " is out of range.";
-      LOG_INFO << "datum will be truncated to " << datum_max << ".";
+      OPENMS_LOG_INFO << "datum " << datum << " is out of range.";
+      OPENMS_LOG_INFO << "datum will be truncated to " << datum_max << ".";
       datum_checked = datum_max;
     }
     else if (datum <= datum_min)
     {
-      LOG_INFO << "datum " << datum << " is out of range.";
-      LOG_INFO << "datum will be truncated to " << datum_min << ".";
+      OPENMS_LOG_INFO << "datum " << datum << " is out of range.";
+      OPENMS_LOG_INFO << "datum will be truncated to " << datum_min << ".";
       datum_checked = datum_min;
     }
     return datum_checked;
@@ -237,8 +237,8 @@ namespace OpenMS
     else
     {
       datum_weighted = datum;
-      LOG_INFO << "weight " + weight + " not supported.";
-      LOG_INFO << "no weighting will be applied.";
+      OPENMS_LOG_INFO << "weight " + weight + " not supported.";
+      OPENMS_LOG_INFO << "no weighting will be applied.";
     }
     return datum_weighted;
   } 
@@ -277,8 +277,8 @@ namespace OpenMS
     else
     {
       datum_weighted = datum;
-      LOG_INFO << "weight " + weight + " not supported.";
-      LOG_INFO << "no weighting will be applied.";
+      OPENMS_LOG_INFO << "weight " + weight + " not supported.";
+      OPENMS_LOG_INFO << "no weighting will be applied.";
     }
     return datum_weighted;
   }

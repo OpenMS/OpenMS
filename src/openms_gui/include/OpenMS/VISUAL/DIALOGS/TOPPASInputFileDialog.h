@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,21 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFileDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASInputFileDialogTemplate;
+}
 
 namespace OpenMS
 {
+  class InputFile;
   /**
       @brief Dialog which allows to specify an input file
 
@@ -49,37 +54,32 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASInputFileDialog :
-    public QDialog,
-    public Ui::TOPPASInputFileDialogTemplate
+    public QDialog
   {
     Q_OBJECT
-
-public:
-
+  public:
     /// Constructor
-    TOPPASInputFileDialog(const QString & file_name);
+    TOPPASInputFileDialog(const QString& file_name);
+    ~TOPPASInputFileDialog();
+
+    /// users can only choose certain filetypes
+    void setFileFormatFilter(const QString& fff);
 
     /// Returns the filename
-    QString getFilename();
-
-    /// Returns if the file name is valid (exists, is readable, and is not a directory)
-    static bool fileNameValid(const QString & file_name);
-
-public slots:
-
-    /// Lets the user select the file via a file dialog
-    void showFileDialog();
+    QString getFilename() const;
 
 protected slots:
 
     /// Called when OK is pressed; checks if the selected file is valid
     void checkValidity_();
 
-protected:
-
-    /// The parent
-    QObject* parent_;
+private:
+    Ui::TOPPASInputFileDialogTemplate* ui_;
   };
+  
+  
+} // ns OpenMS
 
-}
-#endif // OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H
+// this is required to allow Ui_TOPPASInputFileDialog (auto UIC'd from .ui) to have a InputFile member
+using InputFile = OpenMS::InputFile;
+

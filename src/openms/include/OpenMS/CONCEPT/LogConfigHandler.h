@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_LOGCONFIGHANDLER_H
-#define OPENMS_CONCEPT_LOGCONFIGHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
@@ -108,7 +107,6 @@ public:
      */
     void configure(const Param & param);
 
-
     /**
       @brief Returns a reference to the registered stream with the name @p stream_name.
 
@@ -116,7 +114,7 @@ public:
 
       @return Reference to the stream.
      */
-    ostream & getStream(const String & stream_name);
+    std::ostream & getStream(const String & stream_name);
 
     /**
       @brief Returns the instance of LogConfigHandler.
@@ -125,10 +123,11 @@ public:
 
     /// Destructor
     virtual ~LogConfigHandler();
+
 protected:
 
     /**
-      @brief Returns the named global instance of the LogStream. (OpenMS::Log_debug, OpenMS::Log_info, OpenMS::Log_warn, OpenMS::Log_error, OpenMS::Log_fatal)
+      @brief Returns the named global instance of the LogStream. (OpenMS::OpenMS_Log_debug, OpenMS::OpenMS_Log_info, OpenMS::OpenMS_Log_warn, OpenMS::OpenMS_Log_error, OpenMS::OpenMS_Log_fatal)
 
       @param stream_name Name of the stream. Should be DEBUG,INFO,WARNING,ERROR,FATAL_ERROR.
 
@@ -158,11 +157,11 @@ protected:
      */
     StreamHandler::StreamType getStreamTypeByName_(const String & stream_type);
 
-    std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::Log_debug
-    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::Log_info
-    std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::Log_warn
-    std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::Log_error
-    std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::Log_fatal
+    std::set<String> debug_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_debug
+    std::set<String> info_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_info
+    std::set<String> warn_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_warn
+    std::set<String> error_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_error
+    std::set<String> fatal_streams_; ///< List of all streams that were appended to OpenMS::OpenMS_Log_fatal
 
     std::map<String, StreamHandler::StreamType> stream_type_map_; ///< Maps the registered streams to a StreamHandler::StreamType
 
@@ -189,4 +188,3 @@ private:
 
 } // end namespace OpenMS
 
-#endif // #ifndef OPENMS_CONCEPT_LOGCONFIGHANDLER_H

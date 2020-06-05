@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,51 +34,85 @@
 
 #include <OpenMS/FORMAT/OSWFile.h>
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
+#include <sqlite3.h>
+
+#include <cstring> // for strcmp
+#include <sstream>
+
 namespace OpenMS
 {
+  namespace Sql = Internal::SqliteHelper;
   using namespace std;
 
   OSWFile::OSWFile()
   {
   }
-  
+
   OSWFile::~OSWFile()
   {
   }
 
-  void OSWFile::read(const std::string& in_osw, const std::string& osw_level, std::stringstream& pin_output, const double& ipf_max_peakgroup_pep, const double& ipf_max_transition_isotope_overlap, const double& ipf_min_transition_sn) {
-
-      sqlite3 *db;
+  void OSWFile::read(const std::string& in_osw,
+                     const std::string& osw_level,
+                     std::stringstream& pin_output,
+                     const double& ipf_max_peakgroup_pep,
+                     const double& ipf_max_transition_isotope_overlap,
+                     const double& ipf_min_transition_sn)
+  {
       sqlite3_stmt * stmt;
-      int  rc;
       std::string select_sql;
 
       // Open database
-      rc = sqlite3_open(in_osw.c_str(), &db);
-      if ( rc )
-      {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
+      SqliteConnector conn(in_osw);
 
-      if (osw_level == "ms1") {
-        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS1 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
-      } else if (osw_level == "transition") {
-        select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, 'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID WHERE PEP <= " + OpenMS::String(ipf_max_peakgroup_pep) + " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + OpenMS::String(ipf_max_transition_isotope_overlap) + " AND VAR_LOG_SN_SCORE > " + OpenMS::String(ipf_min_transition_sn) + " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
-      } else {
+      if (osw_level == "ms1")
+      {
+        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID " \
+                      "FROM FEATURE_MS1 "\
+                      "INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID "\
+                      "INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                      "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "\
+                      "INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON "\
+                        "PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+      }
+      else if (osw_level == "transition")
+      {
+        select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, "\
+                        "RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, "\
+                        "FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, "\
+                        "'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION "\
+                        "INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID " \
+                        "INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                        "INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID "\
+                        "INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID "\
+                        "WHERE PEP <= " + OpenMS::String(ipf_max_peakgroup_pep) +
+                          " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + OpenMS::String(ipf_max_transition_isotope_overlap) +
+                          " AND VAR_LOG_SN_SCORE > " + OpenMS::String(ipf_min_transition_sn) +
+                          " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
+      }
+      else
+      {
         // Peak group-level query including peptide sequence
-        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS2 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+        select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID "\
+                      "FROM FEATURE_MS2 "\
+                      "INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID "\
+                      "INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID "\
+                      "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "\
+                      "INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
       }
 
       // Execute SQL select statement
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step( stmt );
+      conn.prepareStatement(&stmt, select_sql);
+      sqlite3_step(stmt);
 
       int cols = sqlite3_column_count(stmt);
 
       // Generate features
       int k = 0;
-      std::vector<std::string> group_id_index;
-
+      std::vector<std::basic_string<unsigned char>> group_id_index;
+      OpenMS::String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         std::string psm_id;
@@ -89,23 +123,24 @@ namespace OpenMS
 
         for (int i = 0; i < cols; i++)
         {
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "FEATURE_ID")
+          if (strcmp(sqlite3_column_name(stmt, i), "FEATURE_ID") == 0)
           {
-            psm_id = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            Sql::extractValue<string>(&psm_id, stmt, i);
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "GROUP_ID")
+          if (strcmp(sqlite3_column_name(stmt, i), "GROUP_ID") == 0)
           {
-            if (std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
+            auto it = std::find(group_id_index.begin(), group_id_index.end(), sqlite3_column_text(stmt, i));
+            if (it != group_id_index.end())
             {
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = it - group_id_index.begin();
             }
             else
             {
-              group_id_index.push_back(OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
-              scan_id = std::find(group_id_index.begin(), group_id_index.end(), OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+              scan_id = group_id_index.size();
+              group_id_index.push_back(sqlite3_column_text(stmt, i));
             }
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "DECOY")
+          if (strcmp(sqlite3_column_name(stmt, i), "DECOY") == 0)
           {
             if (sqlite3_column_int( stmt, i ) == 1)
             {
@@ -116,11 +151,11 @@ namespace OpenMS
               label = 1;
             }
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )) == "MODIFIED_SEQUENCE")
+          if (strcmp(sqlite3_column_name( stmt, i ), "MODIFIED_SEQUENCE") == 0)
           {
-            peptide = OpenMS::String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+            Sql::extractValue<string>(&peptide, stmt, i);
           }
-          if (OpenMS::String(sqlite3_column_name( stmt, i )).substr(0,4) == "VAR_")
+          if (strncmp(sqlite3_column_name( stmt, i ), "VAR_", 4) == 0)
           {
             features[OpenMS::String(sqlite3_column_name( stmt, i ))] = sqlite3_column_double( stmt, i );
           }
@@ -148,26 +183,31 @@ namespace OpenMS
       }
 
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
       if (k==0)
       {
         if (osw_level == "transition")
         {
-          throw Exception::Precondition(__FILE__, __LINE__, __FUNCTION__, OpenMS::String("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
+          throw Exception::Precondition(__FILE__, __LINE__, __FUNCTION__,
+              OpenMS::String("PercolatorAdapter needs to be applied on MS1 & MS2 levels before conducting transition-level scoring."));
         }
         else
         {
           throw Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, in_osw);
         }
       }
+
     }
 
-    void OSWFile::write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features) {
+    void OSWFile::write(const std::string& in_osw,
+                        const std::string& osw_level,
+                        const std::map< std::string, std::vector<double> >& features)
+    {
       std::string table;
       std::string create_sql;
 
-      if (osw_level == "ms1") {
+      if (osw_level == "ms1")
+      {
         table = "SCORE_MS1";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                       "CREATE TABLE " + table + "(" \
@@ -176,7 +216,9 @@ namespace OpenMS
                       "QVALUE DOUBLE NOT NULL," \
                       "PEP DOUBLE NOT NULL);";
 
-      } else if (osw_level == "transition") {
+      }
+      else if (osw_level == "transition")
+      {
         table = "SCORE_TRANSITION";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                       "CREATE TABLE " + table + "(" \
@@ -186,7 +228,9 @@ namespace OpenMS
                       "QVALUE DOUBLE NOT NULL," \
                       "PEP DOUBLE NOT NULL);";
 
-      } else {
+      }
+      else
+      {
         table = "SCORE_MS2";
         create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                       "CREATE TABLE " + table + "(" \
@@ -211,7 +255,8 @@ namespace OpenMS
           insert_sql <<  feat.second[1] << ",";
           insert_sql <<  feat.second[2] << "); ";
         }
-        else {
+        else
+        {
           insert_sql << "INSERT INTO " << table;
           insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES (";
           insert_sql <<  feat.first << ",";
@@ -223,49 +268,15 @@ namespace OpenMS
         insert_sqls.push_back(insert_sql.str());
       }
 
-      // Conduct SQLite operations
-      sqlite3 *db;
-      char *zErrMsg = 0;
-      int  rc;
-
-      // Open database
-      rc = sqlite3_open(in_osw.c_str(), &db);
-      if ( rc )
-      {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
-
-      // Execute SQL create statement
-      rc = sqlite3_exec(db, create_sql.c_str(), callback, 0, &zErrMsg);
-      if ( rc != SQLITE_OK )
-      {
-        sqlite3_free(zErrMsg);
-      }
-
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
-
+      // Write to Sqlite database
+      SqliteConnector conn(in_osw);
+      conn.executeStatement(create_sql);
+      conn.executeStatement("BEGIN TRANSACTION");
       for (size_t i = 0; i < insert_sqls.size(); i++)
       {
-        rc = sqlite3_exec(db, insert_sqls[i].c_str(), callback, 0, &zErrMsg);
-        if ( rc != SQLITE_OK )
-        {
-          sqlite3_free(zErrMsg);
-        }
+        conn.executeStatement(insert_sqls[i]);
       }
-
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
-      sqlite3_close(db);
-    }
-
-    int OSWFile::callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-    {
-      int i;
-      for (i=0; i<argc; i++)
-      {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-      }
-      printf("\n");
-      return(0);
+      conn.executeStatement("END TRANSACTION");
     }
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <fstream>
 
 using namespace std;
@@ -227,7 +222,7 @@ namespace OpenMS
                 {
                   peptide.setNTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -239,7 +234,7 @@ namespace OpenMS
                 {
                   peptide.setCTerminalModification(mod_name);
                 }
-                catch (Exception::ElementNotFound /*e*/)
+                catch (Exception::ElementNotFound& /*e*/)
                 {
                   peptide.setModification(position, mod_name);
                 }
@@ -437,7 +432,7 @@ namespace OpenMS
         {
           if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
           {
-            ion_name = k;
+            ion_name = (int)k;
             break;
           }
         }

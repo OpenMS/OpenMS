@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -48,7 +47,7 @@ namespace OpenMS
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
-      modification_(0),
+      modification_(nullptr),
       modifications_(mods)
     {
     }
@@ -104,11 +103,11 @@ namespace OpenMS
         }
         else if (pos == "Protein N-term")
         {
-          position = ResidueModification::N_TERM;
+          position = ResidueModification::PROTEIN_N_TERM;
         }
         else if (pos == "Protein C-term")
         {
-          position = ResidueModification::C_TERM;
+          position = ResidueModification::PROTEIN_C_TERM;
         }
         else if (pos == "Any C-term")
         {
@@ -123,17 +122,10 @@ namespace OpenMS
           warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
-        if (!pos.hasSubstring("Protein"))
-        {
-          was_valid_peptide_modification_ = true;
-          term_specs_.push_back(position);
-          if (site.size() > 1) site = "X"; // C-term/N-term
-          sites_.push_back(site[0]);
-        }
-        else
-        {
-          was_valid_peptide_modification_ = false;
-        }
+        was_valid_peptide_modification_ = true;
+        term_specs_.push_back(position);
+        if (site.size() > 1) site = "X"; // C-term/N-term
+        sites_.push_back(site[0]);
         return;
       }
 

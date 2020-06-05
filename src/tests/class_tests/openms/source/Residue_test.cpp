@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(Residue, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Residue* e_ptr = 0;
-Residue* e_nullPointer = 0;
+Residue* e_ptr = nullptr;
+Residue* e_nullPointer = nullptr;
 START_SECTION((Residue()))
 	e_ptr = new Residue();
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -310,12 +310,12 @@ END_SECTION
 
 
 START_SECTION(void setModification(const String& name))
-    e_ptr->setOneLetterCode("M"); // we need M for this mod
-    TEST_EQUAL(e_ptr->getModificationName(), "")
-    TEST_EQUAL(e_ptr->getModification(), 0)
-    e_ptr->setModification("Oxidation");
-    TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
-    TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
+	e_ptr->setOneLetterCode("M"); // we need M for this mod
+	TEST_EQUAL(e_ptr->getModificationName(), "")
+	TEST_EQUAL(e_ptr->getModification(), 0)
+	e_ptr->setModification("Oxidation");
+	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
+	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 

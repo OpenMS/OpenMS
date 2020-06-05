@@ -231,7 +231,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
 		<chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="tr_gr2" index="0" defaultArrayLength="59">
+			<chromatogram id="tr_gr2_Precursor_i0" index="0" defaultArrayLength="59">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -262,7 +262,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="tr_gr1" index="1" defaultArrayLength="59">
+			<chromatogram id="tr_gr1_Precursor_i0" index="1" defaultArrayLength="59">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -298,10 +298,10 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr_gr2">16960</offset>
-		<offset idRef="tr_gr1">19567</offset>
+		<offset idRef="tr_gr2_Precursor_i0">16960</offset>
+		<offset idRef="tr_gr1_Precursor_i0">19580</offset>
 	</index>
 </indexList>
-<indexListOffset>22208</indexListOffset>
+<indexListOffset>22234</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_TRAMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_TRAMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -41,6 +40,8 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <iosfwd>
 
 namespace OpenMS
 {
@@ -57,6 +58,10 @@ namespace OpenMS
     {
 public:
 
+      TraMLHandler() = delete;
+      TraMLHandler(const TraMLHandler & rhs) = delete;
+      TraMLHandler & operator=(const TraMLHandler & rhs) = delete;
+
       typedef std::vector<ReactionMonitoringTransition::Product> ProductListType;
       typedef std::vector<ReactionMonitoringTransition::Configuration> ConfigurationListType;
 
@@ -69,35 +74,35 @@ public:
       TraMLHandler(TargetedExperiment & exp, const String & filename, const String & version, const ProgressLogger & logger);
 
       /// Destructor
-      virtual ~TraMLHandler();
+      ~TraMLHandler() override;
       //@}
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
       //Docu in base class
-      virtual void writeTo(std::ostream & os);
+      void writeTo(std::ostream & os) override;
 
 protected:
 
       /// Progress logger
-      const ProgressLogger & logger_;
+      const ProgressLogger& logger_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
 
       String tag_;
 
-      TargetedExperiment * exp_;
+      TargetedExperiment* exp_;
 
-      const TargetedExperiment * cexp_;
+      const TargetedExperiment* cexp_;
 
       TargetedExperiment::Publication actual_publication_;
 
@@ -144,28 +149,10 @@ protected:
 
       void writeUserParams_(std::ostream & os, const std::vector<MetaInfoInterface> & meta, UInt indent) const;
 
-      template <typename CVTList>
-      void writeCVParams_(std::ostream & os, const CVTList & cv_terms, UInt indent) const
-      {
-        for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.getCVTerms().begin(); 
-            it != cv_terms.getCVTerms().end(); ++it)
-        {
-          for (std::vector<CVTerm>::const_iterator cit = it->second.begin(); cit != it->second.end(); ++cit)
-          {
-            os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
-            if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
-            {
-              os << " value=\"" << cit->getValue().toString() << "\"";
-            }
+      void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
+      void writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const;
 
-            if (cit->hasUnit())
-            {
-              os << " unitCvRef=\"" << cit->getUnit().cv_ref << "\" unitAccession=\"" << cit->getUnit().accession << "\" unitName=\"" << cit->getUnit().name << "\"";
-            }
-            os << "/>" << "\n";
-          }
-        }
-      }
+      void writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const;
 
       // subfunctions of write
       void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
@@ -182,14 +169,8 @@ protected:
       /// Helper method that writes a source file
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
-private:
-
-      TraMLHandler();
-      TraMLHandler(const TraMLHandler & rhs);
-      TraMLHandler & operator=(const TraMLHandler & rhs);
     };
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_TRAMLHANDLER_H
 

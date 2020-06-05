@@ -12,6 +12,8 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
         DigestionEnzymeRNA(DigestionEnzymeRNA) nogil except + # wrap-ignore
 
+        bool setValueFromFile(const String & key, const String & value) nogil except +
+
         # sets the name of the Enzyme
         void setName(String name) nogil except +
 
@@ -62,3 +64,4 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
 
         # equality operator for cleavage regex
         bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
+

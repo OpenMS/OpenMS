@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,13 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XTANDEMXMLFILE_H
-#define OPENMS_FORMAT_XTANDEMXMLFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <stack>
 
 namespace OpenMS
 {
@@ -63,7 +63,7 @@ public:
     XTandemXMLFile();
 
     /// Destructor
-    virtual ~XTandemXMLFile();
+    ~XTandemXMLFile() override;
     /**
       @brief loads data from an X! Tandem XML file
 
@@ -83,13 +83,13 @@ public:
 protected:
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+    void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
 
     XTandemXMLFile(const XTandemXMLFile& rhs);
 
@@ -104,6 +104,10 @@ private:
 
     // true during "note" element containing spectrum ID
     bool is_spectrum_note_;
+
+    // true after non-new protein entries, so that with the next "protein note" the
+    // accession will not be updated again
+    bool skip_protein_acc_update_;
 
     // peptide hits per spectrum
     std::map<UInt, std::vector<PeptideHit> > peptide_hits_;
@@ -143,8 +147,21 @@ private:
 
     // modifications used by X! Tandem by default
     ModificationDefinitionsSet default_nterm_mods_;
+
+    // the possible type attributes of the group tag elements
+    enum class GroupType
+    {
+      MODEL,
+      PARAMETERS,
+      SUPPORT
+    };
+
+    // stack of types of the group elements
+    // they can be nested (e.g. a support group in a model group)
+    // parsing of child elements sometimes depends on the group type
+    std::stack<GroupType> group_type_stack_;
+    
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMXMLFILE_H

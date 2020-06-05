@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
 
-#include <cmath>
-#include <cstddef>
-#include <cstdlib>
-#include <algorithm>
 #include <iostream>
 
 namespace OpenMS
@@ -225,7 +220,7 @@ namespace OpenMS
         explanations_.push_back(cmpr);
       }
 
-      //std::cout << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
+      OPENMS_LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
 
     } // END adduct add
 
@@ -374,6 +369,7 @@ namespace OpenMS
   {
 
     EmpiricalFormula ef(formula);
+    OPENMS_LOG_DEBUG << "createAdduct_: " << formula << " " << charge << "\n";
     //effectively subtract charge electron masses: (-H plus one Proton)*charge
     ef -= EmpiricalFormula("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons

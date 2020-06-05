@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,15 +36,16 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -64,7 +65,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
@@ -79,7 +80,7 @@ class TOPPBaseTest
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","string default","string description",false);
       registerIntOption_("intoption","<int>",4711,"int description",false);
@@ -145,7 +146,7 @@ class TOPPBaseTest
       return getFlag_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -200,7 +201,7 @@ class TOPPBaseTestNOP
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
@@ -215,7 +216,7 @@ class TOPPBaseTestNOP
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","","string description");
       registerIntOption_("intoption","<int>",0,"int description",false);
@@ -255,7 +256,7 @@ class TOPPBaseTestNOP
       return getDoubleList_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -274,15 +275,15 @@ class TOPPBaseTestParam: public TOPPBase
 #else
       putenv(var);
 #endif
-      main(0, 0);
+      main(0, nullptr);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerFullParam_(test_param_);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -306,7 +307,7 @@ public:
     : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
   }
 
@@ -321,7 +322,7 @@ public:
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
     static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -343,14 +344,14 @@ public:
   : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerStringOption_("stringoption","<string>","","string description");
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("other", "Other parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String & section) const override
   {
     Param p;
     if (section == "algorithm")
@@ -358,10 +359,14 @@ public:
       p.setValue("param1", "param1_value", "param1_description");
       p.setValue("param2", "param2_value", "param2_description");
     }
-    else
+    else // "other"
     {
       p.setValue("param3", "param3_value", "param3_description");
       p.setValue("param4", "param4_value", "param4_description");
+      p.setValue("flagparam", "false", "this will be a flag");
+      p.setValidStrings("flagparam", {"true","false"});
+      p.setValue("nonflagparam", "true", "this will be a string param with true/false");
+      p.setValidStrings("nonflagparam", {"true","false"});
     }
     return p;
   }
@@ -377,7 +382,7 @@ public:
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
     return EXECUTION_OK;
   }
@@ -399,8 +404,8 @@ public:
 
 /////////////////////////////////////////////////////////////
 
-TOPPBaseTest* ptr = 0;
-TOPPBaseTest* nullPointer = 0;
+TOPPBaseTest* ptr = nullptr;
+TOPPBaseTest* nullPointer = nullptr;
 START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -542,6 +547,17 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setMinFloat(doublelist2,0.2);
 	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
+	WHITELIST("version")
+	TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_out.ini"))
+
+  String filename2;
+  NEW_TMP_FILE(filename2);
+  const char* f_name2 = filename2.c_str();
+  const char* b = "TOPPBaseCmdParseSubsectionsTest";
+  const char* write_ini2[3]={b, a21, f_name2};
+  TOPPBaseCmdParseSubsectionsTest tmp10{};
+	tmp10.run(3, write_ini2);
+  TEST_FILE_SIMILAR(filename2, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_subsec_out.ini"))
 END_SECTION
 
 START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
@@ -603,8 +619,8 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	const char* string_cl[3]={a1, a19, a20}; //commandline:"TOPPBaseTest -doublelist 0.411"
 	TOPPBaseTest tmp2(3, string_cl);
 	TEST_EQUAL(tmp2.getDoubleList("doublelist") == ListUtils::create<double>("0.411"), true)
-	const char* a21 = "4.0";
-	const char* string_cl2[5]={a1,a19,a20,a13,a21};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
+	const char* a210 = "4.0";
+	const char* string_cl2[5]={a1, a19, a20, a13, a210};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
 	TOPPBaseTest tmp3(5,string_cl2);
 	TEST_EQUAL(tmp3.getDoubleList("doublelist") == ListUtils::create<double>("0.411,4.5,4.0"), true)
 
@@ -662,9 +678,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]void inputFileReadable_(const String& filename, const String& param_name) const))
 	TOPPBaseTest tmp;
-	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt","someparam"));
-	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
-	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"),"ini");
+	TEST_EXCEPTION(Exception::FileNotFound, tmp.inputFileReadable("/this/file/does/not/exist.txt", "someparam"));
+	TEST_EXCEPTION(Exception::FileEmpty, tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
+	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"), "ini");
 END_SECTION
 
 START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const String& param_name) const))

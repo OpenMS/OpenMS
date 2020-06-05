@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,11 +37,11 @@
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <QtGui/QGridLayout>
-#include <QtGui/QScrollBar>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QScrollBar>
+#include <QCloseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QMimeData>
 
 using namespace std;
@@ -50,9 +50,15 @@ namespace OpenMS
 {
   using namespace Math;
 
+  const char SpectrumWidget::RT_AXIS_TITLE[] = "Time [s]";
+  const char SpectrumWidget::MZ_AXIS_TITLE[] = "m/z";
+  const char SpectrumWidget::INTENSITY_AXIS_TITLE[] = "Intensity";
+  const char SpectrumWidget::IM_MS_AXIS_TITLE[] = "Ion Mobility [ms]";
+  const char SpectrumWidget::IM_ONEKZERO_AXIS_TITLE[] = "Ion Mobility [1/K0]";
+
   SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
-    canvas_(0)
+    canvas_(nullptr)
   {
     setAttribute(Qt::WA_DeleteOnClose);
     grid_ = new QGridLayout(this);
@@ -145,7 +151,7 @@ namespace OpenMS
   {
     Histogram<> dist = createIntensityDistribution_();
     HistogramDialog dw(dist);
-    dw.setLegend("intensity");
+    dw.setLegend(SpectrumWidget::INTENSITY_AXIS_TITLE);
     dw.setLogMode(true);
     if (dw.exec() == QDialog::Accepted)
     {
@@ -232,8 +238,8 @@ namespace OpenMS
   void SpectrumWidget::updateAxes()
   {
     //change axis labels if necessary
-    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend().prefix(2) == "RT")
-       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend().prefix(2) == "RT"))
+    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend() == SpectrumWidget::RT_AXIS_TITLE)
+       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend() == SpectrumWidget::RT_AXIS_TITLE))
     {
       std::string tmp = x_axis_->getLegend();
       x_axis_->setLegend(y_axis_->getLegend());
@@ -345,7 +351,7 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), event->source(), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
     event->acceptProposedAction();
   }
 

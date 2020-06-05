@@ -24,6 +24,12 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         MSQuantifications()  nogil
         MSQuantifications(MSQuantifications) nogil
 
+        # Detailed constructor from a FeatureMap
+        MSQuantifications(FeatureMap fm,
+                          ExperimentalSettings& es,
+                          libcpp_vector[DataProcessing]& dps) nogil except +
+        # std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
+        
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
 

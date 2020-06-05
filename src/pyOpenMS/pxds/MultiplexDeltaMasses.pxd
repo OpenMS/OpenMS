@@ -1,6 +1,7 @@
 from Types cimport *
 from String cimport *
 
+# TODO: support multiset
 # typedef std::multiset<String> LabelSet;
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS":
@@ -13,7 +14,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>"
         libcpp_vector[ MultiplexDeltaMasses_DeltaMass ]  getDeltaMasses() nogil except +
 
         # String labelSetToString(LabelSet ls) nogil except +
-
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>" namespace "OpenMS::MultiplexDeltaMasses":
     

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #include <OpenMS/test_config.h>
 
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
@@ -57,8 +56,8 @@ START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 
 //FeatureOpenMS
 {
-FeatureOpenMS* ptr = 0;
-FeatureOpenMS* nullPointer = 0;
+FeatureOpenMS* ptr = nullptr;
+FeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(FeatureOpenMS())
 {
@@ -77,8 +76,8 @@ END_SECTION
 
 //MRMFeatureOpenMS
 {
-MRMFeatureOpenMS* ptr = 0;
-MRMFeatureOpenMS* nullPointer = 0;
+MRMFeatureOpenMS* ptr = nullptr;
+MRMFeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureOpenMS())
 {
@@ -97,8 +96,8 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = nullptr;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = nullptr;
 
 START_SECTION(TransitionGroupOpenMS())
 {
@@ -117,8 +116,8 @@ END_SECTION
 
 //SignalToNoiseOpenMS
 {
-SignalToNoiseOpenMS<MSSpectrum>* ptr = 0;
-SignalToNoiseOpenMS<MSSpectrum>* nullPointer = 0;
+SignalToNoiseOpenMS<MSSpectrum>* ptr = nullptr;
+SignalToNoiseOpenMS<MSSpectrum>* nullPointer = nullptr;
 
 START_SECTION(SignalToNoiseOpenMS())
 {

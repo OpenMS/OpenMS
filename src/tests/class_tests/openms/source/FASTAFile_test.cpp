@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,10 +56,10 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FASTAFile* ptr = 0;
+FASTAFile* ptr = nullptr;
 START_SECTION((FASTAFile()))
   ptr = new FASTAFile();
-  TEST_EQUAL(ptr == 0, false)
+  TEST_EQUAL(ptr == nullptr, false)
 END_SECTION
 
 START_SECTION((~FASTAFile()))
@@ -69,7 +69,7 @@ END_SECTION
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
   FASTAFile::FASTAEntry * ptr_e;
   ptr_e = new FASTAFile::FASTAEntry();
-  TEST_EQUAL(ptr_e == 0, false)
+  TEST_EQUAL(ptr_e == nullptr, false)
 END_SECTION
 
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
@@ -138,7 +138,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
     + String("AGEGEN"))
 
   TEST_EQUAL(aa.isModified(), true)
-  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM).getId();
+  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", ResidueModification::N_TERM)->getId();
   TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
   sequences_iterator++;

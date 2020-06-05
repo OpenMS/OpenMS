@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -251,8 +250,11 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
-                     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      if (!indices.empty())
+      {
+        model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
+                       LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      }
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;
@@ -1496,7 +1498,7 @@ namespace OpenMS
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
-        if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
+        if (accs.find(protein_accs[pa]) == accs.end())
           continue;
 
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // Hendrik Weisser
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -45,10 +48,8 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
@@ -64,9 +65,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDFileConverter IDFileConverter
+@page TOPP_IDFileConverter IDFileConverter
 
-    @brief Converts peptide/protein identification engine file formats.
+@brief Converts peptide/protein identification engine file formats.
 
 <CENTER>
     <table>
@@ -98,18 +99,25 @@ represented in the simpler idXML format.
 
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
+We use the following heuristic: if peptideprophet_analyzed is set, we take the scores from the idXML as is and assume
+the PeptideHits contain all necessary information. If peptideprophet is not set, we only provide ProteinProphet-compatible
+results with probability-based scores (i.e. Percolator with PEP score or scores from IDPosteriorErrorProbability). All
+secondary or non-probability main scores will be written as "search_scores" only.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
+The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
+of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+
 <B>Details on additional parameters:</B>
 
-@p mz_file:@n
+@p mz_file: @n
 Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers or spectrum IDs. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
-@p mz_name:@n
+@p mz_name: @n
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
-@p scan_regex:@n
+@p scan_regex: @n
 This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of class @ref OpenMS::SpectrumLookup "SpectrumLookup" for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
 For Mascot results exported to (Mascot) XML, scan numbers that can be used to look up retention times (via @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. Some default formats are defined in the Mascot XML reader, but if those fail to extract the scan numbers, @p scan_regex can be used to overwrite the defaults.@n
 For pepXML, supplying @p scan_regex may be necessary for files exported from Mascot, but only if the default reference formats (same as for Mascot XML) do not match. The spectrum references to which @p scan_regex is applied are read from the "spectrum" attribute of the "spectrum_query" elements.@n
@@ -161,7 +169,7 @@ private:
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);    
+      tg.setParameters(tgp);
 
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
@@ -191,7 +199,7 @@ private:
 #pragma omp critical (IDFileConverter_ERROR)
 #endif
           {
-            LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
             ret = false;
           }
         }
@@ -200,18 +208,18 @@ private:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
+                       "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -229,10 +237,11 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
+    registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data
@@ -393,7 +402,12 @@ protected:
         if (!mz_file.empty())
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
-            peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
+            peptide_identifications, 
+            mz_file, 
+            false, 
+            !getFlag_("no_spectra_data_override"),
+            !getFlag_("no_spectra_references_override"),
+            protein_identifications);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)
@@ -405,7 +419,7 @@ protected:
 
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications,
                              peptide_identifications);
 
@@ -451,7 +465,7 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], 
+        MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
 
@@ -489,7 +503,7 @@ protected:
             }
             else
             {
-              LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
+              OPENMS_LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
             }
           }
         }
@@ -542,6 +556,12 @@ protected:
           peptide_identifications.push_back(pepid);
         }
       }
+
+      else if (in_type == FileTypes::XQUESTXML)
+      {
+        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+      }
+
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -587,6 +607,11 @@ protected:
                             peptide_identifications);
     }
 
+    else if (out_type == FileTypes::XQUESTXML)
+    {
+      XQuestResultXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
@@ -600,7 +625,7 @@ protected:
           std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
-                << " " << hit.getSequence().toString() 
+                << " " << hit.getSequence().toString()
                 << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
                 << "\n";
           // FASTA files should have at most 60 characters of sequence info per line

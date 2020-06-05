@@ -31,9 +31,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         double getMatchingIndex() nogil except +
         void setMatchingIndex(double & idx) nogil except +
         String getFoundAdduct() nogil except +
-        void setFoundAdduct(String & add) nogil except +
+        void setFoundAdduct(const String & add) nogil except +
         String getFormulaString() nogil except +
-        void setEmpiricalFormula(String & ep) nogil except +
+        void setEmpiricalFormula(const String & ep) nogil except +
         libcpp_vector[ String ] getMatchingHMDBids() nogil except +
         void setMatchingHMDBids(libcpp_vector[ String ] & match_ids) nogil except +
         double getIsotopesSimScore() nogil except +

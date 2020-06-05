@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,15 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFO_H
-#define OPENMS_METADATA_METAINFO_H
+#pragma once
 
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+
+#include <boost/container/flat_map.hpp>
 
 namespace OpenMS
 {
@@ -68,26 +69,31 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    MetaInfo();
+    MetaInfo() = default;
 
     /// Copy constructor
-    MetaInfo(const MetaInfo& rhs);
+    MetaInfo(const MetaInfo&) = default;
+
+    /// Move constructor
+    MetaInfo(MetaInfo&&) = default;
 
     /// Destructor
     ~MetaInfo();
 
     /// Assignment operator
-    MetaInfo& operator=(const MetaInfo& rhs);
+    MetaInfo& operator=(const MetaInfo&) = default;
+    /// Move assignment operator
+    MetaInfo& operator=(MetaInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const MetaInfo& rhs) const;
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
-    /// Returns the value corresponding to a string (or DataValue::EMPTY if not found)
-    const DataValue& getValue(const String& name) const;
-    /// Returns the value corresponding to an index (or DataValue::EMPTY if not found)
-    const DataValue& getValue(UInt index) const;
+    /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
+    /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
+    const DataValue& getValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
 
     /// Returns whether an entry with the given name exists
     bool exists(const String& name) const;
@@ -120,13 +126,14 @@ public:
     void clear();
 
 private:
+    using MapType = boost::container::flat_map<UInt, DataValue>;
+
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
-    /// The actual mapping of indexes to values
-    std::map<UInt, DataValue> index_to_value_;
 
+    /// The actual mapping of indexes to values
+    MapType index_to_value_;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFO_H

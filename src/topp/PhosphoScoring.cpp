@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ using namespace std;
   Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
   For details, see:\n
-  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based
+  Beausoleil <em>et al.</em>: <a href="https://doi.org/10.1038/nbt1240">A probability-based
   approach for high-throughput protein phosphorylation analysis and site localization</a> 
   (Nat. Biotechnol., 2006, PMID: 16964243).
   
@@ -244,14 +244,14 @@ protected:
     in.sortByPosition();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
-
+    setValidFormats_("out", { "idXML" });
     // Ascore algorithm parameters:
     registerFullParam_(AScore().getDefaults());
   }
@@ -275,7 +275,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -287,7 +287,7 @@ protected:
 
     AScore ascore;
     Param ascore_params = ascore.getDefaults();
-    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore_params.update(getParam_(), false, false, false, false, OpenMS_Log_debug);
     ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------
@@ -324,7 +324,7 @@ protected:
         PeptideHit scored_hit = *hit;
         addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
         
-        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);

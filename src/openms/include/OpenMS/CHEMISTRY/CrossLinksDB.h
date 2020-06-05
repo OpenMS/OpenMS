@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_CROSSLINKSDB_H
-#define OPENMS_CHEMISTRY_CROSSLINKSDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
@@ -47,17 +46,15 @@ namespace OpenMS
     /// Returns a pointer to the modifications DB (singleton)
     inline static CrossLinksDB* getInstance()
     {
-      static CrossLinksDB* db_ = 0;
-      if (db_ == 0)
-      {
-        db_ = new CrossLinksDB;
-      }
+      static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
     }
 
     /**
       @brief Adds modifications from a given file in OBO format
-
+      
+      @note readFromOBOFile should be called in a single threaded context with
+      no other threads accessing the CrossLinkDB
       @throw Exception::ParseError if the file cannot be parsed correctly
     */
     void readFromOBOFile(const String& filename);
@@ -77,7 +74,7 @@ namespace OpenMS
       CrossLinksDB(const CrossLinksDB& residue_db);
 
       /// Destructor
-      virtual ~CrossLinksDB();
+      ~CrossLinksDB() override;
       //@}
 
       /** @name Assignment
@@ -90,4 +87,3 @@ namespace OpenMS
   };
 }
 
-#endif // CROSSLINKSDB_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,16 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors:  Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_PARAM_H
-#define OPENMS_DATASTRUCTURES_PARAM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <iosfwd>
@@ -84,9 +82,16 @@ public:
       /// Constructor with name, description, value and advanced flag
       ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
       /// Copy constructor
-      ParamEntry(const ParamEntry& other);
+      ParamEntry(const ParamEntry&) = default;
+      /// Move constructor
+      ParamEntry(ParamEntry&&) = default;
       /// Destructor
       ~ParamEntry();
+
+      /// Assignment operator
+      ParamEntry& operator=(const ParamEntry&) = default;
+      /// Move assignment operator
+      ParamEntry& operator=(ParamEntry&&) & = default;
 
       /// Check if 'value' fulfills restrictions
       bool isValid(String& message) const;
@@ -123,13 +128,23 @@ public:
       ///Iterator for entries
       typedef std::vector<ParamEntry>::const_iterator ConstEntryIterator;
 
-      ///Default constructor
+      /// Default constructor
       ParamNode();
-      ///Constructor with name and description
+      /// Constructor with name and description
       ParamNode(const String& n, const String& d);
+      /// Copy constructor
+      ParamNode(const ParamNode&) = default;
+      /// Move constructor
+      ParamNode(ParamNode&&) = default;
       /// Destructor
       ~ParamNode();
-      ///Equality operator (name, entries and subnodes are compared)
+
+      /// Assignment operator
+      ParamNode& operator=(const ParamNode&) = default;
+      /// Move assignment operator
+      ParamNode& operator=(ParamNode&&) & = default;
+
+      /// Equality operator (name, entries and subnodes are compared)
       bool operator==(const ParamNode& rhs) const;
 
       /**
@@ -240,13 +255,19 @@ protected:
     Param();
 
     /// Copy constructor
-    Param(const Param& rhs);
+    Param(const Param&) = default;
+
+    /// Move constructor
+    Param(Param&&) = default;
 
     /// Destructor
     ~Param();
 
     /// Assignment operator
-    Param& operator=(const Param& rhs);
+    Param& operator=(const Param&) = default;
+
+    /// Move assignment operator
+    Param& operator=(Param&&) & = default;
 
     /// Equality operator
     bool operator==(const Param& rhs) const;
@@ -308,9 +329,6 @@ protected:
       @return Returns end() if leaf does not exist.
     */
     ParamIterator findNext(const String& leaf, const ParamIterator& start_leaf) const;
-
-
-
     //@}
 
     ///@name Tags handling
@@ -318,6 +336,8 @@ protected:
 
     /**
       @brief Adds the tag @p tag to the entry @p key
+
+      E.g. "advanced", "required", "input file", "output file"
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
       @exception Exception::InvalidValue is thrown if the tag contain a comma character.
@@ -440,9 +460,20 @@ protected:
     Param copy(const String& prefix, bool remove_prefix = false) const;
 
     /**
+      @brief Returns a new Param object containing all entries in the given subset.
+
+      @param subset The subset of Param nodes that should be copied out of the object
+             here. Includes values etc. Does not check any compatibility. Just matches the names.
+      @note Only matches entries and nodes at the root=top level and copies over whole subtrees if matched.
+            This function is mainly used for copying subsection parameters that were not registered as
+            as an actual subsection e.g. for backwards compatibility of param names.
+    */
+    Param copySubset(const Param& subset) const;
+
+    /**
       @brief Rescue parameter <b>values</b> from @p p_outdated to current param
 
-      Calls ::update(p_outdated, true, add_unknown, false, false, LOG_WARN) and returns its value.
+      Calls ::update(p_outdated, true, add_unknown, false, false, OPENMS_LOG_WARN) and returns its value.
     */
     bool update(const Param& p_outdated, const bool add_unknown = false);
 
@@ -514,7 +545,7 @@ protected:
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
 
-      Warnings etc. will be send to LOG_WARN.
+      Warnings etc. will be send to OPENMS_LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */
@@ -610,6 +641,7 @@ protected:
     //@}
 
 protected:
+
     /**
       @brief Returns a mutable reference to a parameter entry.
 
@@ -629,4 +661,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_PARAM_H

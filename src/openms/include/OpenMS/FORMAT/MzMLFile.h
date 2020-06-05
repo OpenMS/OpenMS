@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,11 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZMLFILE_H
-#define OPENMS_FORMAT_MZMLFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -61,7 +60,7 @@ public:
     ///Default constructor
     MzMLFile();
     ///Destructor
-    ~MzMLFile();
+    ~MzMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
@@ -95,6 +94,13 @@ public:
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
+
+      This method honors PeakOptions (if specified) for spectra, i.e. only spectra within the specified
+      RT range and MS levels are counted.
+      If PeakOptions have no filters set (the default), then spectra and chromatogram counts
+      are taken from the counts attribute of the spectrumList/chromatogramList tags (the
+      parsing skips all intermediate data and ends as soon as both counts are available).
+
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
@@ -169,6 +175,17 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+    /**
+     * @brief Gets info on centroidedness of spectra based on their metadata
+     * 
+     * @param filename File name of the mzML file to be checked
+     * 
+     * @return Map from MS level to pair of counts (centroided, non-centroided)
+     * 
+     * @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    std::map<UInt,std::pair<Size,Size>> getCentroidInfo(const String& filename);
+
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
@@ -188,5 +205,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZMLFILE_H
 

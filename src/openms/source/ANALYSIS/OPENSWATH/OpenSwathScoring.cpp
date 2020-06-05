@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,14 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 // scoring
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
 
 // auxiliary
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -45,8 +49,49 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 // basic file operations
-#include <iostream>
-#include <fstream>
+
+namespace OpenMS
+{
+
+  void sortSpectrumByMZ(OpenSwath::Spectrum& spec)
+  {
+    //sort index list
+    std::vector<std::pair<double, Size> > sorted_indices;
+    sorted_indices.reserve(spec.getMZArray()->data.size());
+    auto mz_it = spec.getMZArray()->data.begin();
+    for (Size i = 0; i < spec.getMZArray()->data.size(); ++i)
+    {
+      sorted_indices.emplace_back(*mz_it, i);
+      ++mz_it;
+    }
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+
+    // extract list of indices
+    std::vector<Size> select_indices;
+    select_indices.reserve(sorted_indices.size());
+    for (const auto& sidx : sorted_indices)
+    {
+      select_indices.push_back(sidx.second);
+    }
+
+    for (auto& da : spec.getDataArrays() )
+    {
+      if (da->data.empty()) continue;
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->description = da->description;
+      tmp->data.reserve(select_indices.size());
+      for (Size i = 0; i < select_indices.size(); ++i)
+      {
+        tmp->data.push_back( da->data[ select_indices[i] ] );
+      }
+      da = tmp;
+    }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(spec.getMZArray()->data.begin(),
+           spec.getMZArray()->data.end(), std::greater<double>()) == spec.getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+  }
+}
 
 namespace OpenMS
 {
@@ -54,8 +99,10 @@ namespace OpenMS
   /// Constructor
   OpenSwathScoring::OpenSwathScoring() :
     rt_normalization_factor_(1.0),
+    spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
-    spacing_for_spectra_resampling_(0.005)
+    spectra_addition_method_("simple"),
+    im_drift_extra_pcnt_(0.0)
   {
   }
 
@@ -65,23 +112,33 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
-    int add_up_spectra, double spacing_for_spectra_resampling,
-    OpenSwath_Scores_Usage & su)
+                                    int add_up_spectra,
+                                    double spacing_for_spectra_resampling,
+                                    const double drift_extra,
+                                    const OpenSwath_Scores_Usage & su,
+                                    const std::string& spectrum_addition_method)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
+    this->spectra_addition_method_ = spectrum_addition_method;
+    this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                                            const std::vector<TransitionType> & transitions,
-                                            std::vector<OpenSwath::SwathMap> swath_maps,
+                                            const std::vector<TransitionType>& transitions,
+                                            const std::vector<OpenSwath::SwathMap>& swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring & diascoring,
+                                            OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
-                                            OpenSwath_Scores & scores)
+                                            OpenSwath_Scores& scores,
+                                            std::vector<double>& masserror_ppm,
+                                            const double drift_lower,
+                                            const double drift_upper,
+                                            const double drift_target)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
@@ -108,11 +165,27 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
+
+    // calculate drift extraction width for current spectrum (with some extra for cross-correlation)
+    double drift_width = fabs(drift_upper - drift_lower);
+    double drift_lower_used = drift_lower - drift_width * im_drift_extra_pcnt_;
+    double drift_upper_used = drift_upper + drift_width * im_drift_extra_pcnt_;
+
+    // score drift time dimension
+    if (drift_upper > 0 && su_.use_im_scores)
+    {
+      double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+      bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+      auto drift_spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used);
+      IonMobilityScoring::driftScoring(drift_spectrum, transitions, scores,
+                                       drift_lower, drift_upper, drift_target,
+                                       dia_extract_window_, dia_extraction_ppm_,
+                                       false, im_drift_extra_pcnt_);
+    }
 
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
     // DIA dotproduct and manhattan score based on library intensity
     diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
@@ -135,15 +208,25 @@ namespace OpenMS
       diascoring.dia_by_ion_score(spectrum, aas, by_charge_state, scores.bseries_score, scores.yseries_score);
     }
 
-    // FEATURE we should not punish so much when one transition is missing!
-    scores.massdev_score = scores.massdev_score / transitions.size();
-
     if (ms1_map && ms1_map->getNrSpectra() > 0) 
     {
       double precursor_mz = transitions[0].precursor_mz;
       double rt = imrmfeature->getRT();
 
-      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores);
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower, drift_upper);
+
+      if (drift_upper > 0 && su_.use_im_scores)
+      {
+        double dia_extract_window_ = (double)diascoring.getParameters().getValue("dia_extraction_window");
+        bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
+        IonMobilityScoring::driftScoringMS1( fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
+            transitions, scores, drift_lower, drift_upper, drift_target, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
+
+        IonMobilityScoring::driftScoringMS1Contrast(
+            fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower_used, drift_upper_used),
+            fetchSpectrumSwath(ms1_map, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper),
+            transitions, scores, drift_lower, drift_upper, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+      }
     }
 
   }
@@ -153,14 +236,15 @@ namespace OpenMS
                                    double precursor_mz, 
                                    double rt, 
                                    const CompoundType& compound, 
-                                   OpenSwath_Scores & scores)
+                                   OpenSwath_Scores & scores,
+                                   double drift_lower, double drift_upper)
   {
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
-      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, rt, add_up_spectra_);
+      OpenSwath::SpectrumPtr ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower, drift_upper);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
       // derive precursor charge state (get from data if possible)
@@ -187,10 +271,12 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
-                                              std::vector<OpenSwath::SwathMap> swath_maps,
+                                              const std::vector<OpenSwath::SwathMap> swath_maps,
                                               OpenMS::DIAScoring & diascoring,
-                                              OpenSwath_Scores & scores)
+                                              OpenSwath_Scores & scores,
+                                              double drift_lower, double drift_upper)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
     // Identify corresponding SONAR maps (if more than one map is used)
@@ -213,7 +299,7 @@ namespace OpenMS
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
@@ -233,19 +319,21 @@ namespace OpenMS
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
-        const std::string& precursor_feature_id,
+        const std::vector<std::string>& precursor_ids,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
-    mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
+    if (su_.use_coelution_score_ || su_.use_shape_score_ || (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation))
+      mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
     // XCorr score (coelution)
     if (su_.use_coelution_score_)
     {
       scores.xcorr_coelution_score = mrmscore_.calcXcorrCoelutionScore();
-      scores.weighted_coelution_score = mrmscore_.calcXcorrCoelutionScore_weighted(normalized_library_intensity);
+      scores.weighted_coelution_score = mrmscore_.calcXcorrCoelutionWeightedScore(normalized_library_intensity);
     }
 
     // XCorr score (shape)
@@ -254,16 +342,27 @@ namespace OpenMS
     // FEATURE : normalize with the intensity at the peak group apex?
     if (su_.use_shape_score_)
     {
-      scores.xcorr_shape_score = mrmscore_.calcXcorrShape_score();
-      scores.weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
+      scores.xcorr_shape_score = mrmscore_.calcXcorrShapeScore();
+      scores.weighted_xcorr_shape = mrmscore_.calcXcorrShapeWeightedScore(normalized_library_intensity);
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
     {
-      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
-      scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
-      scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_xcorr_coelution_score = mrmscore_.calcXcorrPrecursorCoelutionScore();
+        scores.ms1_xcorr_shape_score = mrmscore_.calcXcorrPrecursorShapeScore();
+      }
+      mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_xcorr_coelution_contrast_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
+      scores.ms1_xcorr_shape_contrast_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
+
+      mrmscore_.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_xcorr_coelution_combined_score = mrmscore_.calcXcorrPrecursorCombinedCoelutionScore();
+      scores.ms1_xcorr_shape_combined_score = mrmscore_.calcXcorrPrecursorCombinedShapeScore();
     }
 
     if (su_.use_nr_peaks_score_)
@@ -276,8 +375,38 @@ namespace OpenMS
     {
       scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
       // everything below S/N 1 can be set to zero (and the log safely applied)
-      if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-      else { scores.log_sn_score = std::log(scores.sn_ratio); }
+      if (scores.sn_ratio < 1)
+      { 
+        scores.log_sn_score = 0;
+      }
+      else
+      {
+        scores.log_sn_score = std::log(scores.sn_ratio);
+      }
+    }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
+      scores.mi_score = mrmscore_.calcMIScore();
+      scores.weighted_mi_score = mrmscore_.calcMIWeightedScore(normalized_library_intensity);
+    }
+
+    // check that the MS1 feature is present and that the MS1 MI should be calculated
+    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
+    {
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeMIPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_mi_score = mrmscore_.calcMIPrecursorScore();
+      }
+      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_contrast_score = mrmscore_.calcMIPrecursorContrastScore();
+
+      mrmscore_.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_combined_score = mrmscore_.calcMIPrecursorCombinedScore();
     }
   }
 
@@ -286,25 +415,33 @@ namespace OpenMS
         const std::vector<std::string>& native_ids_identification,
         const std::vector<std::string>& native_ids_detection,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & idscores)
+        OpenSwath_Ind_Scores & idscores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OpenSwath::MRMScoring mrmscore_;
-    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+    mrmscore_.initializeXCorrContrastMatrix(imrmfeature, native_ids_identification, native_ids_detection);
 
     if (su_.use_coelution_score_)
     {
-      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcSeparateXcorrContrastCoelutionScore();
     }
 
     if (su_.use_shape_score_)
     {
-      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+      idscores.ind_xcorr_shape_score = mrmscore_.calcSeparateXcorrContrastShapeScore();
     }
 
     // Signal to noise scoring
     if (su_.use_sn_score_)
     {
-      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
+      idscores.ind_log_sn_score = mrmscore_.calcSeparateSNScore(imrmfeature, signal_noise_estimators);
+    }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIContrastMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+      idscores.ind_mi_score = mrmscore_.calcSeparateMIContrastScore();
     }
   }
 
@@ -315,6 +452,7 @@ namespace OpenMS
         const double normalized_feature_rt,
         OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
@@ -343,7 +481,7 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-      std::vector<double>& normalized_library_intensity)
+                                                            std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
     for (Size i = 0; i < transitions.size(); i++)
@@ -358,19 +496,26 @@ namespace OpenMS
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
-                                                            double RT, int nr_spectra_to_add)
+  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
+                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
+  {
+    return getAddedSpectra_(swath_map, RT, nr_spectra_to_add, drift_lower, drift_upper);
+  }
+
+  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
+                                                              double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
   {
     if (swath_maps.size() == 1)
     {
-      return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add);
+      return getAddedSpectra_(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
     }
     else
     {
+      // multiple SWATH maps for a single precursor -> this is SONAR data
       std::vector<OpenSwath::SpectrumPtr> all_spectra;
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {
-        OpenSwath::SpectrumPtr spec = getAddedSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add);
+        OpenSwath::SpectrumPtr spec = getAddedSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
         all_spectra.push_back(spec);
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
@@ -378,14 +523,65 @@ namespace OpenMS
     }
   }
 
+  OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr input, const double drift_lower, const double drift_upper)
+  {
+    OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
+    //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+
+    if (input->getDriftTimeArray() == nullptr)
+    {
+      std::cerr << "Warning: Cannot filter by drift time if no drift time is available.\n";
+      return input;
+    }
+      
+    OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
+
+    OpenSwath::BinaryDataArrayPtr mz_arr = input->getMZArray();
+    OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
+    OpenSwath::BinaryDataArrayPtr im_arr = input->getDriftTimeArray();
+
+    std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
+    std::vector<double>::const_iterator int_it = int_arr->data.begin();
+    std::vector<double>::const_iterator im_it = im_arr->data.begin();
+    std::vector<double>::const_iterator mz_end = mz_arr->data.end();
+
+    OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
+    im_arr_out->description = im_arr->description;
+
+    size_t n = mz_arr->data.size();
+    im_arr_out->data.reserve(n);
+    while (mz_it != mz_end)
+    {
+      if (*im_it > drift_lower && *im_it < drift_upper)
+      {
+        mz_arr_out->data.push_back( *mz_it );
+        intens_arr_out->data.push_back( *int_it );
+        im_arr_out->data.push_back( *im_it );
+      }
+      ++mz_it;
+      ++int_it;
+      ++im_it;
+    }
+    output->setMZArray(mz_arr_out);
+    output->setIntensityArray(intens_arr_out);
+    output->getDataArrays().push_back(im_arr_out);
+    return output;
+  }
+
+
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
-                                                            double RT, int nr_spectra_to_add)
+                                                            double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
+    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
+    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
+    added_spec->getDataArrays().back()->description = "Ion Mobility";
+
     if (indices.empty() )
     {
-      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-      return sptr;
+      return added_spec;
     }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
     if (indices[0] != 0 &&
@@ -397,8 +593,11 @@ namespace OpenMS
 
     if (nr_spectra_to_add == 1)
     {
-      OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
-      return spectrum_;
+      added_spec = swath_map->getSpectrumById(closest_idx);
+      if (drift_upper > 0) 
+      {
+        added_spec = filterByDrift(added_spec, drift_lower, drift_upper);
+      }
     }
     else
     {
@@ -416,9 +615,52 @@ namespace OpenMS
           all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
         }
       }
-      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      return spectrum_;
+
+      // Filter all spectra by drift time before further processing
+      if (drift_upper > 0) 
+      {
+        for (auto& s: all_spectra) s = filterByDrift(s, drift_lower, drift_upper);
+      }
+
+      // add up all spectra
+      if (spectra_addition_method_ == "simple")
+      {
+        // Ensure that we have the same number of data arrays as in the input spectrum
+        if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
+        {
+          for (Size k = 2; k < all_spectra[0]->getDataArrays().size(); k++)
+          {
+            OpenSwath::BinaryDataArrayPtr tmp (new OpenSwath::BinaryDataArray());
+            tmp->description = all_spectra[0]->getDataArrays()[k]->description;
+            added_spec->getDataArrays().push_back(tmp);
+          }
+        }
+
+        // Simply add up data and sort in the end
+        for (const auto& s : all_spectra)
+        {
+          for (Size k = 0; k < s->getDataArrays().size(); k++)
+          {
+            auto& v1 = added_spec->getDataArrays()[k]->data;
+            auto& v2 = s->getDataArrays()[k]->data;
+
+            v1.reserve( v1.size() + v2.size() ); 
+            v1.insert( v1.end(), v2.begin(), v2.end() );
+          }
+        }
+        sortSpectrumByMZ(*added_spec);
+      }
+      else
+      {
+        added_spec = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+      }
     }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
+           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+
+    return added_spec;
   }
 
 }

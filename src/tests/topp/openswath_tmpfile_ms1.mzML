@@ -70,17 +70,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>FNQOQxtwvkJ5ToVCr1kYQq9ZGEEbcL5CeU6FQq9ZGEKvWRhBeU6FQq9ZGEKvWRhB</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwTucLnLF2wz6nSr9VpfaQECDui85HZAKsbEUM=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -95,17 +95,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>mPVyQxD5IUMWw+JCDZSBQg2UgUEQ+SFDFsPiQg2UgUINlIFBFsPiQg2UgUINlIFB</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyb8bXIWeCnorPY4UdOvFMaQdgRnY/MBgDszxNp</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -120,17 +120,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>vR/CQ35qgUOwLjVDyhDPQsoQz0F+aoFDsC41Q8oQz0LKEM9BsC41Q8oQz0LKEM9B</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzbK3/IuS6r0XmDnqnzKYHzTkDsiM5HZgMA/PcUuw==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -145,17 +145,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ErURRMJGwkNV/odDzmsbQ85rG0LCRsJDVf6HQ85rG0POaxtCVf6HQ85rG0POaxtC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwT2irocsjtkHPov3bnc9nSIOyEzkdmAwAKTxUV</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -170,17 +170,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>8HpNRKD8CEQTyL9DzS1bQ80tW0Kg/AhEE8i/Q80tW0PNLVtCE8i/Q80tW0PNLVtC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJz7UOXrsuAPh4vwif3OZ3WjQdgJnY/MBgAWKhTw</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -195,17 +195,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>yRuIRGF6NUS7Ef5DtC6RQ7QukUJhejVEuxH+Q7QukUO0LpFCuxH+Q7QukUO0LpFC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7Kd3hklhl6rJb8J/zFr2JIOyEzkdmAwD4mRTB</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -220,17 +220,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ymOpRGPaYUTfGB5Etq60Q7autEJj2mFE3xgeRLautEO2rrRC3xgeRLautEO2rrRC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7lbzSJflWost9CTmXbeu2OAOxEzofmQ0ASFAYCQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -245,17 +245,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>aAnGREUGhESU1ThEOz3TQzs900JFBoRElNU4RDs900M7PdNClNU4RDs900M7PdNC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzL4Dzm4srW4jLlqoWLte1lZyB2QucjswG8gBKi</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -270,17 +270,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>NoDZRCQAkUQyAEtEOgDoQzoA6EIkAJFEMgBLRDoA6EM6AOhCMgBLRDoA6EM6AOhC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwza7jposIw0cWIwdvFiuGFMxA7ofOR2QBeJg5k</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -295,17 +295,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>sGfgRHWalUTXcVFEiF3vQ4hd70J1mpVE13FRRIhd70OIXe9C13FRRIhd70OIXe9C</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzbkP7ApXTWVJfrhYEuHbHvnYHYCZ2PzAYAVLMYKg==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -320,17 +320,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>NoDZRCQAkUQyAEtEOgDoQzoA6EIkAJFEMgBLRDoA6EM6AOhCMgBLRDoA6EM6AOhC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwza7jposIw0cWIwdvFiuGFMxA7ofOR2QBeJg5k</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -345,17 +345,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>aAnGREUGhESU1ThEOz3TQzs900JFBoRElNU4RDs900M7PdNClNU4RDs900M7PdNC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzL4Dzm4srW4jLlqoWLte1lZyB2QucjswG8gBKi</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -370,17 +370,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ymOpRGPaYUTfGB5Etq60Q7autEJj2mFE3xgeRLautEO2rrRC3xgeRLautEO2rrRC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7lbzSJflWost9CTmXbeu2OAOxEzofmQ0ASFAYCQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -395,17 +395,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>yRuIRGF6NUS7Ef5DtC6RQ7QukUJhejVEuxH+Q7QukUO0LpFCuxH+Q7QukUO0LpFC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJw7Kd3hklhl6rJb8J/zFr2JIOyEzkdmAwD4mRTB</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -420,17 +420,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>8HpNRKD8CEQTyL9DzS1bQ80tW0Kg/AhEE8i/Q80tW0PNLVtCE8i/Q80tW0PNLVtC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJz7UOXrsuAPh4vwif3OZ3WjQdgJnY/MBgAWKhTw</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -445,17 +445,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ErURRMJGwkNV/odDzmsbQ85rG0LCRsJDVf6HQ85rG0POaxtCVf6HQ85rG0POaxtC</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwT2irocsjtkHPov3bnc9nSIOyEzkdmAwAKTxUV</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -470,17 +470,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>vR/CQ35qgUOwLjVDyhDPQsoQz0F+aoFDsC41Q8oQz0LKEM9BsC41Q8oQz0LKEM9B</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJzbK3/IuS6r0XmDnqnzKYHzTkDsiM5HZgMA/PcUuw==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -495,17 +495,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>mPVyQxD5IUMWw+JCDZSBQg2UgUEQ+SFDFsPiQg2UgUINlIFBFsPiQg2UgUINlIFB</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJyb8bXIWeCnorPY4UdOvFMaQdgRnY/MBgDszxNp</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -520,17 +520,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAICI4f0AAAAAAKUB/QAAAAOAGSH9AAAAAwA1Qf0AAAACgFFh/QAAAAMDM4H9AAAAAwCbmf0AAAACggOt/QAAAAIDa8H9AAAAAoNNKgEAAAACA2lKAQAAAAGDhWoBA</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJxjYGBQULKod2AAAk0HMP2AzQNMH+ANANMLRCIg/DMPILTaM4h4w2sw3XDrA4R/2asBwg8C0wkPoxocAGBvGsM=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>FNQOQxtwvkJ5ToVCr1kYQq9ZGEEbcL5CeU6FQq9ZGEKvWRhBeU6FQq9ZGEKvWRhB</binary>
+						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
+						<binary>eJwTucLnLF2wz6nSr9VpfaQECDui85HZAKsbEUM=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -540,26 +540,26 @@
 <indexList count="1">
 	<index name="spectrum">
 		<offset idRef="spectrum=0">3888</offset>
-		<offset idRef="spectrum=6">5516</offset>
-		<offset idRef="spectrum=12">7116</offset>
-		<offset idRef="spectrum=18">8717</offset>
-		<offset idRef="spectrum=24">10318</offset>
-		<offset idRef="spectrum=30">11919</offset>
-		<offset idRef="spectrum=36">13520</offset>
-		<offset idRef="spectrum=42">15121</offset>
-		<offset idRef="spectrum=48">16722</offset>
-		<offset idRef="spectrum=54">18323</offset>
-		<offset idRef="spectrum=60">19925</offset>
-		<offset idRef="spectrum=66">21528</offset>
-		<offset idRef="spectrum=72">23131</offset>
-		<offset idRef="spectrum=78">24734</offset>
-		<offset idRef="spectrum=84">26337</offset>
-		<offset idRef="spectrum=90">27940</offset>
-		<offset idRef="spectrum=96">29543</offset>
-		<offset idRef="spectrum=102">31146</offset>
-		<offset idRef="spectrum=108">32750</offset>
+		<offset idRef="spectrum=6">5455</offset>
+		<offset idRef="spectrum=12">6994</offset>
+		<offset idRef="spectrum=18">8538</offset>
+		<offset idRef="spectrum=24">10078</offset>
+		<offset idRef="spectrum=30">11618</offset>
+		<offset idRef="spectrum=36">13158</offset>
+		<offset idRef="spectrum=42">14702</offset>
+		<offset idRef="spectrum=48">16242</offset>
+		<offset idRef="spectrum=54">17782</offset>
+		<offset idRef="spectrum=60">19327</offset>
+		<offset idRef="spectrum=66">20869</offset>
+		<offset idRef="spectrum=72">22411</offset>
+		<offset idRef="spectrum=78">23957</offset>
+		<offset idRef="spectrum=84">25499</offset>
+		<offset idRef="spectrum=90">27041</offset>
+		<offset idRef="spectrum=96">28583</offset>
+		<offset idRef="spectrum=102">30129</offset>
+		<offset idRef="spectrum=108">31672</offset>
 	</index>
 </indexList>
-<indexListOffset>34384</indexListOffset>
+<indexListOffset>33245</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

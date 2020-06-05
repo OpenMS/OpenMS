@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,12 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <cstdlib>
 #include <vector>
@@ -149,7 +149,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
                                            "Note: In mode 'inspect_out' an Inspect results file is read.");
@@ -206,7 +206,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     //-------------------------------------------------------------
     // (1) variables
@@ -833,7 +833,7 @@ protected:
         {
           QString output = builder.readAll();
           // set the search engine and its version and the score type
-          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
+          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) OPENMS_LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
         }
       }
       else protein_identification.setSearchEngine("InsPecT");

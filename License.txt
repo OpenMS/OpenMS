@@ -2,7 +2,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 -----------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above
@@ -64,17 +64,17 @@ GLPK
   - License:
   http://www.gnu.org/copyleft/gpl.html
 
-Qt 4
+Qt5 (open-source version)
   - URL:
   https://www.qt.io/
-  - License (links):
-  http://doc.qt.io/qt-4.8/opensourceedition.html
+  - License:
+  http://doc.qt.io/qt-5/licensing.html
 
 Xerces-C
   - URL:
   http://xerces.apache.org/xerces-c/index.html
   - License:
-  http://www.apache.org/licenses/LICENSE-2.0.html
+  http://www.apache.org/licenses/LICENSE-2.0
 
 Boost (headers)
   - URL:
@@ -105,6 +105,12 @@ Geometric Tools (Wildmagic)
  https://www.geometrictools.com/
  - License:
  http://www.boost.org/LICENSE_1_0.txt
+ 
+HDF5
+ - URL:
+ https://www.hdfgroup.org/solutions/hdf5/
+ - License:
+ https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/COPYING
 
 SQLite:
  - URL:
@@ -112,12 +118,19 @@ SQLite:
  - License:
  https://www.sqlite.org/copyright.html
 
-Kiss FFT
-`- URL:
+KissFFT
+ - URL:
  https://sourceforge.net/projects/kissfft/
  - License:
  https://sourceforge.net/p/kissfft/code/ci/default/tree/COPYING
 
+---------------------   Raw file conversion:  ------------------------
+
+RawFileReader (via ThermoRawFileParser)
+- URL:
+https://github.com/compomics/ThermoRawFileParse
+- License:
+https://github.com/compomics/ThermoRawFileParser/blob/master/LICENSE
 
 ---------------------   Search engines:  ------------------------
  
@@ -131,7 +144,7 @@ Percolator:
   - URL:
   http://percolator.ms/
   - License:
-  http://www.apache.org/licenses/LICENSE-2.0.html
+  http://www.apache.org/licenses/LICENSE-2.0
 
 X!Tandem:
   - URL and source code:
@@ -143,7 +156,7 @@ MyriMatch:
   - URL and source code:
   https://www.ncbi.nlm.nih.gov/pubmed/17269722
   - License:
-  http://www.apache.org/licenses/LICENSE-2.0.txt
+  http://www.apache.org/licenses/LICENSE-2.0
 
 MSGF+:
   - URL and source code:
@@ -181,5 +194,24 @@ Comet:
   - URL and source code:
   https://sourceforge.net/projects/comet-ms/
   - License:
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Crux:
+  - URL and source code:
+  http://crux.ms
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0
+
+MaRaCluster:
+  - URL and source code:
+  https://github.com/statisticalbiotechnology/maracluster
+  - License
   http://www.apache.org/licenses/LICENSE-2.0.html
 
+---------------------   CMake Modules:  ------------------------
+
+GetGitRevisionDescription and findCppCheck:
+  - URL and source code:
+  https://github.com/rpavlik/cmake-modules
+  - License
+  http://www.boost.org/LICENSE_1_0.txt

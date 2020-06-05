@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,11 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
+#pragma once
 
 #include <vector>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
@@ -50,16 +49,28 @@ namespace OpenMS
    * correct all maps according to the m/z shift found in those fixed points.
    *
    */
-  class OPENMS_DLLAPI SwathMapMassCorrection
+  class OPENMS_DLLAPI SwathMapMassCorrection :
+    public DefaultParamHandler
   {
 
 public:
+
+    //@{
+    /// Constructor
+    SwathMapMassCorrection();
+
+    /// Destructor
+    ~SwathMapMassCorrection() = default;
+    //@}
+
+    /// Synchronize members with param class
+    void updateMembers_() override;
 
     /**
      * @brief Correct the m/z values of a SWATH map based on the RT-normalization peptides
      *
      * This extracts the full spectra at the most likely elution time of the
-     * calibrant masses and fits a regression curve to correct for a possible
+     * calibrant peptides and fits a regression curve to correct for a possible
      * mass shift of the empirical masses vs the theoretically expected masses.
      * Several types of regressions are available (see below corr_type parameter).
      *
@@ -68,17 +79,39 @@ public:
      *
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
-     * @param corr_type Regression type, one of "none", "unweighted_regression", "weighted_regression", "quadratic_regression", "quadratic_regression_delta_ppm"
-     *
      *
      */
-    static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-                          std::vector< OpenSwath::SwathMap > & swath_maps,
-                          std::string corr_type,
-                          double mz_extr_window = 0.05, bool ppm = false);
+    void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
+                   std::vector< OpenSwath::SwathMap > & swath_maps, const OpenSwath::LightTargetedExperiment& targeted_exp);
+
+    /**
+     * @brief Correct the ion mobility values of a SWATH map based on the RT-normalization peptides
+     *
+     * This extracts the full spectra at the most likely elution time of the
+     * calibrant peptides and fits a linear regression curve to correct for a
+     * possible ion mobility (drift time) shift of the empirical drift time vs
+     * the theoretically expected drift time.
+     *
+     * @param transition_group_map A MRMFeatureFinderScoring result map
+     * @param swath_maps The raw swath maps from the current run
+     * @param im_trafo The resulting map containing the transformation
+     *
+     */
+    void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
+                   const std::vector< OpenSwath::SwathMap > & swath_maps,
+                   TransformationDescription& im_trafo,
+                   const OpenSwath::LightTargetedExperiment& targeted_exp);
+
+  private:
+    double mz_extraction_window_;
+    bool mz_extraction_window_ppm_;
+    bool ms1_im_;
+    double im_extraction_window_;
+    String mz_correction_function_;
+    String im_correction_function_;
+    String debug_im_file_;
+    String debug_mz_file_;
 
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
 

@@ -1,6 +1,7 @@
 qrc_resources.cxx
 DartConfiguration.tcl
-/*.cmake
+/**/*.cmake
+/**/*.canno
 Testing
 CMakeCache.txt
 CMakeFiles
@@ -21,3 +22,11 @@ OpenMS.includes
 src/.DS_Store
 src/openms/.DS_Store
 .vscode
+contrib-build
+openms-build
+*.swp
+cmake-build-debug
+cmake-build-release
+cmake-build-*
+*.code-workspace
+.vs

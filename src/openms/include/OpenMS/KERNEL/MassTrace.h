@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MASSTRACE_H
-#define OPENMS_KERNEL_MASSTRACE_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -67,6 +66,7 @@ public:
     enum MT_QUANTMETHOD {
       MT_QUANT_AREA = 0,  ///< quantify by area
       MT_QUANT_MEDIAN,    ///< quantify by median of intensities
+      MT_QUANT_HEIGHT,    ///< quantify by peak height
       SIZE_OF_MT_QUANTMETHOD
     };
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
@@ -251,7 +251,7 @@ public:
     */
     ///@{
 
-    /// Sum all non-negative (smoothed!) intensities  in the mass trace
+    /// Sum all non-negative (smoothed!) intensities in the mass trace
     double computeSmoothedPeakArea() const;
 
     /// Sum intensities of all peaks in the mass trace
@@ -261,6 +261,7 @@ public:
     Size findMaxByIntPeak(bool use_smoothed_ints = false) const;
 
     /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities).
+    /// Uses linear interpolation of the two closest points to the half_max intensity in order to get the RT values at exactly the half_max
     /// stores result internally, use getFWHM().
     double estimateFWHM(bool use_smoothed_ints = false);
 
@@ -322,6 +323,11 @@ private:
     /// median of trace intensities
     double computeMedianIntensity_() const;
 
+    /// calculate x coordinate of start/end indexes at half_max
+    /// calculation is based on (yB - yA) / (xB - xA) = (y_eval - yA) / (xC - xA)
+    /// solve for xC: xC = xA + ((y_eval - yA) * (xB - xA) / (yB - yA))
+    double linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const;
+
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
 
@@ -351,4 +357,3 @@ private:
 
 }
 
-#endif // OPENMS_KERNEL_MASSTRACE_H

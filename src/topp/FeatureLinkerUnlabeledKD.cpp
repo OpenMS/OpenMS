@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,18 @@ using namespace std;
  maps. These transformed RTs are used only internally. In the results, original
  RTs will be reported.
 
+ The linking behavior can be influenced by separately specifying how to use
+ the available charge and adduct information.  Options  allow to restrict
+ linking to features with the same adduct/charge (or lack thereof, i.e.
+ features with charge zero or no adduct annotation), additionally allowing
+ the linking of charged/adduct-annotated features with those having no
+ charge/adduct information, or allowing all features to be linked irrespective
+ of charge state/adduct information.
+ 
+ Note that the more relaxed the allowed grouping criteria, the larger internally
+ used connected components memory-wise. More stringent m/z or retention time
+ tolerances might be required then.
+
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureLinkerUnlabeledKD.cli
  <B>INI file documentation of this tool:</B>
@@ -106,20 +118,20 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     TOPPFeatureLinkerBase::registerOptionsAndFlags_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     FeatureGroupingAlgorithmKD algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     FeatureGroupingAlgorithmKD algo;
     return TOPPFeatureLinkerBase::common_main_(&algo);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,24 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
-#include <algorithm>
-#include <iterator>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
-
-#ifdef _OPENMP
-#include <omp.h>
-#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <boost/shared_ptr.hpp>
-#endif
 
 // #define DEBUG
 
@@ -597,7 +586,7 @@ namespace OpenMS
       sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
@@ -607,7 +596,7 @@ namespace OpenMS
       sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
     }
@@ -829,7 +818,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Requested unsupported ion type" << std::endl;
+          OPENMS_LOG_ERROR << "Requested unsupported ion type" << std::endl;
         }
 
         DescriptorSet descriptor;
@@ -967,11 +956,11 @@ namespace OpenMS
 
       if (add_isotopes)
       {
-        IsotopeDistribution dist = ion_formula.getIsotopeDistribution((Int)max_isotope);
+        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopePatternGenerator((Int)max_isotope));
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->second));
+          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->getIntensity()));
           if (add_metainfo)
           {
             spectrum.getStringDataArrays()[0].push_back(ion_name);

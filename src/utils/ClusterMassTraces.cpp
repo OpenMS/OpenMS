@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,15 +43,15 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ClusterMassTraces ClusterMassTraces
+  @page UTILS_ClusterMassTraces ClusterMassTraces
 
-  @brief Cluster mass traces occuring in the same map together
+  @brief Cluster mass traces occurring in the same map together
 
   Cluster mass traces together found in a mass spectrometric map (MS1 or MS2).
   Input is a consensus map containing individual mass traces, the output may be
   spectra containing all clustered features.
 
-  Mass traces are clustered independend of precursor traces in another map
+  Mass traces are clustered independent of precursor traces in another map
   (this is the more simple approach)  and pseudo spectra are created without
   any precursors assigned. This is useful for 
 
@@ -62,6 +62,11 @@ using namespace OpenMS;
 
    - de novo searches 
    - calculate the most likely precursor(s) and DB-search
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ClusterMassTraces.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ClusterMassTraces.html
 
 */
 
@@ -89,7 +94,7 @@ class TOPPClusterMassTraces
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in","<file>","","Mass traces");
     setValidFormats_("in",ListUtils::create<String>("consensusXML"));
@@ -108,7 +113,7 @@ class TOPPClusterMassTraces
 
  public:
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
 
     setLogType(log_type_); 
@@ -175,3 +180,4 @@ int main( int argc, const char** argv )
   return tool.main(argc,argv);
 }
 
+///@endcond

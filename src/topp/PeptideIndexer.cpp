@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,6 +92,8 @@ using namespace OpenMS;
   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
+  Further details can be found in the underlying PeptideIndexing implementation.
+  
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
@@ -115,7 +117,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -127,7 +129,7 @@ protected:
     registerFullParam_(PeptideIndexing().getParameters());
    }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -138,7 +140,7 @@ protected:
     PeptideIndexing indexer;
     Param param = getParam_().copy("", true);
     Param param_pi = indexer.getParameters();
-    param_pi.update(param, false, Log_debug); // suppress param. update message
+    param_pi.update(param, false, OpenMS_Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
     indexer.setLogType(this->log_type_);
     String db_name = getStringOption_("fasta");
@@ -188,6 +190,7 @@ protected:
         prot_ids[i].computeCoverage(pep_ids);
       }
     }
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------

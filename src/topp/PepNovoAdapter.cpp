@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ class TOPPPepNovoAdapter :
 
   protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -131,7 +131,7 @@ class TOPPPepNovoAdapter :
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",ListUtils::create<String>("idXML"));
 
-      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, ListUtils::create<String>("skipexists"));
+      registerInputFile_("pepnovo_executable","<file>", "", "The PepNovo executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
       registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
 
       addEmptyLine_ ();
@@ -152,15 +152,15 @@ class TOPPPepNovoAdapter :
       setMinInt_("num_solutions",1);
       setMaxInt_("num_solutions", 2000);
 
-      std::vector<String>all_possible_modifications;
-      ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-      registerStringList_("fixed_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of fixed modifications", false);
-      setValidStrings_("fixed_modifications", all_possible_modifications);
-      registerStringList_("variable_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of variable modifications", false);
-      setValidStrings_("variable_modifications", all_possible_modifications);
+      vector<String> all_mods;
+      ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+      registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      setValidStrings_("fixed_modifications", all_mods);
+      registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      setValidStrings_("variable_modifications", all_mods);
     }
 
-    ExitCodes main_(int , const char**)
+    ExitCodes main_(int , const char**) override
     {
 
       // path to the log file
@@ -345,9 +345,7 @@ class TOPPPepNovoAdapter :
           //if PepNovo finished successfully use PepNovoOutfile to parse the results and generate idXML
           std::vector< PeptideIdentification > peptide_identifications;
           ProteinIdentification protein_identification;
-          StringList ms_runs;
-          exp.getPrimaryMSRunPath(ms_runs);
-          protein_identification.setPrimaryMSRunPath(ms_runs);
+          protein_identification.setPrimaryMSRunPath({inputfile_name}, exp);
 
           PepNovoOutfile p_novo_outfile;
 
@@ -364,7 +362,7 @@ class TOPPPepNovoAdapter :
       catch(Exception::BaseException &exc)
       {
         writeLog_(exc.what());
-        LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
+        OPENMS_LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
         error = true;
       }
       

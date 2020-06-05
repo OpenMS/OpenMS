@@ -88,6 +88,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y5.1.light"/>
 						</activation>
 					</precursor>
 					<product>
@@ -119,6 +120,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y6.1.light"/>
 						</activation>
 					</precursor>
 					<product>
@@ -150,6 +152,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y7.1.light"/>
 						</activation>
 					</precursor>
 					<product>
@@ -181,6 +184,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y5.1.heavy"/>
 						</activation>
 					</precursor>
 					<product>
@@ -212,6 +216,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y6.1.heavy"/>
 						</activation>
 					</precursor>
 					<product>
@@ -243,6 +248,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y7.1.heavy"/>
 						</activation>
 					</precursor>
 					<product>
@@ -271,13 +277,13 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.light">5241</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.light">8249</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.light">10857</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">12840</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">16342</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">19110</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.light">8343</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.light">11045</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">13122</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">16718</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">19580</offset>
 	</index>
 </indexList>
-<indexListOffset>21127</indexListOffset>
+<indexListOffset>21691</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

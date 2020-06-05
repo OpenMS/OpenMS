@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_ROCCURVE_H
-#define OPENMS_MATH_STATISTICS_ROCCURVE_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -61,8 +60,11 @@ public:
       /// default constructor
       ROCCurve();
 
+      ///constructor with value, class pairs
+      explicit ROCCurve(const std::vector<std::pair<double,bool>> & pairs);
+
       /// destructor
-      virtual ~ROCCurve();
+      virtual ~ROCCurve() = default;
 
       /// copy constructor
       ROCCurve(const ROCCurve & source);
@@ -82,17 +84,32 @@ public:
       /// returns Area Under Curve
       double AUC();
 
+      /// returns ROC-N score (e.g. ROC-50). Returns -1 if not enough false positives were found
+      double rocN(Size N);
+
       /// some points in the ROC Curve
       std::vector<std::pair<double, double> > curve(UInt resolution = 10);
 
-      ///
+      /// returns the score at which you would need to set a cutoff to have fraction positives
+      /// returns -1 if there are not enough positives
       double cutoffPos(double fraction = 0.95);
 
-      ///
+      /// returns the score at which you would need to set a cutoff to have fraction positives
+      /// returns -1 if there are not enough positives
       double cutoffNeg(double fraction = 0.95);
+
       // @}
 
 private:
+      /// sorts data and caches if sorted
+      inline void sort();
+
+      /// counts global pos and negs
+      inline void count();
+
+      /// calculates area with trapezoidal rule
+      /// @param x1,x2,y1,y2
+      inline double trapezoidal_area(double x1, double x2, double y1, double y2);
 
       /// predicate for sort()
       class OPENMS_DLLAPI simsortdec
@@ -107,12 +124,13 @@ public:
       };
 
 
-      std::list<std::pair<double, bool> > score_clas_pairs_;
+      std::vector<std::pair<double, bool> > score_clas_pairs_;
 
       UInt pos_;
 
       UInt neg_;
+
+      bool sorted_;
     };
   }
 }
-#endif // OPENMS_MATH_STATISTICS_ROCCURVE_H

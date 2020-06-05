@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <ostream>
+
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 namespace OpenMS
 {
@@ -53,6 +54,7 @@ namespace OpenMS
 
     for (Size i = 0; i < float_data_arrays_.size(); ++i)
     {
+      if (float_data_arrays_[i].empty()) continue;
       if (float_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
@@ -70,6 +72,7 @@ namespace OpenMS
 
     for (Size i = 0; i < string_data_arrays_.size(); ++i)
     {
+      if (string_data_arrays_[i].empty()) continue;
       if (string_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
@@ -86,6 +89,7 @@ namespace OpenMS
 
     for (Size i = 0; i < integer_data_arrays_.size(); ++i)
     {
+      if (integer_data_arrays_[i].empty()) continue;
       if (integer_data_arrays_[i].size() != peaks_old)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
@@ -103,21 +107,84 @@ namespace OpenMS
     return *this;
   }
 
+  SpectrumSettings::SpectrumType MSSpectrum::getType(const bool query_data) const
+  {
+    SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
+    // easy case: type is known
+    if (t != SpectrumSettings::UNKNOWN) return t;
+
+    // Some conversion software only annotate "MS:1000525 spectrum representation" leading to an UNKNOWN type
+    // Fortunately, some store a data processing item that indicates that the data has been picked
+    for (auto& dp : getDataProcessing())
+    {
+      if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+      {
+        return SpectrumSettings::CENTROID;
+      }
+    }
+
+    if (query_data)
+    {
+      return PeakTypeEstimator::estimateType(begin(), end());
+    }
+    return SpectrumSettings::UNKNOWN;
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
+  {
+    ConstIterator largest = cbegin();
+    if (empty()) return largest;
+    ConstIterator current = cbegin();
+    ++current;
+    for (; current != cend(); ++current)
+    {
+      if (largest->getIntensity() < current->getIntensity())
+      {
+        largest = current;
+      }
+    }
+    return largest;
+  }
+
+  MSSpectrum::Iterator MSSpectrum::getBasePeak()
+  {
+    ConstIterator largest = const_cast<const MSSpectrum&>(*this).getBasePeak();
+    return begin() + std::distance(cbegin(), largest);
+  }
+
+  MSSpectrum::PeakType::IntensityType MSSpectrum::getTIC() const
+  {
+    return std::accumulate(cbegin(),
+                           cend(),
+                           0.0,
+                           [](MSSpectrum::PeakType::IntensityType sum, const PeakType& p)
+                              {
+                                return sum + p.getIntensity();
+                              });
+  }
+
   void MSSpectrum::clear(bool clear_meta_data)
   {
     ContainerType::clear();
 
     if (clear_meta_data)
     {
+      ContainerType::shrink_to_fit();
+
       clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;
       drift_time_ = -1.0;
+      drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
+      name_.shrink_to_fit();
       float_data_arrays_.clear();
+      float_data_arrays_.shrink_to_fit();
       string_data_arrays_.clear();
+      string_data_arrays_.shrink_to_fit();
       integer_data_arrays_.clear();
+      integer_data_arrays_.shrink_to_fit();
     }
   }
 
@@ -229,8 +296,31 @@ namespace OpenMS
     }
   }
 
+  Int MSSpectrum::findHighestInWindow(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
+                              MSSpectrum::CoordinateType tolerance_right) const
+  {
+    if (ContainerType::empty()) return -1;
+
+    // get left/right iterator
+    auto left = this->MZBegin(mz - tolerance_left);
+    auto right = this->MZEnd(mz + tolerance_right);
+
+    // no MS1 precursor peak in +- tolerance window found
+    if  (left == right)
+    {
+      return -1;
+    }
+
+    auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+
+    // find peak (index) with highest intensity to expected position
+    return (max_intensity_it - this->begin());
+  }
+
   void MSSpectrum::sortByPosition()
   {
+    if (isSorted()) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
@@ -259,6 +349,9 @@ namespace OpenMS
 
   void MSSpectrum::sortByIntensity(bool reverse)
   {
+    if (reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()))) return;
+    else if (!reverse && std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess())) return;
+
     if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
     {
       if (reverse)
@@ -302,13 +395,7 @@ namespace OpenMS
 
   bool MSSpectrum::isSorted() const
   {
-    if (this->size() < 2) return true;
-
-    for (Size i = 1; i < this->size(); ++i)
-    {
-      if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
-    }
-    return true;
+    return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
@@ -321,6 +408,7 @@ namespace OpenMS
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
+           drift_time_unit_ == rhs.drift_time_unit_ &&
            ms_level_ == rhs.ms_level_ &&
            float_data_arrays_ == rhs.float_data_arrays_ &&
            string_data_arrays_ == rhs.string_data_arrays_ &&
@@ -339,6 +427,7 @@ namespace OpenMS
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
+    drift_time_unit_ = source.drift_time_unit_;
     ms_level_ = source.ms_level_;
     name_ = source.name_;
     float_data_arrays_ = source.float_data_arrays_;
@@ -354,6 +443,7 @@ namespace OpenMS
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
+    drift_time_unit_(MSSpectrum::DriftTimeUnit::NONE),
     ms_level_(1),
     name_(),
     float_data_arrays_(),
@@ -367,6 +457,7 @@ namespace OpenMS
     SpectrumSettings(source),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
+    drift_time_unit_(source.drift_time_unit_),
     ms_level_(source.ms_level_),
     name_(source.name_),
     float_data_arrays_(source.float_data_arrays_),
@@ -394,6 +485,16 @@ namespace OpenMS
   void MSSpectrum::setRT(double rt)
   {
     retention_time_ = rt;
+  }
+
+  MSSpectrum::DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
+  {
+    return drift_time_unit_;
+  }
+
+  void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
+  {
+    drift_time_unit_ = dt;
   }
 
   double MSSpectrum::getDriftTime() const
@@ -501,6 +602,50 @@ namespace OpenMS
     PeakType p;
     p.setPosition(mz);
     return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  }
+
+  MSSpectrum::Iterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz)
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosBegin(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::Iterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz)
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosEnd(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZEnd(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz) const
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosBegin(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz) const
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosEnd(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZEnd(begin, mz, end);
   }
 
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {

@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Date.h>" namespace "OpenMS":
         Date() nogil except +
         Date(Date) nogil except + # wrap-ignore
 
-        void set(String & date) nogil except +
+        void set(const String & date) nogil except +
         # void set(UInt month, UInt day, UInt year);
 
         Date today() nogil except +

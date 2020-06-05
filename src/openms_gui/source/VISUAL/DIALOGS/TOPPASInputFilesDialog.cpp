@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,166 +34,43 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+#include <ui_TOPPASInputFilesDialog.h>
 
-#include <OpenMS/SYSTEM/File.h>
-
-#include <QtGui/QFileDialog>
-#include <QApplication>
-#include <QClipboard>
-#include <QKeyEvent>
-#include <QUrl>
-
-#include <iostream>
+#include <OpenMS/VISUAL/InputFileList.h>
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd)
-    : cwd_(cwd)
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent)
+    : QDialog(parent),
+      ui_(new Ui::TOPPASInputFilesDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
+    ifl_ = (InputFileList*)ui_->input_file_list;
+    ifl_->setCWD(cwd);
+    ifl_->setFilenames(list);
 
-    //input_file_list->setSortingEnabled(true);
-    input_file_list->addItems(list);
-
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
-    connect(add_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
-    connect(remove_button, SIGNAL(clicked()), this, SLOT(removeSelected()));
-    connect(remove_all_button, SIGNAL(clicked()), this, SLOT(removeAll()));
-    connect(edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
-    connect(up_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
-    connect(down_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
-
-    // allow dragging of filenames from OS window manager (Finder, Explorer etc)
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     setAcceptDrops(true);
   }
 
-  void TOPPASInputFilesDialog::dragEnterEvent(QDragEnterEvent* e)
+  TOPPASInputFilesDialog::~TOPPASInputFilesDialog()
   {
-    // file dropped from a window manager come as URLs
-    if (e->mimeData()->hasUrls())
-    {
-      e->acceptProposedAction();
-    }
-  }
-
-  void TOPPASInputFilesDialog::dropEvent(QDropEvent* e)
-  {
-    foreach (const QUrl& url, e->mimeData()->urls())
-    {
-      input_file_list->addItem(url.toLocalFile());
-    }
-  }
-
-  void TOPPASInputFilesDialog::keyPressEvent(QKeyEvent* e) {
-    // when Ctrl-C is pressed, copy all selected files to clipboard as text
-    if (e->matches(QKeySequence::Copy))
-    {
-      QStringList strings;
-      QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
-      foreach (QListWidgetItem* item, selected_items)
-      {
-        strings << item->text();
-      }
-      QApplication::clipboard()->setText(strings.join("\n"));
-      e->accept(); // do not propagate upstream
-    }
-    // exit on escape (without saving the list)
-    else if (e->key() == Qt::Key_Escape)
-    {
-      this->close();
-    }
-  }
-
-  void TOPPASInputFilesDialog::showFileDialog()
-  {
-    QStringList file_names = QFileDialog::getOpenFileNames(this,
-                                                           tr("Select input file(s)"), 
-                                                           cwd_);
-    if (!file_names.isEmpty())
-    {
-      input_file_list->addItems(file_names);
-      cwd_ = File::path(file_names.back()).toQString();
-    }
-  }
-
-  void TOPPASInputFilesDialog::removeSelected()
-  {
-    QList<QListWidgetItem *> selected_items = input_file_list->selectedItems();
-    foreach(QListWidgetItem * item, selected_items)
-    {
-      input_file_list->takeItem(input_file_list->row(item));
-    }
-  }
-
-  void TOPPASInputFilesDialog::removeAll()
-  {
-    input_file_list->clear();
+    delete ui_;
   }
 
   void TOPPASInputFilesDialog::getFilenames(QStringList& files) const
   {
-    files.clear();
-    for (int i = 0; i < input_file_list->count(); ++i)
-    {
-      files.push_back(input_file_list->item(i)->text());
-    }
-    if (flag_sort_list->isChecked())
+    ifl_->getFilenames(files);
+    if (ui_->flag_sort_list->isChecked())
       files.sort();
   }
 
   const QString& TOPPASInputFilesDialog::getCWD() const
   {
-    return cwd_;
+    return ifl_->getCWD();
   }
 
-  void TOPPASInputFilesDialog::editCurrentItem()
-  {
-    QListWidgetItem * item = input_file_list->currentItem();
-    if (!item)
-    {
-      return;
-    }
-    TOPPASInputFileDialog tifd(item->text());
-    if (tifd.exec())
-    {
-      item->setText(tifd.getFilename());
-    }
-  }
 
-  void TOPPASInputFilesDialog::moveCurrentItem()
-  {
-    if (input_file_list->count() < 2)
-    {
-      return;
-    }
-    int row = input_file_list->currentRow();
-    if (row < 0)
-    {
-      return;
-    }
-
-    if (QObject::sender() == up_button)     // move upwards
-    {
-      if (row == 0)
-      {
-        return;
-      }
-      QListWidgetItem * item = input_file_list->takeItem(row);
-      input_file_list->insertItem(row - 1, item);
-      input_file_list->setCurrentItem(item);
-    }
-    else if (QObject::sender() == down_button) // move downwards
-    {
-      if (row == input_file_list->count() - 1)
-      {
-        return;
-      }
-      QListWidgetItem * item = input_file_list->takeItem(row);
-      input_file_list->insertItem(row + 1, item);
-      input_file_list->setCurrentItem(item);
-    }
-  }
 
 } // namespace

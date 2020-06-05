@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -85,7 +84,7 @@ namespace OpenMS
           continue;
         }
 
-        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+        OPENMS_LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
           ". Will try to infer modification id by mass next." << std::endl;
 
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
@@ -94,7 +93,7 @@ namespace OpenMS
         // modification by using the mass difference
         const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
           it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
-        if (mod != NULL)
+        if (mod != nullptr)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_RANSAC_H
-#define OPENMS_MATH_MISC_RANSAC_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -60,11 +59,11 @@ namespace OpenMS
     {
       /// Default constructor
       RANSACParam()
-        : n(0), k(0), t(0), d(0), relative_d(false), rng(NULL)
+        : n(0), k(0), t(0), d(0), relative_d(false), rng(nullptr)
         {
         }
       /// Full constructor
-      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = NULL)
+      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = nullptr)
         : n(p_n), k(p_k), t(p_t), d(p_d), relative_d(p_relative_d), rng(p_rng)
       {
         if (relative_d)
@@ -144,7 +143,7 @@ public:
           double t, 
           size_t d, 
           bool relative_d = false,
-          int (*rng)(int) = NULL)
+          int (*rng)(int) = nullptr)
       {
         // translate relative percentages into actual numbers
         if (relative_d)
@@ -178,7 +177,7 @@ public:
           // check if the model already includes all points
           if (bestdata.size() == pairs.size()) break;
 
-          if (rng != NULL)
+          if (rng != nullptr)
           { // use portable RNG in test mode
             std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
           } else {
@@ -244,4 +243,3 @@ public:
 
 
 } // namespace OpenMS
-#endif // OPENMS_MATH_MISC_RANSAC_H

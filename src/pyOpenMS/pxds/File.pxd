@@ -34,9 +34,6 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Returns the path of the file (without the file name).
     String path(String file) nogil except + # wrap-attach:File
 
-    # Returns the file name without the extension
-    String removeExtension(String file) nogil except + # wrap-attach:File
-
     # Return true if the file exists and is readable
     bool readable(String file) nogil except + # wrap-attach:File
 
@@ -79,10 +76,12 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Searchs for an executable with the given name.
     String findExecutable(String toolName) nogil except + # wrap-attach:File
 
-    String getTemporaryFile(String & alternative_file) nogil except + # wrap-attach:File
+    String getTemporaryFile(const String & alternative_file) nogil except + # wrap-attach:File
 
     # Resolves a partial file name to a documentation file in the doc-folder.
     String findDoc(String filename) nogil except + # wrap-attach:File
 
+    bool rename(const String & from_, const String & to, bool overwrite_existing, bool verbose) nogil except + # wrap-attach:File
 
+    # bool removeDir(const QString & dir_name) nogil except +
 

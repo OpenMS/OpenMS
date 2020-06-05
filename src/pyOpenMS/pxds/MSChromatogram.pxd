@@ -1,6 +1,5 @@
 from Types cimport *
 from ChromatogramSettings cimport *
-from MetaInfoInterface cimport *
 from ChromatogramPeak cimport *
 from String cimport *
 from RangeManager cimport *
@@ -11,29 +10,40 @@ from DataArrays cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram (ChromatogramSettings, MetaInfoInterface, RangeManager1):
+    cdef cppclass MSChromatogram (ChromatogramSettings, RangeManager1):
         # wrap-inherits:
         #  ChromatogramSettings
-        #  MetaInfoInterface
         #  RangeManager1
-
-        # COMMENT: get raw data through get_peaks or by iterating through peaks
-        # COMMENT: set raw data through set_peaks
+        #
+        # wrap-doc:
+        #   The representation of a chromatogram.
+        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #   Iterations yields access to underlying peak objects but is slower
+        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #   See help(ChromatogramSettings) for information about meta-information
+        #   -----
+        #   Usage:
+        #     precursor = chromatogram.getPrecursor()
+        #     product = chromatogram.getProduct()
+        #     rt, intensities = chromatogram.get_peaks()
+        #   -----
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +
-        double getMZ() nogil except +
+        double getMZ() nogil except + #wrap-doc:returns the mz of the product entry, makes sense especially for MRM scans
         # void   setMZ(double) nogil except +
 
-        libcpp_string getName() nogil except +
-        void setName(libcpp_string) nogil except +
+        String getName() nogil except +
+        void setName(String) nogil except +
 
         Size size() nogil except +
+        void reserve(size_t n) nogil except + 
+
         ChromatogramPeak operator[](int) nogil except +
 
         void updateRanges() nogil except +
         void clear(int) nogil except +
-        void push_back(ChromatogramPeak)  nogil except +
+        void push_back(ChromatogramPeak)  nogil except + #wrap-doc:Append a peak
 
         bool isSorted() nogil except +
 
@@ -53,15 +63,4 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except +
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except +
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
 

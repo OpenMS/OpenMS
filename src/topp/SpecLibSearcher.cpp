@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,18 +31,21 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
 #include <vector>
@@ -97,7 +100,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -195,7 +198,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < fixed_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k])->getOrigin() && fixed_modifications[k] != mod.getModificationName())
              {
                fixed_modifications_ok = false;
                break;
@@ -215,7 +218,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < variable_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k])->getOrigin() && variable_modifications[k] != mod.getModificationName())
              {
                variable_modifications_ok = false;
                break;
@@ -265,7 +268,7 @@ protected:
     return annotated_lib;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -312,7 +315,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    time_t prog_time = time(NULL);
+    time_t prog_time = time(nullptr);
     MSPFile spectral_library;
     PeakMap query, library;
 
@@ -320,19 +323,39 @@ protected:
     MzMLFile spectra;
     spectra.setLogType(log_type_);
 
-    time_t start_build_time = time(NULL);
+    time_t start_build_time = time(nullptr);
     // -------------------------------------------------------------
     // building map for faster search
     // -------------------------------------------------------------
 
-    //library containing already identified peptide spectra
+    // library containing already identified peptide spectra
     vector<PeptideIdentification> ids;
     spectral_library.load(in_lib, ids, library);
 
+    /*
+    // Output bin histogram
+    BinnedSpectrum bin_frequency(0.01, 1, PeakSpectrum());
+    for (auto const & s : library)
+    {
+      BinnedSpectrum b(0.01, 1, s);
+      // e.g.: bin_frequency.getBins() += b.getBins();  // sum up itensities
+      // e.g.: bin_frequency.getBins() += b.getBins().coeffs().cwiseMin(1.0f); // count occupied bins (by truncating intensities >= 1 to 1)
+    }
+
+    for (BinnedSpectrum::SparseVectorIteratorType it(bin_frequency.getBins()); it; ++it)
+    {
+      // output m/z of bin start and average bin intensity
+      cout << it.index() * bin_frequency.getBinSize()  << "\t" << static_cast<float>(it.value()/library.size()) << "\n";
+      cout << static_cast<float>(it.value()) << "\n";
+      cout << static_cast<float>(library.size()) << "\n";
+    }
+    cout << endl;
+    */
+
     MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
 
-    time_t end_build_time = time(NULL);
-    LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
+    time_t end_build_time = time(nullptr);
+    OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
     PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
@@ -344,7 +367,7 @@ protected:
     StringList::iterator in, out_file;
     for (in  = in_spec.begin(), out_file  = out.begin(); in < in_spec.end(); ++in, ++out_file)
     {
-      time_t start_time = time(NULL);
+      time_t start_time = time(nullptr);
       spectra.load(*in, query);
 
       // results
@@ -505,7 +528,7 @@ protected:
             DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
             hit.setMetaValue("lib:RT", RT);
             hit.setMetaValue("lib:MZ", MZ);
-            hit.setMetaValue("isotope_error", iso);
+            hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, iso);
             hit.setScore(score);
             PeptideEvidence pe;
             pe.setProteinAccession(pr_hit.getAccession());
@@ -561,11 +584,11 @@ protected:
       //-------------------------------------------------------------
       IdXMLFile id_xml_file;
       id_xml_file.store(*out_file, protein_ids, peptide_ids);
-      time_t end_time = time(NULL);
-      LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
+      time_t end_time = time(nullptr);
+      OPENMS_LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
-    time_t end_time = time(NULL);
-    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
+    time_t end_time = time(nullptr);
+    OPENMS_LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 

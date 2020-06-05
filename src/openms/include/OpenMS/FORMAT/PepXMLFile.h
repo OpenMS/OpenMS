@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEPXMLFILE_H
-#define OPENMS_FORMAT_PEPXMLFILE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Element.h>
@@ -55,6 +54,9 @@ namespace OpenMS
 
     This class is used to load and store documents that implement the schema of PepXML files.
 
+    A documented schema for this format comes with the TPP and can also be
+    found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI PepXMLFile :
@@ -67,7 +69,7 @@ public:
     PepXMLFile();
 
     /// Destructor
-    virtual ~PepXMLFile();
+    ~PepXMLFile() override;
 
     /**
         @brief Loads peptide sequences with modifications out of a PepXML file
@@ -103,9 +105,9 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, 
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids,
                std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
-               const String& mz_name = "", bool peptideprophet_analyzed = false);
+               const String& mz_name = "", bool peptideprophet_analyzed = false, double rt_tolerance = 0.01);
 
     /**
         @brief Whether we should keep the native spectrum name of the pepXML
@@ -114,7 +116,7 @@ public:
         to each PeptideIdentification containing the original name of the
         spectrum in TPP format.
     */
-    void keepNativeSpectrumName(bool keep) 
+    void keepNativeSpectrumName(bool keep)
     {
       keep_native_name_ = keep;
     }
@@ -122,10 +124,10 @@ public:
 protected:
 
     /// Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     /// Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
 private:
 
@@ -157,6 +159,7 @@ private:
       bool variable;
       String description;
       String terminus;
+      bool protein_terminus; // "true" if protein terminus, "false" if peptide terminus
 
       AminoAcidModification() :
         mass(0),
@@ -170,7 +173,8 @@ private:
         mass(rhs.mass),
         variable(rhs.variable),
         description(rhs.description),
-        terminus(rhs.terminus)
+        terminus(rhs.terminus),
+        protein_terminus(rhs.protein_terminus)
       {
       }
 
@@ -188,6 +192,7 @@ private:
           variable = rhs.variable;
           description = rhs.description;
           terminus = rhs.terminus;
+          protein_terminus = rhs.protein_terminus;
         }
         return *this;
       }
@@ -303,5 +308,3 @@ private:
   };
 
 } // namespace OpenMS
-
-#endif // OPENMS_FORMAT_PEPXMLFILE_H

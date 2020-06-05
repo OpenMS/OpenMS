@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -88,7 +83,7 @@ namespace OpenMS
     bool found = boost::regex_search(peptide, match, re);
     if (found && match["MOD1"].matched)
     {
-      const ResidueModification* null = 0;
+      const ResidueModification* null = nullptr;
       vector<const ResidueModification*> maybe_nterm(2, null);
       String residue = peptide[0];
       String mod1 = match["MOD1"].str();
@@ -174,7 +169,7 @@ namespace OpenMS
     String unknown_mod = "[unknown]";
     if (peptide.hasSubstring(unknown_mod))
     {
-      LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
+      OPENMS_LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
                << "'" << endl;
       peptide.substitute(unknown_mod, "");
     }
@@ -244,7 +239,7 @@ namespace OpenMS
       {
         String msg = "Error: Could not extract data for spectrum reference '" +
           items[0] + "' from row " + String(row);
-        LOG_ERROR << msg << endl;
+        OPENMS_LOG_ERROR << msg << endl;
       }
 
       PeptideHit hit;
@@ -259,7 +254,7 @@ namespace OpenMS
 
       PeptideIdentification peptide;
       peptide.setIdentifier("id");
-      if (!boost::math::isnan(meta_data.rt))
+      if (!std::isnan(meta_data.rt))
       {
         peptide.setRT(meta_data.rt);
       }
@@ -267,7 +262,7 @@ namespace OpenMS
       {
         ++no_rt;
       }
-      if (!boost::math::isnan(meta_data.precursor_mz))
+      if (!std::isnan(meta_data.precursor_mz))
       {
         peptide.setMZ(meta_data.precursor_mz);
       }
@@ -340,22 +335,22 @@ namespace OpenMS
                                   params.variable_modifications);
     proteins.setSearchParameters(params);
 
-    LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
+    OPENMS_LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
              << "Created " << peptides.size() << " peptide hits (PSMs)."
              << endl;
     if (no_charge > 0)
     {
-      LOG_WARN << no_charge << " peptide hits without charge state information."
+      OPENMS_LOG_WARN << no_charge << " peptide hits without charge state information."
                << endl;
     }
     if (no_rt > 0)
     {
-      LOG_WARN << no_rt << " peptide hits without retention time information." 
+      OPENMS_LOG_WARN << no_rt << " peptide hits without retention time information." 
                << endl;
     }
     if (no_mz > 0)
     {
-      LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
+      OPENMS_LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
                << endl;
     }
   }

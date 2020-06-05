@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,89 +34,74 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
+#include <ui_TOPPASOutputFilesDialog.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
-#include <QtGui/QCompleter>
-#include <QtGui/QDirModel>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 
-#include <iostream>
 
 namespace OpenMS
 {
-  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString & dir_name, int num_jobs)
+  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs)
+    : ui_(new Ui::TOPPASOutputFilesDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
     if (dir_name != "")
     {
-      line_edit->setText(dir_name);
+      ui_->out_dir->setDirectory(dir_name);
     }
     else
     {
-      line_edit->setText(QDir::currentPath());
+      ui_->out_dir->setDirectory(QDir::currentPath());
     }
     if (num_jobs >= 1)
     {
-      num_jobs_box->setValue(num_jobs);
+      ui_->num_jobs_box->setValue(num_jobs);
     }
-    QCompleter * completer = new QCompleter(this);
-    QDirModel * dir_model = new QDirModel(completer);
-    dir_model->setFilter(QDir::AllDirs);
-    completer->setModel(dir_model);
-    line_edit->setCompleter(completer);
-    connect(browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
     
     // make Ok the default (just pressing Enter will run the workflow)
-    ok_button->setFocus();
+    ui_->ok_button->setFocus();
+  }
+
+  TOPPASOutputFilesDialog::~TOPPASOutputFilesDialog()
+  {
+    delete ui_;
   }
 
   void TOPPASOutputFilesDialog::showFileDialog()
   {
-    QString dir = File::exists(File::path(line_edit->text())) ? File::path(line_edit->text()).toQString() : "";
-    QString selected_dir = QFileDialog::getExistingDirectory(this, tr("Select output directory"), dir);
-    if (selected_dir != "")
-    {
-      line_edit->setText(selected_dir);
-    }
+    ui_->out_dir->showFileDialog();
   }
 
-  QString TOPPASOutputFilesDialog::getDirectory()
+  QString TOPPASOutputFilesDialog::getDirectory() const
   {
-    return line_edit->text();
+    return ui_->out_dir->getDirectory();
   }
 
-  int TOPPASOutputFilesDialog::getNumJobs()
+  int TOPPASOutputFilesDialog::getNumJobs() const
   {
-    return num_jobs_box->value();
+    return ui_->num_jobs_box->value();
   }
 
   void TOPPASOutputFilesDialog::checkValidity_()
   {
-    if (!dirNameValid(line_edit->text()))
+    if (!ui_->out_dir->dirNameValid())
     {
-      QMessageBox::warning(0, "Invalid directory", "Either the specified path is no directory, or you have no permission to write there.");
+      QMessageBox::warning(nullptr, "Invalid directory", "Either the specified path is no directory, or you have no permission to write there.");
       return;
     }
 
     accept();
   }
 
-  bool TOPPASOutputFilesDialog::dirNameValid(const QString & dir_name)
-  {
-    QFileInfo fi(dir_name);
-    QString file_name = dir_name;
-    if (!file_name.endsWith(QDir::separator()))
-    {
-      file_name += QDir::separator();
-    }
-    file_name += "test_file";
-    return fi.isDir() && File::writable(file_name);
-  }
 
 } // namespace

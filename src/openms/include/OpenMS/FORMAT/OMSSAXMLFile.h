@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OMSSAXMLFILE_H
-#define OPENMS_FORMAT_OMSSAXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -68,7 +67,7 @@ public:
     OMSSAXMLFile();
 
     /// Destructor
-    virtual ~OMSSAXMLFile();
+    ~OMSSAXMLFile() override;
     /**
       @brief loads data from a OMSSAXML file
 
@@ -97,13 +96,13 @@ public:
 
 protected:
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+    void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
 
 private:
 
@@ -147,7 +146,7 @@ private:
     bool load_empty_hits_;
 
     /// modifications mapping file from OMSSA mod num to UniMod accession
-    Map<UInt, std::vector<ResidueModification> > mods_map_;
+    Map<UInt, std::vector<const ResidueModification*> > mods_map_;
 
     /// modification mapping reverse, from the modification to the mod_num
     Map<String, UInt> mods_to_num_;
@@ -158,4 +157,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OMSSAXMLFILE_H

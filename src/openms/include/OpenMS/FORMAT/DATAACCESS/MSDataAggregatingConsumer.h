@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATAAGGREGATINGCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATAAGGREGATINGCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -47,6 +46,11 @@ namespace OpenMS
 
     /**
       @brief Aggregates spectra by retention time
+
+      This consumer will merge spectra passed to it that have the same
+      retention time and will then pass them to the next consumer (see
+      Constructor). Spectra are aggregated using
+      SpectrumAddition::addUpSpectra() which merges the spectra.
 
     */
     class OPENMS_DLLAPI MSDataAggregatingConsumer :
@@ -80,19 +84,18 @@ namespace OpenMS
         @note It is essential to not delete the underlying next_consumer before
         deleting this object, otherwise we risk a memory error
       */
-      virtual ~MSDataAggregatingConsumer();
+      ~MSDataAggregatingConsumer() override;
 
-      virtual void setExpectedSize(Size, Size) {}
+      void setExpectedSize(Size, Size) override {}
 
-      virtual void consumeSpectrum(SpectrumType & s);
+      void consumeSpectrum(SpectrumType & s) override;
 
-      virtual void consumeChromatogram(ChromatogramType & c);
+      void consumeChromatogram(ChromatogramType & c) override;
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
+      void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override {}
 
     };
 
 } //end namespace OpenMS
 
-#endif // OPENMS_FORMAT_DATAACCESS_MSDATAAGGREGATINGCONSUMER_H
 

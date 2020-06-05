@@ -7,22 +7,22 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
     cdef cppclass LPWrapper "OpenMS::LPWrapper":
         LPWrapper() nogil except +
         LPWrapper(LPWrapper) nogil except + #wrap-ignore
-        Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, String & name) nogil except +
+        Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, const String & name) nogil except +
         Int addColumn() nogil except +
-        Int addColumn(libcpp_vector[ int ] column_indices, libcpp_vector[ double ] column_values, String & name) nogil except +
-        Int addRow(libcpp_vector[ int ] & row_indices, libcpp_vector[ double ] & row_values, String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
-        Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
+        Int addColumn(libcpp_vector[ int ] column_indices, libcpp_vector[ double ] column_values, const String & name) nogil except +
+        Int addRow(libcpp_vector[ int ] & row_indices, libcpp_vector[ double ] & row_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
+        Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, const String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
         void deleteRow(Int index) nogil except +
-        void setColumnName(Int index, String & name) nogil except +
+        void setColumnName(Int index, const String & name) nogil except +
         String getColumnName(Int index) nogil except +
         String getRowName(Int index) nogil except +
-        Int getRowIndex(String & name) nogil except +
-        Int getColumnIndex(String & name) nogil except +
+        Int getRowIndex(const String & name) nogil except +
+        Int getColumnIndex(const String & name) nogil except +
         double getColumnUpperBound(Int index) nogil except +
         double getColumnLowerBound(Int index) nogil except +
         double getRowUpperBound(Int index) nogil except +
         double getRowLowerBound(Int index) nogil except +
-        void setRowName(Int index, String & name) nogil except +
+        void setRowName(Int index, const String & name) nogil except +
         void setColumnBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
         void setRowBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
         void setColumnType(Int index, VariableType type_) nogil except +
@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         void setElement(Int row_index, Int column_index, double value) nogil except +
         double getElement(Int row_index, Int column_index) nogil except +
         void readProblem(String filename, String format_) nogil except +
-        void writeProblem(String & filename, WriteFormat format_) nogil except +
+        void writeProblem(const String & filename, WriteFormat format_) nogil except +
         Int solve(SolverParam & solver_param, Size verbose_level) nogil except +
         SolverStatus getStatus() nogil except +
         double getObjectiveValue() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,56 +58,51 @@ namespace OpenMS
   {
   }
 
-  ResidueModification::ResidueModification(const ResidueModification& rhs) :
-    id_(rhs.id_),
-    full_id_(rhs.full_id_),
-    psi_mod_accession_(rhs.psi_mod_accession_),
-    unimod_record_id_(rhs.unimod_record_id_),
-    full_name_(rhs.full_name_),
-    name_(rhs.name_),
-    term_spec_(rhs.term_spec_),
-    origin_(rhs.origin_),
-    classification_(rhs.classification_),
-    average_mass_(rhs.average_mass_),
-    mono_mass_(rhs.mono_mass_),
-    diff_average_mass_(rhs.diff_average_mass_),
-    diff_mono_mass_(rhs.diff_mono_mass_),
-    formula_(rhs.formula_),
-    diff_formula_(rhs.diff_formula_),
-    synonyms_(rhs.synonyms_),
-    neutral_loss_diff_formula_(rhs.neutral_loss_diff_formula_),
-    neutral_loss_mono_mass_(rhs.neutral_loss_mono_mass_),
-    neutral_loss_average_mass_(rhs.neutral_loss_average_mass_)
+  bool ResidueModification::operator<(const ResidueModification& rhs) const
   {
+    return std::tie(
+           id_,
+           full_id_,
+           psi_mod_accession_,
+           unimod_record_id_,
+           full_name_,
+           name_,
+           term_spec_,
+           origin_,
+           classification_,
+           average_mass_,
+           mono_mass_,
+           diff_average_mass_,
+           diff_mono_mass_,
+           formula_,
+           diff_formula_,
+           synonyms_,
+           neutral_loss_diff_formula_,
+           neutral_loss_mono_mass_,
+           neutral_loss_average_mass_
+    ) < std::tie(
+           rhs.id_,
+           rhs.full_id_,
+           rhs.psi_mod_accession_,
+           rhs.unimod_record_id_,
+           rhs.full_name_,
+           rhs.name_,
+           rhs.term_spec_,
+           rhs.origin_,
+           rhs.classification_,
+           rhs.average_mass_,
+           rhs.mono_mass_,
+           rhs.diff_average_mass_,
+           rhs.diff_mono_mass_,
+           rhs.formula_,
+           rhs.diff_formula_,
+           rhs.synonyms_,
+           rhs.neutral_loss_diff_formula_,
+           rhs.neutral_loss_mono_mass_,
+           rhs.neutral_loss_average_mass_
+    );
   }
 
-  ResidueModification & ResidueModification::operator=(const ResidueModification& rhs)
-  {
-    if (this != &rhs)
-    {
-      id_ = rhs.id_;
-      full_id_ = rhs.full_id_;
-      psi_mod_accession_ = rhs.psi_mod_accession_;
-      unimod_record_id_ = rhs.unimod_record_id_;
-      full_name_ = rhs.full_name_;
-      name_ = rhs.name_;
-      term_spec_ = rhs.term_spec_;
-      origin_ = rhs.origin_;
-      classification_ = rhs.classification_;
-      average_mass_ = rhs.average_mass_;
-      mono_mass_ = rhs.mono_mass_;
-      diff_average_mass_ = rhs.diff_average_mass_;
-      diff_mono_mass_ = rhs.diff_mono_mass_;
-      formula_ = rhs.formula_;
-      diff_formula_ = rhs.diff_formula_;
-      synonyms_ = rhs.synonyms_;
-      neutral_loss_diff_formula_ = rhs.neutral_loss_diff_formula_;
-      neutral_loss_mono_mass_ = rhs.neutral_loss_mono_mass_;
-      neutral_loss_average_mass_ = rhs.neutral_loss_average_mass_;
-    }
-
-    return *this;
-  }
 
   bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
@@ -254,6 +249,14 @@ namespace OpenMS
     {
       term_spec_ = ANYWHERE;
     }
+    else if (term_spec == "Protein N-term")
+    {
+      term_spec_ = PROTEIN_N_TERM;
+    }
+    else if (term_spec == "Protein C-term")
+    {
+      term_spec_ = PROTEIN_C_TERM;
+    }
     else
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", term_spec);
@@ -277,8 +280,12 @@ namespace OpenMS
 
     case N_TERM: return "N-term";
 
+    case PROTEIN_C_TERM: return "Protein C-term";
+
+    case PROTEIN_N_TERM: return "Protein N-term";
+
     case ANYWHERE: return "none";
-     
+
     default: break; // shouldn't happen
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));

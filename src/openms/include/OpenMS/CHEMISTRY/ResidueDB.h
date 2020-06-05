@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
-#define OPENMS_CHEMISTRY_RESIDUEDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
@@ -70,15 +69,7 @@ public:
     //@}
 
     /// this member function serves as a replacement of the constructor
-    inline static ResidueDB* getInstance()
-    {
-      static ResidueDB* db_ = 0;
-      if (db_ == 0)
-      {
-        db_ = new ResidueDB;
-      }
-      return db_;
-    }
+    static ResidueDB* getInstance();
 
     /** @name Constructors and Destructors
     */
@@ -134,18 +125,13 @@ public:
        Ambiguous - all amino acids including all ambiguous ones (X can be every other amino acid)
        AllNatural - naturally occurring residues, including selenocysteine (U)
 
-       @throw Exception::ElementNotFound if the specified residue set is not defined
+       returns an empty set if the specified residue set is not defined
     */
     const std::set<const Residue*> getResidues(const String& residue_set = "All") const;
 
     /// returns all residue sets that are registered which this instance
-    const std::set<String>& getResidueSets() const;
+    const std::set<String> getResidueSets() const;
 
-    /// sets the residues from given file
-    void setResidues(const String& filename);
-
-    /// adds a residue, i.e. a unknown residue, where only the weight is known
-    void addResidue(const Residue& residue);
     //@}
 
     /** @name Predicates
@@ -171,6 +157,8 @@ public:
     //@}
 
 protected:
+    /// sets the residues from given file
+    void setResidues_(const String& filename);
 
     /** @name Private Constructors
     */
@@ -202,8 +190,11 @@ protected:
     /// deletes all sub-instances of the stored data like modifications and residues
     void clear_();
 
-    /// clears the residues
+    /// clears the residues and all lookup structures
     void clearResidues_();
+
+    /// clears the residue modifications and all lookup structures
+    void clearResidueModifications_();
 
     /// builds an index of residue names for fast access, synonyms are also considered
     void buildResidueNames_();
@@ -230,4 +221,3 @@ protected:
     std::set<String> residue_sets_;
   };
 }
-#endif

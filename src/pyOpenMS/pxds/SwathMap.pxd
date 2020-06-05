@@ -3,7 +3,7 @@ from smart_ptr cimport shared_ptr
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenSwath":
 
     cdef cppclass SwathMap:
 

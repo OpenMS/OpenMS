@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,13 @@
 // $Authors: Immanuel Luhn$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/IDRipper.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 #include <QDir>
 
@@ -107,7 +110,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file, in which the protein/peptide identifications must be tagged with 'file_origin'");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -116,7 +119,7 @@ protected:
     registerStringOption_("out_path", "<file>", "", "Directory for the output files after ripping according to 'file_origin'. If 'out_path' is set, 'out' is ignored.", false, false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -174,14 +177,14 @@ protected:
       QString output = output_directory.toQString();
       // create full absolute path with filename
       String out = QDir::toNativeSeparators(output.append(QString("/")).append(it->first.toQString())).toStdString();
-      LOG_INFO << "Storing file: '" << out << "'." << std::endl;
+      OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
       QDir dir(output_directory.toQString());
       if (!dir.exists())
       {
         if (!File::writable(output_directory))
         {
-          LOG_WARN << "Warning: Cannot create folder: '" << output_directory << "'." << std::endl;
+          OPENMS_LOG_WARN << "Warning: Cannot create folder: '" << output_directory << "'." << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
         dir.mkpath(".");

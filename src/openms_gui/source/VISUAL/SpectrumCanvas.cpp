@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,14 +40,13 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 // QT
-#include <QtGui/QPainter>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QBitmap>
-#include <QtGui/QWheelEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QFontMetrics>
-#include <QtGui/QFontMetrics>
+#include <QPainter>
+#include <QPaintEvent>
+#include <QBitmap>
+#include <QWheelEvent>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
+#include <QFontMetrics>
 
 #include <iostream>
 
@@ -70,11 +69,11 @@ namespace OpenMS
     zoom_pos_(zoom_stack_.end()),
     update_buffer_(false),
     current_layer_(0),
-    spectrum_widget_(0),
+    spectrum_widget_(nullptr),
     percentage_factor_(1.0),
     snap_factors_(1, 1.0),
     rubber_band_(QRubberBand::Rectangle, this),
-    context_add_(0),
+    context_add_(nullptr),
     show_timing_(false),
     selected_peak_(),
     measurement_start_()
@@ -82,7 +81,7 @@ namespace OpenMS
     //Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
     // get mouse coordinates while mouse moves over diagramm and for focus handling
-    setMouseTracking(TRUE);
+    setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
     setMinimumSize(200, 200);
@@ -390,61 +389,101 @@ namespace OpenMS
     return current_layer_;
   }
 
-  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().getPeakData() = map;
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
+    new_layer.setPeakData(map);
+    new_layer.setOnDiscPeakData(od_map);
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() != 0)
+    // both empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+     && !new_layer.getPeakData()->empty())
     {
       // TODO : handle this case better
-      LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+      OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() == 0)
+    // check which one is empty
+    if (!new_layer.getPeakData()->getChromatograms().empty() 
+      && new_layer.getPeakData()->empty())
     {
-      layers_.back().type = LayerData::DT_CHROMATOGRAM;
+      new_layer.type = LayerData::DT_CHROMATOGRAM;
     }
     else
     {
-      layers_.back().type = LayerData::DT_PEAK;
+      new_layer.type = LayerData::DT_PEAK;
     }
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
+
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().getFeatureMap() = map;
-    layers_.back().type = LayerData::DT_FEATURE;
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
+    new_layer.getFeatureMap() = map;
+    new_layer.type = LayerData::DT_FEATURE;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().getConsensusMap() = map;
-    layers_.back().type = LayerData::DT_CONSENSUS;
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
+    new_layer.getConsensusMap() = map;
+    new_layer.type = LayerData::DT_CONSENSUS;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_();
   }
 
   bool SpectrumCanvas::addLayer(vector<PeptideIdentification> & peptides,
                                 const String & filename)
   {
-    layers_.resize(layers_.size() + 1);
-    layers_.back().param = param_;
-    layers_.back().filename = filename;
-    layers_.back().peptides.swap(peptides);
-    layers_.back().type = LayerData::DT_IDENT;
-    return finishAdding_();
+    LayerData new_layer;
+    new_layer.param = param_;
+    new_layer.filename = filename;
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
+    new_layer.peptides.swap(peptides);
+    new_layer.type = LayerData::DT_IDENT;
+
+    // insert after last layer of same type, 
+    // if there is no such layer after last layer of previous types, 
+    // if there are no layers at all put at front
+    auto it = std::find_if(layers_.rbegin(), layers_.rend(), [&new_layer](const LayerData& l) 
+      { return l.type <= new_layer.type; });
+      
+    layers_.insert(it.base(), std::move(new_layer));
+    return finishAdding_(); 
   }
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)
@@ -713,44 +752,51 @@ namespace OpenMS
     {
       const AreaType & area = getVisibleArea();
       const ExperimentType & peaks = *layer.getPeakData();
-      //copy experimental settings
+      // copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
-      //reserve space for the correct number of spectra in RT range
+      // get begin / end of the range
+      ExperimentType::ConstIterator peak_start = layer.getPeakData()->begin();
       ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.minPosition()[1]);
       ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.maxPosition()[1]);
+      Size begin_idx = std::distance(peak_start, begin);
+      Size end_idx = std::distance(peak_start, end);
 
-      //Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
+      // Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
       bool is_1d = (getName() == "Spectrum1DCanvas");
       if (is_1d)
       {
-        begin = layer.getPeakData()->begin() + layer.getCurrentSpectrumIndex();
-        end = begin + 1;
+        begin_idx = layer.getCurrentSpectrumIndex();
+        end_idx = begin_idx + 1;
       }
 
+      // reserve space for the correct number of spectra in RT range
       map.reserve(end - begin);
-      //copy spectra
-      for (ExperimentType::ConstIterator it = begin; it != end; ++it)
+      // copy spectra
+      for (Size it_idx = begin_idx; it_idx < end_idx; ++it_idx)
       {
         SpectrumType spectrum;
-        //copy spectrum meta information
-        spectrum.SpectrumSettings::operator=(* it);
-        spectrum.setRT(it->getRT());
-        spectrum.setMSLevel(it->getMSLevel());
-        spectrum.setPrecursors(it->getPrecursors());
-        //copy peak information
-        if (!is_1d && it->getMSLevel() > 1 && !it->getPrecursors().empty())       //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+        SpectrumType spectrum_ref = layer.getSpectrum(it_idx);
+        // copy spectrum meta information
+        spectrum.SpectrumSettings::operator=(spectrum_ref);
+        spectrum.setRT(spectrum_ref.getRT());
+        spectrum.setMSLevel(spectrum_ref.getMSLevel());
+        spectrum.setPrecursors(spectrum_ref.getPrecursors());
+        // copy peak information
+        if (!is_1d && spectrum_ref.getMSLevel() > 1 && !spectrum_ref.getPrecursors().empty())
         {
-          if (it->getPrecursors()[0].getMZ() >= area.minPosition()[0] && it->getPrecursors()[0].getMZ() <= area.maxPosition()[0])
+          //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+          if (spectrum_ref.getPrecursors()[0].getMZ() >= area.minPosition()[0] && spectrum_ref.getPrecursors()[0].getMZ() <= area.maxPosition()[0])
           {
-            spectrum.insert(spectrum.begin(), it->begin(), it->end());
+            spectrum.insert(spectrum.begin(), spectrum_ref.begin(), spectrum_ref.end());
             map.addSpectrum(spectrum);
           }
         }
-        else         // MS1(0) spectra are cropped to the m/z range
+        else
         {
-          for (SpectrumType::ConstIterator it2 = it->MZBegin(area.minPosition()[0]); it2 != it->MZEnd(area.maxPosition()[0]); ++it2)
+          // MS1 spectra are cropped to the m/z range
+          for (SpectrumType::ConstIterator it2 = spectrum_ref.MZBegin(area.minPosition()[0]); it2 != spectrum_ref.MZEnd(area.maxPosition()[0]); ++it2)
           {
-            if (layer.filters.passes(*it, it2 - it->begin()))
+            if (layer.filters.passes(spectrum_ref, it2 - spectrum_ref.begin()))
             {
               spectrum.push_back(*it2);
             }
@@ -806,7 +852,7 @@ namespace OpenMS
     if (layer.type == LayerData::DT_CONSENSUS)
     {
       //copy file descriptions
-      map.getFileDescriptions() = layer.getConsensusMap()->getFileDescriptions();
+      map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
       //Visible area
       double min_rt = getVisibleArea().minPosition()[1];
       double max_rt = getVisibleArea().maxPosition()[1];
@@ -866,11 +912,11 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add(*layer.getPeakData());
-        //Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
+        dlg.add(*layer.getPeakDataMuteable());
+        // Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
         if (getName() == "Spectrum1DCanvas")
         {
-          dlg.add((*layer.getPeakData())[layer.getCurrentSpectrumIndex()]);
+          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
         }
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -894,7 +940,7 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add((*layer.getPeakData())[index]);
+        dlg.add((*layer.getPeakDataMuteable())[index]);
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -42,7 +41,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <boost/unordered_map.hpp>
 #include <set>
 
 namespace OpenMS
@@ -70,8 +68,8 @@ namespace OpenMS
     /// this member function serves as a replacement of the constructor
     static InstanceType* getInstance()
     {
-      static InstanceType* db_ = 0;
-      if (db_ == 0)
+      static InstanceType* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new InstanceType;
       }
@@ -99,11 +97,12 @@ namespace OpenMS
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
     const DigestionEnzymeType* getEnzyme(const String& name) const
     {
-      if (enzyme_names_.find(name) == enzyme_names_.end())
+      auto pos = enzyme_names_.find(name);
+      if (pos == enzyme_names_.end())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
       }
-      return enzyme_names_.at(name);
+      return pos->second;
     }
 
     /// returns a pointer to the enzyme with cleavage regex
@@ -233,13 +232,13 @@ namespace OpenMS
         const String& value = it->second;
         if (!enzy_ptr->setValueFromFile(key, value))
         {
-          LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
+          OPENMS_LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
         }
       }
       return enzy_ptr;
     }
 
-    // add to internal data; also update indices for search by name and regex
+    /// add to internal data; also update indices for search by name and regex
     void addEnzyme_(const DigestionEnzymeType* enzyme)
     {
       // add to internal storage
@@ -260,13 +259,12 @@ namespace OpenMS
       return;
     }
 
-    boost::unordered_map<String, const DigestionEnzymeType*> enzyme_names_;  // index by names
+    Map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
+    Map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
-    std::set<const DigestionEnzymeType*> const_enzymes_; // set of enzymes
+    std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 
   };
 }
 
-#endif

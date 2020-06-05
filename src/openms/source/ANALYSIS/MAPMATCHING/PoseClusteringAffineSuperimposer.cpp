@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,16 +35,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
-#include <fstream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <algorithm>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 // #define Debug_PoseClusteringAffineSuperimposer
 
@@ -98,7 +90,6 @@ namespace OpenMS
                                          "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
-    return;
   }
 
   /**
@@ -422,8 +413,7 @@ namespace OpenMS
         }
         freq_cutoff = buffer[--index];   // note that we have index >= 1
       }
-    }
-    while (0);
+    } while (0);
 
     // ***************************************************************************
     // apply freq_cutoff, setting smaller values to zero
@@ -621,8 +611,7 @@ namespace OpenMS
           freq_cutoff_high = buffer[--index]; // note that we have index >= 1
         }
       }
-    }
-    while (0);
+    } while (0);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)

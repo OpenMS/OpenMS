@@ -50,13 +50,7 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
         extractor = pyopenms.ChromatogramExtractorAlgorithm()
         mz_extraction_window = 10.0
         ppm = False
-        extractor.extractChromatograms(saccess, tmp_out, targeted, mz_extraction_window, ppm, b"tophat")
-        # void extractChromatograms(
-        #     shared_ptr[ ISpectrumAccess ] input,
-        #     libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-        #     libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
-        #     double mz_extraction_window,
-        #     bool ppm, String filter) nogil except + # wrap-ignore
+        extractor.extractChromatograms(saccess, tmp_out, targeted, mz_extraction_window, ppm, -1.0, b"tophat")
 
         # Basically test that the output is non-zero (e.g. the data is
         # correctly relayed to python)

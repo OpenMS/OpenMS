@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,25 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
+#include <QProcessEnvironment>
 
 #include <algorithm>
 #include <fstream>
@@ -115,7 +110,7 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
+    protocols_(ListUtils::create<String>("automatic,phospho,iTRAQ,iTRAQ_phospho,TMT,none")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
     ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
@@ -138,7 +133,7 @@ protected:
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
@@ -146,11 +141,12 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
+    registerStringOption_("add_decoys", "<choice>", "false", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.", false, true);
+    setValidStrings_("add_decoys", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
@@ -186,21 +182,33 @@ protected:
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
     setMinInt_("matches_per_spec", 1);
 
-    registerFlag_("add_features", "Output additional features - needed e.g. by Percolator (default: basic scores only; MS-GF+ parameter '-addFeatures')", false);
-
+    registerStringOption_("add_features", "<true/false>", "true", "Output additional features (MS-GF+ parameter '-addFeatures'). This is required by Percolator and hence by default enabled.", false, false);
+    setValidStrings_("add_features", ListUtils::create<String>("true,false"));
+    
     registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
     setMinInt_("max_mods", 0);
 
+    registerIntOption_("max_missed_cleavages", "<num>", -1, "Maximum number of missed cleavages allowed for a peptide to be considered for scoring. (default: -1 meaning unlimited)", false);
+    setMinInt_("max_missed_cleavages", -1);
+
+    registerIntOption_("tasks", "<num>", 0, "(Override the number of tasks to use on the threads; Default: (internally calculated based on inputs))\n"
+                                             "   More tasks than threads will reduce the memory requirements of the search, but will be slower (how much depends on the inputs).\n"
+                                             "   1 <= tasks <= numThreads: will create one task per thread, which is the original behavior.\n"
+                                             "   tasks = 0: use default calculation - minimum of: (threads*3) and (numSpectra/250).\n"
+                                             "   tasks < 0: multiply number of threads by abs(tasks) to determine number of tasks (i.e., -2 means \"2 * numThreads\" tasks).\n"
+                                             "   One task per thread will use the most memory, but will usually finish the fastest.\n"
+                                             "   2-3 tasks per thread will use comparably less memory, but may cause the search to take 1.5 to 2 times as long.", false);
+
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
-    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
   }
@@ -301,8 +309,14 @@ protected:
       // load only MS2 spectra:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
+      f.getOptions().setFillData(false);
       f.load(exp_name, exp);
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
+      // if no primary run is assigned, the mzML file is the (unprocessed) primary file
+      if (primary_ms_run_path_.empty())
+      {
+        primary_ms_run_path_.push_back(exp_name);
+      }
 
       if (exp.getSpectra().empty())
       {
@@ -312,7 +326,7 @@ protected:
       // determine type of spectral data (profile or centroided)
       SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-      if (spectrum_type == SpectrumSettings::RAWDATA)
+      if (spectrum_type == SpectrumSettings::PROFILE)
       {
         if (!getFlag_("force"))
         {
@@ -334,12 +348,14 @@ protected:
 
   String makeModString_(const String& mod_name, bool fixed=true)
   {
-    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    char residue = mod.getOrigin();
+    const ResidueModification* mod = ModificationsDB::getInstance()->getModification(mod_name);
+    char residue = mod->getOrigin();
     if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
-    String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
-    if (position == "none") position = "any";
-    return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
+    String position = mod->getTermSpecificityName();
+    if (position == "Protein N-term") position = "Prot-N-term";
+    else if (position == "Protein C-term") position = "Prot-C-term";
+    else if (position == "none") position = "any";
+    return String(mod->getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod->getId() + "    # " + mod_name;
   }
 
   void writeModificationsFile_(const String& out_path, const vector<String>& fixed_mods, const vector<String>& variable_mods, Size max_mods)
@@ -398,7 +414,7 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parse parameters
@@ -452,15 +468,15 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
+    String mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
-    mzid_temp = temp_dir + "msgfplus_output.mzid";
+    mzid_temp = tmp_dir.getPath() + "msgfplus_output.mzid";
     if (!no_mods)
     {
-      mod_file = temp_dir + "msgfplus_mods.txt";
+      mod_file = tmp_dir.getPath() + "msgfplus_mods.txt";
       writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
     }
 
@@ -478,17 +494,12 @@ protected:
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
     Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
-    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
-
-    // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
-    QProcessEnvironment env;
-    String msgfpath = "MSGFPLUS_PATH";
-    QString qmsgfpath = env.systemEnvironment().value(msgfpath.toQString());
-
-    if (!qmsgfpath.isEmpty())
+    // protocol code = 0 corresponds to "automatic" (MS-GF+ docu 2017) and "none" (MS-GF+ docu 2013). We keep 0 = "none" for backward compatibility.
+    if (protocol_code == 5)
     {
-      executable = qmsgfpath;
+        protocol_code = 0;
     }
+    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
@@ -498,7 +509,7 @@ protected:
                    << "-d" << db_name.toQString()
                    << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString::number(int(getFlag_("add_decoys")))
+                   << "-tda" << QString::number(int(getStringOption_("add_decoys") == "true"))
                    << "-m" << QString::number(fragment_method_code)
                    << "-inst" << QString::number(instrument_code)
                    << "-e" << QString::number(enzyme_code)
@@ -508,8 +519,10 @@ protected:
                    << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
                    << "-minCharge" << QString::number(min_precursor_charge)
                    << "-maxCharge" << QString::number(max_precursor_charge)
+                   << "-maxMissedCleavages" << QString::number(getIntOption_("max_missed_cleavages"))
                    << "-n" << QString::number(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString::number(int(getFlag_("add_features")))
+                   << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
+                   << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
     if (!mod_file.empty())
@@ -523,11 +536,11 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    int status = QProcess::execute(java_executable.toQString(), process_params);
-    if (status != 0)
+    writeLog_("Running MSGFPlus search...");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Fatal error: Running MS-GF+ returned an error code '" + String(status) + "'. Does the MS-GF+ executable (.jar file) exist?");
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     //-------------------------------------------------------------
@@ -536,10 +549,19 @@ protected:
 
     if (!out.empty())
     {
+      if (!File::exists(mzid_temp))
+      {
+        OPENMS_LOG_ERROR << "Temporary output file '" << mzid_temp << "' was not created by MSGF+. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
+      vector<ProteinIdentification> protein_ids;
+      vector<PeptideIdentification> peptide_ids;
+
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
-        String tsv_out = temp_dir + "msgfplus_converted.tsv";
+        String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
         process_params << java_memory;
@@ -553,11 +575,11 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        status = QProcess::execute(java_executable.toQString(), process_params);
-        if (status != 0)
+        writeLog_("Running MzIDToTSVConverter...");
+        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        if (exit_code != 0)
         {
-          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
-          return EXTERNAL_PROGRAM_ERROR;
+          return exit_code;
         }
 
         // initialize map
@@ -580,9 +602,9 @@ protected:
         }
 
         search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
+        search_parameters.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(tryptic_code);
 
         // create idXML file
-        vector<ProteinIdentification> protein_ids;
         ProteinIdentification protein_id;
         protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
 
@@ -693,7 +715,7 @@ protected:
             double score = elements[12].toDouble();
             UInt rank = 0; // set to 0 at the moment
             Int charge = elements[7].toInt();
-            PeptideHit hit(score, rank, charge, seq);
+            PeptideHit hit(score, rank, charge, std::move(seq));
             hit.addPeptideEvidence(evidence);
             pep_ident.insertHit(hit);
           }
@@ -711,7 +733,6 @@ protected:
         protein_ids.push_back(protein_id);
 
         // iterate over map and create a vector of peptide identifications
-        vector<PeptideIdentification> peptide_ids;
         PeptideIdentification pep;
         for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
              it != peptide_identifications.end(); ++it)
@@ -720,24 +741,33 @@ protected:
           pep.sort();
           peptide_ids.push_back(pep);
         }
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
       }
-      else
+      else // no legacy conversion
       {
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
         MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
-        // set the MS-GF+ spectral e-value as new peptide identification score
-        for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+
+        // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
+        for (auto& pid : protein_ids)
         {
-          switchScores_(*pep_it);
+          pid.getSearchParameters().missed_cleavages = 1000; // use a high value (1000 was used in previous MSGF+ version)
         }
+        // set the MS-GF+ spectral e-value as new peptide identification score
+        for (auto& pep : peptide_ids) { switchScores_(pep); }
 
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
-
-        IdXMLFile().store(out, protein_ids, peptide_ids);
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
       }
+
+      // use OpenMS meta value key
+      for (PeptideIdentification& pid : peptide_ids)
+      {
+        for (PeptideHit& psm : pid.getHits())
+        {
+          auto v = psm.getMetaValue("IsotopeError");
+          psm.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, v);
+          psm.removeMetaValue("IsotopeError");
+        }
+      }
+      IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 
     //-------------------------------------------------------------
@@ -745,22 +775,12 @@ protected:
     //-------------------------------------------------------------
 
     if (!mzid_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(mzid_out.toQString()) && !QFile::remove(mzid_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(mzid_temp, mzid_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + mzid_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(mzid_temp.toQString(), mzid_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + mzid_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
-    removeTempDirectory_(temp_dir);
 
     return EXECUTION_OK;
   }
@@ -775,3 +795,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+///@endcond

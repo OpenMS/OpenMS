@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <algorithm>
 #include <boost/regex.hpp>
 
 using namespace std;
@@ -55,17 +54,26 @@ namespace OpenMS
 
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {
-    Size number_of_maps = map.getFileDescriptions().size();
+    Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
     medians.resize(number_of_maps);
 
     // get map with most features, reserve space for feature_int (unequal vector lengths, 0-features omitted)
-    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
+    ConsensusMap::ColumnHeaders::const_iterator map_with_most_features = map.getColumnHeaders().find(0);
     UInt map_with_most_features_idx = 0;
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
-      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
+      if (it == map.getColumnHeaders().end()) 
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      }
+      else if (i >= feature_int.size())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String(i) + " exceeds map number");
+      }
+       
       feature_int[i].reserve(it->second.size);
 
       if (it->second.size > map_with_most_features->second.size)
@@ -93,7 +101,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
+    OPENMS_LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     // do we have enough features passing the filters to compute the median for every map?
     bool enough_features_left = true;
@@ -111,7 +119,7 @@ namespace OpenMS
 
     if (!enough_features_left)
     {
-      LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
+      OPENMS_LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
       return 0;
     }
     else
@@ -131,7 +139,7 @@ namespace OpenMS
   {
     if (method == NM_SHIFT)
     {
-      LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
+      OPENMS_LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
     }
 
     ConsensusMap::Iterator cf_it;

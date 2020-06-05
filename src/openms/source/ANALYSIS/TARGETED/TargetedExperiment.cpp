@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -452,7 +450,7 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
-  bool TargetedExperiment::containsInvalidReferences()
+  bool TargetedExperiment::containsInvalidReferences() const
   {
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -466,7 +464,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
       {
-        LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
         return true;
       }
       unique_protein_map[prot_it->id] = 0;
@@ -479,7 +477,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
       {
-        LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
@@ -492,7 +490,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
       {
-        LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
         return true;
       }
       unique_compounds_map[comp_it->id] = 0;
@@ -505,7 +503,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
       {
-        LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
         return true;
       }
       unique_transition_map[tr_it->getNativeID()] = 0;
@@ -518,7 +516,7 @@ namespace OpenMS
       {
         if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
         {
-          LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -532,7 +530,7 @@ namespace OpenMS
       {
         if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
         {
-          LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -540,14 +538,14 @@ namespace OpenMS
       {
         if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
         {
-          LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
       else
       {
         // It seems that having no associated compound or peptide is valid as both attributes are optional.
-        LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
+        OPENMS_LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
         // return true;
       }
     }

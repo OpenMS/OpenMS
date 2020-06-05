@@ -12,10 +12,14 @@ from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
 
-    cdef cppclass ExperimentalSettings(MetaInfoInterface,DocumentIdentifier):
+    cdef cppclass ExperimentalSettings(MetaInfoInterface, DocumentIdentifier):
         # wrap-inherits:
         #    DocumentIdentifier
         #    MetaInfoInterface
+        #
+        # wrap-doc:
+        #   Description of the experimental settings, provides meta-information
+        #   about an LC-MS/MS injection.
 
         ExperimentalSettings() nogil except +
         ExperimentalSettings(ExperimentalSettings) nogil except + # wrap-ignore
@@ -64,7 +68,4 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
         String getFractionIdentifier() nogil except +
         # sets the fraction identifier
         void setFractionIdentifier(String fraction_identifier) nogil except +
-
-        # since this class can be derived again, we will not declare
-        # the MetaInfoInterface methods here
 

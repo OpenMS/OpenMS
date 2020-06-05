@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 //
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
@@ -264,7 +263,7 @@ namespace OpenMS
   {
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
 #endif
     if (entry.identifier.hasPrefix("sp|") || entry.identifier.hasPrefix("tr|") || entry.identifier.hasPrefix("gi|"))
     {
@@ -281,7 +280,7 @@ namespace OpenMS
     }
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
 #endif
 
   }

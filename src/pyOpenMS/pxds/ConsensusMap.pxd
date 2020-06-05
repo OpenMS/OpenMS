@@ -12,33 +12,53 @@ from DataProcessing cimport *
 from Types cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
+from MetaInfoInterface cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
 
-    cdef cppclass FileDescription:
+    cdef cppclass ColumnHeader(MetaInfoInterface):
+        # wrap-inherits:
+        #   MetaInfoInterface
+
         String filename
         String label
         Size size
         UInt64 unique_id
 
-        FileDescription() nogil except +
-        FileDescription(FileDescription &) nogil except +
+        ColumnHeader() nogil except +
+        ColumnHeader(ColumnHeader &) nogil except +
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
-    ctypedef libcpp_map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
-    ctypedef libcpp_map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
+    ctypedef libcpp_map[unsigned long int, ColumnHeader] ColumnHeaders "OpenMS::ConsensusMap::ColumnHeaders"
+    ctypedef libcpp_map[unsigned long int, ColumnHeader].iterator ColumnHeaders_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
         #   RangeManager2
+        #   MetaInfoInterface
+        #
+        # wrap-doc:
+        #   A container for consensus elements.
+        #   -----
+        #   A ConsensusMap is a container holding 2-dimensional consensus elements
+        #   (ConsensusFeature) which in turn represent analytes that have been
+        #   quantified across multiple LC-MS/MS experiments. Each analyte in a
+        #   ConsensusFeature is linked to its original LC-MS/MS run, the links are
+        #   maintained by the ConsensusMap class.
+        #   The map is implemented as a vector of elements of type ConsensusFeature.
+        #   -----
+        #   To be consistent, all maps who are referenced by ConsensusFeature objects
+        #   (through a unique id) need to be registered in this class. 
+        #   -----
+        #   This class supports direct iteration in Python.
 
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap &) nogil except +
@@ -52,7 +72,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         ConsensusFeature operator[](int) nogil except + #wrap-upper-limit:size()
         void push_back(ConsensusFeature spec) nogil except +
 
-        ConsensusMap iadd(ConsensusMap) nogil except + # wrap-as:operator+=
+        ConsensusMap appendRows(ConsensusMap) nogil except +
+        ConsensusMap appendColumns(ConsensusMap) nogil except +
 
         void clear(bool clear_meta_data) nogil except +
         void clear() nogil except +
@@ -77,6 +98,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
         libcpp_vector[ConsensusFeature].iterator begin(
@@ -98,9 +120,11 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void sortByMaps() nogil except +
 
         # wrapped in ../addons/ConsensusMap.pyx:
-        void setFileDescriptions(FileDescriptions &)   #wrap-ignore
-        FileDescriptions & getFileDescriptions()       #wrap-ignore
+        void setColumnHeaders(ColumnHeaders &)   #wrap-ignore
+        ColumnHeaders & getColumnHeaders()       #wrap-ignore
 
         String getExperimentType() nogil except +
         void setExperimentType(String experiment_type) nogil except +
+
+        void sortPeptideIdentificationsByMapIndex() nogil except +
 

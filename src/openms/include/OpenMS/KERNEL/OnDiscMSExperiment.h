@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
-#define OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
@@ -41,8 +40,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+
 
 #include <vector>
 #include <algorithm>
@@ -66,7 +65,7 @@ namespace OpenMS
     @endcode
 
   */
-  class OnDiscMSExperiment
+  class OPENMS_DLLAPI OnDiscMSExperiment
   {
 
   typedef ChromatogramPeak ChromatogramPeakT;
@@ -118,6 +117,12 @@ public:
     */
     bool operator==(const OnDiscMSExperiment& rhs) const
     {
+      if (meta_ms_experiment_ == nullptr || rhs.meta_ms_experiment_ == nullptr) 
+      {
+        return filename_ == rhs.filename_ &&
+               meta_ms_experiment_ == rhs.meta_ms_experiment_;
+      }
+
       // check if file and meta information is the same
       return filename_ == rhs.filename_ &&
              (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
@@ -138,6 +143,8 @@ public:
     */
     bool isSortedByRT() const
     {
+      if (!meta_ms_experiment_) return false;
+
       return meta_ms_experiment_->isSorted(false);
     }
 
@@ -171,6 +178,11 @@ public:
       return boost::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
 
+    boost::shared_ptr<PeakMap> getMetaData() const
+    {
+      return meta_ms_experiment_;
+    }
+
     /// alias for getSpectrum
     inline MSSpectrum operator[](Size n)
     {
@@ -180,24 +192,14 @@ public:
     /**
       @brief returns a single spectrum
 
-      TODO: make this more efficient by reducing the copying
+      @param id The index of the spectrum
     */
     MSSpectrum getSpectrum(Size id)
     {
-      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(static_cast<int>(id));
-      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
+      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSSpectrumById(int(id));
 
-      // recreate a spectrum from the data arrays!
-      OpenMS::Interfaces::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
-      OpenMS::Interfaces::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
-      spectrum.reserve(mz_arr->data.size());
-      for (Size i = 0; i < mz_arr->data.size(); i++)
-      {
-        PeakT p;
-        p.setMZ(mz_arr->data[i]);
-        p.setIntensity(int_arr->data[i]);
-        spectrum.push_back(p);
-      }
+      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
+      indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
       return spectrum;
     }
 
@@ -206,33 +208,36 @@ public:
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
-      return indexed_mzml_file_.getSpectrumById(id);
+      return indexed_mzml_file_.getSpectrumById((int)id);
     }
 
     /**
       @brief returns a single chromatogram
 
-      TODO: make this more efficient by reducing the copying
+      @param id The index of the chromatogram
     */
     MSChromatogram getChromatogram(Size id)
     {
-      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
+      if (!meta_ms_experiment_) return indexed_mzml_file_.getMSChromatogramById(int(id));
+
       MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
-
-      // recreate a chromatogram from the data arrays!
-      OpenMS::Interfaces::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
-      OpenMS::Interfaces::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-      chromatogram.reserve(rt_arr->data.size());
-      for (Size i = 0; i < rt_arr->data.size(); i++)
-      {
-        ChromatogramPeakT p;
-        p.setRT(rt_arr->data[i]);
-        p.setIntensity(int_arr->data[i]);
-        chromatogram.push_back(p);
-      }
-
+      indexed_mzml_file_.getMSChromatogramById(int(id), chromatogram);
       return chromatogram;
     }
+
+    /**
+      @brief returns a single chromatogram
+
+      @param id The native identifier of the chromatogram
+    */
+    MSChromatogram getChromatogramByNativeId(const std::string& id);
+
+    /**
+      @brief returns a single spectrum
+
+      @param id The native identifier of the spectrum
+    */
+    MSSpectrum getSpectrumByNativeId(const std::string& id);
 
     /**
       @brief returns a single chromatogram
@@ -242,7 +247,7 @@ public:
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
-    ///sets whether to skip some XML checks and be fast instead
+    /// sets whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool skip)
     {
       indexed_mzml_file_.setSkipXMLChecks(skip);
@@ -250,34 +255,31 @@ public:
 
 private:
 
-    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
+    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
-    void loadMetaData_(const String& filename)
-    {
-      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
+    void loadMetaData_(const String& filename);
 
-      MzMLFile f;
-      PeakFileOptions options = f.getOptions();
-      options.setFillData(false);
-      f.setOptions(options);
-      f.load(filename, *meta_ms_experiment_.get());
-    }
+    MSChromatogram getMetaChromatogramById_(const std::string& id);
 
+    MSSpectrum getMetaSpectrumById_(const std::string& id);
 
 protected:
 
     /// The filename of the underlying data file
     String filename_;
     /// The index of the underlying data file
-    IndexedMzMLFile indexed_mzml_file_;
+    Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
+    /// Mapping of chromatogram native ids to offsets
+    std::unordered_map< std::string, Size > chromatograms_native_ids_;
+    /// Mapping of spectra native ids to offsets
+    std::unordered_map< std::string, Size > spectra_native_ids_;
   };
 
 typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEDIAN_H
-#define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEDIAN_H
+#pragma once
 
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
@@ -67,8 +66,8 @@ namespace OpenMS
 
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
-    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>LOG_WARN</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
-    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>LOG_WARN</i>.  In this case you should increase <i>max_intensity</i> (and optionally the <i>bin_count</i>). 
+    @note If more than 20 percent of windows have less than <i>min_required_elements</i> of elements, a warning is issued to <i>OPENMS_LOG_WARN</i> and noise estimates in those windows are set to the constant <i>noise_for_empty_window</i>.
+    @note If more than 1 percent of median estimations had to rely on the last(=rightmost) bin (which gives an unreliable result), a warning is issued to <i>OPENMS_LOG_WARN</i>.  In this case you should increase <i>max_intensity</i> (and optionally the <i>bin_count</i>). 
     @note You can disable logging this error by setting <i>write_log_messages</i> and read out the values 
 
 
@@ -165,7 +164,7 @@ public:
     //@}
 
     /// Destructor
-    virtual ~SignalToNoiseEstimatorMedian()
+    ~SignalToNoiseEstimatorMedian() override
     {}
 
     /// Returns how many percent of the windows were sparse
@@ -189,7 +188,7 @@ protected:
         @param scan_last_ last element in the scan (disregarded)
         @exception Throws Exception::InvalidValue
     */
-    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
+    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) override
     {
       // reset counter for sparse windows
       sparse_window_percent_ = 0;
@@ -389,7 +388,7 @@ protected:
       // warn if percentage of sparse windows is above 20%
       if (sparse_window_percent_ > 20 && write_log_messages_)
       {
-        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
                  << sparse_window_percent_
                  << "% of all windows were sparse. You should consider increasing 'win_len' or decreasing 'min_required_elements'"
                  << std::endl;
@@ -398,7 +397,7 @@ protected:
       // warn if percentage of possibly wrong median estimates is above 1%
       if (histogram_oob_percent_ > 1 && write_log_messages_)
       {
-        LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
+        OPENMS_LOG_WARN << "WARNING in SignalToNoiseEstimatorMedian: "
                  << histogram_oob_percent_
                  << "% of all Signal-to-Noise estimates are too high, because the median was found in the rightmost histogram-bin. "
                  << "You should consider increasing 'max_intensity' (and maybe 'bin_count' with it, to keep bin width reasonable)"
@@ -408,7 +407,7 @@ protected:
     } // end of shiftWindow_
 
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_()
+    void updateMembers_() override
     {
       max_intensity_           = (double)param_.getValue("max_intensity");
       auto_max_stdev_Factor_   = (double)param_.getValue("auto_max_stdev_factor");
@@ -453,4 +452,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //OPENMS_FILTERING_NOISEESTIMATION_DSIGNALTONOISEESTIMATORMEDIAN_H

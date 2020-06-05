@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
-#define OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -158,6 +157,32 @@ public:
     void getAllChildTerms(std::set<String>& terms, const String& parent) const;
 
     /**
+        @brief Iterates over all children of parent recursively.
+        @param lbd Function that gets the child-Strings passed. Must return bool.
+                 Used for comparisons and / or to set captured variables.
+                 If the lambda returns true, the iteration is exited prematurely.
+                 E.g. if you have found your search, you don't need to continue searching.
+                 Otherwise, if you want to go through the whole tree (e.g. to fill a vector)
+                 you can just return false always to not quit early.
+    */
+    template <class LAMBDA>
+    bool iterateAllChildren(const String& parent, LAMBDA lbd) const
+    {
+      for (const auto& child : getTerm(parent).children)
+      {
+        if (lbd(child) || iterateAllChildren(child, lbd)) return true;
+      }
+      return false;
+    }
+
+    /**
+        @brief Searches the existing terms for the given @p name
+
+        @return const Pointer to found term. When term is not found, returns nullptr
+    */
+    const ControlledVocabulary::CVTerm* checkAndGetTermByName(const OpenMS::String& name) const;
+
+    /**
         @brief Returns if @p child is a child of @p parent
 
         @exception Exception::InvalidValue is thrown if one of the terms is not present
@@ -186,4 +211,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CONTROLLEDVOCABULARY_H

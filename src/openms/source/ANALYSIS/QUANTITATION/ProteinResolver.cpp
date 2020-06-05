@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,9 +36,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 //#include <algorithm>
 
@@ -116,7 +113,7 @@ namespace OpenMS
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
-    LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
+    OPENMS_LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
 
     // Including all MSMS derived peptides into the graph
     includeMSMSPeptides_(peptide_identifications, *peptide_nodes);

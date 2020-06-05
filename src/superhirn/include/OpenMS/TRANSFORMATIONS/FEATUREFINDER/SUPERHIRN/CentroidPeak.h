@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,14 +43,14 @@
  *
  */
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDPEAK_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDPEAK_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <ostream>
+#include <iosfwd>
+#include <string>
 #include <cmath>
 #include <vector>
 
@@ -123,7 +123,7 @@ public:
 
     DeconvPeak & operator=(const DeconvPeak &);
 
-    virtual ~DeconvPeak();
+    ~DeconvPeak() override;
 
     // shows the info of the peak:
     void show_info();
@@ -228,7 +228,7 @@ protected:
 
   inline void CentroidPeak::setExtraPeakInfo(std::string in)
   {
-    extraPeakInfo_ = in;
+    extraPeakInfo_ = std::move(in);
   }
 
   inline void CentroidPeak::setRetentionTime(double in)
@@ -290,4 +290,3 @@ protected:
 
 } // ns
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_CENTROIDPEAK_H

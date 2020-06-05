@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -65,10 +64,10 @@ public:
 
     //@{
     /// Constructor
-    MRMFeatureQC();
+    MRMFeatureQC() = default;
 
     /// Destructor
-    ~MRMFeatureQC();
+    ~MRMFeatureQC() = default;
     //@}
 
     // Members
@@ -81,22 +80,50 @@ public:
     */
     struct ComponentQCs
     {
+      bool operator==(const ComponentQCs& other) const {
+        bool members_eq = 
+          std::tie(
+            component_name,
+            retention_time_l,
+            retention_time_u,
+            intensity_l,
+            intensity_u,
+            overall_quality_l,
+            overall_quality_u
+          ) == std::tie(
+            other.component_name,
+            other.retention_time_l,
+            other.retention_time_u,
+            other.intensity_l,
+            other.intensity_u,
+            other.overall_quality_l,
+            other.overall_quality_u
+          );
+        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+        return members_eq && meta_values_eq;
+      }
+      bool operator!=(const ComponentQCs& other) const
+      {
+        return !(*this == other);
+      }
+
       /// name of the component
       String component_name;
 
       // Feature members
       /// retention time lower bound
-      double retention_time_l;
+      double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u;
+      double retention_time_u { 1e12 };
       /// intensity lower bound
-      double intensity_l;
+      double intensity_l { 0.0 };
       /// intensity upper bound
-      double intensity_u;
+      double intensity_u { 1e12 };
       /// overall quality lower bound
-      double overall_quality_l;
+      double overall_quality_l { 0.0 };
       /// overall quality upper bound
-      double overall_quality_u;
+      double overall_quality_u { 1e12 };
 
       /// Feature MetaValues
       std::map<String,std::pair<double,double>> meta_value_qc;
@@ -111,31 +138,106 @@ public:
     */
     struct ComponentGroupQCs
     {
+      bool operator==(const ComponentGroupQCs& other) const {
+        bool members_eq =
+          std::tie(
+            component_group_name,
+            retention_time_l,
+            retention_time_u,
+            intensity_l,
+            intensity_u,
+            overall_quality_l,
+            overall_quality_u,
+            n_heavy_l,
+            n_heavy_u,
+            n_light_l,
+            n_light_u,
+            n_detecting_l,
+            n_detecting_u,
+            n_quantifying_l,
+            n_quantifying_u,
+            n_identifying_l,
+            n_identifying_u,
+            n_transitions_l,
+            n_transitions_u,
+            ion_ratio_pair_name_1,
+            ion_ratio_pair_name_2,
+            ion_ratio_l,
+            ion_ratio_u,
+            ion_ratio_feature_name
+          ) == std::tie(
+            other.component_group_name,
+            other.retention_time_l,
+            other.retention_time_u,
+            other.intensity_l,
+            other.intensity_u,
+            other.overall_quality_l,
+            other.overall_quality_u,
+            other.n_heavy_l,
+            other.n_heavy_u,
+            other.n_light_l,
+            other.n_light_u,
+            other.n_detecting_l,
+            other.n_detecting_u,
+            other.n_quantifying_l,
+            other.n_quantifying_u,
+            other.n_identifying_l,
+            other.n_identifying_u,
+            other.n_transitions_l,
+            other.n_transitions_u,
+            other.ion_ratio_pair_name_1,
+            other.ion_ratio_pair_name_2,
+            other.ion_ratio_l,
+            other.ion_ratio_u,
+            other.ion_ratio_feature_name
+          );
+        auto compare_maps = [](std::pair<String, std::pair<double, double>> lhs, std::pair<String, std::pair<double, double>> rhs) {return (lhs.first == rhs.first && lhs.second.first == rhs.second.first && lhs.second.second == rhs.second.second); };
+        bool meta_values_eq = std::equal(meta_value_qc.begin(), meta_value_qc.end(), other.meta_value_qc.begin(), compare_maps);
+        return members_eq && meta_values_eq;
+      }
+      bool operator!=(const ComponentGroupQCs& other) const
+      {
+        return !(*this == other);
+      }
       /// name of the component group
       String component_group_name;
 
+      /// retention time lower bound
+      double retention_time_l { 0.0 };
+      /// retention time upper bound
+      double retention_time_u { 1e12 };
+      /// intensity lower bound
+      double intensity_l { 0.0 };
+      /// intensity upper bound
+      double intensity_u { 1e12 };
+      /// overall quality lower bound
+      double overall_quality_l { 0.0 };
+      /// overall quality upper bound
+      double overall_quality_u { 1e12 };
+
       // number of transitions and labels
       /// number of heavy ion lower bound
-      int n_heavy_l;
+      Int n_heavy_l { 0 };
       /// number of heavy ion upper bound
-      int n_heavy_u;
-      int n_light_l;
-      int n_light_u;
-      int n_detecting_l;
-      int n_detecting_u;
-      int n_quantifying_l;
-      int n_quantifying_u;
-      int n_identifying_l;
-      int n_identifying_u;
-      int n_transitions_l;
-      int n_transitions_u;
+      Int n_heavy_u { 100 };
+      Int n_light_l { 0 };
+      Int n_light_u { 100 };
+      Int n_detecting_l { 0 };
+      Int n_detecting_u { 100 };
+      Int n_quantifying_l { 0 };
+      Int n_quantifying_u { 100 };
+      Int n_identifying_l { 0 };
+      Int n_identifying_u { 100 };
+      Int n_transitions_l { 0 };
+      Int n_transitions_u { 100 };
 
       // Ion Ratio QCs
       String ion_ratio_pair_name_1;
       String ion_ratio_pair_name_2;
-      double ion_ratio_l;
-      double ion_ratio_u;
+      double ion_ratio_l { 0.0 };
+      double ion_ratio_u { 1e12 };
       String ion_ratio_feature_name;
+      std::map<String,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -169,9 +271,8 @@ public:
     /// list of all component group QCs
     std::vector<ComponentGroupQCs> component_group_qcs;
     /// list of all component group pair QCs
-    std::vector<ComponentGroupQCs> component_group_pair_qcs;
+    std::vector<ComponentGroupPairQCs> component_group_pair_qcs;
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
 

@@ -19,13 +19,13 @@
       <userParam name="full_peptide_name" type="xsd:string" value="(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)"/>
       <ProteinRef ref="ProteinC"/>
       <Modification location="0" monoisotopicMassDelta="43.005814" averageMassDelta="43.0247">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:5" name="Carbamyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:5" name="Carbamyl"/>
       </Modification>
       <Modification location="20" monoisotopicMassDelta="-48.003371" averageMassDelta="-48.1075">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:11" name="Met->Hsl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:11" name="Met->Hsl"/>
       </Modification>
       <Modification location="6" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>

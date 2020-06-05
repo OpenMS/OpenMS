@@ -32,16 +32,16 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         void setModifications(ModificationDefinitionsSet & mods) nogil except +
         ModificationDefinitionsSet  getModifications() nogil except +
 
-        void setOutputFilename(String & output) nogil except +
+        void setOutputFilename(const String & output) nogil except +
         String getOutputFilename() nogil except +
-        void setInputFilename(String & input_file) nogil except +
+        void setInputFilename(const String & input_file) nogil except +
         String getInputFilename() nogil except +
-        void setTaxonomyFilename(String & filename) nogil except +
+        void setTaxonomyFilename(const String & filename) nogil except +
         String getTaxonomyFilename() nogil except +
-        void setDefaultParametersFilename(String & filename) nogil except +
+        void setDefaultParametersFilename(const String & filename) nogil except +
         String getDefaultParametersFilename() nogil except +
 
-        void setTaxon(String & taxon) nogil except +
+        void setTaxon(const String & taxon) nogil except +
         String getTaxon() nogil except +
 
         void setMaxPrecursorCharge(Int max_charge) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,20 +34,19 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
-#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
+#include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
-
-#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <numeric>
 
@@ -100,7 +99,7 @@ public:
     nr_peaks(0)
     {}
 
-  void consumeSpectrum(SpectrumType & s)
+  void consumeSpectrum(SpectrumType & s) override
   {
     for (Size i = 0; i < s.size(); i++) 
     { 
@@ -110,9 +109,9 @@ public:
     nr_spectra++;
   }
 
-  void consumeChromatogram(ChromatogramType& /* c */) {}
-  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
-  void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
+  void consumeChromatogram(ChromatogramType& /* c */) override {}
+  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override {}
+  void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
 };
 
 /**
@@ -162,7 +161,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
@@ -179,7 +178,7 @@ protected:
     setValidStrings_("loadData", ListUtils::create<String>(loadData));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -284,30 +283,19 @@ protected:
       map.setSkipXMLChecks(true);
 
       double TIC = 0.0;
-      long int nr_peaks = 0;
+      long nr_peaks = 0;
 
       if (load_data)
       {
-
         // firstprivate means that each thread has its own instance of the
         // variable, each copy initialized with the initial value 
-#ifdef _OPENMP
-#pragma omp parallel for firstprivate(map) 
-#endif
+#pragma omp parallel for firstprivate(map) reduction(+: TIC, nr_peaks)
         for (SignedSize i =0; i < (SignedSize)map.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
-          double nr_peaks_l = sptr->getIntensityArray()->data.size();
-          double TIC_l = std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
-#ifdef _OPENMP
-#pragma omp critical (indexed)
-#endif
-          {
-            TIC += TIC_l;
-            nr_peaks += nr_peaks_l;
-          }
+          nr_peaks += sptr->getIntensityArray()->data.size();
+          TIC += std::accumulate(sptr->getIntensityArray()->data.begin(), sptr->getIntensityArray()->data.end(), 0.0);
         }
-
       }
 
       std::cout << "There are " << map.getNrSpectra() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;
@@ -326,7 +314,7 @@ protected:
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -334,10 +322,8 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
-      cacher.setLogType(log_type_);
 
-      CachedmzML cache;
+      Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
 
@@ -354,7 +340,7 @@ protected:
         int ms_level = -1;
         double rt = -1.0;
         ifs_.seekg(spectra_index[i]);
-        CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+        Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
         nr_peaks += intensity_array->data.size();
         for (Size j = 0; j < intensity_array->data.size(); j++)
@@ -379,7 +365,7 @@ protected:
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -387,20 +373,16 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
-      cacher.setLogType(log_type_);
 
-      CachedmzML cache;
+      Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
 
       FileAbstraction filestream(in);
 
       double TIC = 0.0;
-      long int nr_peaks = 0;
-#ifdef _OPENMP
-#pragma omp parallel for firstprivate(filestream) 
-#endif
+      long nr_peaks = 0;
+#pragma omp parallel for firstprivate(filestream) reduction(+: TIC, nr_peaks)
       for (SignedSize i=0; i < (SignedSize)spectra_index.size(); ++i)
       {
         BinaryDataArrayPtr mz_array(new BinaryDataArray);
@@ -409,17 +391,10 @@ protected:
         double rt = -1.0;
         // we only change the position of the thread-local filestream
         filestream.getStream().seekg(spectra_index[i]);
-        CachedmzML::readSpectrumFast(mz_array, intensity_array, filestream.getStream(), ms_level, rt);
+        Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, filestream.getStream(), ms_level, rt);
 
-        double nr_peaks_l = intensity_array->data.size();
-        double TIC_l = std::accumulate(intensity_array->data.begin(), intensity_array->data.end(), 0.0);
-#ifdef _OPENMP
-#pragma omp critical (indexed)
-#endif
-        {
-          TIC += TIC_l;
-          nr_peaks += nr_peaks_l;
-        }
+        nr_peaks += intensity_array->data.size();
+        TIC += std::accumulate(intensity_array->data.begin(), intensity_array->data.end(), 0.0);
       }
 
       std::cout << "There are " << spectra_index.size() << " spectra and " << nr_peaks << " peaks in the input file." << std::endl;

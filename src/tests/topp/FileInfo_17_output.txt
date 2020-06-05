@@ -3,12 +3,14 @@
 
 File name: fasta-example.fa
 File type: fasta
-Number of sequences: 11
+Warning: Duplicate header, #7, ID: crab_chick = #2, ID: crab_chick
+Warning: Duplicate header, #10, ID: crab_squac = #9, ID: crab_squac
+Warning: Duplicate sequence, #10, ID: crab_squac == #9, ID: crab_squac
 
-Warning: Duplicate header, Number: 7, ID: crab_chick is same as Number: 2, ID: crab_chick
-Warning: Duplicate header, Number: 10, ID: crab_squac is same as Number: 9, ID: crab_squac
-Warning: Duplicate sequence, Number: 10, ID: crab_squac is same as Number: 9, ID: crab_squac
-Total amino acids: 1933
+Number of sequences   : 11
+# duplicated headers  : 2 (18.1%)
+# duplicated sequences: 1 (9%) [by exact string matching]
+Total amino acids     : 1933
 
 Amino acid counts: 
 *	2
@@ -33,5 +35,8 @@ T	82
 V	114
 W	24
 Y	21
+Ambiguous amino acids (B/Z/X)  : 0 (0%)
+                      (B/Z/X/I): 115 (5.94%)
+
 
 

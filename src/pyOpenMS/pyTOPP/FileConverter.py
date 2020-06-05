@@ -1,4 +1,4 @@
-import pyopenms
+# import pyopenms
 
 def main():
     import optparse

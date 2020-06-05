@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,14 +37,12 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <fstream>
-
 using namespace OpenMS;
 using namespace std;
 
 
 SimpleSVM::SimpleSVM():
-  DefaultParamHandler("SimpleSVM"), data_(), model_(0)
+  DefaultParamHandler("SimpleSVM"), data_(), model_(nullptr)
 {
   defaults_.setValue("kernel", "RBF", "SVM kernel");
   defaults_.setValidStrings("kernel", ListUtils::create<String>("RBF,linear"));
@@ -79,7 +77,7 @@ SimpleSVM::SimpleSVM():
 
 SimpleSVM::~SimpleSVM()
 {
-  if (model_ != 0) svm_free_model_content(model_);
+  if (model_ != nullptr) svm_free_model_content(model_);
   delete[] data_.x;
   delete[] data_.y;
 }
@@ -137,7 +135,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
     msg += "\n- '" + String(it->first) + "': " + String(it->second) +
       " observations";
   }
-  LOG_INFO << msg << endl;
+  OPENMS_LOG_INFO << msg << endl;
 
   svm_params_.svm_type = C_SVC;
   String kernel = param_.getValue("kernel");
@@ -151,17 +149,16 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   optimizeParameters_();
   svm_params_.probability = 1;
   // in case "setup" was called before:
-  if (model_ != 0) svm_free_model_content(model_);
+  if (model_ != nullptr) svm_free_model_content(model_);
   model_ = svm_train(&data_, &svm_params_);
-  LOG_INFO << "Number of support vectors in the final model: " << model_->l
+  OPENMS_LOG_INFO << "Number of support vectors in the final model: " << model_->l
            << endl;
 }
 
 
-void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
-  const
+void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
-  if (model_ == 0)
+  if (model_ == nullptr)
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
@@ -172,7 +169,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
   if (indexes.empty())
   {
     indexes.reserve(n_obs);
-    for (Size i = 0; i < n_obs; indexes.push_back(i++));
+    for (Size i = 0; i < n_obs; indexes.push_back(i++)){};
   }
   Size n_classes = svm_get_nr_class(model_);
   vector<Int> labels(n_classes);
@@ -203,7 +200,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
 
 void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
-  if (model_ == 0)
+  if (model_ == nullptr)
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   "SVM model has not been trained (use the "
@@ -234,8 +231,9 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 }
 
 
-void SimpleSVM::scaleData_(PredictorMap& predictors) const
+void SimpleSVM::scaleData_(PredictorMap& predictors)
 {
+  scaling_.clear();
   for (PredictorMap::iterator pred_it = predictors.begin();
        pred_it != predictors.end(); ++pred_it)
   {
@@ -246,7 +244,7 @@ void SimpleSVM::scaleData_(PredictorMap& predictors) const
     double vmax = *max_element(val_begin, val_end);
     if (vmin == vmax)
     {
-      LOG_INFO << "Predictor '" + pred_it->first + "' is uninformative." 
+      OPENMS_LOG_INFO << "Predictor '" + pred_it->first + "' is uninformative." 
                << endl;
       pred_it->second.clear();
       continue;
@@ -256,9 +254,14 @@ void SimpleSVM::scaleData_(PredictorMap& predictors) const
     {
       *val_begin = (*val_begin - vmin) / range;
     }
+    scaling_[pred_it->first] = make_pair(vmin, vmax); // store old range
   }
 }
 
+const SimpleSVM::ScaleMap& SimpleSVM::getScaling() const
+{
+  return scaling_;
+}
 
 void SimpleSVM::convertData_(const PredictorMap& predictors)
 {
@@ -283,7 +286,7 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
       }
     }
   }
-  LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
+  OPENMS_LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
   svm_node final = {-1, 0.0};
   for (vector<vector<struct svm_node> >::iterator node_it = nodes_.begin();
        node_it != nodes_.end(); ++node_it)
@@ -331,7 +334,7 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
       }
     }
   }
-  LOG_INFO << "Best cross-validation performance: " 
+  OPENMS_LOG_INFO << "Best cross-validation performance: " 
            << float(best_value * 100.0) << "% correct" << endl;
   if (best_indexes.size() == 1)
   {
@@ -385,7 +388,7 @@ void SimpleSVM::optimizeParameters_()
     log2_gamma_ = vector<double>(1, 0.0);
   }
 
-  LOG_INFO << "Running cross-validation to find optimal SVM parameters..." 
+  OPENMS_LOG_INFO << "Running cross-validation to find optimal SVM parameters..." 
            << endl;
   Size prog_counter = 0;
   ProgressLogger prog_log;
@@ -411,7 +414,7 @@ void SimpleSVM::optimizeParameters_()
       double ratio = n_correct / double(data_.l);
       performance_[g_index][c_index] = ratio;
       prog_log.setProgress(++prog_counter);
-      LOG_DEBUG << "Performance (log2_C = " << log2_C_[c_index] 
+      OPENMS_LOG_DEBUG << "Performance (log2_C = " << log2_C_[c_index] 
                 << ", log2_gamma = " << log2_gamma_[g_index] << "): " 
                 << n_correct << " correct (" << float(ratio * 100.0) << "%)"
                 << endl;
@@ -420,7 +423,7 @@ void SimpleSVM::optimizeParameters_()
   prog_log.endProgress();
 
   pair<double, double> best_params = chooseBestParameters_();
-  LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
+  OPENMS_LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
            << ", log2_gamma = " << best_params.second << endl;
 
   svm_params_.C = pow(2.0, best_params.first);

@@ -45,9 +45,6 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except +
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except +
 
-        void filterHitsBySignificance(libcpp_vector[PeptideIdentification]& ids, double threshold_fraction) nogil except +
-        void filterHitsBySignificance(libcpp_vector[ProteinIdentification]& ids, double threshold_fraction) nogil except +
-
         void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) nogil except +
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) nogil except +
 
@@ -75,7 +72,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterPeptidesByMZError(libcpp_vector[PeptideIdentification]& peptides, double mass_error, bool unit_ppm) nogil except +
 
-        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, String& metavalue_key, double threshold) nogil except +
+        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, const String& metavalue_key, double threshold) nogil except +
 
         void removePeptidesWithMatchingModifications(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& modifications) nogil except +
 
@@ -91,12 +88,9 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
 
-        void filterHitsBySignificance(MSExperiment& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
-
         void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
 
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
-
 
 cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
     

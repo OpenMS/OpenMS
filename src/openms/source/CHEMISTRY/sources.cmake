@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY)
 set(sources_list
 AASequence.cpp
 CrossLinksDB.cpp
+DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
@@ -14,12 +15,12 @@ DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
 DigestionEnzymeRNA.cpp
 DigestionEnzymeDB.cpp
-IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
-ModifierRep.cpp
-PepIterator.cpp
+ModifiedNASequenceGenerator.cpp
+NASequence.cpp
+NucleicAcidSpectrumGenerator.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp
@@ -27,13 +28,16 @@ ResidueDB.cpp
 ResidueModification.cpp
 RNaseDB.cpp
 RNaseDigestion.cpp
-TheoreticalSpectrumGenerator.cpp
+Ribonucleotide.cpp
+RibonucleotideDB.cpp
 SpectrumAnnotator.cpp
-TheoreticalSpectrumGeneratorXLMS.cpp
+SimpleTSGXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
-TrypticIterator.cpp
+Tagger.cpp
+TheoreticalSpectrumGenerator.cpp
+TheoreticalSpectrumGeneratorXLMS.cpp
 WeightWrapper.cpp
 )
 
@@ -48,4 +52,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\CHEMISTRY" FILES ${sources})
-

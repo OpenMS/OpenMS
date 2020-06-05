@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,9 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
-#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#pragma once
+
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 namespace OpenMS
 {
@@ -42,8 +43,29 @@ namespace OpenMS
           public:
 
           /**
-          @brief Internal structure used in @ref SiriusAdapter that is used
+          @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
            for the conversion of the Csi:FingerID output to an mzTab.
+
+           CsiAdapterHit:
+           inchikey2D (String)
+           inchi (String)
+           rank (int)  - Rank of the identification for a compound (spectrum) calculated by CSI:FingerID
+           molecular_formula (String) - sumformula
+           score (int) - Score of the identification for a compound (spectrum) calculated by CSI:FingerID
+           name (String)
+           smiles (String)
+           pubchemids (vector<String>) - Pubchemid as reference
+           links (vector<String>) - Links to the database
+
+           CsiAdapterIdentification:
+           scan_index (int) - Index of the spectrum used for identification
+           scan_number (int) - NativeId of the spectrum used for identification
+           feature_id (String) - FeatureId (if spectrum was assigned to a feature)
+           hits (vector<CsiAdapterHit>)
+
+           CsiAdapterRun:
+           identifications (vector<CSIAdapterIdentification>)
+
            @ingroup DATAACCESS
           */
 
@@ -51,9 +73,9 @@ namespace OpenMS
           {
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
-            unsigned int rank;
+            unsigned int rank = 0;
             OpenMS::String molecular_formula;
-            double score;
+            double score = 0.;
             OpenMS::String name;
             OpenMS::String smiles;
             std::vector<String> pubchemids;
@@ -63,7 +85,12 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
-            OpenMS::String scan_index;
+            double mz = 0.;
+            double rt = 0.;
+            OpenMS::String native_id;
+            int scan_index = -1;
+            int scan_number = -1;
+            OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };
 
@@ -72,12 +99,21 @@ namespace OpenMS
             std::vector <CsiAdapterIdentification> identifications;
           };
 
-          //Output of Sirius is one directory per spectrum/compound
-          //paths: Path to output directories of sirius
-          //number: Amount of entries for each file/compound should be written to the mztab file
-          static void read(const std::vector<String> & paths, Size number, MzTab & result);
+          /**
+          @brief Conversion of CSI:FingerID output to mzTab
+          
+          Output of CSI:FingerID is one directory per spectrum/compound
+          @param sirius_output_paths: Path to output directories of Sirius
+          @param original_input_mzml: Path to original input mzml of SiriusAdapter
+          @param top_n_hits: Top n  entries for each compound written to the result file
+          
+          @return Result written to mzTab
+          */
+          static void read(const std::vector<String>& sirius_output_paths,
+                           const String& original_input_mzml,
+                           const Size& top_n_hits,
+                           MzTab& result);
 
       };
 }
 
-#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

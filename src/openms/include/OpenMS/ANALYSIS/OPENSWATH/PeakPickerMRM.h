@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
-#define OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -77,8 +76,11 @@ public:
     PeakPickerMRM();
 
     /// Destructor
-    ~PeakPickerMRM() {}
+    ~PeakPickerMRM() override {}
     //@}
+
+	/// indices into FloatDataArrays of resulting picked chromatograms
+	enum FLOATINDICES { IDX_FWHM = 0, IDX_ABUNDANCE = 1, IDX_LEFTBORDER = 2, IDX_RIGHTBORDER = 3, SIZE_OF_FLOATINDICES };
 
     /**
       @brief Finds peaks in a single chromatogram and annotates left/right borders
@@ -128,7 +130,7 @@ protected:
 
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);
@@ -173,5 +175,4 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,22 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILESDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILESDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASOutputFilesDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASOutputFilesDialogTemplate;
+}
 
 namespace OpenMS
 {
+  class OutputDirectory;
+
   /**
       @brief Dialog which allows to specify the directory for the output files
 
@@ -49,24 +55,21 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog,
-    public Ui::TOPPASOutputFilesDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
 public:
 
     /// Constructor
-    TOPPASOutputFilesDialog(const QString & dir_name, int num_jobs);
+    TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
+    ~TOPPASOutputFilesDialog();
 
     /// Returns the name of the directory
-    QString getDirectory();
+    QString getDirectory() const;
 
     /// Returns the maximum number of jobs in the spinbox
-    int getNumJobs();
-
-    /// Returns if the directory is valid (is a directory and writable)
-    static bool dirNameValid(const QString & dir_name);
+    int getNumJobs() const;
 
 public slots:
 
@@ -77,8 +80,10 @@ protected slots:
 
     /// Called when OK is pressed; checks if the selected file is valid
     void checkValidity_();
-
+private:
+    Ui::TOPPASOutputFilesDialogTemplate* ui_;
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPASOUTPUTFILESDIALOG_H
+
+using OutputDirectory = OpenMS::OutputDirectory;
