@@ -418,50 +418,52 @@ void MSChromatogram::clear(bool clear_meta_data)
 
 // This helper function is based on the cstd::set_union implementation. It is different in that it has a separate concept of "close enough to merge"
 // This is defined as having retention times of within 1/1000 seconds
+// Note: We assume that RTs are distint in each of the two Chromatograms but may be the same between Chromatograms.
 OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iterator first1,
                     OpenMS::MSChromatogram::Iterator last1,
                     OpenMS::MSChromatogram::Iterator first2,
                     OpenMS::MSChromatogram::Iterator last2,
-                    OpenMS::MSChromatogram::Iterator d_first)
+                    OpenMS::MSChromatogram::Iterator result)
 {
-    for (; first1 != last1; ++d_first) {
-        if (first2 == last2)  //return if there is no more to merge from the second vector
-            return std::copy(first1, last1, d_first);
-        if ( round( ( first1->getRT() ) * 1000) == round( (first2->getRT()  * 1000 ) ) ) //if RTs are "close enough" copy the peak from 1 and add the intensity from 2
-        {
-          *d_first = *first1++;
-          d_first->setIntensity(d_first->getIntensity() + first2->getIntensity());
-          first2++;
-        }
-        else // Otherwise choose whichever peak is smaller and add it to the output list
-        {
-          if (first2->getRT() < first1->getRT()) 
-          {
-            *d_first = *first2++;
-          }
-          else 
-          {
-            *d_first = *first1++;
-          }
-        }
+  while (true)
+  {
+    if (first1==last1) return std::copy(first2,last2,result);
+    if (first2==last2) return std::copy(first1,last1,result);
+
+    auto smaller_RT = [](OpenMS::MSChromatogram::Iterator a, OpenMS::MSChromatogram::Iterator b)->bool
+    {
+      return round(a->getRT() * 1000.0) < round(b->getRT() * 1000.0);
+    };
+
+    if (smaller_RT(first1, first2)) { *result = *first1; ++first1; }
+    else if (smaller_RT(first2, first1)) { *result = *first2; ++first2; }
+    else 
+    { // approx. equal
+      *result = *first1; 
+      result->setIntensity(result->getIntensity() + first2->getIntensity());
+      ++first1; 
+      ++first2; 
     }
-    return std::copy(first2, last2, d_first);
+    ++result;
+  }
 }
 
 
 void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
 {
   vector<ChromatogramPeak> temp;
-  temp.reserve((this->end() - this->begin()) + (other.end() - other.begin()) );
-  ContainerType::assign(temp.begin(), setSumSimilarUnion(this->begin(), this->end(), other.begin(), other.end(), temp.begin()));
+  temp.resize(size() + other.size());
+  auto new_end = setSumSimilarUnion(begin(), end(), other.begin(), other.end(), temp.begin());
+  ContainerType::assign(temp.begin(), new_end);
+
   if (add_meta)
   {
     DoubleList ls;
-    if (this->getMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS) != DataValue::EMPTY)
+    if (metaValueExists(Constants::UserParam::MERGED_CHROMATOGRAM_MZS))
     {
-      ls = this->getMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS).toDoubleList();
+      ls = getMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS).toDoubleList();
     }
     ls.push_back(other.getMZ());
-    this->setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, ls);
+    setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, ls);
   }
 }
