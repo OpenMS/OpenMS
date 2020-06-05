@@ -3011,7 +3011,8 @@ namespace OpenMS
     }
    
     Size n_best_search_engine_score = meta_data.protein_search_engine_score.size();
-
+    // TODO: we currently only store one search engine score per PSM so we need to limit the number to the main score
+    n_best_search_engine_score = std::min(n_best_search_engine_score, Size(1));
     {
       MzTabProteinSectionRow row;
       bool first = true;
@@ -3061,6 +3062,9 @@ namespace OpenMS
     {
       MzTabPSMSectionRow row;
       bool first = true;
+
+      // TODO: we currently only store one search engine score per PSM so we need to limit the number to the main score      
+      n_search_engine_scores = 1;
       while (s.nextPSMRow(row))
       {
         if (first)

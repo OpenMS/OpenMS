@@ -1689,7 +1689,7 @@ namespace OpenMS
     const AASequence& aas = best_ph.getSequence();
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
-    row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
+    row.modifications = extractModificationListFromAASequence(best_ph, fixed_mods);
 
     const set<String>& accessions = best_ph.extractProteinAccessionsSet();
     const vector<PeptideEvidence>& peptide_evidences = best_ph.getPeptideEvidences();
@@ -1841,7 +1841,7 @@ namespace OpenMS
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
       // annotate variable modifications (no fixed ones)
-      row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
+      row.modifications = extractModificationListFromAASequence(best_ph, fixed_mods);
 
       const set<String>& accessions = best_ph.extractProteinAccessionsSet();
       const vector<PeptideEvidence> &peptide_evidences = best_ph.getPeptideEvidences();
@@ -2048,11 +2048,11 @@ namespace OpenMS
     row.sequence = MzTabString(aas.toUnmodifiedString());
 
     // extract all modifications in the current sequence for reporting. In contrast to peptide and protein section all modifications are reported.
-    row.modifications = extractModificationListFromAASequence(aas);
+    row.modifications = extractModificationListFromAASequence(best_ph);
     
     MzTabParameterList search_engines;
 
-    //TODO support columns for multiple search engines/scores
+    //TODO support columns for multiple search engines/scores    
     pair<String, String> name_version = *run_to_search_engines[run_index].begin();
     search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
     row.search_engine = search_engines;
@@ -2173,7 +2173,7 @@ namespace OpenMS
     map<Size, vector<pair<String, String>>>& run_to_search_engines,
     map<Size, vector<vector<pair<String, String>>>>& run_to_search_engine_settings,
     map<String, vector<pair<String, String>>>& search_engine_to_settings)
-  {
+  {    
     size_t run_index(0);
     for (auto it = prot_ids.cbegin(); it != prot_ids.cend(); ++it)
     {
@@ -2188,6 +2188,8 @@ namespace OpenMS
       const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
       const String &search_engine_score_type = prot_ids[run_index]->getScoreType();
       search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
+
+      // store main search engine as first entry in run_to_search_engines
       run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
 
       vector<String> mvkeys;
@@ -2648,6 +2650,24 @@ Not sure how to handle these:
     }
   }
 
+  MzTabParameter MzTab::getMSRunSpectrumIdentifierType_(const vector<const PeptideIdentification*>& peptide_ids)
+  {
+    MzTabParameter p;
+    p.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+    for (const auto& pid : peptide_ids)
+    {
+      String spec_ref = pid->getMetaValue("spectrum_reference", "");
+      // note: don't change order as some may contain the other terms as well. Taken from mzTab specification document
+      if (spec_ref.hasSubstring("controllerNumber=")) { p.fromCellString("[MS,MS:1000768,Thermo nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("process=")) { p.fromCellString("[MS,MS:1000769,Waters nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("cycle=")) { p.fromCellString("[MS,MS:1000770,WIFF nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("scan=")) { p.fromCellString("[MS,MS:1000776,scan number only nativeID format,]"); return p; }
+      if (spec_ref.hasSubstring("spectrum=")) { p.fromCellString("[MS,MS:1000777,spectrum identifier nativeID format,]"); return p; }
+      return p;
+    }
+    return p;
+  }
+
   MzTab::IDMzTabStream::IDMzTabStream(
     const std::vector<const ProteinIdentification*>& prot_ids,
     const std::vector<const PeptideIdentification*>& peptide_ids,
@@ -2706,6 +2726,9 @@ Not sure how to handle these:
       protein_hit_user_value_keys_,
       peptide_id_user_value_keys_,
       peptide_hit_user_value_keys_);
+
+    // determine nativeID format
+    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids);      
 
     // filter out redundant meta values
     protein_hit_user_value_keys_.erase("Description"); // already used in Description column
@@ -2782,7 +2805,7 @@ Not sure how to handle these:
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]"); // TODO: determine from data
+      mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
       if (!m.hasPrefix("file://")) {m = String("file://") + m; }
@@ -2972,10 +2995,17 @@ state0:
     return m;
   }
 
-  MzTabModificationList MzTab::extractModificationListFromAASequence(const AASequence& aas, const vector<String>& fixed_mods)
+  MzTabModificationList MzTab::extractModificationListFromAASequence(const PeptideHit& pep_hit, const vector<String>& fixed_mods, const vector<String>& localization_mods)
   {
+    const AASequence& aas = pep_hit.getSequence();
     MzTabModificationList mod_list;
     vector<MzTabModification> mods;
+
+    MzTabParameter localization_score;
+    if (pep_hit.metaValueExists("Luciphor_global_flr"))
+    {
+      localization_score.fromCellString("[MS,MS:1002380,false localization rate," + String(pep_hit.getMetaValue("Luciphor_global_flr"))+"]");
+    }
 
     if (aas.isModified())
     {
@@ -2983,7 +3013,9 @@ state0:
       {
         MzTabModification mod;
         const ResidueModification& res_mod = *(aas.getNTerminalModification());
-        if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
+
+        bool is_fixed = std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) != fixed_mods.end();
+        if (!is_fixed)
         {
           String unimod = res_mod.getUniModAccession();
           MzTabString unimod_accession = MzTabString(unimod.toUpper());
@@ -3001,13 +3033,28 @@ state0:
         {
           MzTabModification mod;
           const ResidueModification& res_mod = *(aas[ai].getModification());
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
+          bool is_fixed = std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) != fixed_mods.end();
+          if (!is_fixed)
           {
             // MzTab standard is to just report Unimod accession.
             String unimod = res_mod.getUniModAccession();
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.emplace_back(ai + 1, MzTabParameter());
+            mod.setPositionsAndParameters(pos);
+            mod.setModificationIdentifier(unimod_accession);
+            mods.push_back(mod);
+          }
+
+          // add localization if in localization_mods 
+          bool is_localized = std::find(localization_mods.begin(), localization_mods.end(), res_mod.getId()) != localization_mods.end();
+          if (is_localized)
+          {
+            // MzTab standard is to just report Unimod accession.
+            String unimod = res_mod.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.emplace_back(ai + 1, localization_score);
             mod.setPositionsAndParameters(pos);
             mod.setModificationIdentifier(unimod_accession);
             mods.push_back(mod);
@@ -3206,6 +3253,9 @@ state0:
     StringList var_mods;
     MzTab::getSearchModifications_(prot_ids_, var_mods, fixed_mods_);
 
+    // determine nativeID format
+    MzTabParameter msrun_spectrum_identifier_type = MzTab::getMSRunSpectrumIdentifierType_(peptide_ids_);
+
     // Determine search engines used in the different MS runs.
     map<tuple<String, String, String>, set<Size>> search_engine_to_runs;
     map<String, vector<pair<String,String>>> search_engine_to_settings;
@@ -3360,7 +3410,7 @@ state0:
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
-      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]"); // TODO: determine from data
+      mztab_run_metadata.id_format = msrun_spectrum_identifier_type;
 
       // prepend file:// if not there yet
       if (!m.hasPrefix("file://")) {m = String("file://") + m; }
@@ -3393,13 +3443,11 @@ state0:
       }
       else if (experiment_type == "labeled_MS1")
       {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
+        quantification_reagent.fromCellString("[PRIDE,PRIDE:0000316,MS1 based isotope labeling," + c.second.label + "]");
       }
       else if (experiment_type == "labeled_MS2")
-      {
-        // TODO: check if there are appropriate CV terms
-        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
+      {       
+        quantification_reagent.fromCellString("[PRIDE,PRIDE:0000317,MS2 based isotope labeling," + c.second.label + "]");
       }
       
       // look up run index by filename

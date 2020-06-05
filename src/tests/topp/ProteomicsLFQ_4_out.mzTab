@@ -3,11 +3,11 @@ MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
-MTD	protein_search_engine_score[1]	[, , TOPPProteinInference q-value, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
+MTD	protein_search_engine_score[1]	[, , TOPPProteinInference q-value, 2.6.0-pre-feature-mztab-main-2020-06-04]
 MTD	peptide_search_engine_score[1]	[, , OMSSA FDR, 2.1.4]
 MTD	psm_search_engine_score[1]	[, , OMSSA FDR, 2.1.4]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
-MTD	software[2]	[, , TOPPProteinInference, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-mztab-main-2020-06-04]
+MTD	software[2]	[, , TOPPProteinInference, 2.6.0-pre-feature-mztab-main-2020-06-04]
 MTD	software[3]	[, , OMSSA, 2.1.4]
 MTD	software[3]-setting[1]	db:18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
 MTD	software[3]-setting[2]	db_version:null
@@ -31,23 +31,23 @@ MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysi
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
 MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[1]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML
-MTD	ms_run[1]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[1]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML
+MTD	ms_run[1]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[2]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[2]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML
-MTD	ms_run[2]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[2]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML
+MTD	ms_run[2]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[3]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[3]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML
-MTD	ms_run[3]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[3]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML
+MTD	ms_run[3]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[4]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[4]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
-MTD	ms_run[4]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[4]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
+MTD	ms_run[4]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[5]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[5]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
-MTD	ms_run[5]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[5]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
+MTD	ms_run[5]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[6]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[6]-location	file:///home/sachsenb/OMS/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML
-MTD	ms_run[6]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[6]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML
+MTD	ms_run[6]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
 MTD	assay[1]-ms_run_ref	ms_run[1],ms_run[4]
 MTD	assay[2]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
@@ -74,7 +74,7 @@ PSM	SHCIAEVEK	0	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_de
 PSM	LAMTLAEAER	1	tr|A9GID7|A9GID7_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.045454545454546	null	1607.2958984375	3	368.832153320311988	368.862109904737679	ms_run[1]:spectrum=2475	R	A	null	null	spectrum=2475	LAMTLAEAER
 PSM	LAMTLAEAER	2	tr|A9GID7|A9GID7_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	null	1697.943603515619998	3	368.832061767578011	368.862109904737679	ms_run[1]:spectrum=2518	R	A	null	null	spectrum=2518	LAMTLAEAER
 PSM	YICDNQDTISSK	3	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	3-UNIMOD:4	1736.668212890619998	2	722.325378417968977	722.324660331071073	ms_run[1]:spectrum=2547	K	L	null	null	spectrum=2547	YIC(Carbamidomethyl)DNQDTISSK
-PSM	DDSPDLPK	4	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	null	1738.033447265619998	2	443.711242675781023	443.711267907821025	ms_run[1]:spectrum=2548	K	L	null	null	spectrum=2548	DDSPDLPK
+PSM	DDSPDLPK	4	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	null	1738.033447265619998	2	443.711242675781023	443.711267907820911	ms_run[1]:spectrum=2548	K	L	null	null	spectrum=2548	DDSPDLPK
 PSM	CCTESLVNR	5	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	1-UNIMOD:4,2-UNIMOD:4	1750.915893554690001	2	569.752807617187955	569.752618393021066	ms_run[1]:spectrum=2566	K	R	null	null	spectrum=2566	C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR
 PSM	ECCDKPLLEK	6	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.045454545454546	2-UNIMOD:4,3-UNIMOD:4	1759.0947265625	2	646.304504394531023	646.30468413227095	ms_run[1]:spectrum=2573	K	S	null	null	spectrum=2573	EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK
 PSM	LCVLHEK	7	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.03448275862069	2-UNIMOD:4	1776.050048828119998	2	449.744232177733977	449.74438990042097	ms_run[1]:spectrum=2588	R	T	null	null	spectrum=2588	LC(Carbamidomethyl)VLHEK
@@ -97,7 +97,7 @@ PSM	LCVLHEK	23	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_dec
 PSM	LCVLHEK	24	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	2-UNIMOD:4	1668.201049804690001	2	449.744079589843977	449.74438990042097	ms_run[2]:spectrum=2393	R	T	null	null	spectrum=2393	LC(Carbamidomethyl)VLHEK
 PSM	SHCIAEVEK	25	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1672.482666015619998	2	508.246765136718977	508.247494448271027	ms_run[2]:spectrum=2402	K	D	null	null	spectrum=2402	SHCIAEVEK
 PSM	CCTESLVNR	26	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	1-UNIMOD:4,2-UNIMOD:4	1683.761108398440001	2	569.752807617187955	569.752618393021066	ms_run[2]:spectrum=2419	K	R	null	null	spectrum=2419	C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR
-PSM	DDSPDLPK	27	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1697.938354492190001	2	443.71142578125	443.711267907821025	ms_run[2]:spectrum=2440	K	L	null	null	spectrum=2440	DDSPDLPK
+PSM	DDSPDLPK	27	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1697.938354492190001	2	443.71142578125	443.711267907820911	ms_run[2]:spectrum=2440	K	L	null	null	spectrum=2440	DDSPDLPK
 PSM	QEPERNECFLSHK	28	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	8-UNIMOD:4	1725.173828125	3	558.594543457031023	558.594863858504482	ms_run[2]:spectrum=2476	K	D	null	null	spectrum=2476	QEPERNEC(Carbamidomethyl)FLSHK
 PSM	YICDNQDTISSK	29	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	1728.013061523440001	2	722.324951171875	722.324660331071073	ms_run[2]:spectrum=2481	K	L	null	null	spectrum=2481	YIC(Carbamidomethyl)DNQDTISSK
 PSM	DLGEEHFK	30	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1764.072265625	2	487.73193359375	487.732534471620966	ms_run[2]:spectrum=2530	K	G	null	null	spectrum=2530	DLGEEHFK
@@ -105,7 +105,7 @@ PSM	DLGEEHFK	31	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_de
 PSM	ETYGDMADCCEK	32	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	9-UNIMOD:4,10-UNIMOD:4	1790.203247070309999	2	739.765686035156023	739.765263949420955	ms_run[2]:spectrum=2570	R	Q	null	null	spectrum=2570	ETYGDMADC(Carbamidomethyl)C(Carbamidomethyl)EK
 PSM	VASLRETYGDMADCCEK	33	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.024390243902439	11-UNIMOD:35,14-UNIMOD:4,15-UNIMOD:4	1832.422241210940001	3	674.286315917968977	674.2851509018044	ms_run[2]:spectrum=2625	K	Q	null	null	spectrum=2625	VASLRETYGDM(Oxidation)ADC(Carbamidomethyl)C(Carbamidomethyl)EK
 PSM	YICDNQDTISSK	34	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1846.528564453119998	2	693.814819335937955	693.813928283221003	ms_run[2]:spectrum=2643	K	L	null	null	spectrum=2643	YICDNQDTISSK
-PSM	EYEATLEECCAK	35	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	9-UNIMOD:4,10-UNIMOD:4	1915.911743164059999	2	751.809936523437955	751.810528712021096	ms_run[2]:spectrum=2748	K	D	null	null	spectrum=2748	EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK
+PSM	EYEATLEECCAK	35	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	9-UNIMOD:4,10-UNIMOD:4	1915.911743164059999	2	751.809936523437955	751.810528712020982	ms_run[2]:spectrum=2748	K	D	null	null	spectrum=2748	EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK
 PSM	AEFVEVTK	36	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1948.32080078125	2	461.747375488281023	461.747653035420967	ms_run[2]:spectrum=2794	K	L	null	null	spectrum=2794	AEFVEVTK
 PSM	GACLLPK	37	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1983.377197265619998	2	351.204498291016023	351.204368724971005	ms_run[2]:spectrum=2840	K	I	null	null	spectrum=2840	GACLLPK
 PSM	VATVSLPR	38	P00761|TRYP_PIG	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1995.35205078125	2	421.758544921875	421.758354535420949	ms_run[2]:spectrum=2856	R	S	null	null	spectrum=2856	VATVSLPR
@@ -114,7 +114,7 @@ PSM	LAMTLAEAER	40	tr|A9GID7|A9GID7_SORC5	1	18Protein_SoCe_Tr_detergents_trace_ta
 PSM	ECCDKPLLEK	41	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	2-UNIMOD:4,3-UNIMOD:4	1705.23486328125	3	431.205749511718977	431.20554824377092	ms_run[3]:spectrum=2427	K	S	null	null	spectrum=2427	EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK
 PSM	LCVLHEK	42	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	2-UNIMOD:4	1707.726440429690001	2	449.744201660156023	449.74438990042097	ms_run[3]:spectrum=2431	R	T	null	null	spectrum=2431	LC(Carbamidomethyl)VLHEK
 PSM	CCTESLVNR	43	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	1-UNIMOD:4,2-UNIMOD:4	1710.491943359380002	2	569.753356933593977	569.752618393021066	ms_run[3]:spectrum=2436	K	R	null	null	spectrum=2436	C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR
-PSM	DDSPDLPK	44	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1727.41552734375	2	443.711639404296989	443.711267907821025	ms_run[3]:spectrum=2458	K	L	null	null	spectrum=2458	DDSPDLPK
+PSM	DDSPDLPK	44	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1727.41552734375	2	443.711639404296989	443.711267907820911	ms_run[3]:spectrum=2458	K	L	null	null	spectrum=2458	DDSPDLPK
 PSM	CCTESLVNR	45	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	2-UNIMOD:4	1751.080200195309999	2	541.241516113281023	541.24188634517111	ms_run[3]:spectrum=2475	K	R	null	null	spectrum=2475	CC(Carbamidomethyl)TESLVNR
 PSM	YICDNQDTISSK	46	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	1754.4775390625	2	722.324951171875	722.324660331071073	ms_run[3]:spectrum=2477	K	L	null	null	spectrum=2477	YIC(Carbamidomethyl)DNQDTISSK
 PSM	YICDNQDTISSK	47	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	1774.8974609375	2	722.324890136718977	722.324660331071073	ms_run[3]:spectrum=2500	K	L	null	null	spectrum=2500	YIC(Carbamidomethyl)DNQDTISSK
@@ -125,7 +125,7 @@ PSM	YICDNQDTISSK	51	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_targe
 PSM	GACLLPK	52	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	1887.155395507809999	2	379.715393066406023	379.715100772820961	ms_run[3]:spectrum=2624	K	I	null	null	spectrum=2624	GAC(Carbamidomethyl)LLPK
 PSM	YICDNQDTISSK	53	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	1897.230590820309999	2	722.323974609375	722.324660331071073	ms_run[3]:spectrum=2638	K	L	null	null	spectrum=2638	YIC(Carbamidomethyl)DNQDTISSK
 PSM	AEFVEVTK	54	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	1946.794067382809999	2	461.747711181641023	461.747653035420967	ms_run[3]:spectrum=2696	K	L	null	null	spectrum=2696	AEFVEVTK
-PSM	EYEATLEECCAK	55	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	9-UNIMOD:4,10-UNIMOD:4	1947.007202148440001	2	751.810546875	751.810528712021096	ms_run[3]:spectrum=2697	K	D	null	null	spectrum=2697	EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK
+PSM	EYEATLEECCAK	55	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	9-UNIMOD:4,10-UNIMOD:4	1947.007202148440001	2	751.810546875	751.810528712020982	ms_run[3]:spectrum=2697	K	D	null	null	spectrum=2697	EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK
 PSM	GACLLPK	56	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	3-UNIMOD:4	2010.879028320309999	2	379.71484375	379.715100772820961	ms_run[4]:spectrum=2941	K	I	null	null	spectrum=2941	GAC(Carbamidomethyl)LLPK
 PSM	DLGEEHFK	57	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.045454545454546	null	2013.363647460940001	2	487.732208251953011	487.732534471620966	ms_run[4]:spectrum=2946	K	G	null	null	spectrum=2946	DLGEEHFK
 PSM	AEFVEVTK	58	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.0	null	2015.592651367190001	2	461.747497558593977	461.747653035420967	ms_run[4]:spectrum=2950	K	L	null	null	spectrum=2950	AEFVEVTK
