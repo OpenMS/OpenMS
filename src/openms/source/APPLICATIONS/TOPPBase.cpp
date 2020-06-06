@@ -1519,7 +1519,7 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { sstderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
     ExternalProcess ep(lam_out, lam_err);
 
-    const auto& rt = ep.run(nullptr, executable, arguments, workdir, true); // does automatic escaping etc... start
+    const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured: if not written already in callback, do it now
       writeLog_("Standard output: " + sstdout);

@@ -96,11 +96,16 @@ namespace OpenMS
       /// update the current working directory for all file input fields
       void broadcastNewCWD_(const QString& new_cwd);
 
+
       void on_btn_runPyProphet_clicked();
 
       void on_btn_pyresults_clicked();
 
     private:
+      /// find the path of a Script, given the location of python(.exe). E.g. pyprophet.exe or feature_alignment.py
+      /// Returns true on success, with the full path in @p script_name
+      bool findPythonScript_(const String& path_to_python_exe, String& script_name);
+
       /// collect all parameters throughout the Wizard's controls and update 'swath_param_'
       void updateSwathParamFromWidgets_();
 
@@ -124,6 +129,8 @@ namespace OpenMS
       /// @param text The text to write
       /// @param new_section Start a new block with a date and time
       void writeLog_(const QString& text, bool new_section = false);
+      /// @brief convenient overload for String
+      void writeLog_(const String& text, bool new_section = false);
 
       /// Ensure all input widgets are filled with data by the user to run OpenSwathWorkflow
       /// If anything is missing: show a Messagebox and return false.

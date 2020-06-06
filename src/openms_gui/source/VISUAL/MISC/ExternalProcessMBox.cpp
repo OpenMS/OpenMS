@@ -61,7 +61,7 @@ namespace OpenMS
 
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
   {
-    auto rs = ep_.run(parent, exe, args, working_dir, verbose, error_msg);
+    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
     
     QMessageBox::critical(parent, "Error", error_msg.toQString());
 
@@ -71,7 +71,7 @@ namespace OpenMS
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose)
   {
     String error_msg;
-    auto rs = ep_.run(parent, exe, args, working_dir, verbose, error_msg);
+    auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
 
     if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
 

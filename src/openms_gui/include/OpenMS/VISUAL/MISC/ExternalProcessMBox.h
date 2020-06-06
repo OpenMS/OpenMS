@@ -69,7 +69,7 @@ namespace OpenMS
     /**
       @brief Runs a program by calling ExternalProcess::run and shows any error reported in @p error_msg as a MessageBox before this function returns
 
-      @param parent Optional parent widget, used to show QMesssageBoxes (see @p verbose_GUI)
+      @param parent Optional parent widget, used to position QMesssageBoxes above the parent
       @param exe The program to call (can contain spaces in path, no problem)
       @param args A list of extra arguments (can be empty)
       @param working_dir Execute the external process in the given directory (relevant when relative input/output paths are given). Leave empty to use the current working directory.
