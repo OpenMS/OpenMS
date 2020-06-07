@@ -427,16 +427,22 @@ OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iter
 {
   while (true)
   {
-    if (first1==last1) return std::copy(first2,last2,result);
-    if (first2==last2) return std::copy(first1,last1,result);
+    if (first1 == last1) return std::copy(first2,last2,result);
+    if (first2 == last2) return std::copy(first1,last1,result);
 
     auto smaller_RT = [](OpenMS::MSChromatogram::Iterator a, OpenMS::MSChromatogram::Iterator b)->bool
     {
       return round(a->getRT() * 1000.0) < round(b->getRT() * 1000.0);
     };
 
-    if (smaller_RT(first1, first2)) { *result = *first1; ++first1; }
-    else if (smaller_RT(first2, first1)) { *result = *first2; ++first2; }
+    if (smaller_RT(first1, first2)) 
+    { 
+      *result = *first1; ++first1; 
+    }
+    else if (smaller_RT(first2, first1)) 
+    { 
+      *result = *first2; ++first2; 
+    }
     else 
     { // approx. equal
       *result = *first1; 
