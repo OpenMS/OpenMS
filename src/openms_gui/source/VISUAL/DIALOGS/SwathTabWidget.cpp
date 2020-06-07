@@ -512,7 +512,7 @@ namespace OpenMS
       for (const auto& call : calls)
       { 
         // this might just be one loop... depending on the call...
-        for (int i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
+        for (size_t i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
         {
           auto returnstate = ep_.run(this, call.exe.toQString(), call.getArgs(i_loop), getCurrentOutDir_(), true);
           if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)
