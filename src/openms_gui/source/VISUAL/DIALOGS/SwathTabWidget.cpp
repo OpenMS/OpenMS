@@ -390,7 +390,7 @@ namespace OpenMS
       /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
       QStringList getArgs(const int loop_number) const
       {
-        if (loop_number >= getLoopCount())
+        if (loop_number >= (int)getLoopCount())
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
         }
