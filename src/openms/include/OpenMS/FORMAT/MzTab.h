@@ -914,7 +914,7 @@ public:
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
     /// If meta values for modification localization are found, this information is added.
-    static MzTabModificationList extractModificationListFromAASequence(const PeptideHit& pep_hit, const std::vector<String>& fixed_mods = std::vector<String>(), const std::vector<String>& localization_mods = std::vector<String>());
+    static MzTabModificationList extractModificationList(const PeptideHit& pep_hit, const std::vector<String>& fixed_mods, const std::vector<String>& localization_mods);
 
 	/**
 	 * @brief export linked peptide features aka consensus map
