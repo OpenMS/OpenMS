@@ -2003,9 +2003,9 @@ namespace OpenMS
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
 
     StringList localization_mods;
-    if (prot_ids[run_index]->metaValueExists(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM))
+    if (prot_ids[run_index]->getSearchParameters().metaValueExists(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM))
     {
-      localization_mods = prot_ids[run_index]->getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM);
+      localization_mods = prot_ids[run_index]->getSearchParameters().getMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM);
     }
 
     size_t msfile_index(0);
