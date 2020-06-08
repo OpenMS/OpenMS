@@ -38,6 +38,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <vector>
@@ -199,6 +200,8 @@ namespace OpenMS
 
       /// File stream (to write mzML)
       std::ofstream ofs_;
+
+      FastOStream os_;
 
       /// Stores whether we have already started writing any data
       bool started_writing_;

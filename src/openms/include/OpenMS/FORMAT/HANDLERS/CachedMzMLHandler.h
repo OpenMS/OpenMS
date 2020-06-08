@@ -37,6 +37,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -139,7 +140,7 @@ public:
     */
     static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr& data1,
                                         OpenSwath::BinaryDataArrayPtr& data2,
-                                        std::ifstream& ifs, 
+                                        std::ifstream& ifs,
                                         int& ms_level,
                                         double& rt)
     {
@@ -208,13 +209,13 @@ public:
 protected:
 
     /// write a single spectrum to filestream
-    void writeSpectrum_(const SpectrumType& spectrum, std::ofstream& ofs) const;
+    void writeSpectrum_(const SpectrumType& spectrum, FastOStream& ofs) const;
 
     /// write a single chromatogram to filestream
-    void writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs) const;
+    void writeChromatogram_(const ChromatogramType& chromatogram, FastOStream& ofs) const;
 
     /// helper method for fast reading of spectra and chromatograms
-    static inline void readDataFast_(std::ifstream& ifs, std::vector<OpenSwath::BinaryDataArrayPtr>& data, const Size& data_size, 
+    static inline void readDataFast_(std::ifstream& ifs, std::vector<OpenSwath::BinaryDataArrayPtr>& data, const Size& data_size,
       const Size& nr_float_arrays);
 
     /// Members
@@ -224,4 +225,3 @@ protected:
   };
 }
 }
-

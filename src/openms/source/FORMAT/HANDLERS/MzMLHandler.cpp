@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
@@ -146,9 +147,7 @@ namespace OpenMS
       {
         size_t errCount = 0;
         String error_message;
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
@@ -217,9 +216,7 @@ namespace OpenMS
       {
         size_t errCount = 0;
         String error_message;
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
         for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
@@ -3436,7 +3433,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
+    void MzMLHandler::writeUserParam_(FastOStream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -3479,7 +3476,10 @@ namespace OpenMS
           // if we could not write it as CVTerm we will store it at least as userParam
           if (!writtenAsCVTerm)
           {
-            String userParam = "<userParam name=\"" + *key + "\" type=\"";
+            userParams.emplace_back("<userParam name=\"");
+            String& userParam = userParams.back();
+            userParam += *key;
+            userParam += "\" type=\"";
 
             const DataValue& d = meta.getMetaValue(*key);
             //determine type
@@ -3496,10 +3496,24 @@ namespace OpenMS
               userParam += "xsd:string";
             }
 
-            userParam += "\" value=\"" + writeXMLEscape(d.toString());
+            userParam += "\" value=\"";
+            userParam += writeXMLEscape(d.toString());
 
             if (d.hasUnit())
             {
+              String unitstring;
+              if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
+              {
+                unitstring = "UO:";
+              }
+              else if (d.getUnitType() == DataValue::UnitType::MS_ONTOLOGY)
+              {
+                unitstring = "MS:";
+              }
+              else
+              {
+                warning(LOAD, String("Unhandled unit ontology '"));
+              }
               //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
               //
               // We need to identify the correct CV term for the *unit* by
@@ -3507,41 +3521,30 @@ namespace OpenMS
               // correct ontology in our cv_ object.
               char s[8];
               snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
-              String unitstring = String(s);
-              if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
-              {
-                unitstring = "UO:" + unitstring;
-              }
-              else if (d.getUnitType() == DataValue::UnitType::MS_ONTOLOGY)
-              {
-                unitstring = "MS:" + unitstring;
-              }
-              else
-              {
-                warning(LOAD, String("Unhandled unit ontology '") );
-              }
+              unitstring += String(s);
 
-              ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);
-              userParam += "\" unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.prefix(2);
+              const ControlledVocabulary::CVTerm& unit = cv_.getTerm(unitstring);
+              userParam += "\" unitAccession=\"";
+              userParam += unit.id;
+              userParam += "\" unitName=\"";
+              userParam += unit.name;
+              userParam += "\" unitCvRef=\"";
+              userParam += unit.id.prefix(2);
             }
-
             userParam += "\"/>\n";
-
-
-            userParams.push_back(std::move(userParam));
           }
         }
       }
 
       // write out all the cvParams and userParams in correct order
-      for (std::vector<String>::iterator term = cvParams.begin(); term != cvParams.end(); ++term)
+      String sindent(indent, '\t');
+      for (const auto& term : cvParams)
       {
-        os << String(indent, '\t') << *term;
+        os << sindent << term;
       }
-
-      for (std::vector<String>::iterator term = userParams.begin(); term != userParams.end(); ++term)
+      for (const auto& term : userParams)
       {
-        os << String(indent, '\t') << *term;
+        os << sindent << term;
       }
     }
 
@@ -3562,7 +3565,7 @@ namespace OpenMS
       return res;
     }
 
-    void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSoftware_(FastOStream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
@@ -3590,7 +3593,7 @@ namespace OpenMS
       os << "\t\t</software>\n";
     }
 
-    void MzMLHandler::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, const Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSourceFile_(FastOStream& os, const String& id, const SourceFile& source_file, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
@@ -3634,7 +3637,7 @@ namespace OpenMS
       os << "\t\t\t</sourceFile>\n";
     }
 
-    void MzMLHandler::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator)
+    void MzMLHandler::writeDataProcessing_(FastOStream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\"" << id << "\">\n";
 
@@ -3756,19 +3759,15 @@ namespace OpenMS
       os << "\t\t</dataProcessing>\n";
     }
 
-    void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
+    void MzMLHandler::writePrecursor_(FastOStream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
     {
       // optional attributes
-      String external_spectrum_id =
-          precursor.metaValueExists("external_spectrum_id") ?
-          " externalSpectrumID=\"" + precursor.getMetaValue("external_spectrum_id").toString() + "\"" :
-          "";
-      String spectrum_ref =
-          precursor.metaValueExists("spectrum_ref") ?
-          " spectrumRef=\"" + precursor.getMetaValue("spectrum_ref").toString() + "\"":
-          "";
-
-      os << "\t\t\t\t\t<precursor" + external_spectrum_id + spectrum_ref + ">\n";
+      os << "\t\t\t\t\t<precursor";
+      if (precursor.metaValueExists("external_spectrum_id"))
+        os << " externalSpectrumID=\"" << precursor.getMetaValue("external_spectrum_id") << "\"";
+      if (precursor.metaValueExists("spectrum_ref"))
+        os << " spectrumRef=\"" << precursor.getMetaValue("spectrum_ref") << "\"";
+      os << ">\n";
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
@@ -3923,7 +3922,7 @@ namespace OpenMS
 
     }
 
-    void MzMLHandler::writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator)
+    void MzMLHandler::writeProduct_(FastOStream& os, const Product& product, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t\t\t<product>\n";
       os << "\t\t\t\t\t\t<isolationWindow>\n";
@@ -3941,8 +3940,9 @@ namespace OpenMS
       os << "\t\t\t\t\t</product>\n";
     }
 
-    void MzMLHandler::writeTo(std::ostream& os)
+    void MzMLHandler::writeTo(std::ostream& nos)
     {
+      FastOStream os(nos);
       const MapType& exp = *(cexp_);
       logger_.startProgress(0, exp.size() + exp.getChromatograms().size(), "storing mzML file");
       int progress = 0;
@@ -4011,11 +4011,11 @@ namespace OpenMS
         os << "\t\t</chromatogramList>" << "\n";
       }
 
-      MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
+      MzMLHandlerHelper::writeFooter_(nos, options_, spectra_offsets_, chromatograms_offsets_);
       logger_.endProgress();
     }
 
-    void MzMLHandler::writeHeader_(std::ostream& os,
+    void MzMLHandler::writeHeader_(FastOStream& os,
                                    const MapType& exp,
                                    std::vector<std::vector< ConstDataProcessingPtr > >& dps,
                                    const Internal::MzMLValidator& validator)
@@ -4107,7 +4107,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000294\" name=\"mass spectrum\" />\n";
       }
-      // writeUserParam_(os, exp, 3, "/mzML/fileDescription/fileContent/cvParam/@accession", validator);
+      // writeUserParam_(nos, exp, 3, "/mzML/fileDescription/fileContent/cvParam/@accession", validator);
       os << "\t\t</fileContent>\n";
 
       //--------------------------------------------------------------------------------------------
@@ -4948,7 +4948,7 @@ namespace OpenMS
 
     }
 
-    void MzMLHandler::writeSpectrum_(std::ostream& os,
+    void MzMLHandler::writeSpectrum_(FastOStream& os,
                                      const SpectrumType& spec,
                                      Size s,
                                      const Internal::MzMLValidator& validator,
@@ -4962,8 +4962,8 @@ namespace OpenMS
         native_id = String("spectrum=") + s;
       }
 
-      Int64 offset = os.tellp();
-      spectra_offsets_.push_back(make_pair(native_id, offset + 3));
+      Int64 offset = os.getStream().tellp();
+      spectra_offsets_.emplace_back(native_id, offset + 3);
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
       os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
@@ -5286,7 +5286,7 @@ namespace OpenMS
     }
 
     template <typename ContainerT>
-    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
+    void MzMLHandler::writeContainerData_(FastOStream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
       // dimension is either "time" or "mz" (both of these are controlled by
@@ -5335,7 +5335,7 @@ namespace OpenMS
     }
 
     template <typename DataType>
-    void MzMLHandler::writeBinaryDataArray_(std::ostream& os,
+    void MzMLHandler::writeBinaryDataArray_(FastOStream& os,
                                             const PeakFileOptions& pf_options_,
                                             std::vector<DataType>& data_to_encode,
                                             bool is32bit,
@@ -5412,7 +5412,7 @@ namespace OpenMS
       os << "\t\t\t\t\t</binaryDataArray>\n";
     }
 
-    void MzMLHandler::writeBinaryFloatDataArray_(std::ostream& os,
+    void MzMLHandler::writeBinaryFloatDataArray_(FastOStream& os,
                                                  const PeakFileOptions& pf_options_,
                                                  const OpenMS::DataArrays::FloatDataArray& array,
                                                  const Size spec_chrom_idx,
@@ -5428,36 +5428,32 @@ namespace OpenMS
 
       // Compute the array-type and the compression CV term
       String cv_term_type;
-      String compression_term;
-      String compression_term_no_np;
-      MSNumpressCoder::NumpressConfig np_config;
+      String compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
+      String compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", false);
+      MSNumpressCoder::NumpressConfig np_config = pf_options_.getNumpressConfigurationFloatDataArray();
+
       // if (array_type == "float_data")
+      auto lam_write_cv = [&]()
       {
         // Try and identify whether we have a CV term for this particular array (otherwise write the array name itself)
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName()); // name: binary data array
-
-        String unit_cv_term = "";
-        if (array_metadata.metaValueExists("unit_accession"))
+        if (!bi_term.id.empty())
         {
-          ControlledVocabulary::CVTerm unit = cv_.getTerm(array_metadata.getMetaValue("unit_accession"));
-          unit_cv_term = " unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.prefix(2) + "\"";
-          array_metadata.removeMetaValue("unit_accession"); // prevent this from being written as userParam
-        }
-
-        if (bi_term.id != "")
-        {
-          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\"" + unit_cv_term + " />\n";
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\"";
         }
         else
         {
-          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" +
-            array.getName() + "\"" + unit_cv_term + " />\n";
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\""
+             << array.getName() << "\"";
         }
-
-        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
-        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", false);
-        np_config = pf_options_.getNumpressConfigurationFloatDataArray();
-      }
+        if (array_metadata.metaValueExists("unit_accession"))
+        {
+          const ControlledVocabulary::CVTerm& unit = cv_.getTerm(array_metadata.getMetaValue("unit_accession"));
+          os << " unitAccession=\"" << unit.id << "\" unitName=\"" << unit.name << "\" unitCvRef=\""<< unit.id.prefix(2) << "\"";
+          array_metadata.removeMetaValue("unit_accession"); // prevent this from being written as userParam
+        }
+        os << " />\n";
+      };
 
       String data_processing_ref_string = "";
       if (array.getDataProcessing().size() != 0)
@@ -5474,7 +5470,7 @@ namespace OpenMS
           // numpress succeeded
           no_numpress = false;
           os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-          os << cv_term_type;
+          lam_write_cv();
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
         }
       }
@@ -5485,7 +5481,7 @@ namespace OpenMS
         compression_term = compression_term_no_np; // select the no-numpress term
         Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
         os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-        os << cv_term_type;
+        lam_write_cv();
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
       }
 
@@ -5503,34 +5499,34 @@ namespace OpenMS
     }
 
     // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
-    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,
+    template void MzMLHandler::writeContainerData_<SpectrumType>(FastOStream& os,
                                                                  const PeakFileOptions& pf_options_,
                                                                  const SpectrumType& container,
                                                                  String array_type);
 
-    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os,
+    template void MzMLHandler::writeContainerData_<ChromatogramType>(FastOStream& os,
                                                                      const PeakFileOptions& pf_options_,
                                                                      const ChromatogramType& container,
                                                                      String array_type);
 
-    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os,
+    template void MzMLHandler::writeBinaryDataArray_<float>(FastOStream& os,
                                                             const PeakFileOptions& pf_options_,
                                                             std::vector<float>& data_to_encode,
                                                             bool is32bit,
                                                             String array_type);
 
-    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os,
+    template void MzMLHandler::writeBinaryDataArray_<double>(FastOStream& os,
                                                              const PeakFileOptions& pf_options_,
                                                              std::vector<double>& data_to_encode,
                                                              bool is32bit,
                                                              String array_type);
 
-    void MzMLHandler::writeChromatogram_(std::ostream& os,
+    void MzMLHandler::writeChromatogram_(FastOStream& os,
                                          const ChromatogramType& chromatogram,
                                          Size c,
                                          const Internal::MzMLValidator& validator)
     {
-      Int64 offset = os.tellp();
+      Int64 offset = os.getStream().tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?

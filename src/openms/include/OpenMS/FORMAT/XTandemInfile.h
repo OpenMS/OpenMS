@@ -194,16 +194,16 @@ public:
 
     /// set the cleavage site with a X! Tandem conform regex
     void setCleavageSite(const String& cleavage_site);
-    
+
     /// returns the cleavage site regex
     const String& getCleavageSite() const;
 
-    /** 
+    /**
       @brief Writes the X! Tandem input file to the given filename
 
       If @p ignore_member_parameters is true, only a very limited number of
       tags fed by member variables (i.e. in, out, database/taxonomy) is written.
-      
+
       @param filename the name of the file which is written
       @param ignore_member_parameters Do not write tags for class members
       @param force_default_mods Force writing of mods covered by special parameters
@@ -218,13 +218,13 @@ protected:
 
     XTandemInfile& operator=(const XTandemInfile& rhs);
 
-    void writeTo_(std::ostream& os, bool ignore_member_parameters);
+    void writeTo_(FastOStream& os, bool ignore_member_parameters);
 
-    void writeNote_(std::ostream& os, const String& label, const String& value);
+    void writeNote_(FastOStream& os, const String& label, const String& value);
 
-    void writeNote_(std::ostream& os, const String& label, const char* value);
+    void writeNote_(FastOStream& os, const String& label, const char* value);
 
-    void writeNote_(std::ostream& os, const String& label, bool value);
+    void writeNote_(FastOStream& os, const String& label, bool value);
 
     /**
       @brief Converts the given set of Modifications into a format compatible to X!Tandem.
@@ -298,4 +298,3 @@ protected:
   };
 
 } // namespace OpenMS
-

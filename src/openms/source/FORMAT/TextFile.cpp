@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <fstream>
 
@@ -86,11 +87,13 @@ namespace OpenMS
 
   void TextFile::store(const String& filename)
   {
-    ofstream os;
+    ofstream nos;
     // stream not opened in binary mode, thus "\n" will be evaluated platform dependent (e.g. resolve to \r\n on Windows)
-    os.open(filename.c_str(), ofstream::out);
+    nos.open(filename.c_str(), ofstream::out);
 
-    if (!os)
+    FastOStream os(nos);
+
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
@@ -113,7 +116,7 @@ namespace OpenMS
         os << *it << "\n";
       }
     }
-    os.close();
+    nos.close();
   }
 
   std::istream& TextFile::getLine(std::istream& is, std::string& t)

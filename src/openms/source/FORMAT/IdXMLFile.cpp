@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -114,15 +115,17 @@ namespace OpenMS
     file_ = filename;
 
     //open stream
-    std::ofstream os(filename.c_str());
-    if (!os)
+    std::ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
     startProgress(0, peptide_ids.size(), "Storing idXML");
 
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     // write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -251,16 +254,16 @@ namespace OpenMS
       for (Size j = 0; j < hit_count; ++j)
       {
         os << "\t\t\t<ProteinHit "
-           << "id=\"PH_" << String(prot_count) << "\" "
+           << "id=\"PH_" << prot_count << "\" "
            << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" "
-           << "score=\"" << String(protein_ids[i].getHits()[j].getScore()) << "\" ";
+           << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
         accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
         double coverage = protein_ids[i].getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
-          os << "coverage=\"" << String(coverage) << "\" ";
+          os << "coverage=\"" << coverage << "\" ";
         }
 
         os << "sequence=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getSequence()) << "\" >\n";
@@ -308,16 +311,16 @@ namespace OpenMS
         {
           os << "higher_score_better=\"false\" ";
         }
-        os << "significance_threshold=\"" << String(peptide_ids[l].getSignificanceThreshold()) << "\" ";
+        os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
         // mz
         if (peptide_ids[l].hasMZ())
         {
-          os << "MZ=\"" << String(peptide_ids[l].getMZ()) << "\" ";
+          os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
         }
         // rt
         if (peptide_ids[l].hasRT())
         {
-          os << "RT=\"" << String(peptide_ids[l].getRT()) << "\" ";
+          os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
         }
         // spectrum_reference
         const DataValue& dv = peptide_ids[l].getMetaValue("spectrum_reference");
@@ -340,9 +343,9 @@ namespace OpenMS
         for (const PeptideHit& p_hit : pep_hits)
         {
           os << "\t\t\t<PeptideHit"
-             << " score=\"" << String(p_hit.getScore()) << "\""
+             << " score=\"" << p_hit.getScore() << "\""
              << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""
-             << " charge=\"" << String(p_hit.getCharge()) << "\"";
+             << " charge=\"" << p_hit.getCharge() << "\"";
 
           const std::vector<PeptideEvidence>& pes = p_hit.getPeptideEvidences();
 
@@ -395,14 +398,14 @@ namespace OpenMS
             for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
                 ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
             {
-              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
-              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << k << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_score\" value=\"" << ar_it->main_score << "\"/>" << "\n";
               if (!ar_it->sub_scores.empty())
               {
                 for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
                     subscore_it != ar_it->sub_scores.end(); ++subscore_it)
                 {
-                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore_it->first <<"\" value=\"" << String(subscore_it->second) << "\"/>" << "\n";
+                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_subscore_" << subscore_it->first <<"\" value=\"" << subscore_it->second << "\"/>" << "\n";
                 }
               }
             }
@@ -441,7 +444,7 @@ namespace OpenMS
     os << "</IdXML>\n";
 
     // close stream
-    os.close();
+    nos.close();
 
     endProgress();
 
@@ -989,7 +992,7 @@ namespace OpenMS
     }
   }
 
-  std::ostream& IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, std::ostream& os)
+  void IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes, FastOStream& os)
   {
     // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
@@ -1027,10 +1030,9 @@ namespace OpenMS
       }
       os << "\"";
     }
-    return os;
   }
 
-  std::ostream& IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes, std::ostream& os)
+  void IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes, FastOStream& os)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
@@ -1051,28 +1053,27 @@ namespace OpenMS
     {
       if (has_aa_start_information)
       {
-        os << " start=\"" << String(pes.begin()->getStart());
+        os << " start=\"" << pes.begin()->getStart();
         for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
         {
-          os << " " << String(it->getStart());
+          os << " " << it->getStart();
         }
         os << "\"";
       }
 
       if (has_aa_end_information)
       {
-        os << " end=\"" << String(pes.begin()->getEnd());
+        os << " end=\"" << pes.begin()->getEnd();
         for (std::vector<PeptideEvidence>::const_iterator it = pes.begin() + 1; it != pes.end(); ++it)
         {
-          os << " " << String(it->getEnd());
+          os << " " << it->getEnd();
         }
         os << "\"";
       }
     }
-    return os;
   }
 
-  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os,
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, FastOStream& os,
                                             const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent)
   {
     String val;

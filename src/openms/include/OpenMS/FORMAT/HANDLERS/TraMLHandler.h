@@ -145,23 +145,23 @@ protected:
       void handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent) const;
+      void writeUserParam_(FastOStream& os, const MetaInfoInterface & meta, UInt indent) const;
 
-      void writeUserParams_(std::ostream & os, const std::vector<MetaInfoInterface> & meta, UInt indent) const;
+      void writeUserParams_(FastOStream& os, const std::vector<MetaInfoInterface> & meta, UInt indent) const;
 
-      void writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const;
-      void writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const;
+      void writeCVParams_(FastOStream& os, const CVTermList & cv_terms, UInt indent) const;
+      void writeCVParams_(FastOStream& os, const CVTermListInterface & cv_terms, UInt indent) const;
 
-      void writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const;
+      void writeCVList_(FastOStream& os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const;
 
       // subfunctions of write
-      void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
+      void writeTarget_(FastOStream& os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
 
-      void writeRetentionTime_(std::ostream& os, const TargetedExperimentHelper::RetentionTime& rt) const;
+      void writeRetentionTime_(FastOStream& os, const TargetedExperimentHelper::RetentionTime& rt) const;
 
-      void writeProduct_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const;
+      void writeProduct_(FastOStream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const;
 
-      void writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;
+      void writeConfiguration_(FastOStream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
@@ -172,5 +172,3 @@ protected:
     };
   } // namespace Internal
 } // namespace OpenMS
-
-

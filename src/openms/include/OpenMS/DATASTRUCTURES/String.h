@@ -378,8 +378,12 @@ public:
     OPENMS_DLLAPI String& operator+=(long int i);
     /// Sum operator for an unsigned integer
     OPENMS_DLLAPI String& operator+=(long unsigned int i);
+    /// Sum operator for an integer
+    OPENMS_DLLAPI String& operator+=(long long i);
     /// Sum operator for an unsigned integer
     OPENMS_DLLAPI String& operator+=(long long unsigned int i);
+
+
     /// Sum operator for float
     OPENMS_DLLAPI String& operator+=(float f);
     /// Sum operator for double
@@ -484,13 +488,13 @@ public:
   /**
     *  Minimal replacement for boost::string_ref or std::experimental::string_view until we increase our min boost version
     *  @brief StringView provides a non-owning view on an existing string.
-    */ 
+    */
   class OPENMS_DLLAPI StringView
   {
     public:
 
     // create view on string
-    StringView() : begin_(), size_(0) 
+    StringView() : begin_(), size_(0)
     {
     }
 
@@ -500,7 +504,7 @@ public:
     }
 
     // construct from other view
-    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
+    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_)
     {
     }
 
@@ -514,13 +518,13 @@ public:
       // same size
       const char * b = begin_;
       const char * bo = other.begin_;
-      
+
       for (Size i = 0; i != size_; ++i, ++b, ++bo)
       {
         if (*b < *bo) return true;
         if (*b > *bo) return false;
       }
- 
+
       return false;
     }
 
@@ -534,7 +538,7 @@ public:
       sv.size_ = std::min(length, sv.size_ - start);
       return sv;
     }
-    
+
     /// size of view
     inline Size size() const
     {
@@ -552,7 +556,7 @@ public:
       const char* begin_;
       Size size_;
   };
-	
+
   OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
 } // namespace OpenMS
 

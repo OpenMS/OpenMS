@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/FORMAT/FastOStream.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -85,7 +86,8 @@ namespace OpenMS
       throw (Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename));
     }
     force_default_mods_ = force_default_mods;
-    ofstream os(filename.c_str());
+    ofstream nos(filename.c_str());
+    FastOStream os(nos);
     writeTo_(os, ignore_member_parameters);
     return;
   }
@@ -178,7 +180,7 @@ namespace OpenMS
     return ListUtils::concatenate(xtandem_mods, ",");
   }
 
-  void XTandemInfile::writeTo_(ostream& os, bool ignore_member_parameters)
+  void XTandemInfile::writeTo_(FastOStream& os, bool ignore_member_parameters)
   {
     os << "<?xml version=\"1.0\"?>" << "\n"
        << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
@@ -303,7 +305,7 @@ namespace OpenMS
       //scoring, maximum missed cleavage site parameter (see below) to something like 50.
       //</note>
       writeNote_(os, "protein, cleavage site", cleavage_site_);
-      
+
       //////////////// semi cleavage parameter
       //<note type="input" label="protein, cleavage semi">yes</note>
       writeNote_(os, "protein, cleavage semi", semi_cleavage_);
@@ -487,7 +489,7 @@ namespace OpenMS
       //<note type="input" label="output, results">valid</note>
       //<note>values = all|valid|stochastic</note>
       writeNote_(os, "output, results", output_results_);
- 
+
       //<note type="input" label="output, maximum valid expectation value">0.1</note>
       writeNote_(os, "output, maximum valid expectation value", String(max_valid_evalue_));
 
@@ -524,18 +526,18 @@ namespace OpenMS
     os << "</bioml>\n";
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, const String& value)
+  void XTandemInfile::writeNote_(FastOStream& os, const String& label, const String& value)
   {
     os << "\t<note type=\"input\" label=\"" << label << "\">" << value << "</note>\n";
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, const char* value)
+  void XTandemInfile::writeNote_(FastOStream& os, const String& label, const char* value)
   {
     String val(value);
     writeNote_(os, label, val);
   }
 
-  void XTandemInfile::writeNote_(ostream& os, const String& label, bool value)
+  void XTandemInfile::writeNote_(FastOStream& os, const String& label, bool value)
   {
     String val = value ? "yes" : "no";
     writeNote_(os, label, val);
@@ -727,7 +729,7 @@ namespace OpenMS
   {
     allow_isotope_error_ = allow_isotope_error;
   }
-  
+
   void XTandemInfile::setCleavageSite(const String& cleavage_site)
   {
     cleavage_site_ = cleavage_site;

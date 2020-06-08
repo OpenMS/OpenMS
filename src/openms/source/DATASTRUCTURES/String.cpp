@@ -481,6 +481,12 @@ namespace OpenMS
     return *this;
   }
 
+  String& String::operator+=(long long int i)
+  {
+    StringConversions::append(i, *this);
+    return *this;
+  }
+
   String& String::operator+=(long long unsigned int i)
   {
     StringConversions::append(i, *this);
@@ -528,7 +534,7 @@ namespace OpenMS
     this->append(s);
     return *this;
   }
-  
+
   ::size_t hash_value(String const& s)
   {
     boost::hash<std::string> hasher;

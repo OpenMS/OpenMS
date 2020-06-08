@@ -60,7 +60,7 @@ START_TEST(MzMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-class TICConsumer : 
+class TICConsumer :
     public Interfaces::IMSDataConsumer
 {
 
@@ -82,9 +82,9 @@ public:
 
   void consumeSpectrum(SpectrumType & s) override
   {
-    for (Size i = 0; i < s.size(); i++) 
-    { 
-      TIC += s[i].getIntensity(); 
+    for (Size i = 0; i < s.size(); i++)
+    {
+      TIC += s[i].getIntensity();
     }
     nr_peaks += s.size();
     nr_spectra++;
@@ -107,12 +107,12 @@ public:
     p.setMZ(i);
     template_spec.push_back(p);
   }
-  
+
   MSSpectrum spec;
   PeakMap exp;
   Size spectrum_number = 0;
   Size array_number = 1;
-  
+
   //spectrum 1 - 3 float arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
   spec.setNativeID(String("index=") + spectrum_number);
@@ -131,7 +131,7 @@ public:
     array_number +=1;
   }
   exp.push_back(spec);
-  
+
   //spectrum 2 - 3 string arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
   spec.setNativeID(String("index=") + spectrum_number);
@@ -150,7 +150,7 @@ public:
     array_number +=1;
   }
   exp.push_back(spec);
-  
+
   //spectrum 3 - 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
   spec.setNativeID(String("index=") + spectrum_number);
@@ -169,8 +169,8 @@ public:
     array_number +=1;
   }
   exp.push_back(spec);
-  
-  
+
+
   //spectrum 4 - 2 float arrays of size 50,100 + 1 string arrays of size 200 + 3 integer arrays of size 50,100,200
   spec = template_spec; ++spectrum_number; array_number = 1;
   spec.setNativeID(String("index=") + spectrum_number);
@@ -213,7 +213,7 @@ public:
     array_number +=1;
   }
   exp.push_back(spec);
-  
+
   MzMLFile f;
   f.store("data/MzMLFile_6_uncompressed.mzML",exp);
   f.getOptions().setCompression(true);
@@ -263,7 +263,7 @@ START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount
   file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
   TEST_EQUAL(spectra_count, 4);
   TEST_EQUAL(chrom_count, 2);
-  
+
   file.getOptions().addMSLevel(2); // only count MS2 scans
   file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
   TEST_EQUAL(spectra_count, 1);
@@ -1088,9 +1088,10 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36606)
+    const Size expected_size = 36731;
+    TEST_EQUAL(out.size(), expected_size)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36606 - 99, 36606 - 1), "</indexList>\n<indexListOffset>36158</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(expected_size - 99, 99), "</indexList>\n<indexListOffset>36283</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
@@ -1103,9 +1104,10 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     //store map
     std::string out;
     file.storeBuffer(out, empty);
-    TEST_EQUAL(out.size(), 3167)
+    const Size expected_size = 3173;
+    TEST_EQUAL(out.size(), expected_size)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(expected_size - 98, 98), "</indexList>\n<indexListOffset>2984</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
   }
 
 }
@@ -1197,7 +1199,7 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
 
   PeakFileOptions opt = mzml.getOptions();
   opt.setFillData(true); // whether to actually load any data
-  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces
   opt.setMaxDataPoolSize(100);
   opt.setAlwaysAppendData(false);
   mzml.setOptions(opt);
@@ -1219,7 +1221,7 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
 
   PeakFileOptions opt = mzml.getOptions();
   opt.setFillData(true); // whether to actually load any data
-  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+  opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces
   opt.setMaxDataPoolSize(100);
   opt.setAlwaysAppendData(false);
   mzml.setOptions(opt);
@@ -1236,4 +1238,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

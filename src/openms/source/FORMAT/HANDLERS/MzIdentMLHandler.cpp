@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
@@ -383,8 +384,9 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeTo(std::ostream& os)
+    void MzIdentMLHandler::writeTo(std::ostream& nos)
     {
+      FastOStream os(nos);
       String cv_ns = cv_.name();
       String inputs_element;
       std::map<String,String> /* peps, pepevis, */ sil_map, sil_2_date;
@@ -849,7 +851,7 @@ namespace OpenMS
          << "https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/schema/mzIdentML"<< v_s <<".xsd\"\n"
          << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/"<< v_s.substr(0,v_s.size()-2) <<"\"\n"
          << "\tversion=\"" << v_s << "\"\n";
-      os << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+      os << "\tid=\"OpenMS_" << UniqueIdGenerator::getUniqueId() << "\"\n"
          << "\tcreationDate=\"" << DateTime::now().getDate() << "T" << DateTime::now().getTime() << "\">\n";
 
       //--------------------------------------------------------------------------------------------
@@ -881,7 +883,7 @@ namespace OpenMS
       std::map<String, String>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
       {
-        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"" << String("SOF_") << String(UniqueIdGenerator::getUniqueId()) << "\">\n"
+        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v"<< VersionInfo::getVersion() <<"\" name=\"TOPP software\" id=\"SOF_" << UniqueIdGenerator::getUniqueId() << "\">\n"
            << "\t\t<SoftwareName>\n\t\t\t" << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << "\n\t\t</SoftwareName>\n\t</AnalysisSoftware>\n";
       }
       os << "</AnalysisSoftwareList>\n";
@@ -937,7 +939,7 @@ namespace OpenMS
       os << "\t<AnalysisData>\n";
       for (std::map<String,String>::const_iterator sil_it = sil_map.begin(); sil_it != sil_map.end(); ++sil_it)
       {
-        os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\">\n");
+        os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << "\">\n";
         os << "\t\t\t<FragmentationTable>\n"
            << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -142,7 +143,7 @@ namespace OpenMS
         optionalAttributeAsString_(unit_cv_ref, attributes, s_unit_cvref);
         optionalAttributeAsString_(cv_ref, attributes, s_unit_ref);
         CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
-        CVTerm cv_term(attributeAsString_(attributes, s_accession), 
+        CVTerm cv_term(attributeAsString_(attributes, s_accession),
                        attributeAsString_(attributes, s_name), cv_ref, value, unit);
 
         handleCVParam_(parent_parent_tag, parent_tag, cv_term);
@@ -158,7 +159,7 @@ namespace OpenMS
       }
       else if (tag_ == "cv")
       {
-        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, s_id), 
+        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, s_id),
                                            attributeAsString_(attributes, s_fullName),
                                            attributeAsString_(attributes, s_version),
                                            attributeAsString_(attributes, s_URI)));
@@ -495,11 +496,13 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::writeTo(std::ostream& os)
+    void TraMLHandler::writeTo(std::ostream& nos)
     {
       const TargetedExperiment& exp = *(cexp_);
       logger_.startProgress(0, exp.getTransitions().size(), "storing TraML file");
       // int progress = 0;
+
+      FastOStream os(nos);
 
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
       os << "<TraML version=\"1.0.0\" xmlns=\"http://psi.hupo.org/ms/traml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/traml TraML1.0.0.xsd\">" << "\n";
@@ -649,7 +652,7 @@ namespace OpenMS
 
           if (it->mods.size() > 0)
           {
-            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator 
+            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator
                 mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
@@ -725,17 +728,17 @@ namespace OpenMS
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" <<
               it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" <<
               it->molecular_formula << "\"/>\n";
           }
           if (!it->smiles_string.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" <<
               it->smiles_string << "\"/>\n";
           }
 
@@ -904,7 +907,7 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::writeRetentionTime_(std::ostream& os, const TargetedExperimentHelper::RetentionTime& rt) const
+    void TraMLHandler::writeRetentionTime_(FastOStream& os, const TargetedExperimentHelper::RetentionTime& rt) const
     {
       const TargetedExperimentHelper::RetentionTime* rit = &rt;
       os << "        <RetentionTime";
@@ -961,7 +964,7 @@ namespace OpenMS
       os << "        </RetentionTime>" << "\n";
     }
 
-    void TraMLHandler::writeTarget_(std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
+    void TraMLHandler::writeTarget_(FastOStream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
     {
       os << "      <Target id=\"" << writeXMLEscape(it->getName()) << "\"";
       if (!it->getPeptideRef().empty())
@@ -999,7 +1002,7 @@ namespace OpenMS
 
     }
 
-    void TraMLHandler::writeProduct_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const
+    void TraMLHandler::writeProduct_(FastOStream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const
     {
       if (prod_it->hasCharge())
       {
@@ -1007,7 +1010,7 @@ namespace OpenMS
       }
       if (prod_it->getMZ() > 0)
       {
-        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<  
+        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<
           prod_it->getMZ() << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
       }
       writeCVParams_(os, *prod_it, 4);
@@ -1016,18 +1019,18 @@ namespace OpenMS
       if (!prod_it->getInterpretationList().empty())
       {
         os << "        <InterpretationList>" << "\n";
-        for (std::vector<TargetedExperiment::Interpretation>::const_iterator inter_it = prod_it->getInterpretationList().begin(); 
+        for (std::vector<TargetedExperiment::Interpretation>::const_iterator inter_it = prod_it->getInterpretationList().begin();
             inter_it != prod_it->getInterpretationList().end(); ++inter_it)
         {
           os << "          <Interpretation>" << "\n";
           if (inter_it->ordinal > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" << 
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" <<
               (int)inter_it->ordinal << "\"/>\n";
           }
           if (inter_it->rank > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" << 
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" <<
               (int)inter_it->rank << "\"/>\n";
           }
 
@@ -1098,7 +1101,7 @@ namespace OpenMS
       }
     }
 
-    void TraMLHandler::writeConfiguration_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
+    void TraMLHandler::writeConfiguration_(FastOStream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
     {
       os << "          <Configuration instrumentRef=\"" << writeXMLEscape(cit->instrument_ref) << "\"";
       if (cit->contact_ref != "")
@@ -1723,7 +1726,7 @@ namespace OpenMS
       }
     }
 
-    void TraMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
+    void TraMLHandler::writeUserParam_(FastOStream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
@@ -1750,17 +1753,17 @@ namespace OpenMS
       }
     }
 
-    void TraMLHandler::writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVParams_(FastOStream& os, const CVTermList & cv_terms, UInt indent) const
     {
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVParams_(std::ostream & os, const CVTermListInterface & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVParams_(FastOStream& os, const CVTermListInterface & cv_terms, UInt indent) const
     {
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVList_(FastOStream& os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
       for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
            it != cv_terms.end(); ++it)
@@ -1770,7 +1773,7 @@ namespace OpenMS
           os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit->getCVIdentifierRef() << "\" accession=\"" << cit->getAccession() << "\" name=\"" << cit->getName() << "\"";
           if (cit->hasValue() && !cit->getValue().isEmpty() && !cit->getValue().toString().empty())
           {
-            os << " value=\"" << cit->getValue().toString() << "\"";
+            os << " value=\"" << cit->getValue() << "\"";
           }
 
           if (cit->hasUnit())
@@ -1783,4 +1786,3 @@ namespace OpenMS
     }
   } //namespace Internal
 } // namespace OpenMS
-

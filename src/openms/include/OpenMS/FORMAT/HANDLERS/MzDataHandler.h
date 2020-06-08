@@ -156,7 +156,7 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
       */
-      inline void writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent = 4) const;
+      inline void writeCVS_(FastOStream& os, double value, const String & acc, const String & name, UInt indent = 4) const;
 
       /**
           @brief write cvParam containing strings to stream
@@ -169,7 +169,20 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
       */
-      inline void writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent = 4) const;
+      inline void writeCVS_(FastOStream& os, const String & value, const String & acc, const String & name, UInt indent = 4) const;
+
+      /**
+          @brief write cvParam containing strings to stream
+
+          @p value integer value
+          @p acc accession number defined by ontology
+          @p name term defined by ontology
+          @p indent number of tabs used in front of tag
+
+          Example:
+          &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value="@p value"/&gt;
+      */
+      inline void writeCVS_(FastOStream& os, Int value, const String & acc, const String & name, UInt indent) const;
 
       /**
           @brief write cvParam element to stream
@@ -184,10 +197,10 @@ protected:
           Example:
           &lt;cvParam cvLabel="psi" accession="PSI:@p acc" name="@p name" value=""/&gt;
       */
-      inline void writeCVS_(std::ostream & os, UInt value, UInt map, const String & acc, const String & name, UInt indent = 4);
+      inline void writeCVS_(FastOStream& os, UInt value, UInt map, const String & acc, const String & name, UInt indent = 4);
 
       ///Writing the MetaInfo as UserParam to the file
-      inline void writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent = 4);
+      inline void writeUserParam_(FastOStream& os, const MetaInfoInterface & meta, UInt indent = 4);
 
       /**
           @brief read attributes of MzData's cvParamType
@@ -204,7 +217,7 @@ protected:
 
           The @p name and @p id are only used if the @p tag is @em supDataArrayBinary or @em supDataArray.
       */
-      inline void writeBinary_(std::ostream & os, Size size, const String & tag, const String & name = "", SignedSize id = -1);
+      inline void writeBinary_(FastOStream& os, Size size, const String & tag, const String & name = "", SignedSize id = -1);
 
       //Data processing auxiliary variable
       boost::shared_ptr< DataProcessing > data_processing_;
@@ -215,4 +228,3 @@ protected:
   }   // namespace Internal
 
 } // namespace OpenMS
-

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <fstream>
 
@@ -75,12 +76,14 @@ namespace OpenMS
     }
 
     //open stream
-    std::ofstream os(filename.c_str());
-    if (!os)
+    std::ofstream nos(filename.c_str());
+    if (!nos)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-    os.precision(writtenDigits<double>(0.0));
+    nos.precision(writtenDigits<double>(0.0));
+
+    FastOStream os(nos);
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -101,18 +104,18 @@ namespace OpenMS
         switch (it->value.valueType())
         {
         case DataValue::INT_VALUE:
-          os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         case DataValue::DOUBLE_VALUE:
-          os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         case DataValue::STRING_VALUE:
         case DataValue::STRING_LIST:
         case DataValue::INT_LIST:
         case DataValue::DOUBLE_LIST:
-          os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value << "\"/>\n";
           break;
 
         default:         // no other value types are supported!
@@ -146,7 +149,7 @@ namespace OpenMS
     os << "</TrafoXML>\n";
 
     //close stream
-    os.close();
+    nos.close();
   }
 
   void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)

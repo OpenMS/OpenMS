@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
+#include <OpenMS/FORMAT/FastOStream.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
@@ -96,7 +97,7 @@ namespace OpenMS
     const XMLCh* s_deisotoped_ = xercesc::XMLString::transcode("deisotoped");
     const XMLCh* s_chargedeconvoluted_ = xercesc::XMLString::transcode("chargeDeconvoluted");
 
-    void writeKeyValue(std::ostream& os, const String& key, const DataValue& value)
+    void writeKeyValue(FastOStream& os, const String& key, const DataValue& value)
     {
       os << " " << key << "=\"" << value << "\"";
     }
@@ -254,8 +255,8 @@ namespace OpenMS
         String activation;
         if (optionalAttributeAsString_(activation, attributes, s_activationMethod_))
         {
-          auto it = std::find(Precursor::NamesOfActivationMethodShort, 
-                              Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, 
+          auto it = std::find(Precursor::NamesOfActivationMethodShort,
+                              Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD,
                               activation);
 
           if (it != Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
@@ -633,7 +634,7 @@ namespace OpenMS
       }
     }
 
-    void MzXMLHandler::writeTo(std::ostream& os)
+    void MzXMLHandler::writeTo(std::ostream& nos)
     {
       // determine how many spectra there are (count only those with peaks)
       UInt count_tmp_ = 0;
@@ -652,6 +653,7 @@ namespace OpenMS
         min_rt = cexp_->begin()->getRT();
         max_rt = (cexp_->end() - 1)->getRT();
       }
+      FastOStream os(nos);
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
         << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n"
         << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
@@ -704,7 +706,7 @@ namespace OpenMS
         // the Instrument Manufacturer is paramount for some downstream tools
         // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
         String manufacturer = inst.getVendor();
-        if (options_.getForceMQCompatability() || 
+        if (options_.getForceMQCompatability() ||
             (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
         { // MaxQuant's internal parameter defaults require either "Thermo Scientific" (MaxQuant 1.2 - 1.5), or "Thermo Finnigan" (MaxQuant 1.3 - 1.5)
           manufacturer = "Thermo Scientific";
@@ -722,7 +724,7 @@ namespace OpenMS
         {
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
-        
+
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
         if (analyzers.empty() || cv_terms_[3][analyzers[0].getType()].empty())
         { // can be empty for MaxQuant
@@ -875,7 +877,7 @@ namespace OpenMS
       {
         logger_.setProgress(s);
         const SpectrumType& spec = (*cexp_)[s];
-        
+
         if (spec.empty() && options_.getForceMQCompatability())
         { // MaxQuant's XML parser cannot deal with empty spectra in mzXML (Error: 'there are multiple root elements'...)
           continue;
@@ -897,7 +899,7 @@ namespace OpenMS
 
         os << String(ms_level + 1, '\t');
 
-        scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
+        scan_index_positions.push_back(IndexPos(spectrum_id, nos.tellp())); // remember scan index
         os << "<scan num=\"" << spectrum_id << "\""
           << " msLevel=\"" << ms_level << "\""
           << " peaksCount=\"" << spec.size() << "\""
@@ -953,7 +955,7 @@ namespace OpenMS
           os << writeXMLEscape((String)spec.getMetaValue("filter string"));
           os << "\"";
         }
-       
+
         // retention time
         os << " retentionTime=\"";
         if (spec.getRT() < 0) os << "-";
@@ -975,12 +977,12 @@ namespace OpenMS
           writeKeyValue(os, "lowMz", spec.empty() ? 0 : spec.begin()->getMZ());
         }
         if (!writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz") &&
-            options_.getForceMQCompatability()) 
+            options_.getForceMQCompatability())
         {
           if (!spec.isSorted()) error(STORE, "Spectrum is not sorted by m/z! Please sort before storing!");
           writeKeyValue(os, "highMz", spec.empty() ? 0 : spec.rbegin()->getMZ());
         }
-        
+
         if (!writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz"))
         { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
           auto it = spec.getBasePeak();
@@ -1026,7 +1028,7 @@ namespace OpenMS
           if (!precursor.getActivationMethods().empty())
           { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
             os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
-          } 
+          }
           else if (options_.getForceMQCompatability())
           { // a missing activation would make old MQ versions crash...
             OPENMS_LOG_WARN << "Warning: An MS2 scan does not have data on it's activation method. Using 'CID' as fallback!\n";
@@ -1111,7 +1113,7 @@ namespace OpenMS
         {
           OPENMS_LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
         }
-        std::ostream::pos_type index_offset = os.tellp();
+        std::ostream::pos_type index_offset = os.getStream().tellp();
         os << "<index name = \"scan\" >\n";
         for (Size i = 0; i < scan_index_positions.size(); ++i)
         {
@@ -1127,7 +1129,7 @@ namespace OpenMS
       spec_write_counter_ = 1;
     }
 
-    inline bool MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
+    inline bool MzXMLHandler::writeAttributeIfExists_(FastOStream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
     {
       if (meta.metaValueExists(metakey))
       {
@@ -1138,7 +1140,7 @@ namespace OpenMS
     }
 
 
-    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, String tag)
+    inline void MzXMLHandler::writeUserParam_(FastOStream& os, const MetaInfoInterface& meta, int indent, String tag)
     {
       std::vector<String> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);

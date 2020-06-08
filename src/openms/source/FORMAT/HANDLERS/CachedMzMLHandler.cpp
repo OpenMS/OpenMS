@@ -63,7 +63,8 @@ namespace Internal
 
   void CachedMzMLHandler::writeMemdump(const MapType& exp, const String& out) const
   {
-    std::ofstream ofs(out.c_str(), std::ios::binary);
+    std::ofstream nos(out.c_str(), std::ios::binary);
+    FastOStream ofs(nos);
     Size exp_size = exp.size();
     Size chrom_size = exp.getChromatograms().size();
     int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
@@ -84,7 +85,7 @@ namespace Internal
 
     ofs.write((char*)&exp_size, sizeof(exp_size));
     ofs.write((char*)&chrom_size, sizeof(chrom_size));
-    ofs.close();
+    nos.close();
     endProgress();
   }
 
@@ -103,7 +104,7 @@ namespace Internal
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
@@ -168,7 +169,7 @@ namespace Internal
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
@@ -329,7 +330,7 @@ namespace Internal
 
     if (static_cast<int>(spec_size) < 0)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
     }
 
@@ -391,7 +392,7 @@ namespace Internal
 
     if (static_cast<int>(chrom_size) < 0)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
     }
 
@@ -450,7 +451,7 @@ namespace Internal
     chromatogram.setFloatDataArrays(fdas);
   }
 
-  void CachedMzMLHandler::writeSpectrum_(const SpectrumType& spectrum, std::ofstream& ofs) const
+  void CachedMzMLHandler::writeSpectrum_(const SpectrumType& spectrum, FastOStream& ofs) const
   {
     Size exp_size = spectrum.size();
     ofs.write((char*)&exp_size, sizeof(exp_size));
@@ -510,7 +511,7 @@ namespace Internal
     }
   }
 
-  void CachedMzMLHandler::writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs) const
+  void CachedMzMLHandler::writeChromatogram_(const ChromatogramType& chromatogram, FastOStream& ofs) const
   {
     Size exp_size = chromatogram.size();
     ofs.write((char*)&exp_size, sizeof(exp_size));
@@ -567,4 +568,3 @@ namespace Internal
 
 }
 }
-

@@ -51,7 +51,7 @@ namespace OpenMS
 
   namespace Internal
   {
-    
+
 
     /**
       @brief XML handlers for MzXMLFile
@@ -173,10 +173,10 @@ protected:
 
       /// write metaInfo to xml (usually in nameValue-tag)
       /// returns true if metavalue existed and data was written to the stream
-      inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
+      inline bool writeAttributeIfExists_(FastOStream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
+      inline void writeUserParam_(FastOStream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
 
       /**
       @brief Fill a single spectrum with data from input
@@ -201,7 +201,7 @@ protected:
 private:
       /// Not implemented
       MzXMLHandler();
-      
+
       /// initialize members (call from C'tor)
       void init_();
     };
@@ -209,4 +209,3 @@ private:
   } // namespace Internal
 
 } // namespace OpenMS
-
