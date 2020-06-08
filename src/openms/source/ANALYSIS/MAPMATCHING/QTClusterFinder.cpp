@@ -283,9 +283,6 @@ namespace OpenMS
     }
 
     if (do_progress) logger.endProgress();
-
-    // clear the deleted ids for the next run_internal_ call
-    deleted_ids_.clear();
   }
 
   bool QTClusterFinder::makeConsensusFeature_(Heap& cluster_heads,
@@ -298,9 +295,6 @@ namespace OpenMS
     while (cluster_heads.top().isInvalid())
     {
       removeFromElementMapping_(cluster_heads.top(), element_mapping);
-
-      // remember that we deleted this id
-      deleted_ids_.insert(cluster_heads.top().getId());
 
       cluster_heads.pop();
 
@@ -401,11 +395,6 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
       for (const Size curr_id : cluster_ids)
       {
-        // if we deleted the current id already, we shouldn't work with it
-        // otherwise a segfault will happen
-        // this is an ugly/quick fix and a better solution should be found in the future
-        if (deleted_ids_.find(curr_id) != deleted_ids_.end()) continue;
-
         QTCluster& cluster = *handles[curr_id]; 
 
         // we do not want to update invalid features
@@ -419,20 +408,37 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
             // If update returns true, it means that at least one element was
             // removed from the cluster and we need to update that cluster
 
+            /*
             ////////////////////////////////////////
-            // Step 1: Iterate through all neighboring grid features and try to
-            // add elements to the current cluster to replace the ones we just
-            // removed
+            Step 1: Iterate through all neighboring grid features and try to
+            add elements to the current cluster to replace the ones we just
+            removed
+
+            Before that we must delete this clusters id from the element mapping. (important!)
+            It is possible that addClusterElements_() removes features from the cluster 
+            we are updating. These are not to be confused with the features we removed 
+            because they are part of the current best cluster. Those are removed in 
+            QTCluster::update (above).  
+
+            If this happens, the element mapping for the additionally removed features 
+            (which are valid and unused!) still contains the id of the cluster which 
+            we are currently updating. But the cluster does not contain the feature anymore. 
+            When the cluster is deleted, the element mapping for the removed feature doesn't 
+            get updated. The element mapping for the feature then contains an id of a 
+            deleted cluster, which will surely lead to a segfault when the feature is actually 
+            used in another cluster later. 
+            */
+
+            removeFromElementMapping_(cluster, element_mapping);
             addClusterElements_(grid, cluster);
 
             // update the heap, because the quality has changed
             cluster_heads.update_lazy(handles[curr_id]);
 
             ////////////////////////////////////////
-            // Step 2: update element_mapping as the best feature for each
-            // cluster may have changed
+            // Step 2: reinsert the updated clusters features into the element mapping
 
-            for (const auto& neighbor : cluster.getAllNeighbors())
+            for (const auto& neighbor : cluster.getElements())
             {
               tmp_element_mapping[neighbor.feature].insert(curr_id);
             }
@@ -452,8 +458,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
     }
 
-    // remove the current best from the heap and remember its id
-    deleted_ids_.insert(best_id);
+    // remove the current best from the heap
     cluster_heads.pop();
   }
 
