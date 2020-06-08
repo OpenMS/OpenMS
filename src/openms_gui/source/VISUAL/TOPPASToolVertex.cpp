@@ -667,10 +667,10 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     TOPPASScene* ts = getScene_();
+    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
 
     RAIICleanup clean([&]() {
-      //clean up to at end
-      QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+      // clean up at end
       if (p)
       {
         delete p;
