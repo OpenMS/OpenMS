@@ -249,30 +249,6 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-  String getOriginalSearchEngineName_(const ProteinIdentification& prot)
-  {
-    String engine = prot.getSearchEngine();
-    if (engine != "Percolator")
-    {
-      return engine;
-    }
-    else
-    {
-      String original_SE = "Unknown";
-      vector<String> mvkeys;
-      prot.getKeys(mvkeys);
-      for (const String& mvkey : mvkeys)
-      {
-        if (mvkey.hasPrefix("SE:"))
-        {
-          original_SE = mvkey.substr(3);
-          break; // multiSE percolator before consensusID not allowed; we take first only
-        }
-      }
-      return original_SE;
-    }
-  }
-
   tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
   {
     String engine = prot.getSearchEngine();
@@ -436,7 +412,7 @@ protected:
       id_mapping[prot.getIdentifier()] = i;
       if (keep_old_scores_)
       {
-        runid_to_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+        runid_to_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
       }
     }
 
@@ -539,7 +515,7 @@ protected:
             runid_to_old_run_idx[prot.getIdentifier()] = idx++;
             if (keep_old_scores_)
             {
-              runid_to_old_se[prot.getIdentifier()] = getOriginalSearchEngineName_(prot);
+              runid_to_old_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
             }
             StringList original_files;
             prot.getPrimaryMSRunPath(original_files);
@@ -648,7 +624,7 @@ protected:
           id_mapping[prot_ids[i].getIdentifier()] = i;
           if (keep_old_scores_)
           {
-            runid_to_se[prot_ids[i].getIdentifier()] = getOriginalSearchEngineName_(prot_ids[i]);
+            runid_to_se[prot_ids[i].getIdentifier()] = prot_ids[i].getOriginalSearchEngineName();
           }
         }
 

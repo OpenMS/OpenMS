@@ -2416,6 +2416,9 @@ add_test("TOPP_MzTabExporter_5" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_
 add_test("TOPP_MzTabExporter_5_out" ${DIFF} -in1 MzTabExporter_5_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_5_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
 set_tests_properties("TOPP_MzTabExporter_5_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_5")
 
+add_test("TOPP_MzTabExporter_6" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_6_input.idXML -out MzTabExporter_6_output.tmp)
+add_test("TOPP_MzTabExporter_6_out" ${DIFF} -in1 MzTabExporter_6_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_6_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_6_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_6")
 #------------------------------------------------------------------------------
 # OpenPepXL test
 add_test("TOPP_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
@@ -2811,6 +2814,38 @@ set_tests_properties("UTILS_ProteomicsLFQ_2_out_2" PROPERTIES DEPENDS "UTILS_Pro
 add_test("UTILS_ProteomicsLFQ_3_out_3" ${DIFF}  -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_plusSeeds_plusTransfer.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_3_out.mzTab )
 set_tests_properties("UTILS_ProteomicsLFQ_2_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_3")
 
+
+# spectral counting
+add_test("UTILS_ProteomicsLFQ_4" ${TOPP_BIN_PATH}/ProteomicsLFQ
+         -in
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.mzML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.mzML
+         -ids
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F1.idXML
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA3_F2.idXML
+         -design
+         ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+         -fasta
+         ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+         -quantification_method spectral_counting
+         -out_cxml BSA_sc.consensusXML.tmp
+         -out BSA_sc.mzTab.tmp
+         -threads 1
+         -proteinFDR 0.3
+         -test
+         )
+add_test("UTILS_ProteomicsLFQ_4_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sc.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_4_out.consensusXML )
+set_tests_properties("UTILS_ProteomicsLFQ_4_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_4")
+add_test("UTILS_ProteomicsLFQ_4_out_2" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sc.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_4_out.mzTab )
+set_tests_properties("UTILS_ProteomicsLFQ_4_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_4")
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
 add_test("UTILS_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
