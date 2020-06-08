@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -667,6 +668,17 @@ namespace OpenMS
 
     TOPPASScene* ts = getScene_();
 
+    RAIICleanup clean([&]() {
+      //clean up to at end
+      QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+      if (p)
+      {
+        delete p;
+      }
+
+      ts->processFinished();
+    });
+
     //** ERROR handling
     if (es != QProcess::NormalExit)
     {
@@ -712,14 +724,7 @@ namespace OpenMS
       }
     }
 
-    //clean up
-    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
-    if (p)
-    {
-      delete p;
-    }
-
-    ts->processFinished();
+   
 
     __DEBUG_END_METHOD__
   }
