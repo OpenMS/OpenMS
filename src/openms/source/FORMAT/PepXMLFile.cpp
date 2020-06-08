@@ -1140,7 +1140,6 @@ namespace OpenMS
         {
           decoy_prefix_ = attributeAsString_(attributes, "value");
         }
-
       }
       else
       {
