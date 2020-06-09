@@ -617,10 +617,16 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
+
       bool concat = getFlag_("concatenate_peptides");
-      ofstream fasta(out.c_str(), ios::out);
-      String all_but_p("");
-      String all_p("");
+      //To avoid creating KP sites and losing information peptides beginning with 'P' are saved seperatly
+      //and later moved to the beginning of the concatenated sequence.
+      String all_p(""); //peptides beginning with 'P'
+      String all_but_p(""); //all the others
+
+      FASTAFile f;
+      f.writeStart(out);
+      FASTAFile::FASTAEntry entry;
       for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
         if (concat)
@@ -638,33 +644,22 @@ protected:
             const PeptideHit& hit = peptide_identifications[i].getHits()[l];
             String seq = hit.getSequence().toUnmodifiedString();
             std::set<String> prot = hit.extractProteinAccessionsSet();
-            fasta << ">" << seq
-              << " " << ++count
-              << " " << hit.getSequence().toString()
-              << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
-              << "\n";
-            // FASTA files should have at most 60 characters of sequence info per line
-            for (Size j = 0; j < seq.size(); j += 60)
-            {
-              Size k = min(j + 60, seq.size());
-              fasta << seq.substr(j, k - j) << "\n";
-            }
+            entry.sequence = seq;
+            entry.identifier = seq;
+            entry.description = String(count) + hit.getSequence().toString() + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+            
+            f.writeNext(entry);
           }
         }
       }
       if (concat)
       {
-        fasta << "<" << "concatenated peptides from "
-          << protein_identifications[0].getSearchEngine()
-          << " run\n";
-        String all_peps = all_p + all_but_p;
-        for (Size j = 0; j < all_peps.size(); j += 60)
-        {
-          Size k = min(j + 60, all_peps.size());
-          fasta << all_peps.substr(j, k - j) << "\n";
-        }
+        entry.sequence = all_p + all_but_p;
+        entry.identifier = protein_identifications[0].getSearchEngine();
+        entry.description = " concatenated peptides";
+        
+        f.writeNext(entry);
       }
-      fasta.close();
     }
 
     else
