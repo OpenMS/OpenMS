@@ -619,8 +619,8 @@ protected:
       Size count = 0;
 
       bool concat = getFlag_("concatenate_peptides");
-      //To avoid creating KP sites and losing information peptides beginning with 'P' are saved seperatly
-      //and later moved to the beginning of the concatenated sequence.
+      //To avoid creating (K/R)P sites and losing information when the FASTA entry is used by
+      //a search engine; Peptides beginning with 'P' are saved seperatly and later moved to the beginning of the concatenated sequence.
       String all_p(""); //peptides beginning with 'P'
       String all_but_p(""); //all the others
 
