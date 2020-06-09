@@ -239,6 +239,8 @@ protected:
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
     registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+
+    registerFlag_("concatenate_peptides", "[FASTA output only] Setting this flag will concatenate the top peptide hits to one entry, rather than write a new entry fro each hit.", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -615,25 +617,51 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
+      bool concat = getFlag_("concatenate_peptides");
       ofstream fasta(out.c_str(), ios::out);
+      String all_but_p("");
+      String all_p("");
       for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
-        for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+        if (concat)
         {
-          const PeptideHit& hit = peptide_identifications[i].getHits()[l];
-          String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessionsSet();
-          fasta << ">" << seq
-                << " " << ++count
-                << " " << hit.getSequence().toString()
-                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
-                << "\n";
-          // FASTA files should have at most 60 characters of sequence info per line
-          for (Size j = 0; j < seq.size(); j += 60)
+          if (peptide_identifications[i].getHits()[0].getSequence().toString()[0] == 'P')
           {
-            Size k = min(j + 60, seq.size());
-            fasta << seq.substr(j, k - j) << "\n";
+            all_p += peptide_identifications[i].getHits()[0].getSequence().toString();
           }
+          all_but_p += peptide_identifications[i].getHits()[0].getSequence().toString();
+        }
+        else
+        {
+          for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+          {
+            const PeptideHit& hit = peptide_identifications[i].getHits()[l];
+            String seq = hit.getSequence().toUnmodifiedString();
+            std::set<String> prot = hit.extractProteinAccessionsSet();
+            fasta << ">" << seq
+              << " " << ++count
+              << " " << hit.getSequence().toString()
+              << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
+              << "\n";
+            // FASTA files should have at most 60 characters of sequence info per line
+            for (Size j = 0; j < seq.size(); j += 60)
+            {
+              Size k = min(j + 60, seq.size());
+              fasta << seq.substr(j, k - j) << "\n";
+            }
+          }
+        }
+      }
+      if (concat)
+      {
+        fasta << "<" << "concatenated peptides from "
+          << protein_identifications[0].getSearchEngine()
+          << " run\n";
+        String all_peps = all_p + all_but_p;
+        for (Size j = 0; j < all_peps.size(); j += 60)
+        {
+          Size k = min(j + 60, all_peps.size());
+          fasta << all_peps.substr(j, k - j) << "\n";
         }
       }
       fasta.close();
