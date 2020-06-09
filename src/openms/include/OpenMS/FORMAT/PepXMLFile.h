@@ -159,7 +159,7 @@ private:
       bool variable;
       String description;
       String terminus;
-      bool protein_terminus; // "true" if protein terminus, "false" if peptide terminus
+      bool protein_terminus{}; // "true" if protein terminus, "false" if peptide terminus
 
       AminoAcidModification() :
         mass(0),
@@ -167,20 +167,9 @@ private:
       {
       }
 
-      AminoAcidModification(const AminoAcidModification& rhs) :
-        aminoacid(rhs.aminoacid),
-        massdiff(rhs.massdiff),
-        mass(rhs.mass),
-        variable(rhs.variable),
-        description(rhs.description),
-        terminus(rhs.terminus),
-        protein_terminus(rhs.protein_terminus)
-      {
-      }
+      AminoAcidModification(const AminoAcidModification& rhs) = default;
 
-      virtual ~AminoAcidModification()
-      {
-      }
+      virtual ~AminoAcidModification() = default;
 
       AminoAcidModification& operator=(const AminoAcidModification& rhs)
       {
@@ -221,7 +210,7 @@ private:
     String status_;
 
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
-    bool use_precursor_data_;
+    bool use_precursor_data_{};
 
     /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
     std::map<Size, Size> scan_map_;
@@ -239,16 +228,22 @@ private:
     bool search_score_summary_;
 
     /// Are we currently in an "search_summary" element (should be skipped)?
-    bool search_summary_;
+    bool search_summary_{};
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
-    bool wrong_experiment_;
+    bool wrong_experiment_{};
 
     /// Have we seen the experiment of interest at all?
-    bool seen_experiment_;
+    bool seen_experiment_{};
 
     /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
-    bool checked_base_name_;
+    bool checked_base_name_{};
+
+    /// Does the file have decoys (e.g. from Comet's internal decoy search)
+    bool has_decoys_{};
+
+    /// In case it has decoys, what is the prefix?
+    String decoy_prefix_;
 
     /// current base name
     String current_base_name_;
@@ -275,13 +270,13 @@ private:
     String current_sequence_;
 
     /// RT and m/z of current PeptideIdentification
-    double rt_, mz_;
+    double rt_{}, mz_{};
 
     /// Precursor ion charge
-    Int charge_;
+    Int charge_{};
 
     /// ID of current search result
-    UInt search_id_;
+    UInt search_id_{};
 
     /// Identifier linking PeptideIdentifications and ProteinIdentifications
     String prot_id_;
@@ -290,7 +285,7 @@ private:
     DateTime date_;
 
     /// Mass of a hydrogen atom (monoisotopic/average depending on case)
-    double hydrogen_mass_;
+    double hydrogen_mass_{};
 
     /// The modifications of the current peptide hit (position is 1-based)
     std::vector<std::pair<String, Size> > current_modifications_;

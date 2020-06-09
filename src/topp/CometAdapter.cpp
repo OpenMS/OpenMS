@@ -590,7 +590,12 @@ protected:
     File::TempDir tmp_dir(debug_level_ >= 2);
 
     writeDebug_("Comet is writing the default parameter file...", 1);
-    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+    
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
+    if (exit_code != EXECUTION_OK)
+    {
+      return EXTERNAL_PROGRAM_ERROR;
+    }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
     {
@@ -685,7 +690,7 @@ protected:
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

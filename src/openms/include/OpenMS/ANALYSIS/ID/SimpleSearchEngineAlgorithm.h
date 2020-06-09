@@ -77,7 +77,11 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
-        return a.score > b.score;
+        if (a.score != b.score) return a.score > b.score;
+        // compare the mod_index first, as it is cheaper than the strncmp() of the sequences
+        // there doesn't have to be a certain ordering (that makes sense), we just need it to be thread-safe
+        if (b.peptide_mod_index != a.peptide_mod_index) return a.peptide_mod_index < b.peptide_mod_index;
+        return a.sequence < b.sequence;
       }
     };
 
