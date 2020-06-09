@@ -240,7 +240,7 @@ protected:
     registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
 
-    registerFlag_("concatenate_peptides", "[FASTA output only] Setting this flag will concatenate the top peptide hits to one entry, rather than write a new entry fro each hit.", true);
+    registerFlag_("concatenate_peptides", "[FASTA output only] Setting this flag will concatenate the top peptide hits to one entry, rather than write a new entry for each hit.", true);
   }
 
   ExitCodes main_(int, const char**) override
