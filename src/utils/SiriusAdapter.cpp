@@ -228,11 +228,12 @@ protected:
 
     // calls Sirius and returns vector of paths to sirius folder structure
     std::vector<String> subdirs;
+    bool decoy_generation = false;
     subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
                                            sirius_tmp.getTmpOutDir(),
                                            executable,
                                            out_csifingerid,
-                                           out_decoys);
+                                           decoy_generation);
     
     //-------------------------------------------------------------
     // writing output

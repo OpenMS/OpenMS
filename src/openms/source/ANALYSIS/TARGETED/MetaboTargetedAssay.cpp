@@ -51,7 +51,7 @@ namespace OpenMS
     return (a.getIntensity() < b.getIntensity());
   }
 
-  // method to extract a potential transistions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
+  // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor or a consensus spectrum
   std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
                                                                                     const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,
@@ -316,6 +316,14 @@ namespace OpenMS
 
           rmt.setPrecursorMZ(highest_precursor_mz);
           rmt.setProductMZ(current_mz);
+          TargetedExperimentHelper::TraMLProduct product;
+          product.setMZ(current_mz);
+          // charge state
+          if (adduct != "UNKNOWN")
+          {
+            product.setChargeState(1); // TODO: automatise - charge from adduct
+            rmt.setProduct(product);
+          }
           rmt.setLibraryIntensity(rel_int);
 
           description = ListUtils::concatenate(v_description, ",");
@@ -376,6 +384,7 @@ namespace OpenMS
       // use annotated metadata
       sumformula = csp.second.getMetaValue("annotated_sumformula");
       adduct = csp.second.getMetaValue("annotated_adduct");
+      int decoy = csp.second.getMetaValue("decoy");
 
       // transition calculations
       // calculate max intensity peak and threshold
@@ -417,8 +426,11 @@ namespace OpenMS
                 transition_spectrum.erase(transition_spectrum.begin() + spec_index);
                 transition_spectrum.getStringDataArrays()[0]
                     .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-                transition_spectrum.getFloatDataArrays()[0]
+                if (decoy == 0) // second mass FloatDataArray only available for targets
+                {
+                  transition_spectrum.getFloatDataArrays()[0]
                     .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
+                }
                 break; // if last element have to break if not iterator will go out of range
               }
             }
@@ -446,12 +458,23 @@ namespace OpenMS
       {
         description = String(description + "_" + transition_group_counter);
       }
-      cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
-      cmp.setMetaValue("CompoundName", description);
+      if (decoy == 0)
+      {
+        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+        cmp.setMetaValue("CompoundName", description);
+      }
+      else
+      {
+        description = String(description + "_decoy");
+        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+        cmp.setMetaValue("CompoundName", description);
+      }
+
       cmp.smiles_string = "NA";
 
       cmp.molecular_formula = sumformula;
       cmp.setMetaValue("Adducts", adduct);
+      cmp.setMetaValue("decoy", decoy);
 
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
@@ -462,9 +485,11 @@ namespace OpenMS
       // extract current StringDataArray with annotations/explanations;
       OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
 
-      // check which entry is saved in the FloatDataArry (control for "use_exact_mass")
-      OPENMS_LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library."
-                << std::endl;
+      // check which entry is saved in the FloatDataArray (control for "use_exact_mass")
+      if (decoy == 0)
+      {
+        OPENMS_LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library." << std::endl;
+      }
 
       // here ms2 spectra information is used
       for (auto spec_it = transition_spectrum.begin();
@@ -485,16 +510,27 @@ namespace OpenMS
         if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
         {
           float rel_int = current_int / max_int;
-
           rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : csp.first.pmass);
           rmt.setProductMZ(current_mz);
+          TargetedExperimentHelper::TraMLProduct product;
+          product.setMZ(current_mz);
+          // charge state / adduct should always be available
+          product.setChargeState(1); // TODO: automatise - charge from adduct
+          rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
-
           rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
           rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" +
                           file_counter);
-
           rmt.setMetaValue("annotation", DataValue(current_explanation));
+
+          if(decoy)
+          {
+            rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
+          }
+          else
+          {
+            rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET);
+          }
 
           v_rmt.push_back(std::move(rmt));
           transition_counter += 1;

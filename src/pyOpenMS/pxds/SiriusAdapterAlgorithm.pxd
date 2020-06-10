@@ -14,30 +14,33 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         SiriusAdapterAlgorithm() nogil except +
         SiriusAdapterAlgorithm(SiriusAdapterAlgorithm) nogil except +
 
-        String getFeatureOnly() nogil except +
-        String getNoMasstraceInfoIsotopePattern() nogil except +
+        String isFeatureOnly() nogil except +
+        Int getFilterByNumMassTraces() nogil except +
+        double getPrecursorMzTolerance() nogil except +
+        double getPrecursorRtTolerance() nogil except +
+        bool precursorMzToleranceUnitIsPPM() nogil except +
+        bool isNoMasstraceInfoIsotopePattern() nogil except +
         Int getIsotopePatternIterations() nogil except +
-        Int getCandidates() nogil except +
-        Int getTopNHits() nogil except +
+        Int getNumberOfSiriusCandidates() nogil except +
+        Int getNumberOfCSIFingerIDCandidates() nogil except +
 
-        libcpp_pair[String, String] determineSiriusExecutable(String& executable) nogil except +
-
-        SiriusTmpStruct constructSiriusTmpStruct() nogil except +
+        String determineSiriusExecutable(String& executable) nogil except +
 
         void preprocessingSirius(String featureinfo,
-                                 MSExperiment& spectra,                
+                                 MSExperiment& spectra,
                                  libcpp_vector[FeatureMap]& v_fp,
                                  KDTreeFeatureMaps& fp_map_kd,
                                  FeatureMapping_FeatureToMs2Indices& feature_mapping)
 
-        void checkFeatureSpectraNumber(String featureinfo,
-                                       FeatureMapping_FeatureToMs2Indices feature_mapping,
-                                       MSExperiment spectra);
+        void logFeatureSpectraNumber(String& featureinfo,
+                                     FeatureMapping_FeatureToMs2Indices& feature_mapping,
+                                     MSExperiment& spectra);
 
         libcpp_vector[String] callSiriusQProcess(String tmp_ms_file,
                                                  String tmp_out_dir,
                                                  String executable,
-                                                 String out_csifingerid);
+                                                 String out_csifingerid,
+                                                 bool decoy_generation);
 
 cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  

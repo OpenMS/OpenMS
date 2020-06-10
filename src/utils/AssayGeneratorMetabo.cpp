@@ -142,6 +142,8 @@ protected:
     registerStringOption_("fragment_annotation", "<choice>", "none", "Fragment annotation method",false);
     setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
 
+    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting appraoch. This option does only work in combination with the fragment annotation via sirius.", false);
+
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
@@ -203,6 +205,12 @@ protected:
     String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
     bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    bool decoy_generation = getFlag_("decoy_generation");
+    if (decoy_generation && !use_fragment_annotation)
+    {
+      decoy_generation = false;
+      OPENMS_LOG_WARN << "Warning: Decoy generation was switched off, due to the use of no or an unsupported fragment annotation method." << std::endl;
+    }
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
@@ -386,6 +394,8 @@ protected:
       }
 
       vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
+      vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_decoy;
+
       if (use_fragment_annotation && executable.empty())
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -413,26 +423,30 @@ protected:
         // calls SIRIUS and returns vector of paths to sirius folder structure
         std::vector<String> subdirs;
         String out_csifingerid;
-        String out_decoys;
         subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
             sirius_tmp.getTmpOutDir(),
             executable,
             out_csifingerid,
-            out_decoys);
+            decoy_generation);
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
-        // get Sirius FragmentAnnotation from subdirs
+        // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
         vector<MSSpectrum> annotated_spectra;
+        vector<MSSpectrum> annotated_decoys;
         for (const auto& subdir : subdirs)
         {
           MSSpectrum annotated_spectrum;
+          MSSpectrum decoy_spectrum;
           SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
                                                                            annotated_spectrum, 
                                                                            use_exact_mass);
+          SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
+                                                                        decoy_spectrum);
           annotated_spectra.push_back(std::move(annotated_spectrum));
+          annotated_decoys.push_back(std::move(decoy_spectrum));
         }
 
 
@@ -454,8 +468,21 @@ protected:
             OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
           }
         }
-       
+
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
+        for (const auto& cmp : v_cmpinfo)
+        {
+          for (const auto& spec_fa : annotated_decoys)
+          {
+            if (cmp.mids_id == spec_fa.getName())
+            {
+              MetaboTargetedAssay::CompoundSpectrumPair csp;
+              csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
+              v_cmp_decoy.push_back(std::move(csp));
+            }
+          }
+        }
+
         for (const auto& cmp : v_cmpinfo)
         {
           for (const auto& spec_fa : annotated_spectra)
@@ -528,6 +555,7 @@ protected:
 
       // potential transitions of one file
       vector<MetaboTargetedAssay> tmp_mta;
+      vector<MetaboTargetedAssay> tmp_decoy;
       if (use_fragment_annotation)
       {
         tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
@@ -537,6 +565,18 @@ protected:
                                                                                     use_exact_mass,
                                                                                     exclude_ms2_precursor,
                                                                                     file_counter);
+        if (decoy_generation)
+        {
+          // for decoys the precursor mass/intensity gets excluded (exclude_ms2_precursor = true),
+          // and only have one mz value is annotated no mass distinction (use_exact_mass = false)
+          tmp_decoy = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_decoy,
+                                                                                        transition_threshold,
+                                                                                        min_fragment_mz,
+                                                                                        max_fragment_mz,
+                                                                                        use_exact_mass = false,
+                                                                                        exclude_ms2_precursor = true,
+                                                                                        file_counter);
+        }
       }
       else // use heuristics
       {
@@ -555,7 +595,10 @@ protected:
       
       // append potential transitions of one file to vector of all files
       v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
-      
+      if (decoy_generation)
+      {
+        v_mta.insert(v_mta.end(),tmp_decoy.begin(), tmp_decoy.end());
+      }
     } // end iteration over all files
 
     // use first rank based on precursor intensity
@@ -563,7 +606,6 @@ protected:
     for (const auto& it : v_mta)
     {
       pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
-
       // check if value in map with key k does not exists and fill with current pair
       if (map_mta.count(pair_mta) == 0)
       {
@@ -580,6 +622,8 @@ protected:
         }
       }
     }
+
+    // TODO: Add resolution of overlapping fragments (parameterised)
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
@@ -599,6 +643,7 @@ protected:
     MRMAssay assay;
 
     // filter: min/max transitions
+    // TODO: Should decoys be filtered by min transition?
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
 
     //-------------------------------------------------------------

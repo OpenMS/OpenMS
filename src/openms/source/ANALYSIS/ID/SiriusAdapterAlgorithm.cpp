@@ -103,7 +103,6 @@ namespace OpenMS
                   Description("Tolerance window (left and right) for precursor selection [seconds]")
                );
 
-      // defaults_.setValue".", ListUtils::create<String>("advanced"));
       parameter(
                   OpenMSName("isotope_pattern_iterations"),
                   DefaultValue(3),
@@ -645,11 +644,12 @@ namespace OpenMS
   // ################
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
+    //TODO: use bool (decoy generation) for now - if a output should be supported later e.g. use const String& out_decoy
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
                                                                          String& executable,
                                                                          const String& out_csifingerid,
-                                                                         const String& out_decoys)
+                                                                         const bool decoy_generation)
 
     {
       // get the command line parameters from all the subtools
@@ -657,12 +657,11 @@ namespace OpenMS
       QStringList fingerid_params = fingerid.getCommandLine();
 
       const bool run_csifingerid = !out_csifingerid.empty();
-      const bool run_passatutto = !out_decoys.empty();
+      const bool run_passatutto = decoy_generation;
 
       // structure of the command line passed to NightSky
       QStringList command_line = QStringList({"--input", tmp_ms_file.toQString(), "--project", tmp_out_dir.toQString(), "sirius"}) + sirius_params;
 
-      // TODO: MSP-File output for spectra + decoys?
       if (run_passatutto)
       {
         command_line << "passatutto";

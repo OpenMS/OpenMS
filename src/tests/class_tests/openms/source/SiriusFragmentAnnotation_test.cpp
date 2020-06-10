@@ -88,6 +88,7 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C4H2");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getMetaValue("decoy"), 0);
 }
 END_SECTION
 
@@ -110,6 +111,29 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C4H2");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getMetaValue("decoy"), 0);
+
+}
+END_SECTION
+
+// test decoy extraction
+START_SECTION(static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill))
+{
+    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
+    MSSpectrum decoy_msspectrum;
+
+    SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(test_path, decoy_msspectrum);
+
+    TEST_STRING_SIMILAR(decoy_msspectrum.getNativeID(), "sample=1 period=1 cycle=657 experiment=5|sample=1 period=1 cycle=658 experiment=6|sample=1 period=1 cycle=659 experiment=7");
+    TEST_EQUAL(decoy_msspectrum.getMSLevel(), 2);
+
+    TEST_EQUAL(decoy_msspectrum.empty(), false);
+    TEST_REAL_SIMILAR(decoy_msspectrum[0].getMZ(), 46.994998);
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("peak_mz"), "mz");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getStringDataArrays()[0][0], "CH2S");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
+    TEST_STRING_SIMILAR(decoy_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
+    TEST_REAL_SIMILAR(decoy_msspectrum.getMetaValue("decoy"), 1);
 }
 END_SECTION
 

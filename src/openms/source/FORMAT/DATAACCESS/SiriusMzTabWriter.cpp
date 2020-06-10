@@ -235,7 +235,7 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
             vector<MzTabString> m_native_ids;
             MzTabStringList ml_native_ids;
             ml_native_ids.setSeparator('|');
-            for (auto element : id.native_ids)
+            for (auto& element : id.native_ids)
             {
               m_native_ids.emplace_back(MzTabString(element));
             }
@@ -260,6 +260,6 @@ void SiriusMzTabWriter::read(const std::vector<String>& sirius_output_paths,
       file.close();
     }
   }
-}
+} // namespace OpenMS
 
 /// @endcond

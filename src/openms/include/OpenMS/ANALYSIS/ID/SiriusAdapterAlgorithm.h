@@ -125,7 +125,7 @@ namespace OpenMS
 
       @param executable Path to the potential executable
       */
-      static String determineSiriusExecutable(String &executable);
+      static String determineSiriusExecutable(String& executable);
 
       /**
       @brief Preprocessing needed for SIRIUS
@@ -154,9 +154,9 @@ namespace OpenMS
       @param feature_mapping: FeatureToMs2Indices with feature mapping
       @param spectra: Input of MSExperiment with spectra information
       */
-      void logFeatureSpectraNumber(const String &featureinfo,
-                                   const FeatureMapping::FeatureToMs2Indices &feature_mapping,
-                                   const MSExperiment &spectra);
+      void logFeatureSpectraNumber(const String& featureinfo,
+                                   const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                                   const MSExperiment& spectra);
 
       /**
       @brief Call SIRIUS with QProcess
@@ -172,7 +172,7 @@ namespace OpenMS
                                               const String& tmp_out_dir,
                                               String& executable,
                                               const String& out_csifingerid,
-                                              const String& out_decoys);
+                                              const bool decoy_generation);
 
     private:
     class ParameterModifier

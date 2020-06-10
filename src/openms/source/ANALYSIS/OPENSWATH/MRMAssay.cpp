@@ -1056,7 +1056,9 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
         {
           ReactionMonitoringTransition tr = *tr_it;
 
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          // if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
+
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
