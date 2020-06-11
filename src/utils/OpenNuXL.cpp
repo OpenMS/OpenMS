@@ -97,6 +97,7 @@
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/beta.hpp>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
@@ -3808,6 +3809,74 @@ static void scoreXLIons_(
     return tags;
   }
 
+  ExitCodes correctPrecursors(MSExperiment& ms_centroided)
+  {
+    //-------------------------------------------------------------
+    // HighRes Precursor Mass Correction
+    //-------------------------------------------------------------
+    std::vector<double> deltaMZs, mzs, rts;
+    std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
+      ms_centroided, 
+      0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
+      false, // is ppm = false
+      deltaMZs, 
+      mzs, 
+      rts
+      );      
+    writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    if (!deltaMZs.empty())
+    {
+      vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
+      for (Size i = 0; i != deltaMZs.size(); ++i)
+      {
+        deltaMZs_ppm.push_back(Math::getPPM(mzs[i], mzs[i] + deltaMZs[i]));
+        deltaMZs_ppmabs.push_back(Math::getPPMAbs(mzs[i], mzs[i] + deltaMZs[i]));
+      }
+
+      double median = Math::median(deltaMZs_ppm.begin(), deltaMZs_ppm.end());
+      double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
+      double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
+      double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
+      writeLog_("Precursor correction to highest intensity peak:\n  median delta m/z  = " 
+        + String(median) + " ppm  MAD = " + String(MAD)
+        + "\n  median delta m/z (abs.) = " + String(median_abs) 
+        + " ppm  MAD = " + String(MAD_abs));
+    }
+
+      FeatureMap features;    
+    {
+      MSExperiment e(ms_centroided); // FFM seems to delete passed spectra
+      FeatureFinderMultiplexAlgorithm algorithm;
+      Param p = algorithm.getParameters();
+      p.setValue("algorithm:labels", ""); // label-free
+      p.setValue("algorithm:charge", "2:5");
+      p.setValue("algorithm:rt_typical", 30.0);
+      p.setValue("algorithm:rt_band", 3.0); // max 3 seconds shifts between isotopic traces
+      p.setValue("algorithm:rt_min", 4.0);
+      p.setValue("algorithm:spectrum_type", "centroid");
+      algorithm.setParameters(p);
+      algorithm.run(e, true);
+      features = algorithm.getFeatureMap(); 
+      writeLog_("Detected peptides: " + String(features.size()));
+    }
+
+    set<Size> correct_to_nearest_feature = PrecursorCorrection::correctToNearestFeature(
+      features, 
+      ms_centroided, 
+      20.0, 
+      0.01, 
+      false, 
+      true, 
+      false, 
+      false, 
+      3, 
+      10);
+    writeLog_("Precursor correction to feature:\n  succesful in = " 
+      + String(correct_to_nearest_feature.size()) + " cases.");
+
+    return EXECUTION_OK;
+  }
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -3845,6 +3914,16 @@ static void scoreXLIons_(
     bool idfilter = find(filter.begin(), filter.end(), "idfilter") != filter.end();
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
     bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
+
+    if (pcrecalibration) 
+    {
+      MSExperiment e;
+      MzMLFile().load(in_mzml, e);
+      correctPrecursors(e);
+      in_mzml = FileHandler::stripExtension(in_mzml) + "_pc.mzML";
+      OPENMS_LOG_INFO << "Writing calibrated file to: " << in_mzml << endl;
+      MzMLFile().store(in_mzml, e);
+    }
 
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
 

@@ -56,11 +56,8 @@ namespace OpenMS
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
-        vector<Precursor> pcs = exp[i].getPrecursors();
-        if (pcs.empty())
-        {
-          continue;
-        }
+        const vector<Precursor>& pcs = exp[i].getPrecursors();
+        if (pcs.empty()) { continue; }
         vector<double> pcs_rt(pcs.size(), exp[i].getRT());
         copy(pcs.begin(), pcs.end(), back_inserter(precursors));
         copy(pcs_rt.begin(), pcs_rt.end(), back_inserter(precursors_rt));
@@ -252,10 +249,12 @@ namespace OpenMS
                                                            int debug_level)
     {
       set<Size> corrected_precursors;
+
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
       map<Size, set<Size> > scan_idx_to_feature_idx;
 
+      size_t overlap_checks(0);
       for (Size scan = 0; scan != exp.size(); ++scan)
       {
         // skip non-tandem mass spectra
@@ -271,12 +270,19 @@ namespace OpenMS
           // feature  is incompatible if believe_charge is set and charges don't match
           if (believe_charge && features[f].getCharge() != pc_charge) continue;
 
+          ++overlap_checks;
           // check if precursor/MS2 position overlap with feature
           if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
           {
             scan_idx_to_feature_idx[scan].insert(f);
           }
         }
+      }
+
+      if (debug_level > 0)
+      {
+        OPENMS_LOG_INFO << "Total number of overlap checks: " << overlap_checks << endl;
+        OPENMS_LOG_INFO << "Number of precursors with overlapping features: " << scan_idx_to_feature_idx.size() << endl;
       }
 
       // filter sets to retain compatible features:
