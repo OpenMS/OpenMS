@@ -241,7 +241,7 @@ protected:
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
 
     registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
-    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported.", false, true);
+    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A negative value exports all hits.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -619,9 +619,13 @@ protected:
     {
       Size count = 0;
       Int max_hits = getIntOption_("number_of_hits");
-      if (max_hits < 1)
+      if (max_hits == 0)
       {
-        OPENMS_LOG_WARN << "'number of hits' set to less then 1. No peptide hits will be exported!" << endl;
+        OPENMS_LOG_WARN << "'number of hits' set to 0. No peptide hits will be exported! Please enter the number of peptide hits you wish to export. To export all hits enter a negativ number." << endl;
+      }
+      if (max_hits < 0)
+      {
+        max_hits = INT_MAX;
       }
 
       bool concat = getFlag_("concatenate_peptides");
