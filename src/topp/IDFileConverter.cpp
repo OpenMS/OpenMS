@@ -648,7 +648,7 @@ protected:
 
           if (concat)
           {
-            String seq = pep_id.getHits()[0].getSequence().toUnmodifiedString();
+            String seq = hit.getSequence().toUnmodifiedString();
             if (seq[0] == 'P')
             {
               all_p += seq;
@@ -664,9 +664,10 @@ protected:
             std::set<String> prot = hit.extractProteinAccessionsSet();
             entry.sequence = seq;
             entry.identifier = seq;
-            entry.description = String(count) + hit.getSequence().toString() + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+            entry.description = String(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
 
             f.writeNext(entry);
+            ++count;
           }
         }
       }
