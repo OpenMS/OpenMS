@@ -133,9 +133,14 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Include directories
-  include_directories(${openms_add_library_INTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
+
+  ## TODO BIG figure out how to make the paths relative to the super projects folder.
+  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
+                             $<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>
+                             $<INSTALL_INTERFACE:include/mylib>  # <prefix>/include/mylib
+                             )
+  target_include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
+  target_include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
 
   #------------------------------------------------------------------------------
   # Check if we want a unity build

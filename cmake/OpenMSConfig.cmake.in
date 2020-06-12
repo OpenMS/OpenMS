@@ -38,10 +38,5 @@
 # we need this to reference the target file
 get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-# include directories for targets
-@_EXPORT_INCLUDE_BLOCK@
-
-set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
-
 ## The targets file
 include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")

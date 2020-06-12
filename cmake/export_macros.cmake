@@ -31,6 +31,7 @@
 # $Maintainer: Stephan Aiche $
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
 
 # a collection of wrapper for export functions that allows easier usage
 # througout the OpenMS build system
@@ -45,30 +46,19 @@ macro(openms_register_export_target target_name)
 endmacro()
 
 macro(openms_export_targets )
-  set(_EXPORT_INCLUDE_BLOCK "")
-
-  foreach(_target ${_OPENMS_EXPORT_TARGETS})
-    # check if we have a corresponding include_dir variable
-    if(NOT DEFINED ${_target}_INCLUDE_DIRECTORIES)
-      message(FATAL_ERROR "Please provide the matching include directory variable ${_target}_INCLUDE_DIRECTORIES for export target ${_target}")
-    endif()
-
-    # extend include block
-    set(_EXPORT_INCLUDE_BLOCK "set(${_target}_INCLUDE_DIRECTORIES \"${${_target}_INCLUDE_DIRECTORIES}\")\n\n${_EXPORT_INCLUDE_BLOCK}")
-  endforeach()
 
   # configure OpenMSConfig.cmake
-  configure_file(
+  configure_package_config_file(
     "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/OpenMSConfig.cmake"
     @ONLY
   )
 
-  # configure OpenMSConfig.cmake
-  configure_file(
-    "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfigVersion.cmake.in"
+  # write OpenMSConfigVersion.cmake
+  write_basic_package_version_file(
     "${PROJECT_BINARY_DIR}/OpenMSConfigVersion.cmake"
-    @ONLY
+    VERSION ${OPENMS_PACKAGE_VERSION}
+    COMPATIBILITY SameMinorVersion
   )
 
   # create corresponding target file
