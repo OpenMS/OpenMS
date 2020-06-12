@@ -563,7 +563,12 @@ protected:
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration"}); 
+
+
+    registerDoubleOption_("window_size", "<number>", 100.0, "Peak window for spectra precprocessing.", false, true);
+    registerIntOption_("peak_count", "<number>", 20, "Retained peaks in peak window.", false, true);
   }
+
 
 
   // bad score or less then two peaks matching and less than 1% explained signal
@@ -1962,7 +1967,9 @@ static void scoreXLIons_(
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
     bool single_charge_spectra, 
-    bool annotate_charge)
+    bool annotate_charge,
+    double window_size,
+    size_t peakcount)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -2005,8 +2012,8 @@ static void scoreXLIons_(
     // filter settings
     WindowMower window_mower_filter;
     Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", peakcount, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
@@ -3927,8 +3934,11 @@ static void scoreXLIons_(
 
     InternalCalibration ic; // only filled if pcrecalibration is set and there are enough calibrants
 
+
     // autotune (only works if non-XL peptides present)
     set<String> skip_peptide_spectrum;
+    double global_fragment_error(0);
+
     if (autotune || idfilter)
     {
       SimpleSearchEngineAlgorithm sse;
@@ -3971,8 +3981,9 @@ static void scoreXLIons_(
           // run percolator on idXML
           String perc_out = out_idxml;
           perc_out.substitute(".idXML", "_sse_perc.idXML");
-//        String weights_out = out_idxml;
-//        weights_out.substitute(".idXML", "_sse.weights");
+           
+          String weights_out = out_idxml;
+          weights_out.substitute(".idXML", "_sse.weights");
 
           QStringList process_params;
           process_params << "-in" << out_idxml.toQString()
@@ -3980,10 +3991,10 @@ static void scoreXLIons_(
                        << "-percolator_executable" << percolator_executable.toQString()
                        << "-train-best-positive" 
                        << "-score_type" << "q-value"
-                       << "-post-processing-tdc";
+                       << "-post-processing-tdc"
+                       << "-weights" << weights_out.toQString();
 //                       << "-nested-xval-bins" << "3";
                        //<< "-enzyme" << "trypsinp"  TODO: make dependent on enzyme choice
-//                       << "-weights" << weights_out.toQString();
                        
           TOPPBase::ExitCodes exit_code = runExternalProcess_(QString("PercolatorAdapter"), process_params);
 
@@ -4100,6 +4111,7 @@ static void scoreXLIons_(
  
       if (pep_ids.size() > 100)
       {
+        vector<double> median_fragment_error_ppm_abs;
         vector<double> median_fragment_error_ppm;
         vector<double> precursor_error_ppm;
         for (const auto& pi : pep_ids)
@@ -4108,18 +4120,22 @@ static void scoreXLIons_(
           if (ph.metaValueExists(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM))
           {
             //cout << ph.getMetaValue("median_fragment_error_ppm") << endl;
-            median_fragment_error_ppm.push_back(fabs((double)ph.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM)));
+            double fragment_error = (double)ph.getMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM);
+            median_fragment_error_ppm_abs.push_back(fabs(fragment_error));
+            median_fragment_error_ppm.push_back(fragment_error);
           }
           if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
           {
             precursor_error_ppm.push_back((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
           }
         }
+        sort(median_fragment_error_ppm_abs.begin(), median_fragment_error_ppm_abs.end());
         sort(median_fragment_error_ppm.begin(), median_fragment_error_ppm.end());
         sort(precursor_error_ppm.begin(), precursor_error_ppm.end());
 
         // use 68-percentile as in identipy
-        double new_fragment_mass_tolerance = 4.0 * median_fragment_error_ppm[median_fragment_error_ppm.size() * 0.68];
+        double new_fragment_mass_tolerance = 4.0 * median_fragment_error_ppm_abs[median_fragment_error_ppm_abs.size() * 0.68]; 
+        global_fragment_error = median_fragment_error_ppm[median_fragment_error_ppm_abs.size() * 0.5]; // median of all fragment errors
         double left_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.005];
         double median_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.5];
         double right_precursor_mass_tolerance = precursor_error_ppm[precursor_error_ppm.size() * 0.995];
@@ -4129,6 +4145,7 @@ static void scoreXLIons_(
           fragment_mass_tolerance = new_fragment_mass_tolerance; // set new fragment mass tolerance
         }
         cout << "New fragment mass tolerance (ppm): " << new_fragment_mass_tolerance << endl;
+        cout << "Global fragment mass shift (ppm): " << global_fragment_error << endl;
         cout << "Estimated precursor mass tolerance (ppm): " << left_precursor_mass_tolerance << "\t" << median_precursor_mass_tolerance << "\t" << right_precursor_mass_tolerance << endl;
       }
       else
@@ -4140,6 +4157,22 @@ static void scoreXLIons_(
       {
         ic.setLogType(log_type_);
         ic.fillCalibrants(pep_ids, precursor_mass_tolerance);
+        if (global_fragment_error != 0)
+        {
+          PeakMap spectra;
+          MzMLFile f;
+          f.load(in_mzml, spectra);
+          spectra.sortSpectra(true);
+          for (auto & s : spectra)
+          {
+            if (s.getMSLevel() != 2) continue;
+            for (auto & p : s)
+            {
+              p.setMZ(p.getMZ() - Math::ppmToMass(global_fragment_error, p.getMZ())); // correct global fragment error
+            }
+          }
+         f.store(in_mzml, spectra);
+        }
       }
     }
    
@@ -4278,7 +4311,7 @@ static void scoreXLIons_(
     // only executed if we have a pre-search with enough calibrants
     if (ic.getCalibrationPoints().size() > 1)
     {
-      MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC;
+      MZTrafoModel::MODELTYPE md = MZTrafoModel::LINEAR;
       bool use_RANSAC = true;
 
       Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
@@ -4307,11 +4340,13 @@ static void scoreXLIons_(
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     const bool convert_to_single_charge = false;  // whether to convert fragment peaks with isotopic patterns to single charge
+    const double window_size = getDoubleOption_("window_size");
+    const size_t peak_count = getIntOption_("peak_count");
     preprocessSpectra_(spectra, 
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
                        convert_to_single_charge,
-                       true); // annotate charge  
+                       true, window_size, peak_count); // annotate charge  
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
@@ -4979,7 +5014,7 @@ static void scoreXLIons_(
                        fragment_mass_tolerance, 
                        fragment_mass_tolerance_unit_ppm, 
                        false, // no single charge (false)
-                       true); // annotate charge (true)
+                       true, window_size, peak_count); // annotate charge (true)
 
     calculateNucleotideTags_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, nucleotide_to_fragment_adducts);
     progresslogger.startProgress(0, 1, "localization...");
