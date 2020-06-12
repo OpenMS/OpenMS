@@ -627,7 +627,7 @@ protected:
 
       bool concat = getFlag_("concatenate_peptides");
       //Because by concatenation of peptides [KR]|P sites will probably be created, peptides starting with 'P' are
-      //saved separatly and later moved to the beginning of the concatenated sequence.
+      //saved separately and later moved to the beginning of the concatenated sequence.
       //This is done to avoid losing information about the preceding peptides if a peptides starts with 'P'.
       String all_p; //peptides beginning with 'P'
       String all_but_p; //all the others
