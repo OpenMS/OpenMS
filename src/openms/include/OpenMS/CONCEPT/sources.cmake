@@ -18,6 +18,7 @@ Macros.h
 MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
+RAIICleanup.h
 SingletonRegistry.h
 StreamHandler.h
 Types.h

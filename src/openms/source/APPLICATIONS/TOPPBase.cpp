@@ -416,7 +416,7 @@ namespace OpenMS
         SysInfo::getProcessPeakMemoryConsumption(mem_virtual);
         if (mem_virtual != 0) mem_usage = String("; Peak Memory Usage: ") + (mem_virtual / 1024) + " MB";
       }
-      OPENMS_LOG_INFO << this->tool_name_ << " tooks " << sw.toString() << mem_usage << "." << std::endl;
+      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << mem_usage << "." << std::endl;
     } // end try{}
     //----------------------------------------------------------
     //error handling

@@ -386,8 +386,8 @@ namespace OpenMS
         size_t common_size = loop[0].loop_arg.size();
         for (const auto& l : loop)
         {
-          if (l.loop_arg.size() != common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
-          if (l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
+          if (l.loop_arg.size() != (int)common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
+          if ((int)l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
         }
         return common_size;
       }
@@ -395,7 +395,7 @@ namespace OpenMS
       /// @p loop_number of 0 is always valid, i.e. no loop args, just use the unmodified args provided
       QStringList getArgs(const int loop_number) const
       {
-        if (loop_number >= getLoopCount())
+        if (loop_number >= (int)getLoopCount())
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
         }
@@ -517,7 +517,7 @@ namespace OpenMS
       for (const auto& call : calls)
       { 
         // this might just be one loop... depending on the call...
-        for (int i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
+        for (size_t i_loop = 0; i_loop < call.getLoopCount(); ++i_loop)
         {
           auto returnstate = ep_.run(this, call.exe.toQString(), call.getArgs(i_loop), getCurrentOutDir_(), true);
           if (returnstate != ExternalProcess::RETURNSTATE::SUCCESS)

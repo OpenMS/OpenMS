@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 
@@ -569,4 +571,134 @@ namespace OpenMS
     return id_.empty() && !full_id_.empty();
   }
 
+  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod, double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+    // -----------------------------------
+    // Dealing with an unknown modification
+    // -----------------------------------
+
+    // Notes on mass calculation: AASequence::getMonoWeight uses DiffMonoMass
+    // for its calculation of C/N-terminal modification mass and it uses
+    // getMonoWeight(Residue::Internal) for each Residue. The Residue weight is
+    // set when adding a modification using setModification_
+    if (specificity == ResidueModification::N_TERM)
+    {
+      String residue_name = ".[" + mod + "]";
+      String residue_id = ".n[" + mod + "]";
+
+      // Check if it already exists, if not create new modification, transfer
+      // ownership to ModDB
+      if (!mod_db->has(residue_id))
+      {
+        auto new_mod = new ResidueModification();
+        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullName(residue_name); // display name
+        new_mod->setTermSpecificity(ResidueModification::N_TERM);
+
+        // set masses
+        if (delta_mass)
+        {
+          new_mod->setMonoMass(mass + Residue::getInternalToNTerm().getMonoWeight());
+          // new_mod->setAverageMass(mass + residue->getAverageWeight());
+          new_mod->setDiffMonoMass(mass);
+        }
+        else
+        {
+          new_mod->setMonoMass(mass);
+          // new_mod->setAverageMass(mass);
+          new_mod->setDiffMonoMass(mass - Residue::getInternalToNTerm().getMonoWeight());
+        }
+
+        mod_db->addModification(new_mod);
+        return new_mod;
+      }
+      else
+      {
+        Size mod_idx = mod_db->findModificationIndex(residue_id);
+        return mod_db->getModification(mod_idx);
+      }
+    }
+    else
+      if (specificity == ResidueModification::C_TERM)
+      {
+        String residue_name = ".[" + mod + "]";
+        String residue_id = ".c[" + mod + "]";
+
+        // Check if it already exists, if not create new modification, transfer
+        // ownership to ModDB
+        if (!mod_db->has(residue_id))
+        {
+          auto new_mod = new ResidueModification();
+          new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setFullName(residue_name); // display name
+          new_mod->setTermSpecificity(ResidueModification::C_TERM);
+
+          // set masses
+          if (delta_mass)
+          {
+            new_mod->setMonoMass(mass + Residue::getInternalToCTerm().getMonoWeight());
+            // new_mod->setAverageMass(mass + residue->getAverageWeight());
+            new_mod->setDiffMonoMass(mass);
+          }
+          else
+          {
+            new_mod->setMonoMass(mass);
+            // new_mod->setAverageMass(mass);
+            new_mod->setDiffMonoMass(mass - Residue::getInternalToCTerm().getMonoWeight());
+          }
+
+          mod_db->addModification(new_mod);
+          return new_mod;
+        }
+        else
+        {
+          Size mod_idx = mod_db->findModificationIndex(residue_id);
+          return mod_db->getModification(mod_idx);
+        }
+      }
+      else
+      {
+        if (residue == nullptr)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create non-terminal mod without origin AA residue.", "nullptr");
+        }
+        String residue_name = String(residue->getOneLetterCode()) + "[" + mod + "]"; // e.g. N[12345.6]
+        String modification_name = "[" + mod + "]";
+
+        if (!mod_db->has(residue_name))
+        {
+          // create new modification
+          auto new_mod = new ResidueModification();
+          new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setFullName(modification_name); // display name
+
+          // We will set origin to make sure the same modification will be used
+          // for the same AA
+          new_mod->setOrigin(residue->getOneLetterCode()[0]);
+
+          // set masses
+          if (delta_mass)
+          {
+            new_mod->setMonoMass(mass + residue->getMonoWeight());
+            new_mod->setAverageMass(mass + residue->getAverageWeight());
+            new_mod->setDiffMonoMass(mass);
+          }
+          else
+          {
+            new_mod->setMonoMass(mass);
+            new_mod->setAverageMass(mass);
+            new_mod->setDiffMonoMass(mass - residue->getMonoWeight());
+          }
+          mod_db->addModification(new_mod);
+          return new_mod;
+        }
+        else
+        {
+          Size mod_idx = mod_db->findModificationIndex(residue_name);
+          return mod_db->getModification(mod_idx);
+        }
+      }
+  }
 }
