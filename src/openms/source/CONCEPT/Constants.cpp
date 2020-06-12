@@ -154,6 +154,9 @@ namespace OpenMS
 
     namespace UserParam
     {
+      //User parameter name for identifier of concatenated peptides
+      const std::string CONCAT_PEPTIDE = "concatenated_peptides";
+
       // User parameter name for the M/Z of other chromatograms which have been merged into this one
       const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
 

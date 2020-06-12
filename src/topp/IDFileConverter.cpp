@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -241,7 +242,7 @@ protected:
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
 
     registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
-    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A negative value exports all hits.", false, true);
+    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A value of 0 or less exports all hits.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -619,11 +620,7 @@ protected:
     {
       Size count = 0;
       Int max_hits = getIntOption_("number_of_hits");
-      if (max_hits == 0)
-      {
-        OPENMS_LOG_WARN << "'number of hits' set to 0. No peptide hits will be exported! Please enter the number of peptide hits you wish to export. To export all hits enter a negativ number." << endl;
-      }
-      if (max_hits < 0)
+      if (max_hits < 1)
       {
         max_hits = INT_MAX;
       }
@@ -646,9 +643,9 @@ protected:
           if (curr_hit > max_hits) break;
           ++curr_hit;
 
+          String seq = hit.getSequence().toUnmodifiedString();
           if (concat)
           {
-            String seq = hit.getSequence().toUnmodifiedString();
             if (seq[0] == 'P')
             {
               all_p += seq;
@@ -660,7 +657,6 @@ protected:
           }
           else
           {
-            String seq = hit.getSequence().toUnmodifiedString();
             std::set<String> prot = hit.extractProteinAccessionsSet();
             entry.sequence = seq;
             entry.identifier = seq;
@@ -674,8 +670,8 @@ protected:
       if (concat)
       {
         entry.sequence = all_p + all_but_p;
-        entry.identifier = protein_identifications[0].getSearchEngine();
-        entry.description = "concatenated peptides";
+        entry.identifier = protein_identifications[0].getSearchEngine() + "_" + Constants::UserParam::CONCAT_PEPTIDE;
+        entry.description = "";
         
         f.writeNext(entry);
       }
