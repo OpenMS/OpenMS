@@ -164,7 +164,6 @@ namespace OpenMS
     s.peptide_count = peptides_.size();
     s.compound_count = compounds_.size();
     s.transition_count = transitions_.size();
-    float count = 0;
     for (const auto& tr : transitions_)
     {
       ++s.decoy_counts[tr.getDecoyTransitionType()];

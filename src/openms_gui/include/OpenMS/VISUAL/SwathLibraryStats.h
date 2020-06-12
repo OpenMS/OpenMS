@@ -55,7 +55,6 @@ namespace OpenMS
     Q_OBJECT
 
   public:
-
     explicit SwathLibraryStats(QWidget *parent = nullptr);
     ~SwathLibraryStats();
 
