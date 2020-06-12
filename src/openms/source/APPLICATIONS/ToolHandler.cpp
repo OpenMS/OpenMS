@@ -53,6 +53,7 @@ namespace OpenMS
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
     tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
+    tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", "QualityControl");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
