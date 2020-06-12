@@ -100,8 +100,8 @@ namespace OpenMS
       auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
       py_pyprophet->setRequiredModules( { "pyprophet", "msproteomicstoolslib" });
       py_pyprophet->setFreeText("In order to run PyProphet and TRIC after OpenSWATH, the above modules need to be installed\n" \
-                                "Once they are available, the 'pyProphet and TRIC' tab will become active and configurable.");
-      py_pyprophet->setTitle("External: PyProphet & TRIC tools");
+                                "Once they are available, the 'PyProphet and TRIC' tab will become active and configurable.");
+      py_pyprophet->setTitle("External: PyProphet and TRIC tools");
       connect(py_selector, &PythonSelector::valueChanged, py_pyprophet, &PythonModuleRequirement::validate);
         
       // call once to update py_pyprophet canvas 
@@ -133,6 +133,11 @@ namespace OpenMS
       connect(ui->input_iRT, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
       connect(ui->input_tr, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
       connect(ui->input_swath_windows, &InputFile::updatedCWD, this, &SwathTabWidget::broadcastNewCWD_);
+      
+      // update information on assay libraries
+      connect(ui->input_iRT, &InputFile::updatedFile, ui->input_iRT_stats, &SwathLibraryStats::updateFromFile);
+      connect(ui->input_tr, &InputFile::updatedFile, ui->input_tr_stats, &SwathLibraryStats::updateFromFile);
+
 
       // if out_dir (user defined output directory for OSW results) changes ...
       connect(ui->out_dir, &OutputDirectory::directoryChanged, this, &SwathTabWidget::checkPyProphetInput_);
@@ -246,7 +251,7 @@ namespace OpenMS
       if (!swath_windows.empty()) tmp.setValue("swath_windows_file", swath_windows);
       // do not set '-out_osw' because we might have multiple -in's and have to iterate manually
 
-      // update; do NOT write directly to swath_param_, because 'setValue(name, value)' will loose the description and the tags, i.e. input-file etc. We need this information though!
+      // call update(); do NOT write directly to swath_param_ using 'setValue(name, value)' because that will loose the description and the tags, i.e. input-file etc. We need this information though!
       swath_param_.update(tmp, false, false, true, true, OpenMS_Log_warn);
     }
 
