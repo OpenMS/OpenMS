@@ -111,7 +111,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Drag'n'drop files or use the 'Add ..' button to add files</string>
+          <string>Drag'n'drop files or use the 'Add ...' button to add files</string>
          </property>
         </widget>
        </item>
@@ -149,7 +149,7 @@
          <item>
           <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Select a .PQP file from disk. You can convert from 'TraML' or 'tsv' format to 'PQP' by using 'TargetedFileConverter'</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a .PQP file from disk. You can convert from 'TraML' or 'tsv' format to 'PQP' by using the &lt;a href=&quot;http://www.openms.de/documentation/UTILS_TargetedFileConverter.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;TargetedFileConverter&lt;/span&gt;&lt;/a&gt; from OpenMS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -172,6 +172,19 @@
            </property>
            <property name="autoFillBackground">
             <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="SwathLibraryStats" name="input_tr_stats" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The library should contain ~50% decoy transitions/peptides/proteins. If this is not the case, please use &lt;a href=&quot;http://www.openms.de/documentation/TOPP_OpenSwathDecoyGenerator.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;OpenSwathDecoyGenerator&lt;/span&gt;&lt;/a&gt; use to generate a proper library.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -210,34 +223,17 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="SwathLibraryStats" name="input_iRT_stats" native="true"/>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>The library should not contain decoys transitions. </string>
+           </property>
+          </widget>
+         </item>
         </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="title">
-         <string>Create Library from DDA files</string>
-        </property>
-        <widget class="QLabel" name="label">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>20</y>
-           <width>451</width>
-           <height>31</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>For convenience, you can create an Assay library here, using an external package.
-Just provide the required DDA input files.</string>
-         </property>
-        </widget>
        </widget>
       </item>
      </layout>
@@ -468,6 +464,12 @@ Just provide the required DDA input files.</string>
    <class>OutputDirectory</class>
    <extends>QWidget</extends>
    <header>OpenMS/VISUAL/OutputDirectory.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SwathLibraryStats</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/SwathLibraryStats.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

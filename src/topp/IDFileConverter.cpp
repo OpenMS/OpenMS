@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -239,6 +240,9 @@ protected:
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
     registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+
+    registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
+    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A value of 0 or less exports all hits.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -615,28 +619,62 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
-      ofstream fasta(out.c_str(), ios::out);
-      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      Int max_hits = getIntOption_("number_of_hits");
+      if (max_hits < 1)
       {
-        for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+        max_hits = INT_MAX;
+      }
+
+      bool concat = getFlag_("concatenate_peptides");
+      //Because by concatenation of peptides [KR]|P sites will probably be created, peptides starting with 'P' are
+      //saved separately and later moved to the beginning of the concatenated sequence.
+      //This is done to avoid losing information about the preceding peptides if a peptides starts with 'P'.
+      String all_p; //peptides beginning with 'P'
+      String all_but_p; //all the others
+
+      FASTAFile f;
+      f.writeStart(out);
+      FASTAFile::FASTAEntry entry;
+      for (const PeptideIdentification& pep_id : peptide_identifications)
+      {
+        Int curr_hit = 1;
+        for (const PeptideHit& hit : pep_id.getHits())
         {
-          const PeptideHit& hit = peptide_identifications[i].getHits()[l];
+          if (curr_hit > max_hits) break;
+          ++curr_hit;
+
           String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessionsSet();
-          fasta << ">" << seq
-                << " " << ++count
-                << " " << hit.getSequence().toString()
-                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
-                << "\n";
-          // FASTA files should have at most 60 characters of sequence info per line
-          for (Size j = 0; j < seq.size(); j += 60)
+          if (concat)
           {
-            Size k = min(j + 60, seq.size());
-            fasta << seq.substr(j, k - j) << "\n";
+            if (seq[0] == 'P')
+            {
+              all_p += seq;
+            }
+            else
+            {
+              all_but_p += seq;
+            }
+          }
+          else
+          {
+            std::set<String> prot = hit.extractProteinAccessionsSet();
+            entry.sequence = seq;
+            entry.identifier = seq;
+            entry.description = String(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+
+            f.writeNext(entry);
+            ++count;
           }
         }
       }
-      fasta.close();
+      if (concat)
+      {
+        entry.sequence = all_p + all_but_p;
+        entry.identifier = protein_identifications[0].getSearchEngine() + "_" + Constants::UserParam::CONCAT_PEPTIDE;
+        entry.description = "";
+        
+        f.writeNext(entry);
+      }
     }
 
     else
