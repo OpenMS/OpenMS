@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -76,6 +77,8 @@ protected:
     setValidFormats_("in_spec", { "mzML" });
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides");
     setValidFormats_("in_novo", { "idXML" });
+    registerOutputFile_("out", "<file>", "", "Optional tsv output", false); //tsv output
+    setValidFormats_("out", { "tsv" });
   }
 
 
@@ -97,7 +100,15 @@ protected:
     vector<PeptideIdentification> pep_ids;
     x.load(in_id, prot_ids, pep_ids);
 
+    // maybe extra tool for this
 
+    vector<ProteinIdentification> novo_prots;
+    vector<PeptideIdentification> novo_peps;
+    x.load(in_novo, novo_prots, novo_peps);
+
+    MzMLFile m; // Metadata only
+    PeakMap exp;
+    m.load(in_spec, exp);
 
     //-------------------------------------------------------------
     // calculations
@@ -108,6 +119,19 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+  }
+
+private:
+
+  double getDecoyDiff_(const PeptideIdentification& pep)
+  {
+    double diff;
+    double decoy_1 = -1;
+    double decoy_2 = -1;
+    for (const PeptideHit& hit : pep.getHits())
+    {
+
+    }
   }
 
 };
