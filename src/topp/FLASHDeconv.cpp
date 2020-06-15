@@ -222,6 +222,7 @@ protected:
     fstream fsf, fsp, fsfd;
     auto fs = new fstream[param.maxMSLevel];
     auto ft = new fstream[param.maxMSLevel];
+    fstream fa;
     //-------------------------------------------------------------
     // reading input file directory -> put that in array
     //-------------------------------------------------------------
@@ -259,7 +260,8 @@ protected:
           DeconvolutedSpectrum::writeAttCsvHeader(ft[n - 1]);
         }
       }
-
+      fa.open(outfilePath + "_MassList.csv", fstream::out);//[preifx]_train_MSn.csv
+      DeconvolutedSpectrum::writeAttCsvHeader(fa);
       //fsm.open(outfilePath + ".csv", fstream::out);
       //writeAttCsvHeader(fsm);
 
@@ -372,6 +374,9 @@ protected:
           }
         }
 
+        fa.open(outfilePath + outfileName + "_MassList.csv", fstream::out);//[preifx]_train_MSn.csv
+        DeconvolutedSpectrum::writeThermoInclusionHeader(fa);
+
         fsf.open(outfilePath + outfileName + ".tsv", fstream::out);
         MassFeatureTrace::writeHeader(fsf);
 
@@ -456,7 +461,10 @@ protected:
 
         if (param.trainOut)
         {
-          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, -100, 2); // TODO
+          deconvolutedSpectrum.writeAttCsv(ft[msLevel - 1], msLevel, -1000, 3); // TODO
+        }
+        if (msLevel == 1){
+          deconvolutedSpectrum.writeMassList(fa, 10.0, -10000, 3);// TODO
         }
 
         if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
@@ -525,6 +533,7 @@ protected:
             file.remove();
           }
         }
+        fa.close();
         // fsm.close();
 
         fsf.close();
@@ -648,7 +657,7 @@ protected:
           file.remove();
         }
       }
-
+      fa.close();
       //fsm.close();
       fsf.close();
       if (param.promexOut)

@@ -38,8 +38,10 @@ namespace OpenMS
     int massIndex;
     int maxCharge, minCharge;
     int maxQScoreCharge = 0;
-    float maxScorePeakIntensity = 0;
-    std::unordered_map<int, float> perChargeSNR;
+    std::unordered_map<int, float> perChargeSNR; // polish later TODO
+    std::unordered_map<int, float> perChargeICos;
+    std::unordered_map<int, float> perChargeSumInt;
+
     float qScore = 0;
     float totalSNR = 0;
     double maxQScoreMzEnd, maxQScoreMzStart;

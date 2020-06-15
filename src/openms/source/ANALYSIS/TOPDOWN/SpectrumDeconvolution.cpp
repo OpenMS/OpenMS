@@ -67,7 +67,7 @@ namespace OpenMS
         }
 
         harmonicFilter[k][i] = log(1.0 / (i + factor * n / hc + param
-            .minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) // TODO
+            .minCharge)); //.124 * (1 + i%2) + should be descending, and negative!  - 0.2 * (1+(i%3)/2.0)) //
         //std::cout<<i<<" " << log(1.0 / (i + factor * n / hc + param.minCharge)) << std::endl;
       }
     }
@@ -208,7 +208,7 @@ namespace OpenMS
         {
           break;
         }
-        massBins[j] = true;// TODO
+        massBins[j] = true;
       }
     }
   }
@@ -445,7 +445,7 @@ namespace OpenMS
     long binSize = (long) massBins.size();
 
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBins.size());
-    //auto toSkip = (candidateMassBinsForThisSpectrum & massBins.flip()).flip(); // TODO
+    //auto toSkip = (candidateMassBinsForThisSpectrum & massBins.flip()).flip(); // TODO for exclusion
     auto toSkip = (candidateMassBinsForThisSpectrum | massBins).flip();
     massBins.reset();
     //massBinsForThisSpectrum.reset();
@@ -903,7 +903,7 @@ namespace OpenMS
 
         const double mz = logMzPeaks[maxPeakIndex].mz;
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
-        double mzDelta = tol * mz * 2; // TODO
+        double mzDelta = tol * mz * 2; //
 
         if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
         {

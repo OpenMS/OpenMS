@@ -495,6 +495,7 @@ namespace OpenMS
         double minMz = pg.monoisotopicMass * 2;
         double maxMz = 0;
         double maxIntensity = .0;
+        double sumIntensity = .0;
         double sp = .0;
 
         for (auto &p:pg.peaks)
@@ -511,6 +512,7 @@ namespace OpenMS
           }
 
           perIsotopeIntensities[p.isotopeIndex] += p.intensity;
+          sumIntensity += p.intensity;
           minIsotopeIndex = minIsotopeIndex < p.isotopeIndex ? minIsotopeIndex : p.isotopeIndex;
           maxIsotopeIndex = maxIsotopeIndex < p.isotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
 
@@ -546,6 +548,8 @@ namespace OpenMS
                                                isoNorm,
                                                0);
 
+        pg.perChargeICos[charge] = cos;
+        pg.perChargeSumInt[charge] = sumIntensity;
         double cos2 = cos * cos;
 
         if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
@@ -573,21 +577,33 @@ namespace OpenMS
           continue;
         }
 
+        /*ChargeSNR                 -0.367
+PeakIntensity            -1.4339
+EnvIntensity              1.3297
+
+EnvIsotopeCosine         -2.7199
+MassSNR                  -0.8385
+IsotopeCosine               4.29
+ChargeIntensityCosine    -0.4913
+MassIntensity            -0.4561
+Intercept                  1.424*/
         auto score =
-        -0.5495 * log10(pg.perChargeSNR[charge] + 1e-3)
-        - 0.3263 * log10(preChargeMaxIntensity[j] + 1)
-        - 0.9337 * log10(pg.totalSNR + 1e-3)
-        + 2.8442 * pg.isotopeCosineScore
-        - 0.9721 * pg.chargeCosineScore
-        - 0.1885 * log10(pg.intensity + 1)
-        + 1.9703;
+        -0.367 * log10(pg.perChargeSNR[charge] + 1e-3)
+        - 1.4339 * log10(preChargeMaxIntensity[j] + 1)
+        + 1.3297 * log10(pg.perChargeSumInt[charge] + 1)
+        -2.7199 * pg.perChargeICos[charge]
+        - 0.8385 * log10(pg.totalSNR + 1e-3)
+        + 4.29 * pg.isotopeCosineScore
+        - 0.4913 * pg.chargeCosineScore
+        - 0.4561 * log10(pg.intensity + 1)
+        + 1.424;
         score = -score;
 
         if (score < pg.qScore)
         {
           continue;
         }
-        pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
+        //pg.maxScorePeakIntensity = pg.perChargeSNR[charge];
         pg.maxQScoreCharge = charge;
         pg.qScore = score;
       }

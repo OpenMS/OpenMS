@@ -31,10 +31,13 @@ namespace OpenMS
 
     void writeDeconvolutedMasses(std::fstream &fs, Parameter &param);
     void writeAttCsv(std::fstream &fs, int msLevel, double qScoreThreshold, int numMaxMS2);
+    void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
+
     void writeTopFD(std::fstream &fs, int id);
 
     static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
     static void writeAttCsvHeader(std::fstream &fs);
+    static void writeThermoInclusionHeader(std::fstream &fs);
 
     bool empty() const;
     void clearChargeSNRMap();
