@@ -52,6 +52,11 @@ jobs:
       run: |
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
+        
+    - name: Install missing VS packages
+      shell: cmd
+      run: |
+        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --includeRecommended --add "Microsoft.VisualStudio.Component.VC.v141.x86.x64" --add "Microsoft.VisualStudio.Component.VC.140" --add "Microsoft.VisualStudio.Component.VC.v141.ATL" --add "Microsoft.VisualStudio.Component.VC.v141.MFC"
 
     - name: Build
       shell: bash
