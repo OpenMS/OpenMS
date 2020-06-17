@@ -129,9 +129,7 @@ jobs:
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
-        
-        
-        : 'qtsvg'
+        modules: 'qtsvg'
         cached: 'false'
 
     - name: Install Miniconda
