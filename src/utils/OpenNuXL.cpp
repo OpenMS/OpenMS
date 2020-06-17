@@ -565,7 +565,7 @@ protected:
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration"}); 
 
 
-    registerDoubleOption_("window_size", "<number>", 100.0, "Peak window for spectra precprocessing.", false, true);
+    registerDoubleOption_("window_size", "<number>", 75.0, "Peak window for spectra precprocessing.", false, true);
     registerIntOption_("peak_count", "<number>", 20, "Retained peaks in peak window.", false, true);
   }
 
