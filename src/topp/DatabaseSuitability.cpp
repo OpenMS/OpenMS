@@ -34,9 +34,12 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 
 using namespace OpenMS;
@@ -79,6 +82,8 @@ protected:
     setValidFormats_("in_novo", { "idXML" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output", false); //tsv output
     setValidFormats_("out", { "tsv" });
+    registerIntOption_("novor_fract", "<integer>", 1, "Set the percentage of de novo peptides to capture with a score higher than the fasta score.", false, true);
+    registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. This might yeild in underperformance.", true);
   }
 
 
@@ -91,6 +96,8 @@ protected:
     String in_id = getStringOption_("in_id");
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
+    Int novo_fract = getIntOption_("novor_fract");
+    bool no_re_rank = getFlag_("force_no_re_rank");
 
     //-------------------------------------------------------------
     // reading input
@@ -106,7 +113,10 @@ protected:
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
 
-    MzMLFile m; // Metadata only
+    MzMLFile m;
+    PeakFileOptions op;
+    op.setMetadataOnly(true);
+    m.setOptions(op);
     PeakMap exp;
     m.load(in_spec, exp);
 
@@ -114,26 +124,191 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
+    // db suitability
+
+
+    double cut_off;
+    if (!no_re_rank)
+    {
+      cut_off = getDecoyCutOff_(pep_ids, novo_fract);
+      if (cut_off < 0)
+      {
+        OPENMS_LOG_ERROR << "Could not compute decoy cut off. Re-ranking impossible. If you want to ignore this, set the 'force_no_re_rank' flag." << endl;
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+    }
+
+    Int64 count_db = 0;
+    Int64 count_novo = 0;
+    Int64 count_re_ranked = 0;
+
+    for (const auto& pep_id : pep_ids)
+    {
+      vector<PeptideHit> hits = pep_id.getHits();
+
+      if (hits.empty()) continue;
+
+      PeptideHit top_hit = hits[0];
+
+      // check if top hit is found in de novo protein
+      set<String> accessions = top_hit.extractProteinAccessionsSet();
+      bool is_novo = true;
+      for (const String& acc : accessions)
+      {
+        if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
+        {
+          is_novo = false;
+          break;
+        }
+      }
+
+      if (is_novo) // top hit is de novo hit
+      {
+        if (hits.size() == 1)
+        {
+          ++count_novo;
+          continue;
+        }
+
+        PeptideHit second_hit = hits[1];
+
+        // check if second hit is db hit
+        set<String> second_accessions = top_hit.extractProteinAccessionsSet();
+        bool is_novo_too = true;
+        for (const String& acc2 : second_accessions)
+        {
+          if (acc2.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
+          {
+            is_novo_too = false;
+            break;
+          }
+        }
+
+        if (is_novo_too) // second hit is also de novo hit
+        {
+          ++count_novo;
+        }
+        else // second hit is db hit
+        {
+          // check for re-ranking
+          if (no_re_rank)
+          {
+            ++count_novo;
+            continue;
+          }
+
+          if (double(top_hit.getMetaValue("MS:1002252")) - double(second_hit.getMetaValue("MS:1002252")) <= cut_off)
+          {
+            ++count_db;
+            ++count_re_ranked;
+          }
+          else ++count_novo;
+        }
+      }
+      else ++count_db; // top hit is db hit
+    }
+
+    // spectra quality
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
+    OPENMS_LOG_INFO << count_db << " top hits that were found in the database." << endl;
+    OPENMS_LOG_INFO << count_novo << " top hits that were only found in the concatenated de novo peptide." << endl;
+    OPENMS_LOG_INFO << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
+    OPENMS_LOG_INFO << "Database quality: " << double(count_db) / (count_db + count_novo) << endl;
+
+    return EXECUTION_OK;
+
   }
 
 private:
 
-  double getDecoyDiff_(const PeptideIdentification& pep)
+  double getDecoyDiff_(const PeptideIdentification& pep_id)
   {
-    double diff;
+    double diff = -1;
+
+    // get the score of the first two decoy hits
     double decoy_1 = -1;
     double decoy_2 = -1;
-    for (const PeptideHit& hit : pep.getHits())
-    {
+    Int curr_hit = 1;
 
+    for (const auto& hit : pep_id.getHits())
+    {
+      if (curr_hit > 10) break;
+      ++curr_hit;
+
+      if (!hit.metaValueExists("target_decoy"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run before hand."));
+      }
+
+      if (!hit.metaValueExists("MS:1002252"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
+      }
+
+      if (decoy_1 == -1 && hit.getMetaValue("target_decoy") == "decoy")
+      {
+        decoy_1 = hit.getMetaValue("MS:1002252");
+        continue;
+      }
+      if (decoy_1 > 0 && hit.getMetaValue("target_decoy") == "decoy")
+      {
+        decoy_2 = hit.getMetaValue("MS:1002252");
+        break;
+      }
     }
+
+    if (decoy_2 > 0) // if there are two decoy hits
+    {
+      diff = abs(decoy_1 - decoy_2) / pep_id.getMZ(); // normalized by mw
+    }
+
+    // if there aren't two decoy hits -1 is returned
+    return diff;
   }
 
+  double getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
+  {
+    double cut_off = -1;
+
+    // get all decoy diffs of peptide ids with at least two decoy hits
+    vector<double> diffs;
+    for (const auto& pep_id : pep_ids)
+    {
+      double diff = getDecoyDiff_(pep_id);
+      if (diff > 0)
+      {
+        diffs.push_back(diff);
+      }
+    }
+
+    if (double(diffs.size()) / pep_ids.size() < 0.2)
+    {
+      throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score."));
+    }
+
+    // sort the diffs decreasing
+    std::sort(diffs.begin(), diffs.end(), std::greater<double>());
+    
+    // create a vector of percentages according to the number of differences
+    vector<double> percent;
+    for (Int i = 1; i <= diffs.size(); ++i)
+    {
+      percent.push_back(i/double(diffs.size()));
+    }
+
+    // find the right cut_off for the wanted percent of novo peptides to capture
+    double fract = 1 - novor_fract;
+    for (Int i = 0; i < percent.size(); ++i)
+    {
+      if (percent[i] > fract) cut_off = diffs[i];
+    }
+
+    return cut_off;
+  }
 };
 
 
