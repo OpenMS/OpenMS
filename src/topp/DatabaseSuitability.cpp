@@ -114,12 +114,17 @@ protected:
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
 
-    MzMLFile m;
-    PeakFileOptions op;
-    op.addMSLevel(2);
-    m.setOptions(op);
-    PeakMap exp;
-    m.load(in_spec, exp);
+    UInt64 count_ms2_lvl;
+    {
+      MzMLFile m;
+      PeakFileOptions op;
+      op.addMSLevel(2);
+      op.setFillData(false);
+      m.setOptions(op);
+      PeakMap exp;
+      m.load(in_spec, exp);
+      count_ms2_lvl = exp.size();
+    }
 
     //-------------------------------------------------------------
     // calculations
@@ -142,6 +147,7 @@ protected:
     UInt64 count_db = 0;
     UInt64 count_novo = 0;
     UInt64 count_re_ranked = 0;
+    UInt64 count_interest = 0;
 
     for (const auto& pep_id : pep_ids)
     {
@@ -150,6 +156,8 @@ protected:
       if (hits.empty()) continue;
 
       PeptideHit top_hit = hits[0];
+
+      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // check if top hit is found in de novo protein
       set<String> accessions = top_hit.extractProteinAccessionsSet();
@@ -173,6 +181,12 @@ protected:
 
         PeptideHit second_hit = hits[1];
 
+        if (second_hit.getMetaValue("target_decoy") == "decoy")
+        {
+          ++count_novo;
+          continue;
+        }
+
         // check if second hit is db hit
         set<String> second_accessions = top_hit.extractProteinAccessionsSet();
         bool is_novo_too = true;
@@ -191,6 +205,7 @@ protected:
         }
         else // second hit is db hit
         {
+          ++count_interest;
           // check for re-ranking
           if (no_re_rank)
           {
@@ -211,7 +226,6 @@ protected:
 
     // spectra quality
 
-    UInt64 count_ms2_lvl = exp.size();
     UInt64 count_novo_seq = 0;
     set<AASequence> unique_novo;
 
@@ -226,11 +240,31 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    double quality = double(count_db) / (count_db + count_novo);
+    double id_rate = double(count_novo_seq) / count_ms2_lvl;
+
     OPENMS_LOG_INFO << count_db << " top hits that were found in the database." << endl;
     OPENMS_LOG_INFO << count_novo << " top hits that were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
-    OPENMS_LOG_INFO << "Database quality: " << double(count_db) / (count_db + count_novo) << endl << endl;
-    OPENMS_LOG_INFO << count_novo_seq << " de novo sequences derived from a total of " << count_ms2_lvl << " ms2 spectra. Ratio: " << double(count_novo_seq)/count_ms2_lvl << endl << endl;
+    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit just above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
+    OPENMS_LOG_INFO << "Database suitability: " << quality << endl << endl;
+    OPENMS_LOG_INFO << unique_novo.size() << " unique de novo sequences" << endl;
+    OPENMS_LOG_INFO << count_novo_seq << " total de novo sequences" << endl; 
+    OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra." << endl;
+    OPENMS_LOG_INFO << "MS2 ID rate: " << id_rate << endl << endl;
+
+    if (!out.empty())
+    {
+      std::ofstream os(out);
+      os.precision(writtenDigits(double()));
+      os << "#top_db_hits\t" << count_db << endl;
+      os << "#top_novo_hits\t" << count_novo << endl;
+      os << "db_suitability\t" << quality << endl;
+      os << "#total_novo_seqs\t" << count_novo_seq << endl;
+      os << "#unique_novo_seqs\t" << unique_novo.size() << endl;
+      os << "#ms2_spectra" << count_ms2_lvl << endl;
+      os << "ms2_id_rate\t" << id_rate << endl;
+      os.close();
+    }
 
     return EXECUTION_OK;
 
