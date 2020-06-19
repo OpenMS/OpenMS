@@ -301,7 +301,9 @@ namespace OpenMS
       ui->input_py_pqps->clear();
       ui->input_py_pqps->setHtml(text);
 
-      ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will generate TSV files for downstream processing.");
+      ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + 
+                                "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will "
+                                "generate TSV files (tric_aligned.tsv and tric_aligned_matrix.tsv) for downstream processing.");
     }
 
     void SwathTabWidget::writeLog_(const QString& text, bool new_section)
@@ -499,7 +501,8 @@ namespace OpenMS
       calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
                                             << "--out" << "tric_aligned.tsv" << "--out_matrix" << "tric_aligned_matrix.tsv" 
                                             << "--method" << "LocalMST" << "--realign_method" << "lowess" << "--max_rt_diff" << "90" 
-                                            << "--fdr_cutoff" << "0.01" << "--alignment_score" << "0.01", ArgLoop{});
+                                            << "--fdr_cutoff" << QString::number(ui->tric_FDR_threshold->value()) 
+                                            << "--alignment_score" << QString::number(ui->tric_RTmax->value()), ArgLoop{});
         
       QProgressDialog progress("Running pyprophet and TRIC", "Abort ...", 0, (int)calls.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
