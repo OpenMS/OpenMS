@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>539</width>
-    <height>501</height>
+    <width>563</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -50,7 +50,7 @@
    <attribute name="title">
     <string>Config</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_10">
     <item>
      <widget class="PythonSelector" name="py_selector" native="true">
       <property name="sizePolicy">
@@ -92,8 +92,8 @@
    <attribute name="title">
     <string>LC-MS files</string>
    </attribute>
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout_8">
+    <item>
      <widget class="QGroupBox" name="groupBox">
       <property name="toolTip">
        <string>Hint: only non-split mzML files are supported.</string>
@@ -101,7 +101,7 @@
       <property name="title">
        <string>mzML input files</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout_11">
        <item>
         <widget class="QLabel" name="label_7">
          <property name="sizePolicy">
@@ -131,11 +131,11 @@
    <attribute name="title">
     <string>Database</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout_5">
     <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -165,7 +165,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>30</height>
+           <height>0</height>
           </size>
          </property>
          <property name="autoFillBackground">
@@ -191,6 +191,12 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>iRT library</string>
       </property>
@@ -213,7 +219,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>30</height>
+           <height>0</height>
           </size>
          </property>
          <property name="autoFillBackground">
@@ -240,7 +246,7 @@
    <attribute name="title">
     <string>Run OpenSwath</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_5">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QGroupBox" name="groupBox_5">
       <property name="title">
@@ -303,6 +309,12 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_6">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Run TOPP OpenSwathWorkflow</string>
       </property>
@@ -322,7 +334,14 @@
         </widget>
        </item>
        <item row="1" column="0" colspan="3">
-        <widget class="ParamEditor" name="list_editor" native="true"/>
+        <widget class="ParamEditor" name="list_editor" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
        <item row="0" column="1">
         <spacer name="horizontalSpacer">
@@ -353,7 +372,7 @@
    <attribute name="title">
     <string>PyProphet and TRIC</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_10">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QGroupBox" name="groupBox_8">
       <property name="title">
@@ -516,7 +535,7 @@
    <attribute name="title">
     <string>Log</string>
    </attribute>
-   <layout class="QVBoxLayout" name="verticalLayout_8">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTextEdit" name="log_text">
       <property name="readOnly">
