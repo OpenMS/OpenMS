@@ -96,6 +96,7 @@ protected:
     String in_id = getStringOption_("in_id");
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
+    String out = getStringOption_("out");
     Int novo_fract = getIntOption_("novor_fract");
     bool no_re_rank = getFlag_("force_no_re_rank");
 
@@ -115,7 +116,7 @@ protected:
 
     MzMLFile m;
     PeakFileOptions op;
-    op.setMetadataOnly(true);
+    op.addMSLevel(2);
     m.setOptions(op);
     PeakMap exp;
     m.load(in_spec, exp);
@@ -138,9 +139,9 @@ protected:
       }
     }
 
-    Int64 count_db = 0;
-    Int64 count_novo = 0;
-    Int64 count_re_ranked = 0;
+    UInt64 count_db = 0;
+    UInt64 count_novo = 0;
+    UInt64 count_re_ranked = 0;
 
     for (const auto& pep_id : pep_ids)
     {
@@ -210,6 +211,17 @@ protected:
 
     // spectra quality
 
+    UInt64 count_ms2_lvl = exp.size();
+    UInt64 count_novo_seq = 0;
+    set<AASequence> unique_novo;
+
+    for (const auto& pep_id : novo_peps)
+    {
+      if (pep_id.getHits().empty()) continue;
+      ++count_novo_seq;
+      unique_novo.insert(pep_id.getHits()[0].getSequence());
+    }
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -217,7 +229,8 @@ protected:
     OPENMS_LOG_INFO << count_db << " top hits that were found in the database." << endl;
     OPENMS_LOG_INFO << count_novo << " top hits that were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
-    OPENMS_LOG_INFO << "Database quality: " << double(count_db) / (count_db + count_novo) << endl;
+    OPENMS_LOG_INFO << "Database quality: " << double(count_db) / (count_db + count_novo) << endl << endl;
+    OPENMS_LOG_INFO << count_novo_seq << " de novo sequences derived from a total of " << count_ms2_lvl << " ms2 spectra. Ratio: " << double(count_novo_seq)/count_ms2_lvl << endl << endl;
 
     return EXECUTION_OK;
 
@@ -232,7 +245,7 @@ private:
     // get the score of the first two decoy hits
     double decoy_1 = -1;
     double decoy_2 = -1;
-    Int curr_hit = 1;
+    UInt curr_hit = 1;
 
     for (const auto& hit : pep_id.getHits())
     {
