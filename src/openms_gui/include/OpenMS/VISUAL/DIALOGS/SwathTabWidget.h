@@ -128,9 +128,9 @@ namespace OpenMS
       /// append text to the log tab
       /// @param text The text to write
       /// @param new_section Start a new block with a date and time
-      void writeLog_(const QString& text, bool new_section = false);
+      void writeLog_(const QString& text, const QColor& color = "#000000", bool new_section = false);
       /// @brief convenient overload for String
-      void writeLog_(const String& text, bool new_section = false);
+      void writeLog_(const String& text, const QColor& color = "#000000", bool new_section = false);
 
       /// Ensure all input widgets are filled with data by the user to run OpenSwathWorkflow
       /// If anything is missing: show a Messagebox and return false.

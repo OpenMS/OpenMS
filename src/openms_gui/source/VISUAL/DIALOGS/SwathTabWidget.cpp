@@ -94,7 +94,9 @@ namespace OpenMS
             [&](const String& out) {writeLog_(out.toQString());})
     {
       ui->setupUi(this);
-        
+
+      writeLog_(QString("Welcome to the Wizard!"), Qt::darkGreen, true);
+
       auto py_selector = (PythonSelector*)ui->py_selector;
 
       auto py_pyprophet = (PythonModuleRequirement*)ui->py_pyprophet;
@@ -174,7 +176,7 @@ namespace OpenMS
       String tmp_ini = File::getTemporaryFile();
       ParamXMLFile().store(tmp_ini, tmp_param);
       StringList in_mzMLs = getMzMLInputFiles();
-      writeLog_(QString("Starting OpenSwathWorkflow with %1 mzML file(s)").arg(in_mzMLs.size()), true);
+      writeLog_(QString("Starting OpenSwathWorkflow with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
       
       QProgressDialog progress("Running OpenSwath", "Abort ...", 0, (int)in_mzMLs.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
@@ -182,7 +184,7 @@ namespace OpenMS
       progress.setValue(0);
       int step = 0;
 
-      writeLog_(QString("running OpenSwathWorkflow (%1 files total): ").arg(in_mzMLs.size()), true);
+      writeLog_(QString("Running OpenSwathWorkflow (%1 files total): ").arg(in_mzMLs.size()), Qt::darkGreen, true);
       for (const auto& mzML : in_mzMLs)
       {
         auto r = ep_.run(this, 
@@ -301,20 +303,28 @@ namespace OpenMS
       ui->input_py_pqps->clear();
       ui->input_py_pqps->setHtml(text);
 
-      ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will generate TSV files for downstream processing.");
+      ui->lbl_pyOutDir->setText("Results can be found in '" + getCurrentOutDir_() + 
+                                "'. If pyProphet ran, there will be PDF files with model statistics and TRIC will "
+                                "generate TSV files (tric_aligned.tsv and tric_aligned_matrix.tsv) for downstream processing.");
     }
 
-    void SwathTabWidget::writeLog_(const QString& text, bool new_section)
+    void SwathTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
     {
+      QColor tc = ui->log_text->textColor();
       if (new_section)
       {
+        ui->log_text->setTextColor(Qt::darkBlue);
         ui->log_text->append(QString(10, '#').append(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")).append(QString(10, '#')).append("\n"));
+        ui->log_text->setTextColor(tc);
       }
+
+      ui->log_text->setTextColor(color);
       ui->log_text->append(text);
+      ui->log_text->setTextColor(tc); // restore old color
     }
-    void SwathTabWidget::writeLog_(const String& text, bool new_section)
+    void SwathTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
-      writeLog_(text.toQString(), new_section);
+      writeLog_(text.toQString(), color, new_section);
     }
     
     bool SwathTabWidget::checkOSWInputReady_()
@@ -416,10 +426,10 @@ namespace OpenMS
       String script_backup = script_name;
       script_name = path + "/Scripts/" + script_backup; // Windows uses the Script subdirectory
       if (File::readable(script_name)) return true;
-      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", true);
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
       script_name = path + "/" + script_backup;
       if (File::readable(script_name)) return true;
-      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", true);
+      writeLog_("Warning: Could not find " + script_backup + " at " + script_name + ".", Qt::red, true);
       return false;
     }
 
@@ -499,7 +509,8 @@ namespace OpenMS
       calls.emplace_back(ui->py_selector->getLastPython(), QStringList() << feature_alignment_py.toQString() << "--in" << tsvs
                                             << "--out" << "tric_aligned.tsv" << "--out_matrix" << "tric_aligned_matrix.tsv" 
                                             << "--method" << "LocalMST" << "--realign_method" << "lowess" << "--max_rt_diff" << "90" 
-                                            << "--fdr_cutoff" << "0.01" << "--alignment_score" << "0.01", ArgLoop{});
+                                            << "--fdr_cutoff" << QString::number(ui->tric_FDR_threshold->value()) 
+                                            << "--alignment_score" << QString::number(ui->tric_RTmax->value()), ArgLoop{});
         
       QProgressDialog progress("Running pyprophet and TRIC", "Abort ...", 0, (int)calls.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
