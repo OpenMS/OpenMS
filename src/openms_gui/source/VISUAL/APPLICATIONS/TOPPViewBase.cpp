@@ -692,27 +692,7 @@ namespace OpenMS
     }
     return noise / (double)n_scans;
   }
-
-  // static
-  bool TOPPViewBase::hasMS1Zeros( const ExperimentType& exp )
-  {
-    for (Size i = 0; i != exp.size(); ++i)
-    {
-      if (exp[i].getMSLevel() != 1) // skip non MS1-level scans
-      {
-        continue;
-      }
-      for (Size j = 0; j != exp[i].size(); ++j)
-      {
-        if (exp[i][j].getIntensity() == 0.0)
-        {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
+  
   // static
   bool TOPPViewBase::hasPeptideIdentifications(const ExperimentType& map)
   {
@@ -1471,7 +1451,7 @@ namespace OpenMS
         }
         else // no mower, hide zeros if wanted
         {
-          if (TOPPViewBase::hasMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData())))
+          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasMS1Zeros())
           {
             // create filter
             DataFilters::DataFilter filter;

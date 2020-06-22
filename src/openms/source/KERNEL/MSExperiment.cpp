@@ -730,6 +730,25 @@ namespace OpenMS
     return false;
   }
 
+  bool MSExperiment::hasMS1Zeros() const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() != 1)
+      {
+        continue;
+      }
+      for (const auto& p : spec)
+      {
+        if (p.getIntensity() == 0.0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());

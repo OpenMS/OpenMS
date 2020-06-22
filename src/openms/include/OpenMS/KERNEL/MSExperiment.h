@@ -548,6 +548,9 @@ public:
     /// returns true if at least one of the spectra has level==1
     bool containsMS1Scans() const;
 
+    /// returns true if any MS1 spectra contain at least one peak with intensity of 0.0
+    bool hasMS1Zeros() const;
+
 
 protected:
 
