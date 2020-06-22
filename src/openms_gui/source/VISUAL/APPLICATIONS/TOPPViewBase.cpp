@@ -137,7 +137,9 @@ namespace OpenMS
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
     watcher_(nullptr),
-    watcher_msgbox_(false)
+    watcher_msgbox_(false),
+    spectraview_behavior_(this),     // controller for spectra and identification view
+    identificationview_behavior_(this)
   {
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
@@ -175,7 +177,7 @@ namespace OpenMS
     connect(tab_bar_, SIGNAL(currentIdChanged(int)), this, SLOT(enhancedWorkspaceWindowChanged(int)));
     connect(tab_bar_, SIGNAL(aboutToCloseId(int)), this, SLOT(closeByTab(int)));
 
-    //connect signals ans slots for drag-and-drop
+    //connect signals and slots for drag-and-drop
     connect(tab_bar_, SIGNAL(dropOnWidget(const QMimeData*, QWidget*)), this, SLOT(copyLayer(const QMimeData*, QWidget*)));
     connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
     box_layout->addWidget(tab_bar_);
@@ -268,7 +270,7 @@ namespace OpenMS
     action->setData(String("html/index.html").toQString());
 
     help->addSeparator();
-    help->addAction("&About", this, SLOT(showAboutDialog()));
+    help->addAction("&About", [&]() {QApplicationTOPP::showAboutDialog(this, "TOPPView");});
 
     //################## STATUS #################
     // create status bar
@@ -502,26 +504,22 @@ namespace OpenMS
     views_tabwidget_ = new QTabWidget(views_dockwidget_);
     views_dockwidget_->setWidget(views_tabwidget_);
 
-    // create both controller for spectra and identification view
-    spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
-    identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
-
     // Hook-up controller and views for spectra inspection
     spectra_view_widget_ = new SpectraViewWidget();
     connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
     connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
     connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
-    connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), spectraview_behavior_, SLOT(activate1DSpectrum(int)));
-    connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), spectraview_behavior_, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
+    connect(spectra_view_widget_, SIGNAL(spectrumSelected(int)), &spectraview_behavior_, SLOT(activate1DSpectrum(int)));
+    connect(spectra_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), &spectraview_behavior_, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(int)), this, SLOT(showSpectrumAs1D(int)));
     connect(spectra_view_widget_, SIGNAL(spectrumDoubleClicked(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
 
     // Hook-up controller and views for identification inspection
     spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), identificationview_behavior_, SLOT(deactivate1DSpectrum(int)));
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), &identificationview_behavior_, SLOT(deactivate1DSpectrum(int)));
     connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
-    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), &identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
+    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), &identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, spectra_view_widget_->objectName());
     views_tabwidget_->addTab(spectra_identification_view_widget_, spectra_identification_view_widget_->objectName());
@@ -662,42 +660,10 @@ namespace OpenMS
     GUIHelpers::openURL(target);
   }
 
-  // static
-  bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
-  {
-    //test if no scans with MS-level 1 exist => prevent deadlock
-    bool ms1_present = false;
-    for (Size i = 0; i < exp.size(); ++i)
-    {
-      if (exp[i].getMSLevel() == 1)
-      {
-        ms1_present = true;
-        break;
-      }
-    }
-    return ms1_present;
-  }
-
-  // static
-  bool TOPPViewBase::containsIMData(const MSSpectrum& s)
-  {
-    if (!s.getFloatDataArrays().empty() &&
-        (s.getFloatDataArrays()[0].getName() == "Ion Mobility" ||
-         s.getFloatDataArrays()[0].getName().find("Ion Mobility") == 0 ||
-         s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
-         s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
-         s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
-
-        )
-    {
-      return true;
-    }
-    return false;
-  }
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
   {
-    if (!TOPPViewBase::containsMS1Scans(exp))
+    if (!exp.containsMS1Scans())
     {
       return 0.0;
     }
@@ -730,11 +696,6 @@ namespace OpenMS
   // static
   bool TOPPViewBase::hasMS1Zeros( const ExperimentType& exp )
   {
-    if (!TOPPViewBase::containsMS1Scans(exp))
-    {
-      return false;
-    }
-
     for (Size i = 0; i != exp.size(); ++i)
     {
       if (exp[i].getMSLevel() != 1) // skip non MS1-level scans
@@ -1294,7 +1255,7 @@ namespace OpenMS
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
         data_type = LayerData::DT_CHROMATOGRAM;
-        if (TOPPViewBase::containsMS1Scans(*peak_map_sptr))
+        if (peak_map_sptr->containsMS1Scans())
         {
           data_type = LayerData::DT_PEAK;
         }
@@ -1892,6 +1853,15 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::updateBarsAndMenus()
+  {
+    //Update filter bar, spectrum bar and layer bar
+    updateLayerBar();
+    updateViewBar();
+    updateFilterBar();
+    updateMenu();
+  }
+
   void TOPPViewBase::updateToolBar()
   {
     SpectrumWidget* w = getActiveSpectrumWidget();
@@ -2111,21 +2081,21 @@ namespace OpenMS
     // set new behavior
     if (views_tabwidget_->tabText(tab_index) == spectra_view_widget_->objectName())
     {
-      identificationview_behavior_->deactivateBehavior(); // finalize old behavior
+      identificationview_behavior_.deactivateBehavior(); // finalize old behavior
       layer_dock_widget_->show();
       filter_dock_widget_->show();
-      spectraview_behavior_->activateBehavior(); // initialize new behavior
+      spectraview_behavior_.activateBehavior(); // initialize new behavior
     }
     else if (views_tabwidget_->tabText(tab_index) == spectra_identification_view_widget_->objectName())
     {
-      spectraview_behavior_->deactivateBehavior();
+      spectraview_behavior_.deactivateBehavior();
       layer_dock_widget_->show();
       filter_dock_widget_->show();
       if (getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
-      identificationview_behavior_->activateBehavior();
+      identificationview_behavior_.activateBehavior();
     }
     else
     {
@@ -2148,14 +2118,14 @@ namespace OpenMS
       views_tabwidget_->setTabEnabled(1, true); // enable identification view
       views_tabwidget_->setCurrentIndex(1); // switch to identification view
 
-      spectraview_behavior_->deactivateBehavior();
+      spectraview_behavior_.deactivateBehavior();
       layer_dock_widget_->show();
       filter_dock_widget_->show();
       if (getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
       }
-      identificationview_behavior_->activateBehavior();
+      identificationview_behavior_.activateBehavior();
     }
 
     updateViewBar();
@@ -2174,97 +2144,67 @@ namespace OpenMS
   void TOPPViewBase::layerContextMenu(const QPoint& pos)
   {
     QListWidgetItem* item = layers_view_->itemAt(pos);
-    if (item)
+    if (!item) return;
+
+    int layer = layers_view_->row(item);
+    QMenu* context_menu = new QMenu(layers_view_);
+    context_menu->addAction("Rename", [&]() {
+      QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
+      if (name != "")
+      {
+        getActiveCanvas()->setLayerName(layer, name);
+      }});
+    context_menu->addAction("Delete", [&]() {getActiveCanvas()->removeLayer(layer);});
+
+    QAction* new_action = nullptr;
+    if (getActiveCanvas()->getLayer(layer).flipped)
     {
-      QAction* new_action = nullptr;
-      int layer = layers_view_->row(item);
-      QMenu* context_menu = new QMenu(layers_view_);
-      context_menu->addAction("Rename");
-      context_menu->addAction("Delete");
-
-      if (getActiveCanvas()->getLayer(layer).flipped)
-      {
-        new_action = context_menu->addAction("Flip upwards (1D)");
-      }
-      else
-      {
-        new_action = context_menu->addAction("Flip downwards (1D)");
-      }
-      if (!getActive1DWidget())
-      {
-        new_action->setEnabled(false);
-      }
-
-      context_menu->addSeparator();
-      context_menu->addAction("Preferences");
-
-      QAction* selected = context_menu->exec(layers_view_->mapToGlobal(pos));
-      //delete layer
-      if (selected != nullptr && selected->text() == "Delete")
-      {
-        getActiveCanvas()->removeLayer(layer);
-      }
-      //rename layer
-      else if (selected != nullptr && selected->text() == "Rename")
-      {
-        QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
-        if (name != "")
-        {
-          getActiveCanvas()->setLayerName(layer, name);
-        }
-      }
-      // flip layer up/downwards
-      else if (selected != nullptr && selected->text() == "Flip downwards (1D)")
-      {
-        getActive1DWidget()->canvas()->flipLayer(layer);
-        getActive1DWidget()->canvas()->setMirrorModeActive(true);
-      }
-      else if (selected != nullptr && selected->text() == "Flip upwards (1D)")
-      {
+      new_action = context_menu->addAction("Flip upwards (1D)", [&]() {
         getActive1DWidget()->canvas()->flipLayer(layer);
         bool b = getActive1DWidget()->canvas()->flippedLayersExist();
         getActive1DWidget()->canvas()->setMirrorModeActive(b);
-      }
-      else if (selected != nullptr && selected->text() == "Preferences")
-      {
-        getActiveCanvas()->showCurrentLayerPreferences();
-      }
-
-      //Update tab bar and window title
-      if (getActiveCanvas()->getLayerCount() != 0)
-      {
-        tab_bar_->setTabText(tab_bar_->currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
-        getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
-      }
-      else
-      {
-        tab_bar_->setTabText(tab_bar_->currentIndex(), "empty");
-        getActiveSpectrumWidget()->setWindowTitle("empty");
-      }
-
-      //Update filter bar, spectrum bar and layer bar
-      updateLayerBar();
-      updateViewBar();
-      updateFilterBar();
-      updateMenu();
-
-      delete (context_menu);
+      });
     }
+    else
+    {
+      new_action = context_menu->addAction("Flip downwards (1D)", [&]() {
+        getActive1DWidget()->canvas()->flipLayer(layer);
+        getActive1DWidget()->canvas()->setMirrorModeActive(true);
+      });
+    }
+    if (!getActive1DWidget())
+    {
+      new_action->setEnabled(false);
+    }
+
+    context_menu->addSeparator();
+    context_menu->addAction("Preferences", [&]() {
+      getActiveCanvas()->showCurrentLayerPreferences();
+    });
+
+    context_menu->exec(layers_view_->mapToGlobal(pos));
+    
+    // Update tab bar and window title
+    if (getActiveCanvas()->getLayerCount() != 0)
+    {
+      tab_bar_->setTabText(tab_bar_->currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
+      getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
+    }
+    else
+    {
+      tab_bar_->setTabText(tab_bar_->currentIndex(), "empty");
+      getActiveSpectrumWidget()->setWindowTitle("empty");
+    }
+
+    updateBarsAndMenus();
   }
 
   void TOPPViewBase::logContextMenu(const QPoint& pos)
   {
     QMenu* context_menu = new QMenu(log_);
-    context_menu->addAction("Clear");
-
-    QAction* selected = context_menu->exec(log_->mapToGlobal(pos));
-
-    //clear text
-    if (selected != nullptr && selected->text() == "Clear")
-    {
+    context_menu->addAction("Clear", [&]() {
       log_->clear();
-    }
-    delete (context_menu);
+    });
   }
 
   void TOPPViewBase::filterContextMenu(const QPoint& pos)
@@ -2924,10 +2864,6 @@ namespace OpenMS
       showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
-    //delete old input and output file
-    File::remove(topp_.file_name + "_in");
-    File::remove(topp_.file_name + "_out");
-
     //run the tool
     runTOPPTool_();
   }
@@ -2971,6 +2907,11 @@ namespace OpenMS
   void TOPPViewBase::runTOPPTool_()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+
+
+    //delete old input and output file
+    File::remove(topp_.file_name + "_in");
+    File::remove(topp_.file_name + "_out");
 
     //test if files are writable
     if (!File::writable(topp_.file_name + "_in"))
@@ -3472,24 +3413,24 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(index);
+        spectraview_behavior_.showSpectrumAs1D(index);
       }
 
       if (spectra_identification_view_widget_->isVisible())
       {
-        identificationview_behavior_->showSpectrumAs1D(index);
+        identificationview_behavior_.showSpectrumAs1D(index);
       }
     }
     else if (widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(index);
+        spectraview_behavior_.showSpectrumAs1D(index);
       }
 
       if (spectra_identification_view_widget_->isVisible())
       {
-        identificationview_behavior_->showSpectrumAs1D(index);
+        identificationview_behavior_.showSpectrumAs1D(index);
       }
     }
   }
@@ -3503,14 +3444,14 @@ namespace OpenMS
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(indices);
+        spectraview_behavior_.showSpectrumAs1D(indices);
       }
     }
     else if (widget_2d)
     {
       if (spectra_view_widget_->isVisible())
       {
-        spectraview_behavior_->showSpectrumAs1D(indices);
+        spectraview_behavior_.showSpectrumAs1D(indices);
       }
     }
   }
@@ -3554,7 +3495,7 @@ namespace OpenMS
     auto spidx = layer.getCurrentSpectrumIndex();
     MSSpectrum tmps = layer.getCurrentSpectrum();
 
-    if (!containsIMData(tmps))
+    if (!tmps.containsIMData())
     {
       std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
         " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
@@ -3604,8 +3545,7 @@ namespace OpenMS
       tmpe->setMetaValue("ion_mobility_unit", "1/K0");
     }
 
-    String caption = layer.name;
-    caption += " (Ion Mobility Scan " + String(spidx) + ")";
+    String caption = layer.name + " (Ion Mobility Scan " + String(spidx) + ")";
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
     if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
     {
@@ -3795,11 +3735,6 @@ namespace OpenMS
     {
       showLogMessage_(LS_NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
-  }
-
-  void TOPPViewBase::showAboutDialog()
-  {
-    QApplicationTOPP::showAboutDialog(this, "TOPPView");
   }
 
   void TOPPViewBase::updateProcessLog()
@@ -4381,17 +4316,6 @@ namespace OpenMS
   {
     savePreferences();
     abortTOPPTool();
-
-    // dispose behavior
-    if (identificationview_behavior_ != nullptr)
-    {
-      delete(identificationview_behavior_);
-    }
-
-    if (spectraview_behavior_ != nullptr)
-    {
-      delete(spectraview_behavior_);
-    }
   }
 
 } //namespace OpenMS

@@ -160,6 +160,11 @@ namespace OpenMS
       return FileHandler::swapExtension(File::basename(infile), FileTypes::OSW);
     }
 
+    String infileToChrom(const String& infile)
+    {
+      return FileHandler::swapExtension(File::basename(infile), FileTypes::SQMASS);
+    }
+
     StringList SwathTabWidget::getMzMLInputFiles() const
     {
       return ui->input_mzMLs->getFilenames();
@@ -190,7 +195,10 @@ namespace OpenMS
       {
         auto r = ep_.run(this, 
                          getOSWExe().toQString(), 
-                         QStringList() << "-ini" << tmp_ini.toQString() << "-in" << mzML.toQString() << "-out_osw" << getCurrentOutDir_() + "/" + infileToOSW(mzML).toQString(),
+                         QStringList() << "-ini" << tmp_ini.toQString() 
+                                       << "-in" << mzML.toQString()
+                                       << "-out_osw" << getCurrentOutDir_() + "/" + infileToOSW(mzML).toQString()
+                                       << "-out_chrom" << getCurrentOutDir_() + "/" + infileToChrom(mzML).toQString(),
                          "",
                          true);
         if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;

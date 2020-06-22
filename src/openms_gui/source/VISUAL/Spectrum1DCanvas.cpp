@@ -1472,13 +1472,13 @@ namespace OpenMS
       context_menu->addMenu(settings_menu);
 
       // only add to context menu if there is a MS1 map
-      if (TOPPViewBase::containsMS1Scans(*getCurrentLayer().getPeakData()))
+      if (getCurrentLayer().getPeakData()->containsMS1Scans())
       {
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
       }
 
-      if (TOPPViewBase::containsIMData(getCurrentLayer().getCurrentSpectrum()))
+      if (getCurrentLayer().getCurrentSpectrum().containsIMData())
       {
         context_menu->addAction("Switch to ion mobility view");
       }

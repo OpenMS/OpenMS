@@ -716,6 +716,20 @@ namespace OpenMS
     }
   }
 
+  // static
+  bool MSExperiment::containsMS1Scans() const
+  {
+    //test if no scans with MS-level 1 exist
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() == 1)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());

@@ -275,6 +275,9 @@ public slots:
     void layerDeactivated();
     /// closes the active window
     void closeFile();
+
+    /// calls update*Bar and updateMenu_() to make sure the interface matches the current data
+    void updateBarsAndMenus();
     /// updates the toolbar
     void updateToolBar();
     /// adapts the layer bar to the active window
@@ -325,8 +328,6 @@ public slots:
     void showCurrentPeaksAsIonMobility();
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
-    /// Shows the 'About' dialog
-    void showAboutDialog();
     /// Saves the whole current layer data
     void saveLayerAll();
     /// Saves the visible layer data
@@ -574,18 +575,13 @@ protected:
     QTabWidget* views_tabwidget_;
 
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior* identificationview_behavior_;
+    TOPPViewIdentificationViewBehavior identificationview_behavior_;
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    TOPPViewSpectraViewBehavior spectraview_behavior_;
 
     // static helper functions
 public:
-    /// Returns true if @p contains at least one MS1 spectrum
-    static bool containsMS1Scans(const ExperimentType& exp);
-
-    /// Returns true if @p contains ion mobility data
-    static bool containsIMData(const MSSpectrum& s);
-
+    
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
     float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 

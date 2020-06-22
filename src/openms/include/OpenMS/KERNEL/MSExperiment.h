@@ -545,6 +545,10 @@ public:
     */
     void clear(bool clear_meta_data);
 
+    /// returns true if at least one of the spectra has level==1
+    bool containsMS1Scans() const;
+
+
 protected:
 
     /// MS levels of the data
