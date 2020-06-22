@@ -108,8 +108,6 @@ protected:
     vector<PeptideIdentification> pep_ids;
     x.load(in_id, prot_ids, pep_ids);
 
-    // maybe extra tool for this
-
     vector<ProteinIdentification> novo_prots;
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
@@ -254,6 +252,8 @@ protected:
 
     if (!out.empty())
     {
+      OPENMS_LOG_INFO << "Writting output to: " << out << endl << endl;
+
       std::ofstream os(out);
       os.precision(writtenDigits(double()));
       os << "#top_db_hits\t" << count_db << endl;
