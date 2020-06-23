@@ -70,7 +70,6 @@ public:
   }
 
 protected:
-
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
@@ -269,7 +268,6 @@ protected:
   }
 
 private:
-
   double getDecoyDiff_(const PeptideIdentification& pep_id)
   {
     double diff = DBL_MAX;
