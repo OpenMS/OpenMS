@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,7 +53,7 @@ using namespace std;
 /**
 @page TOPP_DatabaseSuitability DatabaseSuitability
 
-@brief Calculates a suitability for a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
+@brief Calculates a suitability for a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.  This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by R. Johnson, B. Searle, B. Nunn, J. Gilmore, M. Phillips, C. Amemiya, M. Heck & M. MacCoss.
 
 */
 
@@ -64,7 +65,7 @@ class DatabaseSuitability :
 {
 public:
   DatabaseSuitability() :
-    TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", false)
+    TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra. This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by R. Johnson, B. Searle, B. Nunn, J. Gilmore, M. Phillips, C. Amemiya, M. Heck & M. MacCoss.", false)
   {
   }
 
@@ -74,16 +75,18 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search (after FDR)");
+    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide (after FDR)");
     setValidFormats_("in_id", { "idXML" });
-    registerInputFile_("in_spec", "<file>", "", "Input MzML file");
+    registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides");
     setValidFormats_("in_novo", { "idXML" });
-    registerOutputFile_("out", "<file>", "", "Optional tsv output", false); //tsv output
+    registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
-    registerIntOption_("novor_fract", "<integer>", 1, "Set the percentage of de novo peptides to capture with a score higher than the fasta score.", false, true);
-    registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. This might yeild in underperformance.", true);
+    registerDoubleOption_("novor_fract", "<double>", 1, "Set the fraction of how many cases, where a de novo peptide scores just higher than the database peptide, you wish to re-rank.", false, true);
+    setMinFloat_("novor_fract", 0);
+    setMaxFloat_("novor_fract", 1);
+    registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
   }
 
 
@@ -97,7 +100,7 @@ protected:
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
     String out = getStringOption_("out");
-    Int novo_fract = getIntOption_("novor_fract");
+    double novo_fract = getDoubleOption_("novor_fract");
     bool no_re_rank = getFlag_("force_no_re_rank");
 
     //-------------------------------------------------------------
@@ -116,7 +119,7 @@ protected:
     {
       MzMLFile m;
       PeakFileOptions op;
-      op.addMSLevel(2);
+      op.setMSLevels({2});
       op.setFillData(false);
       m.setOptions(op);
       PeakMap exp;
@@ -135,7 +138,7 @@ protected:
     if (!no_re_rank)
     {
       cut_off = getDecoyCutOff_(pep_ids, novo_fract);
-      if (cut_off < 0)
+      if (cut_off == DBL_MAX)
       {
         OPENMS_LOG_ERROR << "Could not compute decoy cut off. Re-ranking impossible. If you want to ignore this, set the 'force_no_re_rank' flag." << endl;
         return INCOMPATIBLE_INPUT_DATA;
@@ -149,27 +152,22 @@ protected:
 
     for (const auto& pep_id : pep_ids)
     {
-      vector<PeptideHit> hits = pep_id.getHits();
+      const vector<PeptideHit>& hits = pep_id.getHits();
 
       if (hits.empty()) continue;
 
-      PeptideHit top_hit = hits[0];
+      const PeptideHit& top_hit = hits[0];
 
+      // skip if the top hit is a decoy hit
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // check if top hit is found in de novo protein
-      set<String> accessions = top_hit.extractProteinAccessionsSet();
-      bool is_novo = true;
-      for (const String& acc : accessions)
+      if (!isNovoHit_(top_hit)) // top hit is db hit
       {
-        if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
-        {
-          is_novo = false;
-          break;
-        }
+        ++count_db;
+        continue;
       }
-
-      if (is_novo) // top hit is de novo hit
+      else // top hit is novo hit
       {
         if (hits.size() == 1)
         {
@@ -177,27 +175,23 @@ protected:
           continue;
         }
 
-        PeptideHit second_hit = hits[1];
-
-        if (second_hit.getMetaValue("target_decoy") == "decoy")
+        // find the second target hit, skip all decoy hits inbetween
+        const PeptideHit* second_hit = nullptr;
+        for (Int i = 1; i < hits.size(); ++i)
+        {
+          if (hits[i].getMetaValue("target_decoy") == "target")
+          {
+            second_hit = &hits[i];
+          }
+        }
+        if (second_hit == nullptr)
         {
           ++count_novo;
           continue;
         }
 
         // check if second hit is db hit
-        set<String> second_accessions = top_hit.extractProteinAccessionsSet();
-        bool is_novo_too = true;
-        for (const String& acc2 : second_accessions)
-        {
-          if (acc2.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
-          {
-            is_novo_too = false;
-            break;
-          }
-        }
-
-        if (is_novo_too) // second hit is also de novo hit
+        if (isNovoHit_(*second_hit)) // second hit is also de novo hit
         {
           ++count_novo;
         }
@@ -211,7 +205,12 @@ protected:
             continue;
           }
 
-          if (double(top_hit.getMetaValue("MS:1002252")) - double(second_hit.getMetaValue("MS:1002252")) <= cut_off)
+          if (!top_hit.metaValueExists("MS:1002252") || !(*second_hit).metaValueExists("MS:1002252"))
+          {
+            throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
+          }
+
+          if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off)
           {
             ++count_db;
             ++count_re_ranked;
@@ -219,7 +218,6 @@ protected:
           else ++count_novo;
         }
       }
-      else ++count_db; // top hit is db hit
     }
 
     // spectra quality
@@ -241,28 +239,28 @@ protected:
     double quality = double(count_db) / (count_db + count_novo);
     double id_rate = double(count_novo_seq) / count_ms2_lvl;
 
-    OPENMS_LOG_INFO << count_db << " top hits that were found in the database." << endl;
-    OPENMS_LOG_INFO << count_novo << " top hits that were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit just above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
-    OPENMS_LOG_INFO << "Database suitability: " << quality << endl << endl;
-    OPENMS_LOG_INFO << unique_novo.size() << " unique de novo sequences" << endl;
-    OPENMS_LOG_INFO << count_novo_seq << " total de novo sequences" << endl; 
-    OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra." << endl;
-    OPENMS_LOG_INFO << "MS2 ID rate: " << id_rate << endl << endl;
+    OPENMS_LOG_INFO << count_db << " / " << (count_db + count_novo) << " top hits were found in the database." << endl;
+    OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
+    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
+    OPENMS_LOG_INFO << "database suitability [0, 1]: " << quality << endl << endl;
+    OPENMS_LOG_INFO << unique_novo.size() << " / " << count_novo_seq << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << id_rate << endl << endl;
 
     if (!out.empty())
     {
-      OPENMS_LOG_INFO << "Writting output to: " << out << endl << endl;
+      OPENMS_LOG_INFO << "Writing output to: " << out << endl << endl;
 
       std::ofstream os(out);
       os.precision(writtenDigits(double()));
-      os << "#top_db_hits\t" << count_db << endl;
-      os << "#top_novo_hits\t" << count_novo << endl;
-      os << "db_suitability\t" << quality << endl;
-      os << "#total_novo_seqs\t" << count_novo_seq << endl;
-      os << "#unique_novo_seqs\t" << unique_novo.size() << endl;
-      os << "#ms2_spectra" << count_ms2_lvl << endl;
-      os << "ms2_id_rate\t" << id_rate << endl;
+      os << "key" << "value\n";
+      os << "#top_db_hits\t" << count_db << "\n";
+      os << "#top_novo_hits\t" << count_novo << "\n";
+      os << "db_suitability\t" << quality << "\n";
+      os << "#total_novo_seqs\t" << count_novo_seq << "\n";
+      os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
+      os << "#ms2_spectra" << count_ms2_lvl << "\n";
+      os << "spectral\t" << id_rate << "\n";
       os.close();
     }
 
@@ -274,12 +272,12 @@ private:
 
   double getDecoyDiff_(const PeptideIdentification& pep_id)
   {
-    double diff = -1;
+    double diff = DBL_MAX;
 
     // get the score of the first two decoy hits
-    double decoy_1 = -1;
-    double decoy_2 = -1;
-    UInt curr_hit = 1;
+    double decoy_1 = DBL_MAX;
+    double decoy_2 = DBL_MAX;
+    UInt curr_hit = 0;
 
     for (const auto& hit : pep_id.getHits())
     {
@@ -288,7 +286,15 @@ private:
 
       if (!hit.metaValueExists("target_decoy"))
       {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run before hand."));
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+      }
+
+      if (pep_id.getScoreType() != "q-value")
+      {
+        if (!hit.metaValueExists("q-value"))
+        {
+          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
+        }
       }
 
       if (!hit.metaValueExists("MS:1002252"))
@@ -296,19 +302,19 @@ private:
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
       }
 
-      if (decoy_1 == -1 && hit.getMetaValue("target_decoy") == "decoy")
+      if (decoy_1 == DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
         decoy_1 = hit.getMetaValue("MS:1002252");
         continue;
       }
-      if (decoy_1 > 0 && hit.getMetaValue("target_decoy") == "decoy")
+      if (decoy_1 < DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
       {
         decoy_2 = hit.getMetaValue("MS:1002252");
         break;
       }
     }
 
-    if (decoy_2 > 0) // if there are two decoy hits
+    if (decoy_2 < DBL_MAX) // if there are two decoy hits
     {
       diff = abs(decoy_1 - decoy_2) / pep_id.getMZ(); // normalized by mw
     }
@@ -319,14 +325,14 @@ private:
 
   double getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
   {
-    double cut_off = -1;
+    double cut_off = DBL_MAX;
 
     // get all decoy diffs of peptide ids with at least two decoy hits
     vector<double> diffs;
     for (const auto& pep_id : pep_ids)
     {
       double diff = getDecoyDiff_(pep_id);
-      if (diff > 0)
+      if (diff < DBL_MAX)
       {
         diffs.push_back(diff);
       }
@@ -337,24 +343,25 @@ private:
       throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score."));
     }
 
-    // sort the diffs decreasing
-    std::sort(diffs.begin(), diffs.end(), std::greater<double>());
+    // sort the diffs decreasing and get the (1-novo_fract)*N one
+    auto sort_end = diffs.begin() + (1 - novor_fract) * diffs.size();
     
-    // create a vector of percentages according to the number of differences
-    vector<double> percent;
-    for (Int i = 1; i <= diffs.size(); ++i)
-    {
-      percent.push_back(i/double(diffs.size()));
-    }
+    std::partial_sort(diffs.begin(), sort_end + 1, diffs.end(), std::greater<double>());
 
-    // find the right cut_off for the wanted percent of novo peptides to capture
-    double fract = 1 - novor_fract;
-    for (Int i = 0; i < percent.size(); ++i)
-    {
-      if (percent[i] > fract) cut_off = diffs[i];
-    }
+    return *sort_end;
+  }
 
-    return cut_off;
+  bool isNovoHit_(const PeptideHit& hit)
+  {
+    set<String>& accessions = hit.extractProteinAccessionsSet();
+    for (const String& acc : accessions)
+    {
+      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
+      {
+        return false;
+      }
+    }
+    return true;
   }
 };
 
@@ -365,3 +372,5 @@ int main(int argc, const char** argv)
   DatabaseSuitability tool;
   return tool.main(argc, argv);
 }
+
+/// @endcond
