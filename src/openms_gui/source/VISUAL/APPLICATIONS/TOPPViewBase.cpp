@@ -441,15 +441,12 @@ namespace OpenMS
     //button menu
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
-    StringList options = ListUtils::create<String>(
-      "Don't show,Show by precursor m/z,Show by peptide mass,Show label meta data");
-    for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
-         ++opt_it)
+    StringList options = {"Don't show", "Show by precursor m/z", "Show by peptide mass", "Show label meta data"};
+    for (const String& opt : options)
     {
-      QAction* temp = group_unassigned_2d_->addAction(opt_it->toQString());
+      QAction* temp = group_unassigned_2d_->addAction(opt.toQString());
       temp->setCheckable(true);
-      if (opt_it == options.begin())
-        temp->setChecked(true);
+      if (opt == options.front()) temp->setChecked(true);
       menu->addAction(temp);
     }
     dm_unassigned_2d_->setMenu(menu);
