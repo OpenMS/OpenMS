@@ -264,10 +264,8 @@ namespace OpenMS
     menuBar()->addMenu(help);
     help->addAction(QWhatsThis::createAction(help));
     help->addSeparator();
-    QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
-    action->setData("http://www.OpenMS.de");
-    action = help->addAction("Tutorials and documentation", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData(String("html/index.html").toQString());
+    help->addAction("OpenMS website", [&]() { GUIHelpers::openURL("http://www.OpenMS.de"); });
+    help->addAction("Tutorials and documentation", [&]() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
 
     help->addSeparator();
     help->addAction("&About", [&]() {QApplicationTOPP::showAboutDialog(this, "TOPPView");});
@@ -653,13 +651,6 @@ namespace OpenMS
     settings.setValue("windowState", saveState());
     event->accept();
   }
-
-  void TOPPViewBase::showURL()
-  {
-    QString target = qobject_cast<QAction*>(sender())->data().toString();
-    GUIHelpers::openURL(target);
-  }
-
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
   {

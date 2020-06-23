@@ -251,8 +251,6 @@ public:
 public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
-    /// shows the URL stored in the data of the sender QAction
-    void showURL();
     /// shows the file dialog for opening files
     void openFileDialog();
     /// shows the file dialog for opening example files
