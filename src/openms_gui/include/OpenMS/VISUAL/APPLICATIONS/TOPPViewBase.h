@@ -43,6 +43,7 @@
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 
@@ -356,24 +357,21 @@ public slots:
     /// Loads a file given by the passed string
     void loadFile(QString);
 
+    /// Enables/disables the data filters for the current layer
+    void layerFilterVisibilityChange(bool);
+
 protected slots:
     /** @name Layer manager and filter manager slots
     */
     //@{
     /// slot for layer manager selection change
     void layerSelectionChange(int);
-    /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
     /// slot for layer manager context menu
     void layerContextMenu(const QPoint& pos);
     /// slot for log window context menu
     void logContextMenu(const QPoint& pos);
     /// slot for layer manager visibility change (check box)
     void layerVisibilityChange(QListWidgetItem* item);
-    /// slot for filter manager context menu
-    void filterContextMenu(const QPoint& pos);
-    /// slot for editing a filter
-    void filterEdit(QListWidgetItem* item);
     /// slot for editing the preferences of the current layer
     void layerEdit(QListWidgetItem* /*item*/);
     //@}
@@ -442,10 +440,9 @@ protected:
     /// Layer management widget
     QListWidget* layers_view_;
 
-    ///@name Filter widgets
+    ///@name Filter widget
     //@{
-    QListWidget* filters_;
-    QCheckBox* filters_check_box_;
+    FilterList* filter_list_;
     //@}
 
     /// Watcher that tracks file changes (in order to update the data in the different views)

@@ -10,6 +10,7 @@ ColorSelector.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
+FilterList.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
 InputFile.h

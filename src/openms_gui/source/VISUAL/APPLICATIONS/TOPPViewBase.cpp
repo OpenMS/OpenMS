@@ -79,7 +79,6 @@
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
@@ -199,7 +198,7 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&Open file", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", this, SLOT(openExampleDialog()));
+    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
@@ -532,22 +531,8 @@ namespace OpenMS
     filter_dock_widget_ = new QDockWidget("Data filters", this);
     filter_dock_widget_->setObjectName("filter_dock_widget");
     addDockWidget(Qt::BottomDockWidgetArea, filter_dock_widget_);
-    QWidget* tmp_widget = new QWidget(); // dummy widget as QDockWidget takes only one widget
-    filter_dock_widget_->setWidget(tmp_widget);
-
-    QVBoxLayout* vbl = new QVBoxLayout(tmp_widget);
-
-    filters_ = new QListWidget(tmp_widget);
-    filters_->setSelectionMode(QAbstractItemView::NoSelection);
-    filters_->setWhatsThis("Data filter bar<BR><BR>Here filtering options for the current layer can be set.<BR>Through the context menu you can add, remove and edit filters.<BR>For convenience, editing filters is also possible by double-clicking them.");
-    filters_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(filters_, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(filterContextMenu(const QPoint &)));
-    connect(filters_, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(filterEdit(QListWidgetItem*)));
-    vbl->addWidget(filters_);
-
-    filters_check_box_ = new QCheckBox("Enable all filters", tmp_widget);
-    connect(filters_check_box_, SIGNAL(toggled(bool)), this, SLOT(layerFilterVisibilityChange(bool)));
-    vbl->addWidget(filters_check_box_);
+    filter_list_ = new FilterList(filter_dock_widget_, this);
+    filter_dock_widget_->setWidget(filter_list_);
     windows->addAction(filter_dock_widget_->toggleViewAction());
 
     // log window
@@ -1622,7 +1607,6 @@ namespace OpenMS
   void TOPPViewBase::layerStatistics()
   {
     getActiveSpectrumWidget()->showStatistics();
-    updateFilterBar();
   }
 
   void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
@@ -2175,81 +2159,6 @@ namespace OpenMS
     });
   }
 
-  void TOPPViewBase::filterContextMenu(const QPoint& pos)
-  {
-    //do nothing if no window is open
-    if (getActiveCanvas() == nullptr)
-      return;
-
-    //do nothing if no layer is loaded into the canvas
-    if (getActiveCanvas()->getLayerCount() == 0)
-      return;
-
-    QMenu* context_menu = new QMenu(filters_);
-
-    //warn if the current layer is not visible
-    String layer_name = String("Layer: ") + getActiveCanvas()->getCurrentLayer().name;
-    if (!getActiveCanvas()->getCurrentLayer().visible)
-    {
-      layer_name += " (invisible)";
-    }
-    context_menu->addAction(layer_name.toQString())->setEnabled(false);
-    context_menu->addSeparator();
-
-    //add actions
-    QListWidgetItem* item = filters_->itemAt(pos);
-    if (item)
-    {
-      context_menu->addAction("Edit");
-      context_menu->addAction("Delete");
-    }
-    else
-    {
-      context_menu->addAction("Add filter");
-    }
-    //results
-    QAction* selected = context_menu->exec(filters_->mapToGlobal(pos));
-    if (selected != nullptr)
-    {
-      if (selected->text() == "Delete")
-      {
-        DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
-        filters.remove(filters_->row(item));
-        getActiveCanvas()->setFilters(filters);
-        updateFilterBar();
-      }
-      else if (selected->text() == "Edit")
-      {
-        filterEdit(item);
-      }
-      else if (selected->text() == "Add filter")
-      {
-        DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
-        DataFilters::DataFilter filter;
-        DataFilterDialog dlg(filter, this);
-        if (dlg.exec())
-        {
-          filters.add(filter);
-          getActiveCanvas()->setFilters(filters);
-          updateFilterBar();
-        }
-      }
-    }
-    delete (context_menu);
-  }
-
-  void TOPPViewBase::filterEdit(QListWidgetItem* item)
-  {
-    DataFilters filters = getActiveCanvas()->getCurrentLayer().filters;
-    DataFilters::DataFilter filter = filters[filters_->row(item)];
-    DataFilterDialog dlg(filter, this);
-    if (dlg.exec())
-    {
-      filters.replace(filters_->row(item), filter);
-      getActiveCanvas()->setFilters(filters);
-      updateFilterBar();
-    }
-  }
 
   void TOPPViewBase::layerEdit(QListWidgetItem* /*item*/)
   {
@@ -2258,25 +2167,14 @@ namespace OpenMS
 
   void TOPPViewBase::updateFilterBar()
   {
-    //update filters
-    filters_->clear();
-
     SpectrumCanvas* canvas = getActiveCanvas();
     if (canvas == nullptr)
       return;
 
     if (canvas->getLayerCount() == 0)
       return;
-
-    const DataFilters& filters = getActiveCanvas()->getCurrentLayer().filters;
-    for (Size i = 0; i < filters.size(); ++i)
-    {
-      QListWidgetItem* item = new QListWidgetItem(filters_);
-      item->setText(filters[i].toString().toQString());
-    }
-
-    //update check box
-    filters_check_box_->setChecked(getActiveCanvas()->getCurrentLayer().filters.isActive());
+    
+    filter_list_->update(getActiveCanvas()->getCurrentLayer().filters);
   }
 
   void TOPPViewBase::layerFilterVisibilityChange(bool on)
