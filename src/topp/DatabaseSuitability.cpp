@@ -41,7 +41,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <limits>
+#include <cfloat>
 
 using namespace OpenMS;
 using namespace std;
@@ -176,7 +176,7 @@ protected:
 
         // find the second target hit, skip all decoy hits inbetween
         const PeptideHit* second_hit = nullptr;
-        for (Int i = 1; i < hits.size(); ++i)
+        for (UInt i = 1; i < hits.size(); ++i)
         {
           if (hits[i].getMetaValue("target_decoy") == "target")
           {
@@ -323,8 +323,6 @@ private:
 
   double getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
   {
-    double cut_off = DBL_MAX;
-
     // get all decoy diffs of peptide ids with at least two decoy hits
     vector<double> diffs;
     for (const auto& pep_id : pep_ids)
@@ -351,7 +349,7 @@ private:
 
   bool isNovoHit_(const PeptideHit& hit)
   {
-    set<String>& accessions = hit.extractProteinAccessionsSet();
+    set<String> accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
       if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
