@@ -94,7 +94,6 @@ protected:
     registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
   }
 
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**)
   {
@@ -122,7 +121,7 @@ protected:
 
     // load mzML file in scope because we only need the number of ms2 spectra and no data
     // this saves some memory
-    UInt64 count_ms2_lvl;
+    Size count_ms2_lvl;
     {
       MzMLFile m;
       PeakFileOptions op;
@@ -140,7 +139,7 @@ protected:
 
     // db suitability
 
-    double cut_off;
+    double cut_off{};
     if (!no_re_rank)
     {
       cut_off = getDecoyCutOff_(pep_ids, novo_fract);
@@ -151,10 +150,10 @@ protected:
       }
     }
 
-    UInt64 count_db = 0;
-    UInt64 count_novo = 0;
-    UInt64 count_re_ranked = 0;
-    UInt64 count_interest = 0;
+    Size count_db = 0;
+    Size count_novo = 0;
+    Size count_re_ranked = 0;
+    Size count_interest = 0;
 
     for (const auto& pep_id : pep_ids)
     {
@@ -173,66 +172,66 @@ protected:
         ++count_db;
         continue;
       }
-      else // top hit is novo hit
+      // top hit is novo hit
+      if (hits.size() == 1)
       {
-        if (hits.size() == 1)
-        {
-          ++count_novo;
-          continue;
-        }
+        ++count_novo;
+        continue;
+      }
 
-        // find the second target hit, skip all decoy hits inbetween
-        const PeptideHit* second_hit = nullptr;
-        String target = "target";
-        for (UInt i = 1; i < hits.size(); ++i)
+      // find the second target hit, skip all decoy hits inbetween
+      const PeptideHit* second_hit = nullptr;
+      String target = "target";
+      for (UInt i = 1; i < hits.size(); ++i)
         {
-          if (target.find(hits[i].getMetaValue("target_decoy"), 0) == 0) // also check for "target+decoy" value
-          {
-            second_hit = &hits[i];
-          }
-        }
-        if (second_hit == nullptr)
+        if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
-          ++count_novo;
-          continue;
-        }
-
-        // check if second hit is db hit
-        if (isNovoHit_(*second_hit)) // second hit is also de novo hit
-        {
-          ++count_novo;
-        }
-        else // second hit is db hit
-        {
-          ++count_interest;
-          // check for re-ranking
-          if (no_re_rank)
-          {
-            ++count_novo;
-            continue;
-          }
-
-          // check for xcorr score
-          if (!top_hit.metaValueExists("MS:1002252") || !(*second_hit).metaValueExists("MS:1002252"))
-          {
-            throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-          }
-
-          if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off)
-          {
-            ++count_db;
-            ++count_re_ranked;
-          }
-          else ++count_novo;
+          second_hit = &hits[i];
+          break;
         }
       }
+      if (second_hit == nullptr)
+      {
+        ++count_novo;
+        continue;
+      }
+
+      // check if second hit is db hit
+      if (isNovoHit_(*second_hit)) // second hit is also de novo hit
+      {
+        ++count_novo;
+        continue;
+      }
+
+      // second hit is db hit
+      ++count_interest;
+
+      // check for re-ranking
+      if (no_re_rank)
+      {
+        ++count_novo;
+        continue;
+      }
+
+      // check for xcorr score
+      if (!top_hit.metaValueExists("MS:1002252") || !(*second_hit).metaValueExists("MS:1002252"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
+      }
+      
+      if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off)
+      {
+        ++count_db;
+        ++count_re_ranked;
+      }
+      else ++count_novo;
     }
 
     double suitability = double(count_db) / (count_db + count_novo); //db suitability
 
     // spectra quality
 
-    UInt64 count_novo_seq = 0;
+    Size count_novo_seq = 0;
     set<AASequence> unique_novo;
 
     for (const auto& pep_id : novo_peps)
@@ -364,7 +363,7 @@ private:
   // If at least one accession doesn't contain 'CONCAT_PEPTIDE' the hit is considered a database hit.
   bool isNovoHit_(const PeptideHit& hit)
   {
-    set<String> accessions = hit.extractProteinAccessionsSet();
+    const set<String> accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
     {
       if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
