@@ -53,22 +53,28 @@ using namespace std;
 /**
 @page TOPP_DatabaseSuitability DatabaseSuitability
 
-@brief Calculates a suitability for a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.  This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by R. Johnson, B. Searle, B. Nunn, J. Gilmore, M. Phillips, C. Amemiya, M. Heck & M. MacCoss.
+@brief Calculates a suitability for a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
+
+This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss.
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+Citation c = { "Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss",
+                    "Assessing protein sequence database suitability using de novo sequencing",
+                    "Molecular & Cellular Proteomics. January 1, 2020; 19, 1: 198-208",
+                    "10.1074/mcp.TIR119.001752" };
+
 class DatabaseSuitability :
   public TOPPBase
 {
 public:
   DatabaseSuitability() :
-    TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra. This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by R. Johnson, B. Searle, B. Nunn, J. Gilmore, M. Phillips, C. Amemiya, M. Heck & M. MacCoss.", false)
+    TOPPBase("DatabaseSuitability", "Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra.", false, {c})
   {
   }
-
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
@@ -114,12 +120,14 @@ protected:
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
 
+    // load mzML file in scope because we only need the number of ms2 spectra and no data
+    // this saves some memory
     UInt64 count_ms2_lvl;
     {
       MzMLFile m;
       PeakFileOptions op;
-      op.setMSLevels({2});
-      op.setFillData(false);
+      op.setMSLevels({2}); // only ms2
+      op.setFillData(false); // no data
       m.setOptions(op);
       PeakMap exp;
       m.load(in_spec, exp);
@@ -131,7 +139,6 @@ protected:
     //-------------------------------------------------------------
 
     // db suitability
-
 
     double cut_off;
     if (!no_re_rank)
@@ -176,9 +183,10 @@ protected:
 
         // find the second target hit, skip all decoy hits inbetween
         const PeptideHit* second_hit = nullptr;
+        String target = "target";
         for (UInt i = 1; i < hits.size(); ++i)
         {
-          if (hits[i].getMetaValue("target_decoy") == "target")
+          if (target.find(hits[i].getMetaValue("target_decoy"), 0) == 0) // also check for "target+decoy" value
           {
             second_hit = &hits[i];
           }
@@ -204,6 +212,7 @@ protected:
             continue;
           }
 
+          // check for xcorr score
           if (!top_hit.metaValueExists("MS:1002252") || !(*second_hit).metaValueExists("MS:1002252"))
           {
             throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
@@ -219,6 +228,8 @@ protected:
       }
     }
 
+    double suitability = double(count_db) / (count_db + count_novo); //db suitability
+
     // spectra quality
 
     UInt64 count_novo_seq = 0;
@@ -231,17 +242,16 @@ protected:
       unique_novo.insert(pep_id.getHits()[0].getSequence());
     }
 
+    double id_rate = double(count_novo_seq) / count_ms2_lvl; // spectral quality (id rate of novo seqs)
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-    double quality = double(count_db) / (count_db + count_novo);
-    double id_rate = double(count_novo_seq) / count_ms2_lvl;
-
     OPENMS_LOG_INFO << count_db << " / " << (count_db + count_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
-    OPENMS_LOG_INFO << "database suitability [0, 1]: " << quality << endl << endl;
+    OPENMS_LOG_INFO << "database suitability [0, 1]: " << suitability << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << count_novo_seq << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << id_rate << endl << endl;
@@ -255,19 +265,20 @@ protected:
       os << "key" << "value\n";
       os << "#top_db_hits\t" << count_db << "\n";
       os << "#top_novo_hits\t" << count_novo << "\n";
-      os << "db_suitability\t" << quality << "\n";
+      os << "db_suitability\t" << suitability << "\n";
       os << "#total_novo_seqs\t" << count_novo_seq << "\n";
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra" << count_ms2_lvl << "\n";
-      os << "spectral\t" << id_rate << "\n";
+      os << "spectral_quality\t" << id_rate << "\n";
       os.close();
     }
 
     return EXECUTION_OK;
-
   }
-
 private:
+  // Calculates the difference of the xcorr scores from the first two decoy hits in a peptide identification.
+  // If there aren't at least two decoy hits in the top ten, DBL_MAX is returned.
+  // Also checks for target-decoy information and if FDR was run.
   double getDecoyDiff_(const PeptideIdentification& pep_id)
   {
     double diff = DBL_MAX;
@@ -317,10 +328,12 @@ private:
       diff = abs(decoy_1 - decoy_2) / pep_id.getMZ(); // normalized by mw
     }
 
-    // if there aren't two decoy hits -1 is returned
+    // if there aren't two decoy hits DBL_MAX is returned
     return diff;
   }
 
+  // Calculates all decoy differences of N given peptide identifications.
+  // Returns the the (1-novor_fract)*N highest one.
   double getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
   {
     // get all decoy diffs of peptide ids with at least two decoy hits
@@ -347,6 +360,8 @@ private:
     return *sort_end;
   }
 
+  // Checks if all protein accessions contain 'CONCAT_PEPTIDE' (appended by IDFileConverter) and the hit is therefore considered a de novo hit.
+  // If at least one accession doesn't contain 'CONCAT_PEPTIDE' the hit is considered a database hit.
   bool isNovoHit_(const PeptideHit& hit)
   {
     set<String> accessions = hit.extractProteinAccessionsSet();
