@@ -545,11 +545,11 @@ public:
     */
     void clear(bool clear_meta_data);
 
-    /// returns true if at least one of the spectra has level==1
-    bool containsMS1Scans() const;
+    /// returns true if at least one of the spectra has the specified level
+    bool containsScanOfLevel(int ms_level) const;
 
-    /// returns true if any MS1 spectra contain at least one peak with intensity of 0.0
-    bool hasMS1Zeros() const;
+    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    bool hasZeroIntensities(int ms_level) const;
 
 
 protected:

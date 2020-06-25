@@ -636,7 +636,7 @@ namespace OpenMS
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
   {
-    if (!exp.containsMS1Scans())
+    if (!exp.containsScanOfLevel(1))
     {
       return 0.0;
     }
@@ -1208,7 +1208,7 @@ namespace OpenMS
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
         data_type = LayerData::DT_CHROMATOGRAM;
-        if (peak_map_sptr->containsMS1Scans())
+        if (peak_map_sptr->containsScanOfLevel(1))
         {
           data_type = LayerData::DT_PEAK;
         }
@@ -1424,7 +1424,7 @@ namespace OpenMS
         }
         else // no mower, hide zeros if wanted
         {
-          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasMS1Zeros())
+          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasZeroIntensities(1))
           {
             // create filter
             DataFilters::DataFilter filter;

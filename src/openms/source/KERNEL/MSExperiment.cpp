@@ -717,12 +717,12 @@ namespace OpenMS
   }
 
   // static
-  bool MSExperiment::containsMS1Scans() const
+  bool MSExperiment::containsScanOfLevel(int ms_level) const
   {
     //test if no scans with MS-level 1 exist
     for (const auto& spec : getSpectra())
     {
-      if (spec.getMSLevel() == 1)
+      if (spec.getMSLevel() == ms_level)
       {
         return true;
       }
@@ -730,11 +730,11 @@ namespace OpenMS
     return false;
   }
 
-  bool MSExperiment::hasMS1Zeros() const
+  bool MSExperiment::hasZeroIntensities(int ms_level) const
   {
     for (const auto& spec : getSpectra())
     {
-      if (spec.getMSLevel() != 1)
+      if (spec.getMSLevel() != ms_level)
       {
         continue;
       }

@@ -1472,7 +1472,7 @@ namespace OpenMS
       context_menu->addMenu(settings_menu);
 
       // only add to context menu if there is a MS1 map
-      if (getCurrentLayer().getPeakData()->containsMS1Scans())
+      if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
       {
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
