@@ -252,10 +252,8 @@ public:
 public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
-    /// shows the file dialog for opening files
-    void openFileDialog();
-    /// shows the file dialog for opening example files
-    void openExampleDialog();
+    /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
+    void openFileDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog();
     /// shows the preferences dialog
@@ -293,10 +291,7 @@ public slots:
     void updateMenu();
     /// brings the tab corresponding to the active window in front
     void updateTabBar(QMdiSubWindow* w);
-    /// tile the open windows vertically
-    void tileVertical();
-    /// tile the open windows horizontally
-    void tileHorizontal();
+
     /**
       @brief Shows a status message in the status bar.
 

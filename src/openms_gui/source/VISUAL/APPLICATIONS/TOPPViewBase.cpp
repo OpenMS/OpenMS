@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OPENMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
@@ -194,8 +195,8 @@ namespace OpenMS
     // File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
-    file->addAction("&Open file", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
+    file->addAction("&Open file", this, [&]() { openFileDialog(); }, Qt::CTRL + Qt::Key_O);
+    file->addAction("Open &example file", [&](){ openFileDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
@@ -248,10 +249,10 @@ namespace OpenMS
     // Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
-    windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", this, SLOT(tileVertical()));
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
+    windows->addAction("&Cascade", ws_, &EnhancedWorkspace::cascadeSubWindows);
+    windows->addAction("&Tile automatic", ws_, &EnhancedWorkspace::tileSubWindows);
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", ws_, &EnhancedWorkspace::tileVertical);
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", ws_, &EnhancedWorkspace::tileHorizontal);
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
@@ -720,6 +721,7 @@ namespace OpenMS
   void TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     setCursor(Qt::WaitCursor);
+    RAIICleanup cl([&]() { setCursor(Qt::ArrowCursor); }); // revert to ArrowCursor on exit
 
     String abs_filename = File::absolutePath(filename);
 
@@ -727,7 +729,6 @@ namespace OpenMS
     if (!File::exists(abs_filename))
     {
       showLogMessage_(LS_ERROR, "Open file error", String("The file '") + abs_filename + "' does not exist!");
-      setCursor(Qt::ArrowCursor);
       return;
     }
 
@@ -737,7 +738,6 @@ namespace OpenMS
     if (file_type == FileTypes::UNKNOWN)
     {
       showLogMessage_(LS_ERROR, "Open file error", String("Could not determine file type of '") + abs_filename + "'!");
-      setCursor(Qt::ArrowCursor);
       return;
     }
 
@@ -745,7 +745,6 @@ namespace OpenMS
     if (file_type == FileTypes::INI)
     {
       showLogMessage_(LS_ERROR, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
-      setCursor(Qt::ArrowCursor);
       return;
     }
 
@@ -918,7 +917,6 @@ namespace OpenMS
     catch (Exception::BaseException& e)
     {
       showLogMessage_(LS_ERROR, "Error while loading file:", e.what());
-      setCursor(Qt::ArrowCursor);
       return;
     }
 
@@ -958,9 +956,6 @@ namespace OpenMS
 
     // watch file contents for changes
     watcher_->addFile(abs_filename);
-
-    // reset cursor
-    setCursor(Qt::ArrowCursor);
   }
 
   void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
@@ -1215,6 +1210,17 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::openRecentFile()
+  {
+    QAction* action = qobject_cast<QAction*>(sender());
+    if (action)
+    {
+      QString filename = action->text();
+      addDataFile(filename, true, true);
+    }
+  }
+
+
   EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
     // return window with window_id == id
@@ -1243,39 +1249,35 @@ namespace OpenMS
   void TOPPViewBase::enhancedWorkspaceWindowChanged(int id)
   {
     QWidget* w = dynamic_cast<QWidget*>(window_(id));
-    if (w)
-    {
-      w->setFocus();
-      SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(w);
-      if (sw) // SpectrumWidget
-      {
-        views_tabwidget_->setTabEnabled(0, true);
+    if (!w) return;
 
-        // check if there is a layer before requesting data from it
-        if (sw->canvas()->getLayerCount() > 0)
-        {
-          const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
-          if (hasPeptideIdentifications(map))
-          {
-            views_tabwidget_->setTabEnabled(1, true);
-            if (dynamic_cast<Spectrum2DWidget*>(w))
-            {
-              views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
-            }
-            // cppcheck produces a false positive warning here -> ignore
-            // cppcheck-suppress multiCondition
-            else if (dynamic_cast<Spectrum1DWidget*>(w))
-            {
-              views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget
-            }
-          }
-          else
-          {
-            views_tabwidget_->setTabEnabled(1, false);
-            views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
-          }
-        }
+    w->setFocus();
+    SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(w);
+    if (!sw) return // SpectrumWidget
+
+    views_tabwidget_->setTabEnabled(0, true);
+    // check if there is a layer before requesting data from it
+    if (sw->canvas()->getLayerCount() == 0) return;
+
+    const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
+    if (hasPeptideIdentifications(map))
+    {
+      views_tabwidget_->setTabEnabled(1, true);
+      if (dynamic_cast<Spectrum2DWidget*>(w))
+      {
+        views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
       }
+      // cppcheck produces a false positive warning here -> ignore
+      // cppcheck-suppress multiCondition
+      else if (dynamic_cast<Spectrum1DWidget*>(w))
+      {
+        views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget
+      }
+    }
+    else
+    {
+      views_tabwidget_->setTabEnabled(1, false);
+      views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
     }
   }
 
@@ -1416,40 +1418,32 @@ namespace OpenMS
 
   void TOPPViewBase::changeUnassigned(QAction* action)
   {
-    bool set = false;
-
     // mass reference is selected
     if (action->text().toStdString() == "Don't show")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
-      set = true;
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
-      set = true;
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
-      set = true;
     }
     else if (action->text().toStdString() == "Show label meta data")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
-      set = true;
     }
-
-    // button is simply pressed
-    if (!set)
+    else // button is simply pressed
     {
       bool previous = getActive2DWidget()->canvas()->getLayerFlag(LayerData::F_UNASSIGNED);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED,
@@ -1471,7 +1465,7 @@ namespace OpenMS
   void TOPPViewBase::changeLayerFlag(bool on)
   {
     QAction* action = qobject_cast<QAction*>(sender());
-    if (Spectrum2DWidget * win = getActive2DWidget())
+    if (Spectrum2DWidget* win = getActive2DWidget())
     {
       //peaks
       if (action == dm_precursors_2d_)
@@ -1612,17 +1606,16 @@ namespace OpenMS
     bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
 
     layers_view_->blockSignals(true);
+    RAIICleanup cl([&]() { layers_view_->blockSignals(false); });
+
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
 
       // add item
       QListWidgetItem* item = new QListWidgetItem(layers_view_);
-      QString name = layer.name.toQString();
-      if (layer.flipped)
-      {
-        name += " [flipped]";
-      }
+      QString name = layer.getDecoratedName().toQString();
+      
       item->setText(name);
       item->setToolTip(layer.filename.toQString());
 
@@ -1653,25 +1646,15 @@ namespace OpenMS
         }
       }
 
-      if (layer.visible)
-      {
-        item->setCheckState(Qt::Checked);
-      }
-      else
-      {
-        item->setCheckState(Qt::Unchecked);
-      }
-      if (layer.modified)
-      {
-        item->setText(item->text() + '*');
-      }
+      item->setCheckState(layer.visible ? Qt::Checked : Qt::Unchecked);
+      
       // highlight active item
       if (i == cc->activeLayerIndex())
       {
         layers_view_->setCurrentItem(item);
       }
     }
-    layers_view_->blockSignals(false);
+    
   }
 
   void TOPPViewBase::updateViewBar()
@@ -1904,80 +1887,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::tileHorizontal()
-  {
-    // primitive horizontal tiling
-    QList<QMdiSubWindow *> windows = ws_->subWindowList();
-    if (!windows.count())
-    {
-      return;
-    }
-
-    if (getActive1DWidget())
-    {
-      getActive1DWidget()->showNormal();
-    }
-    if (getActive2DWidget())
-    {
-      getActive2DWidget()->showNormal();
-    }
-
-    int heightForEach = ws_->height() / windows.count();
-    int y = 0;
-    for (int i = 0; i < int(windows.count()); ++i)
-    {
-      QMdiSubWindow* window = windows.at(i);
-      if (window->isMaximized() || window->isFullScreen())
-      {
-        // prevent flicker
-        window->hide();
-        window->setWindowState(Qt::WindowNoState);
-        window->show();
-      }
-      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
-      int actHeight = std::max(heightForEach, preferredHeight);
-
-      window->setGeometry(0, y, ws_->width(), actHeight);
-      y += actHeight;
-    }
-  }
-
-  void TOPPViewBase::tileVertical()
-  {
-    // primitive vertical tiling
-    QList<QMdiSubWindow *> windows = ws_->subWindowList();
-    if (!windows.count())
-    {
-      return;
-    }
-
-    if (getActive1DWidget())
-    {
-      getActive1DWidget()->showNormal();
-    }
-    if (getActive2DWidget())
-    {
-      getActive2DWidget()->showNormal();
-    }
-
-    int widthForEach = ws_->width() / windows.count();
-    int y = 0;
-    for (int i = 0; i < int(windows.count()); ++i)
-    {
-      QMdiSubWindow* window = windows.at(i);
-      if (window->windowState() & Qt::WindowMaximized)
-      {
-        // prevent flicker
-        window->hide();
-        window->showNormal();
-      }
-      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
-      int actWidth = std::max(widthForEach, preferredWidth);
-
-      window->setGeometry(y, 0, actWidth, ws_->height());
-      y += actWidth;
-    }
-  }
 
   void TOPPViewBase::linkZoom()
   {
@@ -2269,10 +2178,9 @@ namespace OpenMS
     {
       bool error = false;
       Param tmp;
-      ParamXMLFile paramFile;
       try // the file might be corrupt
       {
-        paramFile.load(filename, tmp);
+        ParamXMLFile().load(filename, tmp);
       }
       catch (...)
       {
@@ -2351,16 +2259,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::openRecentFile()
-  {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action)
-    {
-      QString filename = action->text();
-      addDataFile(filename, true, true);
-    }
-  }
-
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
     // store active sub window
@@ -2392,23 +2290,10 @@ namespace OpenMS
     return file_names;
   }
 
-  void TOPPViewBase::openFileDialog()
+  void TOPPViewBase::openFileDialog(const String& dir)
   {
-    QStringList files = getFileList_();
-    for (QStringList::iterator it = files.begin(); it != files.end(); ++it)
+    for (const QString& filename : getFileList_(dir))
     {
-      QString filename = *it;
-      addDataFile(filename, true, true);
-    }
-  }
-
-  void TOPPViewBase::openExampleDialog()
-  {
-    QStringList files = getFileList_(File::getOpenMSDataPath() + "/examples/");
-
-    for (QStringList::iterator it = files.begin(); it != files.end(); ++it)
-    {
-      QString filename = *it;
       addDataFile(filename, true, true);
     }
   }
@@ -3583,13 +3468,12 @@ namespace OpenMS
       //int row, col;
       //stream >> row >> col;
 
-      //set wait cursor
+      // set wait cursor
       setCursor(Qt::WaitCursor);
+      RAIICleanup cl([&]() { setCursor(Qt::ArrowCursor); });
 
-      //determine where to copy the data
-      UInt new_id = 0;
-      if (id != -1)
-        new_id = id;
+      // determine where to copy the data
+      UInt new_id = (id == -1) ? 0 : id;
 
       if (source == layers_view_)
       {
@@ -3642,9 +3526,6 @@ namespace OpenMS
     {
       showLogMessage_(LS_ERROR, "Error while creating layer", e.what());
     }
-
-    //reset cursor
-    setCursor(Qt::ArrowCursor);
   }
 
   void TOPPViewBase::updateCurrentPath()
