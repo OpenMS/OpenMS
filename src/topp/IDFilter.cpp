@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -142,9 +144,9 @@ protected:
     specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", {"idXML","consensusXML"});
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", {"idXML","consensusXML"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
@@ -243,7 +245,38 @@ protected:
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
-    IdXMLFile().load(inputfile_name, proteins, peptides);
+
+    //only used for cxml
+    ConsensusMap cmap;
+    unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
+
+    if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::IDXML)
+    {
+      IdXMLFile().load(inputfile_name, proteins, peptides);
+    }
+    else if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::CONSENSUSXML)
+    {
+      ConsensusXMLFile().load(inputfile_name, cmap);
+      for (auto& f : cmap)
+      {
+        UInt64 id = f.getUniqueId();
+        id_to_featureref[id] = &f;
+        for (auto&& p : f.getPeptideIdentifications())
+        {
+          p.setMetaValue("feature_id", id);
+          peptides.emplace_back(p);
+        }
+        f.getPeptideIdentifications().clear();
+      }
+      auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+      peptides.reserve(peptides.size() + unassigned.size());
+      std::move(std::begin(unassigned),std::end(unassigned),
+          std::back_inserter(peptides));
+      unassigned.clear();
+
+      std::swap(proteins, cmap.getProteinIdentifications());
+    }
+
 
     Size n_prot_ids = proteins.size();
     Size n_prot_hits = IDFilter::countHits(proteins);
@@ -705,7 +738,31 @@ protected:
              << peptides.size() << " spectra identified with "
              << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
-    IdXMLFile().store(outputfile_name, proteins, peptides);
+    if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::IDXML)
+    {
+      IdXMLFile().store(outputfile_name, proteins, peptides);
+    }
+    else if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::CONSENSUSXML)
+    {
+      for (auto&& p : peptides)
+      {
+        if (p.metaValueExists("feature_id"))
+        {
+          UInt64 id = p.getMetaValue("feature_id");
+          p.removeMetaValue("feature_id");
+          auto& f = id_to_featureref[id];
+          f->getPeptideIdentifications().emplace_back(p);
+        }
+        else
+        {
+          cmap.getUnassignedPeptideIdentifications().emplace_back(p);
+        }
+      }
+      peptides.clear();
+      std::swap(proteins, cmap.getProteinIdentifications());
+      proteins.clear();
+      ConsensusXMLFile().store(outputfile_name, cmap);
+    }
 
     return EXECUTION_OK;
   }
