@@ -35,10 +35,9 @@
 #include <OpenMS/VISUAL/FilterList.h>
 #include <ui_FilterList.h>
 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 
+#include <QMenu>
 
 using namespace std;
 
@@ -46,15 +45,18 @@ namespace OpenMS
 {
   namespace Internal
   {
-    FilterList::FilterList(QWidget *parent, TOPPViewBase* const base) :
+    FilterList::FilterList(QWidget *parent) :
       QWidget(parent),
-      ui_(new Ui::FilterList),
-      base_(base)
+      ui_(new Ui::FilterList)
     {
       ui_->setupUi(this);
-      connect(ui_->filter, &QListWidget::itemDoubleClicked, this, &FilterList::filterEdit);
-      connect(ui_->filter, &QListWidget::customContextMenuRequested, this, &FilterList::customContextMenuRequested);
-      connect(ui_->check, &QCheckBox::toggled, base_, &TOPPViewBase::layerFilterVisibilityChange);
+      connect(ui_->filter, &QListWidget::itemDoubleClicked, this, &FilterList::filterEdit_);
+      connect(ui_->filter, &QListWidget::customContextMenuRequested, this, &FilterList::customContextMenuRequested_);
+      connect(ui_->check, &QCheckBox::toggled, [&]()
+      {
+        filters_.setActive(!filters_.isActive()); // invert internal representation
+        emit filterChanged(filters_);             // make it public
+      });
     }
 
     FilterList::~FilterList()
@@ -62,22 +64,22 @@ namespace OpenMS
       delete ui_;
     }
 
-    void FilterList::filterEdit(QListWidgetItem* item)
+    void FilterList::filterEdit_(QListWidgetItem* item)
     {
       auto row = ui_->filter->row(item);
-      DataFilters filters = base_->getActiveCanvas()->getCurrentLayer().filters;
-      DataFilters::DataFilter filter = filters[row];
+      DataFilters::DataFilter filter = filters_[row];
       DataFilterDialog dlg(filter, this);
       if (dlg.exec())
       {
-        filters.replace(row, filter);
-        base_->getActiveCanvas()->setFilters(filters);
-        update(filters);
+        filters_.replace(row, filter);
+        set(filters_);
       }
     }
 
-    void FilterList::update(const DataFilters& filters)
+    void FilterList::set(const DataFilters& filters)
     {
+      filters_ = filters;
+
       ui_->filter->clear();
       for (Size i = 0; i < filters.size(); ++i)
       {
@@ -86,70 +88,40 @@ namespace OpenMS
       }
       // update check box
       ui_->check->setChecked(filters.isActive());
+
+      emit filterChanged(filters_);
     }
 
-    void FilterList::customContextMenuRequested(const QPoint& pos)
+    void FilterList::customContextMenuRequested_(const QPoint& pos)
     {
-      SpectrumCanvas* canvas = base_->getActiveCanvas();
-      // do nothing if no window is open
-      if (canvas == nullptr)
-        return;
-
-      // do nothing if no layer is loaded into the canvas
-      if (canvas->getLayerCount() == 0)
-        return;
-
       QMenu context_menu;
-
-      // warn if the current layer is not visible
-      String layer_name = String("Layer: ") + base_->getActiveCanvas()->getCurrentLayer().name;
-      if (!canvas->getCurrentLayer().visible)
-      {
-        layer_name += " (invisible)";
-      }
-      context_menu.addAction(layer_name.toQString())->setEnabled(false);
-      context_menu.addSeparator();
 
       // add actions
       QListWidgetItem* item = ui_->filter->itemAt(pos);
       if (item)
       {
-        context_menu.addAction("Edit");
-        context_menu.addAction("Delete");
+        context_menu.addAction("Edit", [&]() 
+        {
+          filterEdit_(item);
+        });
+        context_menu.addAction("Delete", [&]() 
+        {
+          filters_.remove(ui_->filter->row(item));
+          set(filters_);
+        });
       }
-      else
-      {
-        context_menu.addAction("Add filter");
-      }
-      
-      // results
-      QAction* selected = context_menu.exec(ui_->filter->mapToGlobal(pos));
-      
-      if (selected == nullptr) return;
-
-      if (selected->text() == "Delete")
-      {
-        DataFilters filters = canvas->getCurrentLayer().filters;
-        filters.remove(ui_->filter->row(item));
-        canvas->setFilters(filters);
-        update(filters);
-      }
-      else if (selected->text() == "Edit")
-      {
-        filterEdit(item);
-      }
-      else if (selected->text() == "Add filter")
+      context_menu.addAction("Add filter", [&]()
       {
         DataFilters::DataFilter filter;
         DataFilterDialog dlg(filter, this);
         if (dlg.exec())
         {
-          DataFilters filters = canvas->getCurrentLayer().filters;
-          filters.add(filter);
-          canvas->setFilters(filters);
-          update(filters);
+          filters_.add(filter);
+          set(filters_);
         }
-      }
+      });
+
+      context_menu.exec(ui_->filter->mapToGlobal(pos));
     }
 
   } //namespace Internal

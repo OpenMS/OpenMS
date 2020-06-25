@@ -182,13 +182,10 @@ namespace OpenMS
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy_cw);
-    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateToolBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
     connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
     connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateLayerBar()));
-    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateViewBar()));
-    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateFilterBar()));
-    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
-    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateCurrentPath()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(layerActivated()));
     connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     box_layout->addWidget(ws_);
@@ -531,7 +528,10 @@ namespace OpenMS
     filter_dock_widget_ = new QDockWidget("Data filters", this);
     filter_dock_widget_->setObjectName("filter_dock_widget");
     addDockWidget(Qt::BottomDockWidgetArea, filter_dock_widget_);
-    filter_list_ = new FilterList(filter_dock_widget_, this);
+    filter_list_ = new FilterList(filter_dock_widget_);
+    connect(filter_list_, &FilterList::filterChanged, [&](const DataFilters& filter) {
+      getActiveCanvas()->setFilters(filter);
+    });
     filter_dock_widget_->setWidget(filter_list_);
     windows->addAction(filter_dock_widget_->toggleViewAction());
 
@@ -1470,12 +1470,6 @@ namespace OpenMS
 
     // enable spectra view tab
     views_tabwidget_->setTabEnabled(0, true);
-
-    //updateDataBar();
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
-    updateMenu();
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -1808,9 +1802,7 @@ namespace OpenMS
   void TOPPViewBase::updateBarsAndMenus()
   {
     //Update filter bar, spectrum bar and layer bar
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
+    layerActivated();
     updateMenu();
   }
 
@@ -2088,8 +2080,7 @@ namespace OpenMS
     // after adding a layer i is -1. TODO: check if this is the correct behaviour
     if (i != -1)
     {
-      getActiveCanvas()->activateLayer(i); // also triggers update of viewBar
-      updateFilterBar();
+      getActiveCanvas()->activateLayer(i); // emits layerActivated 
     }
   }
 
@@ -2174,7 +2165,7 @@ namespace OpenMS
     if (canvas->getLayerCount() == 0)
       return;
     
-    filter_list_->update(getActiveCanvas()->getCurrentLayer().filters);
+    filter_list_->set(getActiveCanvas()->getCurrentLayer().filters);
   }
 
   void TOPPViewBase::layerFilterVisibilityChange(bool on)
@@ -2305,6 +2296,7 @@ namespace OpenMS
     updateToolBar();
     updateViewBar();
     updateCurrentPath();
+    updateFilterBar();
   }
 
   void TOPPViewBase::layerZoomChanged()
@@ -3345,9 +3337,6 @@ namespace OpenMS
     }
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
     updateMenu();
   }
 
@@ -3419,9 +3408,6 @@ namespace OpenMS
     }
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
     updateMenu();
   }
 
@@ -3506,9 +3492,6 @@ namespace OpenMS
     }
     w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
     showSpectrumWidgetInWindow(w, caption);
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
     updateMenu();
   }
 
@@ -3546,61 +3529,54 @@ namespace OpenMS
 
     LayerData& layer = const_cast<LayerData&>(getActiveCanvas()->getLayer(best_candidate));
 
-    if (layer.type == LayerData::DT_PEAK)
-    {
-      //open new 3D widget
-      Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
-
-      ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-
-      if (layer.isIonMobilityData())
-      {
-        // Determine ion mobility unit (default is milliseconds)
-        String unit = "ms";
-        if (exp_sptr->metaValueExists("ion_mobility_unit"))
-        {
-          unit = exp_sptr->getMetaValue("ion_mobility_unit");
-        }
-        String label = "Ion Mobility [" + unit + "]";
-
-        w->canvas()->openglwidget()->setYLabel(label.c_str());
-      }
-
-      if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
-      {
-        return;
-      }
-
-      if (getActive1DWidget()) // switch from 1D to 3D
-      {
-        //TODO:
-        //- doesnt make sense for fragment scan
-        //- build new Area with mz range equal to 1D visible range
-        //- rt range either overall MS1 data range or some convenient window
-
-      }
-      else if (getActive2DWidget()) // switch from 2D to 3D
-      {
-        w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
-      }
-
-      // set layer name
-      String caption = layer.name + CAPTION_3D_SUFFIX_;
-      w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
-      showSpectrumWidgetInWindow(w, caption);
-
-      // set intensity mode (after spectrum has been added!)
-      setIntensityMode(SpectrumCanvas::IM_SNAP);
-
-      updateLayerBar();
-      updateViewBar();
-      updateFilterBar();
-      updateMenu();
-    }
-    else
+    if (layer.type != LayerData::DT_PEAK)
     {
       showLogMessage_(LS_NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
+    //open new 3D widget
+    Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
+
+    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+
+    if (layer.isIonMobilityData())
+    {
+      // Determine ion mobility unit (default is milliseconds)
+      String unit = "ms";
+      if (exp_sptr->metaValueExists("ion_mobility_unit"))
+      {
+        unit = exp_sptr->getMetaValue("ion_mobility_unit");
+      }
+      String label = "Ion Mobility [" + unit + "]";
+
+      w->canvas()->openglwidget()->setYLabel(label.c_str());
+    }
+
+    if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    {
+      return;
+    }
+
+    if (getActive1DWidget()) // switch from 1D to 3D
+    {
+      //TODO:
+      //- doesnt make sense for fragment scan
+      //- build new Area with mz range equal to 1D visible range
+      //- rt range either overall MS1 data range or some convenient window
+
+    }
+    else if (getActive2DWidget()) // switch from 2D to 3D
+    {
+      w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
+    }
+
+    // set layer name
+    String caption = layer.name + CAPTION_3D_SUFFIX_;
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    showSpectrumWidgetInWindow(w, caption);
+
+    // set intensity mode (after spectrum has been added!)
+    setIntensityMode(SpectrumCanvas::IM_SNAP);
+    updateMenu();
   }
 
   void TOPPViewBase::updateProcessLog()
@@ -4168,10 +4144,8 @@ namespace OpenMS
       }
     }
     */
-    updateLayerBar();
-    updateViewBar();
-    updateFilterBar();
-    updateMenu();
+    
+    layerActivated();
 
     // temporarily remove and read filename from watcher_ as a workaround for bug #233
     watcher_->removeFile(filename);

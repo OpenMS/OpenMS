@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
@@ -49,13 +48,13 @@ class QListWidgetItem;
 
 namespace OpenMS
 {
-  class TOPPViewBase;
-
   namespace Internal
   {
     /**
-      @brief A widget shows a list of input files (i.e. existing files on a mounted drive),
-             which allows adding/removing files and supports drag'n'drop from the window manager.
+      @brief A widget which shows a list of DataFilter items.
+
+      Filters can be added, edited and removed.
+      A checkbox allows to switch them all on/off.
 
     */
     class FilterList : public QWidget
@@ -63,29 +62,33 @@ namespace OpenMS
         Q_OBJECT
 
     public:
-        /// C'tor
-        explicit FilterList(QWidget* parent, TOPPViewBase* base);
-        ~FilterList();
-
-        void filterEdit(QListWidgetItem* item);
-
-        
+      /// C'tor
+      explicit FilterList(QWidget* parent);
+      ~FilterList();
 
     public slots:
-      void update(const DataFilters& filters);
+      /// provide new filters to the widget
+      /// does invoke the 'filterChanged' signal
+      void set(const DataFilters& filters);
 
     signals:
+      /// emitted when the user has edited/added/removed a filter
+      void filterChanged(const DataFilters& filters);
     
     protected:
      
 
     private slots:
+      /// the user wants to edit a filter (by double-clicking it)
+      /// emits 'filterChanged' signal if filter was modified
+      void filterEdit_(QListWidgetItem* item);
+
       /// right-clicking on the QListWidget 'filter' will call this slot
-      void customContextMenuRequested(const QPoint &pos);
+      void customContextMenuRequested_(const QPoint &pos);
 
     private:
       Ui::FilterList *ui_;
-      TOPPViewBase*const base_;
+      DataFilters filters_; ///< internal representation of filters
     };
   } // ns Internal
 } // ns OpenMS
