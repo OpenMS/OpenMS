@@ -38,6 +38,7 @@
 #include <QDragMoveEvent>
 #include <QDropEvent>
 
+#include <QMdiSubWindow>
 #include <QtCore/QStringList>
 
 namespace OpenMS
@@ -51,6 +52,67 @@ namespace OpenMS
 
   EnhancedWorkspace::~EnhancedWorkspace()
   {
+  }
+
+  inline void EnhancedWorkspace::tileHorizontal()
+  {
+    // primitive horizontal tiling
+    QList<QMdiSubWindow*> windows = this->subWindowList();
+
+    if (!windows.count())
+    {
+      return;
+    }
+
+    int heightForEach = this->height() / windows.count();
+    int y = 0;
+    for (int i = 0; i < int(windows.count()); ++i)
+    {
+      QMdiSubWindow* window = windows.at(i);
+      if (window->isMaximized() || window->isMinimized() || window->isFullScreen())
+      {
+        // prevent flicker
+        window->hide();
+        window->showNormal();
+      }
+      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
+      int actHeight = std::max(heightForEach, preferredHeight);
+
+      window->setGeometry(0, y, this->width(), actHeight);
+      y += actHeight;
+      window->setVisible(true);
+      window->show();
+    }
+  }
+
+  inline void EnhancedWorkspace::tileVertical()
+  {
+    // primitive vertical tiling
+    QList<QMdiSubWindow*> windows = this->subWindowList();
+    if (!windows.count())
+    {
+      return;
+    }
+
+    int widthForEach = this->width() / windows.count();
+    int y = 0;
+    for (int i = 0; i < int(windows.count()); ++i)
+    {
+      QMdiSubWindow* window = windows.at(i);
+      if (window->isMaximized() || window->isMinimized() || window->isFullScreen())
+      {
+        // prevent flicker
+        window->hide();
+        window->showNormal();
+      }
+      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
+      int actWidth = std::max(widthForEach, preferredWidth);
+
+      window->setGeometry(y, 0, actWidth, this->height());
+      y += actWidth;
+      window->setVisible(true);
+      window->show();
+    }
   }
 
   void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)
