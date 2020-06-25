@@ -574,11 +574,9 @@ protected:
     /// TOPPView behavior for the spectra view
     TOPPViewSpectraViewBehavior spectraview_behavior_;
 
-    // static helper functions
 public:
-    
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
+    static float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
     /// Returns true if the experiment map contains peptide identifications
     static bool hasPeptideIdentifications(const ExperimentType& map);

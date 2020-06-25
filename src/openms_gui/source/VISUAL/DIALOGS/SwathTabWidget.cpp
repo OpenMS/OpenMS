@@ -147,7 +147,6 @@ namespace OpenMS
       connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &SwathTabWidget::checkPyProphetInput_);
 
       ui->out_dir->setDirectory(getDefaultOutDir());
-
     }
 
     SwathTabWidget::~SwathTabWidget()

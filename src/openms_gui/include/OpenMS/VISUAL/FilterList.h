@@ -75,9 +75,6 @@ namespace OpenMS
       /// emitted when the user has edited/added/removed a filter
       void filterChanged(const DataFilters& filters);
     
-    protected:
-     
-
     private slots:
       /// the user wants to edit a filter (by double-clicking it)
       /// emits 'filterChanged' signal if filter was modified
