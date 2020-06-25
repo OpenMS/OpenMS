@@ -1127,12 +1127,7 @@ namespace OpenMS
     // Abort if no data points are contained (note that all data could be on disk)
     if (getCurrentLayer().getCurrentSpectrum().empty())
     {
-      layers_.resize(getLayerCount() - 1);
-      if (current_layer_ != 0)
-      {
-        current_layer_ = current_layer_ - 1;
-      }
-      QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
+      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
 
