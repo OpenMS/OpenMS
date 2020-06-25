@@ -1079,6 +1079,11 @@ add_test("TOPP_IDFilter_22" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_22_out1" ${DIFF} -in1 IDFilter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_22_output.idXML)
 set_tests_properties("TOPP_IDFilter_22_out1" PROPERTIES DEPENDS "TOPP_IDFilter_22")
 
+#consensusXML
+add_test("TOPP_IDFilter_23" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDMapper_2_output.consensusXML -out IDFilter_23_output.tmp -whitelist:protein_accessions "Q9HP81")
+add_test("TOPP_IDFilter_23_out1" ${DIFF} -in1 IDFilter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_23_output.consensusXML)
+set_tests_properties("TOPP_IDFilter_23_out1" PROPERTIES DEPENDS "TOPP_IDFilter_23")
+
 #-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
