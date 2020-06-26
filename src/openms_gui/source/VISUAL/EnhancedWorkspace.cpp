@@ -44,7 +44,7 @@
 namespace OpenMS
 {
 
-  EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
+  EnhancedWorkspace::EnhancedWorkspace(QWidget* parent) :
     QMdiArea(parent)
   {
     setAcceptDrops(true);
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  inline void EnhancedWorkspace::tileHorizontal()
+  void EnhancedWorkspace::tileHorizontal()
   {
     // primitive horizontal tiling
     QList<QMdiSubWindow*> windows = this->subWindowList();
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  inline void EnhancedWorkspace::tileVertical()
+  void EnhancedWorkspace::tileVertical()
   {
     // primitive vertical tiling
     QList<QMdiSubWindow*> windows = this->subWindowList();
