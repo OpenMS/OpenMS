@@ -962,6 +962,23 @@ set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_26" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_26_input.mzid -out IDFileConverter_26_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_26_out1" ${DIFF} -in1 IDFileConverter_26_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_26_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_26")
+# Test idXML to FASTA
+# no concatenation
+add_test("TOPP_IDFileConverter_27" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_27_input.idXML -out IDFileConverter_27_output.tmp -out_type FASTA)
+add_test("TOPP_IDFileConverter_27_out1" ${DIFF} -in1 IDFileConverter_27_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_27_output.fasta)
+set_tests_properties("TOPP_IDFileConverter_27_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_27")
+add_test("TOPP_IDFileConverter_28" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_27_input.idXML -out IDFileConverter_28_output.tmp -out_type FASTA -number_of_hits -1)
+add_test("TOPP_IDFileConverter_28_out1" ${DIFF} -in1 IDFileConverter_28_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_28_output.fasta)
+set_tests_properties("TOPP_IDFileConverter_28_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_28")
+# with concatenation
+add_test("TOPP_IDFileConverter_29" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_27_input.idXML -out IDFileConverter_29_output.tmp -out_type FASTA -concatenate_peptides)
+add_test("TOPP_IDFileConverter_29_out1" ${DIFF} -in1 IDFileConverter_29_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_29_output.fasta)
+set_tests_properties("TOPP_IDFileConverter_29_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_29")
+add_test("TOPP_IDFileConverter_30" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_27_input.idXML -out IDFileConverter_30_output.tmp -out_type FASTA -concatenate_peptides -number_of_hits 2)
+add_test("TOPP_IDFileConverter_30_out1" ${DIFF} -in1 IDFileConverter_30_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_30_output.fasta)
+set_tests_properties("TOPP_IDFileConverter_30_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_30")
+
+
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1061,6 +1078,11 @@ set_tests_properties("TOPP_IDFilter_21_out1" PROPERTIES DEPENDS "TOPP_IDFilter_2
 add_test("TOPP_IDFilter_22" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_16_input.idXML -out IDFilter_22_output.tmp -remove_peptide_hits_by_metavalue "end" "ne" "23")
 add_test("TOPP_IDFilter_22_out1" ${DIFF} -in1 IDFilter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_22_output.idXML)
 set_tests_properties("TOPP_IDFilter_22_out1" PROPERTIES DEPENDS "TOPP_IDFilter_22")
+
+#consensusXML
+add_test("TOPP_IDFilter_23" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDMapper_2_output.consensusXML -out IDFilter_23_output.tmp -whitelist:protein_accessions "Q9HP81")
+add_test("TOPP_IDFilter_23_out1" ${DIFF} -in1 IDFilter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_23_output.consensusXML)
+set_tests_properties("TOPP_IDFilter_23_out1" PROPERTIES DEPENDS "TOPP_IDFilter_23")
 
 #-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests

@@ -255,6 +255,11 @@ namespace OpenMS
 
     namespace UserParam
     {
+      /** User parameter name for identifier of concatenated peptides
+              String
+      */
+      extern OPENMS_DLLAPI const std::string CONCAT_PEPTIDE;
+
       /** Metavalue to list unimod modifications used in site localization
       */    
       extern OPENMS_DLLAPI const std::string   LOCALIZED_MODIFICATIONS_USERPARAM;
