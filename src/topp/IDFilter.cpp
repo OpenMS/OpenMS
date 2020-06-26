@@ -250,21 +250,22 @@ protected:
     ConsensusMap cmap;
     unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
 
-    if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::IDXML)
+    const auto& infiletype = FileHandler::getType(inputfile_name);
+    if (infiletype == FileTypes::IDXML)
     {
       IdXMLFile().load(inputfile_name, proteins, peptides);
     }
-    else if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML)
     {
       ConsensusXMLFile().load(inputfile_name, cmap);
       for (auto& f : cmap)
       {
         UInt64 id = f.getUniqueId();
         id_to_featureref[id] = &f;
-        for (auto&& p : f.getPeptideIdentifications())
+        for (auto& p : f.getPeptideIdentifications())
         {
           p.setMetaValue("feature_id", id);
-          peptides.emplace_back(p);
+          peptides.push_back(std::move(p));
         }
         f.getPeptideIdentifications().clear();
       }
@@ -738,24 +739,24 @@ protected:
              << peptides.size() << " spectra identified with "
              << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
-    if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::IDXML)
+    if (infiletype == FileTypes::IDXML)
     {
       IdXMLFile().store(outputfile_name, proteins, peptides);
     }
-    else if (FileHandler::getTypeByFileName(inputfile_name) == FileTypes::CONSENSUSXML)
+    else if (infiletype == FileTypes::CONSENSUSXML)
     {
-      for (auto&& p : peptides)
+      for (auto& p : peptides)
       {
         if (p.metaValueExists("feature_id"))
         {
           UInt64 id = p.getMetaValue("feature_id");
           p.removeMetaValue("feature_id");
           auto& f = id_to_featureref[id];
-          f->getPeptideIdentifications().emplace_back(p);
+          f->getPeptideIdentifications().push_back(std::move(p));
         }
         else
         {
-          cmap.getUnassignedPeptideIdentifications().emplace_back(p);
+          cmap.getUnassignedPeptideIdentifications().push_back(std::move(p));
         }
       }
       peptides.clear();
