@@ -42,6 +42,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cfloat>
+#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;
@@ -155,6 +156,9 @@ protected:
     Size count_re_ranked = 0;
     Size count_interest = 0;
 
+    std::ofstream debug("C:\\Development\\re_rank_hits.txt");
+    debug << std::setprecision(1) << std::fixed;
+
     for (const auto& pep_id : pep_ids)
     {
       const vector<PeptideHit>& hits = pep_id.getHits();
@@ -179,13 +183,16 @@ protected:
         continue;
       }
 
-      // find the second target hit, skip all decoy hits inbetween
+      // find the second target hit, skip all decoy or novo hits inbetween
       const PeptideHit* second_hit = nullptr;
       String target = "target";
       for (UInt i = 1; i < hits.size(); ++i)
         {
         if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
+          // check if hit is novo hit
+          if (isNovoHit_(hits[i])) continue;
+          
           second_hit = &hits[i];
           break;
         }
@@ -196,15 +203,9 @@ protected:
         continue;
       }
 
-      // check if second hit is db hit
-      if (isNovoHit_(*second_hit)) // second hit is also de novo hit
-      {
-        ++count_novo;
-        continue;
-      }
-
       // second hit is db hit
       ++count_interest;
+      debug << round(pep_id.getRT() * 10)/10;
 
       // check for re-ranking
       if (no_re_rank)
@@ -219,13 +220,20 @@ protected:
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
       }
       
-      if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off)
+      double cut_off_mw = cut_off * top_hit.getSequence().getMonoWeight();
+      if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off_mw)
       {
         ++count_db;
         ++count_re_ranked;
+        debug << " true\n";
       }
-      else ++count_novo;
+      else
+      {
+        ++count_novo;
+        debug << " false\n";
+      }
     }
+    debug.close();
 
     double suitability = double(count_db) / (count_db + count_novo); //db suitability
 
@@ -249,7 +257,7 @@ protected:
 
     OPENMS_LOG_INFO << count_db << " / " << (count_db + count_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked using a decoy cut-off of " << cut_off << endl;
+    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked."<< endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suitability << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << count_novo_seq << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
@@ -297,13 +305,13 @@ private:
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
 
-      if (pep_id.getScoreType() != "q-value")
+      /*if (pep_id.getScoreType() != "q-value")
       {
         if (!hit.metaValueExists("q-value"))
         {
           throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
         }
-      }
+      }*/
 
       if (!hit.metaValueExists("MS:1002252"))
       {
@@ -324,7 +332,7 @@ private:
 
     if (decoy_2 < DBL_MAX) // if there are two decoy hits
     {
-      diff = abs(decoy_1 - decoy_2) / pep_id.getMZ(); // normalized by mw
+      diff = abs(decoy_1 - decoy_2) / pep_id.getHits()[0].getSequence().getMonoWeight(); // normalized by mw
     }
 
     // if there aren't two decoy hits DBL_MAX is returned
