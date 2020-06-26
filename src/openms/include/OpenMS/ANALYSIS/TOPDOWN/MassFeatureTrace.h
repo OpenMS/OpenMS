@@ -32,12 +32,12 @@ namespace OpenMS
   {
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
    // typedef FLASHDeconvHelperStructs::DeconvolutedSpectrum DeconvolutedSpectrum;
 
     /// default constructor
-    MassFeatureTrace(Parameter &param, Param &mtd_param, PrecalcularedAveragine &averagines);
+    MassFeatureTrace(Parameter &param, Param &mtd_param, PrecalculatedAveragine &averagines);
 
     /// default destructor
     ~MassFeatureTrace();
@@ -51,7 +51,7 @@ namespace OpenMS
   protected:
     Parameter &param;
     Param &mtd_param;
-    PrecalcularedAveragine &averagines;
+    PrecalculatedAveragine &averagines;
 
     std::unordered_map<double, std::unordered_map<double, PeakGroup>> peakGroupMap; // rt , mono mass, peakgroup
   };

@@ -31,7 +31,7 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
@@ -44,7 +44,7 @@ namespace OpenMS
 
     std::vector<PeakGroup>& getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                    std::vector<double> &prevMinBinLogMassVector,
-                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                                     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                      unsigned int msLevel);
 
     std::vector<LogMzPeak> logMzPeaks;
@@ -65,7 +65,7 @@ namespace OpenMS
 
     double *filter;
     double **harmonicFilter;
-    //PrecalcularedAveragine averagines;
+    //PrecalculatedAveragine averagines;
 
     static double getBinValue(Size bin, double minV, double binWidth);
 
@@ -104,7 +104,7 @@ namespace OpenMS
                                 double &massBinMinValue,
                                 float *sumLogIntensities,
                                 Byte **chargeRanges,
-                                FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                 unsigned int& msLevel
     );
 

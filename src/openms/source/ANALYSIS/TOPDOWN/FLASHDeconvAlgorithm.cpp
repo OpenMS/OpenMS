@@ -33,16 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-// hmm2
+
 namespace OpenMS
 {
+   
 
-  // constructor
-
-  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &a, Parameter &p) :
+    FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a, Parameter &p) :
       param(p), avg(a)
   {
-
+       // std::cout << "FLASHDeconv constructed\n";
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
@@ -117,7 +116,10 @@ namespace OpenMS
     specIndex++;
   }
 
-
+  void FLASHDeconvAlgorithm::tmp()
+  {
+      std::cout << "done" << std::endl;
+  }
 
   /*
     bool FLASHDeconvAlgorithm::checkSpanDistribution(int *mins, int *maxs, int range, int threshold)

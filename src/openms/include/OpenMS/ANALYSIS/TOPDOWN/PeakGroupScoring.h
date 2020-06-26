@@ -17,7 +17,7 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     //typedef FLASHDeconvHelperStructs::PeakGroup PeakGroup;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
@@ -33,10 +33,10 @@ namespace OpenMS
                                                            double *perIsotopeIntensities,
                                                            int perIsotopeIntensitiesSize,
                                                            int &offset,
-                                                           FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+                                                           FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
     std::vector<PeakGroup> &scoreAndFilterPeakGroups(unsigned int &msLevel,
-                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg);
+                                                     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg);
 
   protected:
     std::vector<PeakGroup> &peakGroups;

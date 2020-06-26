@@ -21,7 +21,7 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
 
     //econvolutedSpectrum *deconvSpec;
     int scanNumber, specIndex;
@@ -60,6 +60,6 @@ namespace OpenMS
 
     bool operator==(const PeakGroup &a) const;
 
-    void updateMassesAndIntensity(PrecalcularedAveragine &averagines, int offset = 0, int maxIsoIndex = 0);
+    void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines, int offset = 0, int maxIsoIndex = 0);
   };
 }

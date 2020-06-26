@@ -44,11 +44,9 @@
 
 //#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 
-#include "boost/dynamic_bitset.hpp"
 #include <iostream>
 #include <iomanip>
 #include <chrono>
-#include <Eigen/Dense>
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
@@ -69,11 +67,12 @@ namespace OpenMS
   {
 public:
     typedef FLASHDeconvHelperStructs::Parameter Parameter;
-    typedef FLASHDeconvHelperStructs::PrecalcularedAveragine PrecalcularedAveragine;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// default constructor
-    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalcularedAveragine &avg, Parameter &param);
+    /// 
+    FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &avg, Parameter &param);
 
     /// default destructor
     ~FLASHDeconvAlgorithm();
@@ -85,10 +84,11 @@ public:
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
     void Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum);
     static int getNominalMass(double &m);
-
+    static void tmp();
+  	
   protected:
     Parameter &param;
-    FLASHDeconvHelperStructs::PrecalcularedAveragine &avg;
+    FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
 
 
   private:

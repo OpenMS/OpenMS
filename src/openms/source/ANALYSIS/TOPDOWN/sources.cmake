@@ -9,7 +9,7 @@ PeakGroup.cpp
 PeakGroupScoring.cpp
 SpectrumDeconvolution.cpp
 FLASHDeconvAlgorithm.cpp
-FLASHDeconvRealTimeAlgorithm.cpp
+FLASHIda.cpp
 FLASHDeconvHelperStructs.cpp
 )
 

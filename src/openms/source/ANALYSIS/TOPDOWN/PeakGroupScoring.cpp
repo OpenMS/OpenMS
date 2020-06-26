@@ -253,7 +253,7 @@ namespace OpenMS
                                                                     double *perIsotopeIntensities,
                                                                     int perIsotopeIntensitiesSize,
                                                                     int &offset,
-                                                                    FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+                                                                    FLASHDeconvHelperStructs::PrecalculatedAveragine &avg)
   {
     auto iso = avg.get(mass);
     auto isoNorm = avg.getNorm(mass);
@@ -384,7 +384,7 @@ namespace OpenMS
   }
 
   std::vector<PeakGroup> &PeakGroupScoring::scoreAndFilterPeakGroups(unsigned int &msLevel,
-                                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg)
+                                                                     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg)
   {
     std::vector<PeakGroup> filteredPeakGroups;
     filteredPeakGroups.reserve(peakGroups.size());

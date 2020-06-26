@@ -36,7 +36,8 @@
 
 namespace OpenMS
 {
-  FLASHDeconvHelperStructs::PrecalcularedAveragine::PrecalcularedAveragine(double m,
+ 
+    FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,
                                                                            double M,
                                                                            double delta,
                                                                            CoarseIsotopePatternGenerator *generator)
@@ -118,35 +119,35 @@ namespace OpenMS
     }
   }
 
-  IsotopeDistribution FLASHDeconvHelperStructs::PrecalcularedAveragine::get(double mass)
+  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return isotopes[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getNorm(double mass)
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getNorm(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return norms[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getLeftIndex(double mass)
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftIndex(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return leftIndices[i];
   }
 
-  double FLASHDeconvHelperStructs::PrecalcularedAveragine::getAverageMassDelta(double mass)
+  double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
     return averageMassDelta[i];
   }
 
-  Size FLASHDeconvHelperStructs::PrecalcularedAveragine::getRightIndex(double mass)
+  Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightIndex(double mass)
   {
     Size i = (Size) (.5 + (mass - minMass) / massInterval);
     i = i >= isotopes.size() ? isotopes.size() - 1 : i;
@@ -189,6 +190,7 @@ namespace OpenMS
   {
   }
 
+
   double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (mass <= 0)
@@ -223,6 +225,17 @@ namespace OpenMS
     }
   };
 
+  FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(FLASHDeconvHelperStructs::Parameter& param)
+  {
+      auto generator = new CoarseIsotopePatternGenerator();
+      auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
+      maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+      param.maxIsotopeCount = (int)maxIso.size() - 1;
+      generator->setMaxIsotope((Size)param.maxIsotopeCount);
+      return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator);
+  }
+
+	
   double FLASHDeconvHelperStructs::getLogMz(double mz)
   {
     return std::log(mz - Constants::PROTON_MASS_U);

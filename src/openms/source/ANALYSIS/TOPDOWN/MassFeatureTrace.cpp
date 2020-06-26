@@ -7,7 +7,7 @@
 namespace OpenMS
 {
 
-  MassFeatureTrace::MassFeatureTrace(Parameter &p, Param &mp, PrecalcularedAveragine &avg): param(p), mtd_param(mp), averagines(avg)
+  MassFeatureTrace::MassFeatureTrace(Parameter &p, Param &mp, PrecalculatedAveragine &avg): param(p), mtd_param(mp), averagines(avg)
   {
 
   }

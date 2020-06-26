@@ -1,0 +1,117 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Kyowon Jeong, Jihyung Kim $
+// $Authors: Kyowon Jeong, Jihyung Kim $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
+
+#include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
+
+namespace OpenMS
+{
+    extern "C" OPENMS_DLLAPI FLASHIda * CreateFLASHIda(String inputParam)
+    {
+        std::cout << "FLASHIda construction wrapper\n";
+    	// parse inputParam as in TOPP
+        FLASHDeconvHelperStructs::Parameter param;
+        auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
+        return new FLASHIda(param, avg);
+    }
+
+    extern "C" OPENMS_DLLAPI void DisposeFLASHIda(
+        FLASHIda * pObject)
+    {
+        if (pObject != NULL)
+        {
+            delete pObject;
+            pObject = NULL; 
+        }
+        std::cout << "FLASHIda destruction wrapper\n";
+    }
+
+    extern "C" OPENMS_DLLAPI void TestCode(
+        FLASHIda * pObject, int* test, int nValue)
+    {
+        if (pObject != NULL)
+        {
+            pObject->testcode(test, nValue);
+        }
+    }
+
+    extern "C" OPENMS_DLLAPI int GetIsolationWindows(
+        FLASHIda * pObject, double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores)
+    {
+        if (pObject != NULL)
+        {
+            return pObject->getIsolationWindows(mzs, ints, length, msLevel, name, isolationWindows, qScores);
+        }
+        return 0;
+    }
+    // 
+
+    // constructor
+    FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine &a) :
+        param(p), avg(a)
+    {     
+        prevMassBinMap = std::vector<std::vector<Size>>();
+        prevMinBinLogMassMap = std::vector<double>();
+    }
+	
+    void FLASHIda::testcode(int* test, int length)
+    {
+        test[length - 1] = 100;
+    }
+
+    int FLASHIda::getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores)
+    {
+        auto spec = makeMSSpectrum(mzs, ints, length, msLevel, name);
+        auto sd = SpectrumDeconvolution(spec, param);
+        auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+            prevMinBinLogMassMap,
+            avg, msLevel);
+        return 1;
+    }
+
+    MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, String name)
+    {
+        auto *spec = new MSSpectrum();
+        for(auto i=0;i<length;i++)
+        {
+            auto *p = new Peak1D(mzs[i], ints[i]);
+            spec->push_back(*p);
+        }
+        spec->setMSLevel(msLevel);
+        spec->setName(name);
+        return *spec;
+    }
+
+}

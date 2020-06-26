@@ -179,15 +179,15 @@ protected:
     return param;
   }
 
-  static FLASHDeconvHelperStructs::PrecalcularedAveragine calculateAveragines(Parameter &param)
+ /* static FLASHDeconvHelperStructs::PrecalculatedAveragine calculateAveragines(Parameter &param)
   {
     auto generator = new CoarseIsotopePatternGenerator();
     auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
     maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
     param.maxIsotopeCount = (int) maxIso.size() - 1;
     generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalcularedAveragine(50, param.maxMass, 20, generator);
-  }
+    return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator);
+  }*/
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
@@ -199,7 +199,7 @@ protected:
     String outfilePath = getStringOption_("out");
 
     auto param = setParameter();
-    auto avgine = calculateAveragines(param);
+    auto avgine = FLASHDeconvHelperStructs::calculateAveragines(param);
 
     auto specCntr = new int[param.maxMSLevel];
     fill_n(specCntr, param.maxMSLevel, 0);
@@ -697,8 +697,6 @@ protected:
     std::cout << "] " << int(progress * 100.0) << " %\r";
     std::cout.flush();
   }
-
-
 };
 
 

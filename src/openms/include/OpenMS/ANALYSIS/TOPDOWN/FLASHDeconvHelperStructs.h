@@ -92,7 +92,7 @@ namespace OpenMS
       //int jitter = 0;
     };
 
-    struct OPENMS_DLLAPI PrecalcularedAveragine
+    struct OPENMS_DLLAPI PrecalculatedAveragine
     {
       std::vector<IsotopeDistribution> isotopes;
       std::vector<double> norms;
@@ -103,7 +103,7 @@ namespace OpenMS
       double massInterval;
       double minMass;
 
-      PrecalcularedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
+      PrecalculatedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
       IsotopeDistribution get(double mass);
       double getNorm(double mass);
       Size getLeftIndex(double mass);
@@ -144,6 +144,7 @@ namespace OpenMS
       std::size_t operator () (const LogMzPeak &key) const;
     };*/
 
+    static PrecalculatedAveragine calculateAveragines(Parameter& param);
     static double getLogMz(double mz);
   };
 }

@@ -558,7 +558,7 @@ namespace OpenMS
   /*void SpectrumDeconvolution::getCandidatePeakGroups(double &mzBinMinValue, double &massBinMinValue,
                                                        float *massIntensities,
                                                        Byte **chargeRanges,
-                                                       FLASHDeconvHelperStructs::PrecalcularedAveragine &avg
+                                                       FLASHDeconvHelperStructs::PrecalculatedAveragine &avg
     )
     {
       double binWidth = param.binWidth;
@@ -786,7 +786,7 @@ namespace OpenMS
   void SpectrumDeconvolution::getCandidatePeakGroups(double &mzBinMinValue, double &massBinMinValue,
                                                      float *massIntensities,
                                                      Byte **chargeRanges,
-                                                     FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                                     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                      unsigned int &msLevel
   )
   {
@@ -1057,7 +1057,7 @@ namespace OpenMS
 
   std::vector<PeakGroup> &SpectrumDeconvolution::getPeakGroupsFromSpectrum(std::vector<std::vector<Size>> &prevMassBinVector,
                                                                                                   std::vector<double> &prevMinBinLogMassVector,
-                                                                                                  FLASHDeconvHelperStructs::PrecalcularedAveragine &avg,
+                                                                                                  FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                                                                   unsigned int msLevel)
   {
     auto minContinuousChargePeakCount =

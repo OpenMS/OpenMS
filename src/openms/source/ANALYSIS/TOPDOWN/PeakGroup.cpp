@@ -49,7 +49,7 @@ namespace OpenMS
         && this->intensity == a.intensity;
   }
 
-  void PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalcularedAveragine &averagines,
+  void PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
                                                                      int offset,
                                                                      int maxIsoIndex)
   {

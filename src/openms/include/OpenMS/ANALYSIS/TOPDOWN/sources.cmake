@@ -9,7 +9,7 @@ PeakGroup.h
 PeakGroupScoring.h
 SpectrumDeconvolution.h
 FLASHDeconvAlgorithm.h
-FLASHDeconvRealTimeAlgorithm.h
+FLASHIda.h
 FLASHDeconvHelperStructs.h
 )
 
