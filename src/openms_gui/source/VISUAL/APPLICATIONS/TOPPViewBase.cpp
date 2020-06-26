@@ -45,7 +45,7 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OPENMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
