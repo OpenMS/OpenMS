@@ -231,18 +231,16 @@ protected:
         double bin_size = maxInt / 100;
 
         // fill histogram
-        PeakIterator run = scan_first_;
-        while (run != scan_last_)
+        for(auto& run : c)
         {
-          ++histogram_auto[(int) (((*run).getIntensity() - 1) / bin_size)];
-          ++run;
+            ++histogram_auto[(int) (((run).getIntensity() - 1) / bin_size)];
         }
 
         // add up element counts in histogram until ?th percentile is reached
         int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
         int elements_seen = 0;
         int i = -1;
-        run = scan_first_;
+        PeakIterator run = scan_first_;
 
         while (run != scan_last_ && elements_seen < elements_below_percentile)
         {

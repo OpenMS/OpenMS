@@ -327,9 +327,9 @@ namespace OpenMS
       sne.setParameters(p);
       sne.init(annotated_spectra[i]);
       double avgSNR { 0 };
-      for (Size it = 0; it < annotated_spectra[i].size(); ++it)
+      for (Size j = 0; j < annotated_spectra[i].size(); ++j)
       {
-        avgSNR += sne.getSignalToNoise(it);
+        avgSNR += sne.getSignalToNoise(j);
       }
       avgSNR /= annotated_spectra[i].size();
 

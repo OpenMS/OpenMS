@@ -851,14 +851,16 @@ protected:
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
         Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
-        for (Size it = 0; it != exp.size(); ++it)
+//        for (Size it = 0; it != exp.size(); ++it)
+        for(auto& spec : exp)
         {
-          snm.init(exp[it]);
-          for (Size spec = 0; spec != exp[it].size(); ++spec)
+//          snm.init(exp[it]);
+          snm.init(spec);
+          for (Size i = 0; i != spec.size(); ++i)
           {
-            if (snm.getSignalToNoise(spec) < sn) exp[it][spec].setIntensity(0);
+            if (snm.getSignalToNoise(i) < sn) spec[i].setIntensity(0);
           }
-          exp[it].erase(remove_if(exp[it].begin(), exp[it].end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), exp[it].end());
+          spec.erase(remove_if(spec.begin(), spec.end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), spec.end());
         }
       }
 

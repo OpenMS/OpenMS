@@ -105,7 +105,7 @@ public:
     ///Return to signal/noise estimate for date point @p index
     ///@note you will get a warning to stderr if more than 20% of the
     ///      noise estimates used sparse windows
-    virtual double getSignalToNoise(const Size index)
+    virtual double getSignalToNoise(const Size index) const
     {
       OPENMS_POSTCONDITION(index < stn_estimates_.size(),"SignalToNoiseEstimator estimates beyond container size was requested.");
       return stn_estimates_[index];
