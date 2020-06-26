@@ -456,17 +456,18 @@ namespace OpenMS
       cmp.setChargeState(charge);
       if (description == "UNKNOWN")
       {
+        std::cout << "tgc: " << transition_group_counter << std::endl;
         description = String(description + "_" + transition_group_counter);
       }
       if (decoy == 0)
       {
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+        cmp.id = String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter;
         cmp.setMetaValue("CompoundName", description);
       }
       else
       {
         description = String(description + "_decoy");
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
+        cmp.id = String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter;
         cmp.setMetaValue("CompoundName", description);
       }
 
@@ -475,6 +476,10 @@ namespace OpenMS
       cmp.molecular_formula = sumformula;
       cmp.setMetaValue("Adducts", adduct);
       cmp.setMetaValue("decoy", decoy);
+      if (!csp.first.native_ids_id.empty())
+      {
+        cmp.setMetaValue("native_ids_id", csp.first.native_ids_id);
+      }
 
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
@@ -518,12 +523,14 @@ namespace OpenMS
           product.setChargeState(1); // TODO: automatise - charge from adduct
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
-          rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
-          rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" +
-                          file_counter);
+          rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter);
+          rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + adduct + "_" + file_counter);
           rmt.setMetaValue("annotation", DataValue(current_explanation));
-
-          if(decoy)
+          if (!csp.first.native_ids_id.empty())
+          {
+            rmt.setMetaValue("native_ids_id", csp.first.native_ids_id);
+          }
+          if (decoy)
           {
             rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
           }

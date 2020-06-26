@@ -335,12 +335,40 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   set_tests_properties("UTILS_AssayGeneratorMetabo_10" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
   set_tests_properties("UTILS_AssayGeneratorMetabo_10_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_10")
 
-  # use AccurateMassSearch data + fragment mass restriction + decoy generation
+  # use AccurateMassSearch data + fragment mass restriction + decoy generation (original).
   # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
-  add_test("UTILS_AssayGeneratorMetabo_11" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv  -fragment_annotation sirius -decoy_generation -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_11" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 3 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
   add_test("UTILS_AssayGeneratorMetabo_11_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_decoy_output.tsv -whitelist "Guthion_decoy")
   set_tests_properties("UTILS_AssayGeneratorMetabo_11" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_10")
   set_tests_properties("UTILS_AssayGeneratorMetabo_11_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_11")
+
+  # use AccurateMassSearch data + fragment mass restriction + decoy generation (original).
+  # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
+  add_test("UTILS_AssayGeneratorMetabo_12" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method original -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_12_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_original.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_original.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_0")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_12" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_11")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_12_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_12")
+  
+  # use AccurateMassSearch data + fragment mass restriction + decoy generation (resolve overlap).
+  # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
+  add_test("UTILS_AssayGeneratorMetabo_13" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method resolve_overlap -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_13_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_resolve_overlap.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_0")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_13" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_12")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_13_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_13")
+
+  # use AccurateMassSearch data + fragment mass restriction + decoy generation (add_shift).
+  # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
+  add_test("UTILS_AssayGeneratorMetabo_14" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method add_shift -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_14_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_add_shift.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_add_shift.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_0")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_14" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_13")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_14_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_14")
+
+  # use AccurateMassSearch data + fragment mass restriction + decoy generation (both).
+  # whitelist Guthion_decoy, since fragmentation tree re-rooting has multiple possible solutions.
+  add_test("UTILS_AssayGeneratorMetabo_15" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_input.featureXML -out AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv  -fragment_annotation sirius -decoy_generation -decoy_generation_method both  -use_exact_mass -transition_threshold 3.0 -min_transitions 1 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_15_out1" ${DIFF} -in1 AssayGeneratorMetabo_decoy_generation_output_both.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_decoy_generation_output_both.tsv -whitelist "0_2_Proquinazid_decoy_[M+H]+_0")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_15" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_14")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_15_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_15")
   endif()
 
   # Note that with FingerID, output for compound 79 without feature only
@@ -351,7 +379,6 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   endif()
 
 endif()
-
 
 #------------------------------------------------------------------------------
 if (NOT (${NOVOR_BINARY} STREQUAL "NOVOR_BINARY-NOTFOUND"))

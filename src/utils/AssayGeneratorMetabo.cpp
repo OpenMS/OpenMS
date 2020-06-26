@@ -53,9 +53,9 @@
 #include <QDir>
 #include <algorithm>
 #include <map>
+#include <regex>
 
 using namespace OpenMS;
-using namespace std;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -144,6 +144,9 @@ protected:
 
     registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting appraoch. This option does only work in combination with the fragment annotation via sirius.", false);
 
+    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach (original). This approach can be extended by using resolve_overlap, which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. Add_shift which will add a -CH2 mass shift to the target fragments and use them as additional decoy if fragmentation-tree re-rooting failed. Both combines the extended methods (resolve_overlap, add_shift).",false);
+    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
+
     registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum ist used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
@@ -187,6 +190,55 @@ protected:
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
+  struct TargetDecoyMassMapping
+  {
+    String identifier;
+    String target_compound_ref;
+    String decoy_compound_ref;
+    vector<double> target_product_masses;
+    vector<double> decoy_product_masses;
+  };
+
+  vector<TargetDecoyMassMapping> constructTargetDecoyMassMapping(TargetedExperiment const &t_exp,
+                                                                 vector<String> const &identifier) const
+  {
+    vector<ReactionMonitoringTransition> rmts = t_exp.getTransitions();
+    vector<TargetDecoyMassMapping> mappings;
+    for (const auto &it : identifier)
+    {
+      TargetDecoyMassMapping mapping;
+      mapping.identifier = it;
+      auto it_target = rmts.begin();
+      while ((it_target = find_if(it_target,
+                                  rmts.end(),
+                                  [&it](ReactionMonitoringTransition &rts)
+                                  {
+                                    return rts.getMetaValue("native_ids_id") == it &&
+                                           rts.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET;
+                                  })) != rmts.end())
+      {
+        mapping.target_product_masses.emplace_back(it_target->getProductMZ());
+        mapping.target_compound_ref = it_target->getCompoundRef();
+        it_target++;
+      }
+      auto it_decoy = rmts.begin();
+      while ((it_decoy = find_if(it_decoy,
+                                 rmts.end(),
+                                 [&it](ReactionMonitoringTransition &rts)
+                                 {
+                                   return rts.getMetaValue("native_ids_id") == it &&
+                                          rts.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY;
+                                 })) != rmts.end())
+      {
+        mapping.decoy_product_masses.emplace_back(it_decoy->getProductMZ());
+        mapping.decoy_compound_ref = it_decoy->getCompoundRef();
+        it_decoy++;
+      }
+      mappings.emplace_back(mapping);
+    }
+    return mappings;
+  }
+
   static bool extractAndCompareScanIndexLess_(const String& i, const String& j)
   {
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
@@ -215,6 +267,31 @@ protected:
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
+    String decoy_generation_method = getStringOption_("decoy_generation_method");
+    bool original = false;
+    bool resolve_overlap = false;
+    bool add_shift = false;
+    if (decoy_generation_method == "original" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting." << std::endl;
+      original = true;
+    }
+    else if (decoy_generation_method == "resolve_overlap" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and overlap resolution." << std::endl;
+      resolve_overlap = true;
+    }
+    else if (decoy_generation_method == "add_shift" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      add_shift = true;
+    }
+    else if (decoy_generation_method == "both" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting with overlap resolution and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      resolve_overlap = true;
+      add_shift = true;
+    }
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
     double min_fragment_mz = getDoubleOption_("min_fragment_mz");
@@ -439,14 +516,19 @@ protected:
         for (const auto& subdir : subdirs)
         {
           MSSpectrum annotated_spectrum;
-          MSSpectrum decoy_spectrum;
+
           SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
                                                                            annotated_spectrum, 
                                                                            use_exact_mass);
-          SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
-                                                                        decoy_spectrum);
           annotated_spectra.push_back(std::move(annotated_spectrum));
-          annotated_decoys.push_back(std::move(decoy_spectrum));
+
+          if (decoy_generation)
+          {
+            MSSpectrum decoy_spectrum;
+            SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
+                                                                          decoy_spectrum);
+            annotated_decoys.push_back(std::move(decoy_spectrum));
+          }
         }
 
 
@@ -470,15 +552,19 @@ protected:
         }
 
         // pair compoundInfo and fragment annotation msspectrum (using the mid)
-        for (const auto& cmp : v_cmpinfo)
+        // TODO: extract to function!
+        if (decoy_generation)
         {
-          for (const auto& spec_fa : annotated_decoys)
+          for (const auto& cmp : v_cmpinfo)
           {
-            if (cmp.mids_id == spec_fa.getName())
+            for (const auto& spec_fa : annotated_decoys)
             {
-              MetaboTargetedAssay::CompoundSpectrumPair csp;
-              csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
-              v_cmp_decoy.push_back(std::move(csp));
+              if (cmp.mids_id == spec_fa.getName())
+              {
+                MetaboTargetedAssay::CompoundSpectrumPair csp;
+                csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
+                v_cmp_decoy.push_back(std::move(csp));
+              }
             }
           }
         }
@@ -592,20 +678,57 @@ protected:
                                                                   exclude_ms2_precursor,
                                                                   file_counter);
       }
-      
-      // append potential transitions of one file to vector of all files
-      v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
+
       if (decoy_generation)
       {
+        // resolve ambiguity of transition_group_counter over the native_ids_id (same MS2 Spectra)
+        // due to independent processing (MetaboTargetedAssay) - resolve per file (tmp_mta, tmp_decoy)
+        vector<String> identifier;
+        for (const auto& it : tmp_mta)
+        {
+          identifier.emplace_back(it.potential_cmp.getMetaValue("native_ids_id"));
+        }
+
+        for (const auto& it : identifier)
+        {
+          auto it_target = std::find_if(tmp_mta.begin(), tmp_mta.end(), [&it](MetaboTargetedAssay& m_assay) { return m_assay.potential_cmp.getMetaValue("native_ids_id") == it; } );
+          auto it_decoy = std::find_if(tmp_decoy.begin(), tmp_decoy.end(), [&it](MetaboTargetedAssay& m_assay) { return m_assay.potential_cmp.getMetaValue("native_ids_id") == it; });
+
+          if(it_target != tmp_mta.end() && it_decoy != tmp_decoy.end())
+          {
+            String target_counter = it_target->potential_cmp.id.substr(0, it_target->potential_cmp.id.find("_"));
+            String decoy_counter = it_decoy->potential_cmp.id.substr(0, it_decoy->potential_cmp.id.find("_"));
+
+            if (target_counter == decoy_counter)
+            {
+              continue;
+            }
+            else
+            {
+              String compound_ref = std::regex_replace(it_decoy->potential_cmp.id , std::regex(decoy_counter),target_counter);
+              it_decoy->potential_cmp.id = compound_ref;
+
+              for (auto& it : it_decoy->potential_rmts)
+              {
+                it.setCompoundRef(compound_ref);
+                String native_ref = std::regex_replace(it.getNativeID(), std::regex(decoy_counter),target_counter);
+                it.setNativeID(native_ref);
+              }
+            }
+          }
+        }
         v_mta.insert(v_mta.end(),tmp_decoy.begin(), tmp_decoy.end());
       }
+      // append potential transitions of one file to vector of all files
+      v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
+
     } // end iteration over all files
 
     // use first rank based on precursor intensity
     std::map< std::pair <String,String>, MetaboTargetedAssay > map_mta;
     for (const auto& it : v_mta)
     {
-      pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
+      std::pair<String,String> pair_mta = make_pair(it.compound_name, it.compound_adduct);
       // check if value in map with key k does not exists and fill with current pair
       if (map_mta.count(pair_mta) == 0)
       {
@@ -622,8 +745,6 @@ protected:
         }
       }
     }
-
-    // TODO: Add resolution of overlapping fragments (parameterised)
 
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
@@ -642,9 +763,302 @@ protected:
     // use MRMAssay methods for filtering
     MRMAssay assay;
 
-    // filter: min/max transitions
-    // TODO: Should decoys be filtered by min transition?
+    // sort by highest intensity - filter:  min/max transitions (targets), filter: max transitions (decoys)
+    // e.g. if only one decoy is available it will not be filtered out!
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
+
+    // TODO: is that necessary?
+    // remove decoys which do not have a respective target after min/max transition filtering
+    if (decoy_generation)
+    {
+      vector<TargetedExperiment::Compound> compounds = t_exp.getCompounds();
+      vector<String> descriptions_without_transition_group_counter_targets;
+      vector<String> descriptions_without_transition_group_counter_decoys;
+      vector<std::pair<String,String>> reference_decoys;
+      vector<String> difference_target_decoys;
+      vector<String> description_decoys;
+      vector<String> lone_decoy_id;
+
+      // TODO: another option would probably be to go over the identifier native_id?
+      for (const auto &it : compounds)
+      {
+        if (it.id.find("decoy") != std::string::npos)
+        {
+          String current_decoy = it.id;
+          String potential_target = std::regex_replace(current_decoy, std::regex("_decoy"),"");
+          description_decoys.emplace_back(current_decoy);
+          descriptions_without_transition_group_counter_decoys.emplace_back(potential_target);
+          reference_decoys.emplace_back(std::make_pair(current_decoy,potential_target));
+        }
+        else
+        {
+          descriptions_without_transition_group_counter_targets.emplace_back(it.id);
+        }
+      }
+
+      std::set_difference(descriptions_without_transition_group_counter_decoys.begin(),
+                          descriptions_without_transition_group_counter_decoys.end(),
+                          descriptions_without_transition_group_counter_targets.begin(),
+                          descriptions_without_transition_group_counter_targets.end(),
+                          std::inserter(difference_target_decoys, difference_target_decoys.begin()));
+
+      for (const auto &it : difference_target_decoys)
+      {
+        auto iter = std::find_if(reference_decoys.begin(), reference_decoys.end(), [&it](const std::pair<String, String>& element) { return element.second == it; } );
+        if (iter != reference_decoys.end())
+        {
+          lone_decoy_id.emplace_back(iter->first);
+        }
+      }
+
+      vector<TargetedExperiment::Compound> filtered_compounds;
+      for (Size i = 0; i < t_exp.getCompounds().size(); ++i)
+      {
+        TargetedExperiment::Compound compound = t_exp.getCompounds()[i];
+
+        // Check if decoy was filtered
+        if (std::find(lone_decoy_id.begin(), lone_decoy_id.end(), compound.id) != lone_decoy_id.end())
+        {
+          OPENMS_LOG_INFO<< "The decoy " << compound.id << "was filtered due to missing a respective target." << std::endl;
+        }
+        else
+        {
+          filtered_compounds.push_back(compound);
+        }
+      }
+
+      vector<ReactionMonitoringTransition> filtered_transitions;
+      for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
+      {
+        ReactionMonitoringTransition transition = t_exp.getTransitions()[i];
+
+        // Check if compound has any transitions left
+        if (std::find(lone_decoy_id.begin(), lone_decoy_id.end(), transition.getCompoundRef()) != lone_decoy_id.end())
+        {
+          OPENMS_LOG_INFO << "The decoy " << transition.getCompoundRef() << "was filtered due to missing a respective target." << std::endl;
+        }
+        else
+        {
+          filtered_transitions.push_back(transition);
+        }
+      }
+      t_exp.setCompounds(filtered_compounds);
+      t_exp.setTransitions(filtered_transitions);
+    }
+
+
+    // resolve overlapping target and decoy masses
+    // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
+    // the intensities based on the previous fragmentation tree), overlapping masses between targets
+    // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
+    if (decoy_generation && !original)
+    {
+      const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
+
+      vector<String> identifier;
+      for (const auto &it : t_exp.getCompounds())
+      {
+        // only need to extract identfier from the targets, since targets and decoys have the same one
+        if (it.getMetaValue("decoy") == DataValue(0))
+        {
+          identifier.emplace_back(it.getMetaValue("native_ids_id"));
+        }
+      }
+
+      vector<TargetDecoyMassMapping> mappings = constructTargetDecoyMassMapping(t_exp, identifier);
+
+      if (resolve_overlap)
+      {
+        // compare targets and decoy masses
+        for (auto &it : mappings)
+        {
+          vector<double> intersection;
+          vector<double> replace_intersection;
+          std::set_intersection(it.target_product_masses.begin(),
+                                it.target_product_masses.end(),
+                                it.decoy_product_masses.begin(),
+                                it.decoy_product_masses.end(),
+                                std::back_inserter(intersection));
+
+          if (!intersection.empty())
+          {
+            std::transform(intersection.begin(),
+                           intersection.end(),
+                           std::back_inserter(replace_intersection),
+                           [chtwo_mass](double d) -> double { return d + chtwo_mass; });
+            for (unsigned int i = 0; i < replace_intersection.size(); i++)
+            {
+              std::replace(it.decoy_product_masses.begin(),
+                           it.decoy_product_masses.end(),
+                           intersection[i],
+                           replace_intersection[i]);
+            }
+          }
+        }
+
+        std::vector<OpenMS::ReactionMonitoringTransition> transitions2;
+        Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap2;
+        // Generate a map of compounds to transitions for easy access
+        for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
+        {
+          ReactionMonitoringTransition tr = t_exp.getTransitions()[i];
+
+          if (TransitionsMap2.find(tr.getCompoundRef()) == TransitionsMap2.end())
+          {
+            TransitionsMap2[tr.getCompoundRef()];
+          }
+
+          TransitionsMap2[tr.getCompoundRef()].push_back(tr);
+        }
+
+        for (Map<String, std::vector<OpenMS::ReactionMonitoringTransition> >::iterator m = TransitionsMap2.begin();
+             m != TransitionsMap2.end(); ++m)
+        {
+          for (const auto &it : mappings)
+          {
+            if (it.decoy_compound_ref == m->first)
+            {
+              // should have the same length
+              if (it.decoy_product_masses.size() == m->second.size())
+              {
+                for (size_t i = 0; i < it.decoy_product_masses.size(); ++i)
+                {
+                  ReactionMonitoringTransition tr = m->second[i];
+                  tr.setProductMZ(it.decoy_product_masses[i]);
+                  transitions2.push_back(tr);
+                }
+              }
+            }
+            else if (it.target_compound_ref == m->first)
+            {
+              transitions2.insert(transitions2.end(), m->second.begin(), m->second.end());
+            }
+          }
+        }
+        t_exp.setTransitions(transitions2);
+      }
+
+      if (add_shift)
+      {
+        // Add a decoy based on the target masses (+ CH2) if fragmentation tree re-rooting was not possible
+        for (auto &it : mappings)
+        {
+          if (it.decoy_product_masses.size() != it.target_product_masses.size())
+          {
+            // decoy was not generated by passatutto
+            if (it.decoy_compound_ref.empty())
+            {
+              it.decoy_compound_ref = std::regex_replace(it.target_compound_ref, std::regex("_\\["), "_decoy_[");
+              std::transform(it.target_product_masses.begin(),
+                             it.target_product_masses.end(),
+                             std::back_inserter(it.decoy_product_masses),
+                             [chtwo_mass](double d) -> double { return d + chtwo_mass; });
+            }
+          }
+        }
+
+        std::vector<OpenMS::ReactionMonitoringTransition> transitions;
+        Map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
+        // Generate a map of compounds to transitions for easy access
+        for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
+        {
+          ReactionMonitoringTransition tr = t_exp.getTransitions()[i];
+
+          if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
+          {
+            TransitionsMap[tr.getCompoundRef()];
+          }
+
+          TransitionsMap[tr.getCompoundRef()].push_back(tr);
+        }
+
+        vector<TargetedExperiment::Compound> compounds_2;
+        vector<ReactionMonitoringTransition> transitions_2;
+        for (const auto &it : mappings)
+        {
+          const auto it_target = std::find_if(t_exp.getCompounds().begin(),
+                                              t_exp.getCompounds().end(),
+                                              [&it](const TargetedExperiment::Compound &comp)
+                                              {
+                                                return comp.id == it.target_compound_ref;
+                                              });
+          const auto it_decoy = std::find_if(t_exp.getCompounds().begin(),
+                                             t_exp.getCompounds().end(),
+                                             [&it](const TargetedExperiment::Compound &comp)
+                                             {
+                                               return comp.id == it.decoy_compound_ref;
+                                             });
+
+          if (it_target != t_exp.getCompounds().end())
+          {
+            compounds_2.emplace_back(*it_target);
+            if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+            {
+              // push_back / insert ReactionMonitoringTrasitions transitions to the vector!
+              transitions_2.insert(transitions_2.end(),
+                                   TransitionsMap[it_target->id].begin(),
+                                   TransitionsMap[it_target->id].end());
+            }
+          }
+          if (it_decoy != t_exp.getCompounds().end())
+          {
+            compounds_2.emplace_back(*it_decoy);
+            if (TransitionsMap.find(it_decoy->id) != TransitionsMap.end())
+            {
+              transitions_2.insert(transitions_2.end(),
+                                   TransitionsMap[it_decoy->id].begin(),
+                                   TransitionsMap[it_decoy->id].end());
+            }
+          }
+          else // decoy does not exists in TargetedExperimentCompound
+          {
+            // use the corresponding target compound to generate a new decoy
+            // and add the decoy transitions.
+            TargetedExperiment::Compound potential_decoy_compound = *it_target;
+            vector<ReactionMonitoringTransition> potential_decoy_transitions;
+
+            String current_compound_name = potential_decoy_compound.getMetaValue("CompoundName");
+            potential_decoy_compound.setMetaValue("CompoundName", String(current_compound_name + "_decoy"));
+            potential_decoy_compound.id = it.decoy_compound_ref;
+            potential_decoy_compound.setMetaValue("decoy", DataValue(1));
+
+            if (TransitionsMap.find(it_target->id) != TransitionsMap.end())
+            {
+              potential_decoy_transitions = TransitionsMap[it_target->id];
+              for (size_t i = 0; i < potential_decoy_transitions.size(); ++i)
+              {
+                potential_decoy_transitions[i]
+                    .setNativeID(std::regex_replace(potential_decoy_transitions[i].getNativeID(),
+                                                    std::regex("_\\["),
+                                                    "_decoy_["));
+                potential_decoy_transitions[i]
+                    .setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
+                potential_decoy_transitions[i].setMetaValue("annotation", "NA");
+                potential_decoy_transitions[i].setProductMZ(it.decoy_product_masses[i]);
+                potential_decoy_transitions[i].setCompoundRef(it.decoy_compound_ref);
+              }
+            }
+            else
+            {
+              // throw error
+            }
+
+            // TODO: check if transitions vector is empty?
+            // only push_back if everything worked!!
+            compounds_2.emplace_back(potential_decoy_compound);
+            transitions_2
+                .insert(transitions_2.end(), potential_decoy_transitions.begin(), potential_decoy_transitions.end());
+
+            // copy current target and use it as decoy - annotate decoy_compound_ref
+            // In next step fill the ReactionMonitoringTransitions based on the CompoundRef?
+            // Need also ReactionMonitoringTransitions?
+            // TODO: What would be the best way to do that?
+          }
+        }
+        t_exp.setCompounds(compounds_2);
+        t_exp.setTransitions(transitions_2);
+      }
+    }
 
     //-------------------------------------------------------------
     // writing output

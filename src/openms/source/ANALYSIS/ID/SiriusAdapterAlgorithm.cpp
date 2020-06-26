@@ -453,7 +453,6 @@ namespace OpenMS
 
     }
 
-    // TODO: how to call passatutto
     void SiriusAdapterAlgorithm::Passatutto::parameters()
     {
 //      Usage: night-sky passatutto [-hV] [COMMAND]
@@ -644,7 +643,6 @@ namespace OpenMS
   // ################
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
-    //TODO: use bool (decoy generation) for now - if a output should be supported later e.g. use const String& out_decoy
     const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                          const String& tmp_out_dir,
                                                                          String& executable,

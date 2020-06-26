@@ -1005,7 +1005,9 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  // TODO probably rename - since it has nothing to do with the original function anymore!
+  // TODO add a second function, but would be a lot of code duplication!
+  void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
     std::vector<String> compound_ids;
@@ -1013,6 +1015,7 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
 
     Map<String, TransitionVectorType> TransitionsMap;
 
+    // Generate a map of compounds to transitions for easy access
     // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
@@ -1029,9 +1032,9 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
-      // Ensure that all precursors have the minimum number of transitions
-      if (m->second.size() >= (Size)min_transitions)
-      {
+        // Ensure that all precursors have the minimum number of transitions or are a decoy transitions
+        if (m->second.size() >= (Size)min_transitions || m->second[0].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
         for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
@@ -1098,5 +1101,4 @@ void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int
     exp.setTransitions(transitions);
     exp.setCompounds(compounds);
   }
-
 }
