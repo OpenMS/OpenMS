@@ -182,7 +182,7 @@ protected:
 
     /** Calculate signal-to-noise values for all data points given, by using a sliding window approach
      
-        @param c raw data
+        @param c Raw data, usually an MSSpectrum
         @exception Throws Exception::InvalidValue
     */
     void computeSTN_(const Container& c) override
@@ -231,9 +231,9 @@ protected:
         double bin_size = maxInt / 100;
 
         // fill histogram
-        for(auto& run : c)
+        for(const auto& peak : c)
         {
-            ++histogram_auto[(int) (((run).getIntensity() - 1) / bin_size)];
+            ++histogram_auto[(int) ((peak.getIntensity() - 1) / bin_size)];
         }
 
         // add up element counts in histogram until ?th percentile is reached
