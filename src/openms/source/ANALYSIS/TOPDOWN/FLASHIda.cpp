@@ -41,8 +41,8 @@ namespace OpenMS
    
 
     // constructor
-    FLASHIda::FLASHIda()//Parameter& p, PrecalculatedAveragine &a) :
-      //  param(p), avg(a)
+    FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine &a) :
+        param(p), avg(a)
     {
         prevMassBinMap = std::vector<std::vector<Size>>();
         prevMinBinLogMassMap = std::vector<double>();

@@ -51,8 +51,8 @@ namespace OpenMS
       typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
       typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-      FLASHIda();
-      //FLASHIda(Parameter& p, PrecalculatedAveragine &a);
+      //FLASHIda();
+      FLASHIda(Parameter& p, PrecalculatedAveragine &a);
       virtual ~FLASHIda() = default;
   	
       void testcode(int* test, int length);
@@ -60,8 +60,8 @@ namespace OpenMS
       int getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores);
   	
   protected:
-      //Parameter& param;
-     // PrecalculatedAveragine &avg;
+      Parameter& param;
+      PrecalculatedAveragine &avg;
   	
       std::vector<std::vector<Size>> prevMassBinMap;
       std::vector<double> prevMinBinLogMassMap;

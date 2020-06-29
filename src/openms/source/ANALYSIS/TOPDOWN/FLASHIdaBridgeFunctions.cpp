@@ -32,8 +32,35 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIDaBridgeFunctions.h>
+
 
 namespace OpenMS
 {
+    FLASHIda * CreateFLASHIda()
+    {
+        FLASHDeconvHelperStructs::Parameter param;
+        param.maxMass = 10000;
+        auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
+
+        std::cout << avg.get(200)[0].getIntensity() << std::endl;
+        return new FLASHIda(param, avg);
+    }
+
+    void DisposeFLASHIda(FLASHIda * pObject)
+    {
+        if (pObject != NULL)
+        {
+            delete pObject;
+            pObject = NULL;
+        }
+    }
+
+	void TestCode(FLASHIda * pObject, int* arg, int length)
+    {
+        if (pObject != NULL)
+        {
+            pObject->testcode(arg, length);
+        }
+    }
 }
