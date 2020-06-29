@@ -60,11 +60,11 @@ namespace OpenMS
 
     std::vector<PeakGroup> peakGroups;
 
-    long *binOffsets;
-    long **hBinOffsets;
+    long *binOffsets{};
+    long **hBinOffsets{};
 
-    double *filter;
-    double **harmonicFilter;
+    double *filter{};
+    double **harmonicFilter{};
     //PrecalculatedAveragine averagines;
 
     static double getBinValue(Size bin, double minV, double binWidth);

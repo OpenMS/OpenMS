@@ -57,18 +57,18 @@ namespace OpenMS
   {
     struct OPENMS_DLLAPI Parameter
     {
-      int minCharge;
-      double minMass;
-      double maxMass;
-      double currentMaxMass;
-      DoubleList tolerance;
+      int minCharge = 1;
+      double minMass = 50;
+      double maxMass = 100000;
+      double currentMaxMass = 100000;
+      DoubleList tolerance = {10, 5};
       String fileName;// up to here: ordinary user accessible parameters
 
-      double intensityThreshold;// advanced parameters
-      DoubleList minIsotopeCosine;
-      double minChargeCosine;
+      double intensityThreshold = 0;// advanced parameters
+      DoubleList minIsotopeCosine = {.75, .75};
+      double minChargeCosine = .8;
 
-      IntList minContinuousChargePeakCount;
+      IntList minContinuousChargePeakCount = {3, 2};
       int maxIsotopeCount;
       IntList maxMassCount;
 
@@ -79,8 +79,8 @@ namespace OpenMS
       double RTwindow;
       double minRTSpan;
       std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
-      int chargeRange;
-      int currentChargeRange;
+      int chargeRange = 100;
+      int currentChargeRange = 100;
       DoubleList binWidth;
       UInt minNumOverLappedScans = 15;
       std::vector<UInt> numOverlappedScans;

@@ -40,7 +40,7 @@ namespace OpenMS
     FLASHIda * CreateFLASHIda()
     {
         FLASHDeconvHelperStructs::Parameter param;
-        param.maxMass = 10000;
+        //param.maxMass = 10000;
         auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
 
         std::cout << avg.get(200)[0].getIntensity() << std::endl;
@@ -49,18 +49,26 @@ namespace OpenMS
 
     void DisposeFLASHIda(FLASHIda * pObject)
     {
-        if (pObject != NULL)
+        if (pObject != nullptr)
         {
             delete pObject;
-            pObject = NULL;
+            pObject = nullptr;
         }
     }
 
 	void TestCode(FLASHIda * pObject, int* arg, int length)
     {
-        if (pObject != NULL)
+        if (pObject != nullptr)
         {
             pObject->testcode(arg, length);
         }
+    }
+    int GetIsolationWindows(FLASHIda* pObject, double* mzs, double* ints, int length, int msLevel, char* name, double* wstart, double* wend, double* qScores)
+    {
+        if (pObject != nullptr)
+        {
+            return pObject->getIsolationWindows(mzs, ints, length, msLevel, name, wstart, wend, qScores);
+        }
+        return -1;
     }
 }

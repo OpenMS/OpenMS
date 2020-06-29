@@ -53,17 +53,20 @@ namespace OpenMS
         test[length - 1] = 100;
     }
 
-    int FLASHIda::getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores)
+    int FLASHIda::getIsolationWindows(double* mzs, double* ints, int length, int msLevel, char* name, double* wstart, double* wend, double* qScores)
     {
         auto spec = makeMSSpectrum(mzs, ints, length, msLevel, name);
-        //auto sd = SpectrumDeconvolution(spec, param);
-        //auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-        //    prevMinBinLogMassMap,
-         //   avg, msLevel);
+        std::cout << 1 << std::endl;
+        auto sd = SpectrumDeconvolution(spec, param);
+        std::cout << 2 << std::endl;
+        auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+            prevMinBinLogMassMap,
+            avg, msLevel);
+        std::cout << 3 << std::endl;
         return 1;
     }
 
-    MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, String name)
+    MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, char* name)
     {
         auto *spec = new MSSpectrum();
         for(auto i=0;i<length;i++)
