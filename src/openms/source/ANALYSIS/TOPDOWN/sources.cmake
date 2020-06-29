@@ -11,6 +11,7 @@ SpectrumDeconvolution.cpp
 FLASHDeconvAlgorithm.cpp
 FLASHIda.cpp
 FLASHDeconvHelperStructs.cpp
+FLASHIdaBridgeFunctions.cpp
 )
 
 ### add path to the filenames

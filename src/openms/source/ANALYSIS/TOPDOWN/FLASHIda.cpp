@@ -38,50 +38,12 @@
 
 namespace OpenMS
 {
-    extern "C" OPENMS_DLLAPI FLASHIda * CreateFLASHIda(String inputParam)
-    {
-        std::cout << "FLASHIda construction wrapper\n";
-    	// parse inputParam as in TOPP
-        FLASHDeconvHelperStructs::Parameter param;
-        auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
-        return new FLASHIda(param, avg);
-    }
-
-    extern "C" OPENMS_DLLAPI void DisposeFLASHIda(
-        FLASHIda * pObject)
-    {
-        if (pObject != NULL)
-        {
-            delete pObject;
-            pObject = NULL; 
-        }
-        std::cout << "FLASHIda destruction wrapper\n";
-    }
-
-    extern "C" OPENMS_DLLAPI void TestCode(
-        FLASHIda * pObject, int* test, int nValue)
-    {
-        if (pObject != NULL)
-        {
-            pObject->testcode(test, nValue);
-        }
-    }
-
-    extern "C" OPENMS_DLLAPI int GetIsolationWindows(
-        FLASHIda * pObject, double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores)
-    {
-        if (pObject != NULL)
-        {
-            return pObject->getIsolationWindows(mzs, ints, length, msLevel, name, isolationWindows, qScores);
-        }
-        return 0;
-    }
-    // 
+   
 
     // constructor
-    FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine &a) :
-        param(p), avg(a)
-    {     
+    FLASHIda::FLASHIda()//Parameter& p, PrecalculatedAveragine &a) :
+      //  param(p), avg(a)
+    {
         prevMassBinMap = std::vector<std::vector<Size>>();
         prevMinBinLogMassMap = std::vector<double>();
     }
@@ -94,10 +56,10 @@ namespace OpenMS
     int FLASHIda::getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores)
     {
         auto spec = makeMSSpectrum(mzs, ints, length, msLevel, name);
-        auto sd = SpectrumDeconvolution(spec, param);
-        auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-            prevMinBinLogMassMap,
-            avg, msLevel);
+        //auto sd = SpectrumDeconvolution(spec, param);
+        //auto peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+        //    prevMinBinLogMassMap,
+         //   avg, msLevel);
         return 1;
     }
 
@@ -113,5 +75,7 @@ namespace OpenMS
         spec->setName(name);
         return *spec;
     }
+   
+	
 
 }

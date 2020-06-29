@@ -11,6 +11,7 @@ SpectrumDeconvolution.h
 FLASHDeconvAlgorithm.h
 FLASHIda.h
 FLASHDeconvHelperStructs.h
+FLASHIdaBridgeFunctions.h
 )
 
 ### add path to the filenames

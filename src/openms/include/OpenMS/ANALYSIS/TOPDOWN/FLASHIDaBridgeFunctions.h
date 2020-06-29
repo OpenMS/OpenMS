@@ -44,36 +44,5 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI FLASHIda
-  {
-  public:
-      typedef FLASHDeconvHelperStructs::Parameter Parameter;
-      typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-      typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
-      FLASHIda();
-      //FLASHIda(Parameter& p, PrecalculatedAveragine &a);
-      virtual ~FLASHIda() = default;
-  	
-      void testcode(int* test, int length);
-
-      int getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores);
-  	
-  protected:
-      //Parameter& param;
-     // PrecalculatedAveragine &avg;
-  	
-      std::vector<std::vector<Size>> prevMassBinMap;
-      std::vector<double> prevMinBinLogMassMap;
-  	
-      MSSpectrum& makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, String name);
-  	  
-  	// all information to keep track of
-    // parameter
-    // averagine results
-    // exclusion list mass
-    // refer to the deconv'd spectrum. two exclusion durations
-    // https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
-  	
-  };
+	
 }

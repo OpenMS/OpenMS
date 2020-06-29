@@ -28,52 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong $
-// $Authors: Kyowon Jeong $
+// $Maintainer: Kyowon Jeong, Jihyung Kim $
+// $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#pragma once
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <QDirIterator>
-#include <QFileInfo>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI FLASHIda
-  {
-  public:
-      typedef FLASHDeconvHelperStructs::Parameter Parameter;
-      typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-      typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-
-      FLASHIda();
-      //FLASHIda(Parameter& p, PrecalculatedAveragine &a);
-      virtual ~FLASHIda() = default;
-  	
-      void testcode(int* test, int length);
-
-      int getIsolationWindows(double* mzs, double* ints, int length, int msLevel, String name, double** isolationWindows, double* qScores);
-  	
-  protected:
-      //Parameter& param;
-     // PrecalculatedAveragine &avg;
-  	
-      std::vector<std::vector<Size>> prevMassBinMap;
-      std::vector<double> prevMinBinLogMassMap;
-  	
-      MSSpectrum& makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, String name);
-  	  
-  	// all information to keep track of
-    // parameter
-    // averagine results
-    // exclusion list mass
-    // refer to the deconv'd spectrum. two exclusion durations
-    // https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
-  	
-  };
 }
