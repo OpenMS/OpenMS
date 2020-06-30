@@ -441,13 +441,13 @@ protected:
     //@}
 
     /// Watcher that tracks file changes (in order to update the data in the different views)
-    FileWatcher* watcher_;
+    FileWatcher* watcher_ = nullptr;
 
     /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
-    bool watcher_msgbox_;
+    bool watcher_msgbox_ = false;
 
     /// Stores whether the individual windows should zoom together (be linked) or not
-    bool zoom_together_;
+    bool zoom_together_ = false;
 
     QAction* linkZoom_action_;
 
@@ -528,7 +528,7 @@ protected:
       String layer_name;
       UInt window_id;
       Size spectrum_id;
-      QProcess* process;
+      QProcess* process = nullptr;
       QTime timer;
       bool visible;
     } topp_;

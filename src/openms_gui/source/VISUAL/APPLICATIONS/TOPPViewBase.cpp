@@ -136,18 +136,13 @@ namespace OpenMS
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
-    watcher_(nullptr),
-    watcher_msgbox_(false),
-    spectraview_behavior_(this),     // controller for spectra and identification view
-    identificationview_behavior_(this)
+    identificationview_behavior_(this), // controller for spectra and identification view
+    spectraview_behavior_(this)         
   {
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
     setMinimumSize(400, 400); // prevents errors caused by too small width, height values
     setAcceptDrops(true); // enable drag-and-drop
-
-    // by default, linked zooming is turned off
-    zoom_together_ = false;
 
     // get geometry of first screen
     QRect screen_geometry = QApplication::desktop()->screenGeometry();
@@ -570,8 +565,6 @@ namespace OpenMS
     QSettings settings("OpenMS", "TOPPView");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
-
-    topp_.process = nullptr;
 
     //######################### File System Watcher ###########################################
     watcher_ = new FileWatcher(this);
@@ -1828,10 +1821,11 @@ namespace OpenMS
 
   void TOPPViewBase::logContextMenu(const QPoint& pos)
   {
-    QMenu* context_menu = new QMenu(log_);
-    context_menu->addAction("Clear", [&]() {
+    QMenu context_menu;
+    context_menu.addAction("Clear", [&]() {
       log_->clear();
     });
+    context_menu.exec(log_->mapToGlobal(pos));
   }
 
 
