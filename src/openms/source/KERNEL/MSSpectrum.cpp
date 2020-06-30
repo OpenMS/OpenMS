@@ -699,4 +699,15 @@ namespace OpenMS
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
     return a.getRT() < b.getRT();
   }
+
+  bool MSSpectrum::containsIMData() const
+  {
+    const auto& s = *this;
+    return (!s.getFloatDataArrays().empty() &&
+      ( s.getFloatDataArrays()[0].getName().hasPrefix("Ion Mobility") ||
+        s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
+        s.getFloatDataArrays()[0].getName() == "mean inverse reduced ion mobility array" ||
+        s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+      );
+  }
 }

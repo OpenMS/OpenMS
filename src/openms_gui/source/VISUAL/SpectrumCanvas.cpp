@@ -125,7 +125,7 @@ namespace OpenMS
 #endif
   }
 
-  void SpectrumCanvas::setFilters(const DataFilters & filters)
+  void SpectrumCanvas::setFilters(const DataFilters& filters)
   {
     //set filters
     layers_[current_layer_].filters = filters;
@@ -484,6 +484,13 @@ namespace OpenMS
       
     layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_(); 
+  }
+
+  void SpectrumCanvas::popIncompleteLayer_(const QString& error_message)
+  {
+    layers_.pop_back();
+    current_layer_ = layers_.size() - 1;
+    if (!error_message.isEmpty()) QMessageBox::critical(this, "Error", error_message);
   }
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)

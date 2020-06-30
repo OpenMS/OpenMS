@@ -716,6 +716,39 @@ namespace OpenMS
     }
   }
 
+  // static
+  bool MSExperiment::containsScanOfLevel(size_t ms_level) const
+  {
+    //test if no scans with MS-level 1 exist
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() == ms_level)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool MSExperiment::hasZeroIntensities(size_t ms_level) const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() != ms_level)
+      {
+        continue;
+      }
+      for (const auto& p : spec)
+      {
+        if (p.getIntensity() == 0.0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());

@@ -28,55 +28,67 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
+#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
+#include <QWidget>
 
 namespace Ui
 {
-  class TOPPViewPrefDialogTemplate;
+  class FilterList;
 }
+
+class QListWidgetItem;
 
 namespace OpenMS
 {
   namespace Internal
   {
     /**
-        @brief Preferences dialog for TOPPView
+      @brief A widget which shows a list of DataFilter items.
 
-        @ingroup TOPPView_elements
+      Filters can be added, edited and removed.
+      A checkbox allows to switch them all on/off.
+
     */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
+    class FilterList : public QWidget
     {
-      Q_OBJECT
+        Q_OBJECT
 
-public:
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog();
+    public:
+      /// C'tor
+      explicit FilterList(QWidget* parent);
+      ~FilterList();
 
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
+    public slots:
+      /// provide new filters to the widget
+      /// does invoke the 'filterChanged' signal
+      void set(const DataFilters& filters);
 
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
+    signals:
+      /// emitted when the user has edited/added/removed a filter
+      void filterChanged(const DataFilters& filters);
+    
+    private slots:
+      /// the user wants to edit a filter (by double-clicking it)
+      /// emits 'filterChanged' signal if filter was modified
+      void filterEdit_(QListWidgetItem* item);
 
-protected slots:
-      void browseDefaultPath_();
-      void browseTempPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
+      /// right-clicking on the QListWidget 'filter' will call this slot
+      void customContextMenuRequested_(const QPoint &pos);
+
+    private:
+      Ui::FilterList *ui_;
+      DataFilters filters_; ///< internal representation of filters
     };
-  }
-}
+  } // ns Internal
+} // ns OpenMS
+
+// this is required to allow parent widgets (auto UIC'd from .ui) to have a FilterList member
+using FilterList = OpenMS::Internal::FilterList;

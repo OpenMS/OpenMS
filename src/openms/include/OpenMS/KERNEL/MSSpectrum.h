@@ -504,6 +504,9 @@ public:
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
+    /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    bool containsIMData() const;
+
     //@}
 
 
