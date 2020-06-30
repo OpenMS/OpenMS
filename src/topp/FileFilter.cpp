@@ -851,7 +851,7 @@ protected:
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
         Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
-        for(auto& spec : exp)
+        for (auto& spec : exp)
         {
           snm.init(spec);
           for (Size i = 0; i != spec.size(); ++i)
