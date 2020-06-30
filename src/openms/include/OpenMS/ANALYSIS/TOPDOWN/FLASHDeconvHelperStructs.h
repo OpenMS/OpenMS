@@ -89,6 +89,7 @@ namespace OpenMS
       bool promexOut = false;
       bool topfdOut = false;
       bool trainOut = false;
+      void print();
       //int jitter = 0;
     };
 

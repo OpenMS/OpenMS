@@ -11,7 +11,6 @@ namespace OpenMS
   SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p) :
       spec(s), param(p)
   {
-    //averagines = a;
     setFilters();
     updateLogMzPeaks();
   }
@@ -39,18 +38,18 @@ namespace OpenMS
 
   void SpectrumDeconvolution::setFilters()
   {
-
+    //  std::cout << param.chargeRange << std::endl;
     filter = new double[param.chargeRange];
     harmonicFilter = new double *[param.hCharges.size()];
     //    int *random = new int[param.chargeRange];
     //std::srand(std::time(nullptr));
-
+    
     for (int i = 0; i < param.chargeRange; i++)
     {
       filter[i] = log(
           1.0 / (i + param.minCharge));
     }
-
+    
     for (Size k = 0; k < param.hCharges.size(); k++)
     {
       harmonicFilter[k] = new double[param.chargeRange];
