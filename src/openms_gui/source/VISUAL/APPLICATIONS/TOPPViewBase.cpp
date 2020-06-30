@@ -3687,22 +3687,7 @@ namespace OpenMS
           }
           layer.getPeakDataMuteable()->sortChromatograms(true);
           layer.getPeakDataMuteable()->updateRanges(1);
-
         }
-        /*      else if (layer.type == LayerData::DT_IDENT) // identifications
-      {
-        try
-        {
-          vector<ProteinIdentification> proteins;
-          IdXMLFile().load(layer.filename, proteins, layer.peptides);
-        }
-        catch(Exception::BaseException& e)
-        {
-          QMessageBox::critical(this,"Error",(String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-          layer.peptides.clear();
-        }
-      }
-*/
       }
 
       // update all layers that need an update
@@ -3729,6 +3714,8 @@ namespace OpenMS
     layerActivated();
 
     // temporarily remove and read filename from watcher_ as a workaround for bug #233
+    // This might not be a 'bug' but rather unfortunate behaviour (even in Qt5) if the file was actually deleted and recreated by an external tool
+    // (some TextEditors seem to do this), see https://stackoverflow.com/a/30076119;
     watcher_->removeFile(filename);
     watcher_->addFile(filename);
   }
