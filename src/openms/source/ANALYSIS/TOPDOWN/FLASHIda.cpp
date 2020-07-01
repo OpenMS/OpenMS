@@ -44,9 +44,9 @@ namespace OpenMS
     FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine &a) :
         param(p), avg(a)
     {
-        //param.print();
         prevMassBinMap = std::vector<std::vector<Size>>();
         prevMinBinLogMassMap = std::vector<double>();
+        peakGroups = std::vector<PeakGroup>();
     }
 	
     void FLASHIda::testcode(int* test, int length)
@@ -54,18 +54,27 @@ namespace OpenMS
         test[length - 1] = 100;
     }
 
-    int FLASHIda::getIsolationWindows(double* mzs, double* ints, int length, int msLevel, char* name, double* wstart, double* wend, double* qScores)
+    int FLASHIda::getPeakGroups(double* mzs, double* ints, int length, int msLevel, char* name)
     {
         //param.print();
         auto spec = makeMSSpectrum(mzs, ints, length, msLevel, name);
         
         auto *sd = new SpectrumDeconvolution(spec, param);
-        auto peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
+        peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
             prevMinBinLogMassMap,
             avg, msLevel);
-        std::cout << "getPeakGroupsFromSpectrum done" << std::endl;
-        return 1;
+        
+        return peakGroups.size();
     }
+
+    void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qScores) {
+        for (auto i = 0; i < peakGroups.size(); i++) {
+            wstart[i] = peakGroups[i].maxQScoreMzStart;
+            wend[i] = peakGroups[i].maxQScoreMzEnd;
+        }
+    }
+
+
 
     MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, char* name)
     {

@@ -61,12 +61,22 @@ namespace OpenMS
             pObject->testcode(arg, length);
         }
     }
-    int GetIsolationWindows(FLASHIda* pObject, double* mzs, double* ints, int length, int msLevel, char* name, double* wstart, double* wend, double* qScores)
+
+    OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, int msLevel, char* name)
     {
         if (pObject != nullptr)
         {
-            return pObject->getIsolationWindows(mzs, ints, length, msLevel, name, wstart, wend, qScores);
+            return pObject->getPeakGroups(mzs, ints, length, msLevel, name);
         }
-        return -1;
+        return 0;
+    }
+
+
+    void GetIsolationWindows(FLASHIda* pObject, double* wstart, double* wend, double* qScores)
+    {
+        if (pObject != nullptr)
+        {
+            pObject->getIsolationWindows(wstart, wend, qScores);
+        }
     }
 }

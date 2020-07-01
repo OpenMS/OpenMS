@@ -57,7 +57,9 @@ namespace OpenMS
   	
       void testcode(int* test, int length);
 
-      int getIsolationWindows(double* mzs, double* ints, int length, int msLevel, char* name, double* wstart, double* wend, double* qScores);
+      int getPeakGroups(double* mzs, double* ints, int length, int msLevel, char* name);
+
+      void getIsolationWindows(double* wstart, double* wend, double* qScores);
   	
   protected:
       Parameter& param;
@@ -65,7 +67,8 @@ namespace OpenMS
   	
       std::vector<std::vector<Size>> prevMassBinMap;
       std::vector<double> prevMinBinLogMassMap;
-  	
+      std::vector<PeakGroup> peakGroups;
+
       MSSpectrum& makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, char* name);
   	  
   	// all information to keep track of
