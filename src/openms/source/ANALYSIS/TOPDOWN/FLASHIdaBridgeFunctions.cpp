@@ -37,13 +37,11 @@
 
 namespace OpenMS
 {
+    static FLASHDeconvHelperStructs::Parameter param;
     FLASHIda * CreateFLASHIda()
     {
-        FLASHDeconvHelperStructs::Parameter param;
         param.maxMass = 1000;
         auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
-
-        std::cout << avg.get(200)[0].getIntensity() << std::endl;
         return new FLASHIda(param, avg);
     }
 

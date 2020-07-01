@@ -69,21 +69,21 @@ namespace OpenMS
       double minChargeCosine = .8;
 
       IntList minContinuousChargePeakCount = {3, 2};
-      int maxIsotopeCount;
-      IntList maxMassCount;
+      int maxIsotopeCount = 100;
+      IntList maxMassCount = { -1, -1 };
 
       unsigned int maxMSLevel = 0;//maxMSL;
       unsigned int currentMaxMSLevel = 0;//maxMSL;
 
       //double charg = 1eDistributionScoreThreshold;
-      double RTwindow;
-      double minRTSpan;
+      double RTwindow = 60.0;
+      double minRTSpan = 10.0;
       std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
       int chargeRange = 100;
       int currentChargeRange = 100;
-      DoubleList binWidth;
+      DoubleList binWidth = {1e-5, 1e-5};
       UInt minNumOverLappedScans = 15;
-      std::vector<UInt> numOverlappedScans;
+      std::vector<UInt> numOverlappedScans = { 15, 15};
       int threads = 1;
       int writeDetail = 0;
       bool promexOut = false;

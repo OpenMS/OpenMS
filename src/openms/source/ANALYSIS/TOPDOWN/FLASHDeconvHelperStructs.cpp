@@ -38,7 +38,11 @@ namespace OpenMS
 {
 	void FLASHDeconvHelperStructs::Parameter::print()
 	{
-        std::cout << "maxMass " << this->maxMass << "\n";
+        std::cout << "maxMass " << this->maxMass << "\n"
+            << "minCharge" << this->minCharge << "\n"
+            << "chargeRange" << this->chargeRange << "\n"
+            << "maxMass" << this->maxMass << "\n"
+            << "hChargeSize" << this->hCharges.size()<<"\n";
 	}
 
     FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,

@@ -11,6 +11,7 @@ namespace OpenMS
   SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p) :
       spec(s), param(p)
   {
+    //param.print();
     setFilters();
     updateLogMzPeaks();
   }
@@ -38,7 +39,6 @@ namespace OpenMS
 
   void SpectrumDeconvolution::setFilters()
   {
-    //  std::cout << param.chargeRange << std::endl;
     filter = new double[param.chargeRange];
     harmonicFilter = new double *[param.hCharges.size()];
     //    int *random = new int[param.chargeRange];
@@ -1059,6 +1059,8 @@ namespace OpenMS
                                                                                                   FLASHDeconvHelperStructs::PrecalculatedAveragine &avg,
                                                                                                   unsigned int msLevel)
   {
+    std::cout << 0 << std::endl;
+
     auto minContinuousChargePeakCount =
         param.minContinuousChargePeakCount[msLevel - 1];//
 
@@ -1102,21 +1104,22 @@ namespace OpenMS
     massBins = boost::dynamic_bitset<>(massBinNumber);
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBinNumber);
 
+    std::cout << 1 << std::endl;
     if (msLevel == 1)
     {
       unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
     }
-
+    std::cout << 2 << std::endl;
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
-
+    std::cout << 3 << std::endl;
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
                            perMassChargeRanges, avg, msLevel);
-
+    std::cout << 4 << std::endl;
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
-
+    std::cout << 5 << std::endl;
     if (msLevel == 1)
     {
       //std::cout<<param.numOverlappedScans[msLevel - 1] << " " << prevMassBinVector.size() << std::endl;
@@ -1143,6 +1146,7 @@ namespace OpenMS
       prevMinBinLogMassVector.shrink_to_fit();
     }
 
+    std::cout << 6 << std::endl;
     for (int i = 0; i < 3; i++)
     {
       delete[] perMassChargeRanges[i]; // delete array within matrix
