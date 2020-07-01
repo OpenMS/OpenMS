@@ -44,6 +44,47 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  std::map<String, MSSpectrum> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass, bool decoy)
+  {
+    map<String, MSSpectrum> native_ids_annotated_spectra;
+    for (const auto& subdir : sirius_workspace_subdirs)
+    {
+      MSSpectrum annotated_spectrum;
+
+      if (decoy)
+      {
+        SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
+                                                                      annotated_spectrum);
+      }
+      else
+      {
+        SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir,
+                                                                         annotated_spectrum,
+                                                                         use_exact_mass);
+      }
+
+      map<String, MSSpectrum>::iterator it;
+      it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
+      if (it != native_ids_annotated_spectra.end())
+      {
+        if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+        {
+          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+        }
+        else
+        {
+          continue;
+        }
+      }
+      else
+      {
+        native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+      }
+    }
+    return native_ids_annotated_spectra;
+  }
+
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
     OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
@@ -153,6 +194,37 @@ namespace OpenMS
     fcandidates.close();
     return rank_filename;
   }
+
+  // provides a mapping of rank and the TreeIsotope_Score which can used to resolved ambiguties in mapping
+  // 43_Cyazofamid_[M+H]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
+  // 44_Ethofumesate_[M+K]+_3 sample=1 period=1 cycle=683 experiment=3|sample=1 period=1 cycle=684 experiment=3|sample=1 period=1 cycle=685 experiment=5
+  // which have the same mass within 25 ppm due to their adduct in AccurateMassSearch
+  std::map< Size, double > SiriusFragmentAnnotation::extractCompoundRankingAndScore_(const String& path_to_sirius_workspace)
+  {
+    map< Size, double > rank_score;
+    String line;
+
+    const String sirius_formula_candidates = path_to_sirius_workspace + "/formula_candidates.tsv"; // based on SIRIUS annotation
+    ifstream fcandidates(sirius_formula_candidates);
+    if (fcandidates)
+    {
+      CsvFile candidates(sirius_formula_candidates, '\t');
+      const UInt rowcount = candidates.rowCount();
+
+      std::map< String, Size > columnname_to_columnindex = SiriusMzTabWriter::extract_columnname_to_columnindex(candidates);
+
+      // i starts at 1, due to header
+      for (size_t i = 1; i < rowcount; i++)
+      {
+        StringList sl;
+        candidates.getRow(i, sl);
+        rank_score.emplace(std::make_pair(sl[columnname_to_columnindex.at("rank")].toInt(),
+                                             sl[columnname_to_columnindex.at("TreeIsotope_Score")].toDouble()));
+      }
+    }
+    fcandidates.close();
+    return rank_score;
+  }
   
   // use the first ranked sumformula (works for known and known_unkowns)
   // currently only supports sumformula from rank 1
@@ -164,6 +236,7 @@ namespace OpenMS
     }
 
     std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+    std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
 
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
@@ -180,6 +253,7 @@ namespace OpenMS
 
       // use first file in folder (rank 1)
       String filename = rank_filename.at(1); // rank 1
+      double score = rank_score.at(1); // rank 1
       QFileInfo firstfile(dir,filename.toQString());
 
       // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
@@ -233,6 +307,7 @@ namespace OpenMS
           fragments_ionization.push_back(splitted_line[5]);
         }
         msspectrum_to_fill.setMSLevel(2);
+        msspectrum_to_fill.setMetaValue("score", DataValue(score));
         msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
         msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
         msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
@@ -255,6 +330,7 @@ namespace OpenMS
     }
 
     std::map< Size, String > rank_filename = SiriusFragmentAnnotation::extractCompoundRankingAndFilename_(path_to_sirius_workspace);
+    std::map< Size, double > rank_score = SiriusFragmentAnnotation::extractCompoundRankingAndScore_(path_to_sirius_workspace);
 
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/decoys/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
@@ -264,6 +340,7 @@ namespace OpenMS
 
       // use first file in folder (rank 1)
       String filename = rank_filename.at(1); // rank 1
+      double score = rank_score.at(1); // rank 1
       QFileInfo firstfile(dir,filename.toQString());
 
       // filename: sumformula_adduct.csv - save sumformula and adduct as metavalue
@@ -299,6 +376,7 @@ namespace OpenMS
           fragments_ionization.push_back(splitted_line[3]);
         }
         msspectrum_to_fill.setMSLevel(2);
+        msspectrum_to_fill.setMetaValue("score", DataValue(score));
         msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
         msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
         msspectrum_to_fill.getStringDataArrays().push_back(fragments_ionization);

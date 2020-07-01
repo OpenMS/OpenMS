@@ -520,7 +520,7 @@ namespace OpenMS
           TargetedExperimentHelper::TraMLProduct product;
           product.setMZ(current_mz);
           // charge state / adduct should always be available
-          product.setChargeState(1); // TODO: automatise - charge from adduct
+          product.setChargeState(1); // TODO: automatise - charge from adduct - SIRIUS can currently only +1 / -1
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
           rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter);
@@ -554,6 +554,25 @@ namespace OpenMS
       v_mta.push_back(std::move(mta));
     }
     return v_mta;
+  }
+
+  // method to pair compound information (SiriusMSFile) with the annotated specta from Sirius based on the MID (unique identifier)
+  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectrum(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo, const std::map<String, MSSpectrum>& native_ids_annotated_spectra)
+  {
+    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
+    for (const auto& cmp : v_cmpinfo)
+    {
+      for (const auto& spec_fa : native_ids_annotated_spectra)
+      {
+        if (cmp.mids_id == spec_fa.second.getName())
+        {
+          MetaboTargetedAssay::CompoundSpectrumPair csp;
+          csp.compoundspectrumpair = make_pair(cmp, spec_fa.second);
+          v_cmp_spec.push_back(move(csp));
+        }
+      }
+    }
+    return v_cmp_spec;
   }
 
 } // namespace OpenMS

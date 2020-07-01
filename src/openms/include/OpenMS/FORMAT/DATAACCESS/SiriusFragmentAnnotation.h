@@ -43,6 +43,27 @@ namespace OpenMS
       public:
 
           /**
+          @brief extractAndResolveSiriusAnnotations
+          Extract SIRIUS target or decoy annotation for mapping native_id to MSSpectrum.
+
+          @return map native_id to annotated MSSpectrum (target or decoy)
+
+          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
+
+          <table>
+          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
+          <tr><td> mz <td> intensity <td> exact_mass <td> explanation
+          <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
+          </table>
+
+          @param sirius_workspace_subdirs: Vector of paths to SIRIUS subdirectories.
+          @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
+          @param decoy: Use for target == false, use for decoy == true.
+          */
+          static std::map<String, MSSpectrum> extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass, bool decoy);
+
+          /**
           @brief extractSiriusFragmentAnnotationMapping  
           Extract native id (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
 
@@ -53,7 +74,7 @@ namespace OpenMS
             annotated_sumformula
             annotated_adduct
 
-          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArry (exact mass), and a StringDataArry (explanation).
+          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
 
           <table>
           <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
@@ -78,7 +99,7 @@ namespace OpenMS
           annotated_sumformula
           annotated_adduct
 
-          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArry (exact mass),a StringDataArray (explanation), and a StringDataArry (ionization).
+          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass),a StringDataArray (explanation), and a StringDataArray (ionization).
 
           <table>
           <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
@@ -141,6 +162,16 @@ namespace OpenMS
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           */
           static std::map< Size, String > extractCompoundRankingAndFilename_(const String& path_to_sirius_workspace);
+
+          /**
+          @brief extractCompoundRankingAndFilename
+          Extract compound ranking and score   (./formula_candidates.tsv).
+
+          @return a map with specified rank and score (TreeIsotope_Score) (based on the annotation)
+
+          @param path_to_sirius_workspace: Path to SIRIUS workspace.
+          */
+          static std::map< Size, double > extractCompoundRankingAndScore_(const String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromDecoyFile

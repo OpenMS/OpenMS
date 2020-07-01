@@ -470,8 +470,8 @@ protected:
         feature_mapping.assignedMS2 = known_features;
       }
 
-      vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
       vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_decoy;
+      vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
 
       if (use_fragment_annotation && executable.empty())
       {
@@ -511,26 +511,13 @@ protected:
         OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
   
         // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
-        vector<MSSpectrum> annotated_spectra;
-        vector<MSSpectrum> annotated_decoys;
-        for (const auto& subdir : subdirs)
+        // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
+        map<String, MSSpectrum> native_ids_annotated_spectra = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, use_exact_mass, false);
+        map<String, MSSpectrum> native_ids_annotated_decoys;
+        if (decoy_generation)
         {
-          MSSpectrum annotated_spectrum;
-
-          SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir, 
-                                                                           annotated_spectrum, 
-                                                                           use_exact_mass);
-          annotated_spectra.push_back(std::move(annotated_spectrum));
-
-          if (decoy_generation)
-          {
-            MSSpectrum decoy_spectrum;
-            SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
-                                                                          decoy_spectrum);
-            annotated_decoys.push_back(std::move(decoy_spectrum));
-          }
+          native_ids_annotated_decoys = SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, use_exact_mass, true);
         }
-
 
         // should the sirius workspace be retained
         if (!sirius_workspace_directory.empty())
@@ -551,35 +538,12 @@ protected:
           }
         }
 
-        // pair compoundInfo and fragment annotation msspectrum (using the mid)
-        // TODO: extract to function!
+        // combine compound information (SiriusMSFile) with annotated Spectra (SiriusFragmentAnnotation)
+        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectrum(v_cmpinfo, native_ids_annotated_spectra);
+
         if (decoy_generation)
         {
-          for (const auto& cmp : v_cmpinfo)
-          {
-            for (const auto& spec_fa : annotated_decoys)
-            {
-              if (cmp.mids_id == spec_fa.getName())
-              {
-                MetaboTargetedAssay::CompoundSpectrumPair csp;
-                csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
-                v_cmp_decoy.push_back(std::move(csp));
-              }
-            }
-          }
-        }
-
-        for (const auto& cmp : v_cmpinfo)
-        {
-          for (const auto& spec_fa : annotated_spectra)
-          {
-            if (cmp.mids_id == spec_fa.getName())
-            {
-              MetaboTargetedAssay::CompoundSpectrumPair csp;
-              csp.compoundspectrumpair = std::make_pair(cmp, spec_fa);
-              v_cmp_spec.push_back(std::move(csp));
-            }
-          }
+          v_cmp_decoy = MetaboTargetedAssay::pairCompoundWithAnnotatedSpectrum(v_cmpinfo, native_ids_annotated_decoys);
         }
       }
       else // use heuristic
@@ -766,7 +730,7 @@ protected:
     // sort by highest intensity - filter:  min/max transitions (targets), filter: max transitions (decoys)
     // e.g. if only one decoy is available it will not be filtered out!
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
-
+    
     // TODO: is that necessary?
     // remove decoys which do not have a respective target after min/max transition filtering
     if (decoy_generation)
@@ -819,7 +783,7 @@ protected:
         // Check if decoy was filtered
         if (std::find(lone_decoy_id.begin(), lone_decoy_id.end(), compound.id) != lone_decoy_id.end())
         {
-          OPENMS_LOG_INFO<< "The decoy " << compound.id << "was filtered due to missing a respective target." << std::endl;
+          OPENMS_LOG_DEBUG << "The decoy " << compound.id << "was filtered due to missing a respective target." << std::endl;
         }
         else
         {
@@ -835,7 +799,7 @@ protected:
         // Check if compound has any transitions left
         if (std::find(lone_decoy_id.begin(), lone_decoy_id.end(), transition.getCompoundRef()) != lone_decoy_id.end())
         {
-          OPENMS_LOG_INFO << "The decoy " << transition.getCompoundRef() << "was filtered due to missing a respective target." << std::endl;
+          OPENMS_LOG_DEBUG << "The decoy " << transition.getCompoundRef() << "was filtered due to missing a respective target." << std::endl;
         }
         else
         {
@@ -845,7 +809,6 @@ protected:
       t_exp.setCompounds(filtered_compounds);
       t_exp.setTransitions(filtered_transitions);
     }
-
 
     // resolve overlapping target and decoy masses
     // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
@@ -858,7 +821,7 @@ protected:
       vector<String> identifier;
       for (const auto &it : t_exp.getCompounds())
       {
-        // only need to extract identfier from the targets, since targets and decoys have the same one
+        // only need to extract identifier from the targets, since targets and decoys have the same one
         if (it.getMetaValue("decoy") == DataValue(0))
         {
           identifier.emplace_back(it.getMetaValue("native_ids_id"));
@@ -1090,6 +1053,7 @@ protected:
 
     return EXECUTION_OK;
   }
+
 };
 
 int main(int argc, const char ** argv)

@@ -132,6 +132,10 @@ namespace OpenMS
                                                                                          const bool& exclude_ms2_precursor,
                                                                                          const unsigned int& file_counter);
 
+
+    static std::vector<MetaboTargetedAssay::CompoundSpectrumPair> pairCompoundWithAnnotatedSpectrum(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                        const std::map<String, MSSpectrum>& native_ids_annotated_spectra);
+
     protected:
 
     /**
