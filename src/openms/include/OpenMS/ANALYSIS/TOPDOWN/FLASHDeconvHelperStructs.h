@@ -61,7 +61,7 @@ namespace OpenMS
       double minMass = 50;
       double maxMass = 100000;
       double currentMaxMass = 100000;
-      DoubleList tolerance = {10, 5};
+      DoubleList tolerance;
       String fileName;// up to here: ordinary user accessible parameters
 
       double intensityThreshold = 0;// advanced parameters
@@ -72,8 +72,8 @@ namespace OpenMS
       int maxIsotopeCount = 100;
       IntList maxMassCount = { -1, -1 };
 
-      unsigned int maxMSLevel = 0;//maxMSL;
-      unsigned int currentMaxMSLevel = 0;//maxMSL;
+      unsigned int maxMSLevel = 100;//maxMSL;
+      unsigned int currentMaxMSLevel = 100;//maxMSL;
 
       //double charg = 1eDistributionScoreThreshold;
       double RTwindow = 60.0;
@@ -81,7 +81,7 @@ namespace OpenMS
       std::vector<int> hCharges{2, 3, 5,}; // automated or fixed parameters
       int chargeRange = 100;
       int currentChargeRange = 100;
-      DoubleList binWidth = {1e-5, 1e-5};
+      DoubleList binWidth;
       UInt minNumOverLappedScans = 15;
       int numOverlappedScans = 15;
       int threads = 1;

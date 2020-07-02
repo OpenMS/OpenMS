@@ -61,11 +61,16 @@ namespace OpenMS
         }
 
         param.minCharge = inputs["minCharge"][0];
-        param.chargeRange = inputs["maxCharge"][0] - param.minCharge;
+        param.currentChargeRange = param.chargeRange = inputs["maxCharge"][0] - param.minCharge;
         param.minMass = inputs["minMass"][0];
-        param.maxMass = inputs["maxMass"][0];
+        param.currentMaxMass = param.maxMass = inputs["maxMass"][0];
         param.tolerance = inputs["tol"];
         param.minNumOverLappedScans = inputs["overlappedMS1Count"][0];
+        for (auto j = 0; j < (int)param.tolerance.size(); j++)
+        {
+            param.tolerance[j] *= 1e-6;
+            param.binWidth.push_back(.5 / param.tolerance[j]);
+        }
         //param.print();
 
         auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
