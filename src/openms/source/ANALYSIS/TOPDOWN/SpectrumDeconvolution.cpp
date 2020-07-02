@@ -1116,7 +1116,7 @@ namespace OpenMS
     if (msLevel == 1)
     {
       //std::cout<<param.numOverlappedScans[msLevel - 1] << " " << prevMassBinVector.size() << std::endl;
-      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans[msLevel - 1])//
+      if (!prevMassBinVector.empty() && prevMassBinVector.size() >= (Size) param.numOverlappedScans)//
       {
         prevMassBinVector.erase(prevMassBinVector.begin());
         prevMinBinLogMassVector.erase(prevMinBinLogMassVector.begin());

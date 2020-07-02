@@ -341,22 +341,14 @@ protected:
         }
       }
 
-      //auto numMS2perMS1 = round(ms2Cntr/ms1Cntr);
-      param.numOverlappedScans.clear();
+      //auto numMS2perMS1 = round(ms2Cntr/ms1Cntr)
 
       double rtDelta = rtDuration / ms1Cntr;
 
       auto rw = param.RTwindow;
-      auto count = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
-      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << count << " (in RT " << (rtDelta * count) //
-                      << " sec)" << endl;
-
-      param.numOverlappedScans.push_back(count);
-
-      for (int j = 2; j <= (int) param.maxMSLevel; j++)
-      {
-        param.numOverlappedScans.push_back(0);
-      }
+      param.numOverlappedScans = max(param.minNumOverLappedScans, (UInt) round(rw / rtDelta));
+      OPENMS_LOG_INFO << "# Overlapped MS1 scans:" << param.numOverlappedScans << " (in RT " << (rtDelta * param.numOverlappedScans) //
+          << " sec)" << endl;
 
       std::string outfileName(param.fileName);
 

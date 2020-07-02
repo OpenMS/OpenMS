@@ -59,7 +59,7 @@ namespace OpenMS
 
     //double rtDuration = (map[map.size() - 1].getRT() - map[0].getRT()) / ms1Cntr;
     mtd_param.setValue("min_sample_rate", 0.01, "");
-    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans[0], "");
+    mtd_param.setValue("trace_termination_outliers", param.numOverlappedScans, "");
     mtd_param.setValue("min_trace_length", param.minRTSpan, "");
     //mtd_param.setValue("max_trace_length", 1000.0, "");
     mtdet.setParameters(mtd_param);

@@ -77,8 +77,8 @@ namespace OpenMS
     if(prevScanNumber > scanNumber){
       std::vector<std::vector<Size>>().swap(prevMassBinMap);
       std::vector<double>().swap(prevMinBinLogMassMap);
-      prevMassBinMap.reserve(param.numOverlappedScans[0] * 10);
-      prevMinBinLogMassMap.reserve(param.numOverlappedScans[0] * 10);
+      prevMassBinMap.reserve(param.numOverlappedScans * 10);
+      prevMinBinLogMassMap.reserve(param.numOverlappedScans * 10);
       specIndex = massIndex = 1;
     }
     deconvolutedSpectrum.scanNumber = scanNumber;

@@ -38,9 +38,36 @@
 namespace OpenMS
 {
     static FLASHDeconvHelperStructs::Parameter param;
-    FLASHIda * CreateFLASHIda()
+    FLASHIda * CreateFLASHIda(char *arg)
     {
-        param.maxMass = 1000;
+        std::unordered_map<std::string, std::vector<double>> inputs;
+        char* token = std::strtok(arg, " ");
+        std::string key;
+
+        int i = 0;
+        while (token != NULL) {
+            auto tokenString = std::string(token);
+            auto num = atof(tokenString.c_str());
+
+            if (num == 0.0) {
+                key = tokenString;
+                inputs[key] = std::vector<double>();
+            }
+            else {
+                inputs[key].push_back(num);
+                //std::cout << key << " " << num << std::endl;
+            }
+            token = std::strtok(NULL, " ");
+        }
+
+        param.minCharge = inputs["minCharge"][0];
+        param.chargeRange = inputs["maxCharge"][0] - param.minCharge;
+        param.minMass = inputs["minMass"][0];
+        param.maxMass = inputs["maxMass"][0];
+        param.tolerance = inputs["tol"];
+        param.minNumOverLappedScans = inputs["overlappedMS1Count"][0];
+        //param.print();
+
         auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
         return new FLASHIda(param, avg);
     }
