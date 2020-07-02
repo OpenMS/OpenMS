@@ -58,6 +58,12 @@ public:
     /// Destructor
     ~EnhancedWorkspace() override;
 
+    /// arrange all windows horizontally
+    void tileHorizontal();
+
+    /// arrange all windows vertically
+    void tileVertical();
+
 signals:
 
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
