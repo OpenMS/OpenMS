@@ -1084,6 +1084,11 @@ add_test("TOPP_IDFilter_23" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_23_out1" ${DIFF} -in1 IDFilter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_23_output.consensusXML)
 set_tests_properties("TOPP_IDFilter_23_out1" PROPERTIES DEPENDS "TOPP_IDFilter_23")
 
+#consenusXML and protein groups
+add_test("TOPP_IDFilter_24" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/Epifany_3_out.consensusXML -out IDFilter_24_output.tmp -score:protgroup 0.99)
+add_test("TOPP_IDFilter_24_out1" ${DIFF} -in1 IDFilter_24_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_24_output.consensusXML)
+set_tests_properties("TOPP_IDFilter_24_out1" PROPERTIES DEPENDS "TOPP_IDFilter_24")
+
 #-----------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
