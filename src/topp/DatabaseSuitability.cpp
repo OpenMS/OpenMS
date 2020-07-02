@@ -42,7 +42,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cfloat>
-#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,10 +53,64 @@ using namespace std;
 /**
 @page TOPP_DatabaseSuitability DatabaseSuitability
 
-@brief Calculates a suitability for a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
+@brief Calculates the suitability of a database which was used a for peptide identification search. Also reports the quality of LC-MS spectra.
 
-This tool uses the metrics and algorithms first presented in 'Assessing protein sequence database suitability using de novo sequencing' by Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss.
+@dot
+digraph sample_workflow {
+  node [ style="solid,filled", color=black, fillcolor=grey90, width=1.5, fixedsize=true, shape=square, fontname=Helvetica, fontsize=10 ];
+  edge [ arrowhead="open", style="solid" ];
+  rankdir="LR";
+  splines=ortho;
+  mzml [ label="mzML file(s)" shape=oval fillcolor=white group=1];
+  novor [ label="NovorAdapter" URL="\ref OpenMS::NovorAdapter" group=2];
+  id_filter [ label="IDFilter" URL="\ref OpenMS::IDFilter" group=2];
+  id_convert [ label="IDFileConverter" URL="\ref OpenMS::IDFileConverter" group=2];
+  decoy_db [ label="DecoyDatabase" URL="\ref OpenMS::DecoyDatabase" group=2];
+  comet [ label="CometAdapter" URL="\ref OpenMS::CometAdapter" group=1];
+  pep_ind [ label="PeptideIndexer" URL="\ref OpenMS::PeptideIndexer" group=1];
+  fdr [ label="FalseDiscoveryRate" URL="\ref OpenMS::FalseDiscoveryRate" group=1];
+  db_suit [ label="DatabaseSuitability" fillcolor="#6F42C1" fontcolor=white group=3];
+  tsv [ label="optional\ntsv output" shape=oval fillcolor=white group=3];
+  {rank = same; db_suit; decoy_db;}
+  mzml -> novor;
+  mzml -> comet;
+  comet -> pep_ind;
+  pep_ind -> fdr;
+  fdr -> db_suit [ xlabel="in_id" ];
+  novor -> id_filter;
+  id_filter -> id_convert;
+  id_convert -> decoy_db;
+  decoy_db -> comet;
+  mzml -> db_suit [ xlabel="in_spec" ];
+  novor -> db_suit [ xlabel="in_novor" ];
+  db_suit -> tsv;
+}
+@enddot
 
+The metric this tool uses to determine the suitability of a database is based on a de novo model. Therefore it is crucial that your workflow is set up the right way. Above you can see an example.@n
+Most importantly the peptide identification search needs to be done with a combination of the database in question and a de novo "database".@n
+To generate the de novo "database":
+      - @ref UTILS_NovorAdapter calculates de novo sequences.
+      - @ref TOPP_IDFilter can filter out unwanted ones.
+      - @ref TOPP_IDFileConverter generates the de novo fasta file.
+
+For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p novor_fract option.
+
+@note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
+You can still uses other search engines and disable the re-ranking via the @p force_no_re_rank flag in this tool. This will probably result in an underestimated suitability though.@n
+
+
+The results are written directly into the console. But you can provide an optional tsv output file where the most important results will be exported to.
+
+
+This tool uses the metrics and algorithms first presented in:@n
+<em>Assessing protein sequence database suitability using de novo sequencing. Molecular & Cellular Proteomics. January 1, 2020; 19, 1: 198-208. doi:10.1074/mcp.TIR119.001752.@n
+Richard S. Johnson, Brian C. Searle, Brook L. Nunn, Jason M. Gilmore, Molly Phillips, Chris T. Amemiya, Michelle Heck, Michael J. MacCoss.</em>
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DatabaseSuitability.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DatabaseSuitability.html
 */
 
 // We do not want this class to show up in the docu:
@@ -156,9 +209,6 @@ protected:
     Size count_re_ranked = 0;
     Size count_interest = 0;
 
-    std::ofstream debug("C:\\Development\\re_rank_hits.txt");
-    debug << std::setprecision(1) << std::fixed;
-
     for (const auto& pep_id : pep_ids)
     {
       const vector<PeptideHit>& hits = pep_id.getHits();
@@ -205,7 +255,6 @@ protected:
 
       // second hit is db hit
       ++count_interest;
-      debug << round(pep_id.getRT() * 10)/10;
 
       // check for re-ranking
       if (no_re_rank)
@@ -215,25 +264,23 @@ protected:
       }
 
       // check for xcorr score
-      if (!top_hit.metaValueExists("MS:1002252") || !(*second_hit).metaValueExists("MS:1002252"))
+      if (!top_hit.metaValueExists("MS:1002252") || !second_hit->metaValueExists("MS:1002252"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
       }
       
-      double cut_off_mw = cut_off * top_hit.getSequence().getMonoWeight();
-      if (double(top_hit.getMetaValue("MS:1002252")) - double((*second_hit).getMetaValue("MS:1002252")) <= cut_off_mw)
+      double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
+      double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
+      if (top_xscore_mw - second_xscore_mw <= cut_off)
       {
         ++count_db;
         ++count_re_ranked;
-        debug << " true\n";
       }
       else
       {
         ++count_novo;
-        debug << " false\n";
       }
     }
-    debug.close();
 
     double suitability = double(count_db) / (count_db + count_novo); //db suitability
 
@@ -257,7 +304,7 @@ protected:
 
     OPENMS_LOG_INFO << count_db << " / " << (count_db + count_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked."<< endl;
+    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suitability << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << count_novo_seq << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
@@ -269,13 +316,13 @@ protected:
 
       std::ofstream os(out);
       os.precision(writtenDigits(double()));
-      os << "key" << "value\n";
+      os << "key\tvalue\n";
       os << "#top_db_hits\t" << count_db << "\n";
       os << "#top_novo_hits\t" << count_novo << "\n";
       os << "db_suitability\t" << suitability << "\n";
       os << "#total_novo_seqs\t" << count_novo_seq << "\n";
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
-      os << "#ms2_spectra" << count_ms2_lvl << "\n";
+      os << "#ms2_spectra\t" << count_ms2_lvl << "\n";
       os << "spectral_quality\t" << id_rate << "\n";
       os.close();
     }
@@ -305,13 +352,13 @@ private:
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
 
-      /*if (pep_id.getScoreType() != "q-value")
+      if (pep_id.getScoreType() != "q-value")
       {
         if (!hit.metaValueExists("q-value"))
         {
           throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
         }
-      }*/
+      }
 
       if (!hit.metaValueExists("MS:1002252"))
       {
