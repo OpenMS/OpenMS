@@ -481,6 +481,24 @@ namespace OpenMS
     return valid;
   }
 
+  void IDFilter::removeUngroupedProteins(
+      const vector<ProteinIdentification::ProteinGroup>& groups,
+      vector<ProteinHit>& hits)
+  {
+    if (hits.empty()) return; // nothing to update
+
+    // we'll do lots of look-ups, so use a suitable data structure:
+    unordered_set<String> valid_accessions;
+    for (const auto& grp : groups)
+    {
+      valid_accessions.insert(grp.accessions.begin(), grp.accessions.end());
+    }
+
+    hits.erase(
+        std::remove_if(hits.begin(), hits.end(), std::not1(HasMatchingAccessionUnordered<ProteinHit>(valid_accessions))),
+        hits.end()
+        );
+  }
 
   void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides,
                                      bool strict)
@@ -524,6 +542,20 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::filterGroupsByScore(std::vector<ProteinIdentification::ProteinGroup>& grps,
+                                double threshold_score, bool higher_better)
+  {
+    const auto& pred = [&threshold_score,&higher_better](ProteinIdentification::ProteinGroup& g)
+    {
+      return (higher_better && (threshold_score >= g.probability))
+      || (!higher_better && (threshold_score < g.probability));
+    };
+
+    grps.erase(
+        std::remove_if(grps.begin(),grps.end(),pred),
+        grps.end()
+        );
+  }
 
   void IDFilter::filterPeptidesByLength(vector<PeptideIdentification>& peptides,
                                         Size min_length, Size max_length)
