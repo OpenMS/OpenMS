@@ -94,11 +94,11 @@ namespace OpenMS
         }
     }
 
-    OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, int msLevel, char* name)
+    OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name)
     {
         if (pObject != nullptr)
         {
-            return pObject->getPeakGroups(mzs, ints, length, msLevel, name);
+            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name);
         }
         return 0;
     }

@@ -51,10 +51,10 @@ namespace OpenMS
         test[length - 1] = 100;
     }
 
-    int FLASHIda::getPeakGroups(double* mzs, double* ints, int length, int msLevel, char* name)
+    int FLASHIda::getPeakGroups(double* mzs, double* ints, int length, double rt, int msLevel, char* name)
     {
         //param.print();
-        auto spec = makeMSSpectrum(mzs, ints, length, msLevel, name);
+        auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
         
         auto *sd = new SpectrumDeconvolution(spec, param);
         peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
@@ -73,7 +73,7 @@ namespace OpenMS
 
 
 
-    MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, int msLevel, char* name)
+    MSSpectrum& FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, double rt, int msLevel, char* name)
     {
         auto *spec = new MSSpectrum();
         for(auto i=0;i<length;i++)
@@ -83,6 +83,7 @@ namespace OpenMS
         }
         spec->setMSLevel(msLevel);
         spec->setName(name);
+        spec->setRT(rt);// TODO
         return *spec;
     }
    
