@@ -44,8 +44,7 @@ namespace OpenMS
         char* token = std::strtok(arg, " ");
         std::string key;
 
-        int i = 0;
-        while (token != NULL) {
+        while (token != nullptr) {
             auto tokenString = std::string(token);
             auto num = atof(tokenString.c_str());
 
@@ -57,7 +56,7 @@ namespace OpenMS
                 inputs[key].push_back(num);
                 //std::cout << key << " " << num << std::endl;
             }
-            token = std::strtok(NULL, " ");
+            token = std::strtok(nullptr, " ");
         }
 
         param.minCharge = inputs["minCharge"][0];
@@ -66,6 +65,11 @@ namespace OpenMS
         param.currentMaxMass = param.maxMass = inputs["maxMass"][0];
         param.tolerance = inputs["tol"];
         param.minNumOverLappedScans = inputs["overlappedMS1Count"][0];
+        auto maxMassCount = inputs["maxMassCount"];
+        for(auto& item : maxMassCount){
+          param.maxMassCount.push_back((int)item);
+        }
+
         for (auto j = 0; j < (int)param.tolerance.size(); j++)
         {
             param.tolerance[j] *= 1e-6;
@@ -86,19 +90,11 @@ namespace OpenMS
         }
     }
 
-	void TestCode(FLASHIda * pObject, int* arg, int length)
+    int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name, double retWindow)
     {
         if (pObject != nullptr)
         {
-            pObject->testcode(arg, length);
-        }
-    }
-
-    OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name)
-    {
-        if (pObject != nullptr)
-        {
-            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name);
+            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name, retWindow);
         }
         return 0;
     }

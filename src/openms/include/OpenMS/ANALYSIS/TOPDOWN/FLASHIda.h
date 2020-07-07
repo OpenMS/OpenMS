@@ -47,36 +47,47 @@ namespace OpenMS
   class OPENMS_DLLAPI FLASHIda
   {
   public:
-      typedef FLASHDeconvHelperStructs::Parameter Parameter;
-      typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-      typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHDeconvHelperStructs::Parameter Parameter;
+    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
+    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-      //FLASHIda();
-      FLASHIda(Parameter &p, PrecalculatedAveragine &a);
-      virtual ~FLASHIda() = default;
-  	
-      void testcode(int* test, int length);
+    FLASHIda(Parameter &p, PrecalculatedAveragine &a);
 
-      int getPeakGroups(double* mzs, double* ints, int length, double rt, int msLevel, char* name);
+    virtual ~FLASHIda() = default;
 
-      void getIsolationWindows(double* wstart, double* wend, double* qScores);
-  	
+    int getPeakGroups(double *mzs,
+                      double *ints,
+                      int length,
+                      double rt,
+                      int msLevel,
+                      char *name,
+                      double retWindow);
+
+    void getIsolationWindows(double *wstart, double *wend, double *qScores);
+
   protected:
-      Parameter &param;
-      PrecalculatedAveragine &avg;
-  	
-      std::vector<std::vector<Size>> prevMassBinMap;
-      std::vector<double> prevMinBinLogMassMap;
-      std::vector<PeakGroup> peakGroups;
+    std::map<int, double *> selected; // int mass, rt, qscore
 
-      MSSpectrum& makeMSSpectrum(double* mzs, double* ints, int length, double rt, int msLevel, char* name);
-  	  
-  	// all information to keep track of
+    Parameter &param;
+    PrecalculatedAveragine &avg;
+
+    std::vector<std::vector<Size>> prevMassBinMap;
+    std::vector<double> prevMinBinLogMassMap;
+    std::vector<PeakGroup> peakGroups;
+
+    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec,
+                                            double retWindow,
+                                            int numMaxMS2 = -1,
+                                            double qScoreThreshold = -0);
+
+    MSSpectrum &makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
+
+    // all information to keep track of
     // parameter
     // averagine results
     // exclusion list mass
     // refer to the deconv'd spectrum. two exclusion durations
     // https://stackoverflow.com/questions/31417688/passing-a-vector-array-from-unmanaged-c-to-c-sharp
-  	
+
   };
 }

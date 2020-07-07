@@ -390,7 +390,7 @@ namespace OpenMS
     filteredPeakGroups.reserve(peakGroups.size());
     double threshold = .0;
 
-    auto mc = param.maxMassCount[msLevel - 1];
+    auto mc = param.maxMassCount.size() > msLevel - 1?  param.maxMassCount[msLevel - 1] : -1;
     if (mc > 0)
     {
       std::vector<double> intensities;
