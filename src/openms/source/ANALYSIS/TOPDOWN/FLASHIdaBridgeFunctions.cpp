@@ -64,7 +64,8 @@ namespace OpenMS
         param.minMass = inputs["minMass"][0];
         param.currentMaxMass = param.maxMass = inputs["maxMass"][0];
         param.tolerance = inputs["tol"];
-        param.minNumOverLappedScans = inputs["overlappedMS1Count"][0];
+        param.RTwindow = inputs["RTwindow"][0];
+        //param.over
         auto maxMassCount = inputs["maxMassCount"];
         for(auto& item : maxMassCount){
           param.maxMassCount.push_back((int)item);
@@ -90,11 +91,11 @@ namespace OpenMS
         }
     }
 
-    int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name, double retWindow)
+    int GetPeakGroupSize(FLASHIda* pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name)
     {
         if (pObject != nullptr)
         {
-            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name, retWindow);
+            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name);
         }
         return 0;
     }

@@ -49,10 +49,16 @@ namespace OpenMS
     peakGroups = std::vector<PeakGroup>();
   }
 
-  int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name,
-                              double retWindow)
+  int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
   {
     //param.print();
+    if(msLevel == 1){
+      param.currentMaxMass = param.maxMass;
+      param.currentChargeRange = param.chargeRange;
+    }else{
+      //TODO precursor infor here
+    }
+
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
 
     auto *sd = new SpectrumDeconvolution(spec, param);
@@ -60,12 +66,11 @@ namespace OpenMS
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
 
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, retWindow, param.maxMassCount[0]);
+    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, param.maxMassCount[0]);
     return peakGroups.size();
   }
 
   void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec,
-                                                    double retWindow,
                                                     int numMaxMS2,
                                                     double qScoreThreshold)
   {
@@ -75,7 +80,7 @@ namespace OpenMS
 
     for (auto &item : selected)
     {
-      if (item.first < rt - retWindow)
+      if (item.first < rt - param.RTwindow)
       {
         continue;
       }

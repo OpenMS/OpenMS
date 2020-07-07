@@ -60,8 +60,7 @@ namespace OpenMS
                       int length,
                       double rt,
                       int msLevel,
-                      char *name,
-                      double retWindow);
+                      char *name);
 
     void getIsolationWindows(double *wstart, double *wend, double *qScores);
 
@@ -76,7 +75,6 @@ namespace OpenMS
     std::vector<PeakGroup> peakGroups;
 
     void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec,
-                                            double retWindow,
                                             int numMaxMS2 = -1,
                                             double qScoreThreshold = -0);
 
