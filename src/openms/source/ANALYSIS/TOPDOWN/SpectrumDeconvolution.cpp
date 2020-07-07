@@ -11,7 +11,7 @@ namespace OpenMS
   SpectrumDeconvolution::SpectrumDeconvolution(MSSpectrum &s, Parameter &p) :
       spec(s), param(p)
   {
-    //param.print();
+   // param.print();
     setFilters();
     updateLogMzPeaks();
   }

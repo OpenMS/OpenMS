@@ -51,21 +51,18 @@ namespace OpenMS
 
   int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
   {
-    //param.print();
     if(msLevel == 1){
       param.currentMaxMass = param.maxMass;
       param.currentChargeRange = param.chargeRange;
     }else{
       //TODO precursor infor here
     }
-
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
 
     auto *sd = new SpectrumDeconvolution(spec, param);
     peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
-
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, param.maxMassCount[0]);
     return peakGroups.size();
   }
