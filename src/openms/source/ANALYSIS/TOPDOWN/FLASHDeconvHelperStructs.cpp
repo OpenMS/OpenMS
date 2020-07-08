@@ -51,6 +51,10 @@ namespace OpenMS
 
 	}
 
+    FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine()
+    {
+    }
+
     FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,
 	                                                                         double M,
 	                                                                         double delta,

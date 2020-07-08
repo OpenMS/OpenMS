@@ -813,7 +813,7 @@ namespace OpenMS
     {
       peakBinNumbers[i] = getBinNumber(logMzPeaks[i].logMz, mzBinMinValue, binWidth);
     }
-
+   
     while (massBinIndex != massBins.npos)
     {
       double logM = getBinValue(massBinIndex, massBinMinValue, binWidth);
@@ -851,17 +851,16 @@ namespace OpenMS
           continue;
         }
       }
-
+      
       PeakGroup pg;
       //pg.perChargeSNR = new float[chargeRange];
       //std::fill_n(pg.perChargeSNR, chargeRange, 0);
 
       pg.reserve(chargeRange * 30);
-
+      //std::cout << 0 << std::endl;
       Size rightIndex = avg.getRightIndex(mass);
       Size leftIndex = avg.getLeftIndex(mass);
       //auto perChargeNoisePower = new float[chargeRange];
-
       for (int j = minChargeRanges[massBinIndex]; j <= maxChargeRanges[massBinIndex]; j++)
       {
         long &binOffset = binOffsets[j];
@@ -901,7 +900,7 @@ namespace OpenMS
         {
           continue;
         }
-
+        //std::cout << 1 << std::endl;
         const double mz = logMzPeaks[maxPeakIndex].mz;
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz * 2; //
@@ -1006,7 +1005,7 @@ namespace OpenMS
 
         }
       }
-
+      
       if (!pg.peaks.empty())
       {
         double maxIntensity = -1.0;
@@ -1107,17 +1106,23 @@ namespace OpenMS
     massBins = boost::dynamic_bitset<>(massBinNumber);
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBinNumber);
 
+    
     if (msLevel == 1)
     {
       unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
     }
     auto perMassChargeRanges = updateMassBins(massBinMinValue, mzBinMinValue, massIntensities,
                                               mzBinIntensities, msLevel);
+    
     getCandidatePeakGroups(mzBinMinValue, massBinMinValue,
                            massIntensities,
                            perMassChargeRanges, avg, msLevel);
+
+   
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
+    
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);
+
     if (msLevel == 1)
     {
       //std::cout<<param.numOverlappedScans[msLevel - 1] << " " << prevMassBinVector.size() << std::endl;

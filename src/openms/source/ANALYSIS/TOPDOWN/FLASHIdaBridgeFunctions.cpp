@@ -38,6 +38,8 @@
 namespace OpenMS
 {
     static FLASHDeconvHelperStructs::Parameter param;
+    static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
+    
     FLASHIda * CreateFLASHIda(char *arg)
     {
         std::unordered_map<std::string, std::vector<double>> inputs;
@@ -78,7 +80,7 @@ namespace OpenMS
         }
         //param.print();
 
-        auto avg = FLASHDeconvHelperStructs::calculateAveragines(param);
+        avg = FLASHDeconvHelperStructs::calculateAveragines(param);
         return new FLASHIda(param, avg);
     }
 

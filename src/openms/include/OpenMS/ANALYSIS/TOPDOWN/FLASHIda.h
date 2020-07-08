@@ -74,8 +74,7 @@ namespace OpenMS
     std::vector<double> prevMinBinLogMassMap;
     std::vector<PeakGroup> peakGroups;
 
-    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec,
-                                            int numMaxMS2 = -1,
+    void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
                                             double qScoreThreshold = -0);
 
     MSSpectrum &makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);

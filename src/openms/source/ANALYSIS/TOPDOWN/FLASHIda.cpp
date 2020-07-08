@@ -58,17 +58,20 @@ namespace OpenMS
       //TODO precursor infor here
     }
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-
+    //std::cout << spec.size() << std::endl;
     auto *sd = new SpectrumDeconvolution(spec, param);
+    //param.print();
     peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, param.maxMassCount[0]);
+  //  param.print();
+    //std::cout << peakGroups.size() << std::endl;
+    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
+    
     return peakGroups.size();
   }
 
-  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec,
-                                                    int numMaxMS2,
+  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
                                                     double qScoreThreshold)
   {
     double rt = spec.getRT();
@@ -87,14 +90,17 @@ namespace OpenMS
     std::vector<PeakGroup> filtered;
     for (auto &pg:peakGroups)
     {
-      if (filtered.size() > numMaxMS2)
+        //std::cout << param.maxMassCount.size() << " " << param.maxMassCount[msLevel - 1]<< std::endl;
+      if (param.maxMassCount.size() >= msLevel && param.maxMassCount[msLevel-1] > 0 && filtered.size() > param.maxMassCount[msLevel - 1])
       {
         break;
       }
+      //std::cout << pg.qScore << " " << qScoreThreshold << std::endl;
       if (pg.qScore < qScoreThreshold)
       {
         continue;
       }
+      
       auto m = FLASHDeconvAlgorithm::getNominalMass(pg.avgMass);
       auto qScore = pg.qScore;
       if (nselected.find(m) != nselected.end())

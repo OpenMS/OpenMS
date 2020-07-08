@@ -104,6 +104,7 @@ namespace OpenMS
       double massInterval;
       double minMass;
 
+      PrecalculatedAveragine();
       PrecalculatedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
       IsotopeDistribution get(double mass);
       double getNorm(double mass);
