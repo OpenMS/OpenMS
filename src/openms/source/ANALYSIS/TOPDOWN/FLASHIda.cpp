@@ -58,13 +58,14 @@ namespace OpenMS
       //TODO precursor infor here
     }
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-    //std::cout << spec.size() << std::endl;
     auto *sd = new SpectrumDeconvolution(spec, param);
     //param.print();
     peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
-  //  param.print();
+ 
+
+
     //std::cout << peakGroups.size() << std::endl;
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
     
