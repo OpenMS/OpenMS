@@ -1156,11 +1156,16 @@ namespace OpenMS
     delete[] perMassChargeRanges;
     delete[] mzBinIntensities;
     delete[] massIntensities;
-
-    for (auto& pg : peakGroups) {
-        std::cout << pg.avgMass << " " << pg.qScore << " " << pg.intensity << "\n";
+    //std::cout << "\t* " << spec.size() << std::endl;
+    if (false)
+    {
+        
+        for (auto& pg : peakGroups)
+        {
+            std::cout << pg.avgMass << " " << pg.qScore << " " << pg.intensity << "\n";
+        }
+        std::cout << std::endl;
     }
-    std::cout << std::endl;
 
 
     return peakGroups;

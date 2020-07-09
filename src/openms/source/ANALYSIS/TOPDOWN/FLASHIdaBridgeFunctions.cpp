@@ -78,7 +78,8 @@ namespace OpenMS
             param.tolerance[j] *= 1e-6;
             param.binWidth.push_back(.5 / param.tolerance[j]);
         }
-        //param.print();
+        std::cout << " FLASHIda created with parameters:" << std::endl;
+        param.print();
 
         avg = FLASHDeconvHelperStructs::calculateAveragines(param);
         return new FLASHIda(param, avg);
