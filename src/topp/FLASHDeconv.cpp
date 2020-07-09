@@ -339,6 +339,7 @@ protected:
         {
           ms2Cntr++;
         }
+
       }
 
       //auto numMS2perMS1 = round(ms2Cntr/ms1Cntr)
@@ -389,11 +390,20 @@ protected:
 
       //check max ms level from the input dataset..
       param.currentMaxMSLevel = 0;
-
+      //param.print();
       for (auto &it : map)
       {
         auto msLevel = it.getMSLevel();
         param.currentMaxMSLevel = param.currentMaxMSLevel < msLevel ? msLevel : param.currentMaxMSLevel;
+        /*
+        std::cout<<"Spec\t"<<it.getRT()<<"\n"; // TODO
+        for(auto& p : it){
+          if(p.getIntensity()<=0){
+            continue;
+          }
+          std::cout<<std::to_string(p.getMZ())<<"\t"<<std::to_string(p.getIntensity())<<"\n";
+        }*/
+
       }
 
       param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
@@ -482,7 +492,7 @@ protected:
         {
           deconvolutedSpectrum.writeTopFD(fsfd, id++);
         }
-
+        //break;
         float progress = (float) (it - map.begin()) / map.size();
         if (progress > prevProgress + .01)
         {
