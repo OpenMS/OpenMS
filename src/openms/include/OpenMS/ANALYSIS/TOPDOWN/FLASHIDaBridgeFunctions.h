@@ -50,5 +50,5 @@ namespace OpenMS
 	extern "C" OPENMS_DLLAPI void DisposeFLASHIda(FLASHIda * pObject);
 	//extern "C" OPENMS_DLLAPI void TestCode(FLASHIda * pObject, int* arg, int length);
 	extern "C" OPENMS_DLLAPI int GetPeakGroupSize(FLASHIda * pObject, double* mzs, double* ints, int length, double rt, int msLevel, char* name);
-	extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda * pObject,  double* wstart, double* wend, double* qScores);
+	extern "C" OPENMS_DLLAPI void GetIsolationWindows(FLASHIda * pObject,  double* wstart, double* wend, double* qScores, int* charges, double* avgMasses);
 }

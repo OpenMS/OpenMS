@@ -123,13 +123,16 @@ namespace OpenMS
     std::vector<PeakGroup>().swap(filtered);
   }
 
-  void FLASHIda::getIsolationWindows(double *wstart, double *wend, double *qScores)
+  void FLASHIda::getIsolationWindows(double *wstart, double *wend, double *qScores, int* charges, double* avgMasses)
   {
     for (auto i = 0; i < peakGroups.size(); i++)
     {
-      wstart[i] = peakGroups[i].maxQScoreMzStart;
-      wend[i] = peakGroups[i].maxQScoreMzEnd;
+      wstart[i] = peakGroups[i].maxQScoreMzStart - .2;
+      wend[i] = peakGroups[i].maxQScoreMzEnd + .2;
+
       qScores[i] = peakGroups[i].qScore;
+      charges[i] = peakGroups[i].maxQScoreCharge;
+      avgMasses[i] = peakGroups[i].avgMass;
     }
   }
 

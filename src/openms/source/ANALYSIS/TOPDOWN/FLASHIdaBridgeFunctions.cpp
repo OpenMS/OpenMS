@@ -104,11 +104,11 @@ namespace OpenMS
     }
 
 
-    void GetIsolationWindows(FLASHIda* pObject, double* wstart, double* wend, double* qScores)
+    void GetIsolationWindows(FLASHIda* pObject, double* wstart, double* wend, double* qScores, int* charges, double* avgMasses)
     {
         if (pObject != nullptr)
         {
-            pObject->getIsolationWindows(wstart, wend, qScores);
+            pObject->getIsolationWindows(wstart, wend, qScores, charges, avgMasses);
         }
     }
 }

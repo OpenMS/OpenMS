@@ -624,7 +624,9 @@ Intercept                  1.424*/
         pg.maxQScoreMzStart = pg.maxQScoreMzStart < p.mz ? pg.maxQScoreMzStart : p.mz;
         pg.maxQScoreMzEnd = pg.maxQScoreMzEnd > p.mz ? pg.maxQScoreMzEnd : p.mz;
       }
-
+      if(pg.maxQScoreMzStart > pg.maxQScoreMzEnd) {
+          continue;
+      }
       if (msLevel == 1 || pg.totalSNR > 0.1) //
         //if(msLevel == 1 || getPeakGroupScore(pg)>.5) //
       {
