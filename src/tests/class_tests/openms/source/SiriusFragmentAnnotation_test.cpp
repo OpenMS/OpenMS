@@ -112,7 +112,6 @@ START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& p
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C10H12N3O3PS2");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "[M+H]+");
     TEST_REAL_SIMILAR(annotated_msspectrum.getMetaValue("decoy"), 0);
-
 }
 END_SECTION
 

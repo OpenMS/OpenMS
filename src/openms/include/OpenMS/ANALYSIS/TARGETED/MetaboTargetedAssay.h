@@ -160,6 +160,11 @@ namespace OpenMS
 
     static bool intensityLess_(Peak1D a, Peak1D b);
 
+    /**
+    @brief Gets charge from an Adduct ([M+H]+)
+    */
+    static int getChargeFromAdduct_(const String& adduct);
+
 };
 
 } // namespace OpenMS

@@ -49,7 +49,6 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaboTargetedTargetDecoy
   {
     public:
-
     /**
      @brief MetaboTargetDecoyMassMapping introduces a mapping of target and decoy masses and their respective compound reference
      using an identifier

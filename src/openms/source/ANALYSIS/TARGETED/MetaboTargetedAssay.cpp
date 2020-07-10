@@ -46,6 +46,32 @@ using namespace std;
 namespace OpenMS
 {
 
+  int MetaboTargetedAssay::getChargeFromAdduct_(const String& adduct)
+  {
+    int adduct_charge;
+    String adduct_suffix = adduct.suffix(']').trim();
+    // charge one
+    if (adduct_suffix == "+")
+    {
+      adduct_suffix = "1" + adduct_suffix;
+    }
+    if (adduct_suffix == "-")
+    {
+      adduct_suffix = "1" + adduct_suffix;
+    }
+    String sign = adduct.back();
+    adduct_suffix.resize(adduct_suffix.size()-1);
+    if (sign == "+")
+    {
+      adduct_charge = String(adduct_suffix).toInt();
+    }
+    else
+    {
+      adduct_charge = String(sign + adduct_suffix).toInt();
+    }
+    return adduct_charge;
+  }
+
   bool MetaboTargetedAssay::intensityLess_(Peak1D a, Peak1D b)
   {
     return (a.getIntensity() < b.getIntensity());
@@ -318,13 +344,10 @@ namespace OpenMS
           rmt.setProductMZ(current_mz);
           TargetedExperimentHelper::TraMLProduct product;
           product.setMZ(current_mz);
-          // charge state
-          if (adduct != "UNKNOWN")
+          // charge state from adduct
+          if (!adduct.empty() && adduct != "UNKNOWN")
           {
-            // TODO: automatise - charge from adduct
-            // different adduct annotations in OpenMS (EmpiricalFormula, MetaboliteAdductDecharger, AccurateMassSearch, SiriusMSConverter)
-            // M+H;1+ -> [M+H]1 -> M+H;1+ -> [M+H]+;
-            // product.setChargeState(1);
+            product.setChargeState(getChargeFromAdduct_(adduct));
           }
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
@@ -539,15 +562,10 @@ namespace OpenMS
             rmt.setProductMZ(current_mz);
             TargetedExperimentHelper::TraMLProduct product;
             product.setMZ(current_mz);
-            // charge state / adduct should always be available
-            std::cout << "adduct: " << adduct << std::endl;
-            // charge state
-            if (adduct != "UNKNOWN")
+            // charge state from adduct
+            if (!adduct.empty() && adduct != "UNKNOWN")
             {
-              // TODO: automatise - charge from adduct
-              // different adduct annotations in OpenMS (EmpiricalFormula, MetaboliteAdductDecharger, AccurateMassSearch, SiriusMSConverter)
-              // M+H;1+ -> [M+H]1 -> M+H;1+ -> [M+H]+;
-              // product.setChargeState(1);
+              product.setChargeState(getChargeFromAdduct_(adduct));
             }
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);

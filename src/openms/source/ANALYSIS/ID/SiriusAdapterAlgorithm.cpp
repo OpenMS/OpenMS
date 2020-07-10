@@ -126,7 +126,6 @@ namespace OpenMS
 
     void SiriusAdapterAlgorithm::Project::parameters()
     {
-
       // This will be called internal using the "out_project_space" parameter (SiriusAdapter)
       // -o, -p, --output, --project-space=<projectSpaceLocation>
       // Specify project-space to read from and also write to if
@@ -450,7 +449,6 @@ namespace OpenMS
       //                       "Formula Identifications before the thresholds for CSI:FingerID˜n"
       //                       "predictions are calculated.")
       //          ).withValidStrings({"","",""});
-
     }
 
     void SiriusAdapterAlgorithm::Passatutto::parameters()

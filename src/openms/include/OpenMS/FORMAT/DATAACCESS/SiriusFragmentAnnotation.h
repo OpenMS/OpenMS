@@ -117,9 +117,7 @@ namespace OpenMS
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
           static void extractSiriusDecoyAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill);
-
       protected:
-
           /**
           @brief extractNativeIDFromSiriusMS  
           Extract concatenated native id from SIRIUS output (./spectrum.ms) and concatenates them.
