@@ -825,45 +825,39 @@ namespace OpenMS
 
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
-    const set<ID::MoleculeParentMatch>& matches,
-    MzTabOligonucleotideSectionRow& row)
+    const ID::MoleculeParentMatch& match, MzTabOligonucleotideSectionRow& row)
   {
-    for (const ID::MoleculeParentMatch& match : matches)
+    if (match.left_neighbor == String(ID::MoleculeParentMatch::LEFT_TERMINUS))
     {
-      if (match.left_neighbor ==
-          String(ID::MoleculeParentMatch::LEFT_TERMINUS))
-      {
-        row.pre.set("-");
-      }
-      else if (match.left_neighbor !=
-               String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
-      {
-        row.pre.set(match.left_neighbor);
-      }
-      if (match.right_neighbor ==
-          String(ID::MoleculeParentMatch::RIGHT_TERMINUS))
-      {
-        row.post.set("-");
-      }
-      else if (match.right_neighbor !=
-               String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
-      {
-        row.post.set(match.right_neighbor);
-      }
-      if (match.start_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
-      {
-        row.start.set(String(match.start_pos + 1));
-      }
-      if (match.end_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
-      {
-        row.end.set(String(match.end_pos + 1));
-      }
+      row.pre.set("-");
+    }
+    else if (match.left_neighbor !=
+             String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
+    {
+      row.pre.set(match.left_neighbor);
+    }
+    if (match.right_neighbor == String(ID::MoleculeParentMatch::RIGHT_TERMINUS))
+    {
+      row.post.set("-");
+    }
+    else if (match.right_neighbor !=
+             String(ID::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
+    {
+      row.post.set(match.right_neighbor);
+    }
+    if (match.start_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+    {
+      row.start.set(match.start_pos + 1);
+    }
+    if (match.end_pos != ID::MoleculeParentMatch::UNKNOWN_POSITION)
+    {
+      row.end.set(match.end_pos + 1);
     }
   }
 
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
-    const set<ID::MoleculeParentMatch>& /* matches */,
+    const ID::MoleculeParentMatch& /* match */,
     MzTabPeptideSectionRow& /* row */)
   {
     // nothing to do here
