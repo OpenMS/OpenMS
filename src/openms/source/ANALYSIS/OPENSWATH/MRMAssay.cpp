@@ -1006,8 +1006,6 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-  // TODO probably rename - since it has nothing to do with the original function anymore!
-  // TODO add a second function, but would be a lot of code duplication!
   void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;

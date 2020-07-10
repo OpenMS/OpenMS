@@ -39,7 +39,6 @@
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> //SiriusMSFile
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h> //SiriusTargetDecoySpectra
 

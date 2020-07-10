@@ -190,7 +190,7 @@ public:
                         bool disable_decoy_transitions = false);
 
     /**
-    @brief Filters transitions by intensity, only keeping the top N transitions
+    @brief Filters target and decoy transitions by intensity, only keeping the top N transitions
 
     @param exp the transition list which will be filtered
     @param min_transitions the minimum number of transitions required per assay
@@ -199,13 +199,10 @@ public:
     */
     void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
 
-    // TODO: add correct description!
     /**
-    @brief Filters transitions by intensity, only keeping the top N transitions
+    @brief Filters decoy transitions, which do not have respective target transition
 
     @param exp the transition list which will be filtered
-    @param min_transitions the minimum number of transitions required per assay
-    @param max_transitions the maximum number of transitions required per assay
 
     */
     void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);

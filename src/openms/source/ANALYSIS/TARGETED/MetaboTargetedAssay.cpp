@@ -321,11 +321,13 @@ namespace OpenMS
           // charge state
           if (adduct != "UNKNOWN")
           {
-            product.setChargeState(1); // TODO: automatise - charge from adduct
-            rmt.setProduct(product);
+            // TODO: automatise - charge from adduct
+            // different adduct annotations in OpenMS (EmpiricalFormula, MetaboliteAdductDecharger, AccurateMassSearch, SiriusMSConverter)
+            // M+H;1+ -> [M+H]1 -> M+H;1+ -> [M+H]+;
+            // product.setChargeState(1);
           }
+          rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
-
           description = ListUtils::concatenate(v_description, ",");
           rmt.setCompoundRef (String(transition_group_counter) + "_" + description + "_" + file_counter);
           rmt.setNativeID (String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
@@ -538,7 +540,15 @@ namespace OpenMS
             TargetedExperimentHelper::TraMLProduct product;
             product.setMZ(current_mz);
             // charge state / adduct should always be available
-            product.setChargeState(1); // TODO: automatise - charge from adduct - SIRIUS can currently only +1 / -1
+            std::cout << "adduct: " << adduct << std::endl;
+            // charge state
+            if (adduct != "UNKNOWN")
+            {
+              // TODO: automatise - charge from adduct
+              // different adduct annotations in OpenMS (EmpiricalFormula, MetaboliteAdductDecharger, AccurateMassSearch, SiriusMSConverter)
+              // M+H;1+ -> [M+H]1 -> M+H;1+ -> [M+H]+;
+              // product.setChargeState(1);
+            }
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);
             rmt.setCompoundRef(String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter);
