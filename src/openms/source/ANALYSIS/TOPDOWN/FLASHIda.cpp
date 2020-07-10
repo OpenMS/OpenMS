@@ -49,11 +49,12 @@ namespace OpenMS
     peakGroups = std::vector<PeakGroup>();
   }
 
-  int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
+  int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name, double qScoreThreshold)
   {
     if(msLevel == 1){
       param.currentMaxMass = param.maxMass;
       param.currentChargeRange = param.chargeRange;
+      
     }else{
       //TODO precursor infor here
     }
@@ -66,8 +67,8 @@ namespace OpenMS
  
 
 
-    //std::cout << peakGroups.size() << std::endl;
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel);
+    //std::cout << prevMassBinMap.size() << std::endl;
+    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
     
     return peakGroups.size();
   }
@@ -88,6 +89,7 @@ namespace OpenMS
       nselected[item.first] = item.second;
     }
 
+    auto shorRTwindow = param.RTwindow / 10.0;
     std::vector<PeakGroup> filtered;
     for (auto &pg:peakGroups)
     {
@@ -106,6 +108,9 @@ namespace OpenMS
       auto qScore = pg.qScore;
       if (nselected.find(m) != nselected.end())
       {
+        if (rt - nselected[m][0] < shorRTwindow) {
+              continue;
+        }
         if (qScore < nselected[m][1])
         {
           continue;

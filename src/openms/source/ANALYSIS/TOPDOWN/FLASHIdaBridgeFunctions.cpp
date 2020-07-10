@@ -37,9 +37,6 @@
 
 namespace OpenMS
 {
-    static FLASHDeconvHelperStructs::Parameter param;
-    static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
-    
     FLASHIda * CreateFLASHIda(char *arg)
     {
         std::unordered_map<std::string, std::vector<double>> inputs;
@@ -61,6 +58,7 @@ namespace OpenMS
             token = std::strtok(nullptr, " ");
         }
 
+        qScoreThreshold = inputs["qScoreThreshold"][0];
         param.minCharge = inputs["minCharge"][0];
         param.currentChargeRange = param.chargeRange = inputs["maxCharge"][0] - param.minCharge;
         param.minMass = inputs["minMass"][0];
@@ -98,7 +96,7 @@ namespace OpenMS
     {
         if (pObject != nullptr)
         {
-            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name);
+            return pObject->getPeakGroups(mzs, ints, length, rt, msLevel, name, qScoreThreshold);
         }
         return 0;
     }
