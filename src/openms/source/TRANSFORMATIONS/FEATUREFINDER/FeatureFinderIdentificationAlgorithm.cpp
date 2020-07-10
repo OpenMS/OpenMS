@@ -394,6 +394,11 @@ namespace OpenMS
       if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
       chrom_data_.clear(true);
       library_.clear(true);
+      // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
+      // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
+      // Usually we could sanitize the identifiers or merge the runs, but since they are empty and we add the
+      // "real" proteins later -> just clear them
+      features.getProteinIdentifications().clear();
     }
 
     OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."

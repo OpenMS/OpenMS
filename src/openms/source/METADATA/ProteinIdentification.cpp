@@ -794,6 +794,29 @@ namespace OpenMS
     return search_engine_;
   }
 
+  const String ProteinIdentification::getOriginalSearchEngineName() const
+  {
+    // TODO: extend to multiple search engines and merging
+    String engine = search_engine_;
+    if (!engine.hasSubstring("Percolator") && !engine.hasSubstring("ConsensusID"))
+    {
+      return engine;
+    }
+
+    String original_SE = "Unknown";
+    vector<String> mvkeys;
+    getSearchParameters().getKeys(mvkeys);
+    for (const String& mvkey : mvkeys)
+    {
+      if (mvkey.hasPrefix("SE:") && !mvkey.hasSubstring("percolator"))
+      {
+        original_SE = mvkey.substr(3);
+        break; // multiSE percolator before consensusID not allowed; we take first only
+      }
+    }
+    return original_SE;
+  }
+
   void ProteinIdentification::setSearchEngineVersion(const String& search_engine_version)
   {
     search_engine_version_ = search_engine_version;

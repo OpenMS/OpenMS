@@ -142,9 +142,6 @@ namespace OpenMS
     /// Set of features already used
     std::unordered_set<const OpenMS::GridFeature*> already_used_;
 
-    /// set of used cluster ids during one run of run_internal_
-    std::unordered_set<Size> deleted_ids_;
-
     /**
        @brief Calculates the distance between two grid features.
     */

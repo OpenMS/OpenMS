@@ -689,22 +689,22 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   ds.sortByIntensity();
 
   TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
-    TEST_STRING_EQUAL(ds.getFloatDataArrays()[1].getName(),"f2")
-    TEST_STRING_EQUAL(ds.getFloatDataArrays()[2].getName(),"f3")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[1].getName(),"f2")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[2].getName(),"f3")
 
-    TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
-    TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
 
-    TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
+  TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
-    MSSpectrum::iterator it1 = ds.begin();
+  MSSpectrum::iterator it1 = ds.begin();
   MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
   MSSpectrum::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   TOLERANCE_ABSOLUTE(0.0001)
-    for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
+    for (std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
     {
-      if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end() && it4 != ds.getIntegerDataArrays()[0].end())
+      if (it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end() && it4 != ds.getIntegerDataArrays()[0].end())
       {
         //metadataarray values == mz values
         TEST_REAL_SIMILAR(it1->getIntensity(), *it);
@@ -727,30 +727,22 @@ END_SECTION
 START_SECTION((void sortByPosition()))
 {
   MSSpectrum ds;
-  Peak1D p;
   MSSpectrum::FloatDataArray float_array;
   MSSpectrum::StringDataArray string_array;
   MSSpectrum::IntegerDataArray int_array;
-  std::vector<double> mzs, intensities;
-  intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
-  intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
-  intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
-  intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
-  intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
-  intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");  int_array.push_back(37);
-  intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
-  intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");  int_array.push_back(34);
-  intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");  int_array.push_back(60);
-  intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
+  float_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  string_array.assign({"56", "201", "31", "31", "31", "37", "29", "34", "60", "29"});
+  int_array.assign({56, 201, 31, 31, 31, 37, 29, 34, 60, 29});
+  std::vector<double> mzs {423.269, 420.130, 419.113, 418.232, 416.293, 415.287, 414.301, 413.800, 412.824, 412.321};
+  std::vector<double> intensities {56, 201, 31, 31, 31, 37, 29, 34, 60, 29};
 
   for (Size i = 0; i < mzs.size(); ++i)
   {
-    p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
-    ds.push_back(p);
+    ds.emplace_back(mzs[i], intensities[i]);
   }
   ds.sortByPosition();
   MSSpectrum::iterator it = ds.begin();
-  for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
+  for (std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it == ds.end())
     {
@@ -762,8 +754,7 @@ START_SECTION((void sortByPosition()))
   ds.clear(true);
   for (Size i = 0; i < mzs.size(); ++i)
   {
-    p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
-    ds.push_back(p);
+    ds.emplace_back(mzs[i], intensities[i]);
   }
   ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
@@ -780,38 +771,103 @@ START_SECTION((void sortByPosition()))
   ds.sortByPosition();
 
   TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
-    TEST_STRING_EQUAL(ds.getFloatDataArrays()[1].getName(),"f2")
-    TEST_STRING_EQUAL(ds.getFloatDataArrays()[2].getName(),"f3")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[1].getName(),"f2")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[2].getName(),"f3")
 
-    TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
-    TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
 
-    TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
+  TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
-    MSSpectrum::iterator it1 = ds.begin();
+  Size size = intensities.size();
+  ABORT_IF(ds.size() == size);
+  ABORT_IF(ds.getFloatDataArrays()[1].size() == size);
+  ABORT_IF(ds.getStringDataArrays()[0].size() == size);
+  ABORT_IF(ds.getIntegerDataArrays()[0].size() == size);
+  MSSpectrum::iterator it1 = ds.begin();
   MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
   MSSpectrum::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
-  for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
+  for (std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
-    if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
-    {
-      //metadataarray values == intensity values
-      TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
-      TEST_REAL_SIMILAR(*it2 , *rit);
-      TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
-      TEST_EQUAL(*it4 , (Int)floor(*rit));
-      ++it1;
-      ++it2;
-      ++it3;
-      ++it4;
-    }
-    else
-    {
-      TEST_EQUAL(true,false)
-    }
+    //metadataarray values == intensity values
+    TEST_REAL_SIMILAR(it1->getIntensity(), *rit);
+    TEST_REAL_SIMILAR(*it2 , *rit);
+    TEST_STRING_EQUAL(*it3 , String::number(*rit,0));
+    TEST_EQUAL(*it4 , (Int)floor(*rit));
+    ++it1;
+    ++it2;
+    ++it3;
+    ++it4;
   }
+}
+END_SECTION
 
+
+START_SECTION((void sortByPositionPresorted()))
+{
+  MSSpectrum ds;
+  MSSpectrum::FloatDataArray float_array;
+  MSSpectrum::StringDataArray string_array ;
+  MSSpectrum::IntegerDataArray int_array ;
+  float_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
+  string_array.assign({"19", "20", "23", "15", "16", "18", "13", "14", "12", "12"});
+  int_array.assign({19, 20, 23, 15, 16, 18, 13, 14, 12, 12});
+  std::vector<double> mzs {419.113, 420.130, 423.269, 415.287, 416.293, 418.232, 413.800, 414.301, 412.824, 412.321};
+  std::vector<double> intensities {19, 20, 23, 15, 16, 18, 13, 14, 12, 12};
+
+  MSSpectrum::Chunks chunks(ds);
+  double last_added = 0;
+  for (Size i = 0; i < mzs.size(); ++i)
+  {
+    if (mzs[i] < last_added) chunks.add(true);
+    last_added = mzs[i];
+    ds.emplace_back(mzs[i], intensities[i]);
+  }
+  chunks.add(true); // Add the last chunk
+
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays()[0].setName("f1");
+  ds.getFloatDataArrays()[1].setName("f2");
+  ds.getFloatDataArrays()[2].setName("f3");
+
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
+  ds.getStringDataArrays()[0].setName("s1");
+  ds.getStringDataArrays()[1].setName("s2");
+
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays()[0].setName("i1");
+
+  ds.sortByPositionPresorted(chunks.getChunks());
+
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[1].getName(),"f2")
+  TEST_STRING_EQUAL(ds.getFloatDataArrays()[2].getName(),"f3")
+
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
+  TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
+
+  TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
+
+  Size size = intensities.size();
+  ABORT_IF(ds.size() == size);
+  ABORT_IF(ds.getFloatDataArrays()[1].size() == size);
+  ABORT_IF(ds.getStringDataArrays()[0].size() == size);
+  ABORT_IF(ds.getIntegerDataArrays()[0].size() == size);
+  MSSpectrum::iterator it1 = ds.begin();
+  MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
+  MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+  MSSpectrum::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
+  std::sort(intensities.begin(), intensities.end());
+  for (std::vector<double>::iterator it = intensities.begin(); it != intensities.end(); ++it)
+  {
+    //metadataarray values == intensity values
+    TEST_REAL_SIMILAR(it1->getIntensity(), *it);
+    TEST_REAL_SIMILAR(*it2 , *it);
+    TEST_STRING_EQUAL(*it3 , String::number(*it,0));
+    TEST_EQUAL(*it4 , (Int)floor(*it));
+    ++it1; ++it2; ++it3; ++it4;
+  }
 }
 END_SECTION
 

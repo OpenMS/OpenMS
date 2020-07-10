@@ -82,7 +82,7 @@ namespace OpenMS
     private:
       QStringList required_modules_; ///< list of modules which are needed (order might be important -- know your Python...)
       QString info_text_; ///< additional text to display for the user
-      bool is_ready_; ///< all modules are present and the app is good to go
+      bool is_ready_ = false; ///< all modules are present and the app is good to go
 
       Ui::PythonModuleRequirement* ui_;
     };

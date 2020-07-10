@@ -87,7 +87,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -98,6 +98,7 @@ jobs:
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
@@ -203,7 +204,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -215,6 +216,7 @@ jobs:
             cp pyOpenMS/dist/*.whl pyopenms_whls/
 
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs

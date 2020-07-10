@@ -77,6 +77,30 @@ public:
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 
+    /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
+    struct Chunk {
+      Size start; ///< inclusive
+      Size end; ///< not inclusive
+      bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
+      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+    };
+
+    struct Chunks {
+      public:
+        Chunks(const MSSpectrum& s) : spec_(s) {}
+        void add(bool is_sorted)
+        {
+          chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), is_sorted);
+        }
+        std::vector<Chunk>& getChunks()
+        {
+          return chunks_;
+        }
+      private:
+        std::vector<Chunk> chunks_;
+        const MSSpectrum& spec_;
+    };
+
     ///@name Base type definitions
     //@{
     /// Peak type
@@ -286,6 +310,12 @@ public:
     */
     void sortByPosition();
 
+    /**
+      @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
+      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+    */
+    void sortByPositionPresorted(const std::vector<Chunk>& chunks);
+
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
 
@@ -473,6 +503,9 @@ public:
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
+    /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    bool containsIMData() const;
 
     //@}
 

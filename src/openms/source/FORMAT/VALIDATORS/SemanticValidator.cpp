@@ -317,19 +317,21 @@ namespace OpenMS
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
             break;
           }
-          if (term.getAllowChildren()) //check if the term's children are allowed
+
+          UInt& counter = fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
+          auto searcher = [&allowed, &counter, &parsed_term] (const String& child)
           {
-            set<String> child_terms;
-            cv_.getAllChildTerms(child_terms, term.getAccession());
-            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            if (child == parsed_term.accession)
             {
-              if (*it == parsed_term.accession)
-              {
-                allowed = true;
-                fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
-                break;
-              }
+              allowed = true;
+              ++counter;
+              return true;
             }
+            return false;
+          };
+          if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher)) //check if the term's children are allowed
+          {
+            break;
           }
         }
       }
@@ -357,14 +359,18 @@ namespace OpenMS
                 set<String> child_terms;
 
                 bool found_unit(false);
-                for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
+                auto lambda = [&parsed_term, &found_unit] (const String& child)
                 {
-                  cv_.getAllChildTerms(child_terms, *it);
-                  if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+                  if (child == parsed_term.accession)
                   {
                     found_unit = true;
-                    break;
+                    return true;
                   }
+                  return false;
+                };
+                for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
+                {
+                  if (cv_.iterateAllChildren(*it, lambda)) break;
                 }
 
                 if (!found_unit)
@@ -561,36 +567,24 @@ namespace OpenMS
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
-      bool allowed = false;
       const vector<CVMappingRule>& rules = rules_[path];
       for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
-        //~ rule_found = true;
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
           if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
-            allowed = true;
-            break;
+            return true;
           }
-          if (term.getAllowChildren()) //check if the term's children are allowed
+          auto searcher = [&parsed_term] (const String& child) { return child == parsed_term.accession; };
+          if (term.getAllowChildren() && cv_.iterateAllChildren(term.getAccession(), searcher))
           {
-            set<String> child_terms;
-            cv_.getAllChildTerms(child_terms, term.getAccession());
-            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
-            {
-              if (*it == parsed_term.accession)
-              {
-                allowed = true;
-                break;
-              }
-            }
+            return true;
           }
         }
       }
-      return allowed;
+      return false;
     }
-
   } // namespace Internal
 } // namespace OpenMS

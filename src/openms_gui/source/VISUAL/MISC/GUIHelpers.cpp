@@ -51,17 +51,15 @@ namespace OpenMS
   void GUIHelpers::openFolder(const QString& folder)
   {
 #if defined(__APPLE__)
-    QProcess* p = new QProcess();
-    p->setProcessChannelMode(QProcess::ForwardedChannels);
-    QStringList app_args;
-    app_args.append(folder);
-    p->start("/usr/bin/open", app_args);
-    if (!p->waitForStarted())
+    QProcess p;
+    p.setProcessChannelMode(QProcess::ForwardedChannels);
+    p.start("/usr/bin/open", QStringList() << folder);
+    if (!p.waitForStarted())
     {
       // execution failed
       QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
       OPENMS_LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
-      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
     }
 #else
     if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
@@ -73,8 +71,8 @@ namespace OpenMS
 
   void GUIHelpers::startTOPPView(const QStringList& args)
   {
-    QProcess* p = new QProcess();
-    p->setProcessChannelMode(QProcess::ForwardedChannels);
+    QProcess p;
+    p.setProcessChannelMode(QProcess::ForwardedChannels);
 #if defined(__APPLE__)
     // check if we can find the TOPPView.app
     QString app_path = (File::getExecutablePath() + "../../../TOPPView.app").toQString();
@@ -87,25 +85,25 @@ namespace OpenMS
       app_args.append(app_path);
       app_args.append("--args");
       app_args.append(args);
-      p->start("/usr/bin/open", app_args);
+      p.start("/usr/bin/open", app_args);
     }
     else
     {
       // we could not find the app, try it the Linux way
       QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-      p->start(toppview_executable, args);
+      p.start(toppview_executable, args);
     }
 #else
     // LINUX+WIN
     QString toppview_executable = (File::findSiblingTOPPExecutable("TOPPView")).toQString();
-    p->start(toppview_executable, args);
+    p.start(toppview_executable, args);
 #endif
 
 
-    if (!p->waitForStarted())
+    if (!p.waitForStarted())
     {
       // execution failed
-      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
   #if defined(Q_WS_MAC)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
