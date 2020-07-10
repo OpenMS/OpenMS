@@ -39,38 +39,36 @@
 #include <QtCore/QDir>
 #include <QtCore/QString>
 
-using namespace OpenMS;
 using namespace std;
 
 namespace OpenMS
 {
 
-  std::map<String, MSSpectrum> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass, bool decoy)
+  std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass)
   {
-    map<String, MSSpectrum> native_ids_annotated_spectra;
+    std::map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra> native_ids_annotated_spectra;
+    std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra;
     for (const auto& subdir : sirius_workspace_subdirs)
     {
       MSSpectrum annotated_spectrum;
+      MSSpectrum annotated_decoy;
 
-      if (decoy)
-      {
-        SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
-                                                                      annotated_spectrum);
-      }
-      else
-      {
-        SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir,
-                                                                         annotated_spectrum,
-                                                                         use_exact_mass);
-      }
+      SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(subdir,
+                                                                       annotated_spectrum,
+                                                                       use_exact_mass);
 
-      map<String, MSSpectrum>::iterator it;
+      SiriusFragmentAnnotation::extractSiriusDecoyAnnotationMapping(subdir,
+                                                                      annotated_decoy);
+
+      // resolve multiple use of the same concatenated nativeids (used for multiple features/identifications)
+      map<String, SiriusFragmentAnnotation::SiriusTargetDecoySpectra>::iterator it;
       it = native_ids_annotated_spectra.find(annotated_spectrum.getNativeID());
       if (it != native_ids_annotated_spectra.end())
       {
-        if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.getMetaValue("score")))
+        if (double(annotated_spectrum.getMetaValue("score")) >= double(it->second.target.getMetaValue("score")))
         {
-          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+          SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
+          native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
         }
         else
         {
@@ -79,10 +77,18 @@ namespace OpenMS
       }
       else
       {
-        native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), annotated_spectrum));
+        SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy(annotated_spectrum, annotated_decoy);
+        native_ids_annotated_spectra.insert(make_pair(annotated_spectrum.getNativeID(), target_decoy));
       }
     }
-    return native_ids_annotated_spectra;
+
+    // convert to vector
+    for( const auto& it : native_ids_annotated_spectra)
+    {
+      annotated_spectra.push_back(it.second);
+    }
+
+    return annotated_spectra;
   }
 
   void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
@@ -316,7 +322,7 @@ namespace OpenMS
     }
     else
     {
-      OPENMS_LOG_WARN << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
+      OPENMS_LOG_DEBUG << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
     }
   }
 
@@ -384,7 +390,7 @@ namespace OpenMS
     }
     else
     {
-      OPENMS_LOG_WARN << "Directory 'decoys' was not found for: " << sirius_spectra_dir << std::endl;
+      OPENMS_LOG_DEBUG << "Directory 'decoys' was not found for: " << sirius_spectra_dir << std::endl;
     }
   }
 

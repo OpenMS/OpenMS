@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <regex>
 
 using namespace std;
 
@@ -1101,4 +1102,89 @@ namespace OpenMS
     exp.setTransitions(transitions);
     exp.setCompounds(compounds);
   }
+
+  void MRMAssay::filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp)
+  {
+    vector<TargetedExperiment::Compound> compounds = exp.getCompounds();
+    vector<String> descriptions_targets;
+    vector<String> descriptions_decoys;
+    vector<String> difference_target_decoys;
+    vector<std::pair<String, String>> reference_decoys;
+    vector<String> single_decoy_id;
+
+    for (const auto &it : compounds)
+    {
+      // extract potential target TransitionIds based on the decoy annotation
+      if (it.id.find("decoy") != std::string::npos)
+      {
+        String current_decoy = it.id;
+        String potential_target = std::regex_replace(current_decoy, std::regex("_decoy"), "");
+        descriptions_decoys.emplace_back(potential_target);
+        reference_decoys.emplace_back(std::make_pair(current_decoy, potential_target));
+      }
+      else
+      {
+        descriptions_targets.emplace_back(it.id);
+      }
+    }
+
+    // compare the actual target TransitionsIds with the potential ones
+    std::set_difference(descriptions_decoys.begin(),
+                        descriptions_decoys.end(),
+                        descriptions_targets.begin(),
+                        descriptions_targets.end(),
+                        std::inserter(difference_target_decoys, difference_target_decoys.begin()));
+
+    // translate the potential targets to decoy annotations
+    for (const auto &it : difference_target_decoys)
+    {
+      auto iter = std::find_if(reference_decoys.begin(),
+                               reference_decoys.end(),
+                               [&it](const std::pair<String, String> &element) { return element.second == it; });
+      if (iter != reference_decoys.end())
+      {
+        single_decoy_id.emplace_back(iter->first);
+      }
+    }
+
+    // remove compound due to missing target
+    vector<TargetedExperiment::Compound> filtered_compounds;
+    for (Size i = 0; i < exp.getCompounds().size(); ++i)
+    {
+      TargetedExperiment::Compound compound = exp.getCompounds()[i];
+
+      // Check if decoy was filtered
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), compound.id) != single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << compound.id << " was filtered due to missing a respective target."
+                         << std::endl;
+      }
+      else
+      {
+        filtered_compounds.push_back(compound);
+      }
+    }
+
+    // remove decoy transitions due to missing target
+    vector<ReactionMonitoringTransition> filtered_transitions;
+    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    {
+      ReactionMonitoringTransition transition = exp.getTransitions()[i];
+
+      // Check if compound has any transitions left
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), transition.getCompoundRef()) !=
+          single_decoy_id.end())
+      {
+        OPENMS_LOG_DEBUG << "The decoy " << transition.getCompoundRef()
+                         << " was filtered due to missing a respective target." << std::endl;
+      }
+      else
+      {
+        filtered_transitions.push_back(transition);
+      }
+    }
+    exp.setCompounds(filtered_compounds);
+    exp.setTransitions(filtered_transitions);
+  }
+
 }

@@ -41,6 +41,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h> //SiriusMSFile
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h> //SiriusTargetDecoySpectra
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -68,12 +69,16 @@ namespace OpenMS
     std::vector<ReactionMonitoringTransition> potential_rmts;
 
     /**
-    @brief CompoundSpectrumPair stores a pair of CompoundInfo and MSSpectrum
+    @brief CompoundTargetDecoyPair stores a pair of CompoundInfo and MSSpectrum (target, decoy)
 
     */
-    struct CompoundSpectrumPair
+    struct CompoundTargetDecoyPair
     {
-      std::pair <SiriusMSFile::CompoundInfo, MSSpectrum> compoundspectrumpair;
+      SiriusMSFile::CompoundInfo compound_info;
+      SiriusFragmentAnnotation::SiriusTargetDecoySpectra target_decoy_spectra;
+
+      CompoundTargetDecoyPair() = default;
+      CompoundTargetDecoyPair(SiriusMSFile::CompoundInfo info, SiriusFragmentAnnotation::SiriusTargetDecoySpectra td_spectra) : compound_info(info), target_decoy_spectra(td_spectra) {}
     };
 
 
@@ -124,7 +129,7 @@ namespace OpenMS
 
     */
 
-    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundSpectrumPair >& v_cmp_spec,
+    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssayFragmentAnnotation(const std::vector< CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                          const double& transition_threshold,
                                                                                          const double& min_fragment_mz,
                                                                                          const double& max_fragment_mz,
@@ -133,8 +138,20 @@ namespace OpenMS
                                                                                          const unsigned int& file_counter);
 
 
-    static std::vector<MetaboTargetedAssay::CompoundSpectrumPair> pairCompoundWithAnnotatedSpectrum(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                        const std::map<String, MSSpectrum>& native_ids_annotated_spectra);
+
+
+    /**
+    @brief Pair compound information (SiriusMSFile) with the annotated target and decoy spectrum from SIRIUS/Passatutto based on the MID (unique identifier)
+
+    @return Vector of MetaboTargetedAssay::CompoundTargetDecoyPair
+
+    @param v_cmpinfo: Vector of SiriusMSFile::CompoundInfo
+
+    @param annotated_spectra: Vector of SiriusTargetDecoySpectra
+    */
+    static std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                        const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra);
+
 
     protected:
 

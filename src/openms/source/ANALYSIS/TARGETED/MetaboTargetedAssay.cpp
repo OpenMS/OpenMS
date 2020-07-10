@@ -347,7 +347,7 @@ namespace OpenMS
   }
 
   // method to extract a potential transitions based on the ms/ms based of the highest intensity precursor with fragment annotation using SIRIUS
-  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector < CompoundSpectrumPair >& v_cmp_spec,
+  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(const vector < CompoundTargetDecoyPair >& v_cmp_spec,
                                                                                                       const double& transition_threshold,
                                                                                                       const double& min_fragment_mz,
                                                                                                       const double& max_fragment_mz,
@@ -355,219 +355,240 @@ namespace OpenMS
                                                                                                       const bool& exclude_ms2_precursor,
                                                                                                       const unsigned int& file_counter)
   {
-    int transition_group_counter = 0;
+    int entry_counter = 0; // counts each entry - to ensure the same count for targets, decoys from the same sirius workspace
     vector <MetaboTargetedAssay> v_mta;
 
     for (const auto& it : v_cmp_spec)
     {
-      // check if annotated spectrum exists
-      const std::pair <SiriusMSFile::CompoundInfo, MSSpectrum> &csp = it.compoundspectrumpair;
-      MSSpectrum transition_spectrum;
-      transition_spectrum = csp.second;
-      if (transition_spectrum.empty())
+      // check if annotated object exists
+      const MetaboTargetedAssay::CompoundTargetDecoyPair &csp = it;
+
+      // iterate over both entries - targets and decoys (SiriusTargetDecoySepctra)
+      // count target and decoy as on entry - to ensure same numbering of targets and decoys
+      for (size_t i = 0; i < 2; ++i)
       {
-        continue;
-      }
 
-      TargetedExperiment::Compound cmp;
-      cmp.clearMetaInfo();
-      vector <ReactionMonitoringTransition> v_rmt;
-
-      String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
-
-      double feature_rt;
-      feature_rt = csp.first.rt;
-      description = csp.first.des;
-      int charge = csp.first.charge;
-      double precursor_int = csp.first.pint_mono;
-
-      // use annotated metadata
-      sumformula = csp.second.getMetaValue("annotated_sumformula");
-      adduct = csp.second.getMetaValue("annotated_adduct");
-      int decoy = csp.second.getMetaValue("decoy");
-
-      // transition calculations
-      // calculate max intensity peak and threshold
-      float max_int = 0.0;
-      float min_int = std::numeric_limits<float>::max();
-
-      // sort intensity in MS2 spectrum to extract transitions
-      transition_spectrum.sortByIntensity(true);
-
-      // have to remove ms2 precursor peak before min/max
-      double exact_mass_precursor = 0.0;
-      for (auto spec_it = transition_spectrum.begin();
-           spec_it != transition_spectrum.end();
-           ++spec_it)
-      {
-        int spec_index = spec_it - transition_spectrum.begin();
-
-        OpenMS::DataArrays::StringDataArray explanation_array;
-        if (!transition_spectrum.getStringDataArrays().empty())
+        MSSpectrum transition_spectrum;
+        if ( i == 0)
         {
-          explanation_array = transition_spectrum.getStringDataArrays()[0];
-          if (explanation_array.getName() != "explanation")
+          transition_spectrum = csp.target_decoy_spectra.target;
+        }
+        else
+        {
+          transition_spectrum = csp.target_decoy_spectra.decoy;
+        }
+
+        if (transition_spectrum.empty())
+        {
+          OPENMS_LOG_DEBUG << "The annotated spectrum was empty: " << csp.compound_info.cmp << std::endl;
+          continue;
+        }
+
+        TargetedExperiment::Compound cmp;
+        cmp.clearMetaInfo();
+        vector <ReactionMonitoringTransition> v_rmt;
+
+        String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
+
+        double feature_rt;
+        feature_rt = csp.compound_info.rt;
+        description = csp.compound_info.des;
+        int charge = csp.compound_info.charge;
+        double precursor_int = csp.compound_info.pint_mono;
+
+        // use annotated metadata
+        sumformula = transition_spectrum.getMetaValue("annotated_sumformula");
+        adduct = transition_spectrum.getMetaValue("annotated_adduct");
+        int decoy = transition_spectrum.getMetaValue("decoy");
+
+        // transition calculations
+        // calculate max intensity peak and threshold
+        float max_int = 0.0;
+        float min_int = std::numeric_limits<float>::max();
+
+        // sort intensity in MS2 spectrum to extract transitions
+        transition_spectrum.sortByIntensity(true);
+
+        // have to remove ms2 precursor peak before min/max
+        double exact_mass_precursor = 0.0;
+        for (auto spec_it = transition_spectrum.begin();
+             spec_it != transition_spectrum.end();
+             ++spec_it)
+        {
+          int spec_index = spec_it - transition_spectrum.begin();
+
+          OpenMS::DataArrays::StringDataArray explanation_array;
+          if (!transition_spectrum.getStringDataArrays().empty())
           {
-            OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
-          }
-          else
-          {
-            // precursor in fragment annotation has the same sumformula as MS1 Precursor
-            if (explanation_array[spec_index] == sumformula)
+            explanation_array = transition_spectrum.getStringDataArrays()[0];
+            if (explanation_array.getName() != "explanation")
             {
-              // save exact mass
-              if (use_exact_mass)
+              OPENMS_LOG_WARN << "Fragment explanation was not found. Please check if your annotation works properly." << std::endl;
+            }
+            else
+            {
+              // precursor in fragment annotation has the same sumformula as MS1 Precursor
+              if (explanation_array[spec_index] == sumformula)
               {
-                exact_mass_precursor = spec_it->getMZ();
-              }
-              // remove precursor ms2 entry
-              if (exclude_ms2_precursor)
-              {
-                transition_spectrum.erase(transition_spectrum.begin() + spec_index);
-                transition_spectrum.getStringDataArrays()[0]
-                    .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
-                if (decoy == 0) // second mass FloatDataArray only available for targets
+                // save exact mass
+                if (use_exact_mass && !decoy) // only use for targets
                 {
-                  transition_spectrum.getFloatDataArrays()[0]
-                    .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
+                  exact_mass_precursor = spec_it->getMZ();
                 }
-                break; // if last element have to break if not iterator will go out of range
+                // remove precursor ms2 entry
+                if (exclude_ms2_precursor || decoy) // always use for decoys
+                {
+                  transition_spectrum.erase(transition_spectrum.begin() + spec_index);
+                  transition_spectrum.getStringDataArrays()[0]
+                      .erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
+                  if (decoy == 0) // second mass FloatDataArray only available for targets
+                  {
+                    transition_spectrum.getFloatDataArrays()[0]
+                      .erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
+                  }
+                  break; // if last element have to break if not iterator will go out of range
+                }
               }
             }
           }
         }
-      }
 
-      // find max and min intensity peak
-      max_int = max_element(transition_spectrum.begin(), transition_spectrum.end(), intensityLess_)->getIntensity();
-      min_int = min_element(transition_spectrum.begin(), transition_spectrum.end(), intensityLess_)->getIntensity();
+        // find max and min intensity peak
+        max_int = max_element(transition_spectrum.begin(), transition_spectrum.end(), intensityLess_)->getIntensity();
+        min_int = min_element(transition_spectrum.begin(), transition_spectrum.end(), intensityLess_)->getIntensity();
 
-      // no peaks or all peaks have same intensity (single peak / noise)
-      if (min_int >= max_int)
-      {
-        continue;
-      }
-
-      vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
-      TargetedExperimentHelper::RetentionTime cmp_rt;
-      cmp_rt.setRT(feature_rt);
-      v_cmp_rt.push_back(std::move(cmp_rt));
-      cmp.rts = std::move(v_cmp_rt);
-      cmp.setChargeState(charge);
-      if (description == "UNKNOWN")
-      {
-        std::cout << "tgc: " << transition_group_counter << std::endl;
-        description = String(description + "_" + transition_group_counter);
-      }
-      if (decoy == 0)
-      {
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter;
-        cmp.setMetaValue("CompoundName", description);
-      }
-      else
-      {
-        description = String(description + "_decoy");
-        cmp.id = String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter;
-        cmp.setMetaValue("CompoundName", description);
-      }
-
-      cmp.smiles_string = "NA";
-
-      cmp.molecular_formula = sumformula;
-      cmp.setMetaValue("Adducts", adduct);
-      cmp.setMetaValue("decoy", decoy);
-      if (!csp.first.native_ids_id.empty())
-      {
-        cmp.setMetaValue("native_ids_id", csp.first.native_ids_id);
-      }
-
-      // threshold should be at x % of the maximum intensity
-      // hard minimal threshold of min_int * 1.1
-      float threshold_transition = max_int * (transition_threshold / 100);
-      float threshold_noise = min_int * 1.1;
-      int transition_counter = 0;
-
-      // extract current StringDataArray with annotations/explanations;
-      OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
-
-      // check which entry is saved in the FloatDataArray (control for "use_exact_mass")
-      if (decoy == 0)
-      {
-        OPENMS_LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library." << std::endl;
-      }
-
-      // here ms2 spectra information is used
-      for (auto spec_it = transition_spectrum.begin();
-           spec_it != transition_spectrum.end();
-           ++spec_it)
-      {
-        ReactionMonitoringTransition rmt;
-        rmt.clearMetaInfo();
-        int peak_index = spec_it - transition_spectrum.begin();
-
-        float current_int = spec_it->getIntensity();
-        double current_mz = spec_it->getMZ();
-        String current_explanation = explanation_array[peak_index];
-
-        // write row for each transition
-        // current int has to be higher than transition threshold and should not be smaller than threshold noise
-        // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
-        if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
+        // no peaks or all peaks have same intensity (single peak / noise)
+        if (min_int >= max_int)
         {
-          float rel_int = current_int / max_int;
-          rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : csp.first.pmass);
-          rmt.setProductMZ(current_mz);
-          TargetedExperimentHelper::TraMLProduct product;
-          product.setMZ(current_mz);
-          // charge state / adduct should always be available
-          product.setChargeState(1); // TODO: automatise - charge from adduct - SIRIUS can currently only +1 / -1
-          rmt.setProduct(product);
-          rmt.setLibraryIntensity(rel_int);
-          rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + adduct + "_" + file_counter);
-          rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + adduct + "_" + file_counter);
-          rmt.setMetaValue("annotation", DataValue(current_explanation));
-          if (!csp.first.native_ids_id.empty())
-          {
-            rmt.setMetaValue("native_ids_id", csp.first.native_ids_id);
-          }
-          if (decoy)
-          {
-            rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
-          }
-          else
-          {
-            rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET);
-          }
-
-          v_rmt.push_back(std::move(rmt));
-          transition_counter += 1;
+          OPENMS_LOG_DEBUG << "The annotated spectrum does not have any peaks after the intensity filter step, or all peaks have the same intensity: " << csp.compound_info.cmp << std::endl;
+          continue;
         }
-      }
 
-      transition_group_counter += 1;
-      MetaboTargetedAssay mta;
-      mta.precursor_int = precursor_int;
-      mta.compound_name = description;
-      mta.compound_adduct = adduct;
-      mta.potential_cmp = cmp;
-      mta.potential_rmts = v_rmt;
-      v_mta.push_back(std::move(mta));
+        vector <TargetedExperimentHelper::RetentionTime> v_cmp_rt;
+        TargetedExperimentHelper::RetentionTime cmp_rt;
+        cmp_rt.setRT(feature_rt);
+        v_cmp_rt.push_back(std::move(cmp_rt));
+        cmp.rts = std::move(v_cmp_rt);
+        cmp.setChargeState(charge);
+        if (description == "UNKNOWN")
+        {
+          description = String(description + "_" + entry_counter);
+        }
+        if (decoy == 0)
+        {
+          cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
+          cmp.setMetaValue("CompoundName", description);
+        }
+        else
+        {
+          description = String(description + "_decoy");
+          cmp.id = String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter;
+          cmp.setMetaValue("CompoundName", description);
+        }
+
+        OPENMS_LOG_DEBUG << "Processed annotated Spectra - mapping of the description and the SIRIUS identifier." << " Description: " << description << " SIRIUS_workspace_identifier: " << csp.compound_info.cmp << std::endl;
+
+        cmp.smiles_string = "NA";
+        cmp.molecular_formula = sumformula;
+        cmp.setMetaValue("Adducts", adduct);
+        cmp.setMetaValue("decoy", decoy);
+        if (!csp.compound_info.native_ids_id.empty())
+        {
+          cmp.setMetaValue("native_ids_id", csp.compound_info.native_ids_id);
+        }
+        if (!csp.compound_info.mids_id.empty())
+        {
+          cmp.setMetaValue("mids_id", csp.compound_info.mids_id);
+        }
+        if (!csp.compound_info.cmp.empty())
+        {
+          cmp.setMetaValue("sirius_workspace_identifier", csp.compound_info.cmp);
+        }
+
+        // threshold should be at x % of the maximum intensity
+        // hard minimal threshold of min_int * 1.1
+        float threshold_transition = max_int * (transition_threshold / 100);
+        float threshold_noise = min_int * 1.1;
+        int transition_counter = 0;
+
+        // extract current StringDataArray with annotations/explanations;
+        OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
+
+        // here ms2 spectra information is used
+        for (auto spec_it = transition_spectrum.begin();
+             spec_it != transition_spectrum.end();
+             ++spec_it)
+        {
+          ReactionMonitoringTransition rmt;
+          rmt.clearMetaInfo();
+          int peak_index = spec_it - transition_spectrum.begin();
+
+          float current_int = spec_it->getIntensity();
+          double current_mz = spec_it->getMZ();
+          String current_explanation = explanation_array[peak_index];
+
+          // write row for each transition
+          // current int has to be higher than transition threshold and should not be smaller than threshold noise
+          // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
+          if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
+          {
+            float rel_int = current_int / max_int;
+            rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0) ? exact_mass_precursor : csp.compound_info.pmass);
+            rmt.setProductMZ(current_mz);
+            TargetedExperimentHelper::TraMLProduct product;
+            product.setMZ(current_mz);
+            // charge state / adduct should always be available
+            product.setChargeState(1); // TODO: automatise - charge from adduct - SIRIUS can currently only +1 / -1
+            rmt.setProduct(product);
+            rmt.setLibraryIntensity(rel_int);
+            rmt.setCompoundRef(String(entry_counter) + "_" + description + "_" + adduct + "_" + file_counter);
+            rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + adduct + "_" + file_counter);
+            rmt.setMetaValue("annotation", DataValue(current_explanation));
+            if (!csp.compound_info.native_ids_id.empty())
+            {
+              rmt.setMetaValue("native_ids_id", csp.compound_info.native_ids_id);
+            }
+            if (!csp.compound_info.mids_id.empty())
+            {
+              rmt.setMetaValue("mids_id", csp.compound_info.mids_id);
+            }
+            if (decoy)
+            {
+              rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
+            }
+            else
+            {
+              rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET);
+            }
+            v_rmt.push_back(std::move(rmt));
+            ++transition_counter;
+          }
+        }
+        MetaboTargetedAssay mta;
+        mta.precursor_int = precursor_int;
+        mta.compound_name = description;
+        mta.compound_adduct = adduct;
+        mta.potential_cmp = cmp;
+        mta.potential_rmts = v_rmt;
+        v_mta.push_back(std::move(mta));
+      }
+      ++entry_counter;
     }
     return v_mta;
   }
 
-  // method to pair compound information (SiriusMSFile) with the annotated specta from Sirius based on the MID (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectrum(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo, const std::map<String, MSSpectrum>& native_ids_annotated_spectra)
+  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the MID (unique identifier)
+  std::vector< MetaboTargetedAssay::CompoundTargetDecoyPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
+                                                                                                                  const std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra>& annotated_spectra)
   {
-    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
+    vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
     for (const auto& cmp : v_cmpinfo)
     {
-      for (const auto& spec_fa : native_ids_annotated_spectra)
+      for (const auto& spectra : annotated_spectra)
       {
-        if (cmp.mids_id == spec_fa.second.getName())
+        if (cmp.mids_id == spectra.target.getName())
         {
-          MetaboTargetedAssay::CompoundSpectrumPair csp;
-          csp.compoundspectrumpair = make_pair(cmp, spec_fa.second);
+          MetaboTargetedAssay::CompoundTargetDecoyPair csp(cmp, spectra);
           v_cmp_spec.push_back(move(csp));
         }
       }

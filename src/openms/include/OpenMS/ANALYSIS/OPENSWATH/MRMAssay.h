@@ -142,17 +142,7 @@ public:
 
     */
     void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
-    
-    /**
-      @brief Filters transitions by intensity, only keeping the top N transitions
 
-      @param exp the transition list which will be filtered
-      @param min_transitions the minimum number of transitions required per assay
-      @param max_transitions the maximum number of transitions required per assay
-
-    */
-    void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
-    
     /**
       @brief Annotate UIS / site-specific transitions
 
@@ -198,6 +188,27 @@ public:
                         size_t max_num_alternative_localizations = 20,
                         int shuffle_seed = -1,
                         bool disable_decoy_transitions = false);
+
+    /**
+    @brief Filters transitions by intensity, only keeping the top N transitions
+
+    @param exp the transition list which will be filtered
+    @param min_transitions the minimum number of transitions required per assay
+    @param max_transitions the maximum number of transitions required per assay
+
+    */
+    void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
+
+    // TODO: add correct description!
+    /**
+    @brief Filters transitions by intensity, only keeping the top N transitions
+
+    @param exp the transition list which will be filtered
+    @param min_transitions the minimum number of transitions required per assay
+    @param max_transitions the maximum number of transitions required per assay
+
+    */
+    void filterUnreferencedDecoysCompound(OpenMS::TargetedExperiment &exp);
 
 protected:
 

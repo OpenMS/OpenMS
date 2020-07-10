@@ -43,29 +43,34 @@ namespace OpenMS
       public:
 
           /**
+          @brief SiriusTargetDecoySpectra holds the target and/or decoy information for one entry (subdirectory from SIRIUS)
+          */
+          struct SiriusTargetDecoySpectra
+          {
+            MSSpectrum target;
+            MSSpectrum decoy;
+
+            SiriusTargetDecoySpectra() = default;
+            SiriusTargetDecoySpectra(MSSpectrum target_spectrum, MSSpectrum decoy_spectrum) : target(target_spectrum), decoy(decoy_spectrum) {}
+          };
+
+          /**
           @brief extractAndResolveSiriusAnnotations
-          Extract SIRIUS target or decoy annotation for mapping native_id to MSSpectrum.
+          Extract and resolves SIRIUS target and/or decoy annotation for mapping native_id to MSSpectrum.
 
           @return map native_id to annotated MSSpectrum (target or decoy)
 
-          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArray (exact mass), and a StringDataArray (explanation).
-
-          <table>
-          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
-          <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
-          <tr><td> mz <td> intensity <td> exact_mass <td> explanation
-          <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
-          </table>
+          If there are multiple identifications for a feature with the same MS2 spectras (concatenated native ids)
+          the identification with the higher SIRIUS score is chosen.
 
           @param sirius_workspace_subdirs: Vector of paths to SIRIUS subdirectories.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
-          @param decoy: Use for target == false, use for decoy == true.
           */
-          static std::map<String, MSSpectrum> extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass, bool decoy);
+          static std::vector<SiriusTargetDecoySpectra> extractAndResolveSiriusAnnotations(std::vector<String> const &sirius_workspace_subdirs, bool use_exact_mass);
 
           /**
           @brief extractSiriusFragmentAnnotationMapping  
-          Extract native id (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
+          Extract concatenated native ids and concatenated mids (unique identifier) from (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.tsv) from SIRIUS output (per compound).
 
           @return annotated (consensus) MSSpectrum with associated native id
 
@@ -90,7 +95,7 @@ namespace OpenMS
 
           /**
           @brief extractSiriusDecoyAnnotationMapping
-          Extract native id (./spectrum.ms) and fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
+          Extract concatenated native ids and concatenated mids (./spectrum.ms) and fragment annotation (./decoy/1_sumformula.tsv) from SIRIUS/PASSATUTTO output (per compound).
 
           @return annotated decoy MSSpectrum with associated native id
 
@@ -117,7 +122,7 @@ namespace OpenMS
 
           /**
           @brief extractNativeIDFromSiriusMS  
-          Extract native id from SIRIUS output (./spectrum.ms).
+          Extract concatenated native id from SIRIUS output (./spectrum.ms) and concatenates them.
 
           @return String native id of current SIRIUS compound
           
@@ -127,7 +132,7 @@ namespace OpenMS
 
           /**
           @brief extractMIDFromSiriusMS
-          Extract mid from SIRIUS output (./spectrum.ms).
+          Extract mids from SIRIUS output (./spectrum.ms) and concatenates them.
           Mid is the native id + an index, which is incremented based
           on the number of possible identifications (accurate mass search).
 
