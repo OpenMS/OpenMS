@@ -34,35 +34,34 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/SYSTEM/UpdateCheck.h>
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
-
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <QDir>
 #include <QFile>
-#include <QProcess>
 #include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -113,7 +112,6 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    working_dir_keep_debug_lvl_(-1),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -143,11 +141,6 @@ namespace OpenMS
     if (!topplog.empty() && File::empty(topplog))
     {
       File::remove(topplog);
-    }
-
-    if (!working_dir_.empty())
-    {
-      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
     }
   }
 
@@ -416,14 +409,14 @@ namespace OpenMS
       sw.start();
       result = main_(argc, argv);
       sw.stop();
-      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
-
-      // useful for benchmarking
-      if (debug_level_ >= 1)
+      // useful for benchmarking and for execution on clusters with schedulers
+      String mem_usage;
       {
         size_t mem_virtual(0);
-        writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+        SysInfo::getProcessPeakMemoryConsumption(mem_virtual);
+        if (mem_virtual != 0) mem_usage = String("; Peak Memory Usage: ") + (mem_virtual / 1024) + " MB";
       }
+      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << mem_usage << "." << std::endl;
     } // end try{}
     //----------------------------------------------------------
     //error handling
@@ -1269,6 +1262,35 @@ namespace OpenMS
     return tmp;
   }
 
+  void TOPPBase::fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const
+  {
+    // check if all input files are readable
+    if (p.type == ParameterInformation::INPUT_FILE_LIST)
+    {
+      for (String t : param_value)
+      {
+        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
+
+        // check restrictions
+        if (p.valid_strings.empty()) continue;
+
+        // determine file type as string
+        FileTypes::Type f_type = FileHandler::getType(t);
+        // unknown ending is 'ok'
+        if (f_type == FileTypes::UNKNOWN)
+        {
+          writeLog_("Warning: Could not determine format of input file '" + t + "'!");
+        }
+        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Input file '" + t + "' has invalid format '") + FileTypes::typeToName(f_type) +
+            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+        }
+      }
+    }
+  }
+
   void TOPPBase::fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
@@ -1366,13 +1388,14 @@ namespace OpenMS
     for (String& tmp : tmp_list)
     {
       writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-
-      // if required or set by user, do some validity checks
-      if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
-      {
-        fileParamValidityCheck_(tmp, name, p);
-      }
     }
+
+    // if required or set by user, do some validity checks
+    if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
+    {
+      fileParamValidityCheck_(tmp_list, name, p);
+    }
+
     return tmp_list;
   }
 
@@ -1488,100 +1511,25 @@ namespace OpenMS
     }
   }
 
-  String TOPPBase::makeTempDirectory_() const
-  {
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
-    return temp_dir;
-  }
-
-  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
-  {
-    if (working_dir_.empty())
-    {
-      working_dir_ = makeTempDirectory_();
-      working_dir_keep_debug_lvl_ = keep_debug;
-    }
-    return working_dir_;
-  }
-
-  void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if ((keep_debug > 0) && (debug_level_ >= keep_debug))
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or lower to remove them.", keep_debug);
-    }
-    else
-    {
-      if ((keep_debug > 0) && (debug_level_ > 0) && (debug_level_ < keep_debug))
-      {
-        writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or higher to keep it.", debug_level_);
-      }
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
-    QProcess qp;
-    if (!workdir.isEmpty())
-    {
-      qp.setWorkingDirectory(workdir);
+    String sstdout, sstderr; // collect all output (might be useful if program crashes, see below)
+    // callbacks: invoked whenever output is available.
+    auto lam_out = [&](const String& out) { sstdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { sstderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    ExternalProcess ep(lam_out, lam_err);
+
+    const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
+    if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    { // error occured: if not written already in callback, do it now
+      writeLog_("Standard output: " + sstdout);
+      writeLog_("Standard error: " + sstderr);
     }
-    qp.start(executable, arguments); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << String(executable);
-    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-        ss << " " << it->toStdString();
-    }
-    OPENMS_LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart)
-    {
-      OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-    if (debug_level_ >= 4 || any_failure)
-    {
-      if (any_failure)
-      {
-        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
-      }
-      else
-      {
-        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
-      }
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeLog_("Standard output: " + external_sout);
-      writeLog_("Standard error: " + external_serr);
-      writeLog_("Exit code: " + String(qp.exitCode()));
-      if (any_failure)
-      {
-        qp.close();
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-    }
-
-    if (debug_level_ >= 10)
-    {
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
-      writeDebug_(external_sout, 10);
-      writeDebug_(external_serr, 10);
-    }
-
-    qp.close();
-    writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }
 

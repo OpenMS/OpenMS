@@ -17,6 +17,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         path: OpenMS
+
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
@@ -26,11 +27,12 @@ jobs:
         install-deps: 'true'
         modules: 'qtsvg'
         cached: 'false'
+
     - name: Install Miniconda
       shell: bash # uses git bash on windows
       run: |
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
 
     - name: Configure x64 environment
@@ -50,6 +52,7 @@ jobs:
       run: |
         echo "::add-path::$HOME/miniconda3/bin"
         echo "::add-path::$HOME/miniconda3/Scripts"
+
     - name: Build
       shell: bash
       run: |
@@ -75,6 +78,7 @@ jobs:
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
 
+            ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
             # pip install all the stuff
             pip install -U setuptools
             pip install -U pip
@@ -83,7 +87,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -94,6 +98,7 @@ jobs:
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
@@ -128,7 +133,7 @@ jobs:
       shell: bash
       run: |
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
 
     - name: Setup conda paths
@@ -140,31 +145,21 @@ jobs:
     - name: Install build tools
       run: brew install autoconf automake libtool
 
-    - name: Cache contrib
-      id: cache-contrib
-      uses: actions/cache@v1
-      with:
-        path: contribbld
-        key: ${{ runner.os }}-contrib
-
-    # TODO cache or better download from contrib builds
-    - name: Contrib build
-      if: steps.cache-contrib.outputs.cache-hit != 'true'
+    - name: Load contrib build
       run: |
-          pushd OpenMS
-            git submodule update --init contrib
-          popd
-
-          export CC=clang
-          export CXX=clang++
-          export MACOSX_DEPLOYMENT_TARGET=10.9
           mkdir contribbld
-          pushd contribbld
-            cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
-            rm -rf archives
-            rm -rf src
-            rm -rf CMakeFiles
-          popd
+          cd contribbld
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.3/x64/appleclang-11.0.0/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - name: Fix contrib install names
+      shell: bash 
+      run: |
+          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
+          do
+            install_name_tool -id $lib $lib
+          done
 
     - name: Build
       run: |
@@ -209,7 +204,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -221,6 +216,7 @@ jobs:
             cp pyOpenMS/dist/*.whl pyopenms_whls/
 
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
@@ -350,15 +346,15 @@ jobs:
       run: |
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
-            curl -o $MINICONDA_FILENAME "https://repo.continuum.io/miniconda/$MINICONDA_FILENAME"
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
           fi
 
@@ -392,6 +388,7 @@ jobs:
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           echo "Found wheel $CURRENT_WHL : Testing.."
 
+          python -m pip install --upgrade pip
           # pip install all the stuff
           pip install -U pip
           pip install $CURRENT_WHL
@@ -403,8 +400,7 @@ jobs:
           # clean up
           conda remove --name pyoms-bld-$py --all
 
-        done
-        
+        done        
 # Upload the wheels (the action only runs on ubuntu slaves)
   publish:
     needs: [test] # doesn't really NEED it but we want the tests to pass first

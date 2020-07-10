@@ -175,6 +175,17 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+    /**
+     * @brief Gets info on centroidedness of spectra based on their metadata
+     * 
+     * @param filename File name of the mzML file to be checked
+     * 
+     * @return Map from MS level to pair of counts (centroided, non-centroided)
+     * 
+     * @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    std::map<UInt,std::pair<Size,Size>> getCentroidInfo(const String& filename);
+
 protected:
 
     /// Perform first pass through the file and retrieve the meta-data to initialize the consumer

@@ -80,11 +80,11 @@ if(ENABLE_DOCS)
   if(WITH_GUI)
     #------------------------------------------------------------------------------
     # QT dependencies
-    find_package(Qt5 COMPONENTS Core Network Svg OpenGL REQUIRED)
+    find_package(Qt5 COMPONENTS Core Network Sql Svg OpenGL REQUIRED)
     set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
     set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
   else()
-    find_package(Qt5 COMPONENTS Core Network REQUIRED)
+    find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
     set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
     set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
   endif()

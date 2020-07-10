@@ -77,7 +77,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 
   // simple way of getting an IsotopeDistribution using total probability
   test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator(0.01, true, false));
-  TEST_EQUAL(test_id.size(), 6)
+  TEST_EQUAL(test_id.size(), 3)
 
   {
     FineIsotopePatternGenerator gen(0.01, false, false);

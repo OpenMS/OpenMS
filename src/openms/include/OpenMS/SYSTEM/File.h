@@ -55,6 +55,36 @@ public:
 
     friend class TOPPBase;
 
+    /**
+      @brief Class representing a temporary directory
+    
+    */
+
+    class OPENMS_DLLAPI TempDir
+    {
+    public:
+      
+      /// Construct temporary folder
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      TempDir(bool keep_dir = false);
+
+      /// Destroy temporary folder (can be prohibited in Constructor)
+      ~TempDir();
+
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
+      /// Return path to temporary folder
+      const String& getPath() const;
+
+    private:
+      String temp_dir_;
+      bool keep_dir_;
+    };
+
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
@@ -123,15 +153,6 @@ public:
 
     /// Returns the path of the file (without the file name).
     static String path(const String& file);
-
-    /**
-      Returns the file name without the extension
-
-      The extension is the suffix of the string up to and including the last dot.
-
-      If no extension is found, the whole file name is returned
-    */
-    static String removeExtension(const String& file);
 
     /// Return true if the file exists and is readable
     static bool readable(const String& file);
@@ -238,7 +259,7 @@ public:
       Note: this does not require the file to have executable permission set (this is not tested)
       The returned content of @p exe_filename is only valid if true is returned.
 
-      @param [in/out] exe_filename The executable to search for.
+      @param[in,out] exe_filename The executable to search for.
       @return true if @p exe_filename could be resolved to a full path and it exists
     */
     static bool findExecutable(OpenMS::String& exe_filename);
@@ -269,6 +290,27 @@ public:
     */
     static const String& getTemporaryFile(const String& alternative_file = "");
 
+    /**
+      @brief Helper function to test if filenames provided in two StringLists match.
+
+      Passing several InputFilesLists is error-prone as users may provide files in a different order.
+      To check for common mistakes this helper function checks:
+      - if both file lists have the same length (returns false otherwise)
+      - if the content is the same and provided in exactly the same order (returns false otherwise)
+
+      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
+      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
+      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+
+      @param sl1 First StringList with filenames
+      @param sl2 Second StringList with filenames
+      @param basename If set to true, only basenames are compared
+      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
+                    If set to false, only the order is compared if both share the same filenames.
+      @return False, if both StringLists are different (respecting the parameters)
+    */
+    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
@@ -311,8 +353,6 @@ private:
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

@@ -9,7 +9,7 @@
 			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 				<UserParam type="string" name="InferenceEngine" value="Epifany"/>
-				<UserParam type="string" name="InferenceEngineVersion" value="2.5.0-feature-mergeIdx-2020-03-28"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-IDFilterCXML-2020-06-26"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="A" score="0.823050426961284" sequence="">
@@ -28,11 +28,11 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="E" score="0.234162896871567" sequence="">
+			<ProteinHit id="PH_4" accession="E" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="F" score="0.234162896871567" sequence="">
+			<ProteinHit id="PH_5" accession="F" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
@@ -48,19 +48,28 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="J" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_9" accession="J" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_10" accession="M" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_10" accession="M" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="N" score="0.295758932828903" sequence="">
+			<ProteinHit id="PH_11" accession="N" score="0" sequence="">
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="XTandem_score" value="0.0"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f2r1.mzML,file:///C:\c1f1r2.mzML,file:///C:\c1f2r2.mzML,file:///C:\c2f1r1.mzML,file:///C:\c2f2r1.mzML,file:///C:\c2f1r2.mzML,file:///C:\c2f2r2.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9868024191411,PH_0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.999273936308983,PH_2,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.0,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0.0,PH_5"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0.995977601279186,PH_6,PH_7"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0.995345539062979,PH_8"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="0.0,PH_9"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="0.0,PH_10"/>
+			<UserParam type="string" name="indistinguishable_proteins_8" value="0.0,PH_11"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="611.327697753906" RT="3002.38033267983" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >
@@ -92,7 +101,7 @@
 			<UserParam type="float" name="nextscore" value="24.0"/>
 			<UserParam type="float" name="delta" value="-1.0e-04"/>
 			<UserParam type="float" name="mass" value="1236.658300000000054"/>
-			<UserParam type="float" name="E-Value" value="0.0061"/>
+			<UserParam type="float" name="E-Value" value="6.100000000000001e-03"/>
 			<UserParam type="float" name="hyperscore" value="41.200000000000003"/>
 			<UserParam type="float" name="b_score" value="15.4"/>
 			<UserParam type="int" name="b_ions" value="10"/>
@@ -178,7 +187,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="72.900000000000006"/>
 			<UserParam type="float" name="nextscore" value="13.699999999999999"/>
-			<UserParam type="float" name="delta" value="0.0012"/>
+			<UserParam type="float" name="delta" value="1.2e-03"/>
 			<UserParam type="float" name="mass" value="1759.798099999999977"/>
 			<UserParam type="float" name="E-Value" value="7.8e-14"/>
 			<UserParam type="float" name="hyperscore" value="72.900000000000006"/>
@@ -200,7 +209,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="52.299999999999997"/>
 			<UserParam type="float" name="nextscore" value="24.800000000000001"/>
-			<UserParam type="float" name="delta" value="-0.0036"/>
+			<UserParam type="float" name="delta" value="-3.6e-03"/>
 			<UserParam type="float" name="mass" value="1236.658300000000054"/>
 			<UserParam type="float" name="E-Value" value="1.1e-04"/>
 			<UserParam type="float" name="hyperscore" value="52.299999999999997"/>
@@ -222,7 +231,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="27.100000000000001"/>
 			<UserParam type="float" name="nextscore" value="17.100000000000001"/>
-			<UserParam type="float" name="delta" value="-0.001"/>
+			<UserParam type="float" name="delta" value="-1.0e-03"/>
 			<UserParam type="float" name="mass" value="908.508799999999951"/>
 			<UserParam type="float" name="E-Value" value="0.071"/>
 			<UserParam type="float" name="hyperscore" value="27.100000000000001"/>
@@ -266,7 +275,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="38.700000000000003"/>
 			<UserParam type="float" name="nextscore" value="35.799999999999997"/>
-			<UserParam type="float" name="delta" value="-0.0011"/>
+			<UserParam type="float" name="delta" value="-1.1e-03"/>
 			<UserParam type="float" name="mass" value="1753.897999999999911"/>
 			<UserParam type="float" name="E-Value" value="0.017"/>
 			<UserParam type="float" name="hyperscore" value="38.700000000000003"/>
@@ -288,9 +297,9 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="39.799999999999997"/>
 			<UserParam type="float" name="nextscore" value="20.199999999999999"/>
-			<UserParam type="float" name="delta" value="-0.0027"/>
+			<UserParam type="float" name="delta" value="-2.7e-03"/>
 			<UserParam type="float" name="mass" value="1072.574499999999944"/>
-			<UserParam type="float" name="E-Value" value="0.0094"/>
+			<UserParam type="float" name="E-Value" value="9.4e-03"/>
 			<UserParam type="float" name="hyperscore" value="39.799999999999997"/>
 			<UserParam type="float" name="b_score" value="13.9"/>
 			<UserParam type="int" name="b_ions" value="7"/>
@@ -354,9 +363,9 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="46.200000000000003"/>
 			<UserParam type="float" name="nextscore" value="22.300000000000001"/>
-			<UserParam type="float" name="delta" value="0.0011"/>
+			<UserParam type="float" name="delta" value="1.1e-03"/>
 			<UserParam type="float" name="mass" value="1753.897999999999911"/>
-			<UserParam type="float" name="E-Value" value="0.0039"/>
+			<UserParam type="float" name="E-Value" value="3.9e-03"/>
 			<UserParam type="float" name="hyperscore" value="46.200000000000003"/>
 			<UserParam type="float" name="b_score" value="13.4"/>
 			<UserParam type="int" name="b_ions" value="8"/>
@@ -378,7 +387,7 @@
 			<UserParam type="float" name="nextscore" value="19.699999999999999"/>
 			<UserParam type="float" name="delta" value="2.0e-04"/>
 			<UserParam type="float" name="mass" value="972.535999999999945"/>
-			<UserParam type="float" name="E-Value" value="0.0015"/>
+			<UserParam type="float" name="E-Value" value="1.5e-03"/>
 			<UserParam type="float" name="hyperscore" value="40.200000000000003"/>
 			<UserParam type="float" name="b_score" value="11.0"/>
 			<UserParam type="int" name="b_ions" value="4"/>
@@ -400,7 +409,7 @@
 			<UserParam type="float" name="nextscore" value="18.600000000000001"/>
 			<UserParam type="float" name="delta" value="-3.0e-04"/>
 			<UserParam type="float" name="mass" value="1410.747499999999945"/>
-			<UserParam type="float" name="E-Value" value="0.0034"/>
+			<UserParam type="float" name="E-Value" value="3.4e-03"/>
 			<UserParam type="float" name="hyperscore" value="39.700000000000003"/>
 			<UserParam type="float" name="b_score" value="13.6"/>
 			<UserParam type="int" name="b_ions" value="8"/>
@@ -420,7 +429,7 @@
 			<UserParam type="string" name="target_decoy" value="target"/>
 			<UserParam type="float" name="XTandem_score" value="48.700000000000003"/>
 			<UserParam type="float" name="nextscore" value="22.0"/>
-			<UserParam type="float" name="delta" value="0.0011"/>
+			<UserParam type="float" name="delta" value="1.1e-03"/>
 			<UserParam type="float" name="mass" value="1172.583399999999983"/>
 			<UserParam type="float" name="E-Value" value="5.6e-05"/>
 			<UserParam type="float" name="hyperscore" value="48.700000000000003"/>
@@ -444,7 +453,7 @@
 			<UserParam type="float" name="nextscore" value="15.0"/>
 			<UserParam type="float" name="delta" value="-2.0e-04"/>
 			<UserParam type="float" name="mass" value="1539.664500000000089"/>
-			<UserParam type="float" name="E-Value" value="0.0018"/>
+			<UserParam type="float" name="E-Value" value="1.8e-03"/>
 			<UserParam type="float" name="hyperscore" value="37.100000000000001"/>
 			<UserParam type="float" name="b_score" value="11.5"/>
 			<UserParam type="int" name="b_ions" value="7"/>
@@ -466,7 +475,7 @@
 			<UserParam type="float" name="nextscore" value="21.5"/>
 			<UserParam type="float" name="delta" value="1.0e-04"/>
 			<UserParam type="float" name="mass" value="1188.596700000000055"/>
-			<UserParam type="float" name="E-Value" value="0.0076"/>
+			<UserParam type="float" name="E-Value" value="7.6e-03"/>
 			<UserParam type="float" name="hyperscore" value="34.200000000000003"/>
 			<UserParam type="float" name="b_score" value="13.1"/>
 			<UserParam type="int" name="b_ions" value="6"/>
@@ -562,7 +571,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="55.700000000000003"/>
 					<UserParam type="float" name="nextscore" value="16.800000000000001"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1620.841400000000022"/>
 					<UserParam type="float" name="E-Value" value="1.6e-08"/>
 					<UserParam type="float" name="hyperscore" value="55.700000000000003"/>
@@ -584,7 +593,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="55.700000000000003"/>
 					<UserParam type="float" name="nextscore" value="16.800000000000001"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1620.841400000000022"/>
 					<UserParam type="float" name="E-Value" value="1.6e-08"/>
 					<UserParam type="float" name="hyperscore" value="55.700000000000003"/>
@@ -606,7 +615,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="55.700000000000003"/>
 					<UserParam type="float" name="nextscore" value="16.800000000000001"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1620.841400000000022"/>
 					<UserParam type="float" name="E-Value" value="1.6e-08"/>
 					<UserParam type="float" name="hyperscore" value="55.700000000000003"/>
@@ -628,7 +637,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="55.700000000000003"/>
 					<UserParam type="float" name="nextscore" value="16.800000000000001"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1620.841400000000022"/>
 					<UserParam type="float" name="E-Value" value="1.6e-08"/>
 					<UserParam type="float" name="hyperscore" value="55.700000000000003"/>
@@ -668,7 +677,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="69.900000000000006"/>
 					<UserParam type="float" name="nextscore" value="14.6"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1472.716200000000072"/>
 					<UserParam type="float" name="E-Value" value="7.8e-13"/>
 					<UserParam type="float" name="hyperscore" value="69.900000000000006"/>
@@ -690,7 +699,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="69.900000000000006"/>
 					<UserParam type="float" name="nextscore" value="14.6"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1472.716200000000072"/>
 					<UserParam type="float" name="E-Value" value="7.8e-13"/>
 					<UserParam type="float" name="hyperscore" value="69.900000000000006"/>
@@ -712,7 +721,7 @@
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="XTandem_score" value="69.900000000000006"/>
 					<UserParam type="float" name="nextscore" value="14.6"/>
-					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="delta" value="-1.7e-03"/>
 					<UserParam type="float" name="mass" value="1472.716200000000072"/>
 					<UserParam type="float" name="E-Value" value="7.8e-13"/>
 					<UserParam type="float" name="hyperscore" value="69.900000000000006"/>

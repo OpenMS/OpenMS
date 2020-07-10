@@ -490,10 +490,10 @@ protected:
     }
 
     //tmp_dir
-    String temp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     // create a temporary config file for LuciPHOr2 parameters
-    String conf_file = temp_dir + "luciphor2_input_template.txt";
+    String conf_file = tmp_dir.getPath() + "luciphor2_input_template.txt";
     
     String id = getStringOption_("id");
     String in = getStringOption_("in");
@@ -529,8 +529,8 @@ protected:
         OPENMS_LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
-      String id_file_name = File::removeExtension(File::basename(id));
-      id = temp_dir + id_file_name + ".pepXML";
+      String id_file_name = FileHandler::swapExtension(File::basename(id), FileTypes::PEPXML);
+      id = tmp_dir.getPath() + id_file_name;
 
       PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
     }
@@ -669,6 +669,12 @@ protected:
       new_pep_id.setHits(scored_peptides);
       new_pep_id.assignRanks();
       pep_out.push_back(new_pep_id);
+    }
+
+    // store which modifications have been localized
+    for (auto& p : prot_ids)
+    {
+      p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
     IdXMLFile().store(out, prot_ids, pep_out);
 

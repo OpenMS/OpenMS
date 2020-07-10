@@ -50,7 +50,7 @@ using namespace std;
 
 struct ComparePIdSize
 {
-      bool operator()(const ProteinIdentification lhs, const ProteinIdentification rhs) const
+      bool operator()(const ProteinIdentification& lhs, const ProteinIdentification& rhs) const
       {
         return lhs.getHits().size() < rhs.getHits().size();
       }
@@ -116,6 +116,9 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
              proteins_out[0].getDateTime().get());
   TEST_EQUAL(proteins_in[1].getDateTime().get(),
              proteins_out[1].getDateTime().get());
+
+  TEST_EQUAL(proteins_in[0].getSearchParameters() == proteins_out[0].getSearchParameters(), true)
+  TEST_EQUAL(proteins_in[1].getSearchParameters() == proteins_out[1].getSearchParameters(), true)
 
   // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);
@@ -203,7 +206,23 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   NEW_TMP_FILE(filename);
   MzTabFile().store(filename, mztab);
 
-  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.mzTab"));
+  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out1.mzTab"));
+
+  // RNA data, oligonucleotide that matches several times in the same RNA:
+  IdentificationData rna_ids;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
+  IdentificationData::ParentMoleculeRef ref = rna_ids.registerParentMolecule(rna);
+  IdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
+  IdentificationData::MoleculeParentMatch match1(0, 3), match2(4, 7);
+  oli.parent_matches[ref].insert(match1);
+  oli.parent_matches[ref].insert(match2);
+  rna_ids.registerIdentifiedOligo(oli);
+
+  mztab = IdentificationDataConverter::exportMzTab(rna_ids);
+  NEW_TMP_FILE(filename);
+  MzTabFile().store(filename, mztab);
+
+  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.mzTab"));
 }
 END_SECTION
 

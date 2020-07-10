@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Marc Sturm, Clemens Groepl, Lars Nilse $
+// $Authors: Marc Sturm, Clemens Groepl, Lars Nilse, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <boost/iostreams/device/null.hpp>
@@ -38,6 +38,9 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -59,7 +62,6 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-
 #include <QtCore/QString>
 
 #include <unordered_map>
@@ -142,14 +144,15 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
+    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
+    setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
+    setValidStrings_("in_type", in_types);
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", ListUtils::create<String>("txt"));
+    setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_tsv", {"csv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -823,9 +826,16 @@ protected:
       os << "\nTransformation model: " << trafo.getModelType() << "\n";
       trafo.printSummary(os);
     }
+    else if (in_type == FileTypes::PQP)
+    {
+      TargetedExperiment targeted_exp; 
+      TransitionPQPFile pqp_reader;
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, true);
+      os << targeted_exp.getSummary();
+    }
     else // peaks
     {
-
       SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
@@ -836,7 +846,7 @@ protected:
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
-      vector<UInt> levels = exp.getMSLevels();
+      const vector<UInt>& levels = exp.getMSLevels();
 
       // report memory consumption
       std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
@@ -866,16 +876,7 @@ protected:
         }
       }
 
-      os << "MS levels: ";
-      if (!levels.empty())
-      {
-        os << *(levels.begin());
-        for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
-        {
-          os << ", " << *it;
-        }
-      }
-      os << "\n";
+      os << "MS levels: " << ListUtils::concatenate(levels, ", ") << "\n";
 
       // basic info
       os << "Total number of peaks: " << exp.getSize() << "\n"; // count ALL peaks (also chromatographic)
@@ -917,39 +918,15 @@ protected:
       {
         for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
-          String name = it->getFloatDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getFloatDataArrays()[i].getName()];
         }
         for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
         {
-          String name = it->getIntegerDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getIntegerDataArrays()[i].getName()];
         }
         for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
         {
-          String name = it->getStringDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getStringDataArrays()[i].getName()];
         }
       }
       if (!meta_names.empty())
@@ -969,9 +946,9 @@ protected:
           os << "  " << it->first << ": " << padding << it->second << " spectra"
              << "\n";
         }
-        os << "\n";
+        os << "\n";  
       }
-
+       
       // some chromatogram information
       if (!exp.getChromatograms().empty())
       {
@@ -984,19 +961,11 @@ protected:
         for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
         {
           num_chrom_peaks += it->size();
-          if (chrom_types.has(it->getChromatogramType()))
-          {
-            chrom_types[it->getChromatogramType()]++;
-          }
-          else
-          {
-            chrom_types[it->getChromatogramType()] = 1;
-          }
+          ++chrom_types[it->getChromatogramType()];
         }
         os << "Number of chromatographic peaks: " << num_chrom_peaks << "\n"
            << "\n";
-        os_tsv << "number of chromatographic peaks"
-               << "\t" << num_chrom_peaks << "\n";
+        os_tsv << "number of chromatographic peaks" << "\t" << num_chrom_peaks << "\n";
 
         os << "Number of chromatograms per type: "
            << "\n";

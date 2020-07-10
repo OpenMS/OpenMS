@@ -374,7 +374,7 @@ namespace OpenMS
           ConstRibonucleotidePtr r = rdb->getRibonucleotide(string(1, *str_it));
           nas.seq_.push_back(r);
         }
-        catch (Exception::ElementNotFound)
+        catch (Exception::ElementNotFound&)
         {
           String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
           throw Exception::ParseError(__FILE__, __LINE__,

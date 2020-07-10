@@ -109,7 +109,7 @@ namespace OpenMS
     // The mz-File (if given)
     if (!mz_file.empty())
     {
-      base_name = File::removeExtension(File::basename(mz_file));
+      base_name = FileHandler::stripExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
       PeakMap experiment;
@@ -119,7 +119,7 @@ namespace OpenMS
     }
     else
     {
-      base_name = File::removeExtension(File::basename(filename));
+      base_name = FileHandler::stripExtension(File::basename(filename));
       raw_data = "mzML";
     }
     // mz_name is input from IDFileConverter for 'base_name' attribute, only necessary if different from 'mz_file'.
@@ -715,9 +715,9 @@ namespace OpenMS
 
     file_ = filename; // filename for error messages in XMLHandler
 
-    if (experiment_name != "")
+    if (!experiment_name.empty())
     {
-      exp_name_ = File::removeExtension(experiment_name);
+      exp_name_ = FileHandler::stripExtension(experiment_name);
       lookup_ = &lookup;
     }
 
@@ -988,9 +988,35 @@ namespace OpenMS
       }
       String protein = attributeAsString_(attributes, "protein");
       pe.setProteinAccession(protein);
-      peptide_hit_.addPeptideEvidence(pe);
+
       ProteinHit hit;
       hit.setAccession(protein);
+
+      if (has_decoys_)
+      {
+        String curr_status("");
+        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        if (peptide_hit_.metaValueExists("target_decoy"))
+        {
+          curr_status = peptide_hit_.getMetaValue("target_decoy");
+        }
+        if (curr_status.empty())
+        {
+          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        }
+        else if (curr_status == "target" && current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        else if (curr_status == "decoy" && !current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+
+        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+      }
+      peptide_hit_.addPeptideEvidence(pe);
+
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
@@ -1083,15 +1109,15 @@ namespace OpenMS
           params_.fragment_mass_tolerance = value/2.0;
           params_.fragment_mass_tolerance_ppm = false;
         }
-        if (name == "peptide_mass_tolerance")
+        else if (name == "peptide_mass_tolerance")
         {
           double value = attributeAsDouble_(attributes, "value");
           params_.precursor_mass_tolerance = value;
         }
         // this is quite comet specific, but so is parameter name peptide_mass_units, see comet configuration file documentation
-        if (name == "peptide_mass_units")
+        else if (name == "peptide_mass_units")
         {
-          int value = attributeAsDouble_(attributes, "value");
+          int value = attributeAsInt_(attributes, "value");
           switch (value) {
           case 0: // comet value 0 type amu
               params_.precursor_mass_tolerance_ppm = false;
@@ -1105,6 +1131,14 @@ namespace OpenMS
           default:
               break;
           }
+        }
+        else if (name == "decoy_search")
+        {
+          has_decoys_ = attributeAsInt_(attributes, "value");
+        }
+        else if (name == "decoy_prefix")
+        {
+          decoy_prefix_ = attributeAsString_(attributes, "value");
         }
       }
       else
@@ -1153,7 +1187,7 @@ namespace OpenMS
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::N_TERM);
             if (!mods.empty())
             {
-              current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+              current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
             }
             else
             {
@@ -1178,7 +1212,7 @@ namespace OpenMS
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::C_TERM);
             if (!mods.empty())
             {
-              current_modifications_.push_back(make_pair(mods[0], 42)); // 42, because position does not matter
+              current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
             }
             else
             {
@@ -1194,9 +1228,34 @@ namespace OpenMS
       String protein = attributeAsString_(attributes, "protein");
       PeptideEvidence pe;
       pe.setProteinAccession(protein);
-      peptide_hit_.addPeptideEvidence(pe);
+
       ProteinHit hit;
       hit.setAccession(protein);
+
+      if (has_decoys_)
+      {
+        String curr_status("");
+        bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
+        if (peptide_hit_.metaValueExists("target_decoy"))
+        {
+          curr_status = peptide_hit_.getMetaValue("target_decoy");
+        }
+        if (curr_status.empty())
+        {
+          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        }
+        else if (curr_status == "target" && current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        else if (curr_status == "decoy" && !current_prot_is_decoy)
+        {
+          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+        }
+        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+      }
+      peptide_hit_.addPeptideEvidence(pe);
+
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
@@ -1204,21 +1263,37 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
+      // this element should only be used for internal AA mods OR Terminal mods at a specific
+      // amino acid (pepXML limitation)
       double modification_mass = attributeAsDouble_(attributes, "mass");
       Size modification_position = attributeAsInt_(attributes, "position");
+      // the modification position is 1-based
       String origin = String(current_sequence_[modification_position - 1]);
       String temp_description = "";
 
+      // does a tolerant search and may return terminal mods
       matchModification_(modification_mass, origin, temp_description);
 
       if (!temp_description.empty())
       {
-        // the modification position is 1-based
-        current_modifications_.push_back(make_pair(temp_description, modification_position));
+        //TODO how to handle protein terminal mods?
+        if ((temp_description.hasSubstring("N-term") && modification_position != 1) ||
+            (temp_description.hasSubstring("C-term") && modification_position != current_sequence_.length() - 1))
+        {
+          double delta_mass = modification_mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+          // we did not find a matching modification (potentially a terminal modification in a decoy
+          // which is e.g. by Comet not enforced to follow term spec.) -> parse at end of search_hit as unknown
+          current_modifications_.emplace_back(String(delta_mass), modification_position);
+        }
+        else
+        {
+          current_modifications_.emplace_back(temp_description, modification_position);
+        }
       }
       else
       {
-        error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
+        current_modifications_.emplace_back(String(modification_mass), modification_position);
+        //error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
       }
     }
     else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
@@ -1273,7 +1348,7 @@ namespace OpenMS
       // check if the modification is uniquely defined:
       if (!aa_mod.description.empty())
       {
-	try
+	      try
         {
           const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
           desc = r->getFullId();
@@ -1328,6 +1403,9 @@ namespace OpenMS
           }
         }
       }
+
+      //TODO this is dangerous since the modifications in the search_hits are not checked
+      // against the ones listed here in the summary! -> Might lead to inconsistencies
       if (!desc.empty())
       {
         if (is_variable == "Y")
@@ -1500,6 +1578,9 @@ namespace OpenMS
     {
       AASequence temp_aa_sequence = AASequence::fromString(current_sequence_);
 
+      //Note: an alternative would be to use our AASequence::fromString on the modified_Sequence of
+      // the modification_info element
+
       // modification position is 1-based
       for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)
       {
@@ -1520,7 +1601,27 @@ namespace OpenMS
         }
         else
         {
-          error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
+          try
+          {
+            const Residue* res = &temp_aa_sequence.getResidue(it->second - 1);
+            //TODO check if there can be delta_masses in pepXML? I dont think so.
+            //TODO double-check that the following produces correct results for terminal mods as well
+            //We assume that non-delta masses are internal residue mass (no H2O) + mod. mass.
+            //Internal residue mass will be substracted in the function
+            const ResidueModification* new_mod = ResidueModification::createUnknownFromMassString(mod_split[0],
+                                                                                                  mod_split[0].toDouble(),
+                                                                                                  false,
+                                                                                                  ResidueModification::TermSpecificity::ANYWHERE,
+                                                                                                  res);
+            // Note: this calls setModification_ on a new Residue which changes its
+            // weight to the weight of the modification (set above)
+            temp_aa_sequence.setModification(it->second - 1,ResidueDB::getInstance()->
+                                                              getModifiedResidue(res, new_mod->getFullId()));
+          }
+          catch (Exception::ConversionError&)
+          {
+            error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
+          }
         }
       }
 

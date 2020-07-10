@@ -382,7 +382,7 @@ namespace OpenMS
         }
       }
     } // else: use NULL for missing processing step reference
-    for (auto score_pair : step.scores)
+    for (const auto& score_pair : step.scores)
     {
       query.bindValue(":score_type_id", Key(&(*score_pair.first)));
       query.bindValue(":score", score_pair.second);
@@ -1544,7 +1544,7 @@ namespace OpenMS
       param.fixed_mods.insert(fixed_mods.begin(), fixed_mods.end());
       vector<String> variable_mods =
         ListUtils::create<String>(query.value("variable_mods").toString());
-      param.variable_mods.insert(fixed_mods.begin(), fixed_mods.end());
+      param.variable_mods.insert(variable_mods.begin(), variable_mods.end());
       param.precursor_mass_tolerance =
         query.value("precursor_mass_tolerance").toDouble();
       param.fragment_mass_tolerance =

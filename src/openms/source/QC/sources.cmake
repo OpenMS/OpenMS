@@ -5,10 +5,12 @@ set(directory source/QC)
 set(sources_list
   Contaminants.cpp
   FragmentMassError.cpp
+  FWHM.cpp
   MissedCleavages.cpp
   Ms2IdentificationRate.cpp
   Ms2SpectrumStats.cpp
   MzCalibration.cpp
+  PeptideMass.cpp
   QCBase.cpp
   RTAlignment.cpp
   TIC.cpp

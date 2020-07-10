@@ -195,11 +195,11 @@ protected:
     }
 
     // write input xml file
-    String temp_directory = makeAutoRemoveTempDirectory_();
-    String input_filename = temp_directory + "tandem_input.xml";
+    File::TempDir dir(debug_level_ >= 2);
+    String input_filename = dir.getPath() + "tandem_input.xml";
     String tandem_input_filename = in;
-    String tandem_output_filename = temp_directory + "tandem_output.xml";
-    String tandem_taxonomy_filename = temp_directory + "tandem_taxonomy.xml";
+    String tandem_output_filename = dir.getPath() + "tandem_output.xml";
+    String tandem_taxonomy_filename = dir.getPath() + "tandem_taxonomy.xml";
 
     //-------------------------------------------------------------
     // reading input
@@ -227,6 +227,7 @@ protected:
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
+    mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
 

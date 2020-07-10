@@ -51,20 +51,22 @@ using namespace std;
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
     defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn,silent"));
 
-    defaults_.setValue("enzyme:name", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).");
+    defaults_.setValue("enzyme:name", "", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input");
 
-    StringList enzymes;
+    StringList enzymes{};
     ProteaseDB::getInstance()->getAllNames(enzymes);
+    enzymes.emplace_back("");
     defaults_.setValidStrings("enzyme:name", enzymes);
 
-    defaults_.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
+    defaults_.setValue("enzyme:specificity", "", "Specificity of the enzyme. Default: deduce from input."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL] + "': both internal cleavage sites must match."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI] + "': one of two internal cleavage sites must match."
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE] + "': allow all peptide hits no matter their context."
+                                                            " Therefore, the enzyme chosen does not play a role here");
 
-    StringList spec;
-    spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
-    defaults_.setValidStrings("enzyme:specificity", spec);
+    defaults_.setValidStrings("enzyme:specificity", {"",EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL],
+                                                     EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI],
+                                                     EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE]});
 
     defaults_.setValue("write_protein_sequence", "false", "If set, the protein sequences are stored as well.");
     defaults_.setValidStrings("write_protein_sequence", ListUtils::create<String>("true,false"));
@@ -94,9 +96,7 @@ using namespace std;
     defaultsToParam_();
   }
 
-    PeptideIndexing::~PeptideIndexing()
-  {
-  }
+  PeptideIndexing::~PeptideIndexing() = default;
 
 
   void PeptideIndexing::updateMembers_()

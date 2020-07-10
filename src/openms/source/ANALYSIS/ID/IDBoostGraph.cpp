@@ -146,7 +146,7 @@ namespace OpenMS
                              const boost::optional<const ExperimentalDesign>& ed):
       protIDs_(proteins)
   {
-    OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins.\n";
+    OPENMS_LOG_INFO << "Building graph on " << idedSpectra.size() << " spectra and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, idedSpectra, use_top_psms, ed.get_value_or(ExperimentalDesign::fromIdentifications({proteins})));
@@ -167,7 +167,7 @@ namespace OpenMS
       protIDs_(proteins)
   {
     OPENMS_LOG_INFO << "Building graph on " << cmap.size() << " features, " << cmap.getUnassignedPeptideIdentifications().size() <<
-    " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins.\n";
+    " unassigned spectra (if chosen) and " << proteins.getHits().size() << " proteins." << std::endl;
     if (use_run_info)
     {
       buildGraphWithRunInfo_(proteins, cmap, use_top_psms, use_unassigned_ids, ed.get_value_or(ExperimentalDesign::fromConsensusMap(cmap)));
@@ -1036,6 +1036,7 @@ namespace OpenMS
         // if a pep does not belong to a cluster it didnt have multiple parents and
         // therefore does not need to be resolved
       {
+        accs_to_remove.clear();
         q.push(*ui);
         getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
 
@@ -1089,6 +1090,7 @@ namespace OpenMS
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();
           }
+          singles.clear();
         }
       }
     }
@@ -1501,6 +1503,32 @@ namespace OpenMS
     return v;
   }
 
+
+  void IDBoostGraph::getProteinScores_(ScoreToTgtDecLabelPairs& scores_and_tgt)
+  {
+    const std::function<void(Graph&)>& fun =
+        [&scores_and_tgt]
+            (const Graph& graph)
+        {
+          Graph::vertex_iterator ui, ui_end;
+          boost::tie(ui,ui_end) = boost::vertices(graph);
+
+          for (; ui != ui_end; ++ui)
+          {
+            //TODO introduce an enum for the types to make it more clear.
+            //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+            if (graph[*ui].which() == 0) // protein
+            {
+                const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
+                scores_and_tgt.emplace_back(
+                    ph->getScore(),
+                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
+            }
+          }
+        };
+    applyFunctorOnCCsST(fun);
+  }
+
   void IDBoostGraph::getProteinGroupScoresAndTgtFraction(ScoreToTgtDecLabelPairs& scores_and_tgt_fraction)
   {
     const std::function<void(Graph&)>& fun =
@@ -1526,16 +1554,16 @@ namespace OpenMS
                   part_of_group = true;
                   break;
                 }
-                if (!part_of_group)
-                {
-                  ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
-                  scores_and_tgt_fraction.emplace_back(
-                      ph->getScore(),
-                      static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
-                }
+              }
+              if (!part_of_group)
+              {
+                const ProteinHit* ph = boost::get<ProteinHit*>(graph[*ui]);
+                scores_and_tgt_fraction.emplace_back(
+                    ph->getScore(),
+                    static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't')); // target = 1; false = 0;
               }
             }
-            if (graph[*ui].which() == 1) //protein group
+            else if (graph[*ui].which() == 1) //protein group, always include
             {
               ProteinGroup &pg = boost::get<ProteinGroup &>(graph[*ui]);
               scores_and_tgt_fraction.emplace_back(pg.score, static_cast<double>(pg.tgts) / pg.size);
@@ -1584,7 +1612,7 @@ namespace OpenMS
               {
                 if (fg[prot].which() == 0) //protein
                 {
-                  ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
+                  const ProteinHit* ph = boost::get<ProteinHit*>(fg[prot]);
                   // target = 1/penalty; decoy = 0;
                   target_fraction = static_cast<double>(ph->getMetaValue("target_decoy").toString()[0] == 't');
                   target_fraction /= target_contribution_penalty;

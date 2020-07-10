@@ -344,6 +344,10 @@ public:
 
     /// less operator
     bool operator<(const ResidueModification& modification) const;
+
+    /// creates a new modification from a mass and adds it to ModificationDB
+    /// if not terminal, needs a Residue to be put on.
+    static const ResidueModification* createUnknownFromMassString(const String& mod, double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue = nullptr);
     //@}
 
 protected:

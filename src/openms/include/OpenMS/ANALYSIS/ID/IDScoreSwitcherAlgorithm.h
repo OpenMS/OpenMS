@@ -117,9 +117,24 @@ namespace OpenMS
         String msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
+      } 
+      else if (t == id[0].getScoreType())
+      {
+        // we assume that all the other peptide ids
+        // also already have the correct score set
+        return;
+      }
+
+      if (t.hasSuffix("_score"))
+      {
+        new_score_type_ = t.chop(6);
+      }
+      else
+      {
+        new_score_type_ = t;
       }
       new_score_ = t;
-      new_score_type_ = t;
+
       if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
       {
         OPENMS_LOG_WARN << "Requested non-raw score type does not match the expected score direction. Correcting!\n";
@@ -161,8 +176,15 @@ namespace OpenMS
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
+      if (new_type.hasSuffix("_score"))
+      {
+        new_score_type_ = new_type.chop(6);
+      }
+      else
+      {
+        new_score_type_ = new_type;
+      }
       new_score_ = new_type;
-      new_score_type_ = new_type;
 
       if (type != ScoreType::RAW && higher_better_ != type_to_better_[type])
       {
@@ -196,7 +218,8 @@ namespace OpenMS
         const auto& hit = id.getHits()[0];
         for (const auto& poss_str : possible_types)
         {
-          if (hit.metaValueExists(poss_str) || hit.metaValueExists(poss_str + "_score")) return poss_str;
+          if (hit.metaValueExists(poss_str)) return poss_str;
+          else if (hit.metaValueExists(poss_str + "_score")) return poss_str + "_score";
         }
         OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
         return "";
@@ -223,7 +246,7 @@ namespace OpenMS
             //TODO check if we should combine RAW and RAW_EVAL:
             // What if a SE does not have an e-value score (spectrast, OMSSA, crux/sequest, myrimatch),
             // then you need additional ifs/trys
-            {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue"}},
+            {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
             {ScoreType::PP, {"Posterior Probability"}},
             {ScoreType::PEP, {"Posterior Error Probability", "pep", "MS:1001493"}}, // TODO add CV terms
             {ScoreType::FDR, {"FDR", "fdr", "false discovery rate"}},

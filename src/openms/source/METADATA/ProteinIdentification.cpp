@@ -57,7 +57,7 @@ namespace OpenMS
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return (probability == rhs.probability) && (accessions == rhs.accessions);
+    return std::tie(probability, accessions) == std::tie(rhs.probability, rhs.accessions);
   }
 
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
@@ -111,37 +111,33 @@ namespace OpenMS
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
-    db(),
-    db_version(),
-    taxonomy(),
-    charges(),
-    mass_type(MONOISOTOPIC),
-    fixed_modifications(),
-    variable_modifications(),
-    missed_cleavages(0),
-    fragment_mass_tolerance(0.0),
-    fragment_mass_tolerance_ppm(false),
-    precursor_mass_tolerance(0.0),
-    precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme", "")
+      db(),
+      db_version(),
+      taxonomy(),
+      charges(),
+      mass_type(MONOISOTOPIC),
+      fixed_modifications(),
+      variable_modifications(),
+      missed_cleavages(0),
+      fragment_mass_tolerance(0.0),
+      fragment_mass_tolerance_ppm(false),
+      precursor_mass_tolerance(0.0),
+      precursor_mass_tolerance_ppm(false),
+      digestion_enzyme("unknown_enzyme", ""),
+      enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN)
   {
   }
 
   bool ProteinIdentification::SearchParameters::operator==(const SearchParameters& rhs) const
   {
-    return db == rhs.db &&
-           db_version == rhs.db_version &&
-           taxonomy == rhs.taxonomy &&
-           charges == rhs.charges &&
-           mass_type == rhs.mass_type &&
-           fixed_modifications == rhs.fixed_modifications &&
-           variable_modifications == rhs.variable_modifications &&
-           missed_cleavages == rhs.missed_cleavages &&
-           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
-           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
-           precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
-           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
-           digestion_enzyme == rhs.digestion_enzyme;
+    return
+        std::tie(db, db_version, taxonomy, charges, mass_type, fixed_modifications, variable_modifications,
+            missed_cleavages, fragment_mass_tolerance, fragment_mass_tolerance_ppm, precursor_mass_tolerance,
+            precursor_mass_tolerance_ppm, digestion_enzyme, enzyme_term_specificity) ==
+        std::tie(rhs.db, rhs.db_version, rhs.taxonomy, rhs.charges, rhs.mass_type, rhs.fixed_modifications,
+            rhs.variable_modifications, rhs.missed_cleavages, rhs.fragment_mass_tolerance,
+            rhs.fragment_mass_tolerance_ppm, rhs.precursor_mass_tolerance,
+            rhs.precursor_mass_tolerance_ppm, rhs.digestion_enzyme, rhs.enzyme_term_specificity);
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
@@ -164,7 +160,8 @@ namespace OpenMS
         this->fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
         this->charges != sp.charges ||
         this->digestion_enzyme != sp.digestion_enzyme ||
-        this->taxonomy != sp.taxonomy)
+        this->taxonomy != sp.taxonomy ||
+         this->enzyme_term_specificity != sp.enzyme_term_specificity)
     {
       return false;
     }
@@ -275,9 +272,7 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::~ProteinIdentification()
-  {
-  }
+  ProteinIdentification::~ProteinIdentification() = default;
 
   void ProteinIdentification::setDateTime(const DateTime& date)
   {
@@ -526,23 +521,56 @@ namespace OpenMS
     return ok;
   }
 
+  vector<pair<String,String>> ProteinIdentification::getSearchEngineSettingsAsPairs(const String& se) const
+  {
+    vector<pair<String,String>> result;
+    const auto& params = this->getSearchParameters();
+    if (se.empty() || (this->getSearchEngine() == se
+                        && this->getSearchEngine() != "Percolator" //meaningless settings
+                        && !this->getSearchEngine().hasPrefix("ConsensusID"))) //meaningless settings
+    {
+      //TODO add spectra_data?
+      result.emplace_back("db", params.db);
+      result.emplace_back("db_version", params.db_version);
+      result.emplace_back("fragment_mass_tolerance", params.fragment_mass_tolerance);
+      result.emplace_back("fragment_mass_tolerance_unit", params.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("precursor_mass_tolerance", params.precursor_mass_tolerance);
+      result.emplace_back("precursor_mass_tolerance_unit", params.precursor_mass_tolerance_ppm ? "ppm" : "Da");
+      result.emplace_back("enzyme", params.digestion_enzyme.getName());
+      result.emplace_back("enzyme_term_specificity", EnzymaticDigestion::NamesOfSpecificity[params.enzyme_term_specificity]);
+      result.emplace_back("charges", params.charges);
+      result.emplace_back("missed_cleavages", params.missed_cleavages);
+      result.emplace_back("fixed_modifications", ListUtils::concatenate(params.fixed_modifications,","));
+      result.emplace_back("variable_modifications", ListUtils::concatenate(params.variable_modifications,","));
+    }
+    else
+    {
+      vector<String> mvkeys;
+      params.getKeys(mvkeys);
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix(se))
+        {
+          result.emplace_back(mvkey.substr(se.size()+1), params.getMetaValue(mvkey));
+        }
+      }
+    }
+    return result;
+  }
+
 
   // Equality operator
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
-           id_ == rhs.id_ &&
-           search_engine_ == rhs.search_engine_ &&
-           search_engine_version_ == rhs.search_engine_version_ &&
-           search_parameters_ == rhs.search_parameters_ &&
-           date_ == rhs.date_ &&
-           protein_hits_ == rhs.protein_hits_ &&
-           protein_groups_ == rhs.protein_groups_ &&
-           indistinguishable_proteins_ == rhs.indistinguishable_proteins_ &&
-           protein_score_type_ == rhs.protein_score_type_ &&
-           protein_significance_threshold_ == rhs.protein_significance_threshold_ &&
-           higher_score_better_ == rhs.higher_score_better_;
-
+            std::tie(id_, search_engine_, search_engine_version_,
+                search_parameters_, date_, protein_hits_, protein_groups_,
+                indistinguishable_proteins_, protein_score_type_,
+                protein_significance_threshold_, higher_score_better_) ==
+            std::tie(rhs.id_, rhs.search_engine_, rhs.search_engine_version_,
+                     rhs.search_parameters_, rhs.date_, rhs.protein_hits_, rhs.protein_groups_,
+                     rhs.indistinguishable_proteins_, rhs.protein_score_type_,
+                     rhs.protein_significance_threshold_, rhs.higher_score_better_);
   }
 
   // Inequality operator
@@ -555,11 +583,11 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreMore());
     }
     else
     {
-      std::sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
+      std::stable_sort(protein_hits_.begin(), protein_hits_.end(), ProteinHit::ScoreLess());
     }
   }
 
@@ -571,7 +599,7 @@ namespace OpenMS
     UInt rank = 1;
     sort();
     vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    float tmpscore = lit->getScore();
+    double tmpscore = lit->getScore();
     while (lit != protein_hits_.end())
     {
       lit->setRank(rank);
@@ -764,6 +792,29 @@ namespace OpenMS
   const String& ProteinIdentification::getSearchEngine() const
   {
     return search_engine_;
+  }
+
+  const String ProteinIdentification::getOriginalSearchEngineName() const
+  {
+    // TODO: extend to multiple search engines and merging
+    String engine = search_engine_;
+    if (!engine.hasSubstring("Percolator") && !engine.hasSubstring("ConsensusID"))
+    {
+      return engine;
+    }
+
+    String original_SE = "Unknown";
+    vector<String> mvkeys;
+    getSearchParameters().getKeys(mvkeys);
+    for (const String& mvkey : mvkeys)
+    {
+      if (mvkey.hasPrefix("SE:") && !mvkey.hasSubstring("percolator"))
+      {
+        original_SE = mvkey.substr(3);
+        break; // multiSE percolator before consensusID not allowed; we take first only
+      }
+    }
+    return original_SE;
   }
 
   void ProteinIdentification::setSearchEngineVersion(const String& search_engine_version)

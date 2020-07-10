@@ -236,6 +236,45 @@ namespace OpenMS
     }
   }
 
+  map<String,vector<ProteinHit>> IDFilter::extractUnassignedProteins(ConsensusMap& cmap)
+  {
+    // collect accessions that are referenced by peptides for each ID run:
+    map<String, unordered_set<String> > run_to_accessions;
+
+    for (const auto& f : cmap)
+    {
+      for (const auto& pepid : f.getPeptideIdentifications())
+      {
+        const String& run_id = pepid.getIdentifier();
+        // extract protein accessions of each peptide hit:
+        for (vector<PeptideHit>::const_iterator hit_it =
+            pepid.getHits().begin(); hit_it != pepid.getHits().end();
+             ++hit_it)
+        {
+
+          const set<String>& current_accessions =
+              hit_it->extractProteinAccessionsSet();
+
+          run_to_accessions[run_id].insert(current_accessions.begin(),
+                                           current_accessions.end());
+        }
+      }
+    }
+
+    vector<ProteinIdentification>& prots = cmap.getProteinIdentifications();
+
+    map<String,vector<ProteinHit>> result{};
+    for (vector<ProteinIdentification>::iterator prot_it = prots.begin();
+         prot_it != prots.end(); ++prot_it)
+    {
+      const String& run_id = prot_it->getIdentifier();
+      auto target = result.emplace(run_id, vector<ProteinHit>{});
+      const unordered_set<String>& accessions = run_to_accessions[run_id];
+      struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
+      moveMatchingItems(prot_it->getHits(), std::not1(acc_filter), target.first->second);
+    }
+    return result;
+  }
 
   void IDFilter::removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned)
   {
@@ -442,6 +481,24 @@ namespace OpenMS
     return valid;
   }
 
+  void IDFilter::removeUngroupedProteins(
+      const vector<ProteinIdentification::ProteinGroup>& groups,
+      vector<ProteinHit>& hits)
+  {
+    if (hits.empty()) return; // nothing to update
+
+    // we'll do lots of look-ups, so use a suitable data structure:
+    unordered_set<String> valid_accessions;
+    for (const auto& grp : groups)
+    {
+      valid_accessions.insert(grp.accessions.begin(), grp.accessions.end());
+    }
+
+    hits.erase(
+        std::remove_if(hits.begin(), hits.end(), std::not1(HasMatchingAccessionUnordered<ProteinHit>(valid_accessions))),
+        hits.end()
+        );
+  }
 
   void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides,
                                      bool strict)
@@ -485,6 +542,20 @@ namespace OpenMS
     }
   }
 
+  void IDFilter::filterGroupsByScore(std::vector<ProteinIdentification::ProteinGroup>& grps,
+                                double threshold_score, bool higher_better)
+  {
+    const auto& pred = [&threshold_score,&higher_better](ProteinIdentification::ProteinGroup& g)
+    {
+      return (higher_better && (threshold_score >= g.probability))
+      || (!higher_better && (threshold_score < g.probability));
+    };
+
+    grps.erase(
+        std::remove_if(grps.begin(),grps.end(),pred),
+        grps.end()
+        );
+  }
 
   void IDFilter::filterPeptidesByLength(vector<PeptideIdentification>& peptides,
                                         Size min_length, Size max_length)

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////home/steffen/Studium/Master/Kuehlungsborn/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.4" id="cm_5024549519481199379" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file:///file1.mzML,file:///file2.mzML,file:///file3.mzML]"/>
 	<IdentificationRun id="PI_0" date="1999-12-31T23:59:59" search_engine="Mascot" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
-			<ProteinHit id="PH_0" accession="Protein" score="0" sequence="">
+			<ProteinHit id="PH_0" accession="Protein" score="0.9097144245" sequence="">
 			</ProteinHit>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9097144245,PH_0"/>
+                        <UserParam type="stringList" name="spectra_data" value="[sample1.mzML,sample2.mzML,sample3.mzML]" />
 		</ProteinIdentification>
 	</IdentificationRun>
 	<mapList count="3">
-		<map id="0" name="sample1.featureXML" unique_id="0" label="" size="4">
+		<map id="0" name="sample1.mzML" unique_id="0" label="" size="4">
 		</map>
-		<map id="1" name="sample2.featureXML" unique_id="1" label="" size="3">
+		<map id="1" name="sample2.mzML" unique_id="1" label="" size="3">
 		</map>
-		<map id="2" name="sample3.featureXML" unique_id="2" label="" size="2">
+		<map id="2" name="sample3.mzML" unique_id="2" label="" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>
@@ -28,6 +29,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="100" RT="100" >
 				<PeptideHit score="1" sequence="AAA" charge="2" protein_refs="PH_0">
 				</PeptideHit>
+                                <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1" quality="1" charge="2">
@@ -39,6 +41,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="200" RT="200" >
 				<PeptideHit score="1" sequence="CCC" charge="2" protein_refs="PH_0">
 				</PeptideHit>
+                                <UserParam type="int" name="id_merge_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_2" quality="1" charge="2">
@@ -51,6 +54,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="300" RT="300" >
 				<PeptideHit score="1" sequence="EEE" charge="2" protein_refs="PH_0">
 				</PeptideHit>
+                                <UserParam type="int" name="id_merge_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3" quality="1" charge="2">
@@ -62,6 +66,7 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="400" RT="400" >
 				<PeptideHit score="1" sequence="GGG" charge="2" protein_refs="PH_0">
 				</PeptideHit>
+                                <UserParam type="int" name="id_merge_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>

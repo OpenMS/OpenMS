@@ -27,9 +27,9 @@
 				<UserParam type="string" name="MS-GF+:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="MS-GF+:missed_cleavages" value="1000"/>
 				<UserParam type="float" name="MS-GF+:fragment_mass_tolerance" value="0"/>
-				<UserParam type="int" name="MS-GF+:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="MS-GF+:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="MS-GF+:precursor_mass_tolerance" value="10"/>
-				<UserParam type="int" name="MS-GF+:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="SE:Comet" value=""/>
 				<UserParam type="string" name="Comet:db" value="/home/walzer/dbs/swissprotHUMANwoi_130927.revCat.fasta"/>
@@ -40,9 +40,9 @@
 				<UserParam type="string" name="Comet:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="Comet:missed_cleavages" value="1"/>
 				<UserParam type="float" name="Comet:fragment_mass_tolerance" value="0.50025"/>
-				<UserParam type="int" name="Comet:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="Comet:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="Comet:precursor_mass_tolerance" value="10"/>
-				<UserParam type="int" name="Comet:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="Comet:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="Comet:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="CONCAT:MS-GF+,CONCAT:Comet,CONCAT:lnEvalue,CONCAT:deltaLnEvalue"/>

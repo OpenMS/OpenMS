@@ -504,16 +504,18 @@ namespace OpenMS
       ibg_.applyFunctorOnCCs(gif);
 
       FalseDiscoveryRate fdr;
-      if (param_.getValue("annotate_group_probabilities").toBool())
-      {
-        ScoreToTgtDecLabelPairs scores_and_tgt_fraction{};
-        ibg_.getProteinGroupScoresAndTgtFraction(scores_and_tgt_fraction);
-        fdr.applyEvaluateProteinIDs(scores_and_tgt_fraction, 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
-      }
       Param fdrparam = fdr.getParameters();
       fdrparam.setValue("conservative",param_.getValue("param_optimize:conservative_fdr"));
       fdrparam.setValue("add_decoy_proteins","true");
       fdr.setParameters(fdrparam);
+
+      if (param_.getValue("annotate_group_probabilities").toBool())
+      {
+        ScoreToTgtDecLabelPairs scores_and_tgt_fraction{};
+        ibg_.getProteinGroupScoresAndTgtFraction(scores_and_tgt_fraction);
+        return fdr.applyEvaluateProteinIDs(scores_and_tgt_fraction, 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
+      }
+      // The following line assumes that ALL proteins in the ID structure are used in the graph
       return fdr.applyEvaluateProteinIDs(ibg_.getProteinIDs(), 1.0, 100, static_cast<double>(param_.getValue("param_optimize:aucweight")));
     }
   };
@@ -779,7 +781,7 @@ namespace OpenMS
 
     //TODO filtering needs to account for run info if we allow running on a subset.
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
-    //TODO BIG filter empty PeptideIDs and proteins afterwards
+    //TODO BIG filter empty PeptideIDs afterwards
 
     bool keep_all_psms = param_.getValue("keep_best_PSM_only").toString() == "false";
     bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
@@ -812,20 +814,23 @@ namespace OpenMS
                                                true, static_cast<unsigned int>(nr_top_psms));
       }
     }
+    // filter in both cases since the PSM filtering by score is always active
     IDFilter::removeUnreferencedProteins(cmap, true);
+
+    // extract proteins that are "theoretically" unreferenced, since
+    // unassigned PSMs might not be considered in inference (depending on param).
+    // NOTE: this would in theory not be necessary if we calculate the FDR based on
+    // the graph only. But FDR on the ProteinID data structure should be much faster.
+    std::map<String, vector<ProteinHit>> unassigned{};
+    if (!use_unannotated_ids)
+    {
+      unassigned = IDFilter::extractUnassignedProteins(cmap);
+    }
 
     vector<ProteinIdentification>& proteinIDs = cmap.getProteinIdentifications();
     if (proteinIDs.size() == 1) // could be merged with the general case, but we can save the runid lookup here.
     {
-      // Save current scores as priors if requested
-      if (user_defined_priors)
-      {
-        // Save current protein score into a metaValue
-        for (auto& prot_hit : proteinIDs[0].getHits())
-        {
-          prot_hit.setMetaValue("Prior", prot_hit.getScore());
-        }
-      }
+      resetProteinScores_(proteinIDs[0], user_defined_priors);
 
       // TODO try to calc AUC partial only (e.g. up to 5% FDR)
       if (!keep_all_psms)
@@ -838,21 +843,25 @@ namespace OpenMS
 
       if (!keep_all_psms)
         OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0) << std::endl;
+
+      if (!use_unannotated_ids)
+      {
+        auto& unassigned_for_run = unassigned.at(proteinIDs[0].getIdentifier());
+        for (auto& h : unassigned_for_run) h.setScore(0.);
+        proteinIDs[0].getHits().reserve(proteinIDs[0].getHits().size() + unassigned_for_run.size());
+        std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinIDs[0].getHits()));
+        unassigned_for_run.clear();
+      }
+
+      proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
     }
     else if (cmap.getProteinIdentifications().size() > 1)
     {
       for (auto& proteinID : cmap.getProteinIdentifications())
       {
-        //TODO LOG the current processed run
-        // Save current scores as priors if requested
-        if (user_defined_priors)
-        {
-          // Save current protein score into a metaValue
-          for (auto& prot_hit : proteinID.getHits())
-          {
-            prot_hit.setMetaValue("Prior", prot_hit.getScore());
-          }
-        }
+        //TODO use if case for unassigned
+        //TODO Log the currently processed run
+        resetProteinScores_(proteinID, user_defined_priors);
 
         //TODO try to calc AUC partial only (e.g. up to 5% FDR)
         if (!keep_all_psms)
@@ -865,6 +874,17 @@ namespace OpenMS
 
         if (!keep_all_psms)
           OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(cmap, 0, proteinID.getIdentifier()) << std::endl;
+
+        if (!use_unannotated_ids)
+        {
+          auto& unassigned_for_run = unassigned.at(proteinIDs[0].getIdentifier());
+          for (auto& h : unassigned_for_run) h.setScore(0.);
+          proteinID.getHits().reserve(proteinID.getHits().size() + unassigned_for_run.size());
+          std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinID.getHits()));
+          unassigned_for_run.clear();
+        }
+
+        proteinID.fillIndistinguishableGroupsWithSingletons();
       }
     }
   }
@@ -1063,14 +1083,7 @@ namespace OpenMS
     pepFDR.setParameters(p);
 
     bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
-    if (user_defined_priors)
-    {
-      // Save current protein score into a metaValue
-      for (auto& prot_hit : proteinIDs[0].getHits())
-      {
-        prot_hit.setMetaValue("Prior", prot_hit.getScore());
-      }
-    }
+    resetProteinScores_(proteinIDs[0], user_defined_priors);
 
     if (!keep_all_psms)
       OPENMS_LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
@@ -1078,9 +1091,32 @@ namespace OpenMS
     setScoreTypeAndSettings_(proteinIDs[0]);
     IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, keep_all_psms, exp_des);
     inferPosteriorProbabilities_(ibg);
+    proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
 
     if (!keep_all_psms)
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
+  }
+
+  void BayesianProteinInferenceAlgorithm::resetProteinScores_(ProteinIdentification& protein_id, bool keep_old_as_prior)
+  {
+    // Save current scores as priors if requested
+    if (keep_old_as_prior)
+    {
+      // Save current protein score into a metaValue
+      for (auto& prot_hit : protein_id.getHits())
+      {
+        prot_hit.setMetaValue("Prior", prot_hit.getScore());
+        prot_hit.setScore(0.);
+      }
+    }
+    else
+    {
+      // Save current protein score into a metaValue
+      for (auto& prot_hit : protein_id.getHits())
+      {
+        prot_hit.setScore(0.);
+      }
+    }
   }
 
 }

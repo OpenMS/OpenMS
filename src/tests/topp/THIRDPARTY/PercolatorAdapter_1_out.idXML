@@ -13,9 +13,9 @@
 				<UserParam type="string" name="Comet:variable_modifications" value="Oxidation (M)"/>
 				<UserParam type="int" name="Comet:missed_cleavages" value="1"/>
 				<UserParam type="float" name="Comet:fragment_mass_tolerance" value="0.01"/>
-				<UserParam type="int" name="Comet:fragment_mass_tolerance_ppm" value="0"/>
+				<UserParam type="string" name="Comet:fragment_mass_tolerance_unit" value="Da"/>
 				<UserParam type="float" name="Comet:precursor_mass_tolerance" value="5.0"/>
-				<UserParam type="int" name="Comet:precursor_mass_tolerance_ppm" value="1"/>
+				<UserParam type="string" name="Comet:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="Comet:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="COMET:deltCn,COMET:deltLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
