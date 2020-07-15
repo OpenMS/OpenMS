@@ -204,9 +204,9 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
-                    "corrected");    
+                    "corrected");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // disabled in OpenSWATH
-    
+
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
@@ -370,7 +370,7 @@ namespace OpenMS
       const AASequence& seq = hit.getSequence();
       String molecule = seq.empty() ? String(hit.getMetaValue("label")) : seq.toString();
       auto key = make_tuple(peptide.getRT(), peptide.getMZ(), molecule);
-      pep_id_lookup.insert(make_pair(key, peptide));
+      pep_id_lookup.insert(make_pair(key, &peptide));
     }
     // complete feature annotation:
     annotateFeatures_(features, target_info_map, pep_id_lookup);
@@ -589,8 +589,8 @@ namespace OpenMS
       if (feature.getIntensity() > 0.0)
       {
         quantified_all.insert(target_id);
-        const PeptideIdentification& pep_id = feature.getPeptideIdentifications()[0];
-        String category = pep_id.getMetaValue("FFId_category");
+        const PeptideHit& hit = feature.getPeptideIdentifications()[0].getHits()[0];
+        String category = hit.getMetaValue("FFId_category");
         if (category == "internal")
         {
           quantified_internal.insert(target_id);
@@ -740,10 +740,9 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
 
       // go through different charge states:
-      for (ChargeMap::const_iterator cm_it = mm_it->second.begin();
-           cm_it != mm_it->second.end(); ++mm_it)
+      for (const auto& charge_pair : mm_it->second)
       {
-        Int charge = cm_it->first;
+        Int charge = charge_pair.first;
         // assume RNA data was acquired in negative mode:
         if ((molecule_type == ID::MoleculeType::RNA) && (charge > 0))
         {
@@ -754,42 +753,42 @@ namespace OpenMS
         double mz = (target.theoretical_mass + charge * Constants::PROTON_MASS_U) / abs(charge);
         OPENMS_LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
         String ion_id = molecule_id + "/" + String(charge);
-        TargetInfo& target_info = target_info_map[ion_id];
-        target_info.molecule = mm_it->first;
+        TargetInfo target_info;
+        target_info.molecule = molecule;
 
         // we want to detect one feature per peptide and charge state - if there
         // are multiple RT regions, group them together:
         // peptide.setPeptideGroupLabel(peptide_id);
         target.rts.clear();
         Size counter = 0;
-        // accumulate IDs over multiple regions, fill "target_info_map":
+        // accumulate IDs over multiple regions, fill "target_info":
         RTMap& internal_ids = target_info.internal_ids;
         RTMap& external_ids = target_info.external_ids;
-        for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
-             reg_it != rt_regions.end(); ++reg_it)
+        for (auto& region : rt_regions)
         {
-          if (reg_it->ids.count(charge))
+          if (region.ids.count(charge))
           {
             OPENMS_LOG_DEBUG
-              << "Region " << counter + 1 << " (RT: " << float(reg_it->start)
-              << "-" << float(reg_it->end) << ", size "
-              << float(reg_it->end - reg_it->start) << ")" << endl;
+              << "Region " << counter + 1 << " (RT: " << float(region.start)
+              << "-" << float(region.end) << ", size "
+              << float(region.end - region.start) << ")" << endl;
 
             target.id = ion_id;
             if (rt_regions.size() > 1) target.id += "#" + String(++counter);
 
             // store beginning and end of RT region:
             target.rts.clear();
-            addTargetRT_(target, reg_it->start);
-            addTargetRT_(target, reg_it->end);
+            addTargetRT_(target, region.start);
+            addTargetRT_(target, region.end);
             library_.addCompound(target);
             generateTransitions_(target.id, mz, charge, iso_dist);
           }
-          internal_ids.insert(reg_it->ids[charge].first.begin(),
-                              reg_it->ids[charge].first.end());
-          external_ids.insert(reg_it->ids[charge].second.begin(),
-                              reg_it->ids[charge].second.end());
+          internal_ids.insert(region.ids[charge].first.begin(),
+                              region.ids[charge].first.end());
+          external_ids.insert(region.ids[charge].second.begin(),
+                              region.ids[charge].second.end());
         }
+        target_info_map.insert(make_pair(ion_id, target_info));
       }
     }
   }
@@ -876,8 +875,7 @@ namespace OpenMS
   {
     // go through different isotopes:
     Size counter = 0;
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin();
-         iso_it != iso_dist.end(); ++iso_it, ++counter)
+    for (const auto& isotope : iso_dist)
     {
       ReactionMonitoringTransition transition;
       String annotation = "i" + String(counter + 1);
@@ -887,11 +885,12 @@ namespace OpenMS
       transition.setPrecursorMZ(mz);
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->getIntensity());
+      transition.setLibraryIntensity(isotope.getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setCompoundRef(target_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->getIntensity();
+      isotope_probs_[transition_name] = isotope.getIntensity();
+      ++counter;
     }
   }
 
@@ -922,6 +921,7 @@ namespace OpenMS
   {
     for (const PepIDKey& key : pep_id_keys)
     {
+      // OPENMS_LOG_DEBUG << "Looking up: " << get<2>(key) << endl;
       auto range = pep_id_lookup.equal_range(key);
       if (range.first == range.second) // key not found
       {
@@ -932,7 +932,8 @@ namespace OpenMS
       }
       for (auto it = range.first; it != range.second; ++it)
       {
-        output.push_back(it->second);
+        // OPENMS_LOG_DEBUG << "Look-up found: " << it->second->getHits()[0].getSequence() << endl;
+        output.push_back(*(it->second));
       }
     }
   }
@@ -1027,7 +1028,7 @@ namespace OpenMS
         if (!previous_id.empty())
         {
           annotateFeaturesFinalizeAssay_(
-            features, feat_ids, target_info_map[previous_id].internal_ids,
+            features, feat_ids, target_info_map.at(previous_id).internal_ids,
             pep_id_lookup);
           // note that "...FinalizeAssay_" clears its last two arguments
         }
@@ -1048,7 +1049,7 @@ namespace OpenMS
 
       // @TODO: how much of this makes sense for features derived from seeds?
 
-      TargetInfo& target_info = target_info_map[target_id];
+      TargetInfo& target_info = target_info_map.at(target_id);
       RTMap& rt_internal = target_info.internal_ids;
       RTMap& rt_external = target_info.external_ids;
       if (rt_internal.empty() && rt_external.empty())
@@ -1187,7 +1188,7 @@ namespace OpenMS
     }
     // set of features from the last assay:
     annotateFeaturesFinalizeAssay_(features, feat_ids,
-                                   target_info_map[target_id].internal_ids,
+                                   target_info_map.at(previous_id).internal_ids,
                                    pep_id_lookup);
 
     // store unassigned peptide IDs from assays that did not generate any

@@ -68,8 +68,8 @@ public:
     IdentificationData& id_data_ext);
 
   /// Convert seeds to an IdentificationData representation
-  void convertSeeds (const FeatureMap& seeds, IdentificationData& id_data,
-                     Size n_overlap_traces = 6);
+  void convertSeeds(const FeatureMap& seeds, IdentificationData& id_data,
+                    Size n_overlap_traces = 6);
 
   // void runOnCandidates(FeatureMap& features);
 
@@ -112,7 +112,8 @@ protected:
   // need to map from a MoleculeQueryMatch to the corresponding exported
   // PeptideIdentification, so generate a look-up table:
   typedef std::tuple<double, double, String> PepIDKey; ///< (RT, m/z, molecule)
-  typedef std::multimap<PepIDKey, const PeptideIdentification&> PepIDLookup;
+  typedef std::multimap<PepIDKey, const PeptideIdentification*> PepIDLookup;
+  // @TODO: why does this crash when a reference is used instead of the pointer?
 
   MoleculeMap molecule_map_;
 
