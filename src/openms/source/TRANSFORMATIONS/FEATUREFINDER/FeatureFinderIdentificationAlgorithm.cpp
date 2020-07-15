@@ -682,10 +682,15 @@ namespace OpenMS
       const ID::IdentifiedMolecule& molecule = mm_it->first;
       ID::MoleculeType molecule_type = molecule.getMoleculeType();
       String molecule_id;
+      double mass = 0.0;
       switch (molecule_type)
       {
         case ID::MoleculeType::PROTEIN:
           molecule_id = "PEP:" + molecule.getIdentifiedPeptideRef()->sequence.toString();
+          // special case: peptides can contain custom modifications that are
+          // only defined by mass shift; these get lost during conversion to an
+          // empirical formula, but are correctly included in the mass here:
+          mass = molecule.getIdentifiedPeptideRef()->sequence.getMonoWeight();
           break;
         case ID::MoleculeType::COMPOUND: // actual compound or seed?
           molecule_id = molecule.getIdentifiedCompoundRef()->identifier;
@@ -709,7 +714,7 @@ namespace OpenMS
         target.molecular_formula = formula.toString();
         iso_dist = formula.getIsotopeDistribution(iso_gen);
         // @TODO: add support for adducts (e.g. from NucleicAcidSearchEngine)
-        target.theoretical_mass = formula.getMonoWeight();
+        target.theoretical_mass = (mass > 0.0) ? mass : formula.getMonoWeight();
       }
       else // seed
       {
