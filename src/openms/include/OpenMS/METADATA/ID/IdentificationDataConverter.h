@@ -51,7 +51,11 @@ namespace OpenMS
                           const std::vector<ProteinIdentification>& proteins,
                           const std::vector<PeptideIdentification>& peptides);
 
-    /// Export to legacy peptide/protein identifications
+    /*!
+      @brief Export to legacy peptide/protein identifications
+
+      Results are added to existing data (if any) in @p proteins and @p peptides.
+    */
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
                           std::vector<PeptideIdentification>& peptides);
