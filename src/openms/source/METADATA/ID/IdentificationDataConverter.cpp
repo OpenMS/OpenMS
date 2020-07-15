@@ -319,9 +319,6 @@ namespace OpenMS
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification>& peptides)
   {
-    proteins.clear();
-    peptides.clear();
-
     // "DataQuery" roughly corresponds to "PeptideIdentification",
     // "DataProcessingStep" roughly corresponds to "ProteinIdentification";
     // score type is stored in "PeptideIdent.", not "PeptideHit":
@@ -874,23 +871,12 @@ namespace OpenMS
     dbsp.database = pisp.db;
     dbsp.database_version = pisp.db_version;
     dbsp.taxonomy = pisp.taxonomy;
-    vector<Int> charges;
-    try
+    pair<int, int> charge_range = pisp.getChargeRange();
+    for (int charge = charge_range.first; charge <= charge_range.second;
+         ++charge)
     {
-      charges = ListUtils::create<Int>(pisp.charges);
+      dbsp.charges.insert(charge);
     }
-    catch (Exception::ConversionError& /*e*/) { // X! Tandem notation, e.g. "+1-+4"?
-      charges = ListUtils::create<Int>(pisp.charges, '-');
-      if ((charges.size() == 2) && (charges[0] < charges[1]))
-      {
-        for (Int z = charges[0] + 1; z < charges[1]; ++z)
-        {
-          charges.push_back(z);
-        }
-        sort(charges.begin(), charges.end());
-      }
-    }
-    dbsp.charges.insert(charges.begin(), charges.end());
     dbsp.fixed_mods.insert(pisp.fixed_modifications.begin(),
                            pisp.fixed_modifications.end());
     dbsp.variable_mods.insert(pisp.variable_modifications.begin(),
