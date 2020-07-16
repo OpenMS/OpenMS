@@ -31,13 +31,13 @@ jobs:
 
     - name: Build on manylinux2014 for arm64
       run: |
-            mkdir contrib-build
-            pushd contrib-build
+            mkdir ../contrib-build
+            pushd ../contrib-build
               cmake -DBUILD_TYPE=ALL ../OpenMS/contrib
             popd
             
             # fixes some issues with empty pxd files
-            rm -rf OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+            rm -rf src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
 
             # install Python deps
             for PYBIN in /opt/python/cp37*; do
