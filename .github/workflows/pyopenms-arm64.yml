@@ -31,9 +31,13 @@ jobs:
 
     - name: Build on manylinux2014 for arm64
       run: |
-            mkdir ../contrib-build
-            pushd ../contrib-build
-              cmake -DBUILD_TYPE=ALL ../OpenMS/contrib
+            ls -la
+            pushd ..
+              ls -la
+            popd
+            mkdir contrib-build
+            pushd contrib-build
+              cmake -DBUILD_TYPE=ALL $GITHUB_WORKSPACE/OpenMS/contrib
             popd
             
             # fixes some issues with empty pxd files
