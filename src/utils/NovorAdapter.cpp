@@ -304,7 +304,7 @@ protected:
         if (sl.empty() || sl[0][0] == '#') { continue; }
         
         PeptideIdentification pi;
-        pi.setMetaValue("scan_index", sl[1].toDouble());
+        pi.setMetaValue("scan_index", sl[1].toInt());
         pi.setScoreType("novorscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(sl[2].toDouble());
