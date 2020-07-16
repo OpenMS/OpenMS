@@ -214,30 +214,58 @@ protected:
     Size count_re_ranked = 0;
     Size count_interest = 0;
 
-    for (const auto& pep_id : pep_ids)
+    for (auto& pep_id : pep_ids)
     {
-      const vector<PeptideHit>& hits = pep_id.getHits();
+      vector<PeptideHit>& hits = pep_id.getHits();
+      bool q_value_score = (pep_id.getScoreType() == "q-value");
 
       if (hits.empty()) continue;
+
+      // sort hits by q-value
+      if (q_value_score)
+      {
+        sort(hits.begin(), hits.end(),
+          [](const PeptideHit& a, const PeptideHit& b)
+          {
+            return a.getScore() < b.getScore();
+          });
+      }
+      else
+      {
+        if (hits[0].metaValueExists("q-value"))
+        {
+          sort(hits.begin(), hits.end(),
+            [](const PeptideHit& a, const PeptideHit& b)
+            {
+              return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
+            });
+        }
+        else
+        {
+          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
+        }
+      }
+
 
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
-      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
+      if (top_hit.metaValueExists("target_decoy"))
+      {
+        if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
+      }
+      else
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+      }
 
       // skip if top hit is out ouf FDR
-      if (scoreHigherThanFDR_(top_hit, FDR, pep_id.getScoreType() == "q-value")) continue;
+      if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
       {
         ++count_db;
-        continue;
-      }
-      // top hit is novo hit
-      if (hits.size() == 1)
-      {
-        ++count_novo;
         continue;
       }
 
@@ -247,7 +275,7 @@ protected:
       for (UInt i = 1; i < hits.size(); ++i)
         {
         // check for FDR
-        if (scoreHigherThanFDR_(hits[i], FDR, pep_id.getScoreType() == "q-value")) break;
+        if (scoreHigherThanFDR_(hits[i], FDR, q_value_score)) break;
 
         if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
@@ -258,7 +286,7 @@ protected:
           break;
         }
       }
-      if (second_hit == nullptr)
+      if (second_hit == nullptr) // no second target hit with given FDR found
       {
         ++count_novo;
         continue;
@@ -440,20 +468,23 @@ private:
     return true;
   }
 
+  // Checks if the q-value of a peptide hit is higher than a given FDR.
+  // Throws an error if no q-value is found.
   bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score)
   {
-    if (q_value_score)
+    if (q_value_score) // score type is q-value
     {
-      if (hit.getScore() > FDR) return false;
-      return true;
+      if (hit.getScore() > FDR) return true;
+      return false;
     }
     
-    if (hit.metaValueExists("q-value"))
+    if (hit.metaValueExists("q-value")) // look for q-value at metavalues
     {
-      if (float(hit.getMetaValue("q-value")) > FDR) return false;
-      return true;
+      if (float(hit.getMetaValue("q-value")) > FDR) return true;
+      return false;
     }
     
+    // no q-value found
     throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
   }
 };
