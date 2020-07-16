@@ -94,7 +94,8 @@ To generate the de novo "database":
       - @ref TOPP_IDFilter can filter out unwanted ones.
       - @ref TOPP_IDFileConverter generates the de novo fasta file.
 
-For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p novor_fract option.
+For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p novor_fract option.@n
+For this to work it is important that FDR filtering is done in this tool and not beforehand by @ref TOPP_FalseDiscoveryRate. You can provide the wanted FDR using the corresponding flag.
 
 @note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
 You can still uses other search engines and disable the re-ranking via the @p force_no_re_rank flag in this tool. This will probably result in an underestimated suitability though.@n
@@ -145,6 +146,9 @@ protected:
     registerDoubleOption_("novor_fract", "<double>", 1, "Set the fraction of how many cases, where a de novo peptide scores just higher than the database peptide, you wish to re-rank.", false, true);
     setMinFloat_("novor_fract", 0);
     setMaxFloat_("novor_fract", 1);
+    registerDoubleOption_("FDR", "<double>", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)", false, true);
+    setMinFloat_("FDR", 0);
+    setMaxFloat_("FDR", 1);
     registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
   }
 
@@ -159,11 +163,26 @@ protected:
     String in_novo = getStringOption_("in_novo");
     String out = getStringOption_("out");
     double novo_fract = getDoubleOption_("novor_fract");
+    double FDR = getDoubleOption_("FDR");
     bool no_re_rank = getFlag_("force_no_re_rank");
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
+    // load mzML file in scope because we only need the number of ms2 spectra and no data
+    // this saves some memory
+    Size count_ms2_lvl;
+    {
+      MzMLFile m;
+      PeakFileOptions op;
+      op.setMSLevels({ 2 }); // only ms2
+      op.setFillData(false); // no data
+      m.setOptions(op);
+      PeakMap exp;
+      m.load(in_spec, exp);
+      count_ms2_lvl = exp.size();
+    }
+    
     IdXMLFile x;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
@@ -172,20 +191,6 @@ protected:
     vector<ProteinIdentification> novo_prots;
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
-
-    // load mzML file in scope because we only need the number of ms2 spectra and no data
-    // this saves some memory
-    Size count_ms2_lvl;
-    {
-      MzMLFile m;
-      PeakFileOptions op;
-      op.setMSLevels({2}); // only ms2
-      op.setFillData(false); // no data
-      m.setOptions(op);
-      PeakMap exp;
-      m.load(in_spec, exp);
-      count_ms2_lvl = exp.size();
-    }
 
     //-------------------------------------------------------------
     // calculations
@@ -209,27 +214,53 @@ protected:
     Size count_re_ranked = 0;
     Size count_interest = 0;
 
-    for (const auto& pep_id : pep_ids)
+    for (auto& pep_id : pep_ids)
     {
-      const vector<PeptideHit>& hits = pep_id.getHits();
+      vector<PeptideHit>& hits = pep_id.getHits();
+      bool q_value_score = (pep_id.getScoreType() == "q-value");
 
       if (hits.empty()) continue;
+
+      // sort hits by q-value
+      if (q_value_score)
+      {
+        sort(hits.begin(), hits.end(),
+          [](const PeptideHit& a, const PeptideHit& b)
+          {
+            return a.getScore() < b.getScore();
+          });
+      }
+      else
+      {
+        if (!hits[0].metaValueExists("q-value"))
+        {
+          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
+        }
+
+        sort(hits.begin(), hits.end(),
+          [](const PeptideHit& a, const PeptideHit& b)
+          {
+            return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
+          });
+      }
+
 
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
+      if (!top_hit.metaValueExists("target_decoy"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+      }
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
+
+      // skip if top hit is out ouf FDR
+      if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
       {
         ++count_db;
-        continue;
-      }
-      // top hit is novo hit
-      if (hits.size() == 1)
-      {
-        ++count_novo;
         continue;
       }
 
@@ -238,6 +269,9 @@ protected:
       String target = "target";
       for (UInt i = 1; i < hits.size(); ++i)
         {
+        // check for FDR
+        if (scoreHigherThanFDR_(hits[i], FDR, q_value_score)) break;
+
         if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
           // check if hit is novo hit
@@ -247,7 +281,7 @@ protected:
           break;
         }
       }
-      if (second_hit == nullptr)
+      if (second_hit == nullptr) // no second target hit with given FDR found
       {
         ++count_novo;
         continue;
@@ -427,6 +461,26 @@ private:
       }
     }
     return true;
+  }
+
+  // Checks if the q-value of a peptide hit is higher than a given FDR.
+  // Throws an error if no q-value is found.
+  bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score)
+  {
+    if (q_value_score) // score type is q-value
+    {
+      if (hit.getScore() > FDR) return true;
+      return false;
+    }
+    
+    if (hit.metaValueExists("q-value")) // look for q-value at metavalues
+    {
+      if (float(hit.getMetaValue("q-value")) > FDR) return true;
+      return false;
+    }
+    
+    // no q-value found
+    throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
   }
 };
 
