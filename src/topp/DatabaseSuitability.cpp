@@ -232,32 +232,27 @@ protected:
       }
       else
       {
-        if (hits[0].metaValueExists("q-value"))
-        {
-          sort(hits.begin(), hits.end(),
-            [](const PeptideHit& a, const PeptideHit& b)
-            {
-              return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
-            });
-        }
-        else
+        if (!hits[0].metaValueExists("q-value"))
         {
           throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
         }
+
+        sort(hits.begin(), hits.end(),
+          [](const PeptideHit& a, const PeptideHit& b)
+          {
+            return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
+          });
       }
 
 
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
-      if (top_hit.metaValueExists("target_decoy"))
-      {
-        if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
-      }
-      else
+      if (!top_hit.metaValueExists("target_decoy"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
+      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // skip if top hit is out ouf FDR
       if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
