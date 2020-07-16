@@ -84,13 +84,15 @@ protected:
   {
     registerInputFile_("in", "<input_file/input_dir>", "", "Input file or directory");
     registerOutputFile_("out", "<output_file_prefix/output_dir>", "",
-                        "Output file prefix or output dir (if prefix, [prefix].tsv will be generated. "
-                        "if dir, [dir]/[inputfile].tsv is generated per [inputfile])");
+                        "output file prefix or output dir. "
+                        "If prefix, [prefix].tsv (feature deconvolution results), [prefix]_MSn_spec.tsv (spectral deconvolution results) will be generated. "
+                        "If dir, [dir]/[inputfile].tsv and [dir]/[inputfile]_MSn_spec.tsv will be generated per [inputfile].");
 
     registerDoubleList_("tol",
-                        "ms1_tol ms2_tol ... (e.g., 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively",
+                        "<ms1_tol, ms2_tol, ...>",
                         {10.0, 5.0},
-                        "ppm tolerance for MS1, 2, ...",
+                        "ppm tolerance for MS1, 2, ...  "
+                        "(e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)",
                         false);
 
     //registerDoubleOption_("tol", "<tolerance>", 10.0, "ppm tolerance", false, false);
@@ -100,9 +102,10 @@ protected:
     registerDoubleOption_("maxMass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleList_("minIsotopeCosine",
-                        "ms1_isotope_cos ms2_isotpe_cos ... (e.g., 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)", // TODO polish descriptions
+                        "<ms1_isotope_cos ms2_isotpe_cos, ...>", // TODO polish descriptions
                         {.75, .75},
-                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ...",
+                        "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
+                        "(e.g., -minIsotopeCosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
                         false,
                         true);
 
@@ -114,28 +117,32 @@ protected:
                           true);
 
     registerIntList_("minSupportingPeaks",
-                     "ms1_min_supporting_peaks ms2_min_supproting_peaks ... (e.g., 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
+                     "<ms1_min_supporting_peaks ms2_min_supproting_peaks, ...>",
                      {3, 1},
-                     "minimum number of supporting peaks",
+                     "minimum number of supporting peaks for MS1, 2, ... "
+                     "(e.g., -minSupportingPeaks 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
                      false,
                      true);
 
-    registerIntList_("maxMassCount", "<max_mass_count>", {-1, -1}, "maximum mass count per spec for MS1 and MSn", false, true);
+    registerIntList_("maxMassCount", "<ms1_max_mass_count, ms2_max_mass_count, ...>", {-1, -1},
+        "maximum mass count per spec for MS1, 2, ..."
+        "(e.g., -maxMassCount 100 50 to specify 100 and 50 for MS1 and MS2, respectivly. -1 specifies unlimited)", false, true);
     //
     registerDoubleOption_("minIntensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RTwindow",
                           "<seconds>",
                           0.0,
-                          "RT window (if 0, RT window contains 15 MS1 spectra)",
+                          "RT window duration in seconds (if 0, RT window contains 15 MS1 spectra)",
                           false,
                           true);
+
     registerDoubleOption_("minRTSpan", "<seconds>", 10.0, "Min feature RT span", false, true);
     registerIntOption_("writeDetail",
                        "<1:true 0:false>",
                        0,
                        "to write per spectrum deconvoluted masses in detail or not in [prefix]_MSn_spec.tsv files. If set, all peak information per mass is reported.",
                        false,
-                       true);
+                       false);
 
     registerIntOption_("promexOutput", "", 0, "if set, promexoutput ([prefix]]_FD.ms1ft) is generated", false, true);
     registerIntOption_("topfdOutput", "", 0, "if set, topfdoutput ([prefix]_FD_ms2.msalign) is generated", false, true);
@@ -179,22 +186,9 @@ protected:
     return param;
   }
 
- /* static FLASHDeconvHelperStructs::PrecalculatedAveragine calculateAveragines(Parameter &param)
-  {
-    auto generator = new CoarseIsotopePatternGenerator();
-    auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
-    param.maxIsotopeCount = (int) maxIso.size() - 1;
-    generator->setMaxIsotope((Size) param.maxIsotopeCount);
-    return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator);
-  }*/
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
   {
-
-
-  	
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -395,15 +389,19 @@ protected:
       {
         auto msLevel = it.getMSLevel();
         param.currentMaxMSLevel = param.currentMaxMSLevel < msLevel ? msLevel : param.currentMaxMSLevel;
-        /*
-        std::cout<<"Spec\t"<<it.getRT()<<"\n"; // TODO
-        for(auto& p : it){
-          if(p.getIntensity()<=0){
-            continue;
-          }
-          std::cout<<std::to_string(p.getMZ())<<"\t"<<std::to_string(p.getIntensity())<<"\n";
-        }*/
 
+        if(false)
+        {
+          std::cout << "Spec\t" << it.getRT() << "\n"; // TODO
+          for (auto &p : it)
+          {
+            if (p.getIntensity() <= 0)
+            {
+              continue;
+            }
+            std::cout << std::to_string(p.getMZ()) << "\t" << std::to_string(p.getIntensity()) << "\n";
+          }
+        }
       }
 
       param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
