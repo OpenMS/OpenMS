@@ -27,7 +27,7 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
-        submodules: contrib
+        submodules: true
 
     - name: Build on manylinux2014 for arm64
       run: |
