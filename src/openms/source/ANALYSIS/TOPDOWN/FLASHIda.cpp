@@ -37,7 +37,6 @@
 #include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
 
 namespace OpenMS
-^
 {
   // constructor
   FLASHIda::FLASHIda(Parameter &p, PrecalculatedAveragine &a) :

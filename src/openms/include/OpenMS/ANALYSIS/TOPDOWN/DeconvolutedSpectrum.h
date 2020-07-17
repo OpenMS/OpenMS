@@ -34,6 +34,7 @@ namespace OpenMS
     void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
 
     void writeTopFD(std::fstream &fs, int id);
+    MSSpectrum toSpectrum();
 
     static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
     static void writeAttCsvHeader(std::fstream &fs);

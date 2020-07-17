@@ -95,6 +95,22 @@ namespace OpenMS
     //std::cout<<"2"<<std::endl;
   }*/
 
+  MSSpectrum DeconvolutedSpectrum::toSpectrum(){
+    auto outSpec = MSSpectrum(*spec);
+    outSpec.clear(false);
+    for (auto &pg : peakGroups)
+    {
+      if (pg.peaks.empty())
+      {
+        continue;
+      }
+      auto p = Peak1D(pg.monoisotopicMass, pg.intensity);
+      outSpec.push_back(p);
+    }
+
+    return outSpec;
+  }
+
 
   void DeconvolutedSpectrum::writeDeconvolutedMasses(std::fstream &fs,
                                                      FLASHDeconvHelperStructs::Parameter &param)//, fstream &fsm, fstream &fsp)

@@ -88,7 +88,7 @@ namespace OpenMS
       int writeDetail = 0;
       bool promexOut = false;
       bool topfdOut = false;
-      bool trainOut = false;
+      bool mzmlOut = false;
       void print();
       //int jitter = 0;
     };
