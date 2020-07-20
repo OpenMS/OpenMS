@@ -2,13 +2,13 @@
 // Created by Kyowon Jeong on 10/8/19.
 //
 
-#ifndef OPENMS_HOST_PEAKGROUPSCORING_H
-#define OPENMS_HOST_PEAKGROUPSCORING_H
+#pragma once
 
 #include <Eigen/Dense>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 namespace OpenMS
 {
@@ -25,7 +25,6 @@ namespace OpenMS
 
     /// default destructor
     ~PeakGroupScoring();
-
 
     static double getChargeFitScore(double *perChargeIntensity, int range);
 
@@ -89,4 +88,3 @@ namespace OpenMS
 
 
 }
-#endif //OPENMS_HOST_PEAKGROUPSCORING_H

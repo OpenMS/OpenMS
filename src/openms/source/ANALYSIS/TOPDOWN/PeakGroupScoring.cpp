@@ -412,7 +412,7 @@ namespace OpenMS
 
     auto perIsotopeIntensity = new double[param.maxIsotopeCount];
     auto perChargeIntensity = new double[param.currentChargeRange];
-    auto preChargeMaxIntensity = new double[param.chargeRange];
+    auto perChargeMaxIntensity = new double[param.chargeRange];
 
     for (auto &pg : peakGroups)
     {
@@ -481,7 +481,7 @@ namespace OpenMS
       int isoSize = (int) iso.size();
       float totalNoise = .0;
       float totalSignal = .0;
-      std::fill_n(preChargeMaxIntensity, param.chargeRange, 0);
+      std::fill_n(perChargeMaxIntensity, param.chargeRange, 0);
 
       for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
       {
@@ -521,7 +521,7 @@ namespace OpenMS
           if (maxIntensity < p.intensity)
           {
             maxIntensity = p.intensity;
-            preChargeMaxIntensity[j] = maxIntensity;
+            perChargeMaxIntensity[j] = maxIntensity;
           }
           // sp += p.intensity * p.intensity;
         }
@@ -577,27 +577,10 @@ namespace OpenMS
           continue;
         }
 
-        /*ChargeSNR                 -0.367
-PeakIntensity            -1.4339
-EnvIntensity              1.3297
-
-EnvIsotopeCosine         -2.7199
-MassSNR                  -0.8385
-IsotopeCosine               4.29
-ChargeIntensityCosine    -0.4913
-MassIntensity            -0.4561
-Intercept                  1.424*/
-        auto score =
-        -0.367 * log10(pg.perChargeSNR[charge] + 1e-3)
-        - 1.4339 * log10(preChargeMaxIntensity[j] + 1)
-        + 1.3297 * log10(pg.perChargeSumInt[charge] + 1)
-        -2.7199 * pg.perChargeICos[charge]
-        - 0.8385 * log10(pg.totalSNR + 1e-3)
-        + 4.29 * pg.isotopeCosineScore
-        - 0.4913 * pg.chargeCosineScore
-        - 0.4561 * log10(pg.intensity + 1)
-        + 1.424;
-        score = -score;
+        LogMzPeak tp;
+        tp.intensity = perChargeMaxIntensity[j];
+        tp.charge = charge;
+        auto score = QScore::getQScore(&pg, &tp);
 
         if (score < pg.qScore)
         {
@@ -651,9 +634,10 @@ Intercept                  1.424*/
     }
     delete[] perIsotopeIntensity;
     delete[] perChargeIntensity;
-    delete[] preChargeMaxIntensity;
+    delete[] perChargeMaxIntensity;
     return peakGroups;
   }
+
 
   void PeakGroupScoring::filterPeakGroupsByIsotopeCosine(int currentMaxMassCount)
   {

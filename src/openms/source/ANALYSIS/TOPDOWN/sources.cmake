@@ -6,6 +6,7 @@ set(sources_list
 MassFeatureTrace.cpp
 DeconvolutedSpectrum.cpp
 PeakGroup.cpp
+QScore.cpp
 PeakGroupScoring.cpp
 SpectrumDeconvolution.cpp
 FLASHDeconvAlgorithm.cpp

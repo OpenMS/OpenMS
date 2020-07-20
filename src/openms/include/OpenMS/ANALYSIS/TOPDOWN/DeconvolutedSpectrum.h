@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 namespace OpenMS
 {
@@ -58,8 +59,6 @@ namespace OpenMS
     int specIndex, massCntr;
     int scanNumber;
 
-  protected:
-    double getQScore() const; // for MS2
 
     //fs << "MS_ONE_ID=" << pg.precursorSpecIndex << "\n"
     //       << "MS_ONE_SCAN=" << pg.precursorScanNumber << "\n"
