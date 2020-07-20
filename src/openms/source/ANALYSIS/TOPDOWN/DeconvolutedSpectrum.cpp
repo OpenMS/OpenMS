@@ -137,27 +137,28 @@ namespace OpenMS
         maxCharge = maxCharge > p.charge ? maxCharge : p.charge;
       }
 
-      fs << pg.massIndex << "\t" << specIndex << "\t" << param.fileName << "\t" << spec->getNativeID() << "\t"
-         << spec->getMSLevel() << "\t"
+      //"MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+      //               "SumIntensity\tMinCharge\tMaxCharge\t"
+      //               "PeakCount
+      //               \tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+
+      //               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+      //
+      // "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+      //               "SumIntensity\tMinCharge\tMaxCharge\t"
+      //               "PeakCount
+      //               \tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+
+      //               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
+      //               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+      //
+
+      fs << pg.massIndex << "\t" << specIndex << "\t" << scanNumber << "\t"
+         << std::to_string(spec->getRT())<< "\t"
          << massCntr << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
-         << (maxCharge - minCharge + 1) << "\t" << minCharge << "\t" << maxCharge << "\t"
-         << std::to_string(spec->getRT())
-         << "\t" << pg.peaks.size() << "\t";
-      fs << std::fixed << std::setprecision(2);
-      fs << pg.maxQScoreCharge << "\t" << pg.maxQScoreMzStart << "\t" << pg.maxQScoreMzEnd << "\t";
-      fs << std::fixed << std::setprecision(-1);
-      if (spec->getMSLevel() > 1)
-      {
-        if (precursorPeakGroup == nullptr){
-          fs << "N/A\tN/A\tN/A\tN/A\tN/A\tN/A\tN/A\tN/A\tN/A\tN/A\t";
-        }else{
-          fs << precursorPeakGroup->specIndex << "\t" << precursorPeak->mz << "\t" << precursorPeak->charge
-              << "\t" << precursorPeakGroup->perChargeSNR[precursorPeak->charge]  << "\t" << precursorPeak->intensity
-              << "\t" << precursorPeakGroup->monoisotopicMass << "\t" << precursorPeakGroup->totalSNR << "\t" << precursorPeakGroup->isotopeCosineScore
-              << "\t" << precursorPeakGroup->chargeCosineScore << "\t" <<precursorPeakGroup->intensity << "\t";
-        }
-      }
+         << minCharge << "\t" << maxCharge << "\t"
+         << pg.peaks.size() << "\t";
 
       if (param.writeDetail)
       {
@@ -198,19 +199,35 @@ namespace OpenMS
           fs << p.intensity << ";";
         }
         fs << "\t";
+        fs <<std::setprecision(-1);
       }
 
-      fs << std::fixed << std::setprecision(3);
-      fs << pg.isotopeCosineScore;
+      //               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+      //               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
+      //               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+
+      if (spec->getMSLevel() > 1)
+      {
+        if (precursorPeakGroup == nullptr){
+          fs << "N/A\tN/A\tN/A\tN/A\tN/A\tN/A\t";
+        }else{
+          fs << precursorPeakGroup->specIndex << "\t" << std::to_string(precursorPeak->mz) << "\t"
+          << precursorPeak->charge
+            << "\t" << precursorPeak->intensity
+             << "\t" << std::to_string(precursorPeakGroup->monoisotopicMass) << "\t"
+             << precursorPeakGroup->qScore<<"\t";
+        }
+      }
+      fs << pg.isotopeCosineScore<< "\t" ;
 
       if (spec->getMSLevel() == 1)
       {
-        fs << "\t" << pg.chargeCosineScore;
+        fs << pg.chargeCosineScore << "\t";
       }
-
-      fs << "\t" << pg.totalSNR << "\t" << pg.qScore << "\n" << std::setprecision(-1); //
+      fs << pg.totalSNR << "\t"
+       << pg.maxQScoreCharge << "\t" << std::to_string(pg.maxQScoreMzStart) << "\t" << std::to_string(pg.maxQScoreMzEnd) << "\t"
+       << pg.qScore << "\n" << std::setprecision(-1); //
     }
-
   }
 
 
@@ -221,22 +238,19 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMSLevel\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\t"
-               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScore\n";
+               "PeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
       }
       else
       {
         fs
-            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMSLevel\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
-               "PeakCount\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\t"
-               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\t"
-               "PrecursorMonoMass\t"
-               "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tMassSNR\tMaxQScore\n";
+               "PeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+               "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
+               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
       }
     }
     else
@@ -244,22 +258,24 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
-               "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-               "RetentionTime\tPeakCount\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\t"
+            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+               "SumIntensity\tMinCharge\tMaxCharge\t"
+               "PeakCount\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScore\n";
+               "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+
       }
       else
       {
         fs
-            <<  "MassIndex\tSpecIndex\tFileName\tSpecID\tMSLevel\tMassCountInSpec\tAvgMass\tMonoisotopicMass\t"
-                "AggregatedIntensity\tPeakChargeRange\tPeakMinCharge\tPeakMaxCharge\t"
-                "RetentionTime\tPeakCount\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\t"
-                "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorChargeSNR\tPrecursorIntensity\t"
-                "PrecursorMonoMass\tPrecursorMassSNR\tPrecursorIsotopeCosine\tPrecursorChargeIntensityCosine\tPrecursorMassIntensity\t"
-             //   "PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-                "IsotopeCosine\tMassSNR\tMaxQScore\n";
+            <<  "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+                "SumIntensity\tMinCharge\tMaxCharge\t"
+                "PeakCount\t"
+                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+                "PrecursorSpecIndex\tPrecursorMz\tPrecursorCharge\tPrecursorMonoMass\tPrecursorIntensity\tPrecursorQScore\t"
+                "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+
+
       }
 
     }
