@@ -763,6 +763,7 @@ protected:
           }
         }
       }
+      set<pair<String, String>> search_engines;
       for (Size i = 0; i < id_data.proteins.size(); ++i)
       {
         ++runs_count;
@@ -772,12 +773,19 @@ protected:
         {
           proteins.insert(temp_hits[j].getAccession());
         }
+        // collect all search engines which generated the data
+        search_engines.emplace(id_data.proteins[i].getSearchEngine(), id_data.proteins[i].getSearchEngineVersion());
       }
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
         peptide_length.push_back(0);
       }
-
+      
+      os << "Search Engine(s):\n";
+      for (const auto& se : search_engines)
+      {
+        os << "  " << se.first << " (version: " << se.second << ")\n";
+      }
       os << "Number of:"
          << "\n";
       os << "  runs:                       " << runs_count << "\n";
