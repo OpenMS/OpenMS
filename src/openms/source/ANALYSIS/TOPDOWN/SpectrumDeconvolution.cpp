@@ -277,7 +277,7 @@ namespace OpenMS
 
         if (msLevel > 1){
           auto charge = j + param.minCharge;
-          if (charge <= 8)
+          //if (charge <= 8)
           {
             if (mz <= 0)
             {
@@ -356,8 +356,7 @@ namespace OpenMS
               auto &hintensity = mzIntensities[hmzBinIndex];
               if (hintensity > lowThreshold
                   &&
-                  hintensity < highThreshold
-                  )
+                  hintensity < highThreshold)
               {
                 if (hintensity < maxHint)
                 {

@@ -782,7 +782,7 @@ namespace OpenMS
   void PeakGroupScoring::removeOverlappingPeakGroups(double tol)
   { // pgs are sorted
     //return;
-    //sort(peakGroups.begin(), peakGroups.end());
+    sort(peakGroups.begin(), peakGroups.end());
     std::vector<PeakGroup> merged;
     merged.reserve(peakGroups.size());
 
