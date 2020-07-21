@@ -553,7 +553,7 @@ namespace OpenMS
         if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end())
         {
           pg.perChargeInfo[charge] = std::vector<float>(3);
-          //std::fill_n(pg.perChargeInfo[charge], 3, 0);
+          pg.perChargeInfo[charge][0] = 0;
         }
         pg.perChargeInfo[charge][1] = cos;
         pg.perChargeInfo[charge][2] = sumIntensity;

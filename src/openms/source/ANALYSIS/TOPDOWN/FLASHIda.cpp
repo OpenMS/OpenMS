@@ -43,7 +43,7 @@ namespace OpenMS
       param(p), avg(a)
   {
     //prevRT = -1;
-    selected = std::map<int, double *>(); // int mass, rt, qscore
+    selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
     prevMassBinMap = std::vector<std::vector<Size>>();
     prevMinBinLogMassMap = std::vector<double>();
     peakGroups = std::vector<PeakGroup>();
@@ -61,11 +61,11 @@ namespace OpenMS
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
     auto *sd = new SpectrumDeconvolution(spec, param);
     //param.print();
+    std::vector<PeakGroup>().swap(peakGroups);
+
     peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
- 
-
 
     //std::cout << prevMassBinMap.size() << std::endl;
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
@@ -78,7 +78,7 @@ namespace OpenMS
   {
     double rt = spec.getRT();
 
-    std::map<int, double *> nselected;
+    std::map<int, std::vector<double>> nselected;
 
     for (auto &item : selected)
     {
@@ -115,14 +115,17 @@ namespace OpenMS
         {
           continue;
         }
+      }else{
+        nselected[m] = std::vector<double>(2);
       }
-      delete[] nselected[m];
-      nselected[m] = new double[2]{rt, qScore};
+      //delete[] nselected[m];
+      nselected[m][0] = rt;
+      nselected[m][1] = qScore;
       filtered.push_back(pg);
     }
 
     nselected.swap(selected);
-    std::map<int, double *>().swap(nselected);
+    std::map<int, std::vector<double>>().swap(nselected);
 
     peakGroups.swap(filtered);
     std::vector<PeakGroup>().swap(filtered);

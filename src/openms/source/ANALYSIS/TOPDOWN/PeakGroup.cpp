@@ -7,8 +7,8 @@ namespace OpenMS
 
   PeakGroup::~PeakGroup()
   {
-    std::vector<LogMzPeak>().swap(peaks);
-    clearChargeInfo();
+    //std::vector<LogMzPeak>().swap(peaks);
+    //clearChargeInfo();
   }
 
   void PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
