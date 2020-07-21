@@ -77,17 +77,28 @@
 </CENTER>
 
     MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    The following MS-GF+ version is required: MS-GF+ 2019/07/03. At the time of writing, it could be downloaded from https://github.com/MSGFPlus/msgfplus/releases. Older versions will not work properly.
+    The following MS-GF+ version is required: MS-GF+ 2019/07/03. At the time of writing, it could be downloaded 
+    from https://github.com/MSGFPlus/msgfplus/releases. Older versions will not work properly.
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
-    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated). It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
+    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and
+    generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated).
+    It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
 
-    @note When a new database is used for the first time, make sure to run only one MS-GF+ search against it! Otherwise one process will start the indexing and the others will crash due to incomplete index files. After a database has been indexed, multiple MS-GF+ processes can use it in parallel.
+    @note When a new database is used for the first time, make sure to run only one MS-GF+ search against it! Otherwise one process will start the 
+    indexing and the others will crash due to incomplete index files. After a database has been indexed, multiple MS-GF+ processes can use it in parallel.
 
-    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+    by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
+    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, 
+    producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
+    Finally, the .tsv file is parsed and a result in idXML format is generated.
+
+    An optional MSGF+ configuration file can be added via '-conf' parameter (e.g. to support custom AA masses).
+    See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
+    an example and consult the MSGF+ documentation for further details.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFPlusAdapter.cli
@@ -207,6 +218,8 @@ protected:
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
+
+    registerInputFile_("conf", "<file>", "", "Optional MSGF+ configuration file (passed as -conf <file> to MSGF+). See documentation for examples.", false, false);
 
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
@@ -524,6 +537,9 @@ protected:
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
+    String conf = getStringOption_("conf");
+    if (!conf.empty()) process_params << "-conf" << conf.toQString();
+
 
     if (!mod_file.empty())
     {
