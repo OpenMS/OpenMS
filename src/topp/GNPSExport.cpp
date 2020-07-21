@@ -15,7 +15,7 @@
 //    without specific prior written permission.
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS/"
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
@@ -71,9 +71,9 @@ The GNPSExport TOPP tool can be run on a consensusXML file and the corresponding
 and corresponding feature quantification table (.TXT format) that contains the LC-MS peak area intensity.
 
 Requirements:
-	- The IDMapper has to be ran on the featureXML files, in order to associate MS2 scan(s) (peptide annotation) with each
+	- The IDMapper has to be run on the featureXML files, in order to associate MS2 scan(s) (peptide annotation) with each
 	features. These peptide annotations are used by the GNPSExport.
-	- The FileFilter has to be ran on the consensusXML file, prior to the GNPSExport, in order to remove consensusElements
+	- The FileFilter has to be run on the consensusXML file, prior to the GNPSExport, in order to remove consensusElements
 	without MS2 scans (peptide annotation).
 
 Parameters:
@@ -85,24 +85,24 @@ Options for outputing GNPSExport spectral processing are:
     -# [RECOMMENDED] merged_spectra
       For each consensusElement, the GNPSExport will merge all the eligible MS/MS scans into one representative consensus MS/MS spectrum.
       Eligible MS/MS scans have a pairwise cosine similarity with the MS/MS scan of highest precursor intensity above the Cosine Similarity Treshold.
-	    The fragment ions of merged MS/MS scans are binned in m/z (or Da) range defined by the Binning width parameter.    
+	    The fragment ions of merged MS/MS scans are binned in m/z (or Da) range defined by the Binning width parameter.
       .
 	  -# Most intense: most_intense - For each consensusElement, the GNPSExport will output the most intense MS/MS scan (with the highest precursor ion intensity) as consensus MS/MS spectrum.
-      .    
+      .
 
 Note that mass accuracy and the retention time window for the pairing between MS/MS scans and a LC-MS feature
 or consensusElement is defined at the IDMapper tool step.
 
-A representative OpenMS-GNPS workflow would sequencially use these OpenMS TOPP tools:
+A representative OpenMS-GNPS workflow would sequentially use these OpenMS TOPP tools:
   1. Input mzML files
-  2. Run the FeatureFinderMetabo tool on the mzML files.
-  3. Run the IDMapper tool on the featureXML and mzML files.
-  4. Run the MapAlignerPoseClustering tool on the featureXML files.
-  5. Run the MetaboliteAdductDecharger on the featureXML files.
-  6. Run the FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
-  8. Run the FileFilter on the consensusXML file to keep only consensusElements with at least MS/MS scan (peptide identification).
-  9. Run the GNPSExport on the "filtered consensusXML file" to export an .MGF file.
-  10. Run the TextExport on the "filtered consensusXML file" to export an .TXT file.
+  2. Run the @ref TOPP_FeatureFinderMetabo tool on the mzML files.
+  3. Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
+  4. Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
+  5. Run the @ref TOPP_MetaboliteAdductDecharger on the featureXML files.
+  6. Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
+  8. Run the @ref TOPP_FileFilter on the consensusXML file to keep only consensusElements with at least MS/MS scan (peptide identification).
+  9. Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file.
+  10. Run the @ref TOPP_TextExporter on the "filtered consensusXML file" to export an .TXT file.
   11. Upload your files to GNPS and run the Feature-Based Molecular Networking workflow. Instructions are here:
 https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
 
@@ -148,11 +148,11 @@ class TOPPGNPSExport : public TOPPBase
 {
 public:
   TOPPGNPSExport() : TOPPBase(
-    "GNPSExport", 
-    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms", 
+    "GNPSExport",
+    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking_with_openms",
     true,
     {
-      { 
+      {
         "Nothias L.F. et al.", // authors
         "Feature-based Molecular Networking in the GNPS Analysis Environment", // title
         "bioRxiv 812404 (2019)", // when_where
@@ -173,9 +173,9 @@ private:
   static constexpr double DEF_MSMAP_CACHE = 50;
 
 
-  void writeMS2BlockToFile(
+  void writeMS2BlockToFile_(
     ofstream& output_file,
-    const map<double,int>& ms2_block, 
+    const map<double,int>& ms2_block,
     const String& output_type,
     const int& scan_index,
     const String& feature_id,
@@ -183,33 +183,41 @@ private:
     const String& feature_mz,
     const String& spec_index,
     const String& feature_rt
-  ) 
+  )
   {
-    output_file << "BEGIN IONS" << "\n";
-    output_file << "OUTPUT=" << output_type << "\n";
-    
-    output_file << "SCANS=" << scan_index << "\n";
-    output_file << "FEATURE_ID=e_" << feature_id << "\n";
 
-    output_file << "MSLEVEL=2" << "\n";
-    output_file << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n";
-    output_file << "PEPMASS=" << feature_mz << "\n";
-    output_file << "FILE_INDEX=" << spec_index << "\n";
-    output_file << "RTINSECONDS=" << feature_rt << "\n";
+    output_file << "BEGIN IONS" << "\n"
+                << "OUTPUT=" << output_type << "\n"
+
+                << "SCANS=" << scan_index << "\n"
+                << "FEATURE_ID=e_" << feature_id << "\n"
+
+                << "MSLEVEL=2" << "\n"
+                << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                << "PEPMASS=" << feature_mz << "\n"
+                << "FILE_INDEX=" << spec_index << "\n"
+                << "RTINSECONDS=" << feature_rt << "\n";
 
     for (const pair<double,int>& ms2 : ms2_block)
     {
       if (ms2.second > 0)
       {
-        output_file << ms2.first << "\t" << ms2.second << "\n";
+        output_file << setprecision(4) << fixed << ms2.first << "\t" << setprecision(0) << fixed << ms2.second << "\n";
       }
     }
 
     output_file << "END IONS" << "\n\n";
   }
 
-  void generateMSMSSpectrumBins(
-    const vector<pair<double,int>>& sorted_mz_int_pairs,
+  /**
+   *
+   *
+   * @param sorted_mz_int_pairs -
+   * @param delta_mz -
+   * @param ms2_block -
+   */
+  void generateMSMSSpectrumBins_(
+    const MSSpectrum& sorted_spec,
     double delta_mz,
     map<double,int>& ms2_block
   )
@@ -219,11 +227,65 @@ private:
     vector<double> intensity_merged;
 
     // double last_mz = numeric_limits<double>::min();
-    double last_mz = sorted_mz_int_pairs[0].first;    
+    double last_mz = sorted_spec[0].getMZ();
     double sum_mz = 0;
     int sum_intensity = 0;
     double count = 0;
-    for (const auto mz_int : sorted_mz_int_pairs)
+    for (const auto& mz_int : sorted_spec)
+    {
+      if (abs(mz_int.getMZ() - last_mz) > delta_mz && count > 0)
+      {
+        if (sum_intensity > 0)
+        {
+          double mz_merged = sum_mz/count;
+          int int_merged = sum_intensity;
+          ms2_block[mz_merged] = int_merged;
+        }
+
+        last_mz = mz_int.getMZ();
+        sum_mz = 0;
+        count = 0;
+        sum_intensity = 0;
+      }
+
+      sum_mz += mz_int.getMZ();
+      sum_intensity += mz_int.getIntensity();
+      count++;
+    }
+    //remaining scans in last bucket
+    if (count > 0 && sum_intensity > 0)
+    {
+      double mz_merged = sum_mz/count;
+      int int_merged = sum_intensity;
+      ms2_block[mz_merged] = int_merged;
+    }
+
+    // return would be the reformatted map<double,int> ms2_block passed in by value
+  }
+
+  /**
+   *
+   *
+   * @param sorted_mz_int_pairs -
+   * @param delta_mz -
+   * @param ms2_block -
+   */
+  void generateMSMSSpectrumBins_(
+    const vector<pair<double,int>>& sorted_spec,
+    double delta_mz,
+    map<double,int>& ms2_block
+  )
+  {
+    // generate new spectrum
+    vector<double> mz_merged;
+    vector<double> intensity_merged;
+
+    // double last_mz = numeric_limits<double>::min();
+    double last_mz = sorted_spec[0].first;
+    double sum_mz = 0;
+    int sum_intensity = 0;
+    double count = 0;
+    for (const auto& mz_int : sorted_spec)
     {
       if (abs(mz_int.first - last_mz) > delta_mz && count > 0)
       {
@@ -248,50 +310,60 @@ private:
     if (count > 0 && sum_intensity > 0)
     {
       double mz_merged = sum_mz/count;
-      double int_merged = sum_intensity;
-
+      int int_merged = sum_intensity;
       ms2_block[mz_merged] = int_merged;
     }
 
     // return would be the reformatted map<double,int> ms2_block passed in by value
   }
 
-  void sortElementMapsByIntensity(const ConsensusFeature& feature, vector<pair<int,double>>& element_maps)
-  {    
-    // convert element maps to vector of pair<int,double>(map, intensity)     
+  void sortElementMapsByIntensity_(
+    const ConsensusFeature& feature, 
+    vector<unsigned int>& featureMaps_sortedByInt
+  )
+  {
+    vector<pair<float,unsigned int>> element_maps;
+
+    // convert element maps to vector of pair<int,double>(map, intensity)
     for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();\
           feature_iter != feature.end(); ++feature_iter)
     {
-      element_maps.emplace_back(feature_iter->getMapIndex(), feature_iter->getIntensity());
+      element_maps.emplace_back(feature_iter->getIntensity(), feature_iter->getMapIndex());
     }
 
     // sort elements by intensity
-    sort(element_maps.begin(), element_maps.end(), [](const pair<int,double> &a, const pair<int,double> &b)
-    {
-      return a.second > b.second;
-    });
+    sort(element_maps.begin(), element_maps.end(), greater<pair<float,unsigned long>>());
 
-    // return value will be reformatted vector<int> element_maps passed in by value
+    // return flatten sorted element maps
+    for (pair<float, unsigned int>& element_map : element_maps)
+    {
+      featureMaps_sortedByInt.emplace_back(element_map.second);
+    }
   }
 
-  void getElementPeptideIdentificationsByElementIntensity(
+  /**
+   *
+   *
+   * @param feature -
+   * @param sorted_element_maps -
+   * @param pept_indices -
+   */
+  void getElementPeptideIdentificationsByElementIntensity_(
     const ConsensusFeature& feature,
-    const vector<pair<int,double>>& sorted_element_maps,
-    vector<pair<int,int>>& pept_indices
+    vector<unsigned int>& sorted_element_maps,
+    vector<pair<unsigned int,unsigned int>>& pept_indices
   )
   {
-    for (const pair<int,double> element_pair : sorted_element_maps)
+    for (const unsigned int& element_map : sorted_element_maps)
     {
-      int element_map = element_pair.first;
-
       vector<PeptideIdentification> feature_pepts = feature.getPeptideIdentifications();
-      for (const PeptideIdentification pept_id : feature_pepts)
+      for (const PeptideIdentification& pept_id : feature_pepts)
       {
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
-            && (int)pept_id.getMetaValue("map_index") == element_map)
+            && (unsigned int)pept_id.getMetaValue("map_index") == element_map)
         {
-          int map_index = pept_id.getMetaValue("map_index");
-          int spec_index = pept_id.getMetaValue("spectrum_index");
+          unsigned int map_index = pept_id.getMetaValue("map_index");
+          unsigned int spec_index = pept_id.getMetaValue("spectrum_index");
           pept_indices.emplace_back(map_index,spec_index);
           break;
         }
@@ -301,9 +373,14 @@ private:
     // return will be reformatted vector<PeptideIdentification> pepts passed in by value
   }
 
-  MSExperiment& getSpectraAtIndex(const StringList& mzml_file_paths, vector<MSExperiment>& specs_list, int map_index) {
+  MSExperiment& getSpectraAtIndex_(
+    const StringList& mzml_file_paths,
+    vector<MSExperiment>& specs_list,
+    int map_index
+  )
+  {
     MSExperiment& specs = specs_list.at(map_index);
-    
+
     if (specs.empty())
     {
       MzMLFile mzml_file;
@@ -335,13 +412,17 @@ protected:
 
     // registerIntOption_("msmap_cache", "<num>", DEF_MSMAP_CACHE, "Number of msmaps that can be cached during export for optimized performance", false, true);
     registerIntOption_("peptide_cutoff", "<num>", DEF_PEPT_CUTOFF, "Number of most intense peptides to consider per consensus element; '-1' to consider all identifications", false, true);
+    setMinInt_("peptide_cutoff", 1);
     registerDoubleOption_("ms2_bin_size", "<num>", DEF_MERGE_BIN_SIZE, "Bin size (Da) for fragment ions when merging ms2 scans", false, false);
+    setMinFloat_("ms2_bin_size", 0);
 
     // addEmptyLine_();
 
     registerTOPPSubsection_("merged_spectra", "Options for exporting mgf file with merged spectra per consensusElement");
     registerDoubleOption_("merged_spectra:precursor_mass_tolerance", "<num>", DEF_PREC_MASS_TOL, "Precursor mass tolerance (Da) for ms annotations", false);
+    setMinFloat_("merged_spectra:precursor_mass_tolerance", 0);
     registerDoubleOption_("merged_spectra:cos_similarity", "<num>", DEF_COSINE_SIMILARITY, "Cosine similarity threshold for merged_spectra output", false);
+    setMinFloat_("merged_spectra:cos_similarity", 0);
   }
 
   // the main function is called after all parameters are read
@@ -360,7 +441,7 @@ protected:
     StringList mzml_file_paths = getStringList_("in_mzml");
     String out(getStringOption_("out"));
     String output_type(getStringOption_("output_type"));
-    
+
     ofstream output_file(out);
 
     ProgressLogger progress_logger;
@@ -386,16 +467,16 @@ protected:
 
     //-------------------------------------------------------------
     // write output (+ merge computations)
-    //-------------------------------------------------------------    
+    //-------------------------------------------------------------
     progress_logger.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
-    for (Size cons_i = 0; cons_i < consensus_map.size(); ++cons_i)    
+    for (Size cons_i = 0; cons_i < consensus_map.size(); ++cons_i)
     {
-      const ConsensusFeature feature = consensus_map[cons_i];
+      const ConsensusFeature& feature = consensus_map[cons_i];
 
       //
       // determine feature's charge
       //
-      BaseFeature::ChargeType charge = feature.getCharge();  
+      BaseFeature::ChargeType charge = feature.getCharge();
       for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();\
             feature_iter != feature.end(); ++feature_iter)
       {
@@ -408,74 +489,60 @@ protected:
       //
       // compute most intense peptide identifications (based on precursor intensity)
       //
-      vector<pair<int,double>> element_maps;
-      sortElementMapsByIntensity(feature, element_maps);
-      vector<pair<int,int>> pepts;
-      getElementPeptideIdentificationsByElementIntensity(feature, element_maps, pepts);
+      vector<unsigned int> featureMaps_sortedByInt;
+      sortElementMapsByIntensity_(feature, featureMaps_sortedByInt);
+      
+      vector<pair<unsigned int, unsigned int>> pept_precursorMaps;
+      getElementPeptideIdentificationsByElementIntensity_(feature, featureMaps_sortedByInt, pept_precursorMaps);
 
       if (output_type == "most_intense")
       {
-        // read most_intense scan info
-        int map_index = (pepts[0]).first;
-        int spec_index = (pepts[0]).second;      
+        unsigned int mapi = pept_precursorMaps[0].first, speci = pept_precursorMaps[0].second;
+        MSExperiment& specs = getSpectraAtIndex_(mzml_file_paths, specs_list, mapi);
+        MSSpectrum& spec = specs[speci];
+        spec.sortByPosition();
 
-        // printf("map_index %d\n", map_index);
-
-        // MSExperiment specs = specs_list->at(map_index);
-        MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
-        // if (specs.empty())
-        // {
-        //   mzml_file.load(mzml_file_paths[map_index], specs);
-        // }
-        auto spec = specs[spec_index];
-        spec.sortByIntensity(true);
-
-        vector<pair<double,int>> mz_int_pairs;
-        for (auto spec_iter=spec.begin(); spec_iter!=spec.end(); ++spec_iter)        
-        {
-          mz_int_pairs.emplace_back(spec_iter->getMZ(), static_cast<int>(spec_iter->getIntensity()));
-        }
-        sort(mz_int_pairs.begin(), mz_int_pairs.end());
-        
+        // BinnedSpectrum bs(spec, bin_width, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
         map<double,int> ms2_block;
-        generateMSMSSpectrumBins(mz_int_pairs, bin_width, ms2_block);      
+        generateMSMSSpectrumBins_(spec, bin_width, ms2_block);
 
-        // write output
-        writeMS2BlockToFile(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
-                            charge, feature.getMZ(), spec_index, spec.getRT());
+        writeMS2BlockToFile_(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
+                            charge, feature.getMZ(), speci, spec.getRT());
 
-        mz_int_pairs.clear();
-      }      
+      }
       else if (output_type == "merged_spectra")
       {
         // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
-        if (pepts.size() > (unsigned long) pept_cutoff) { pepts.erase(pepts.begin()+pept_cutoff, pepts.end()); }                
+        if (pept_precursorMaps.size() > (unsigned long) pept_cutoff) 
+        { 
+          pept_precursorMaps.erase(pept_precursorMaps.begin()+pept_cutoff, pept_precursorMaps.end()); 
+        }
 
-        int best_mapi = pepts[0].first;
-        int best_speci = pepts[0].second;
+        unsigned int best_mapi = pept_precursorMaps[0].first;
+        unsigned int best_speci = pept_precursorMaps[0].second;
 
-        MSExperiment& best_specs = getSpectraAtIndex(mzml_file_paths, specs_list, best_mapi);
+        MSExperiment& best_specs = getSpectraAtIndex_(mzml_file_paths, specs_list, best_mapi);
         auto& best_spec = best_specs[best_speci];
         BinnedSpectrum binned_highest_int(best_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
         vector<pair<double,int>> mz_int_pairs;
+        MSExperiment merged_specs;
 
-        for (pair<int,int> pept : pepts)
+        for (pair<unsigned int,unsigned int>& pept : pept_precursorMaps)
         {
           int map_index = pept.first;
           int spec_index = pept.second;
 
-          MSExperiment& specs = getSpectraAtIndex(mzml_file_paths, specs_list, map_index);
-
-          auto& test_spec = specs[spec_index];
+          MSExperiment& specs = getSpectraAtIndex_(mzml_file_paths, specs_list, map_index);
+          MSSpectrum& test_spec = specs[spec_index];
           const BinnedSpectrum binned_spectrum(test_spec, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
           BinnedSpectralContrastAngle bsca;
           double cos_sim = bsca(binned_highest_int, binned_spectrum);
-
           if (cos_sim >= cos_sim_threshold)
           {
-            for (auto spec_iter = test_spec.begin(); spec_iter < test_spec.end(); spec_iter++)
+            // merged_specs.addSpectrum(test_spec);
+            for (auto spec_iter = test_spec.begin(); spec_iter != test_spec.end(); spec_iter++)
             {
               mz_int_pairs.emplace_back(spec_iter->getMZ(), spec_iter->getIntensity());
             }
@@ -484,31 +551,22 @@ protected:
         sort(mz_int_pairs.begin(), mz_int_pairs.end());
 
         map<double,int> ms2_block;
-        generateMSMSSpectrumBins(mz_int_pairs, bin_width, ms2_block);
+        generateMSMSSpectrumBins_(mz_int_pairs, bin_width, ms2_block);
 
         // write output
-        writeMS2BlockToFile(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
-                            charge, feature.getMZ(), best_speci, best_spec.getRT());
+        writeMS2BlockToFile_(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
+                            charge, feature.getMZ(), best_speci, best_spec.getRT());       
 
-        // delete allocated resources
-        mz_int_pairs.clear();         
-      
-
-        element_maps.clear();
-        pepts.clear();
       }
-      
+
       progress_logger.setProgress(cons_i);
     } // end of for-loop across features
     progress_logger.endProgress();
 
     // delete / dealloc mem resources
     output_file.close();
-
-    mzml_file_paths.clear();
-    // delete [] specs_list;
     specs_list.clear();
-    
+
     return EXECUTION_OK;
   }
 };
