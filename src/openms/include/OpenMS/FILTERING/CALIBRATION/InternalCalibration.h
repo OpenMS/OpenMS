@@ -299,7 +299,6 @@ namespace OpenMS
 
   private:
     CalibrationData cal_data_;
-
   }; // class InternalCalibration
   
 } // namespace OpenMS
