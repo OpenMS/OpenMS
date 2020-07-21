@@ -570,14 +570,12 @@ namespace OpenMS
       }
 
       pg.totalSNR = totalSignal / totalNoise;
-      pg.qScore = -100;
+      pg.qScore = -10000;
 
-      for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
+      for (auto& item : pg.perChargeInfo)
       {
+        auto charge = item.first;
         int j = charge - param.minCharge;
-        if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end()){
-          continue;
-        }
 
         LogMzPeak tp;
         tp.intensity = perChargeMaxIntensity[j];

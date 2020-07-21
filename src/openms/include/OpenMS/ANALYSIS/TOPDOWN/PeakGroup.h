@@ -42,7 +42,7 @@ namespace OpenMS
     //std::unordered_map<int, float> perChargeICos;
     //std::unordered_map<int, float> perChargeSumInt;
 
-    float qScore = 0;
+    float qScore = -10000;
     float totalSNR = 0;
     double maxQScoreMzEnd, maxQScoreMzStart;
 
