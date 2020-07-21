@@ -62,7 +62,7 @@ namespace OpenMS
 
   void DeconvolutedSpectrum::clearChargeSNRMap(){
     for(auto &pg : peakGroups){
-      pg.clearChargeSNRMap();
+      pg.clearChargeInfo();
     }
   }
   /*void DeconvolutedSpectrum::updatePeakGroupMap()
@@ -310,11 +310,11 @@ namespace OpenMS
         avgDiff /= precursorPeakGroup->peaks.size();
         avgDiff *= 1e6;*/
 
-        fs << scanNumber << "," << precursorPeakGroup->spec->getRT() << ","  << precursorPeakGroup->scanNumber << "," << precursorPeak->charge
-           << "," << log10(precursorPeakGroup->perChargeSNR[precursorPeak->charge] + 1e-3) << ","
+        fs << scanNumber << "," << precursorPeakGroup->spec->getRT() << "," << precursorPeakGroup->scanNumber << "," << precursorPeak->charge
+           << "," << log10(precursorPeakGroup->perChargeInfo[precursorPeak->charge][0] + 1e-3) << ","
            << log10(precursorPeak->intensity + 1)
-            << "," <<log10(precursorPeakGroup->perChargeSumInt[precursorPeak->charge] + 1)
-            << "," << precursorPeakGroup->perChargeICos[precursorPeak->charge]
+            << "," <<log10(precursorPeakGroup->perChargeInfo[precursorPeak->charge][2] + 1)
+            << "," << precursorPeakGroup->perChargeInfo[precursorPeak->charge][1]
             << "," << precursorPeak->mz
            << "," << precursorPeakGroup->monoisotopicMass << "," << log10(precursorPeakGroup->totalSNR + 1e-3) << ","
            << precursorPeakGroup->isotopeCosineScore
@@ -382,11 +382,11 @@ namespace OpenMS
         }
 
         size++;
-        fs << scanNumber << ","<<spec->getRT()<<",0," << pg.maxQScoreCharge
-           << "," << log10(pg.perChargeSNR[pg.maxQScoreCharge] + 1e-3) //<< "," << log10(peak->intensity + 1)
+        fs << scanNumber << "," << spec->getRT() << ",0," << pg.maxQScoreCharge
+           << "," << log10(pg.perChargeInfo[pg.maxQScoreCharge][0] + 1e-3) //<< "," << log10(peak->intensity + 1)
            << "," << log10(peak->intensity + 1)
-            << "," <<log10(pg.perChargeSumInt[pg.maxQScoreCharge] + 1)
-            << "," << pg.perChargeICos[pg.maxQScoreCharge]
+            << "," <<log10(pg.perChargeInfo[pg.maxQScoreCharge][2] + 1)
+            << "," << pg.perChargeInfo[pg.maxQScoreCharge][1]
             << "," << peak->mz
           << "," << pg.monoisotopicMass << "," << log10(pg.totalSNR+1e-3) << "," << pg.isotopeCosineScore
           << "," << pg.chargeCosineScore << "," << log10(pg.intensity+1)

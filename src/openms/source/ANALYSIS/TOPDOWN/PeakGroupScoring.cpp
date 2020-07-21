@@ -548,18 +548,20 @@ namespace OpenMS
                                                isoNorm,
                                                0);
 
-        pg.perChargeICos[charge] = cos;
-        pg.perChargeSumInt[charge] = sumIntensity;
         double cos2 = cos * cos;
 
-        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
+        if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end())
         {
-          pg.perChargeSNR[charge] = 0;
+          pg.perChargeInfo[charge] = std::vector<float>(3);
+          //std::fill_n(pg.perChargeInfo[charge], 3, 0);
         }
-        auto dno = (1 - cos2) * sp + pg.perChargeSNR[charge] + 1;
+        pg.perChargeInfo[charge][1] = cos;
+        pg.perChargeInfo[charge][2] = sumIntensity;
+
+        auto dno = (1 - cos2) * sp + pg.perChargeInfo[charge][0] + 1;
         auto no = cos2 * sp + 1;
 
-        pg.perChargeSNR[charge] = no / dno;
+        pg.perChargeInfo[charge][0] = no / dno;
 
         totalNoise += dno;
         totalSignal += no;
@@ -573,7 +575,7 @@ namespace OpenMS
       for (auto charge = pg.minCharge; charge <= pg.maxCharge; charge++)
       {
         int j = charge - param.minCharge;
-        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end()){
+        if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end()){
           continue;
         }
 

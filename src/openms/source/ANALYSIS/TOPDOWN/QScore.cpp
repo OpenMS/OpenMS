@@ -18,10 +18,10 @@ namespace OpenMS
     else
     {
       score =
-          -0.367 * log10(pg->perChargeSNR[peak->charge] + 1e-3)
+          -0.367 * log10(pg->perChargeInfo[peak->charge][0] + 1e-3)
           - 1.4339 * log10(peak->intensity + 1)
-          + 1.3297 * log10(pg->perChargeSumInt[peak->charge] + 1)
-          -2.7199 * pg->perChargeICos[peak->charge]
+          + 1.3297 * log10(pg->perChargeInfo[peak->charge][2] + 1)
+          -2.7199 * pg->perChargeInfo[peak->charge][1]
           - 0.8385 * log10(pg->totalSNR + 1e-3)
           + 4.29 * pg->isotopeCosineScore
           - 0.4913 * pg->chargeCosineScore

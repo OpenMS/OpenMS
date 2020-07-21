@@ -229,7 +229,6 @@ namespace OpenMS
     Byte *continuousChargePeakPairCount = new Byte[massBins.size()];
     std::fill_n(continuousChargePeakPairCount, massBins.size(), 0);
 
-    //double th = 1;//
     auto mzBinIndex = mzBins.find_first();
     std::fill_n(massIntensitites, massBins.size(), 0);
 
@@ -393,7 +392,6 @@ namespace OpenMS
         prevIntensity = intensity;
         prevCharges[massBinIndex] = j;
       }
-
       mzBinIndex = mzBins.find_next(mzBinIndex);
     }
     //std::cout << candidateMassBinsForThisSpectrum.count() << std::endl;
@@ -406,7 +404,6 @@ namespace OpenMS
       for (auto k = 0; k <= hChargeSize; k++)
       {
         maxNoise = std::max(maxNoise, noise[k][mindex]);
-        // msnr = min(snr, msnr);
       }
       s -= maxNoise;
       mindex = candidateMassBinsForThisSpectrum.find_next(mindex);
@@ -905,12 +902,12 @@ namespace OpenMS
         const double isof = Constants::ISOTOPE_MASSDIFF_55K_U / charge;
         double mzDelta = tol * mz * 2; //
 
-        if (pg.perChargeSNR.find(charge) == pg.perChargeSNR.end())
+        if (pg.perChargeInfo.find(charge) == pg.perChargeInfo.end())
         {
-          pg.perChargeSNR[charge] = .0f;
+          pg.perChargeInfo[charge] = std::vector<float>(3);
+          pg.perChargeInfo[charge].push_back(0);
         }
-        auto &np = pg.perChargeSNR[charge];
-        //np = 0;
+        auto &np = pg.perChargeInfo[charge][0];
 
         int pi = 0;
         // int peakcntr = 0;
