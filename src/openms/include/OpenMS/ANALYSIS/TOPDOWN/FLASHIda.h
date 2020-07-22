@@ -53,7 +53,7 @@ namespace OpenMS
 
     FLASHIda(Parameter &p, PrecalculatedAveragine &a);
 
-    virtual ~FLASHIda() = default;
+    ~FLASHIda();
 
     int getPeakGroups(double *mzs,
                       double *ints,

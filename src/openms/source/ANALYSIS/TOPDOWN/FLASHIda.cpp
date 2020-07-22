@@ -37,7 +37,7 @@
 #include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
 
 namespace OpenMS
-^
+
 {
   // constructor
   FLASHIda::FLASHIda(Parameter &p, PrecalculatedAveragine &a) :
@@ -49,6 +49,14 @@ namespace OpenMS
     prevMinBinLogMassMap = std::vector<double>();
     peakGroups = std::vector<PeakGroup>();
   }
+
+  FLASHIda::~FLASHIda() {
+      std::map<int, double*>().swap(selected);
+      std::vector<std::vector<Size>>().swap(prevMassBinMap);
+      std::vector<double>().swap(prevMinBinLogMassMap);
+      std::vector<PeakGroup>().swap(peakGroups);
+  }
+
 
   int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name, double qScoreThreshold)
   {
@@ -62,6 +70,7 @@ namespace OpenMS
     auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
     auto *sd = new SpectrumDeconvolution(spec, param);
     //param.print();
+    std::vector<PeakGroup>().swap(peakGroups);
     peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
@@ -70,7 +79,7 @@ namespace OpenMS
 
     //std::cout << prevMassBinMap.size() << std::endl;
     FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
-    
+    delete sd;
     return peakGroups.size();
   }
 
