@@ -77,7 +77,7 @@
 </CENTER>
 
     MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
-    The following MS-GF+ version is required: MS-GF+ Beta (v10089) (7/31/2014). At the time of writing, it could be downloaded from http://omics.pnl.gov/software/ms-gf. Older versions will not work properly.
+    The following MS-GF+ version is required: MS-GF+ 2019/07/03. At the time of writing, it could be downloaded from https://github.com/MSGFPlus/msgfplus/releases. Older versions will not work properly.
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
@@ -468,15 +468,15 @@ protected:
     }
 
     // create temporary directory (and modifications file, if necessary):
-    String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
+    String mzid_temp, mod_file;
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
-    mzid_temp = temp_dir + "msgfplus_output.mzid";
+    mzid_temp = tmp_dir.getPath() + "msgfplus_output.mzid";
     if (!no_mods)
     {
-      mod_file = temp_dir + "msgfplus_mods.txt";
+      mod_file = tmp_dir.getPath() + "msgfplus_mods.txt";
       writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
     }
 
@@ -551,7 +551,7 @@ protected:
     {
       if (!File::exists(mzid_temp))
       {
-        OPENMS_LOG_ERROR << "Temporary output file '" << mzid_temp << "' was not created by MSGF+. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
+        OPENMS_LOG_ERROR << "MSGF+ failed. Temporary output file '" << mzid_temp << "' was not created. Please set a debug level > 10 and re-run this tool to diagnose the problem." << endl;
         return EXTERNAL_PROGRAM_ERROR;
       }
 
@@ -561,7 +561,7 @@ protected:
       if (getFlag_("legacy_conversion"))
       {
         // run TSV converter
-        String tsv_out = temp_dir + "msgfplus_converted.tsv";
+        String tsv_out = tmp_dir.getPath() + "msgfplus_converted.tsv";
         int java_permgen = getIntOption_("java_permgen");
         process_params.clear();
         process_params << java_memory;
@@ -577,7 +577,7 @@ protected:
                        << "-unroll" << "1";
         writeLog_("Running MzIDToTSVConverter...");
         exit_code = runExternalProcess_(java_executable.toQString(), process_params);
-        if (exit_code != 0)
+        if (exit_code != EXECUTION_OK)
         {
           return exit_code;
         }
@@ -602,6 +602,7 @@ protected:
         }
 
         search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
+        search_parameters.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(tryptic_code);
 
         // create idXML file
         ProteinIdentification protein_id;

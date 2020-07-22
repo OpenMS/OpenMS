@@ -49,7 +49,8 @@ class MzTabFile2 : public MzTabFile
   public:
     String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns, const MzTabMetaData& meta) const
     {
-      return generateMzTabSectionRow_(row, optional_columns, meta);
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
     }
 };
 

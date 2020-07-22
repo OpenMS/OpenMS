@@ -416,6 +416,20 @@ public:
 
     ///@}
 
+    /**
+      @brief Adds all the ChromatogramPeaks from another MSChromatogram and updates the metadata to indicate a merge
+
+      @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
+      undefined.
+
+      @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
+
+      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+
+      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+    */
+    void mergePeaks(MSChromatogram& other, bool add_meta=false);
+
 protected:
 
     /// Name

@@ -71,20 +71,20 @@ namespace OpenMS
 
 public:
     /// Construct the behaviour with its parent
-    TOPPViewSpectraViewBehavior(TOPPViewBase * parent);
+    TOPPViewSpectraViewBehavior(TOPPViewBase* parent);
 
 public slots:
     /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int index);
 
     /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    virtual void showSpectrumAs1D(const std::vector<int>& indices);
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int index);
 
     /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
+    virtual void activate1DSpectrum(const std::vector<int>& indices);
 
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index);
@@ -95,6 +95,6 @@ public slots:
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();
 private:
-    TOPPViewBase * tv_;
+    TOPPViewBase* tv_;
   };
 }

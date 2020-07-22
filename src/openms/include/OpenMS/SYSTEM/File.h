@@ -55,6 +55,36 @@ public:
 
     friend class TOPPBase;
 
+    /**
+      @brief Class representing a temporary directory
+    
+    */
+
+    class OPENMS_DLLAPI TempDir
+    {
+    public:
+      
+      /// Construct temporary folder
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      TempDir(bool keep_dir = false);
+
+      /// Destroy temporary folder (can be prohibited in Constructor)
+      ~TempDir();
+
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
+      /// Return path to temporary folder
+      const String& getPath() const;
+
+    private:
+      String temp_dir_;
+      bool keep_dir_;
+    };
+
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
@@ -323,8 +353,6 @@ private:
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

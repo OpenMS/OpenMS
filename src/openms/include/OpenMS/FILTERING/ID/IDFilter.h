@@ -401,19 +401,20 @@ public:
 
       /// Filter function on min max cutoff values to be used with remove_if
       /// returns true if peptide should be removed (does not pass filter)
-      bool operator()(PeptideHit& p)
+      bool operator()(PeptideHit& p) const
       {
+        const auto& fun = [&](const Int missed_cleavages)
+        {
+
+          bool max_filter = max_cleavages_ != disabledValue() ?
+                            missed_cleavages > max_cleavages_ : false;
+          bool min_filter = min_cleavages_ != disabledValue() ?
+                            missed_cleavages < min_cleavages_ : false;
+          return max_filter || min_filter;
+        };
         return digestion_.filterByMissedCleavages(
           p.getSequence().toUnmodifiedString(),
-          [&](const Int missed_cleavages)
-          {
-
-            bool max_filter = max_cleavages_ != disabledValue() ?
-                              missed_cleavages > max_cleavages_ : false;
-            bool min_filter = min_cleavages_ != disabledValue() ?
-                              missed_cleavages < min_cleavages_ : false;
-            return max_filter || min_filter;
-          });
+          fun);
       }
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)
@@ -789,6 +790,15 @@ public:
       std::vector<ProteinIdentification::ProteinGroup>& groups,
       const std::vector<ProteinHit>& hits);
 
+    /**
+       @brief Update protein hits after protein groups were filtered
+
+       @param groups Available protein groups with protein accessions to keep
+       @param hits Input/output hits (all others are removed from the groups)
+    */
+    static void removeUngroupedProteins(
+        const std::vector<ProteinIdentification::ProteinGroup>& groups,
+        std::vector<ProteinHit>& hits);
     ///@}
 
 
@@ -820,6 +830,15 @@ public:
         keepMatchingItems(id_it->getHits(), score_filter);
       }
     }
+
+    /**
+      @brief Filters protein groups according to the score of the groups.
+
+      Only protein groups with a score at least as good as @p threshold_score are kept.
+      Score orientation (@p higher_better) should be taken from the protein hits and assumed equal.
+    */
+    static void filterGroupsByScore(std::vector<ProteinIdentification::ProteinGroup>& grps,
+                                  double threshold_score, bool higher_better);
 
     /**
       @brief Filters peptide or protein identifications according to the score of the hits.

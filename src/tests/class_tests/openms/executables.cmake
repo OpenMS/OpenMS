@@ -125,6 +125,7 @@ set(metadata_executables_list
 )
 
 set(system_executables_list
+  ExternalProcess_test
   File_test
   FileWatcher_test
   JavaInfo_test
@@ -482,6 +483,7 @@ set(analysis_executables_list
   IDMapper_test
   IDMergerAlgorithm_test
   IDRipper_test
+  IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test

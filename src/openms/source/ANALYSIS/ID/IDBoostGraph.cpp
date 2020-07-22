@@ -1036,6 +1036,7 @@ namespace OpenMS
         // if a pep does not belong to a cluster it didnt have multiple parents and
         // therefore does not need to be resolved
       {
+        accs_to_remove.clear();
         q.push(*ui);
         getUpstreamNodesNonRecursive(q, fg, 1, true, groups_or_singles);
 
@@ -1089,6 +1090,7 @@ namespace OpenMS
             peptidePtr->setPeptideEvidences(std::move(newev));
             newev.clear();
           }
+          singles.clear();
         }
       }
     }

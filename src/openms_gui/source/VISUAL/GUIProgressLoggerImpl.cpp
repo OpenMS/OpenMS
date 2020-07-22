@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <QApplication>
 #include <QProgressDialog>
 #include <iostream>
 
@@ -66,13 +67,12 @@ namespace OpenMS
     begin_ = begin;
     current_ = begin_;
     end_ = end;
-    if (!dlg_)
-    {
-      dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
-    }
+    delete dlg_; // delete old dialog, if present
+    dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
     dlg_->setWindowTitle(label.c_str());
     dlg_->setWindowModality(Qt::WindowModal);
     dlg_->show();
+    QApplication::processEvents(); // show it...
   }
 
   void GUIProgressLoggerImpl::setProgress(const SignedSize value, const int /* current_recursion_depth */) const
@@ -86,10 +86,11 @@ namespace OpenMS
       if (dlg_)
       {
         dlg_->setValue((int)value);
+        QApplication::processEvents(); // show it...
       }
       else
       {
-        std::cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << std::endl;
+        std::cout << "ProgressLogger warning: 'setProgress' called before 'startProgress'!" << std::endl;
       }
     }
   }

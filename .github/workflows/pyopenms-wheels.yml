@@ -78,6 +78,7 @@ jobs:
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
 
+            ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
             # pip install all the stuff
             pip install -U setuptools
             pip install -U pip
@@ -86,7 +87,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -97,6 +98,7 @@ jobs:
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
@@ -202,7 +204,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -214,6 +216,7 @@ jobs:
             cp pyOpenMS/dist/*.whl pyopenms_whls/
 
             # clean up
+            conda deactivate
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
@@ -385,6 +388,7 @@ jobs:
           CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
           echo "Found wheel $CURRENT_WHL : Testing.."
 
+          python -m pip install --upgrade pip
           # pip install all the stuff
           pip install -U pip
           pip install $CURRENT_WHL

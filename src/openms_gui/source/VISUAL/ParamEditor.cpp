@@ -85,12 +85,12 @@ namespace OpenMS
       emit lostFocus();
     }
 
-    ParamEditorDelegate::ParamEditorDelegate(QObject * parent) :
+    ParamEditorDelegate::ParamEditorDelegate(QObject* parent) :
       QItemDelegate(parent)
     {
     }
 
-    QWidget * ParamEditorDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const
+    QWidget * ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
       Int type = index.sibling(index.row(), 0).data(Qt::UserRole).toInt();
 
@@ -456,7 +456,7 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     tree_ = new Internal::ParamTree(this);
-    tree_->setMinimumSize(450, 200);
+    //tree_->setMinimumSize(450, 200);
     tree_->setAllColumnsShowFocus(true);
     tree_->setColumnCount(4);
     tree_->setHeaderLabels(QStringList() << "parameter" << "value" << "type" << "restrictions");

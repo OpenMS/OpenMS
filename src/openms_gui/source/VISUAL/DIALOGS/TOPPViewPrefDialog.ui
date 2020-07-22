@@ -7,23 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>579</width>
-    <height>404</height>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>TOPPView default preferences</string>
   </property>
   <layout class="QVBoxLayout">
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
@@ -854,6 +844,16 @@ p, li { white-space: pre-wrap; }
      </widget>
     </widget>
    </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -879,7 +879,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>mapping_2D</tabstop>
   <tabstop>shade_3D</tabstop>
   <tabstop>line_width_3D</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

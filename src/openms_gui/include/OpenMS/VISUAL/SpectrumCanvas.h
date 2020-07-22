@@ -668,15 +668,19 @@ protected:
     /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;
 
+    /// remove already added layer which did not pass final checks in finishAdding_()
+    /// @param error_message Optional error message to show as messagebox
+    void popIncompleteLayer_(const QString& error_message = "");
+
     /// Returns the layer with index @p index
-    inline LayerData & getLayer_(Size index)
+    inline LayerData& getLayer_(Size index)
     {
       OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
       return layers_[index];
     }
 
     /// Returns the currently active layer
-    inline LayerData & getCurrentLayer_()
+    inline LayerData& getCurrentLayer_()
     {
       return getLayer_(current_layer_);
     }

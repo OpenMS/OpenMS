@@ -10,6 +10,8 @@ ColorSelector.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
+FilterList.cpp
+FilterList.ui
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
 InputFile.cpp
@@ -36,6 +38,8 @@ Spectrum3DOpenGLCanvas.cpp
 Spectrum3DWidget.cpp
 SpectrumCanvas.cpp
 SpectrumWidget.cpp
+SwathLibraryStats.cpp
+SwathLibraryStats.ui
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASLogWindow.cpp

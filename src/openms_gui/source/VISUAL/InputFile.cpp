@@ -97,6 +97,7 @@ namespace OpenMS
   void InputFile::setFilename(const QString& filename)
   {
     ui_->line_edit->setText(filename);
+    emit updatedFile(filename);
     setCWD(File::path(filename).toQString());
   }
 

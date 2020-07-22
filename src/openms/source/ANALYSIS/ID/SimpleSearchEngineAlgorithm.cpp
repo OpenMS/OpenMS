@@ -353,6 +353,17 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       }
     }
 
+#ifdef _OPENMP
+    // we need to sort the peptide_ids by scan_index in order to have the same output in the idXML-file
+    if (omp_get_max_threads() > 1)
+    {
+      std::sort(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& a, const PeptideIdentification& b)
+      {
+        return a.getMetaValue("scan_index") < b.getMetaValue("scan_index");
+      });
+    }
+#endif
+
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
@@ -381,6 +392,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     protein_ids[0].setSearchParameters(search_parameters);
+    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
@@ -497,11 +509,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     Size count_proteins(0), count_peptides(0);
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, count_peptides, peptide_motif_regex, spectra, annotated_hits_lock)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, spectrum_generator, multimap_mass_2_scan_index, fixed_modifications, variable_modifications, fasta_db, digestor, processed_petides, count_proteins, count_peptides, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, peptide_motif_regex, spectra, annotated_hits_lock)
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
 
-#pragma omp atomic
+      #pragma omp atomic
       ++count_proteins;
 
       IF_MASTERTHREAD
@@ -537,6 +549,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         // skip peptides that have already been processed
         if (already_processed) { continue; }
 
+        #pragma omp atomic
         ++count_peptides;
 
         vector<AASequence> all_modified_peptides;

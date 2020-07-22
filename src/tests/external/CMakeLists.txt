@@ -48,13 +48,15 @@ if (OpenMS_FOUND)
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
   target_link_libraries(my_custom_lib OpenMS)
+  ## disable auto-linking of boost (mainly needed for Windows. CMake takes care of choosing the right library)
+  target_compile_definitions(my_custom_lib PUBLIC BOOST_ALL_NO_LIB)
 
   ## add targets for the executables
   foreach(i ${my_executables})
     # create the executable
     add_executable(${i} ${i}.cpp)
     ## link executables against OpenMS
-	target_link_libraries(${i} OpenMS my_custom_lib)
+    target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
 
 else(OpenMS_FOUND)

@@ -76,7 +76,7 @@ namespace OpenMS
 
         /// get the CWD (according to most recently added file)
         const QString& getCWD() const;
-        /// set the current working directory (for opening files). If the input is not empty, the cwd will not be altered, unless @p force is used
+        /// set the current working directory (for opening files), but only if the current input list is not already populated. Use @p force to set the CWD in any case.
         void setCWD(const QString& cwd, bool force = false);
 
         /// support Ctrl+C to copy currently selected items to clipboard
@@ -100,6 +100,10 @@ namespace OpenMS
     protected:
       /// add files to the list, and update 'cwd_' by using the path of the last filename
       void addFiles_(const QStringList& files);
+
+      /// updates the CWD, based on the last file in the current list
+      void updateCWD_();
+
 
       QString cwd_; ///< current working dir, i.e. the last position a file was added from
 
