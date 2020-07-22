@@ -39,6 +39,7 @@ namespace OpenMS
 {
     FLASHIda * CreateFLASHIda(char *arg)
     {
+        std::cout << " FLASHIda creating .. " << std::endl;
         std::unordered_map<std::string, std::vector<double>> inputs;
         char* token = std::strtok(arg, " ");
         std::string key;
@@ -58,15 +59,15 @@ namespace OpenMS
             token = std::strtok(nullptr, " ");
         }
 
-        qScoreThreshold = inputs["qScoreThreshold"][0];
-        param.minCharge = inputs["minCharge"][0];
-        param.currentChargeRange = param.chargeRange = inputs["maxCharge"][0] - param.minCharge;
-        param.minMass = inputs["minMass"][0];
-        param.currentMaxMass = param.maxMass = inputs["maxMass"][0];
+        qScoreThreshold = inputs["score_threshold"][0];
+        param.minCharge = inputs["min_charge"][0];
+        param.currentChargeRange = param.chargeRange = inputs["max_charge"][0] - param.minCharge;
+        param.minMass = inputs["min_mass"][0];
+        param.currentMaxMass = param.maxMass = inputs["max_mass"][0];
         param.tolerance = inputs["tol"];
-        param.RTwindow = inputs["RTwindow"][0];
+        param.RTwindow = inputs["RT_window"][0];
         //param.over
-        auto maxMassCount = inputs["maxMassCount"];
+        auto maxMassCount = inputs["max_mass_count"];
         for(auto& item : maxMassCount){
           param.maxMassCount.push_back((int)item);
         }

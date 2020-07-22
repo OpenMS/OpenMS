@@ -78,7 +78,9 @@ namespace OpenMS
     void filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
                                             double qScoreThreshold);
 
-    MSSpectrum &makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
+    MSSpectrum makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name);
+
+    void deepClearSpectrum(MSSpectrum& spec);
 
     // all information to keep track of
     // parameter

@@ -37,134 +37,141 @@
 #include "OpenMS/ANALYSIS/TOPDOWN/SpectrumDeconvolution.h"
 
 namespace OpenMS
-
 {
-  // constructor
-  FLASHIda::FLASHIda(Parameter &p, PrecalculatedAveragine &a) :
-      param(p), avg(a)
-  {
-    //prevRT = -1;
-    selected = std::map<int, double *>(); // int mass, rt, qscore
-    prevMassBinMap = std::vector<std::vector<Size>>();
-    prevMinBinLogMassMap = std::vector<double>();
-    peakGroups = std::vector<PeakGroup>();
-  }
-
-  FLASHIda::~FLASHIda() {
-      std::map<int, double*>().swap(selected);
-      std::vector<std::vector<Size>>().swap(prevMassBinMap);
-      std::vector<double>().swap(prevMinBinLogMassMap);
-      std::vector<PeakGroup>().swap(peakGroups);
-  }
-
-
-  int FLASHIda::getPeakGroups(double *mzs, double *ints, int length, double rt, int msLevel, char *name, double qScoreThreshold)
-  {
-    if(msLevel == 1){
-      param.currentMaxMass = param.maxMass;
-      param.currentChargeRange = param.chargeRange;
-      
-    }else{
-      //TODO precursor infor here
-    }
-    auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
-    auto *sd = new SpectrumDeconvolution(spec, param);
-    //param.print();
-    std::vector<PeakGroup>().swap(peakGroups);
-    peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
-                                               prevMinBinLogMassMap,
-                                               avg, msLevel);
- 
-
-
-    //std::cout << prevMassBinMap.size() << std::endl;
-    FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
-    delete sd;
-    return peakGroups.size();
-  }
-
-  void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum &spec, int msLevel,
-                                                    double qScoreThreshold)
-  {
-    double rt = spec.getRT();
-
-    std::map<int, double *> nselected;
-
-    for (auto &item : selected)
+    // constructor
+    FLASHIda::FLASHIda(Parameter& p, PrecalculatedAveragine& a) :
+        param(p), avg(a)
     {
-      if (item.first < rt - param.RTwindow)
-      {
-        continue;
-      }
-      nselected[item.first] = item.second;
+        //prevRT = -1;
+        selected = std::map<int, std::vector<double>>(); // int mass, rt, qscore
+        prevMassBinMap = std::vector<std::vector<Size>>();
+        prevMinBinLogMassMap = std::vector<double>();
+        peakGroups = std::vector<PeakGroup>();
     }
 
-    auto shorRTwindow = param.RTwindow / 10.0;
-    std::vector<PeakGroup> filtered;
-    for (auto &pg:peakGroups)
+    FLASHIda::~FLASHIda()
     {
-        //std::cout << param.maxMassCount.size() << " " << param.maxMassCount[msLevel - 1]<< std::endl;
-      if (param.maxMassCount.size() >= msLevel && param.maxMassCount[msLevel-1] > 0 && filtered.size() > param.maxMassCount[msLevel - 1])
-      {
-        break;
-      }
-      //std::cout << pg.qScore << " " << qScoreThreshold << std::endl;
-      if (pg.qScore < qScoreThreshold)
-      {
-        continue;
-      }
-      
-      auto m = FLASHDeconvAlgorithm::getNominalMass(pg.avgMass);
-      auto qScore = pg.qScore;
-      if (nselected.find(m) != nselected.end())
-      {
-        if (rt - nselected[m][0] < shorRTwindow) {
-              continue;
+    }
+
+    int FLASHIda::getPeakGroups(double* mzs, double* ints, int length, double rt, int msLevel, char* name, double qScoreThreshold)
+    {
+        if (msLevel == 1) {
+            param.currentMaxMass = param.maxMass;
+            param.currentChargeRange = param.chargeRange;
+
         }
-        if (qScore < nselected[m][1])
+        else {
+            //TODO precursor infor here
+        }
+        auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
+        //spec.clear(true);
+        
+        auto* sd = new SpectrumDeconvolution(spec, param);
+        //param.print();
+        //return 0;
+        
+        peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
+            prevMinBinLogMassMap,
+            avg, msLevel);
+        
+        FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
+        spec.clear(true);
+        delete sd;
+        return peakGroups.size();
+    }
+
+    void FLASHIda::filterPeakGroupsUsingMassExclusion(MSSpectrum& spec, int msLevel,
+        double qScoreThreshold)
+    {
+        double rt = spec.getRT();
+
+        std::map<int, std::vector<double>> nselected;
+
+        for (auto& item : selected)
         {
-          continue;
+            if (item.first < rt - param.RTwindow)
+            {
+                continue;
+            }
+            nselected[item.first] = item.second;
         }
-      }
-      delete[] nselected[m];
-      nselected[m] = new double[2]{rt, qScore};
-      filtered.push_back(pg);
+
+        auto shorRTwindow = param.RTwindow / 10.0;
+        std::vector<PeakGroup> filtered;
+        for (auto& pg : peakGroups)
+        {
+            //std::cout << param.maxMassCount.size() << " " << param.maxMassCount[msLevel - 1]<< std::endl;
+            if (param.maxMassCount.size() >= msLevel && param.maxMassCount[msLevel - 1] > 0 && filtered.size() > param.maxMassCount[msLevel - 1])
+            {
+                break;
+            }
+            //std::cout << pg.qScore << " " << qScoreThreshold << std::endl;
+            if (pg.qScore < qScoreThreshold)
+            {
+                continue;
+            }
+
+            auto m = FLASHDeconvAlgorithm::getNominalMass(pg.avgMass);
+            auto qScore = pg.qScore;
+            if (nselected.find(m) != nselected.end())
+            {
+                if (rt - nselected[m][0] < shorRTwindow) {
+                    continue;
+                }
+                if (qScore < nselected[m][1])
+                {
+                    continue;
+                }
+            }
+            else {
+                nselected[m] = std::vector<double>(2);
+            }
+            //delete[] nselected[m];
+            nselected[m][0] = rt;
+            nselected[m][1] = qScore;
+            filtered.push_back(pg);
+        }
+
+        nselected.swap(selected);
+        std::map<int, std::vector<double>>().swap(nselected);
+
+        peakGroups.swap(filtered);
+        std::vector<PeakGroup>().swap(filtered);
     }
 
-    nselected.swap(selected);
-    std::map<int, double *>().swap(nselected);
-
-    peakGroups.swap(filtered);
-    std::vector<PeakGroup>().swap(filtered);
-  }
-
-  void FLASHIda::getIsolationWindows(double *wstart, double *wend, double *qScores, int* charges, double* avgMasses)
-  {
-    for (auto i = 0; i < peakGroups.size(); i++)
+    void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qScores, int* charges, double* avgMasses)
     {
-      wstart[i] = peakGroups[i].maxQScoreMzStart - .2;
-      wend[i] = peakGroups[i].maxQScoreMzEnd + .2;
+        for (auto i = 0; i < peakGroups.size(); i++)
+        {
+            wstart[i] = peakGroups[i].maxQScoreMzStart - .2;
+            wend[i] = peakGroups[i].maxQScoreMzEnd + .2;
 
-      qScores[i] = peakGroups[i].qScore;
-      charges[i] = peakGroups[i].maxQScoreCharge;
-      avgMasses[i] = peakGroups[i].avgMass;
+            qScores[i] = peakGroups[i].qScore;
+            charges[i] = peakGroups[i].maxQScoreCharge;
+            avgMasses[i] = peakGroups[i].avgMass;
+        }
+        std::vector<PeakGroup>().swap(peakGroups);
     }
-  }
 
 
-  MSSpectrum &FLASHIda::makeMSSpectrum(double *mzs, double *ints, int length, double rt, int msLevel, char *name)
-  {
-    auto *spec = new MSSpectrum();
-    for (auto i = 0; i < length; i++)
+    MSSpectrum FLASHIda::makeMSSpectrum(double* mzs, double* ints, int length, double rt, int msLevel, char* name)
     {
-      auto *p = new Peak1D(mzs[i], ints[i]);
-      spec->push_back(*p);
+        auto spec = MSSpectrum();
+        for (auto i = 0; i < length; i++)
+        {
+            //auto* p = new Peak1D(mzs[i], ints[i]);
+            spec.push_back(Peak1D(mzs[i], ints[i]));
+        }
+        spec.setMSLevel(msLevel);
+        spec.setName(name);
+        spec.setRT(rt);// TODO
+        return spec;
     }
-    spec->setMSLevel(msLevel);
-    spec->setName(name);
-    spec->setRT(rt);// TODO
-    return *spec;
-  }
+
+    void FLASHIda::deepClearSpectrum(MSSpectrum& spec)
+    {
+        //spec.clear
+    }
 
 
 }
