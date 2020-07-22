@@ -127,10 +127,12 @@ using namespace boost::accumulators;
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
 //#define FILTER_AMBIGIOUS_PEAKS 
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
+#define CALCULATE_LONGEST_TAG
+//#define MODDS_ON_ABY_IONS_ONLY
 //#define SVM_RECALIBRATE
 //#define FILTER_RANKS 1
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
-//#define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
+#define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
 
 #ifdef ANNOTATED_QUANTILES
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
@@ -969,19 +971,19 @@ protected:
 
     const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
 
+#ifdef MODDS_ON_ABY_IONS_ONLY
     modds = matchOddsScore_(total_loss_template_z1_b_ions.size() + total_loss_template_z1_y_ions.size(),
      fragment_mass_tolerance_Da,
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
      (int)Morph);
-
-/*
+#else
     modds = matchOddsScore_(comparisons,
      fragment_mass_tolerance_Da,
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
      matches);
-*/
+#endif
   }
 
   static void scoreShiftedLadderIons_(
@@ -1578,6 +1580,35 @@ static void scoreXLIons_(
       return *longest;
     }
 
+    // note: this is much more efficient
+    size_t getLongestTagLength(const MSSpectrum& spec) const
+    {
+      // simple DP to detect longest tag
+      const size_t N = spec.size();
+      if (N < 2) return 0;
+      std::vector<float> mzs;
+      mzs.reserve(N);
+      for (auto const& p : spec) { mzs.push_back(p.getMZ()); }
+      std::vector<size_t> max_tag(N, 0); // maximum tag length up to this peak
+      size_t longest_tag = 0;
+      for (size_t i = 0; i < N - 1; ++i)
+      {
+        for (size_t k = i + 1; k < N; ++k)
+        {
+          const double gap = mzs[k] - mzs[i];
+          if (gap > max_gap_) { break; }
+          const char aa = getAAByMass_(gap);
+          if (aa == ' ') { continue; } // can't extend tag to k-th peak
+          if (max_tag[k] < max_tag[i] + 1) // check if we found a longer tag to k-th peak
+          {
+            ++max_tag[k]; // update longest tag to this peak
+            if (longest_tag < max_tag[k]) { longest_tag = max_tag[k]; }
+          }
+        }
+      }
+      return longest_tag;
+    }
+
     private:
       float min_gap_; // will be set to smallest residue mass in ResidueDB
       float max_gap_; // will be set to highest residue mass in ResidueDB
@@ -1851,7 +1882,9 @@ static void scoreXLIons_(
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].resize(1);
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = 0;
       #ifdef CALCULATE_LONGEST_TAG
-      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size();
+      size_t longest_tag = tagger.getLongestTagLength(spec);
+      spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = longest_tag; 
+      //spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX][0] = tagger.getLongestTag(spec).size(); // slow
       #endif
       spec.getIntegerDataArrays()[IA_DENOVO_TAG_INDEX].setName("longest_tag");
     }
