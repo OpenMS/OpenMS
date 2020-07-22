@@ -2,8 +2,7 @@
 // Created by Kyowon Jeong on 9/25/19.
 //
 
-#ifndef OPENMS_HOST_SPECTRUMDECONVOLUTION_H
-#define OPENMS_HOST_SPECTRUMDECONVOLUTION_H
+#pragma once
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -111,5 +110,3 @@ namespace OpenMS
     void setFilters();
   };
 }
-
-#endif //OPENMS_HOST_SPECTRUMDECONVOLUTION_H

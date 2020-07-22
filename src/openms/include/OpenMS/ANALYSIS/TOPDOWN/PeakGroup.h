@@ -38,11 +38,11 @@ namespace OpenMS
     int massIndex;
     int maxCharge, minCharge;
     int maxQScoreCharge = 0;
-    std::unordered_map<int, float> perChargeSNR; // polish later TODO
-    std::unordered_map<int, float> perChargeICos;
-    std::unordered_map<int, float> perChargeSumInt;
+    std::unordered_map<int, std::vector<float>> perChargeInfo; // charge -> SNR, ICos, SumInt
+    //std::unordered_map<int, float> perChargeICos;
+    //std::unordered_map<int, float> perChargeSumInt;
 
-    float qScore = 0;
+    float qScore = -10000;
     float totalSNR = 0;
     double maxQScoreMzEnd, maxQScoreMzStart;
 
@@ -52,7 +52,7 @@ namespace OpenMS
 
     void reserve(Size n);
 
-    void clearChargeSNRMap();
+    void clearChargeInfo();
 
     bool operator<(const PeakGroup &a) const;
 

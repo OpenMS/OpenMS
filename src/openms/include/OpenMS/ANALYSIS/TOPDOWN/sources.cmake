@@ -6,6 +6,7 @@ set(sources_list_h
 MassFeatureTrace.h
 DeconvolutedSpectrum.h
 PeakGroup.h
+		QScore.h
 PeakGroupScoring.h
 SpectrumDeconvolution.h
 FLASHDeconvAlgorithm.h

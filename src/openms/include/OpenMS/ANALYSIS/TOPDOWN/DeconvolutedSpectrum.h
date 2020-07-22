@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 
 namespace OpenMS
 {
@@ -34,6 +35,7 @@ namespace OpenMS
     void writeMassList(std::fstream &fs, double retDelta, double qScoreThreshold, int numMaxMS2);
 
     void writeTopFD(std::fstream &fs, int id);
+    MSSpectrum toSpectrum();
 
     static void writeDeconvolutedMassesHeader(std::fstream &fs, int &n, bool detail);
     static void writeAttCsvHeader(std::fstream &fs);
@@ -57,8 +59,6 @@ namespace OpenMS
     int specIndex, massCntr;
     int scanNumber;
 
-  protected:
-    double getQScore() const; // for MS2
 
     //fs << "MS_ONE_ID=" << pg.precursorSpecIndex << "\n"
     //       << "MS_ONE_SCAN=" << pg.precursorScanNumber << "\n"

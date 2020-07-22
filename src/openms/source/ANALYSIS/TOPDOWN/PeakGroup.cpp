@@ -8,7 +8,7 @@ namespace OpenMS
   PeakGroup::~PeakGroup()
   {
     std::vector<LogMzPeak>().swap(peaks);
-    clearChargeSNRMap();
+    clearChargeInfo();
   }
 
   void PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
@@ -21,14 +21,21 @@ namespace OpenMS
     peaks.reserve(n);
   }
 
-  void PeakGroup::clearChargeSNRMap()
+  void PeakGroup::clearChargeInfo()
   {
-    std::unordered_map<int, float>().swap(perChargeSNR);
+    for (auto& item : perChargeInfo)
+    {
+      std::vector<float>().swap(item.second);
+    }
+    std::unordered_map<int, std::vector<float>>().swap(perChargeInfo);
   }
 
   bool PeakGroup::operator<(const PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
+    if(this->monoisotopicMass == a.monoisotopicMass){
+      return this->intensity < a.intensity;
+    }
     return this->monoisotopicMass < a.monoisotopicMass;
     //}
     //return this->spec->getRT() < a.spec->getRT();
@@ -37,6 +44,9 @@ namespace OpenMS
   bool PeakGroup::operator>(const PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
+    if(this->monoisotopicMass == a.monoisotopicMass){
+      return this->intensity > a.intensity;
+    }
     return this->monoisotopicMass > a.monoisotopicMass;
     //}
     //return this->spec->getRT() > a.spec->getRT();

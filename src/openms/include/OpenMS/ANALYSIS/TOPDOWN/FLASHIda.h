@@ -66,7 +66,7 @@ namespace OpenMS
     void getIsolationWindows(double *wstart, double *wend, double *qScores, int* charges, double* avgMasses);
 
   protected:
-    std::map<int, double *> selected; // int mass, rt, qscore
+    std::map<int, std::vector<double>> selected; // int mass, rt, qscore
 
     Parameter &param;
     PrecalculatedAveragine &avg;
