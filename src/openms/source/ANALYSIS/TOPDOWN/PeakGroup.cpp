@@ -7,8 +7,8 @@ namespace OpenMS
 
   PeakGroup::~PeakGroup()
   {
-    //std::vector<LogMzPeak>().swap(peaks);
-    //clearChargeInfo();
+    std::vector<LogMzPeak>().swap(peaks);
+    clearChargeInfo();
   }
 
   void PeakGroup::push_back(FLASHDeconvHelperStructs::LogMzPeak &p)
@@ -33,6 +33,9 @@ namespace OpenMS
   bool PeakGroup::operator<(const PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
+    if(this->monoisotopicMass == a.monoisotopicMass){
+      return this->intensity < a.intensity;
+    }
     return this->monoisotopicMass < a.monoisotopicMass;
     //}
     //return this->spec->getRT() < a.spec->getRT();
@@ -41,6 +44,9 @@ namespace OpenMS
   bool PeakGroup::operator>(const PeakGroup &a) const
   {
     //if(this->spec->getRT() == a.spec->getRT()){
+    if(this->monoisotopicMass == a.monoisotopicMass){
+      return this->intensity > a.intensity;
+    }
     return this->monoisotopicMass > a.monoisotopicMass;
     //}
     //return this->spec->getRT() > a.spec->getRT();
