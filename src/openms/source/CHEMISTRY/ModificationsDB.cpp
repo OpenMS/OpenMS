@@ -402,21 +402,23 @@ namespace OpenMS
     }
   }
 
-  void ModificationsDB::addModification(ResidueModification* new_mod)
+  const ResidueModification* ModificationsDB::addModification(std::unique_ptr<ResidueModification> new_mod)
   {
-    if (has(new_mod->getFullId()))
-    {
-      OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
-      return;
-    }
-
     #pragma omp critical(OpenMS_ModificationsDB)
     {
-      modification_names_[new_mod->getFullId()].insert(new_mod);
-      modification_names_[new_mod->getId()].insert(new_mod);
-      modification_names_[new_mod->getFullName()].insert(new_mod);
-      modification_names_[new_mod->getUniModAccession()].insert(new_mod);
-      mods_.push_back(new_mod); // we probably want that
+      auto it = modification_names_.find(new_mod->getFullId());
+      if (it != modification_names_.end())
+      {
+        OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
+        return *(it->second.begin());
+      }
+      modification_names_[new_mod->getFullId()].insert(new_mod.get());
+      modification_names_[new_mod->getId()].insert(new_mod.get());
+      modification_names_[new_mod->getFullName()].insert(new_mod.get());
+      modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
+      mods_.push_back(new_mod.get());
+      new_mod.release(); // do not delete the object; 
+      return mods_.back();
     }
   }
 

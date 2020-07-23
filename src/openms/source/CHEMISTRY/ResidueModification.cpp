@@ -592,7 +592,7 @@ namespace OpenMS
       // ownership to ModDB
       if (!mod_db->has(residue_id))
       {
-        auto new_mod = new ResidueModification();
+        unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(residue_name); // display name
         new_mod->setTermSpecificity(ResidueModification::N_TERM);
@@ -610,9 +610,8 @@ namespace OpenMS
           // new_mod->setAverageMass(mass);
           new_mod->setDiffMonoMass(mass - Residue::getInternalToNTerm().getMonoWeight());
         }
-
-        mod_db->addModification(new_mod);
-        return new_mod;
+     
+        return mod_db->addModification(std::move(new_mod));
       }
       else
       {
@@ -630,7 +629,7 @@ namespace OpenMS
         // ownership to ModDB
         if (!mod_db->has(residue_id))
         {
-          auto new_mod = new ResidueModification();
+          unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
           new_mod->setFullName(residue_name); // display name
           new_mod->setTermSpecificity(ResidueModification::C_TERM);
@@ -649,8 +648,7 @@ namespace OpenMS
             new_mod->setDiffMonoMass(mass - Residue::getInternalToCTerm().getMonoWeight());
           }
 
-          mod_db->addModification(new_mod);
-          return new_mod;
+          return mod_db->addModification(std::move(new_mod));
         }
         else
         {
@@ -670,7 +668,7 @@ namespace OpenMS
         if (!mod_db->has(residue_name))
         {
           // create new modification
-          auto new_mod = new ResidueModification();
+          unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
           new_mod->setFullName(modification_name); // display name
 
@@ -691,8 +689,8 @@ namespace OpenMS
             new_mod->setAverageMass(mass);
             new_mod->setDiffMonoMass(mass - residue->getMonoWeight());
           }
-          mod_db->addModification(new_mod);
-          return new_mod;
+
+          return mod_db->addModification(std::move(new_mod));
         }
         else
         {
