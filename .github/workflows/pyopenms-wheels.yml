@@ -78,7 +78,7 @@ jobs:
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
-            conda activate pyoms-bld-$py
+            source activate pyoms-bld-$py
 
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -194,7 +194,7 @@ jobs:
           for py in $SUPPORTED_PYTHONS
           do
             conda create -n pyoms-bld-$py python=$py
-            conda activate pyoms-bld-$py
+            source activate pyoms-bld-$py
 
             # set current python executable
             CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -382,7 +382,7 @@ jobs:
         for py in $SUPPORTED_PYTHONS
         do
           conda create -n pyoms-bld-$py python=$py
-          conda activate pyoms-bld-$py
+          source activate pyoms-bld-$py
 
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
