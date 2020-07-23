@@ -42,32 +42,21 @@ namespace OpenMS
     static void writeThermoInclusionHeader(std::fstream &fs);
 
     bool empty() const;
-    void clearChargeSNRMap();
+    void clearPeakGroupsChargeInfo();
 
     MSSpectrum *spec;
-    std::vector<PeakGroup> peakGroups;
-    std::vector<LogMzPeak> peaks;
+    std::vector<PeakGroup>* peakGroups;
+    //std::vector<LogMzPeak> peaks;
     //std::vector<double> mzs; // sorted peaks from the original spectrum
 
     PeakGroup *precursorPeakGroup = nullptr;
-    LogMzPeak *precursorPeak = nullptr;
+    Precursor precursorPeak;
     //double originalPrecursorIntensity = 0;
     std::string activationMethod;
 
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
-    int specIndex, massCntr;
     int scanNumber;
-
-
-    //fs << "MS_ONE_ID=" << pg.precursorSpecIndex << "\n"
-    //       << "MS_ONE_SCAN=" << pg.precursorScanNumber << "\n"
-    //       << "PRECURSOR_MZ="
-    //       << std::to_string(pg.precursorMz) << "\n"
-    //       << "PRECURSOR_CHARGE=" << pg.precursorCharge << "\n"
-    //       << "PRECURSOR_MASS=" << std::to_string(pg.precursorMonoMass) << "\n"
-    //       << "PRECURSOR_INTENSITY=" << pg.precursorIntensity << "\n";*/
-
   };
 }
 

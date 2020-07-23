@@ -75,7 +75,7 @@ namespace OpenMS
   void SpectrumDeconvolution::updateLogMzPeaks()
   {
     logMzPeaks.reserve(spec.size());
-    int index = 0;
+    //int index = 0;
     for (auto &peak: spec)
     {
       //std::cout << peak.getMZ() << " " << peak.getIntensity() << std::endl;
@@ -84,7 +84,7 @@ namespace OpenMS
         continue;
       }
       LogMzPeak logMzPeak(peak);
-      logMzPeak.index = index++;
+      //logMzPeak.index = index++;
       logMzPeaks.push_back(logMzPeak);
     }
   }

@@ -38,14 +38,17 @@ namespace OpenMS
 {
    
 
-    FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a, Parameter &p) :
+  FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(FLASHDeconvHelperStructs::PrecalculatedAveragine &a, Parameter &p) :
       param(p), avg(a)
   {
-       // std::cout << "FLASHDeconv constructed\n";
+    prevMassBinMap = std::vector<std::vector<Size>>();
+    prevMinBinLogMassMap = std::vector<double>();
+    peakGroups = std::vector<PeakGroup>();
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
   {
+    std::vector<PeakGroup>().swap(peakGroups);
   }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
@@ -64,50 +67,36 @@ namespace OpenMS
     return (int) (m * 0.999497 + .5);
   }
 
-
-  void FLASHDeconvAlgorithm::Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum)
+  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int& scanNumber, int& specIndex, int& massIndex)
   {
-    static int specIndex = -1;
-    static int massIndex = -1;
-    static int prevScanNumber = INT_MAX;
-    static std::vector<std::vector<Size>> prevMassBinMap;
-    static std::vector<double> prevMinBinLogMassMap;
 
-    auto scanNumber = deconvolutedSpectrum.scanNumber;
-    if(prevScanNumber > scanNumber){
-      std::vector<std::vector<Size>>().swap(prevMassBinMap);
-      std::vector<double>().swap(prevMinBinLogMassMap);
-      prevMassBinMap.reserve(param.numOverlappedScans * 10);
-      prevMinBinLogMassMap.reserve(param.numOverlappedScans * 10);
-      specIndex = massIndex = 1;
+    auto* spec = dspec.spec;
+    int msLevel = spec->getMSLevel();
+    if (msLevel == 1 || dspec.precursorPeakGroup == nullptr) {
+      param.currentMaxMass = param.maxMass;
+      param.currentChargeRange = param.chargeRange;
     }
-    deconvolutedSpectrum.scanNumber = scanNumber;
+    else{
+     param.currentChargeRange = dspec.precursorPeak.getCharge();
+     param.currentMaxMass = dspec.precursorPeakGroup->monoisotopicMass;
+    }
 
-    prevScanNumber = scanNumber;
-    auto sd = SpectrumDeconvolution(*deconvolutedSpectrum.spec, param);
-    deconvolutedSpectrum.peaks = sd.logMzPeaks;
+    auto sd = SpectrumDeconvolution(*spec, param);
 
-    if (sd.empty())
-    {
+    peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+                                               prevMinBinLogMassMap,
+                                               avg, msLevel);
+
+    dspec.peakGroups = &peakGroups;
+
+    if(peakGroups.empty()){
       return;
     }
 
-    deconvolutedSpectrum.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
-                                              prevMinBinLogMassMap,
-                                              avg, deconvolutedSpectrum.spec->getMSLevel());
-
-    if (deconvolutedSpectrum.empty())
-    {
-      return;
-    }
-
-    deconvolutedSpectrum.specIndex = specIndex;
-    deconvolutedSpectrum.massCntr = (int) deconvolutedSpectrum.peakGroups.size();
-
-    for (auto &pg : deconvolutedSpectrum.peakGroups)
+    for (auto &pg : peakGroups)
     {
       sort(pg.peaks.begin(), pg.peaks.end());
-      pg.spec = deconvolutedSpectrum.spec;
+      pg.spec = spec;
       pg.specIndex = specIndex;
       pg.scanNumber = scanNumber;
       pg.massIndex = massIndex++;
@@ -115,104 +104,6 @@ namespace OpenMS
 
     specIndex++;
   }
-
-  void FLASHDeconvAlgorithm::tmp()
-  {
-      std::cout << "done" << std::endl;
-  }
-
-  /*
-    bool FLASHDeconvAlgorithm::checkSpanDistribution(int *mins, int *maxs, int range, int threshold)
-    {
-      int nonZeroStart = -1, nonZeroEnd = 0;
-      int maxSpan = 0;
-
-      for (int i = 0; i < range; i++)
-      {
-        if (maxs[i] >= 0)
-        {
-          if (nonZeroStart < 0)
-          {
-            nonZeroStart = i;
-          }
-          nonZeroEnd = i;
-          maxSpan = std::max(maxSpan, maxs[i] - mins[i]);
-        }
-      }
-      if (maxSpan <= 0)
-      {
-        return false;
-      }
-
-      int prevCharge = nonZeroStart;
-      int n_r = 0;
-
-      double spanThreshold = maxSpan / 1.5;//
-
-      for (int k = nonZeroStart + 1; k <= nonZeroEnd; k++)
-      {
-        if (maxs[k] < 0)
-        {
-          continue;
-        }
-
-
-        if (k - prevCharge == 1)
-        {
-          int intersectSpan = std::min(maxs[prevCharge], maxs[k])
-                              - std::max(mins[prevCharge], mins[k]);
-
-          if (spanThreshold <= intersectSpan)
-          { //
-            n_r++;
-          }
-        }
-        prevCharge = k;
-      }
-
-      if (n_r < threshold)
-      {
-        return -100.0;
-      }
-
-      for (int i = 2; i < std::min(12, range); i++)
-      {
-        for (int l = 0; l < i; l++)
-        {
-          int t = 0;
-          prevCharge = nonZeroStart + l;
-          for (int k = prevCharge + i; k <= nonZeroEnd; k += i)
-          {
-            if (maxs[k] < 0)
-            {
-              continue;
-            }
-
-
-            if (k - prevCharge == i)
-            {
-              int intersectSpan = std::min(maxs[prevCharge], maxs[k])
-                                  - std::max(mins[prevCharge], mins[k]);
-
-              if (spanThreshold <= intersectSpan)
-              {
-                t++;
-              }
-            }
-            prevCharge = k;
-          }
-          if (n_r <= t)
-          {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-
-   */
 
 
 }

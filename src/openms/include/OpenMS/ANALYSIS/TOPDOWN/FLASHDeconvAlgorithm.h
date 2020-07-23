@@ -82,15 +82,16 @@ public:
 
     /// assignment operator
     FLASHDeconvAlgorithm &operator=(const FLASHDeconvAlgorithm &fd);
-    void Deconvolution(DeconvolutedSpectrum &deconvolutedSpectrum);
+    void getPeakGroups(DeconvolutedSpectrum &spec, int& scanNumber, int& specIndex, int& massIndex);
     static int getNominalMass(double &m);
-    static void tmp();
-  	
+
   protected:
     Parameter &param;
     FLASHDeconvHelperStructs::PrecalculatedAveragine &avg;
 
-
+    std::vector<std::vector<Size>> prevMassBinMap;
+    std::vector<double> prevMinBinLogMassMap;
+    std::vector<PeakGroup> peakGroups;
   private:
 
   };

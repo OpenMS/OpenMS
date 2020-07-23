@@ -577,10 +577,7 @@ namespace OpenMS
         auto charge = item.first;
         int j = charge - param.minCharge;
 
-        LogMzPeak tp;
-        tp.intensity = perChargeMaxIntensity[j];
-        tp.charge = charge;
-        auto score = QScore::getQScore(&pg, &tp);
+        auto score = QScore::getQScore(&pg, perChargeMaxIntensity[j], charge);
 
         if (score < pg.qScore)
         {

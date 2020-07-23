@@ -9,6 +9,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CONCEPT/Types.h>
 //#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include  <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 
 namespace OpenMS
@@ -19,6 +20,7 @@ namespace OpenMS
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
-    static double getQScore(PeakGroup *pg, LogMzPeak *peak);
+    static double getQScore(PeakGroup *pg, double intensity, int charge);
+    //static double getQScore(PeakGroup *pg, Precursor peak);
   };
 }

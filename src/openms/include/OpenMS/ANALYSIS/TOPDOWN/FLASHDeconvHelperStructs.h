@@ -122,7 +122,7 @@ namespace OpenMS
       double mass = .0;
       int charge = 0;
       int isotopeIndex = -1;
-      int index = -1;// index in (filtered) spectrum
+      //int index = -1;// index in (filtered) spectrum
 
       LogMzPeak();
 

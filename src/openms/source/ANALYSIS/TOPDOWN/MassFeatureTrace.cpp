@@ -243,7 +243,7 @@ namespace OpenMS
     double rt = deconvolutedSpectrum.spec->getRT();
     peakGroupMap[rt] = std::unordered_map<double, PeakGroup>();
     auto &subMap = peakGroupMap[rt];
-    for(auto &pg : deconvolutedSpectrum.peakGroups){
+    for(auto &pg : *(deconvolutedSpectrum.peakGroups)){
       subMap[pg.monoisotopicMass] = pg;
     }
   }

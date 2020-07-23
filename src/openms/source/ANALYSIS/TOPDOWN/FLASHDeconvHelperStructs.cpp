@@ -199,8 +199,8 @@ namespace OpenMS
       intensity(peak.intensity),
       logMz(peak.logMz),
       charge(c),
-      isotopeIndex(i),
-      index(peak.index)
+      isotopeIndex(i)
+      //index(peak.index)
   {
   }
 

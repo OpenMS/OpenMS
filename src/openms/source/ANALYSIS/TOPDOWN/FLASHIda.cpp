@@ -66,17 +66,16 @@ namespace OpenMS
         auto spec = makeMSSpectrum(mzs, ints, length, rt, msLevel, name);
         //spec.clear(true);
         
-        auto* sd = new SpectrumDeconvolution(spec, param);
+        auto sd = SpectrumDeconvolution(spec, param);
         //param.print();
         //return 0;
-        
-        peakGroups = sd->getPeakGroupsFromSpectrum(prevMassBinMap,
+
+        peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
             prevMinBinLogMassMap,
             avg, msLevel);
         
         FLASHIda::filterPeakGroupsUsingMassExclusion(spec, msLevel, qScoreThreshold);
         spec.clear(true);
-        delete sd;
         return peakGroups.size();
     }
 

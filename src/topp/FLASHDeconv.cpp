@@ -390,20 +390,6 @@ protected:
       {
         auto msLevel = it.getMSLevel();
         param.currentMaxMSLevel = param.currentMaxMSLevel < msLevel ? msLevel : param.currentMaxMSLevel;
-/*
-        if(false)
-        {
-          std::cout << "Spec\t" << it.getRT() << "\n"; // TODO
-          for (auto &p : it)
-          {
-            if (p.getIntensity() <= 0)
-            {
-              continue;
-            }
-            std::cout << std::to_string(p.getMZ()) << "\t" << std::to_string(p.getIntensity()) << "\n";
-          }
-        }
-        */
       }
 
       param.currentMaxMSLevel = param.currentMaxMSLevel > param.maxMSLevel ? param.maxMSLevel : param.currentMaxMSLevel;
@@ -420,12 +406,17 @@ protected:
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
       int scanNumber = 0, id = 0;
+      int specIndex = 1;
+      int massIndex = 1;
+
       float prevProgress = .0;
 
       auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
       auto lastDeconvolutedSpectra = std::unordered_map<UInt, DeconvolutedSpectrum>();
 
       MSExperiment exp;
+      auto fd = FLASHDeconvAlgorithm(avgine, param);
+
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
@@ -441,25 +432,18 @@ protected:
         auto deconv_t_start = chrono::high_resolution_clock::now();
 
         // per spec deconvolution
-        auto fd = FLASHDeconvAlgorithm(avgine, param);
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
 
         bool proceed = true;
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
-
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
           proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
-          if (proceed)
-          {
-            param.currentChargeRange = deconvolutedSpectrum.precursorPeak->charge;
-            param.currentMaxMass = deconvolutedSpectrum.precursorPeakGroup->monoisotopicMass;
-          }
         }
         if (proceed)
         {
-          fd.Deconvolution(deconvolutedSpectrum);
+          fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
         }
 
         if(param.mzmlOut){
@@ -469,20 +453,9 @@ protected:
         elapsed_deconv_wall_secs[msLevel - 1] += chrono::duration<double>(
             chrono::high_resolution_clock::now() - deconv_t_start).count();
 
-       // if (param.mzmlOut)
-       // {
-        //  deconvolutedSpectrum.writeAttCsv(mzmlOut[msLevel - 1], msLevel, -1000, 3); //
-       // }
-        //if (msLevel == 1){
-        //  deconvolutedSpectrum.writeMassList(fa, 10.0, -10000, 3);//
-        //}
-
-        if (lastDeconvolutedSpectra.find(msLevel) != lastDeconvolutedSpectra.end())
-        {
-            lastDeconvolutedSpectra[msLevel].clearChargeSNRMap(); // for memroy efficiency
+        if(msLevel<param.currentMaxMSLevel){
+          lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         }
-
-        lastDeconvolutedSpectra[msLevel] = deconvolutedSpectrum;
         if (deconvolutedSpectrum.empty())
         {
           continue;
@@ -490,14 +463,15 @@ protected:
 
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
-        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
+        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups->size();
         deconvolutedSpectrum.writeDeconvolutedMasses(specOut[msLevel - 1], param);
 
         if (param.topfdOut)
         {
           deconvolutedSpectrum.writeTopFD(topfdOut, id++);
         }
-        //break;
+
+        deconvolutedSpectrum.clearPeakGroupsChargeInfo();
         float progress = (float) (it - map.begin()) / map.size();
         if (progress > prevProgress + .01)
         {
