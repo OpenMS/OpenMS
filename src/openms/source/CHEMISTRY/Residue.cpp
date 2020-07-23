@@ -476,18 +476,6 @@ namespace OpenMS
       average_weight_ = formula_.getAverageWeight();
       mono_weight_ = formula_.getMonoWeight();
     }
-    else
-    {
-      if (mod.getAverageMass() != 0)
-      {
-        average_weight_ = mod.getAverageMass();
-      }
-      if (mod.getMonoMass() != 0)
-      {
-        mono_weight_ = mod.getMonoMass();
-      }
-    }
-
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
