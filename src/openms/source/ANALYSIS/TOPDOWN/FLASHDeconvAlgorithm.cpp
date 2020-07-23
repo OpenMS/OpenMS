@@ -93,6 +93,8 @@ namespace OpenMS
       return;
     }
 
+    peakGroups.scanNumber = scanNumber;
+
     for (auto &pg : peakGroups)
     {
       sort(pg.peaks.begin(), pg.peaks.end());
