@@ -185,7 +185,6 @@ private:
     const String& feature_rt
   )
   {
-
     output_file << "BEGIN IONS" << "\n"
                 << "OUTPUT=" << output_type << "\n"
 
@@ -318,7 +317,7 @@ private:
   }
 
   void sortElementMapsByIntensity_(
-    const ConsensusFeature& feature, 
+    const ConsensusFeature& feature,
     vector<unsigned int>& featureMaps_sortedByInt
   )
   {
@@ -491,7 +490,7 @@ protected:
       //
       vector<unsigned int> featureMaps_sortedByInt;
       sortElementMapsByIntensity_(feature, featureMaps_sortedByInt);
-      
+
       vector<pair<unsigned int, unsigned int>> pept_precursorMaps;
       getElementPeptideIdentificationsByElementIntensity_(feature, featureMaps_sortedByInt, pept_precursorMaps);
 
@@ -508,14 +507,13 @@ protected:
 
         writeMS2BlockToFile_(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
                             charge, feature.getMZ(), speci, spec.getRT());
-
       }
       else if (output_type == "merged_spectra")
       {
         // discard poorer precursor spectra for 'merged_spectra' and 'full_spectra' output
-        if (pept_precursorMaps.size() > (unsigned long) pept_cutoff) 
-        { 
-          pept_precursorMaps.erase(pept_precursorMaps.begin()+pept_cutoff, pept_precursorMaps.end()); 
+        if (pept_precursorMaps.size() > (unsigned long) pept_cutoff)
+        {
+          pept_precursorMaps.erase(pept_precursorMaps.begin()+pept_cutoff, pept_precursorMaps.end());
         }
 
         unsigned int best_mapi = pept_precursorMaps[0].first;
@@ -555,8 +553,7 @@ protected:
 
         // write output
         writeMS2BlockToFile_(output_file, ms2_block, output_type, (cons_i+1), feature.getUniqueId(),
-                            charge, feature.getMZ(), best_speci, best_spec.getRT());       
-
+                            charge, feature.getMZ(), best_speci, best_spec.getRT());
       }
 
       progress_logger.setProgress(cons_i);
