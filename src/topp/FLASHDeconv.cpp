@@ -417,7 +417,6 @@ protected:
       MSExperiment exp;
       auto fd = FLASHDeconvAlgorithm(avgine, param);
 
-
       for (auto it = map.begin(); it != map.end(); ++it)
       {
         ++scanNumber;
@@ -441,10 +440,10 @@ protected:
         {
           proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
-        if (proceed)
-        {
-          fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
-        }
+        //if (proceed)
+        //{
+        fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
+        //}
 
         if(param.mzmlOut){
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
@@ -463,7 +462,7 @@ protected:
 
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
-        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups->size();
+        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
         deconvolutedSpectrum.writeDeconvolutedMasses(specOut[msLevel - 1], param);
 
         if (param.topfdOut)

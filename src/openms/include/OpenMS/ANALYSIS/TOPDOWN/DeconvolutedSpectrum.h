@@ -26,7 +26,7 @@ namespace OpenMS
 
     DeconvolutedSpectrum();
 
-    explicit DeconvolutedSpectrum(MSSpectrum &s, int &n);
+    explicit DeconvolutedSpectrum(MSSpectrum &s, int n);
 
     ~DeconvolutedSpectrum();
 
@@ -45,7 +45,7 @@ namespace OpenMS
     void clearPeakGroupsChargeInfo();
 
     MSSpectrum *spec;
-    std::vector<PeakGroup>* peakGroups;
+    std::vector<PeakGroup> peakGroups;
     //std::vector<LogMzPeak> peaks;
     //std::vector<double> mzs; // sorted peaks from the original spectrum
 
@@ -56,7 +56,7 @@ namespace OpenMS
 
     bool registerPrecursor(DeconvolutedSpectrum &precursorSpectrum);
 
-    int scanNumber;
+    int scanNumber, precursorScanNumber;
   };
 }
 
