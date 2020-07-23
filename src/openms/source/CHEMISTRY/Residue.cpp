@@ -437,36 +437,36 @@ namespace OpenMS
     }
   }
 
-  void Residue::setModification_(const ResidueModification& mod)
+  void Residue::setModification(const ResidueModification* mod)
   {
-    modification_ = &mod;
+    modification_ = mod;
 
     // update all the members
-    if (mod.getAverageMass() != 0)
+    if (mod->getAverageMass() != 0)
     {
-      average_weight_ = mod.getAverageMass();
+      average_weight_ = mod->getAverageMass();
     }
-    if (mod.getMonoMass() != 0)
+    if (mod->getMonoMass() != 0)
     {
-      mono_weight_ = mod.getMonoMass();
+      mono_weight_ = mod->getMonoMass();
     }
     // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
     // as in the case of XLMOD.obo modifications
-    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    if ( (mod->getMonoMass() == 0) && (mod->getDiffMonoMass() != 0) )
     {
-      mono_weight_ += mod.getDiffMonoMass();
+      mono_weight_ += mod->getDiffMonoMass();
     }
 
     bool updated_formula(false);
-    if (!mod.getDiffFormula().isEmpty())
+    if (!mod->getDiffFormula().isEmpty())
     {
       updated_formula = true;
-      setFormula(getFormula() + mod.getDiffFormula());
+      setFormula(getFormula() + mod->getDiffFormula());
     }
-    if (mod.getFormula() != "" && !updated_formula)
+    else if (mod->getFormula() != "")
     {
       updated_formula = true;
-      String formula = mod.getFormula();
+      String formula = mod->getFormula();
       formula.removeWhitespaces();
       formula_ = EmpiricalFormula(formula);
     }
@@ -476,13 +476,14 @@ namespace OpenMS
       average_weight_ = formula_.getAverageWeight();
       mono_weight_ = formula_.getMonoWeight();
     }
+    
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
-    if (mod.hasNeutralLoss())
+    if (mod->hasNeutralLoss())
     {
-      loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
-      loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
+      loss_formulas_.push_back(mod->getNeutralLossDiffFormula());
+      loss_names_.push_back(mod->getNeutralLossDiffFormula().toString());
     }
   }
 
@@ -495,7 +496,7 @@ namespace OpenMS
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
     const ResidueModification* mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
-    setModification_(*mod);
+    setModification(mod);
   }
 
   const String& Residue::getModificationName() const

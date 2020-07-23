@@ -304,6 +304,9 @@ public:
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const String& name);
 
+    /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
+    void setModification(const ResidueModification* mod);
+    
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;
 
@@ -464,10 +467,6 @@ protected:
     double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
     double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
     double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
-
-    /// sets the modification (helper function)
-    void setModification_(const ResidueModification& mod);
-
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
