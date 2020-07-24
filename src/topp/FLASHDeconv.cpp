@@ -102,7 +102,7 @@ protected:
     registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleList_("min_isotope_cosine",
-                        "<ms1_isotope_cos ms2_isotpe_cos, ...>", // TODO polish descriptions
+                        "<ms1_isotope_cos ms2_isotpe_cos, ...>",
                         {.75, .75},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
                         "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
@@ -120,19 +120,23 @@ protected:
                      "<ms1_min_supporting_peaks ms2_min_supproting_peaks, ...>",
                      {3, 1},
                      "minimum number of supporting peaks for MS1, 2, ... "
-                     "(e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
+                     "(e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively",
                      false,
                      true);
 
-    registerIntList_("max_mass_count", "<ms1_max_mass_count, ms2_max_mass_count, ...>", {-1, -1},
-        "maximum mass count per spec for MS1, 2, ..."
-        "(e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectivly. -1 specifies unlimited)", false, true);
+    registerIntList_("max_mass_count",
+                     "<ms1_max_mass_count, ms2_max_mass_count, ...>",
+                     {-1, -1},
+                     "maximum mass count per spec for MS1, 2, ..."
+                     "(e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)",
+                     false,
+                     true);
     //
     registerDoubleOption_("min_intensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RT_window",
                           "<seconds>",
                           0.0,
-                          "RT window duration in seconds (if 0, RT window contains 15 MS1 spectra)",
+                          "RT window duration in seconds. (if 0, RT window contains 15 MS1 spectra)",
                           false,
                           true);
 
@@ -140,13 +144,28 @@ protected:
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
-                       "to write per spectrum deconvoluted masses in detail or not in [prefix]_MSn_spec.tsv files. If set, all peak information per mass is reported.",
+                       "to write peak info per deconvoluted mass in detail or not in [prefix]_MSn_spec.tsv files. If set to 1, all peak information (m/z, intensity, charge, and isotope index) per mass is reported.",
                        false,
                        false);
 
-    registerIntOption_("promex_out", "", 0, "if set, promexoutput ([prefix]]_FD.ms1ft) is generated", false, true);
-    registerIntOption_("topfd_out", "", 0, "if set, topfdoutput ([prefix]_FD_ms2.msalign) is generated", false, true);
-    registerIntOption_("mzml_out", "", 0, "if set, [preifx].mzml (deconvoluted spectrum) file is generated", false, true);
+    registerIntOption_("promex_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for MS1 spectra) are reported in promex output format ([prefix]]_FD.ms1ft)",
+                       false,
+                       true);
+    registerIntOption_("topfd_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for MS2 spectra) are reported in topfd output format ([prefix]_FD_ms2.msalign)",
+                       false,
+                       true);
+    registerIntOption_("mzml_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for all spectra) are reported in mzml format ([preifx].mzml)",
+                       false,
+                       true);
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
   }
