@@ -1421,7 +1421,7 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER.").toBracketString(true), "n[-16]CFPIANGER") // absolute
   TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER.").toBracketString(true, true), "n[-17]CFPIANGER") // relative
 
-  // UniMod 1009 can only occur on N-terminal peptide on an C
+  // UniMod 26 can only occur on N-terminal peptide on an C
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:26).DFPIANGER.")) // not just any N-term is allowed
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:26)DFPIANGER.")) // not just any N-term is allowed
   TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1419)CFPIANGER.")) // not just any C is allowed
