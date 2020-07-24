@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1-3" enzyme="trypsin" missed_cleavages="4294967295" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="1-3" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="MS:1001211" value=""/>
 				<UserParam type="string" name="MS:1001256" value=""/>
@@ -18,7 +18,7 @@
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2020-05-22T11:58:44" search_engine="MS-GF+" search_engine_version="Release (v2020.03.14)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-07-20T14:32:29" search_engine="MS-GF+" search_engine_version="Release (v2020.03.14)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
@@ -44,13 +44,13 @@
 				<UserParam type="int" name="start" value="1"/>
 				<UserParam type="int" name="end" value="28"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="matched_ions" value="a17-H3N1++,a13-C1H2N2+,b12-H3N1++,b4+,b10-C1H2N2++,b12-H2O1++,a10-H3N1++,y13-H3N1+,b16-H3N1++,y13-H2O1++,b13++,b9-H3N1++,y9-H3N1+,b11-H3N1++,y1-H3N1+,b10-H3N1++,b15-H2O1++,b11-H2O1++,y15-C1H4O1S1+,b3+,b15-H3N1++,y14+,y13-H3N1++,a8++,b10-H2O1++,b17-C1H2N1O1++,b7+,y12-C1H4O1S1+,b8++,y13-C1H4O1S1++,x25-C1H2N1O1++,a11++,a9++,b17-H3N1++,a9+,iY,a10++,y1+,a8+,b15-H3N1+,y12+,a17-H2O1++,y3-C1H4O1S1+,y8-C1H4O1S1+,y13++,a10+,b5+,b18-H3N1++,b8+,y6-C1H4O1S1+,y7-C1H4O1S1+,b12++,y9-C1H4O1S1+,y11-C1H4O1S1+,a13+,y8+,a12-C1H2N2++,y2+,b15++,y5-C1H4O1S1+,a12+,a2+,y13-C1H4O1S1+,y13+,y11+,y7+,b14+,b11++,y6+,b13+,y9+,b2+,a11+,y5+,y4+,y3+,y10-C1H4O1S1+,b9++,b10++,b11+,b12+,b15+,y10+,b9+,b10+"/>
+				<UserParam type="string" name="matched_ions" value="a17-H3N1++,a13-C1H2N2+,b12-H3N1++,b4+,b10-C1H2N2++,b12-H2O1++,a10-H3N1++,y13-H3N1+,b16-H3N1++,y13-H2O1++,b13++,b9-H3N1++,y9-H3N1+,b11-H3N1++,y1-H3N1+,b10-H3N1++,b15-H2O1++,b11-H2O1++,y15-C1H4O1S1+,b3+,b15-H3N1++,y14-+,y13-H3N1++,a8++,b10-H2O1++,b17-C1H2N1O1++,b7+,y12-C1H4O1S1+,b8++,y13-C1H4O1S1++,x25-C1H2N1O1++,a11++,a9++,b17-H3N1++,a9+,iY,a10++,y1+,a8+,b15-H3N1+,y12-+,a17-H2O1++,y3-C1H4O1S1+,y8-C1H4O1S1+,y13-++,a10+,b5+,b18-H3N1++,b8+,y6-C1H4O1S1+,y7-C1H4O1S1+,b12++,y9-C1H4O1S1+,y11-C1H4O1S1+,a13+,y8-+,a12-C1H2N2++,y2+,b15++,y5-C1H4O1S1+,a12+,a2+,y13-C1H4O1S1+,y13-+,y11-+,y7-+,b14+,b11++,y6-+,b13+,y9-+,b2+,a11+,y5-+,y4-+,y3-+,y10-C1H4O1S1+,b9++,b10++,b11+,b12+,b15+,y10-+,b9+,b10+"/>
 				<UserParam type="float" name="matched_intensity" value="7.030350437545776e04"/>
 				<UserParam type="int" name="matched_ion_number" value="85"/>
 				<UserParam type="int" name="peak_number" value="440"/>
 				<UserParam type="float" name="sum_intensity" value="1.59149309085846e05"/>
 				<UserParam type="float" name="NTermIonCurrentRatio" value="0.562074811965916"/>
-				<UserParam type="float" name="CTermIonCurrentRatio" value="0.244423888669089"/>
+				<UserParam type="float" name="CTermIonCurrentRatio" value="0.017581317456932"/>
 				<UserParam type="float" name="median_fragment_error" value="1.863846438936889e-03"/>
 				<UserParam type="float" name="IQR_fragment_error" value="4.265610012225807e-03"/>
 				<UserParam type="float" name="topN_meanfragmenterror" value="1.278832781151453e-03"/>

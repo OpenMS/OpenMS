@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="/DATA/DATA/Development/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="isotope_error,RNPxl:score,RNPxl:total_loss_score,RNPxl:immonium_score,RNPxl:precursor_score,RNPxl:a_ion_score,RNPxl:marker_ions_score,RNPxl:partial_loss_score,RNPxl:MIC,RNPxl:err,RNPxl:Morph,RNPxl:pl_MIC,RNPxl:pl_err,RNPxl:pl_Morph,RNPxl:total_MIC,RNPxl:RNA_MASS_z0"/>
 	</SearchParameters>
-	<IdentificationRun date="2019-09-20T13:11:16" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-deisotoper-precursor-filter-2019-09-16" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-07-20T14:35:08" search_engine="RNPxlSearch" search_engine_version="2.6.0-pre-update-unimod-2020-2020-07-03" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -26,16 +26,16 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="712.782836914062955" RT="17.7875061035156" >
 			<PeptideHit score="9.662202835083008" sequence="AEADNLDDKK.[306.025304840899992]" charge="2" aa_before="K" aa_after="L" start="128" end="137" protein_refs="PH_2" >
-				<UserParam type="string" name="fragment_annotation" value="129.102218627929688,0.028043769299984,1,&quot;iK(C6H13N2O)&quot;|130.086135864257813,0.02902832813561,1,&quot;y1-H3N1+&quot;|147.112884521484375,0.080630719661713,1,&quot;y1&quot;|155.081436157226563,0.145997926592827,1,&quot;a2-H2O1+&quot;|173.091934204101563,0.700625479221344,1,&quot;a2&quot;|183.076751708984375,0.024672223255038,1,&quot;b2-H2O1+&quot;|201.0867919921875,1.0,1,&quot;b2&quot;|241.129898071289063,0.023188961669803,1,&quot;y1+U&apos;-H2O&quot;|244.129180908203125,0.006554301362485,1,&quot;a3&quot;|244.129180908203125,0.006554301362485,2,&quot;y4-H2O1++&quot;|254.11285400390625,0.006442357320338,1,&quot;b3-H2O1+&quot;|270.108612060546875,0.008349964395165,1,&quot;a1+U-H3PO4&quot;|272.1239013671875,0.143204793334007,1,&quot;b3&quot;|298.104034423828125,0.044987484812737,1,&quot;b1+U-H3PO4&quot;|298.104034423828125,0.044987484812737,2,&quot;b5+U&apos;-H2O&quot;|338.1446533203125,0.024386163800955,1,&quot;a3+U&apos;-H2O&quot;|369.13873291015625,0.016894934698939,1,&quot;b4-H2O1+&quot;|369.2237548828125,0.350935816764832,1,&quot;y2+U&apos;-H2O&quot;|384.151763916015625,0.00669954624027,1,&quot;b3+U&apos;&quot;|387.150390625,0.080046691000462,1,&quot;b4&quot;|413.70587158203125,0.08060297369957,2,&quot;y6+U&apos;-H2O&quot;|453.1707763671875,0.058883611112833,1,&quot;a4+U&apos;-H2O&quot;|456.17205810546875,0.040311638265848,1,&quot;a5-H3N1+&quot;|471.22369384765625,0.070986814796925,2,&quot;y7+U&apos;-H2O&quot;|483.1859130859375,0.012306816875935,1,&quot;b5-H2O1+&quot;|484.167816162109375,0.10052103549242,1,&quot;b5-H3N1+&quot;|484.25115966796875,0.274256467819214,1,&quot;y3+U&apos;-H2O&quot;|498.724212646484375,0.032668765634298,2,&quot;a9+C3O&quot;|501.19091796875,0.037374760955572,1,&quot;b5&quot;|506.737823486328125,0.244838789105415,2,&quot;y8+U&apos;-H2O&quot;|569.2574462890625,0.032437723129988,1,&quot;a6-H3N1+&quot;|571.2596435546875,0.039232071489096,2,&quot;y9+U&apos;-H2O&quot;|586.28167724609375,0.011836396530271,1,&quot;a6&quot;|597.24884033203125,0.027202736586332,1,&quot;b6-H3N1+&quot;|597.773681640625,0.035350155085325,1,&quot;[M+H]-H2O++ U&apos;-H2O&quot;|599.27777099609375,0.675445079803467,1,&quot;y4+U&apos;-H2O&quot;|606.77734375,0.20520530641079,1,&quot;[M+H]++ U&apos;-H2O&quot;|606.77734375,0.20520530641079,1,&quot;[M+H]-H2O++ U&apos;&quot;|614.27984619140625,0.042612724006176,1,&quot;b6&quot;|680.2978515625,0.019347865134478,1,&quot;a6+U&apos;-H2O&quot;|698.31036376953125,0.007031387183815,1,&quot;a6+U&apos;&quot;|712.36236572265625,0.330541014671326,1,&quot;y5+U&apos;-H2O&quot;|729.31292724609375,0.007053411565721,1,&quot;b7&quot;|795.32373046875,0.024798255413771,1,&quot;a7+U&apos;-H2O&quot;|826.40509033203125,0.307626664638519,1,&quot;y6+U&apos;-H2O&quot;|844.32489013671875,0.006883313879371,1,&quot;b8&quot;|941.43206787109375,0.347350567579269,1,&quot;y7+U&apos;-H2O&quot;|996.44219970703125,0.033356387168169,1,&quot;a9+C3O&quot;|1012.468994140625,0.518827438354492,1,&quot;y8+U&apos;-H2O&quot;|1066.4478759765625,0.027489613741636,1,&quot;b9+U&apos;-H2O&quot;|1141.5120849609375,0.007809598464519,1,&quot;y9+U&apos;-H2O&quot;|1212.5546875,0.043281823396683,1,&quot;[M+H]+ U&apos;-H2O&quot;|1212.5546875,0.043281823396683,1,&quot;[M+H]-H2O+ U&apos;&quot;"/>
+				<UserParam type="string" name="fragment_annotation" value="129.102218627929688,0.028043769299984,1,&quot;iK(C6H13N2O)&quot;|130.086135864257813,0.02902832813561,1,&quot;y1-H3N1+&quot;|147.112884521484375,0.080630719661713,1,&quot;y1&quot;|155.081436157226563,0.145997926592827,1,&quot;a2-H2O1+&quot;|173.091934204101563,0.700625479221344,1,&quot;a2&quot;|183.076751708984375,0.024672223255038,1,&quot;b2-H2O1+&quot;|201.0867919921875,1.0,1,&quot;b2&quot;|241.129898071289063,0.023188961669803,1,&quot;y1+U&apos;-H2O&quot;|244.129180908203125,6.554301362484694e-03,1,&quot;a3&quot;|244.129180908203125,6.554301362484694e-03,2,&quot;y4-H2O1++&quot;|254.11285400390625,6.442357320338488e-03,1,&quot;b3-H2O1+&quot;|270.108612060546875,8.349964395165443e-03,1,&quot;a1+U-H3PO4&quot;|272.1239013671875,0.143204793334007,1,&quot;b3&quot;|298.104034423828125,0.044987484812737,1,&quot;b1+U-H3PO4&quot;|298.104034423828125,0.044987484812737,2,&quot;b5+U&apos;-H2O&quot;|338.1446533203125,0.024386163800955,1,&quot;a3+U&apos;-H2O&quot;|369.13873291015625,0.016894934698939,1,&quot;b4-H2O1+&quot;|369.2237548828125,0.350935816764832,1,&quot;y2+U&apos;-H2O&quot;|384.151763916015625,6.699546240270138e-03,1,&quot;b3+U&apos;&quot;|387.150390625,0.080046691000462,1,&quot;b4&quot;|413.70587158203125,0.08060297369957,2,&quot;y6+U&apos;-H2O&quot;|453.1707763671875,0.058883611112833,1,&quot;a4+U&apos;-H2O&quot;|456.17205810546875,0.040311638265848,1,&quot;a5-H3N1+&quot;|471.22369384765625,0.070986814796925,2,&quot;y7+U&apos;-H2O&quot;|483.1859130859375,0.012306816875935,1,&quot;b5-H2O1+&quot;|484.167816162109375,0.10052103549242,1,&quot;b5-H3N1+&quot;|484.25115966796875,0.274256467819214,1,&quot;y3+U&apos;-H2O&quot;|498.724212646484375,0.032668765634298,2,&quot;a9+C3O&quot;|501.19091796875,0.037374760955572,1,&quot;b5&quot;|506.737823486328125,0.244838789105415,2,&quot;y8+U&apos;-H2O&quot;|569.2574462890625,0.032437723129988,1,&quot;a6-H3N1+&quot;|571.2596435546875,0.039232071489096,2,&quot;y9+U&apos;-H2O&quot;|586.28167724609375,0.011836396530271,1,&quot;a6&quot;|597.24884033203125,0.027202736586332,1,&quot;b6-H3N1+&quot;|597.773681640625,0.035350155085325,1,&quot;[M+H]-H2O++ U&apos;-H2O&quot;|599.27777099609375,0.675445079803467,1,&quot;y4+U&apos;-H2O&quot;|606.77734375,0.20520530641079,1,&quot;[M+H]++ U&apos;-H2O&quot;|606.77734375,0.20520530641079,1,&quot;[M+H]-H2O++ U&apos;&quot;|614.27984619140625,0.042612724006176,1,&quot;b6&quot;|680.2978515625,0.019347865134478,1,&quot;a6+U&apos;-H2O&quot;|698.31036376953125,7.031387183815241e-03,1,&quot;a6+U&apos;&quot;|712.36236572265625,0.330541014671326,1,&quot;y5+U&apos;-H2O&quot;|729.31292724609375,7.053411565721035e-03,1,&quot;b7&quot;|795.32373046875,0.024798255413771,1,&quot;a7+U&apos;-H2O&quot;|826.40509033203125,0.307626664638519,1,&quot;y6+U&apos;-H2O&quot;|844.32489013671875,6.883313879370689e-03,1,&quot;b8&quot;|941.43206787109375,0.347350567579269,1,&quot;y7+U&apos;-H2O&quot;|996.44219970703125,0.033356387168169,1,&quot;a9+C3O&quot;|1012.468994140625,0.518827438354492,1,&quot;y8+U&apos;-H2O&quot;|1066.4478759765625,0.027489613741636,1,&quot;b9+U&apos;-H2O&quot;|1141.5120849609375,7.809598464518786e-03,1,&quot;y9+U&apos;-H2O&quot;|1212.5546875,0.043281823396683,1,&quot;[M+H]+ U&apos;-H2O&quot;|1212.5546875,0.043281823396683,1,&quot;[M+H]-H2O+ U&apos;&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="9.662202835083008"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="9.399715423583984"/>
-				<UserParam type="float" name="RNPxl:immonium_score" value="0.003431972581893"/>
+				<UserParam type="float" name="RNPxl:immonium_score" value="3.431972581893206e-03"/>
 				<UserParam type="float" name="RNPxl:precursor_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:a_ion_score" value="0.08799259364605"/>
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.171062365174294"/>
-				<UserParam type="float" name="RNPxl:err" value="0.00262097385712"/>
+				<UserParam type="float" name="RNPxl:err" value="2.62097385711968e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="8.171062469482422"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -51,8 +51,8 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1117.525139392499796"/>
-				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1423.55044423339973"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1117.525139392500023"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1423.550444233399958"/>
 				<UserParam type="float" name="A_136.062309999999997" value="4.788680374622345"/>
 				<UserParam type="float" name="A_330.060330000000022" value="0.0"/>
 				<UserParam type="float" name="C_112.051079999999999" value="2.998549491167069"/>
@@ -61,12 +61,12 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-3.383305920579005e-04"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="0.474661755486804"/>
-				<UserParam type="float" name="RNPxl:z1 mass" value="1424.557720700170648"/>
-				<UserParam type="float" name="RNPxl:z2 mass" value="712.782498583470897"/>
-				<UserParam type="float" name="RNPxl:z3 mass" value="475.52409121123759"/>
-				<UserParam type="float" name="RNPxl:z4 mass" value="356.894887525120907"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-3.383305919442137e-04"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.474661755327307"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1424.557720700170876"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="712.782498583471011"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="475.524091211237646"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="356.894887525120964"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
 			<UserParam type="float" name="precursor_intensity" value="4.7443775e06"/>
@@ -119,8 +119,8 @@
 			<UserParam type="float" name="precursor_intensity" value="7.548593125e05"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="508.185516357421989" RT="25.116432189941399" >
-			<PeptideHit score="3.006745576858521" sequence="YTPYLGR.[653.088391777499965]" charge="3" aa_before="R" aa_after="R" start="141" end="147" protein_refs="PH_3" >
-				<UserParam type="string" name="fragment_annotation" value="133.060684204101563,0.021913649514318,2,&quot;b2&quot;|136.07513427734375,0.221545279026032,1,&quot;a1&quot;|136.07513427734375,0.221545279026032,1,&quot;iY&quot;|158.092025756835938,0.009942465461791,1,&quot;y1-H3N1+&quot;|175.119049072265625,0.033171430230141,1,&quot;y1&quot;|215.114288330078125,0.007606378290802,1,&quot;y2-H3N1+&quot;|219.112014770507813,0.007402592804283,1,&quot;a2-H2O1+&quot;|232.140228271484375,0.068299062550068,1,&quot;y2&quot;|237.123199462890625,0.182362139225006,1,&quot;a2&quot;|247.107315063476563,0.002296498976648,1,&quot;b2-H2O1+&quot;|265.118011474609375,0.06264715641737,1,&quot;b2&quot;|328.198333740234375,0.002715084934607,1,&quot;y3-H3N1+&quot;|329.17095947265625,0.050091780722141,2,&quot;y5+C3O&quot;|345.224029541015625,0.096705883741379,1,&quot;y3&quot;|359.1365966796875,0.002450512722135,1,&quot;b2+U&apos;-H2O&quot;|359.186859130859375,0.066002607345581,2,&quot;y5+U&apos;&quot;|416.2041015625,0.011827474460006,2,&quot;y5+U-H3PO4&quot;|456.184844970703125,0.017145995050669,2,&quot;y5+U-H2O&quot;|465.191619873046875,0.018353784456849,2,&quot;y5+U&quot;|560.28369140625,0.029185019433498,1,&quot;y4+C3O&quot;|620.31134033203125,0.01452570874244,1,&quot;b5-H2O1+&quot;|657.33489990234375,0.254154801368713,1,&quot;y5+C3O&quot;|717.36590576171875,0.046158973127604,1,&quot;y5+U&apos;&quot;|734.35107421875,0.003219602396712,1,&quot;y4+U-H3PO4&quot;|758.38824462890625,0.014380473643541,1,&quot;y6+C3O&quot;|831.39337158203125,0.01005947124213,1,&quot;y5+U-H3PO4&quot;|849.408447265625,0.004171141888946,1,&quot;y5+U-HPO3&quot;|903.43212890625,0.003008144907653,1,&quot;[M+H]-H2O+ C3O&quot;|911.36871337890625,0.013297877274454,1,&quot;y5+U-H2O&quot;|921.44696044921875,0.016171287745237,1,&quot;[M+H]+ C3O&quot;|929.37530517578125,0.023670928552747,1,&quot;y5+U&quot;"/>
+			<PeptideHit score="3.006745576858521" sequence="YTPYLGR.[653.088391777500078]" charge="3" aa_before="R" aa_after="R" start="141" end="147" protein_refs="PH_3" >
+				<UserParam type="string" name="fragment_annotation" value="133.060684204101563,0.021913649514318,2,&quot;b2&quot;|136.07513427734375,0.221545279026032,1,&quot;a1&quot;|136.07513427734375,0.221545279026032,1,&quot;iY&quot;|158.092025756835938,9.942465461790562e-03,1,&quot;y1-H3N1+&quot;|175.119049072265625,0.033171430230141,1,&quot;y1&quot;|215.114288330078125,7.60637829080224e-03,1,&quot;y2-H3N1+&quot;|219.112014770507813,7.402592804282904e-03,1,&quot;a2-H2O1+&quot;|232.140228271484375,0.068299062550068,1,&quot;y2&quot;|237.123199462890625,0.182362139225006,1,&quot;a2&quot;|247.107315063476563,2.296498976647854e-03,1,&quot;b2-H2O1+&quot;|265.118011474609375,0.06264715641737,1,&quot;b2&quot;|328.198333740234375,2.715084934607148e-03,1,&quot;y3-H3N1+&quot;|329.17095947265625,0.050091780722141,2,&quot;y5+C3O&quot;|345.224029541015625,0.096705883741379,1,&quot;y3&quot;|359.1365966796875,2.45051272213459e-03,1,&quot;b2+U&apos;-H2O&quot;|359.186859130859375,0.066002607345581,2,&quot;y5+U&apos;&quot;|416.2041015625,0.011827474460006,2,&quot;y5+U-H3PO4&quot;|456.184844970703125,0.017145995050669,2,&quot;y5+U-H2O&quot;|465.191619873046875,0.018353784456849,2,&quot;y5+U&quot;|560.28369140625,0.029185019433498,1,&quot;y4+C3O&quot;|620.31134033203125,0.01452570874244,1,&quot;b5-H2O1+&quot;|657.33489990234375,0.254154801368713,1,&quot;y5+C3O&quot;|717.36590576171875,0.046158973127604,1,&quot;y5+U&apos;&quot;|734.35107421875,3.219602396711707e-03,1,&quot;y4+U-H3PO4&quot;|758.38824462890625,0.014380473643541,1,&quot;y6+C3O&quot;|831.39337158203125,0.01005947124213,1,&quot;y5+U-H3PO4&quot;|849.408447265625,4.171141888946295e-03,1,&quot;y5+U-HPO3&quot;|903.43212890625,3.008144907653332e-03,1,&quot;[M+H]-H2O+ C3O&quot;|911.36871337890625,0.013297877274454,1,&quot;y5+U-H2O&quot;|921.44696044921875,0.016171287745237,1,&quot;[M+H]+ C3O&quot;|929.37530517578125,0.023670928552747,1,&quot;y5+U&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="3.006745576858521"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="2.733902931213379"/>
 				<UserParam type="float" name="RNPxl:immonium_score" value="0.066557675600052"/>
@@ -137,7 +137,7 @@
 				<UserParam type="float" name="RNPxl:total_MIC" value="0.272842675447464"/>
 				<UserParam type="string" name="RNPxl:RNA" value="AU"/>
 				<UserParam type="string" name="RNPxl:NT" value="U"/>
-				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="653.088391777499965"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="653.088391777500078"/>
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.594124555587769"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 59.41 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="YTPyLGR"/>
@@ -145,7 +145,7 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="868.444306914000094"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="868.444306913999981"/>
 				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1521.532698691500173"/>
 				<UserParam type="float" name="A_136.062309999999997" value="100.0"/>
 				<UserParam type="float" name="A_330.060330000000022" value="3.664952144026756"/>
@@ -172,11 +172,11 @@
 				<UserParam type="float" name="RNPxl:total_loss_score" value="12.623265266418457"/>
 				<UserParam type="float" name="RNPxl:immonium_score" value="0.022589635103941"/>
 				<UserParam type="float" name="RNPxl:precursor_score" value="0.017244404181838"/>
-				<UserParam type="float" name="RNPxl:a_ion_score" value="0.00447640940547"/>
+				<UserParam type="float" name="RNPxl:a_ion_score" value="4.476409405469894e-03"/>
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.234425365924835"/>
-				<UserParam type="float" name="RNPxl:err" value="0.001905608223751"/>
+				<UserParam type="float" name="RNPxl:err" value="1.905608223751187e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="10.23442554473877"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -214,10 +214,10 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="791.859008789062955" RT="26.4131374359131" >
 			<PeptideHit score="18.487384796142578" sequence="KSEQTTGISLGR.[306.025304840899992]" charge="2" aa_before="K" aa_after="A" start="77" end="88" protein_refs="PH_1" >
-				<UserParam type="string" name="fragment_annotation" value="129.102371215820313,0.012442819774151,1,&quot;b1&quot;|129.102371215820313,0.012442819774151,1,&quot;iK(C6H13N2O)&quot;|158.092697143554688,0.01557470113039,1,&quot;y1-H3N1+&quot;|159.092132568359375,0.012198236770928,2,&quot;a3&quot;|175.118927001953125,0.089230604469776,1,&quot;y1&quot;|195.123382568359375,0.019816234707832,1,&quot;a1+U&apos;-H2O&quot;|215.113723754882813,0.016415573656559,1,&quot;y2-H3N1+&quot;|227.066909790039063,0.019026339054108,1,&quot;MI:U-H3PO4&quot;|232.140274047851563,0.187161698937416,1,&quot;y2&quot;|241.1295166015625,0.017515353858471,1,&quot;b1+U&apos;&quot;|282.156463623046875,0.019235599786043,1,&quot;a2+U&apos;-H2O&quot;|310.150787353515625,0.112582728266716,1,&quot;b2+U&apos;-H2O&quot;|328.199676513671875,0.005193047691137,1,&quot;y3-H3N1+&quot;|345.223907470703125,0.246966287493706,1,&quot;y3&quot;|432.25604248046875,0.152459338307381,1,&quot;y4&quot;|439.19366455078125,0.03616676852107,1,&quot;b3+U&apos;-H2O&quot;|545.3385009765625,0.022133624181151,1,&quot;y5&quot;|567.25286865234375,0.044350333511829,1,&quot;b4+U&apos;-H2O&quot;|602.3612060546875,0.058429446071386,1,&quot;y6&quot;|676.849365234375,0.108733877539635,1,&quot;[M+H]-H2O++ U&apos;-H2O&quot;|685.85467529296875,0.256054252386093,1,&quot;[M+H]++ U&apos;-H2O&quot;|685.85467529296875,0.256054252386093,1,&quot;[M+H]-H2O++ U&apos;&quot;|703.409912109375,0.059881016612053,1,&quot;y7&quot;|742.87158203125,0.005108195822686,1,&quot;[M+H]-H2O++ U-H3PO4&quot;|769.3367919921875,0.004399466793984,1,&quot;b6+U&apos;-H2O&quot;|786.44580078125,0.003547876840457,1,&quot;y8-H2O1+&quot;|804.4573974609375,0.078811034560204,1,&quot;y8&quot;|826.368896484375,0.004085432272404,1,&quot;b7+U&apos;-H2O&quot;|873.38275146484375,0.009955040179193,1,&quot;a6+U-H3PO4&quot;|911.447265625,0.010771943256259,1,&quot;a8+U&apos;-H2O&quot;|915.49517822265625,0.017712637782097,1,&quot;y9-H3N1+&quot;|932.51495361328125,0.06821570545435,1,&quot;y9&quot;|939.470703125,0.024693364277482,1,&quot;b8+U&apos;-H2O&quot;|1026.4990234375,0.010903335176408,1,&quot;b9+U&apos;-H2O&quot;|1043.5543212890625,0.018013972789049,1,&quot;y10-H2O1+&quot;|1061.558349609375,0.090848386287689,1,&quot;y10&quot;|1130.56640625,0.011626675724983,1,&quot;y11-H2O1+&quot;|1148.594970703125,0.047751147300005,1,&quot;y11&quot;|1158.5897216796875,0.023592399433255,1,&quot;y9+U-H3PO4&quot;"/>
+				<UserParam type="string" name="fragment_annotation" value="129.102371215820313,0.012442819774151,1,&quot;b1&quot;|129.102371215820313,0.012442819774151,1,&quot;iK(C6H13N2O)&quot;|158.092697143554688,0.01557470113039,1,&quot;y1-H3N1+&quot;|159.092132568359375,0.012198236770928,2,&quot;a3&quot;|175.118927001953125,0.089230604469776,1,&quot;y1&quot;|195.123382568359375,0.019816234707832,1,&quot;a1+U&apos;-H2O&quot;|215.113723754882813,0.016415573656559,1,&quot;y2-H3N1+&quot;|227.066909790039063,0.019026339054108,1,&quot;MI:U-H3PO4&quot;|232.140274047851563,0.187161698937416,1,&quot;y2&quot;|241.1295166015625,0.017515353858471,1,&quot;b1+U&apos;&quot;|282.156463623046875,0.019235599786043,1,&quot;a2+U&apos;-H2O&quot;|310.150787353515625,0.112582728266716,1,&quot;b2+U&apos;-H2O&quot;|328.199676513671875,5.193047691136599e-03,1,&quot;y3-H3N1+&quot;|345.223907470703125,0.246966287493706,1,&quot;y3&quot;|432.25604248046875,0.152459338307381,1,&quot;y4&quot;|439.19366455078125,0.03616676852107,1,&quot;b3+U&apos;-H2O&quot;|545.3385009765625,0.022133624181151,1,&quot;y5&quot;|567.25286865234375,0.044350333511829,1,&quot;b4+U&apos;-H2O&quot;|602.3612060546875,0.058429446071386,1,&quot;y6&quot;|676.849365234375,0.108733877539635,1,&quot;[M+H]-H2O++ U&apos;-H2O&quot;|685.85467529296875,0.256054252386093,1,&quot;[M+H]++ U&apos;-H2O&quot;|685.85467529296875,0.256054252386093,1,&quot;[M+H]-H2O++ U&apos;&quot;|703.409912109375,0.059881016612053,1,&quot;y7&quot;|742.87158203125,5.108195822685957e-03,1,&quot;[M+H]-H2O++ U-H3PO4&quot;|769.3367919921875,4.399466793984175e-03,1,&quot;b6+U&apos;-H2O&quot;|786.44580078125,3.54787684045732e-03,1,&quot;y8-H2O1+&quot;|804.4573974609375,0.078811034560204,1,&quot;y8&quot;|826.368896484375,4.085432272404432e-03,1,&quot;b7+U&apos;-H2O&quot;|873.38275146484375,9.95504017919302e-03,1,&quot;a6+U-H3PO4&quot;|911.447265625,0.010771943256259,1,&quot;a8+U&apos;-H2O&quot;|915.49517822265625,0.017712637782097,1,&quot;y9-H3N1+&quot;|932.51495361328125,0.06821570545435,1,&quot;y9&quot;|939.470703125,0.024693364277482,1,&quot;b8+U&apos;-H2O&quot;|1026.4990234375,0.010903335176408,1,&quot;b9+U&apos;-H2O&quot;|1043.5543212890625,0.018013972789049,1,&quot;y10-H2O1+&quot;|1061.558349609375,0.090848386287689,1,&quot;y10&quot;|1130.56640625,0.011626675724983,1,&quot;y11-H2O1+&quot;|1148.594970703125,0.047751147300005,1,&quot;y11&quot;|1158.5897216796875,0.023592399433255,1,&quot;y9+U-H3PO4&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="18.487384796142578"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="18.251047134399414"/>
-				<UserParam type="float" name="RNPxl:immonium_score" value="0.002609846414998"/>
+				<UserParam type="float" name="RNPxl:immonium_score" value="2.609846414998174e-03"/>
 				<UserParam type="float" name="RNPxl:precursor_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:a_ion_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
@@ -270,7 +270,7 @@
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.221133843064308"/>
-				<UserParam type="float" name="RNPxl:err" value="0.00186268100515"/>
+				<UserParam type="float" name="RNPxl:err" value="1.86268100515008e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="13.221134185791016"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -360,11 +360,11 @@
 				<UserParam type="float" name="RNPxl:total_loss_score" value="9.528980255126953"/>
 				<UserParam type="float" name="RNPxl:immonium_score" value="0.012428759597242"/>
 				<UserParam type="float" name="RNPxl:precursor_score" value="0.0"/>
-				<UserParam type="float" name="RNPxl:a_ion_score" value="0.004415277391672"/>
+				<UserParam type="float" name="RNPxl:a_ion_score" value="4.415277391672134e-03"/>
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.246764317154884"/>
-				<UserParam type="float" name="RNPxl:err" value="0.003780502593145"/>
+				<UserParam type="float" name="RNPxl:err" value="3.780502593144774e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="9.246764183044434"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -402,7 +402,7 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="510.280517578125" RT="33.237155914306598" >
 			<PeptideHit score="2.749338626861572" sequence="LLKVLK.[306.025304840899992]" charge="2" aa_before="K" aa_after="E" start="138" end="143" protein_refs="PH_2" >
-				<UserParam type="string" name="fragment_annotation" value="129.102203369140625,0.341281980276108,1,&quot;iK(C6H13N2O)&quot;|130.086227416992188,0.352897644042969,1,&quot;y1-H3N1+&quot;|147.1126708984375,0.58376944065094,1,&quot;y1&quot;|199.180267333984375,0.640049397945404,1,&quot;a2&quot;|227.175506591796875,0.124714568257332,1,&quot;b2&quot;|260.19659423828125,0.196932137012482,1,&quot;y2&quot;|260.684600830078125,0.038983806967735,2,&quot;a4+U&apos;-H2O&quot;|291.191192626953125,0.038887519389391,2,&quot;y4+U&apos;-H2O&quot;|317.22607421875,0.068781733512878,2,&quot;a5+U&apos;-H2O&quot;|347.733367919921875,0.163340032100678,2,&quot;y5+U&apos;-H2O&quot;|359.2646484375,0.15144070982933,1,&quot;y3&quot;|404.275360107421875,0.792658388614655,1,&quot;[M+H]++ U&apos;-H2O&quot;|404.275360107421875,0.792658388614655,1,&quot;[M+H]-H2O++ U&apos;&quot;|449.286956787109375,0.394392222166061,1,&quot;b3+U&apos;-H2O&quot;|453.2811279296875,0.021092774346471,1,&quot;y3+U&apos;-H2O&quot;|461.292083740234375,0.0568644143641,1,&quot;[M+H]-H2O++ U-H3PO4&quot;|520.3590087890625,0.090508051216602,1,&quot;a4+U&apos;-H2O&quot;|548.35498046875,0.382423788309097,1,&quot;b4+U&apos;-H2O&quot;|581.376220703125,1.0,1,&quot;y4+U&apos;-H2O&quot;|633.44268798828125,0.031680207699537,1,&quot;a5+U&apos;-H2O&quot;|661.44122314453125,0.168516412377357,1,&quot;b5+U&apos;-H2O&quot;|679.458984375,0.008620182052255,1,&quot;b5+U&apos;&quot;|694.46063232421875,0.559866011142731,1,&quot;y5+U&apos;-H2O&quot;|807.54351806640625,0.161011636257172,1,&quot;[M+H]+ U&apos;-H2O&quot;|807.54351806640625,0.161011636257172,1,&quot;[M+H]-H2O+ U&apos;&quot;"/>
+				<UserParam type="string" name="fragment_annotation" value="129.102203369140625,0.341281980276108,1,&quot;iK(C6H13N2O)&quot;|130.086227416992188,0.352897644042969,1,&quot;y1-H3N1+&quot;|147.1126708984375,0.58376944065094,1,&quot;y1&quot;|199.180267333984375,0.640049397945404,1,&quot;a2&quot;|227.175506591796875,0.124714568257332,1,&quot;b2&quot;|260.19659423828125,0.196932137012482,1,&quot;y2&quot;|260.684600830078125,0.038983806967735,2,&quot;a4+U&apos;-H2O&quot;|291.191192626953125,0.038887519389391,2,&quot;y4+U&apos;-H2O&quot;|317.22607421875,0.068781733512878,2,&quot;a5+U&apos;-H2O&quot;|347.733367919921875,0.163340032100678,2,&quot;y5+U&apos;-H2O&quot;|359.2646484375,0.15144070982933,1,&quot;y3&quot;|404.275360107421875,0.792658388614655,1,&quot;[M+H]++ U&apos;-H2O&quot;|404.275360107421875,0.792658388614655,1,&quot;[M+H]-H2O++ U&apos;&quot;|449.286956787109375,0.394392222166061,1,&quot;b3+U&apos;-H2O&quot;|453.2811279296875,0.021092774346471,1,&quot;y3+U&apos;-H2O&quot;|461.292083740234375,0.0568644143641,1,&quot;[M+H]-H2O++ U-H3PO4&quot;|520.3590087890625,0.090508051216602,1,&quot;a4+U&apos;-H2O&quot;|548.35498046875,0.382423788309097,1,&quot;b4+U&apos;-H2O&quot;|581.376220703125,1.0,1,&quot;y4+U&apos;-H2O&quot;|633.44268798828125,0.031680207699537,1,&quot;a5+U&apos;-H2O&quot;|661.44122314453125,0.168516412377357,1,&quot;b5+U&apos;-H2O&quot;|679.458984375,8.620182052254677e-03,1,&quot;b5+U&apos;&quot;|694.46063232421875,0.559866011142731,1,&quot;y5+U&apos;-H2O&quot;|807.54351806640625,0.161011636257172,1,&quot;[M+H]+ U&apos;-H2O&quot;|807.54351806640625,0.161011636257172,1,&quot;[M+H]-H2O+ U&apos;&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="2.749338626861572"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="2.512938499450684"/>
 				<UserParam type="float" name="RNPxl:immonium_score" value="0.039583746343851"/>
@@ -427,8 +427,8 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="712.521099169199943"/>
-				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1018.546404010099877"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="712.52109916920017"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1018.546404010100105"/>
 				<UserParam type="float" name="A_136.062309999999997" value="14.439961314201355"/>
 				<UserParam type="float" name="A_330.060330000000022" value="0.970654562115669"/>
 				<UserParam type="float" name="C_112.051079999999999" value="1.298186834901571"/>
@@ -437,12 +437,12 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-3.91063040865447e-05"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="0.076636880571367"/>
-				<UserParam type="float" name="RNPxl:z1 mass" value="1019.553680476870909"/>
-				<UserParam type="float" name="RNPxl:z2 mass" value="510.280478471820913"/>
-				<UserParam type="float" name="RNPxl:z3 mass" value="340.522744470137639"/>
-				<UserParam type="float" name="RNPxl:z4 mass" value="255.643877469295973"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-3.910630397285786e-05"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.076636880348574"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1019.553680476871136"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="510.280478471821027"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="340.522744470137695"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="255.643877469296029"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="8"/>
 			<UserParam type="float" name="precursor_intensity" value="4.8375975e06"/>
@@ -521,7 +521,7 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1255.561072029099933"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1255.561072029099705"/>
 				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1579.596941933799826"/>
 				<UserParam type="float" name="A_136.062309999999997" value="7.47583881020546"/>
 				<UserParam type="float" name="A_330.060330000000022" value="0.0"/>
@@ -543,7 +543,7 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="648.255920410156023" RT="34.071548461914098" >
 			<PeptideHit score="6.531035900115967" sequence="M(Oxidation)VFCLSAGK.[324.035869904700007]" charge="2" aa_before="R" aa_after="N" start="60" end="68" protein_refs="PH_1" >
-				<UserParam type="string" name="fragment_annotation" value="120.08087158203125,0.131854861974716,1,&quot;iF&quot;|129.10235595703125,0.242256298661232,1,&quot;iK(C6H13N2O)&quot;|130.086135864257813,0.125195309519768,1,&quot;y1-H3N1+&quot;|147.112640380859375,0.22937598824501,1,&quot;y1&quot;|155.118011474609375,0.218693912029266,1,&quot;a2-C1H4O1S1+&quot;|183.113006591796875,0.022665414959192,1,&quot;b2-C1H4O1S1+&quot;|204.134185791015625,0.296814262866974,1,&quot;y2&quot;|219.116134643554688,0.692131102085114,1,&quot;a2&quot;|247.111434936523438,0.149841696023941,1,&quot;b2&quot;|258.14532470703125,0.018841126933694,1,&quot;y3-H3N1+&quot;|275.170379638671875,0.137739211320877,1,&quot;y3&quot;|307.0333251953125,0.022058652713895,1,&quot;MI:U-H2O&quot;|330.1796875,0.021026529371738,1,&quot;b3-C1H4O1S1+&quot;|362.202789306640625,0.171304628252983,1,&quot;y4&quot;|394.17913818359375,0.062457364052534,1,&quot;b3&quot;|475.288665771484375,0.117477536201477,1,&quot;y5&quot;|476.21417236328125,0.053192276507616,2,&quot;y7+U-H3PO4&quot;|630.2962646484375,0.084867522120476,1,&quot;y6+C3O&quot;|690.31988525390625,0.04325694963336,1,&quot;y6+U&apos;&quot;|804.358642578125,0.04021131247282,1,&quot;y6+U-H3PO4&quot;|837.3975830078125,0.080538138747215,1,&quot;y7+U&apos;&quot;|884.31402587890625,0.019379746168852,1,&quot;y6+U-H2O&quot;|902.33062744140625,0.053232882171869,1,&quot;y6+U&quot;|951.42193603515625,0.172407492995262,1,&quot;y7+U-H3PO4&quot;|969.44110107421875,0.0135698011145,1,&quot;y7+U-HPO3&quot;|1031.390869140625,0.071868665516377,1,&quot;y7+U-H2O&quot;|1049.4049072265625,0.120918855071068,1,&quot;y7+U&quot;"/>
+				<UserParam type="string" name="fragment_annotation" value="120.08087158203125,0.131854861974716,1,&quot;iF&quot;|129.10235595703125,0.242256298661232,1,&quot;iK(C6H13N2O)&quot;|130.086135864257813,0.125195309519768,1,&quot;y1-H3N1+&quot;|147.112640380859375,0.22937598824501,1,&quot;y1&quot;|155.118011474609375,0.218693912029266,1,&quot;a2-C1H4O1S1+&quot;|183.113006591796875,0.022665414959192,1,&quot;b2-C1H4O1S1+&quot;|204.134185791015625,0.296814262866974,1,&quot;y2&quot;|219.116134643554688,0.692131102085114,1,&quot;a2&quot;|219.116134643554688,0.692131102085114,1,&quot;a2-+&quot;|247.111434936523438,0.149841696023941,1,&quot;b2&quot;|247.111434936523438,0.149841696023941,1,&quot;b2-+&quot;|258.14532470703125,0.018841126933694,1,&quot;y3-H3N1+&quot;|275.170379638671875,0.137739211320877,1,&quot;y3&quot;|307.0333251953125,0.022058652713895,1,&quot;MI:U-H2O&quot;|330.1796875,0.021026529371738,1,&quot;b3-C1H4O1S1+&quot;|362.202789306640625,0.171304628252983,1,&quot;y4&quot;|394.17913818359375,0.062457364052534,1,&quot;b3&quot;|394.17913818359375,0.062457364052534,1,&quot;b3-+&quot;|475.288665771484375,0.117477536201477,1,&quot;y5&quot;|476.21417236328125,0.053192276507616,2,&quot;y7+U-H3PO4&quot;|630.2962646484375,0.084867522120476,1,&quot;y6+C3O&quot;|690.31988525390625,0.04325694963336,1,&quot;y6+U&apos;&quot;|804.358642578125,0.04021131247282,1,&quot;y6+U-H3PO4&quot;|837.3975830078125,0.080538138747215,1,&quot;y7+U&apos;&quot;|884.31402587890625,0.019379746168852,1,&quot;y6+U-H2O&quot;|902.33062744140625,0.053232882171869,1,&quot;y6+U&quot;|951.42193603515625,0.172407492995262,1,&quot;y7+U-H3PO4&quot;|969.44110107421875,0.0135698011145,1,&quot;y7+U-HPO3&quot;|1031.390869140625,0.071868665516377,1,&quot;y7+U-H2O&quot;|1049.4049072265625,0.120918855071068,1,&quot;y7+U&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="6.531035900115967"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="6.253064155578613"/>
 				<UserParam type="float" name="RNPxl:immonium_score" value="0.046607121825218"/>
@@ -599,7 +599,7 @@
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.348500519990921"/>
-				<UserParam type="float" name="RNPxl:err" value="0.001645841170102"/>
+				<UserParam type="float" name="RNPxl:err" value="1.645841170102358e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="12.34850025177002"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -615,8 +615,8 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1568.696321777599906"/>
-				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1874.72162661849984"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1568.696321777599678"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1874.721626618499613"/>
 				<UserParam type="float" name="A_136.062309999999997" value="67.038911581039429"/>
 				<UserParam type="float" name="A_330.060330000000022" value="13.247814774513245"/>
 				<UserParam type="float" name="C_112.051079999999999" value="12.767377495765686"/>
@@ -625,12 +625,12 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.001172919292003"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="1.249956498715638"/>
-				<UserParam type="float" name="RNPxl:z1 mass" value="1875.728903085270758"/>
-				<UserParam type="float" name="RNPxl:z2 mass" value="938.368089776020952"/>
-				<UserParam type="float" name="RNPxl:z3 mass" value="625.914485339604312"/>
-				<UserParam type="float" name="RNPxl:z4 mass" value="469.687683121395935"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-1.172919292116603e-03"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="1.249956498836792"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1875.728903085270531"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="938.368089776020838"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="625.914485339604198"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="469.687683121395878"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="12"/>
 			<UserParam type="float" name="precursor_intensity" value="9.038849375e05"/>
@@ -646,7 +646,7 @@
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.16454242169857"/>
-				<UserParam type="float" name="RNPxl:err" value="0.001691222772934"/>
+				<UserParam type="float" name="RNPxl:err" value="1.691222772933543e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="9.164542198181152"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -662,8 +662,8 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1559.840661732300077"/>
-				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1865.865966573200012"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1559.840661732300305"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1865.86596657320024"/>
 				<UserParam type="float" name="A_136.062309999999997" value="97.081619501113892"/>
 				<UserParam type="float" name="A_330.060330000000022" value="19.488894939422607"/>
 				<UserParam type="float" name="C_112.051079999999999" value="100.0"/>
@@ -672,12 +672,12 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-3.530395979396417e-04"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="0.378010899790175"/>
-				<UserParam type="float" name="RNPxl:z1 mass" value="1866.87324303997093"/>
-				<UserParam type="float" name="RNPxl:z2 mass" value="933.940259753371038"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-3.530395978259548e-04"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="0.378010899668447"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1866.873243039971158"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="933.940259753371151"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="622.962598657837702"/>
-				<UserParam type="float" name="RNPxl:z4 mass" value="467.473768110070978"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="467.473768110071035"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="13"/>
 			<UserParam type="float" name="precursor_intensity" value="4.38940125e05"/>
@@ -693,7 +693,7 @@
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.182028397917748"/>
-				<UserParam type="float" name="RNPxl:err" value="0.001535697490908"/>
+				<UserParam type="float" name="RNPxl:err" value="1.535697490908206e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="12.182028770446777"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -709,7 +709,7 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1145.575716520100059"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1145.575716520099832"/>
 				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1469.611586424799953"/>
 				<UserParam type="float" name="A_136.062309999999997" value="100.0"/>
 				<UserParam type="float" name="A_330.060330000000022" value="11.310602724552155"/>
@@ -881,7 +881,7 @@
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.17790974676609"/>
-				<UserParam type="float" name="RNPxl:err" value="0.001806947635487"/>
+				<UserParam type="float" name="RNPxl:err" value="1.806947635486722e-03"/>
 				<UserParam type="float" name="RNPxl:Morph" value="12.177909851074219"/>
 				<UserParam type="float" name="RNPxl:pl_MIC" value="0.0"/>
 				<UserParam type="float" name="RNPxl:pl_err" value="0.0"/>
@@ -922,9 +922,9 @@
 				<UserParam type="string" name="fragment_annotation" value="136.075942993164063,0.065371364355087,1,&quot;iY&quot;|158.092269897460938,0.015021680854261,1,&quot;y1-H3N1+&quot;|175.11895751953125,1.0,1,&quot;y1&quot;|271.17724609375,0.038556274026632,1,&quot;y2-H3N1+&quot;|288.20263671875,0.514986634254456,1,&quot;y2&quot;|386.1824951171875,0.037969872355461,3,&quot;y7+U-H2O&quot;|395.22509765625,0.014312580227852,2,&quot;y6+C3O&quot;|399.237579345703125,0.01376270968467,1,&quot;y3-H3N1+&quot;|416.261444091796875,0.542097508907318,1,&quot;y3&quot;|470.27783203125,0.013038055039942,1,&quot;y4-H3N1+&quot;|482.2227783203125,0.015750708058476,2,&quot;a8+U&apos;-H2O&quot;|487.298919677734375,0.477950066328049,1,&quot;y4&quot;|514.23504638671875,0.034908317029476,1,&quot;a5&quot;|542.22161865234375,0.018223535269499,1,&quot;b5&quot;|557.24237060546875,0.037165068089962,2,&quot;a8+U-HPO3&quot;|571.2738037109375,0.03597528859973,3,&quot;a15+U&apos;&quot;|638.3052978515625,0.032711338251829,2,&quot;y8+U&quot;|725.31085205078125,0.018428817391396,3,&quot;a17+U&quot;|762.39569091796875,0.017301518470049,3,&quot;b21-H2O1+++&quot;|816.4063720703125,0.049197416752577,2,&quot;y11+U&quot;|913.41937255859375,0.017434228211641,2,&quot;a15+U-H3PO4&quot;|1221.4688720703125,0.045921374112368,1,&quot;b8+U&quot;"/>
 				<UserParam type="float" name="RNPxl:score" value="4.695417404174805"/>
 				<UserParam type="float" name="RNPxl:total_loss_score" value="4.445918560028076"/>
-				<UserParam type="float" name="RNPxl:immonium_score" value="0.006146544590592"/>
+				<UserParam type="float" name="RNPxl:immonium_score" value="6.146544590592384e-03"/>
 				<UserParam type="float" name="RNPxl:precursor_score" value="0.0"/>
-				<UserParam type="float" name="RNPxl:a_ion_score" value="0.003282255725935"/>
+				<UserParam type="float" name="RNPxl:a_ion_score" value="3.282255725935102e-03"/>
 				<UserParam type="float" name="RNPxl:marker_ions_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:partial_loss_score" value="0.0"/>
 				<UserParam type="float" name="RNPxl:MIC" value="0.240070134401321"/>
@@ -944,8 +944,8 @@
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2476.282282518700868"/>
-				<UserParam type="float" name="RNPxl:xl_mass_z0" value="3127.355024232400865"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2476.282282518699958"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="3127.355024232399956"/>
 				<UserParam type="float" name="A_136.062309999999997" value="12.49324157834053"/>
 				<UserParam type="float" name="A_330.060330000000022" value="1.87588632106781"/>
 				<UserParam type="float" name="C_112.051079999999999" value="1.468439307063818"/>
@@ -954,12 +954,12 @@
 				<UserParam type="float" name="G_346.055250000000001" value="0.0"/>
 				<UserParam type="float" name="U_113.035089999999997" value="0.0"/>
 				<UserParam type="float" name="U_307.033110000000022" value="0.0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="0.006436562464614"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="-6.168486510317322"/>
-				<UserParam type="float" name="RNPxl:z1 mass" value="3128.36230069917201"/>
-				<UserParam type="float" name="RNPxl:z2 mass" value="1564.684788582971351"/>
-				<UserParam type="float" name="RNPxl:z3 mass" value="1043.458951210904615"/>
-				<UserParam type="float" name="RNPxl:z4 mass" value="782.846032524871248"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="6.436562464386952e-03"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="-6.168486510099419"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="3128.362300699171101"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="1564.684788582970896"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="1043.458951210904388"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="782.846032524871021"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="19"/>
 			<UserParam type="float" name="precursor_intensity" value="1.14687225e06"/>
