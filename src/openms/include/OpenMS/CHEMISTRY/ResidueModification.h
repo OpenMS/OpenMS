@@ -222,7 +222,7 @@ public:
        @brief Sets the terminal specificity using a name
 
        Valid names: "C-term", "N-term", "none"
-      
+
        @throw Exception::InvalidValue if no valid specificity was given
     */
     void setTermSpecificity(const String& name);
@@ -309,22 +309,22 @@ public:
     const std::set<String>& getSynonyms() const;
 
     /// sets the neutral loss formula
-    void setNeutralLossDiffFormula(const EmpiricalFormula& loss);
+    void setNeutralLossDiffFormulas(const std::vector<EmpiricalFormula>& loss);
 
     /// returns the neutral loss diff formula (if available)
-    const EmpiricalFormula& getNeutralLossDiffFormula() const;
+    const std::vector<EmpiricalFormula>& getNeutralLossDiffFormulas() const;
 
     /// set the neutral loss mono weight
-    void setNeutralLossMonoMass(double mono_mass);
+    void setNeutralLossMonoMasses(std::vector<double> mono_masses);
 
     /// returns the neutral loss mono weight
-    double getNeutralLossMonoMass() const;
+    std::vector<double> getNeutralLossMonoMasses() const;
 
     /// set the neutral loss average weight
-    void setNeutralLossAverageMass(double average_mass);
+    void setNeutralLossAverageMasses(std::vector<double> average_masses);
 
     /// returns the neutral loss average weight
-    double getNeutralLossAverageMass() const;
+    std::vector<double> getNeutralLossAverageMasses() const;
     //@}
 
     /** @name Predicates
@@ -385,11 +385,10 @@ protected:
 
     std::set<String> synonyms_;
 
-    EmpiricalFormula neutral_loss_diff_formula_;
+    std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
 
-    double neutral_loss_mono_mass_;
+    std::vector<double> neutral_loss_mono_masses_;
 
-    double neutral_loss_average_mass_;
+    std::vector<double> neutral_loss_average_masses_;
   };
 }
-
