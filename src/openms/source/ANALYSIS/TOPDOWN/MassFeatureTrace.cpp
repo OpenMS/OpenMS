@@ -94,9 +94,6 @@ namespace OpenMS
 
       for (auto &p2 : mt)
       {
-
-        // std::cout << p2.getRT() << " " << p2.getMZ() << std::endl;
-        //int specIndex = rtSpecMap[(float) p2.getRT()];
         auto &pgMap = peakGroupMap[p2.getRT()];
         auto &pg = pgMap[p2.getMZ()];
         auto scanNumber = pg.scanNumber;
@@ -116,8 +113,6 @@ namespace OpenMS
 
         for (auto &p : pg.peaks)
         {
-          //std::cout<<1<<std::endl;
-
           if (p.isotopeIndex < 0 || p.isotopeIndex >= param.maxIsotopeCount || p.charge < 0 ||
               p.charge >= param.chargeRange + param.minCharge + 1)
           {
