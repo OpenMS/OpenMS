@@ -371,7 +371,9 @@ protected:
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
-    ProteinIdentification::SearchParameters search_params;
+    // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
+    // we assume that they are the same or similar
+    ProteinIdentification::SearchParameters search_params = get<2>(se_ver_settings[0]);
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     search_params.fixed_modifications    = fixed_mods;
