@@ -233,7 +233,10 @@ protected:
     fill_n(total_massCntr, param.maxMSLevel, 0);
     auto total_featureCntr = 0;
 
-    //int specIndex = 0, massIndex = 0;
+    int specIndex = 1;
+    int massIndex = 1;
+    int featureIndex = 1;
+
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream featureOut, promexOut, topfdOut;
     String mzmlOut;
@@ -308,9 +311,7 @@ protected:
         fill_n(qspecCntr, param.maxMSLevel, 0);
         fill_n(massCntr, param.maxMSLevel, 0);
 
-        //specIndex = 0;
         featureCntr = 0;
-        //massIndex = 0;
       }
       MSExperiment map;
       MzMLFile mzml;
@@ -424,10 +425,7 @@ protected:
 
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
-      int scanNumber = 0, id = 0;
-      int specIndex = 1;
-      int massIndex = 1;
-
+      int scanNumber = 0;
       float prevProgress = .0;
 
       auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
@@ -486,7 +484,7 @@ protected:
 
         if (param.topfdOut)
         {
-          deconvolutedSpectrum.writeTopFD(topfdOut, id++);
+          deconvolutedSpectrum.writeTopFD(topfdOut, specIndex - 1);
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();
@@ -501,7 +499,7 @@ protected:
       std::cout << std::endl;
       std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra);
 
-      massTracer.findFeatures(featureCntr, featureOut, promexOut);
+      massTracer.findFeatures(featureCntr, featureIndex, featureOut, promexOut);
 
       if(param.mzmlOut)
       {

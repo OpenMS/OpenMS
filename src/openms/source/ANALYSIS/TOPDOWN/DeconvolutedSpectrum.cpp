@@ -154,7 +154,7 @@ namespace OpenMS
       //               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
       //
 
-      fs << pg.massIndex << "\t" << pg.specIndex << "\t" << pg.scanNumber << "\t"
+      fs << pg.massIndex << "\t" << pg.specIndex << "\t" << param.fileName << "\t" << pg.scanNumber << "\t"
          << std::to_string(spec->getRT())<< "\t"
          << pg.peaks.size() << "\t"
          << std::to_string(am) << "\t" << std::to_string(m) << "\t" << intensity << "\t"
@@ -244,7 +244,7 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "IsotopeCosine\tChargeIntensityCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
@@ -252,7 +252,7 @@ namespace OpenMS
       else
       {
         fs
-            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoMass\tPrecursorQScore\t"
@@ -264,7 +264,7 @@ namespace OpenMS
       if (n == 1)
       {
         fs
-            << "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
                "SumIntensity\tMinCharge\tMaxCharge\t"
                "PeakCount\t"
                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
@@ -274,12 +274,12 @@ namespace OpenMS
       else
       {
         fs
-            <<  "MassIndex\tSpecIndex\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
-                "SumIntensity\tMinCharge\tMaxCharge\t"
-                "PeakCount\t"
-                //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
-                "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoMass\tPrecursorQScore\t"
-                "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
+            << "MassIndex\tSpecIndex\tFileName\tScanNum\tRetentionTime\tMassCountInSpec\tAvgMass\tMonoMass\t"
+               "SumIntensity\tMinCharge\tMaxCharge\t"
+               "PeakCount\t"
+               //"PeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\tPeakIntensities\t"
+               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorMonoMass\tPrecursorQScore\t"
+               "IsotopeCosine\tMassSNR\tMaxQScoreCharge\tMaxQScoreMzStart\tMaxQScoreMzEnd\tQScore\n";
 
 
       }

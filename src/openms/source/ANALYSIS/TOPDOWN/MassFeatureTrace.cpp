@@ -23,6 +23,7 @@ namespace OpenMS
 
 
   void MassFeatureTrace::findFeatures(int &featureCntr,
+                                      int &featureIndex,
                                       std::fstream &fsf,
                                       std::fstream &fsp)
   {
@@ -168,7 +169,8 @@ namespace OpenMS
       auto massDelta = averagines.getAverageMassDelta(mass);
 
       //auto mass = mt.getCentroidMZ();
-      fsf << ++featureCntr << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
+      ++featureCntr;
+      fsf << featureIndex++ << "\t" << param.fileName << "\t" << std::to_string(mass) << "\t"
           << std::to_string(mass + massDelta) << "\t" // massdiff
           << mt.getSize() << "\t"
           //fsf << ++featureCntr << "\t" << param.fileName << "\t" << mass << "\t"
@@ -201,7 +203,7 @@ namespace OpenMS
         auto &spgMap = peakGroupMap[apex.getRT()];
         auto &spg = spgMap[apex.getMZ()];
 
-        fsp << featureCntr << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minCharge << "\t"
+        fsp << featureIndex << "\t" << minScanNum << "\t" << maxScanNum << "\t" << minCharge << "\t"
             << maxCharge << "\t" << std::to_string(mass) << "\t" << std::fixed << std::setprecision(2)
             << repScan << "\t" << repCharge << "\t" << perChargeMz[repCharge] << "\t" << sumInt << "\t"
             << spg.scanNumber << "\t" << spg.intensity << "\t"
@@ -245,11 +247,11 @@ namespace OpenMS
 
   void MassFeatureTrace::writeHeader(std::fstream &fs)
   {
-    fs << "ID\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
-           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-           "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
-           //"\tPeakGroupMasses\tPeakGroupRTs"
-           "\n";
+    fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
+          "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
+          "\tSumIntensity\tMaxIntensity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tChargeIntensityCosineScore"
+          //"\tPeakGroupMasses\tPeakGroupRTs"
+          "\n";
   }
 
 

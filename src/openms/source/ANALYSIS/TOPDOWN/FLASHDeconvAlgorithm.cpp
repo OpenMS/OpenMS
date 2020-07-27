@@ -86,7 +86,8 @@ namespace OpenMS
     dspec.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
-    if(dspec.peakGroups.empty()){
+    if (dspec.empty())
+    {
       return;
     }
 
