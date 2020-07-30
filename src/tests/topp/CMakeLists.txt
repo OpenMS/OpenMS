@@ -772,6 +772,12 @@ add_test("TOPP_FileMerger_11_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "
 set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerger_11")
 
 #------------------------------------------------------------------------------
+# FLASHDeconv tests
+add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_1_input.mzml -out ${DATA_DIR_TOPP}/FLASHDeconv_1_out.tsv)
+add_test("TOPP_FLASHDeconv_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "location=" "href=" -in1 FileMerger_1.tmp -in2 ${DATA_DIR_TOPP}/FLASHDeconv_1_output.tsv )
+set_tests_properties("TOPP_FLASHDeconv_1_out1" PROPERTIES DEPENDS "TOPP_FLASHDeconv_1")
+
+#------------------------------------------------------------------------------
 # GNPSExport tests
 
 # one file using full_spectra:

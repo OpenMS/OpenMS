@@ -114,6 +114,7 @@ namespace OpenMS
 
         // parameter stuff
         double mass_error_ppm_;
+        double mass_error_da_; // added by kyowon jeong
         double noise_threshold_int_;
         double chrom_peak_snr_;
         MassTrace::MT_QUANTMETHOD quant_method_;

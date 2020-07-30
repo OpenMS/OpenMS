@@ -44,6 +44,7 @@ namespace OpenMS
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
       defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+      defaults_.setValue("mass_error_da", -0.1, "Allowed mass deviation (in dalton); not used by default.");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
@@ -342,6 +343,8 @@ namespace OpenMS
 
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
+        if (mass_error_da_ > 0) ftl_sd = mass_error_da_;
+
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) ||
@@ -554,6 +557,7 @@ namespace OpenMS
     void MassTraceDetection::updateMembers_()
     {
       mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");
+      mass_error_da_ = (double) param_.getValue("mass_error_da");
       noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
       chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
       quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));

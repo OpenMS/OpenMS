@@ -162,7 +162,7 @@ namespace OpenMS
 
   void IsobaricChannelExtractor::setDefaultParams_()
   {
-    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
+    defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCD], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
     StringList activation_list;
     activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this

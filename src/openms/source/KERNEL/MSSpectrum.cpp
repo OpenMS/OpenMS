@@ -316,11 +316,11 @@ namespace OpenMS
       return -1;
     }
 
-    auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+  //   auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
-    // find peak (index) with highest intensity to expected position
-    return (max_intensity_it - this->begin());
-  }
+  //   // find peak (index) with highest intensity to expected position
+  //   return (max_intensity_it - this->begin());
+  // }
 
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)

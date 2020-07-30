@@ -1862,7 +1862,7 @@ namespace OpenMS
           }
           else if (accession == "MS:1000422") //high-energy collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
@@ -1958,7 +1958,7 @@ namespace OpenMS
           }
           else if (accession == "MS:1000422") //high-energy collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
@@ -3890,7 +3890,7 @@ namespace OpenMS
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
+      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
       }
