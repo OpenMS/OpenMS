@@ -582,7 +582,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   // isotope cluster for y-ions
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 18)
+  TEST_EQUAL(spec.size(), 10)
 
   result = {
     78.54206,
@@ -591,23 +591,15 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     263.15390,
 
     // 405: POS: 78.54256367545 INT: 0.921514272689819
-    79.04108117545,
     79.04424117545,
-    79.54469067545,
     // 405: POS: 107.0532957233 INT: 0.89608770608902
-    107.5518132233,
     107.5549732233,
-    108.0554227233,
     // 405: POS: 185.1038514147 INT: 0.824628114700317
     185.6023689147,
     185.6055289147,
-    186.1059784147,
-    186.1072064147,
     // 405: POS: 263.1544071061 INT: 0.758867204189301
     263.6529246061,
     263.6560846061,
-    264.1565341061,
-    264.1577621061
   };
   std::sort(result.begin(), result.end());
   for (Size i = 0; i != spec.size(); ++i)
@@ -624,7 +616,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   // isotope cluster for y-ions
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 8)
+  TEST_EQUAL(spec.size(), 5)
 
   result = {
     78.54206,
@@ -636,10 +628,7 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
     // 405: POS: 107.0532957233 INT: 0.89608770608902
     // 405: POS: 185.1038514147 INT: 0.824628114700317
     // 405: POS: 263.1544071061 INT: 0.758867204189301
-    263.6529246061,
     263.6560846061,
-    264.1565341061,
-    264.1577621061
   };
   std::sort(result.begin(), result.end());
   for (Size i = 0; i != spec.size(); ++i)
@@ -702,25 +691,25 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
   params.setValue("add_b_ions", "false");
   t_gen.setParameters(params);
   t_gen.getSpectrum(spec, tmp_aa, 1, 2);
-  TEST_EQUAL(spec.size(), 98)
+  TEST_EQUAL(spec.size(), 50)
 
-  result_losses = { 78.5426, 79.0411, 79.0442, 79.5447};
+  result_losses = { 78.5426, 79.0442, 107.0532, 107.5549};
   for (Size i = 0; i != 4; ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getMZ(), result_losses[i])
   }
-  result_losses = { 0.921514, 0.0102111, 0.0598011, 0.00378741}; // check intensity
+  result_losses = { 0.921514, 0.0598011, 0.896088, 0.0775347}; // check intensity
   for (Size i = 0; i != 4; ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getIntensity(), result_losses[i])
   }
 
   // last entries
-  TEST_REAL_SIMILAR( spec[ spec.size() -5 ].getMZ(), 525.301)
-  TEST_REAL_SIMILAR( spec[ spec.size() -4 ].getMZ(), 526.298)
-  TEST_REAL_SIMILAR( spec[ spec.size() -3 ].getMZ(), 526.304)
-  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 527.305)
-  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 527.308)
+  TEST_REAL_SIMILAR( spec[ spec.size() -5 ].getMZ(), 509.271)
+  TEST_REAL_SIMILAR( spec[ spec.size() -4 ].getMZ(), 509.277)
+  TEST_REAL_SIMILAR( spec[ spec.size() -3 ].getMZ(), 525.301)
+  TEST_REAL_SIMILAR( spec[ spec.size() -2 ].getMZ(), 526.298)
+  TEST_REAL_SIMILAR( spec[ spec.size() -1 ].getMZ(), 526.304)
 
   // isotope cluster for precursor peaks with losses
   spec.clear(true);
@@ -757,11 +746,11 @@ START_SECTION(([EXTRA] test isotope clusters for all peak types))
 
   t_gen.setParameters(params);
   t_gen.getSpectrum(spec, tmp_aa, 2, 2);
-  TEST_EQUAL(spec.size(), 16)
+  TEST_EQUAL(spec.size(), 12)
 
   TEST_REAL_SIMILAR(spec[0].getMZ(), (578.32698+proton_shift)/2 )
   TEST_REAL_SIMILAR(spec[1].getMZ(), (579.31100+proton_shift)/2 )
-  TEST_REAL_SIMILAR(spec[11].getMZ(), (596.33755+proton_shift)/2 )
+  TEST_REAL_SIMILAR(spec[11].getMZ(), (598.34481333943+proton_shift)/2 )
 }
 END_SECTION
 

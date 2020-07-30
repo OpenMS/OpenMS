@@ -42,6 +42,8 @@ namespace OpenMS
   /**
     @brief Detect Java and retrieve information.
 
+    Similar classes exist for other external tools, e.g. PythonInfo .
+
     @ingroup System
   */
   class OPENMS_DLLAPI JavaInfo

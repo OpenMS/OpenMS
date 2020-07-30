@@ -45,7 +45,7 @@ namespace OpenMS
 
     if (use_total_prob_)
     {
-        IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, 1.0-stop_condition_).run());
+        IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, 1.0-stop_condition_, true).run());
         result.sortByMass();
         return result;
     }

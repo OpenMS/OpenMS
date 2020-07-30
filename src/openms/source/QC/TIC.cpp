@@ -76,6 +76,8 @@ namespace OpenMS
     const auto& tics = this->getResults();
     for (Size i = 0; i < tics.size(); ++i)
     {
+      if (tics[i].empty()) continue; // no MS1 spectra
+
       MzTabParameter tic{};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");

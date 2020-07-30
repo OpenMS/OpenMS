@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Julianus Pfeuffer $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>

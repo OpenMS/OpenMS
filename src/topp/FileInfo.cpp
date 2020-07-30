@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Marc Sturm, Clemens Groepl, Lars Nilse $
+// $Authors: Marc Sturm, Clemens Groepl, Lars Nilse, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <boost/iostreams/device/null.hpp>
@@ -38,6 +38,9 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -59,7 +62,6 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-
 #include <QtCore/QString>
 
 #include <unordered_map>
@@ -142,14 +144,15 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
+    StringList in_types = { "mzData", "mzXML", "mzML", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
+    setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML"));
+    setValidStrings_("in_type", in_types);
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", ListUtils::create<String>("txt"));
+    setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", ListUtils::create<String>("csv"));
+    setValidFormats_("out_tsv", {"csv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -605,8 +608,8 @@ protected:
       // we determine the size of a consensus feature we would obtain if we would link just be sequence and charge
       // and we sum up all sub features for these consensus feature that has at least one id
       // (as we assume that the ID is transfered to all sub features)
-      map<Size, UInt> num_aggregated_consfeat_of_size_with_id;
-      map<Size, UInt> num_aggregated_feat_of_size_with_id;
+      map<Size, Size> num_aggregated_consfeat_of_size_with_id;
+      map<Size, Size> num_aggregated_feat_of_size_with_id;
       for (auto & a : seq_charge2map_occurence)
       {
         const vector<int>& occurences = a.second;
@@ -639,16 +642,16 @@ protected:
         Size number_features{0};
         Size number_cons_features_with_id{0};
         Size number_features_with_id{0};
-        for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+        for (auto it = num_consfeat_of_size.rbegin(); it != num_consfeat_of_size.rend(); ++it)
         {
-          const Size csize = i->first;
-          const Size nfeatures = i->first * i->second;
-          const Size nc_with_id = num_consfeat_of_size_with_id[i->first];
+          const Size csize = it->first;
+          const Size nfeatures = it->first * it->second;
+          const Size nc_with_id = num_consfeat_of_size_with_id[it->first];
           number_features += nfeatures;
           number_features_with_id += csize * nc_with_id;
           number_cons_features_with_id += nc_with_id;
 
-          os << "  of size " << setw(field_width) << csize << ": " << i->second 
+          os << "  of size " << setw(field_width) << csize << ": " << it->second 
              << "\t (features: " << nfeatures << " )"
              << "\t with at least one ID: " << nc_with_id
              << "\t (features: " << csize * nc_with_id << " )"
@@ -656,8 +659,8 @@ protected:
 
         }
 
-        map<Size, UInt>::reverse_iterator ci = num_aggregated_consfeat_of_size_with_id.rbegin();
-        map<Size, UInt>::reverse_iterator fi = num_aggregated_feat_of_size_with_id.rbegin();
+        auto ci = num_aggregated_consfeat_of_size_with_id.rbegin();
+        auto fi = num_aggregated_feat_of_size_with_id.rbegin();
         for (; ci != num_aggregated_consfeat_of_size_with_id.rend(); ++ci, ++fi)
         {
           const Size csize = ci->first;
@@ -730,7 +733,7 @@ protected:
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
-      UInt average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
+      Size average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
         if (!id_data.peptides[i].empty())
@@ -760,6 +763,7 @@ protected:
           }
         }
       }
+      set<pair<String, String>> search_engines;
       for (Size i = 0; i < id_data.proteins.size(); ++i)
       {
         ++runs_count;
@@ -769,12 +773,19 @@ protected:
         {
           proteins.insert(temp_hits[j].getAccession());
         }
+        // collect all search engines which generated the data
+        search_engines.emplace(id_data.proteins[i].getSearchEngine(), id_data.proteins[i].getSearchEngineVersion());
       }
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
         peptide_length.push_back(0);
       }
-
+      
+      os << "Search Engine(s):\n";
+      for (const auto& se : search_engines)
+      {
+        os << "  " << se.first << " (version: " << se.second << ")\n";
+      }
       os << "Number of:"
          << "\n";
       os << "  runs:                       " << runs_count << "\n";
@@ -823,9 +834,16 @@ protected:
       os << "\nTransformation model: " << trafo.getModelType() << "\n";
       trafo.printSummary(os);
     }
+    else if (in_type == FileTypes::PQP)
+    {
+      TargetedExperiment targeted_exp; 
+      TransitionPQPFile pqp_reader;
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.convertPQPToTargetedExperiment(in.c_str(), targeted_exp, true);
+      os << targeted_exp.getSummary();
+    }
     else // peaks
     {
-
       SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
@@ -836,7 +854,7 @@ protected:
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
-      vector<UInt> levels = exp.getMSLevels();
+      const vector<UInt>& levels = exp.getMSLevels();
 
       // report memory consumption
       std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
@@ -866,16 +884,7 @@ protected:
         }
       }
 
-      os << "MS levels: ";
-      if (!levels.empty())
-      {
-        os << *(levels.begin());
-        for (vector<UInt>::iterator it = ++levels.begin(); it != levels.end(); ++it)
-        {
-          os << ", " << *it;
-        }
-      }
-      os << "\n";
+      os << "MS levels: " << ListUtils::concatenate(levels, ", ") << "\n";
 
       // basic info
       os << "Total number of peaks: " << exp.getSize() << "\n"; // count ALL peaks (also chromatographic)
@@ -917,39 +926,15 @@ protected:
       {
         for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
-          String name = it->getFloatDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getFloatDataArrays()[i].getName()];
         }
         for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
         {
-          String name = it->getIntegerDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getIntegerDataArrays()[i].getName()];
         }
         for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
         {
-          String name = it->getStringDataArrays()[i].getName();
-          if (meta_names.has(name))
-          {
-            meta_names[name]++;
-          }
-          else
-          {
-            meta_names[name] = 1;
-          }
+          ++meta_names[it->getStringDataArrays()[i].getName()];
         }
       }
       if (!meta_names.empty())
@@ -969,9 +954,9 @@ protected:
           os << "  " << it->first << ": " << padding << it->second << " spectra"
              << "\n";
         }
-        os << "\n";
+        os << "\n";  
       }
-
+       
       // some chromatogram information
       if (!exp.getChromatograms().empty())
       {
@@ -984,19 +969,11 @@ protected:
         for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
         {
           num_chrom_peaks += it->size();
-          if (chrom_types.has(it->getChromatogramType()))
-          {
-            chrom_types[it->getChromatogramType()]++;
-          }
-          else
-          {
-            chrom_types[it->getChromatogramType()] = 1;
-          }
+          ++chrom_types[it->getChromatogramType()];
         }
         os << "Number of chromatographic peaks: " << num_chrom_peaks << "\n"
            << "\n";
-        os_tsv << "number of chromatographic peaks"
-               << "\t" << num_chrom_peaks << "\n";
+        os_tsv << "number of chromatographic peaks" << "\t" << num_chrom_peaks << "\n";
 
         os << "Number of chromatograms per type: "
            << "\n";
@@ -1660,40 +1637,35 @@ protected:
     String out = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
 
-    TOPPBase::ExitCodes ret;
-    if (!out.empty() && !out_tsv.empty())
+    ofstream os;
+    ofstream os_tsv;
+    boost::iostreams::filtering_ostream os_filt;
+    boost::iostreams::filtering_ostream os_tsv_filt;
+
+
+    if (out.empty())
     {
-      ofstream os(out.c_str());
-      ofstream os_tsv(out_tsv.c_str());
-      ret = outputTo_(os, os_tsv);
-      os.close();
-      os_tsv.close();
-    }
-    else if (!out.empty() && out_tsv.empty())
-    {
-      ofstream os(out.c_str());
-      // Output stream with null output
-      boost::iostreams::filtering_ostream os_tsv;
-      os_tsv.push(boost::iostreams::null_sink());
-      ret = outputTo_(os, os_tsv);
-      os.close();
-    }
-    else if (out.empty() && !out_tsv.empty())
-    {
-      ofstream os_tsv(out_tsv.c_str());
-      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
-      ret = outputTo_(OpenMS_Log_info, os_tsv);
-      os_tsv.close();
+      os_filt.push(OpenMS_Log_info);
     }
     else
     {
-      // Output stream with null output
-      boost::iostreams::filtering_ostream os_tsv;
-      os_tsv.push(boost::iostreams::null_sink());
-      // directly use OpenMS_Log_info (no need for protecting output stream in non-parallel section)
-      ret = outputTo_(OpenMS_Log_info, os_tsv);
+      os.open(out);
+      if (!os) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
+      os_filt.push(os);
     }
-    return ret;
+
+    if (out_tsv.empty())
+    {
+      os_tsv_filt.push(boost::iostreams::null_sink());
+    }
+    else
+    {
+      os_tsv.open(out_tsv);
+      if (!os_tsv) throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_tsv);
+      os_tsv_filt.push(os_tsv);
+    }
+
+    return outputTo_(os_filt, os_tsv_filt);
   }
 };
 

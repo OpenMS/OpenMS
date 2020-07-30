@@ -10,6 +10,7 @@ CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 CruxAdapter
+DatabaseSuitability
 Decharger
 DTAExtractor
 EICExtractor

@@ -75,21 +75,26 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em X! Tandem must be installed before this wrapper can be used.
-    This wrapper has been successfully tested with several versions of X! Tandem.
+    @em X!Tandem must be installed before this wrapper can be used.
+    This wrapper has been successfully tested with several versions of @em X!Tandem.
     The earliest version known to work is "PILEDRIVER" (2015-04-01). The latest is "ALANINE" (2017-02-01).
 
-    To speed up computations, FASTA databases can be compressed using the fasta_pro.exe tool of @em X! Tandem.
-    It is contained in the "bin" folder of the @em X! Tandem installation.
-    Refer to the documentation of @em X! Tandem for further information about settings.
+    @note @em X!Tandem only support uncompressed mzML files (e.g. no zlib compression or other fancy things like numpress) may be used internally!
+    This converter only forwards the mzML filename and you will get an error like 'Fatal error: unsupported CODEC used for mzML peak data (CODEC type=zlib compression)'.
+    If this happens, preprocess the mzML files using OpenMS' @ref TOPP_FileConverter to write a plain mzML which @em X!Tandem understands.
+
+    To speed up computations, FASTA databases can be compressed using the fasta_pro.exe tool of @em X!Tandem.
+    It is contained in the "bin" folder of the @em X!Tandem installation.
+    Refer to the documentation of @em X!Tandem for further information about settings.
 
     This adapter supports relative database filenames.
     If a database is not found in the current working directory, it is looked up in the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    @em X! Tandem settings not exposed by this adapter (especially refinement settings) can be directly adjusted using an XML configuration file.
+    @em X!Tandem settings not exposed by this adapter (especially refinement settings) can be directly adjusted using an XML configuration file.
     By default, all (!) parameters available explicitly via this wrapper take precedence over the XML configuration file.
     The parameter @p default_config_file can be used to specify such a custom configuration.
-    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X! Tandem installation and in the OpenMS installation under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
+    An example of a configuration file (named "default_input.xml") is contained in the "bin" folder of the @em X!Tandem installation and in the OpenMS installation
+    under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
@@ -195,11 +200,11 @@ protected:
     }
 
     // write input xml file
-    String temp_directory = makeAutoRemoveTempDirectory_();
-    String input_filename = temp_directory + "tandem_input.xml";
+    File::TempDir dir(debug_level_ >= 2);
+    String input_filename = dir.getPath() + "tandem_input.xml";
     String tandem_input_filename = in;
-    String tandem_output_filename = temp_directory + "tandem_output.xml";
-    String tandem_taxonomy_filename = temp_directory + "tandem_taxonomy.xml";
+    String tandem_output_filename = dir.getPath() + "tandem_output.xml";
+    String tandem_taxonomy_filename = dir.getPath() + "tandem_taxonomy.xml";
 
     //-------------------------------------------------------------
     // reading input
@@ -227,6 +232,7 @@ protected:
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
+    mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
 

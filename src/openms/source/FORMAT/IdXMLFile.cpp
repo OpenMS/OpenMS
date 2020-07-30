@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -185,6 +186,10 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
+      if (params[i].enzyme_term_specificity != EnzymaticDigestion::SPEC_UNKNOWN)
+      {
+        os << "\t\t\t\t<UserParam name=\"EnzymeTermSpecificity\" type=\"string\" value=\"" << EnzymaticDigestion::NamesOfSpecificity[params[i].enzyme_term_specificity] << "\" />\n";
+      }
 
       os << "\t</SearchParameters>\n";
     }
@@ -856,6 +861,12 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
+      if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
+      {
+        String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        if (spec != "unknown")
+          param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+      }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
     }
@@ -882,10 +893,10 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      if (prot_ids_->size() == 0)
+      if (prot_ids_->empty())
       {
         // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
-        prot_ids_->push_back(prot_id_);
+        prot_ids_->emplace_back(std::move(prot_id_));
       }
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
@@ -899,9 +910,9 @@ namespace OpenMS
     //PEPTIDES
     else if (tag == "PeptideIdentification")
     {
-      pep_ids_->push_back(pep_id_);
+      pep_ids_->emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
-      last_meta_  = nullptr;
+      last_meta_ = nullptr;
     }
     else if (tag == "PeptideHit")
     {

@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <boost/regex.hpp>
+#include <fstream>
 
 namespace OpenMS
 {

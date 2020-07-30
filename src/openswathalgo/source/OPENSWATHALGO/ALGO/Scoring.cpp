@@ -35,6 +35,7 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
+#include <algorithm>
 
 #include <boost/numeric/conversion/cast.hpp>
 

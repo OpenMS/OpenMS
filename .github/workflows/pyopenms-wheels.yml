@@ -1,0 +1,435 @@
+# This is a basic workflow to help you get started with Actions
+
+name: pyopenms-wheels
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ nightly ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
+        host: 'windows' # default: win64_msvc2017_64
+        target: 'desktop'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+
+    - name: Install Miniconda
+      shell: bash # uses git bash on windows
+      run: |
+            MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
+
+    - name: Configure x64 environment
+      if: runner.os == 'Windows'
+      run: OpenMS\.github\workflows\vsenv.bat -arch=x64 -host_arch=x64
+
+    - name: Load contrib build
+      run: |
+          mkdir contribbld
+          cd contribbld
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+
+    - name: Build
+      shell: bash
+      run: |
+          mkdir bld
+          pushd bld
+          # TODO: set generator via variable, then we can share this step
+          cmake -G "Visual Studio 16 2019" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+          # Note: multiple --targets only supported by CMake 3.15+
+          cmake --build . --config Release --target OpenMS SuperHirn
+
+          # Search for the latest 3 main python versions in the repository pkgs/main
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+          echo $SUPPORTED_PYTHONS
+
+          mkdir pyopenms_whls
+
+          for py in $SUPPORTED_PYTHONS
+          do
+            conda create -n pyoms-bld-$py python=$py
+            source activate pyoms-bld-$py
+
+            # set current python executable
+            CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+            ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
+            # pip install all the stuff
+            pip install -U setuptools
+            pip install -U pip
+            pip install -U autowrap
+            pip install -U nose
+            pip install -U numpy
+            pip install -U wheel
+
+            #conda deactivate
+
+            echo $CURRENT_PYTHON_EXECUTABLE
+
+            # build pyopenms distribution
+            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            cmake --build . --config Release --target pyopenms
+
+            # copy to directory
+            cp pyOpenMS/dist/*.whl pyopenms_whls/
+            # clean up
+            conda deactivate
+            conda remove --name pyoms-bld-$py --all
+
+            # clean previous pyopenms libs
+            find . -name "pyopenms*.so" -exec rm -rf {} \;
+
+          done
+          
+    - uses: actions/upload-artifact@v1
+      name: Upload artifacts
+      with:
+        name: ${{ runner.os }}-wheels
+        path: bld/pyopenms_whls
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: OpenMS
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.12.7'
+        host: 'mac'
+        target: 'desktop'
+        install-deps: 'true'
+        modules: 'qtsvg'
+        cached: 'false'
+
+    - name: Install Miniconda
+      shell: bash
+      run: |
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+
+    - name: Install build tools
+      run: brew install autoconf automake libtool
+
+    - name: Load contrib build
+      run: |
+          mkdir contribbld
+          cd contribbld
+          curl -o contribbld.tar.gz https://abibuilder.informatik.uni-tuebingen.de/archive/openms/contrib/macOS/10.15.3/x64/appleclang-11.0.0/contrib_build.tar.gz
+          tar -xzf contribbld.tar.gz
+          rm contribbld.tar.gz
+
+    - name: Fix contrib install names
+      shell: bash 
+      run: |
+          for lib in $GITHUB_WORKSPACE/contribbld/lib/*.dylib
+          do
+            install_name_tool -id $lib $lib
+          done
+
+    - name: Build
+      run: |
+          export CC=clang
+          export CXX=clang++
+          export MACOSX_DEPLOYMENT_TARGET=10.9
+
+          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
+          pushd $Qt5_Dir/include
+            for f in $Qt5_Dir/lib/*.framework/Headers
+            do
+              lnknm=$(basename "${f%/*}" ".framework")
+              ln -s $f $lnknm
+            done
+          popd
+          mkdir bld
+          pushd bld
+          # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
+          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+          make -j4 OpenMS SuperHirn
+
+          # Search for the latest 3 main python versions in the repository pkgs/main
+          SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+          echo $SUPPORTED_PYTHONS
+
+          mkdir pyopenms_whls
+
+          for py in $SUPPORTED_PYTHONS
+          do
+            conda create -n pyoms-bld-$py python=$py
+            source activate pyoms-bld-$py
+
+            # set current python executable
+            CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+            # pip install all the stuff
+            pip install -U setuptools
+            pip install -U pip
+            pip install -U autowrap
+            pip install -U nose
+            pip install -U numpy
+            pip install -U wheel
+
+            #conda deactivate
+
+            echo $CURRENT_PYTHON_EXECUTABLE
+
+            # build pyopenms distribution (macOS)
+            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+            make -j4 pyopenms
+
+            # copy to directory
+            cp pyOpenMS/dist/*.whl pyopenms_whls/
+
+            # clean up
+            conda deactivate
+            conda remove --name pyoms-bld-$py --all
+
+            # clean previous pyopenms libs
+            find . -name "pyopenms*.so" -exec rm -rf {} \;
+
+          done
+
+    - uses: actions/upload-artifact@v1
+      name: Upload artifacts
+      with:
+        name: ${{ runner.os }}-wheels
+        path: bld/pyopenms_whls
+
+  build-lnx:
+    # TODO we have to make sure that this container is always updated with a push to contrib
+    runs-on: ubuntu-latest
+    container: hroest/manylinux2014_qt59_contrib:v1.1
+
+    steps:
+    # Cancels older builds if still running
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
+
+    - uses: actions/checkout@v2
+      name: Checkout sources
+      with:
+        path: OpenMS
+
+    - name: Build on manylinux2014 
+      run: |
+            # fixes some issues with empty pxd files
+            rm -rf /OpenMS/src/pyOpenMS/pxds/SwathMapMassCorrection.pxd
+
+            # install Python deps
+            for PYBIN in /opt/python/cp3*; do
+              "$PYBIN/bin/pip" install -U Cython
+              "$PYBIN/bin/pip" install -U setuptools
+              "$PYBIN/bin/pip" install -U wheel==0.31.1
+              "$PYBIN/bin/pip" install -U numpy
+              "$PYBIN/bin/pip" install -U nose
+              "$PYBIN/bin/pip" install -U autowrap==0.18.1
+            done
+
+            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+
+            LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
+            mkdir openms-build
+            cd openms-build
+            cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+            make -j4 OpenMS SuperHirn
+
+            # compile and configure OpenMS
+            for PYBIN in /opt/python/cp3*; do
+
+              # configure
+              cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python $GITHUB_WORKSPACE/OpenMS
+              make -j4 pyopenms
+              
+              pushd pyOpenMS
+                # remove the libraries as auditwheel will take care of linked libs
+                rm -rf pyopenms/lib*
+                rm -rf build/lib*/pyopenms/lib*
+                find . -name "pyopenms*.so" -exec rm -rf {} \; # not sure if that works here?! 
+                # create wheel without libraries
+                "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
+              popd
+            done
+
+            # ensure auditwheel can find the libraries
+            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+
+            # strip the libraries before repairing
+            strip --strip-all lib/libOpenMS.so
+            strip --strip-all lib/libOpenSwathAlgo.so
+            strip --strip-all lib/libSuperHirn.so
+            
+            pushd pyOpenMS
+              # Bundle stripped plus external shared libraries into the wheels
+              for whl in wheelhouse_tmp/pyopenms*.whl; do
+                auditwheel repair "$whl" -w wheelhouse/
+              done
+
+              # Note: Uncomment this line if you want to test the wheels before our fix
+              #/usr/bin/cp wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+
+              # Somehow auditwheel is broken and we get the wrong libraries here for
+              # libcrypto and libssl, lets go and fix it ...
+              yum install -y zip
+              pushd wheelhouse
+                for whl in pyopenms*.whl
+                do
+                  mkdir -p fix
+                  cp $whl fix/fix.zip
+                  pushd fix
+                    unzip fix.zip
+                    /usr/bin/cp /lib64/libssl.so.10  pyopenms/.libs/libssl-*
+                    /usr/bin/cp /lib64/libcrypto.so.10  pyopenms/.libs/libcrypto-*
+                    zip -r ../$whl pyopenms/
+                  popd
+                  rm -rf fix
+                done
+              popd
+              mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+            popd
+
+    - uses: actions/upload-artifact@v1
+      name: Upload artifacts
+      with:
+        name: ${{ runner.os }}-wheels
+        path: data/wheelhouse/
+
+# Tests the build workflows
+  test:
+    needs: [build-win, build-macos, build-lnx]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Install Miniconda
+      shell: bash
+      run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
+          fi
+
+    - name: Setup conda paths
+      shell: bash
+      run: |
+        echo "::add-path::$HOME/miniconda3/bin"
+        echo "::add-path::$HOME/miniconda3/Scripts"
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: ${{ runner.os }}-wheels
+
+    - name: Test
+      shell: bash 
+      run: |
+        # Search for the latest 3 main python versions in the repository pkgs/main
+        SUPPORTED_PYTHONS=$(conda search --full-name python | grep "pkgs/main" | awk '{print $2}' | cut -d '.' -f -2 | uniq | tail -3)
+
+        echo $SUPPORTED_PYTHONS
+
+        for py in $SUPPORTED_PYTHONS
+        do
+          conda create -n pyoms-bld-$py python=$py
+          source activate pyoms-bld-$py
+
+          # Find .whl for current python version
+          CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
+          echo "Testing python version $CURRENT_VERSION"
+          CURRENT_WHL=$(find $GITHUB_WORKSPACE -name "*$CURRENT_VERSION*.whl") # Probably $GITHUB_WORKSPACE
+          echo "Found wheel $CURRENT_WHL : Testing.."
+
+          python -m pip install --upgrade pip
+          # pip install all the stuff
+          pip install -U pip
+          pip install $CURRENT_WHL
+
+          python -c "import importlib.util; p_name = 'pyopenms'; package = importlib.util.find_spec(p_name); print(p_name + ' was sucessfully installed! Nice one!') if package is not None else print('Something seems to be wrong!')"
+
+          conda deactivate
+
+          # clean up
+          conda remove --name pyoms-bld-$py --all
+
+        done        
+# Upload the wheels (the action only runs on ubuntu slaves)
+  publish:
+    needs: [test] # doesn't really NEED it but we want the tests to pass first
+    runs-on: ubuntu-latest
+    steps:
+    # haha github is just ridiculous.. not getting their actions to do basic stuff for years
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: Linux-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: Windows-wheels
+    - name: Download artifacts
+      uses: actions/download-artifact@v1.0.0
+      with:
+          name: macOS-wheels
+
+    - name: Merge all artifacts
+      run: |
+            mkdir wheels
+            cp -lr *-wheels/* wheels/
+            pwd
+            ls -la wheels/
+
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_api_token }}
+        packages_dir: ${{ github.workspace }}/wheels

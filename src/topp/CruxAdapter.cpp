@@ -188,24 +188,6 @@ protected:
     return arg;
   }
 
-  void removeTempDir_(const String& tmp_dir)
-  {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) 
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      }
-      File::removeDirRecursively(tmp_dir);
-    }
-  }
-
   ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
@@ -255,14 +237,14 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
-    String output_dir = tmp_dir + "crux-output";
+    String output_dir = tmp_dir.getPath() + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
     String concat = " --concat T"; // concat target and decoy
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
-    String tmp_mzml = tmp_dir + "input.mzML";
+    String tmp_mzml = tmp_dir.getPath() + "input.mzML";
 
     // Low memory conversion
     {
@@ -279,7 +261,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     String crux_executable = getStringOption_("crux_executable");
-    String idx_name = tmp_dir + "tmp_idx";
+    String idx_name = tmp_dir.getPath() + "tmp_idx";
 
     // create index
     {

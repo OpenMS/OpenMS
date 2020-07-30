@@ -130,6 +130,8 @@ protected:
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", {"idXML","consensusXML"});
+    registerStringOption_("out_type", "<file>", "", "Output type: auto detected by file extension but can be overwritten here.", false);
+    setValidStrings_("out_type", {"idXML","consensusXML"});
 
     registerStringOption_("protein_fdr",
                           "<option>",
@@ -258,10 +260,12 @@ protected:
     sw.start();
 
     String out_file = getStringOption_("out");
+    String out_type = getStringOption_("out_type");
 
     if (!files.empty() && (in_type == FileTypes::CONSENSUSXML))
     {
-      if (FileHandler::getType(out_file) != FileTypes::CONSENSUSXML)
+      if (FileHandler::getTypeByFileName(out_file) != FileTypes::CONSENSUSXML &&
+          FileTypes::nameToType(out_type) != FileTypes::CONSENSUSXML)
       {
         OPENMS_LOG_FATAL_ERROR << "Error: Running on consensusXML requires output as consensusXML. Please change the "
                                   "output type.\n";
@@ -285,7 +289,6 @@ protected:
       {
         cmerge.mergeAllIDRuns(cmap);
       }
-      IDFilter::removeUnreferencedProteins(cmap, true);
 
       OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
       sw.reset();
@@ -304,6 +307,21 @@ protected:
         {
           IDFilter::updateProteinGroups(run.getIndistinguishableProteins(), run.getHits());
         }
+      }
+
+      for (auto& run : cmap.getProteinIdentifications())
+      {
+        std::sort(run.getHits().begin(), run.getHits().end(),
+                  [](const ProteinHit& f,
+                     const ProteinHit& g)
+                  {return f.getAccession() < g.getAccession();});
+        //sort for output because they might have been added in a different order
+        std::sort(
+            run.getIndistinguishableProteins().begin(),
+            run.getIndistinguishableProteins().end(),
+            [](const ProteinIdentification::ProteinGroup& f,
+               const ProteinIdentification::ProteinGroup& g)
+            {return f.accessions < g.accessions;});
       }
 
       bool calc_protFDR = getStringOption_("protein_fdr") == "true";
@@ -361,6 +379,7 @@ protected:
       // that get evaluated during FDR without a new posterior being set. (since components of size 1 are skipped)
       // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
       // However, this is done additionally in the Inference class after filtering, so maybe not necessary.
+
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
       OPENMS_LOG_INFO << "Loading took " << sw.toString() << std::endl;
@@ -457,3 +476,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

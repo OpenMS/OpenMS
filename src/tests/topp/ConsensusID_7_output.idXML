@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="ECOlL" db_version="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2020-07-17T23:39:59" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.6.0-pre-develop-2020-07-17" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="A" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="B" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="C" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[c1.mzML]"/>
+			<UserParam type="string" name="SE:Mascot" value="2.2.04"/>
+			<UserParam type="string" name="Mascot:db" value="ECOlL"/>
+			<UserParam type="string" name="Mascot:db_version" value="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta"/>
+			<UserParam type="string" name="Mascot:taxonomy" value="All entries"/>
+			<UserParam type="string" name="Mascot:charges" value=""/>
+			<UserParam type="string" name="Mascot:fixed_modifications" value=""/>
+			<UserParam type="string" name="Mascot:variable_modifications" value="Oxidation (M)"/>
+			<UserParam type="int" name="Mascot:missed_cleavages" value="1"/>
+			<UserParam type="float" name="Mascot:fragment_mass_tolerance" value="0.5"/>
+			<UserParam type="string" name="Mascot:fragment_mass_tolerance_unit" value="Da"/>
+			<UserParam type="float" name="Mascot:precursor_mass_tolerance" value="10.0"/>
+			<UserParam type="string" name="Mascot:precursor_mass_tolerance_unit" value="Da"/>
+			<UserParam type="string" name="Mascot:digestion_enzyme" value="Trypsin"/>
+			<UserParam type="string" name="Mascot:enzyme_term_specificity" value="unknown"/>
+			<UserParam type="string" name="SE:OMSSA" value="2.1.4"/>
+			<UserParam type="string" name="OMSSA:db" value="/nfs/wsi/bs/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.psq"/>
+			<UserParam type="string" name="OMSSA:db_version" value=""/>
+			<UserParam type="string" name="OMSSA:taxonomy" value="0"/>
+			<UserParam type="string" name="OMSSA:charges" value="+1-+3"/>
+			<UserParam type="string" name="OMSSA:fixed_modifications" value=""/>
+			<UserParam type="string" name="OMSSA:variable_modifications" value="Oxidation (M)"/>
+			<UserParam type="int" name="OMSSA:missed_cleavages" value="1"/>
+			<UserParam type="float" name="OMSSA:fragment_mass_tolerance" value="0.5"/>
+			<UserParam type="string" name="OMSSA:fragment_mass_tolerance_unit" value="Da"/>
+			<UserParam type="float" name="OMSSA:precursor_mass_tolerance" value="0.01"/>
+			<UserParam type="string" name="OMSSA:precursor_mass_tolerance_unit" value="Da"/>
+			<UserParam type="string" name="OMSSA:digestion_enzyme" value="Trypsin"/>
+			<UserParam type="string" name="OMSSA:enzyme_term_specificity" value="unknown"/>
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:db" value="/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.pro"/>
+			<UserParam type="string" name="XTandem:db_version" value=""/>
+			<UserParam type="string" name="XTandem:taxonomy" value=""/>
+			<UserParam type="string" name="XTandem:charges" value="+1-+3"/>
+			<UserParam type="string" name="XTandem:fixed_modifications" value=""/>
+			<UserParam type="string" name="XTandem:variable_modifications" value="Oxidation (M)"/>
+			<UserParam type="int" name="XTandem:missed_cleavages" value="1"/>
+			<UserParam type="float" name="XTandem:fragment_mass_tolerance" value="0.5"/>
+			<UserParam type="string" name="XTandem:fragment_mass_tolerance_unit" value="Da"/>
+			<UserParam type="float" name="XTandem:precursor_mass_tolerance" value="10.0"/>
+			<UserParam type="string" name="XTandem:precursor_mass_tolerance_unit" value="Da"/>
+			<UserParam type="string" name="XTandem:digestion_enzyme" value="unknown_enzyme"/>
+			<UserParam type="string" name="XTandem:enzyme_term_specificity" value="unknown"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="695.364599999999996" RT="2233.105000000000018" spectrum_reference="index=1" >
+			<PeptideHit score="0.54" sequence="QRESTATDILQK" charge="2" aa_before="K R X" aa_after="N G X" protein_refs="PH_0 PH_0 PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="1.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.92"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.98"/>
+				<UserParam type="float" name="XTandem_Posterior Error Probability_score" value="0.54"/>
+			</PeptideHit>
+			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.94"/>
+			</PeptideHit>
+			<PeptideHit score="0.95" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.95"/>
+			</PeptideHit>
+			<PeptideHit score="0.96" sequence="WSVEEEELLKK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.96"/>
+			</PeptideHit>
+			<PeptideHit score="0.96" sequence="EIEEDSLEGLKK" charge="2" aa_before="K X" aa_after="L X" protein_refs="PH_1 PH_1" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="consensus_support" value="0.5"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.96"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.98"/>
+			</PeptideHit>
+			<PeptideHit score="0.97" sequence="EQSATEQDILKK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.97"/>
+			</PeptideHit>
+			<PeptideHit score="0.97" sequence="GIEDDLMDLIKK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.97"/>
+			</PeptideHit>
+			<PeptideHit score="0.97" sequence="NTNNHNGHILKK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.97"/>
+			</PeptideHit>
+			<PeptideHit score="0.97" sequence="GSDKALIEVDSQK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.97"/>
+			</PeptideHit>
+			<PeptideHit score="0.97" sequence="ISCAEGALEALKK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.97"/>
+			</PeptideHit>
+			<PeptideHit score="0.98" sequence="IFHDFNIDLQK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.98"/>
+			</PeptideHit>
+			<PeptideHit score="0.98" sequence="CAACITPVELKK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.98"/>
+			</PeptideHit>
+			<PeptideHit score="0.98" sequence="EDNMAIQSIIKK" charge="2" aa_before="R" aa_after="E" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="OMSSA_Posterior Error Probability_score" value="0.98"/>
+			</PeptideHit>
+			<PeptideHit score="0.98" sequence="AKGDASAQIAAMQK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="0.0"/>
+				<UserParam type="float" name="Mascot_Posterior Error Probability_score" value="0.98"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

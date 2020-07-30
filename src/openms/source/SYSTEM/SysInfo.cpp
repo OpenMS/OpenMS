@@ -34,17 +34,20 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <cstdlib>
-#ifdef OPENMS_WINDOWSPLATFORM
-#include "windows.h"
-#include "psapi.h"
-#elif __APPLE__
-#include <mach/mach.h>
-#include <mach/mach_init.h>
-#else
-#include <cstdio>
-#include <unistd.h>
 
-#define OMS_USELINUXMEMORYPLATFORM
+#ifdef OPENMS_WINDOWSPLATFORM
+  #include "windows.h"
+  #include "psapi.h"
+#elif __APPLE__
+  #include <mach/mach.h>
+  #include <mach/mach_init.h>
+#else
+  #define OMS_USELINUXMEMORYPLATFORM
+  #include <cstdio>
+  #include <unistd.h>
+  #ifdef OPENMS_HAS_SYS_RESOURCE_H
+    #include <sys/resource.h> // for rusage
+  #endif
 #endif
 
 namespace OpenMS
@@ -142,10 +145,22 @@ namespace OpenMS
     mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
     return true;
 #elif __APPLE__
-    //todo: find a good API to do this
+    rusage ru;
+    if (getrusage(0, &ru) == 0) // success;
+    {
+      mem_virtual = ru.ru_maxrss / 1024; // reported in bytes (whereas Linux is KB!). Convert to KB
+      return true;
+    }
     return false;
 #else // Linux
-    //todo: find a good API to do this
+    #ifdef OPENMS_HAS_SYS_RESOURCE_H
+    rusage ru;
+    if (getrusage(0, &ru) == 0) // success;
+    {
+      mem_virtual = ru.ru_maxrss; // in KB already
+      return true;
+    }
+    #endif
     return false;
 #endif
   }

@@ -47,9 +47,10 @@ using namespace std;
 class MzTabFile2 : public MzTabFile
 {
   public:
-    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
+    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns, const MzTabMetaData& meta) const
     {
-      return generateMzTabSectionRow_(row, optional_columns);
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
     }
 };
 
@@ -171,9 +172,10 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const v
   optional_columns.push_back("Percolator_PEP");
   optional_columns.push_back("search_engine_sequence");
   optional_columns.push_back("AScore_1");
- 
+
+  MzTabMetaData m{};
     
-  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns));  
+  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns, m));
   std::vector<String> substrings;
   strRow.split('\t', substrings);
   TEST_EQUAL(substrings[substrings.size() - 1],"null")

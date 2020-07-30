@@ -154,13 +154,6 @@ START_SECTION((static String getOpenMSDataPath()))
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((static String removeExtension(const String& file)))
-  TEST_STRING_EQUAL(File::removeExtension(""),"")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
-END_SECTION
-
 START_SECTION((static bool isDirectory(const String& path)))
   TEST_EQUAL(File::isDirectory(""),false)
   TEST_EQUAL(File::isDirectory("."),true)
@@ -299,6 +292,35 @@ START_SECTION(static String findSiblingTOPPExecutable(const OpenMS::String& tool
 {
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
+}
+END_SECTION
+
+START_SECTION(File::TempDir(bool keep_dir = false))
+{
+  File::TempDir* dir = new File::TempDir();
+  File::TempDir* nullPointer = nullptr;
+  TEST_NOT_EQUAL(dir, nullPointer)
+  TEST_EQUAL(File::exists((*dir).getPath()),1)
+}
+END_SECTION
+
+START_SECTION(File::~TempDir())
+{
+  String path;
+  {
+    File::TempDir dir;
+    path = dir.getPath();
+    TEST_EQUAL(File::exists(path), 1)
+  }
+  TEST_EQUAL(File::exists(path), 0)
+  if (File::exists(path)) File::removeDir(path.toQString());
+  {
+    File::TempDir dir2(true);
+    path = dir2.getPath();
+    TEST_EQUAL(File::exists(path), 1)
+  }
+  TEST_EQUAL(File::exists(path), 1)
+  if (File::exists(path)) File::removeDir(path.toQString());
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

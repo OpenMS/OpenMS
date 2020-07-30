@@ -85,9 +85,6 @@ namespace OpenMS
     QCBase::Status requires() const override;
 
   private:
-    /// name of the metric
-    const String name_ = "MissedCleavages";
-    
     /// container that stores results
     std::vector<std::map<UInt32, UInt32>> mc_result_;
   };
