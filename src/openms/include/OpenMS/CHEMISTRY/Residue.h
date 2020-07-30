@@ -36,7 +36,6 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,6 +45,8 @@
 
 namespace OpenMS
 {
+  class ResidueModification;
+
   /**
       @ingroup Chemistry
 
@@ -396,6 +397,10 @@ public:
     /// helper for mapping residue types to letters for Text annotations and labels
     static char residueTypeToIonLetter(const ResidueType& res_type);
 
+    /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
+    /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
+    String toSequence() const;
+
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
@@ -469,6 +474,7 @@ protected:
     double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
   };
 
+  // write 'name threelettercode onelettercode formula'
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }

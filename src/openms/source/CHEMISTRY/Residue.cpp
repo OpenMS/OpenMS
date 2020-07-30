@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Residue.h>
+
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
@@ -636,6 +638,22 @@ namespace OpenMS
        cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
+  }
+
+  String Residue::toSequence() const
+  {
+    if (getOneLetterCode().empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue does not have a OneLetterCode. This is a bug. Please report it!", "");
+    }
+    if (!isModified())
+    {
+      return one_letter_code_;
+    }
+    else
+    { // this already contains the origin!
+      return modification_->toString();
+    }
   }
 
   ostream& operator<<(ostream& os, const Residue& residue)

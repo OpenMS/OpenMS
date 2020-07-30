@@ -38,6 +38,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -63,6 +64,9 @@ END_SECTION
 START_SECTION(~ResidueModification())
 	delete ptr;
 END_SECTION
+
+ModificationsDB* mod_DB = ModificationsDB::getInstance();
+ResidueDB* res_DB = ResidueDB::getInstance();
 
 ptr = new ResidueModification();
 
@@ -462,6 +466,64 @@ START_SECTION(bool operator!=(const ResidueModification& modification) const)
   TEST_EQUAL(mod1 != mod2, true)
   mod2.addSynonym("new_syn");
   TEST_EQUAL(mod1 != mod2, false)
+END_SECTION
+
+const ResidueModification* combined_mod;
+
+START_SECTION(static const ResidueModification* combineMods(const ResidueModification* base,
+	const std::set<const ResidueModification*>& addons,
+	bool allow_unknown_masses = false,
+	const Residue* residue = nullptr))
+
+
+  const ResidueModification* base = mod_DB->getModification("Phospho (S)");
+	std::set<const ResidueModification*> addons;
+	addons.insert(mod_DB->getModification("Label:15N(1) (S)"));
+	// boring case: 1 base + 1 addon
+	auto res = ResidueModification::combineMods(base, addons, false, res_DB->getResidue('S'));
+	TEST_EQUAL(res == nullptr, false);
+	TEST_EQUAL(res->getOrigin(), 'S');
+	TEST_EQUAL(res->getTermSpecificity(), ResidueModification::ANYWHERE);
+	TEST_REAL_SIMILAR(res->getDiffMonoMass(), base->getDiffMonoMass() + (*addons.begin())->getDiffMonoMass());
+	combined_mod = res; // useful for downstream tests
+
+	// test empty addons
+	TEST_EQUAL(base, ResidueModification::combineMods(base, {}, false, res_DB->getResidue('S')));
+
+	// test empty base + 1 addon
+	res = ResidueModification::combineMods(nullptr, addons, false, res_DB->getResidue('S'));
+	TEST_EQUAL(res, *addons.begin());
+
+	// 1 base, 2 addons (1 is invalid)
+	addons.insert(mod_DB->getModification("Label:15N(1) (T)"));
+	TEST_EXCEPTION(Exception::Precondition, ResidueModification::combineMods(base, addons, false, res_DB->getResidue('S'));)
+
+	// both empty
+	TEST_EQUAL(ResidueModification::combineMods(nullptr, {}, true) == nullptr, true)
+END_SECTION
+
+START_SECTION(String toString() const)
+	const ResidueModification* base = mod_DB->getModification("Phospho (S)");
+	TEST_EQUAL(base->toString(), "S(Phospho)")
+  TEST_EQUAL(combined_mod->toString(), "S[+80.963365999999994]")
+
+END_SECTION
+
+START_SECTION(static String getDiffMonoMassString(const double diff_mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassString(16), "+16.0");
+	TEST_EQUAL(ResidueModification::getDiffMonoMassString(-16), "-16.0");
+END_SECTION
+
+/// return a string of the form '[+&gt;mass&lt;] (the '+' might be a '-', if mass is negative).
+START_SECTION(static String getDiffMonoMassWithBracket(const double diff_mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(-16), "[-16.0]");
+END_SECTION
+
+/// return a string of the form '[&gt;mass&lt;]
+START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
+	TEST_EXCEPTION(Exception::InvalidValue, ResidueModification::getMonoMassWithBracket(-16));
 END_SECTION
 
 

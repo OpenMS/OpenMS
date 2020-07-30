@@ -404,22 +404,27 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::addModification(std::unique_ptr<ResidueModification> new_mod)
   {
+    const ResidueModification* ret;
     #pragma omp critical(OpenMS_ModificationsDB)
     {
       auto it = modification_names_.find(new_mod->getFullId());
       if (it != modification_names_.end())
       {
         OPENMS_LOG_WARN << "Modification already exists in ModificationsDB. Skipping." << new_mod->getFullId() << endl;
-        return *(it->second.begin());
+        ret = *(it->second.begin()); // returning from omp critical is not allowed
       }
-      modification_names_[new_mod->getFullId()].insert(new_mod.get());
-      modification_names_[new_mod->getId()].insert(new_mod.get());
-      modification_names_[new_mod->getFullName()].insert(new_mod.get());
-      modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
-      mods_.push_back(new_mod.get());
-      new_mod.release(); // do not delete the object; 
-      return mods_.back();
+      else
+      {
+        modification_names_[new_mod->getFullId()].insert(new_mod.get());
+        modification_names_[new_mod->getId()].insert(new_mod.get());
+        modification_names_[new_mod->getFullName()].insert(new_mod.get());
+        modification_names_[new_mod->getUniModAccession()].insert(new_mod.get());
+        mods_.push_back(new_mod.get());
+        new_mod.release(); // do not delete the object; 
+        ret = mods_.back();
+      }
     }
+    return ret;
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)
