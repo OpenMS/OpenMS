@@ -561,7 +561,7 @@ protected:
     registerFlag_("RNPxl:only_xl", "Only search cross-links and ignore non-cross-linked peptides.", true);
 
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
-    registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
+    registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.03, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
     setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration"}); 
@@ -859,6 +859,7 @@ protected:
     }
 
     // match precusor ions z = 1..pc_charge
+    double pc_match_count(0);
     for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
     { 
       for (Size z = 1; z <= pc_charge; ++z)
@@ -876,6 +877,7 @@ protected:
           {
             const double intensity = exp_spectrum[index].getIntensity();
             pc_MIC += intensity;
+            pc_match_count += 1.0;
             ++matches;
             peak_matched[index] = true;
           }
@@ -884,6 +886,7 @@ protected:
       }      
     }
     pc_MIC /= TIC;
+    pc_MIC += pc_match_count;  // Morpheus score 
 
     // shifted immonium ions
 
@@ -1170,6 +1173,7 @@ protected:
    }
     
     // match (partially) shifted precusor ions z = 1..pc_charge
+    double pc_match_count(0);
     for (double pc_loss : {0.0, -18.010565, -17.026548} ) // normal, loss of water, loss of ammonia
     { 
       const double peptide_mass = peptide_mass_without_NA + pc_loss;
@@ -1191,6 +1195,7 @@ protected:
             {
               const double intensity = exp_spectrum[index].getIntensity();
               plss_pc_MIC += intensity;
+              pc_match_count += 1.0;
               peak_matched[index] = true;
             }
           }
@@ -1198,6 +1203,7 @@ protected:
       }
     }
     plss_pc_MIC /= TIC;
+    plss_pc_MIC += pc_match_count; // Morpheus score
 
     ////////////////////////////////////////////////////////////////////////////////
     // match shifted immonium ions
@@ -1362,17 +1368,76 @@ score += ah.mass_error_p     *   1.15386068
            + isXL * 3.0 * ah.marker_ions_score
            + 3.0 * ah.total_MIC + ah.ladder_score;
 */
+
+
+/*
     return 
-              1.0 * ah.total_loss_score
-           +  0.1 * ah.partial_loss_score
-           +  0.1 * ah.mass_error_p 
+              47.29 * ah.total_loss_score
+           +  16.93 * ah.partial_loss_score
+           +  69.35 * ah.mass_error_p 
+           -  72.84 * ah.err 
+           -  75.65 * ah.pl_err
+           +  26.34 * ah.total_MIC
+           +  21.85 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
+           +  39.64 * ah.ladder_score
+           +  60.15 * (ah.tag_shifted >= 1);
+*/
+/*
+    return 
+              64.4 * ah.total_loss_score
+           +  21.3 * ah.partial_loss_score
+           +  98.97 * ah.mass_error_p 
+           -  57.57 * ah.err 
+           -  19.23 * ah.pl_err
+           +  0.23 * ah.total_MIC
+           +  16.47 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
+           +  20.26 * ah.ladder_score
+           +  4.25 * (ah.tag_shifted >= 1);
+*/
+/*
+    return 
+              0.90 * ah.total_loss_score
+           +  0.12 * ah.partial_loss_score
+           +  2.19 * ah.mass_error_p 
+           -  54.60 * ah.err 
+           -  71.06 * ah.pl_err
+           +  67.47 * ah.total_MIC
+           +  66.27 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
+           +  11.45 * ah.ladder_score
+           +  28.09 * (ah.tag_shifted >= 1);
+*/
+           return 1.0 * ah.total_loss_score
+           +  0.5 * ah.partial_loss_score
+           +  1.0 * ah.mass_error_p 
            -  0.1 * ah.err 
            -  0.1 * ah.pl_err
-           +  0.1 * ah.pl_MIC
            + isXL * 0.1 * ah.marker_ions_score
-           +  0.1 * ah.total_MIC 
-           +  0.1 * ah.ladder_score;
+           +  1.0 * ah.total_MIC
+           + isXL * (ah.pl_pc_MIC + ah.precursor_score)
+//           +  1.0 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
+           +  0.1 * ah.ladder_score
+           +  1.0 * (ah.tag_shifted >= 1);
 
+
+/*
+ * [96.45142397 49.37352197  2.61098131 -1.21298196 -4.09934265 28.64381592
+ *  53.84125899 41.37187898  7.66281392]
+ */
+
+
+/*
+ * good on IN VITRO:
+              1.0 * ah.total_loss_score
+           +  0.5 * ah.partial_loss_score
+           +  1.0 * ah.mass_error_p 
+           -  0.1 * ah.err 
+           -  0.1 * ah.pl_err
+           + isXL * 0.1 * ah.marker_ions_score
+           +  1.0 * ah.total_MIC
+           +  1.0 * (ah.pl_pc_MIC > 0 || ah.precursor_score > 0)
+           +  0.1 * ah.ladder_score
+           +  1.0 * (ah.tag_shifted >= 1);
+*/
 /*
             -10.9457 + 1.1836 * isXL + 1.6076 * ah.mass_error_p - 579.912 * ah.err
            + 52.2888 * ah.pl_err - 0.0105 * ah.modds
@@ -1874,7 +1939,7 @@ static void scoreXLIons_(
     cout << " done!" << endl;
 
     cout << "Calculating longest mass tags..." << endl;
-    OpenNuXLTagger tagger(0.05, 3);
+    OpenNuXLTagger tagger(0.03, 3);
     for (auto & spec : exp)
     {
       if (spec.getMSLevel() != 2) continue;
@@ -2019,7 +2084,7 @@ static void scoreXLIons_(
 
       // deisotope
       Deisotoper::deisotopeAndSingleCharge(spec, 
-                                         0.05,
+                                         0.03,
                                          false,
                                          1, 3, 
                                          false, 
@@ -2053,7 +2118,7 @@ static void scoreXLIons_(
     NLargest nlargest_filter = NLargest(400);
 
     #ifdef DEBUG_OpenNuXL
-    BinnedSpectrum peak_density(MSSpectrum(), 0.05, false, 0, 0);
+    BinnedSpectrum peak_density(MSSpectrum(), 0.03, false, 0, 0);
     #endif
 
 #pragma omp parallel for
@@ -2118,7 +2183,7 @@ static void scoreXLIons_(
     #endif
 
 #ifdef DEBUG_OpenNuXL
-      BinnedSpectrum bs(spec, 0.05, false, 0, 0);
+      BinnedSpectrum bs(spec, 0.03, false, 0, 0);
       bs.getBins().coeffs().cwiseMax(1);
 
 #pragma omp critical (peak_density_access)
@@ -2138,7 +2203,7 @@ static void scoreXLIons_(
     ofstream dist_file;
     dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
     dist_file << "m/z\tfragments" << "\n";
-    for (double mz = 0; mz < 2500.0; mz+=0.05)
+    for (double mz = 0; mz < 2500.0; mz+=0.03)
     {
       dist_file << mz << "\t" << peak_density.getBinIntensity(mz) << "\n";
     }
@@ -3562,7 +3627,7 @@ static void scoreXLIons_(
       im_MIC   
     );
 
-    const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
+    const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
 
     // early-out if super bad score
     if (badTotalLossScore(total_loss_score, tlss_Morph, tlss_modds, tlss_total_MIC)) { return; }
@@ -4652,7 +4717,7 @@ static void scoreXLIons_(
                     im_MIC
                   );                  
 
-                  const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
+                  const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
                   if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                   const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
@@ -4829,7 +4894,7 @@ static void scoreXLIons_(
                       im_MIC   
                     );
 
-                    const double tlss_total_MIC = tlss_MIC + im_MIC + pc_MIC;
+                    const double tlss_total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC));
                     if (badTotalLossScore(hyperScore, tlss_Morph, tlss_modds, tlss_total_MIC)) { continue; }
 
                     vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
@@ -4867,10 +4932,10 @@ static void scoreXLIons_(
                                  plss_pc_MIC,
                                  plss_im_MIC);
 
-                    const double total_MIC = tlss_MIC + im_MIC + pc_MIC + plss_MIC + plss_pc_MIC + plss_im_MIC + marker_ions_sub_score;
+                    const double total_MIC = tlss_MIC + im_MIC + (pc_MIC - floor(pc_MIC)) + plss_MIC + (plss_pc_MIC - floor(plss_pc_MIC)) + plss_im_MIC + marker_ions_sub_score;
 
                     // decreases number of hits (especially difficult cases - but also number of false discoveries)
-                    if (filter_bad_partial_loss_scores && badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, plss_pc_MIC, marker_ions_sub_score))  
+                    if (filter_bad_partial_loss_scores && badPartialLossScore(tlss_Morph, plss_Morph, plss_MIC, plss_im_MIC, (plss_pc_MIC - floor(plss_pc_MIC)), marker_ions_sub_score))  
                     { 
                       continue; 
                     }
@@ -4931,6 +4996,7 @@ static void scoreXLIons_(
 
                     // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
                     const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
+
 #ifdef FILTER_BAD_SCORES_ID_TAGS
                     if (longest_tags.tag_XLed == 0) { continue; }
 #endif
