@@ -297,11 +297,13 @@ protected:
           }
           else if (mvkey.hasSuffix("fixed_modifications"))
           {
-            sp.fixed_modifications = old_sp.getMetaValue(mvkey).toStringList();
+            const String& s = old_sp.getMetaValue(mvkey);
+            s.split(',', sp.fixed_modifications);
           }
           else if (mvkey.hasSuffix("variable_modifications"))
           {
-            sp.variable_modifications = old_sp.getMetaValue(mvkey).toStringList();
+            const String& s = old_sp.getMetaValue(mvkey);
+            s.split(',', sp.variable_modifications);
           }
           else if (mvkey.hasSuffix("missed_cleavages"))
           {
