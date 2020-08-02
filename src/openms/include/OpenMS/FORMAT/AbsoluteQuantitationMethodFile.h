@@ -39,8 +39,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <map>
-#include <fstream>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {

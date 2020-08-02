@@ -37,8 +37,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_set>
 #include <OpenMS/QC/QCBase.h>
+
+#include <unordered_set>
 
 
 namespace OpenMS

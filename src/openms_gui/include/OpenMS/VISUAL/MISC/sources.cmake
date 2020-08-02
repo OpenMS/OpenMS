@@ -3,6 +3,7 @@ set(directory include/OpenMS/VISUAL/MISC)
 
 ### list all header files of the directory here
 set(sources_list_h
+ExternalProcessMBox.h
 GUIHelpers.h
 )
 

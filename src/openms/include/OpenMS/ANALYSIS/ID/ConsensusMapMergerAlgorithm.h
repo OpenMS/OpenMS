@@ -99,8 +99,6 @@ namespace OpenMS
     bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const String& experiment_type) const;
     /// Same as above but with specific reference run
     bool checkOldRunConsistency_(const std::vector<ProteinIdentification>& protRuns, const ProteinIdentification& ref, const String& experiment_type) const;
-    /// Compares exactly two runs @todo refactor with above
-    bool checkRunSettings_(const ProteinIdentification& idRun, const ProteinIdentification& ref, const String& experiment_type) const;
 
 
     static size_t accessionHash_(const ProteinHit& p)

@@ -187,7 +187,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1
@@ -318,7 +318,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewSpectraViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 

@@ -37,8 +37,6 @@
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <boost/regex.hpp>
-#include <iostream>
 #include <map>
 
 namespace OpenMS

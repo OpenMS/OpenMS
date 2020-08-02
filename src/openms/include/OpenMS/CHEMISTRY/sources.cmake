@@ -6,6 +6,7 @@ set(sources_list_h
 AAIndex.h
 AASequence.h
 CrossLinksDB.h
+DecoyGenerator.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h

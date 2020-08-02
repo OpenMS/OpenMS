@@ -48,6 +48,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -106,7 +108,7 @@ using namespace std;
     <B>File types:</B>
 
     Different input files types are supported:
-    @li idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group.
+    @li idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group. With the per_spectrum flag you can also input multiple idXML files. A consensus will be made per combination of originating mzml file and spectrum_ref.
     @li featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -140,10 +142,11 @@ public:
 protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
+  bool keep_old_scores_;
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFileList_("in", "<file(s)>", {}, "input file");
     setValidFormats_("in", ListUtils::create<String>("idXML,featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("idXML,featureXML,consensusXML"));
@@ -153,6 +156,8 @@ protected:
     setMinFloat_("rt_delta", 0.0);
     registerDoubleOption_("mz_delta", "<value>", 0.1, "[idXML input only] Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
+
+    registerFlag_("per_spectrum", "(only idXML) if set, mapping will be done based on exact matching of originating mzml file and spectrum_ref");
 
     // General algorithm parameters are defined in the abstract base class
     // "ConsensusIDAlgorithm", but we can't get them from there because we can't
@@ -175,6 +180,7 @@ protected:
     // in which they were registered:
     registerSubsection_("PEPIons", "PEPIons algorithm parameters");
     registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
+
   }
 
 
@@ -227,6 +233,10 @@ protected:
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
     // or maybe put it in a DataProcessingStep
+    //TODO actually this only makes sense if there was only one search engine. (see the alternative
+    // setProteinIdentificationSettings_)
+    // best, worst, average can also be used on PEP scores for different search engines. IDPEP does not
+    // overwrite the search engine (in contrast to PercolatorAdapter)
     if (algorithm_ == "best" || algorithm_ == "worst" || algorithm_ == "average")
     {
       prot_ids[0].setMetaValue("ConsensusIDBaseSearch", engine + String(":") + version);
@@ -237,6 +247,149 @@ protected:
     StringList::iterator last = std::unique(merged_spectra_data.begin(), merged_spectra_data.end());
     merged_spectra_data.erase(last, merged_spectra_data.end());
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
+  }
+
+  tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
+  {
+    String engine = prot.getSearchEngine();
+    if (engine != "Percolator")
+    {
+      return std::tie(engine, prot.getSearchEngineVersion(), prot.getSearchParameters());
+    }
+    else
+    {
+      String original_SE = "Unknown";
+      String original_SE_ver = "0.0";
+      vector<String> mvkeys;
+      prot.getKeys(mvkeys);
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix("SE:"))
+        {
+          original_SE = mvkey.substr(3);
+          original_SE_ver = prot.getMetaValue(mvkey);
+          break; // multiSE percolator before consensusID not allowed; we take first only
+        }
+      }
+
+      ProteinIdentification::SearchParameters sp{};
+      for (const String & mvkey : mvkeys)
+      {
+        if (mvkey.hasPrefix(original_SE))
+        {
+          if (mvkey.hasSuffix("db"))
+          {
+            sp.db = prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("db_version"))
+          {
+            sp.db_version = prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("taxonomy"))
+          {
+            sp.taxonomy = prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("charges"))
+          {
+            sp.charges = prot.getMetaValue(mvkey);;
+          }
+          else if (mvkey.hasSuffix("fixed_modifications"))
+          {
+            sp.fixed_modifications = prot.getMetaValue(mvkey).toStringList();
+          }
+          else if (mvkey.hasSuffix("variable_modifications"))
+          {
+            sp.variable_modifications = prot.getMetaValue(mvkey).toStringList();
+          }
+          else if (mvkey.hasSuffix("missed_cleavages"))
+          {
+            sp.missed_cleavages = (UInt) prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("fragment_mass_tolerance"))
+          {
+            sp.fragment_mass_tolerance = (double) prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("fragment_mass_tolerance_ppm"))
+          {
+            sp.fragment_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
+          }
+          else if (mvkey.hasSuffix("precursor_mass_tolerance"))
+          {
+            sp.precursor_mass_tolerance = (double) prot.getMetaValue(mvkey);
+          }
+          else if (mvkey.hasSuffix("precursor_mass_tolerance_ppm"))
+          {
+            sp.precursor_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
+          }
+          else if (mvkey.hasSuffix("digestion_enzyme"))
+          {
+            Protease p = *(ProteaseDB::getInstance()->getEnzyme(prot.getMetaValue(mvkey)));
+            sp.digestion_enzyme = p;
+          }
+          else if (mvkey.hasSuffix("enzyme_term_specificity"))
+          {
+            sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) prot.getMetaValue(mvkey));
+          }
+        }
+      }
+      return std::tie(original_SE, original_SE_ver, sp);
+    }
+  }
+
+  void setProteinIdentificationSettings_(ProteinIdentification& prot_id, vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings)
+  {
+    // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
+    set<String> fixed_mods_set;
+    set<String> var_mods_set;
+
+    //TODO check if settings are same/similar
+    bool allsamese = true;
+    for (const auto& se_ver_setting : se_ver_settings)
+    {
+      allsamese = allsamese &&
+          (get<0>(se_ver_setting) == get<0>(se_ver_settings[0]) &&
+           get<1>(se_ver_setting) == get<1>(se_ver_settings[0]));
+
+      const ProteinIdentification::SearchParameters& sp = get<2>(se_ver_setting);
+      const String& SE = get<0>(se_ver_setting);
+      prot_id.setMetaValue("SE:" + SE, get<1>(se_ver_setting));
+      prot_id.setMetaValue(SE+":db",sp.db);
+      prot_id.setMetaValue(SE+":db_version",sp.db_version);
+      prot_id.setMetaValue(SE+":taxonomy",sp.taxonomy);
+      prot_id.setMetaValue(SE+":charges",sp.charges);
+      prot_id.setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
+      prot_id.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
+      prot_id.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
+      prot_id.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
+      prot_id.setMetaValue(SE+":fragment_mass_tolerance_unit",sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      prot_id.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
+      prot_id.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
+      prot_id.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+      prot_id.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
+
+      std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
+      std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
+    }
+
+    // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
+    // we assume that they are the same or similar
+    ProteinIdentification::SearchParameters search_params = get<2>(se_ver_settings[0]);
+    std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
+    std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
+    search_params.fixed_modifications    = fixed_mods;
+    search_params.variable_modifications = var_mods;
+
+    prot_id.setDateTime(DateTime::now());
+    prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
+    prot_id.setSearchEngineVersion(VersionInfo::getVersion());
+    prot_id.setSearchParameters(search_params);
+
+    //TODO for completeness we could in the other algorithms, collect all search engines and put them here
+    // or maybe put it in a DataProcessingStep
+    if (allsamese)
+    {
+      prot_id.setMetaValue("ConsensusIDBaseSearch", get<0>(se_ver_settings[0]) + String(":") + get<1>(se_ver_settings[0]));
+    }
   }
 
 
@@ -252,11 +405,17 @@ protected:
     // different ID runs with the max. number of times we see the same ID run
     // in the annotations of a feature.
 
+    map<String, String> runid_to_se;
     map<String, Size> id_mapping; // mapping: run ID -> index
     Size number_of_runs = input_map.getProteinIdentifications().size();
     for (Size i = 0; i < number_of_runs; ++i)
     {
-      id_mapping[input_map.getProteinIdentifications()[i].getIdentifier()] = i;
+      const auto& prot = input_map.getProteinIdentifications()[i];
+      id_mapping[prot.getIdentifier()] = i;
+      if (keep_old_scores_)
+      {
+        runid_to_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
+      }
     }
 
     // compute consensus:
@@ -272,7 +431,7 @@ protected:
       }
       Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
 
-      consensus->apply(ids, number_of_runs * n_repeats);
+      consensus->apply(ids, runid_to_se, number_of_runs * n_repeats);
     }
 
     // create new identification run:
@@ -284,11 +443,12 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    String in = getStringOption_("in");
-    FileTypes::Type in_type = FileHandler::getType(in);
+    StringList in = getStringList_("in");
+    FileTypes::Type in_type = FileHandler::getType(in[0]);
     String out = getStringOption_("out");
     double rt_delta = getDoubleOption_("rt_delta");
     double mz_delta = getDoubleOption_("mz_delta");
+    keep_old_scores_ = getFlag_("filter:keep_old_scores");
 
     //----------------------------------------------------------------
     // set up ConsensusID
@@ -336,81 +496,200 @@ protected:
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
       String document_id;
-      IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-
-      // merge peptide IDs by precursor position - this is equivalent to a
-      // feature linking problem (peptide IDs from different ID runs <-> 
-      // features from different maps), so we bring the data into a format
-      // suitable for a feature grouping algorithm:
-      vector<FeatureMap> maps(prot_ids.size());
-      map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
-      for (Size i = 0; i < prot_ids.size(); ++i)
+      if (getFlag_("per_spectrum"))
       {
-        id_mapping[prot_ids[i].getIdentifier()] = i;
-      }
+        map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
+        map<String, unordered_set<String>> seen_proteins_per_file;
+        map<String, Size> runid_to_old_run_idx;
+        map<String, String> runid_to_old_se;
+        // the values (new_run_idx) in mzml_to_new_run_idx correspond to the indices in mzml_to_sesettings
+        map<String, Size> mzml_to_new_run_idx;
+        vector<vector<tuple<String, String, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
 
-      for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
-           pep_it != pep_ids.end(); ++pep_it)
-      {
-        String run_id = pep_it->getIdentifier();
-        if (!pep_it->hasRT() || !pep_it->hasMZ())
+        for (const auto& infile : in)
         {
-          OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-
-        Feature feature;
-        feature.setRT(pep_it->getRT());
-        feature.setMZ(pep_it->getMZ());
-        feature.getPeptideIdentifications().push_back(*pep_it);
-        maps[id_mapping[run_id]].push_back(feature);
-      }
-      // precondition for "FeatureGroupingAlgorithmQT::group":
-      for (vector<FeatureMap>::iterator map_it = maps.begin();
-           map_it != maps.end(); ++map_it)
-      {
-        map_it->updateRanges();
-      }
-
-      FeatureGroupingAlgorithmQT linker;
-      Param linker_params = linker.getDefaults();
-      linker_params.setValue("use_identifications", "false");
-      linker_params.setValue("ignore_charge", "true");
-      linker_params.setValue("distance_RT:max_difference", rt_delta);
-      linker_params.setValue("distance_MZ:max_difference", mz_delta);
-      linker_params.setValue("distance_MZ:unit", "Da");
-      linker.setParameters(linker_params);
-
-      ConsensusMap grouping;
-      linker.group(maps, grouping);
-
-      // compute consensus
-      pep_ids.clear();
-      for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
-           ++it)
-      {
-        consensus->apply(it->getPeptideIdentifications(), prot_ids.size());
-        if (!it->getPeptideIdentifications().empty())
-        {
-          PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
-          // hits may be empty due to filtering (parameter "min_support");
-          // in that case skip to avoid a warning from "IDXMLFile::store":
-          if (!pep_id.getHits().empty())
+          vector<ProteinIdentification> tmp_prot_ids;
+          vector<PeptideIdentification> tmp_pep_ids;
+          IdXMLFile().load(infile, tmp_prot_ids, tmp_pep_ids, document_id);
+          Size idx(0);
+          for (const auto& prot : tmp_prot_ids)
           {
-            pep_id.setRT(it->getRT());
-            pep_id.setMZ(it->getMZ());
-            pep_ids.push_back(pep_id);
+            runid_to_old_run_idx[prot.getIdentifier()] = idx++;
+            if (keep_old_scores_)
+            {
+              runid_to_old_se[prot.getIdentifier()] = prot.getOriginalSearchEngineName();
+            }
+            StringList original_files;
+            prot.getPrimaryMSRunPath(original_files);
+            for (auto& f : original_files)
+            {
+              std::replace( f.begin(), f.end(), '\\', '/');
+              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+            }
+            if (original_files.size() != 1)
+            {
+              //TODO in theory you could also compare the whole StringList (if you want to consensusID
+              // a whole "merge" of multiple ID files (e.g. fractions)
+              throw Exception::InvalidValue(
+                  __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                  "Currently only ID runs on exactly one mzML file are supported. "
+                  "Run " + prot.getIdentifier() + " contains too many.", String(original_files.size()));
+            }
+            String original_file = original_files[0];
+            auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
+            const auto se_ver_settings = getOriginalSearchEngineSettings_(prot);
+            if (iter_inserted.second)
+            {
+              mzml_to_new_run_idx[original_file] = prot_ids.size();
+              mzml_to_sesettings.emplace_back(vector<tuple<String, String, ProteinIdentification::SearchParameters>>{});
+              mzml_to_sesettings.back().emplace_back(se_ver_settings);
+              prot_ids.emplace_back(ProteinIdentification());
+              prot_ids.back().setIdentifier("ConsensusID for " + original_file);
+            }
+            else
+            {
+              mzml_to_sesettings[mzml_to_new_run_idx[original_file]].emplace_back(se_ver_settings);
+            }
+            for (auto& hit : prot.getHits())
+            {
+              auto acciter_inserted = iter_inserted.first->second.emplace(hit.getAccession());
+              if (acciter_inserted.second)
+              {
+                prot_ids[mzml_to_new_run_idx[original_file]].getHits().emplace_back(std::move(hit));
+              }
+            }
+          }
+
+          for (auto& pep_id : tmp_pep_ids)
+          {
+            StringList original_files;
+            const ProteinIdentification& old = tmp_prot_ids[runid_to_old_run_idx[pep_id.getIdentifier()]];
+            old.getPrimaryMSRunPath(original_files); // the size should have been checked during the loop over proteins
+            for (auto& f : original_files)
+            {
+              std::replace( f.begin(), f.end(), '\\', '/');
+              f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
+            }
+            String original_file = original_files[0];
+            auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
+            if (pep_id.metaValueExists("spectrum_reference"))
+            {
+              String nativeID = pep_id.getMetaValue("spectrum_reference");
+              auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, vector<PeptideIdentification>{});
+              nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
+            }
+          }
+        }
+        for (auto& file_ref_peps : grouping_per_file)
+        {
+          Size new_run_id = mzml_to_new_run_idx[file_ref_peps.first];
+          ProteinIdentification& to_put = prot_ids[new_run_id];
+          // Note: we assume that at least one of the inputs had mzML as an extension
+          // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
+          to_put.setPrimaryMSRunPath({file_ref_peps.first + ".mzML"});
+          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
+          for (const auto& ref_peps : file_ref_peps.second)
+          {
+            vector<PeptideIdentification> peps = ref_peps.second;
+            if (peps.empty()) continue; //sth went wrong. skip
+            double mz = peps[0].getMZ();
+            double rt = peps[0].getRT();
+            // has to have a ref, save it, since apply might modify everything
+            String ref = peps[0].getMetaValue("spectrum_reference");
+            consensus->apply(peps, runid_to_old_se, mzml_to_sesettings[new_run_id].size());
+            for (auto& p : peps)
+            {
+              p.setIdentifier(to_put.getIdentifier());
+              p.setMZ(mz);
+              p.setRT(rt);
+              p.setMetaValue("spectrum_reference", ref);
+              //TODO copy other meta values from the originals? They need to be collected
+              // in the algorithm subclasses though first
+              pep_ids.emplace_back(std::move(p));
+            }
           }
         }
       }
+      else
+      {
+        IdXMLFile().load(in[0], prot_ids, pep_ids, document_id);
 
-      // create new identification run
-      setProteinIdentifications_(prot_ids);
+        // merge peptide IDs by precursor position - this is equivalent to a
+        // feature linking problem (peptide IDs from different ID runs <->
+        // features from different maps), so we bring the data into a format
+        // suitable for a feature grouping algorithm:
+        vector<FeatureMap> maps(prot_ids.size());
+        map<String, String> runid_to_se;
+        map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
+        for (Size i = 0; i < prot_ids.size(); ++i)
+        {
+          id_mapping[prot_ids[i].getIdentifier()] = i;
+          if (keep_old_scores_)
+          {
+            runid_to_se[prot_ids[i].getIdentifier()] = prot_ids[i].getOriginalSearchEngineName();
+          }
+        }
 
+        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+             pep_it != pep_ids.end(); ++pep_it)
+        {
+          String run_id = pep_it->getIdentifier();
+          if (!pep_it->hasRT() || !pep_it->hasMZ())
+          {
+            OPENMS_LOG_FATAL_ERROR << "Peptide ID without RT and/or m/z information found in identification run '" + run_id + "'.\nMake sure that this information is included for all IDs when generating/converting search results. Aborting!" << endl;
+            return INCOMPATIBLE_INPUT_DATA;
+          }
+
+          Feature feature;
+          feature.setRT(pep_it->getRT());
+          feature.setMZ(pep_it->getMZ());
+          feature.getPeptideIdentifications().push_back(*pep_it);
+          maps[id_mapping[run_id]].push_back(feature);
+        }
+        // precondition for "FeatureGroupingAlgorithmQT::group":
+        for (vector<FeatureMap>::iterator map_it = maps.begin();
+             map_it != maps.end(); ++map_it)
+        {
+          map_it->updateRanges();
+        }
+
+        FeatureGroupingAlgorithmQT linker;
+        Param linker_params = linker.getDefaults();
+        linker_params.setValue("use_identifications", "false");
+        linker_params.setValue("ignore_charge", "true");
+        linker_params.setValue("distance_RT:max_difference", rt_delta);
+        linker_params.setValue("distance_MZ:max_difference", mz_delta);
+        linker_params.setValue("distance_MZ:unit", "Da");
+        linker.setParameters(linker_params);
+
+        ConsensusMap grouping;
+        linker.group(maps, grouping);
+
+        // compute consensus
+        pep_ids.clear();
+        for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
+             ++it)
+        {
+          consensus->apply(it->getPeptideIdentifications(), runid_to_se, prot_ids.size());
+          if (!it->getPeptideIdentifications().empty())
+          {
+            PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
+            // hits may be empty due to filtering (parameter "min_support");
+            // in that case skip to avoid a warning from "IDXMLFile::store":
+            if (!pep_id.getHits().empty())
+            {
+              pep_id.setRT(it->getRT());
+              pep_id.setMZ(it->getMZ());
+              pep_ids.push_back(pep_id);
+            }
+          }
+        }
+        // create new identification run
+        setProteinIdentifications_(prot_ids);
+      }
       // store consensus
       IdXMLFile().store(out, prot_ids, pep_ids);
     }
-
 
     //----------------------------------------------------------------
     // featureXML
@@ -418,7 +697,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map;
-      FeatureXMLFile().load(in, map);
+      FeatureXMLFile().load(in[0], map);
 
       processFeatureOrConsensusMap_(map, consensus);
 
@@ -431,7 +710,7 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap map;
-      ConsensusXMLFile().load(in, map);
+      ConsensusXMLFile().load(in[0], map);
 
       processFeatureOrConsensusMap_(map, consensus);
 
@@ -442,7 +721,6 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
 

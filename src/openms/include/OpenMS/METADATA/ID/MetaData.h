@@ -75,8 +75,6 @@ namespace OpenMS
       AVERAGE,
       SIZE_OF_MASSTYPE
     };
-
-
     // Input files that were processed:
     typedef std::set<String> InputFiles;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;

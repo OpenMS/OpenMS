@@ -199,7 +199,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilters::add(const DataFilter & filter)
+  void DataFilters::add(const DataFilter& filter)
   {
     //activate if not empty
     is_active_ = true;
@@ -368,6 +368,37 @@ namespace OpenMS
     }
     return true;
   }
+
+  bool DataFilters::metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const
+  {
+    if (!meta_interface.metaValueExists((UInt)index)) return false;
+    else if (filter.op != EXISTS)
+    {
+      const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
+      if (!filter.value_is_numerical)
+      {
+        if (data_value.valueType() != DataValue::STRING_VALUE) return false;
+        else
+        {
+          // for string values, equality is the only valid operation (besides "exists", see above)
+          if (filter.op != EQUAL) return false;
+          else if (filter.value_string != data_value.toString()) return false;
+        }
+      }
+      else             // value_is_numerical
+      {
+        if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
+        else
+        {
+          if (filter.op == EQUAL && (double)data_value != filter.value) return false;
+          else if (filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
+          else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
+        }
+      }
+    }
+    return true;
+  }
+
 
   void DataFilters::setActive(bool is_active)
   {

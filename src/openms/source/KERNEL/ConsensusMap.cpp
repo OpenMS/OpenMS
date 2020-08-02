@@ -34,12 +34,13 @@
 
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/QC/QCBase.h>
 #include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
@@ -730,7 +731,113 @@ OPENMS_THREAD_CRITICAL(oms_log)
     return true;
   }
 
+  std::vector<FeatureMap> ConsensusMap::split(ConsensusMap::SplitMeta mode) const
+  {
+    Size numbr_exps = column_description_.size();
+    std::vector<FeatureMap>fmaps(numbr_exps);
 
+    // Check for Isobaric Analyzer
+    bool iso_analyze = QCBase::isLabeledExperiment(*this);
 
+    for (const auto& cf : *this)
+    {
+      UInt64 min_index = std::numeric_limits<UInt64>::max();
+      // Create new Features from FeatureHandles
+      std::map<UInt64, BaseFeature> new_feats;
+      for (const FeatureHandle& fh : cf.getFeatures())
+      {
+        UInt64 index = fh.getMapIndex();
+        // GCC-OPT 4.8 does not compile with:  new_feats.emplace(index, fh);
+        // , thus we use:
+        new_feats[index] = BaseFeature(fh);
+        min_index = std::min(index, min_index);
+      }
+
+      if (iso_analyze)
+      {
+        if (min_index != 0)
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "File seems to have gone through IsobaricAnalyzer, but there was no feature with map index 0 found. Check Input!");
+        }
+      }
+
+      // Add PeptideIdentifications to ...
+      for (const PeptideIdentification& pep_id : cf.getPeptideIdentifications())
+      {
+        // ... the first Feature.
+        if (iso_analyze)
+        {
+          (*new_feats.begin()).second.getPeptideIdentifications().push_back(pep_id);
+          continue;
+        }
+
+        // ... the corresponding Feature by map_index.
+        if (!pep_id.metaValueExists("map_index"))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
+        }
+        new_feats[pep_id.getMetaValue("map_index")].getPeptideIdentifications().push_back(pep_id);
+      }
+
+      // handle MetaValues of current CF
+      switch (mode)
+      {
+        case SplitMeta::DISCARD :
+          break;
+
+        case SplitMeta::COPY_ALL :
+          for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
+          {
+            (it->second).MetaInfoInterface::operator=(cf);
+          }
+          break;
+
+        case SplitMeta::COPY_FIRST :
+          if (min_index != 0)
+          {
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "No feature with map index 0 to copy MetaValues to. Check Input or switch mode!");
+          }
+          new_feats.begin()->second.MetaInfoInterface::operator=(cf);
+          break;
+      }
+
+      // Add new Features to corresponding FeatureMap.
+      for (auto it = new_feats.begin(); it != new_feats.end(); ++it)
+      {
+        fmaps[it->first].emplace_back(std::move(it->second));
+      }
+    }
+
+    // Add unassigned PeptideIdentifications to ...
+    if (iso_analyze)
+    {
+      // ... the first FeatureMap.
+      fmaps[0].getUnassignedPeptideIdentifications() = this->getUnassignedPeptideIdentifications();
+      fmaps[0].getProteinIdentifications() = this->getProteinIdentifications(); // wrong! improve: only copy the ProtID which belongs to this FMap!
+    }
+    else
+    {
+      // ... the corresponding FeatureMap by map_index.
+      for (const PeptideIdentification& upep_id : this->getUnassignedPeptideIdentifications())
+      {
+        if (!upep_id.metaValueExists("map_index"))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "File did not undergo IsobaricAnalyzer, but no map index was found at PeptideIdentifications. Check Input!");
+        }
+        fmaps[upep_id.getMetaValue("map_index")].getUnassignedPeptideIdentifications().push_back(upep_id);
+      }
+    }
+
+    for (auto& fm : fmaps)
+    {
+      fm.getDataProcessing() = this->getDataProcessing();
+    }
+
+    return fmaps;
+  }
 
 } // namespace OpenMS

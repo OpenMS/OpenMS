@@ -3377,14 +3377,26 @@ namespace OpenMS
 
     bool MzMLHandler::validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const
     {
-      SemanticValidator::CVTerm sc;
+      // We remember already validated path-term-combinations in cached_terms_
+      // This avoids recomputing SemanticValidator::locateTerm() multiple times for the same terms and paths
+      // validateCV_() is called very often for the same path-term-combinations, so we save lots of repetitive computations
+      // By caching these combinations we save about 99% of the runtime of validateCV_()
 
+      const auto it = cached_terms_.find(std::make_pair(path, c.id));
+      if (it != cached_terms_.end())
+      {
+        return it->second;
+      }
+
+      SemanticValidator::CVTerm sc;
       sc.accession = c.id;
       sc.name = c.name;
       sc.has_unit_accession = false;
       sc.has_unit_name = false;
 
-      return validator.SemanticValidator::locateTerm(path, sc);
+      bool isValid = validator.SemanticValidator::locateTerm(path, sc);
+      cached_terms_[std::make_pair(path, c.id)] = isValid;
+      return isValid;
     }
 
     String MzMLHandler::writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const
@@ -3441,28 +3453,25 @@ namespace OpenMS
 
         if (*key == "GO cellular component" || *key == "brenda source tissue")
         {
-          // the CVTerm info is in the value
-          const DataValue& metaValue = meta.getMetaValue(*key);
+          // the CVTerm info is in the meta value
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(*key));
 
-          if (cv_.hasTermWithName((String) metaValue))
+          if (c != nullptr)
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName((String) metaValue);
-
             // TODO: validate CV, we currently cannot do this as the relations in the BTO and GO are not captured by our CV impl
-            cvParams.push_back(writeCV_(c, DataValue::EMPTY));
+            cvParams.push_back(writeCV_(*c, DataValue::EMPTY));
           }
         }
         else
         {
-
           bool writtenAsCVTerm = false;
-          if (cv_.hasTermWithName(*key))
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
+          if (c != nullptr)
           {
-            ControlledVocabulary::CVTerm c = cv_.getTermByName(*key); // in cv_ write cvparam else write userparam
-            if (validateCV_(c, path, validator))
+            if (validateCV_(*c, path, validator))
             {
               // write CV
-              cvParams.push_back(writeCV_(c, meta.getMetaValue(*key)));
+              cvParams.push_back(writeCV_(*c, meta.getMetaValue(*key)));
               writtenAsCVTerm = true;
             }
           }
@@ -3538,16 +3547,19 @@ namespace OpenMS
 
     ControlledVocabulary::CVTerm MzMLHandler::getChildWithName_(const String& parent_accession, const String& name) const
     {
-      std::set<String> terms;
-      cv_.getAllChildTerms(terms, parent_accession);
-      for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+      ControlledVocabulary::CVTerm res;
+      auto searcher = [&res, &name, this] (const String& child)
       {
-        if (cv_.getTerm(*it).name == name)
+        const ControlledVocabulary::CVTerm& current = this->cv_.getTerm(child);
+        if (current.name == name)
         {
-          return cv_.getTerm(*it);
+          res = current;
+          return true;
         }
-      }
-      return ControlledVocabulary::CVTerm();
+        return false;
+      };
+      cv_.iterateAllChildren(parent_accession, searcher);
+      return res;
     }
 
     void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)

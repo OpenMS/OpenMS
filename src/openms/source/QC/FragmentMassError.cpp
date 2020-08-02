@@ -113,6 +113,13 @@ namespace OpenMS
   {
     FMEStatistics result;
 
+    bool has_pepIDs = QCBase::hasPepID(fmap);
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    if (!has_pepIDs)
+    {
+      results_.push_back(result);
+      return;
+    }
     // accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
 
@@ -275,7 +282,8 @@ namespace OpenMS
 
   const String& FragmentMassError::getName() const
   {
-    return name_;
+    static const String& name = "FragmentMassError";
+    return name;
   }
 
   const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const

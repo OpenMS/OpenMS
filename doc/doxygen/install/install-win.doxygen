@@ -80,7 +80,7 @@
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
 					@note VS2015 does not provide a commandline shortcut for a 64bit command prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
 					@note VS2017 has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2019)
       <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
@@ -94,7 +94,7 @@
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
         Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib (32-bit does not really make any sense for LC-MS data processing)!
-        Type <tt>cmake</tt> to see a list of available generators.<br>
+        Type <tt>cmake -help</tt> to see a list of available generators.<br>
 
         Example:
         \code
@@ -135,7 +135,7 @@
             cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
+          <li>To save disk space, we use the <tt>-prefix</tt> switch to install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
               Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers). Note that part of Qt requires Python to compile, so its a good idea to add the Python executable to your path
             \code
             PATH=%PATH%;C:\Python27\
@@ -150,7 +150,7 @@
 	    nmake install
 	    \endcode
           <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
-          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" and subsequently "jom install" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
@@ -225,7 +225,11 @@
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
+        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note Example CMAKE_PREFIX_PATH: <tt>C:\dev\qt-5.9\mkspecs\winrt-x64-msvc2017</tt>
+        
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
+        
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
@@ -234,6 +238,7 @@
         cd c:\dev\OpenMS_Win64
         cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 16 2019" -A x64 -T host=x64 ..\OpenMS
         \endcode
+       
     </ol>
 
     \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
