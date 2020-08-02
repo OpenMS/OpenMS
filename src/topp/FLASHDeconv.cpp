@@ -174,7 +174,27 @@ protected:
   {
     Parameter param;
     param.minCharge = getIntOption_("min_charge");
-    param.currentChargeRange = param.chargeRange = getIntOption_("max_charge") - param.minCharge + 1;
+    int maxCharge = getIntOption_("max_charge");
+
+    if (maxCharge < 0 && param.minCharge < 0)
+    {
+      param.minCharge = -param.minCharge;
+      maxCharge = -maxCharge;
+      param.chargeMass = Constants::ELECTRON_MASS_U;
+    }
+    else
+    {
+      param.chargeMass = Constants::PROTON_MASS_U;
+    }
+
+    if (param.minCharge > maxCharge)
+    {
+      int tmp = param.minCharge;
+      param.minCharge = maxCharge;
+      maxCharge = tmp;
+    }
+
+    param.currentChargeRange = param.chargeRange = maxCharge - param.minCharge + 1;
     param.currentMaxMass = param.maxMass = getDoubleOption_("max_mass");
     param.minMass = getDoubleOption_("min_mass");
     param.tolerance = getDoubleList_("tol");
@@ -376,8 +396,6 @@ protected:
         {
           specOut[n - 1].open(outfilePath + outfileName + "_MS" + n + "_spec.tsv", fstream::out);
           DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, param.writeDetail);
-
-
         }
         if (param.mzmlOut)
         {
@@ -450,18 +468,17 @@ protected:
         // per spec deconvolution
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
 
-        bool proceed = true;
+        //bool proceed = true;
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
-          proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+          deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
         //if (proceed)
         //{
         fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
         //}
-
         if(param.mzmlOut){
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
         }

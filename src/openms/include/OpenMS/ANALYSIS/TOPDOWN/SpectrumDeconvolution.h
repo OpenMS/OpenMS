@@ -73,7 +73,7 @@ namespace OpenMS
     static void pringMasses(boost::dynamic_bitset<> &massBins, double &minMass, double binWidth);
 
 
-    void updateLogMzPeaks();
+    void updateLogMzPeaks(double chargeMass);
 
     void updateMzBins(double &mzBinMinValue, Size &binNumber, double binWidth,
                       float *mzBinIntensities

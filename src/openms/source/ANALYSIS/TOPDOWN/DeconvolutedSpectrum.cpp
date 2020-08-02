@@ -185,7 +185,7 @@ namespace OpenMS
         fs << "\t";
         for (auto &p : pg.peaks)
         {
-          fs << p.getUnchargedMass() << ";";
+          fs << p.getUnchargedMass(param.chargeMass) << ";";
         }
         fs << "\t";
         for (auto &p : pg.peaks)
@@ -197,7 +197,7 @@ namespace OpenMS
         for (auto &p : pg.peaks)
         {
           auto tm = pg.monoisotopicMass + p.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
-          auto diff = (tm / p.charge + Constants::PROTON_MASS_U - p.mz) / p.mz;
+          auto diff = (tm / p.charge + param.chargeMass - p.mz) / p.mz;
 
           fs << 1e6 * diff << ";";
         }

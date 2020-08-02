@@ -181,16 +181,17 @@ namespace OpenMS
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak) :
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(Peak1D &peak, double chargeMass) :
       mz(peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz(peak.getMZ())),
+      logMz(getLogMz(peak.getMZ(), chargeMass)),
       charge(0),
       isotopeIndex(0)
   {
   }
 
-  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz) : mz(mz), logMz(getLogMz(mz))
+  FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(double mz, double chargeMass) :
+      mz(mz), logMz(getLogMz(mz, chargeMass))
   {
   }
 
@@ -209,11 +210,11 @@ namespace OpenMS
   }
 
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass(double chargeMass)
   {
     if (mass <= 0)
     {
-      mass = (mz - Constants::PROTON_MASS_U) * charge;
+      mass = (mz - chargeMass) * charge;
     }
     return mass;
   }
@@ -253,10 +254,10 @@ namespace OpenMS
       return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator);
   }
 
-	
-  double FLASHDeconvHelperStructs::getLogMz(double mz)
+
+  double FLASHDeconvHelperStructs::getLogMz(double mz, double chargeMass)
   {
-    return std::log(mz - Constants::PROTON_MASS_U);
+    return std::log(mz - chargeMass);
   }
 
   /*

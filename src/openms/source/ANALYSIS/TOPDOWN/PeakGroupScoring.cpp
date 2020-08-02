@@ -17,7 +17,7 @@ namespace OpenMS
 
   }
 
-  double PeakGroupScoring::getAvgMassPpmError(PeakGroup &pg)
+  /*double PeakGroupScoring::getAvgMassPpmError(PeakGroup &pg)
   {
     double sum = .0;
     // double maxMass = pg.monoisotopicMass;//maxIntensityPeak.getUnchargedMass() - maxIntensityPeak.isotopeIndex * Constants::ISOTOPE_MASSDIFF_55K_U;
@@ -31,7 +31,7 @@ namespace OpenMS
       sum += diff;
     }
     return (sum / pg.peaks.size());
-  }
+  }*/
 
   double PeakGroupScoring::getChargeFitScore(double *perChargeIntensity, int range)
   {
@@ -398,7 +398,7 @@ namespace OpenMS
 
       for (auto &pg : peakGroups)
       {
-        pg.updateMassesAndIntensity(avg);
+        pg.updateMassesAndIntensity(avg, param.chargeMass);
         intensities.push_back(pg.intensity);
       }
 
@@ -459,7 +459,7 @@ namespace OpenMS
       }
 
       int offset = 0;
-      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(),
+      pg.isotopeCosineScore = getIsotopeCosineAndDetermineIsotopeIndex(pg.peaks[0].getUnchargedMass(param.chargeMass),
                                                                        perIsotopeIntensity,
                                                                        param.maxIsotopeCount,
                                                                        offset,
@@ -473,7 +473,7 @@ namespace OpenMS
         continue;
       }
 
-      pg.updateMassesAndIntensity(avg, offset, param.maxIsotopeCount);
+      pg.updateMassesAndIntensity(avg, param.chargeMass, offset, param.maxIsotopeCount);
 
       //// TODO test codes..
       auto iso = avg.get(pg.monoisotopicMass);

@@ -90,6 +90,7 @@ namespace OpenMS
       bool topfdOut = false;
       bool mzmlOut = false;
       void print();
+      double chargeMass = Constants::PROTON_MASS_U;
       //int jitter = 0;
     };
 
@@ -126,16 +127,20 @@ namespace OpenMS
 
       LogMzPeak();
 
-      explicit LogMzPeak(Peak1D &peak);
-      explicit LogMzPeak(double mz);
+      explicit LogMzPeak(Peak1D &peak, double chargeMass);
+
+      explicit LogMzPeak(double mz, double chargeMass);
+
       LogMzPeak(LogMzPeak &peak, int c, int i);
 
       ~LogMzPeak();
 
-      double getUnchargedMass();
+      double getUnchargedMass(double chargeMass);
 
       bool operator<(const LogMzPeak &a) const;
+
       bool operator>(const LogMzPeak &a) const;
+
       bool operator==(const LogMzPeak &other) const;
 
     };
@@ -146,8 +151,9 @@ namespace OpenMS
       std::size_t operator () (const LogMzPeak &key) const;
     };*/
 
-    static PrecalculatedAveragine calculateAveragines(Parameter& param);
-    static double getLogMz(double mz);
+    static PrecalculatedAveragine calculateAveragines(Parameter &param);
+
+    static double getLogMz(double mz, double chargeMass);
   };
 }
 
