@@ -252,22 +252,24 @@ protected:
   tuple<String, String, ProteinIdentification::SearchParameters> getOriginalSearchEngineSettings_(const ProteinIdentification& prot)
   {
     String engine = prot.getSearchEngine();
+    const ProteinIdentification::SearchParameters& old_sp = prot.getSearchParameters();
     if (engine != "Percolator")
     {
-      return std::tie(engine, prot.getSearchEngineVersion(), prot.getSearchParameters());
+      return std::tie(engine, prot.getSearchEngineVersion(), old_sp);
     }
     else
     {
       String original_SE = "Unknown";
       String original_SE_ver = "0.0";
       vector<String> mvkeys;
-      prot.getKeys(mvkeys);
+      
+      old_sp.getKeys(mvkeys);
       for (const String & mvkey : mvkeys)
       {
         if (mvkey.hasPrefix("SE:"))
         {
           original_SE = mvkey.substr(3);
-          original_SE_ver = prot.getMetaValue(mvkey);
+          original_SE_ver = old_sp.getMetaValue(mvkey);
           break; // multiSE percolator before consensusID not allowed; we take first only
         }
       }
@@ -279,56 +281,58 @@ protected:
         {
           if (mvkey.hasSuffix("db"))
           {
-            sp.db = prot.getMetaValue(mvkey);
+            sp.db = old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("db_version"))
           {
-            sp.db_version = prot.getMetaValue(mvkey);
+            sp.db_version = old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("taxonomy"))
           {
-            sp.taxonomy = prot.getMetaValue(mvkey);
+            sp.taxonomy = old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("charges"))
           {
-            sp.charges = prot.getMetaValue(mvkey);;
+            sp.charges = old_sp.getMetaValue(mvkey);;
           }
           else if (mvkey.hasSuffix("fixed_modifications"))
           {
-            sp.fixed_modifications = prot.getMetaValue(mvkey).toStringList();
+            const String& s = old_sp.getMetaValue(mvkey);
+            s.split(',', sp.fixed_modifications);
           }
           else if (mvkey.hasSuffix("variable_modifications"))
           {
-            sp.variable_modifications = prot.getMetaValue(mvkey).toStringList();
+            const String& s = old_sp.getMetaValue(mvkey);
+            s.split(',', sp.variable_modifications);
           }
           else if (mvkey.hasSuffix("missed_cleavages"))
           {
-            sp.missed_cleavages = (UInt) prot.getMetaValue(mvkey);
+            sp.missed_cleavages = (UInt) old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("fragment_mass_tolerance"))
           {
-            sp.fragment_mass_tolerance = (double) prot.getMetaValue(mvkey);
+            sp.fragment_mass_tolerance = (double) old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("fragment_mass_tolerance_ppm"))
           {
-            sp.fragment_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
+            sp.fragment_mass_tolerance_ppm = old_sp.getMetaValue(mvkey).toBool();
           }
           else if (mvkey.hasSuffix("precursor_mass_tolerance"))
           {
-            sp.precursor_mass_tolerance = (double) prot.getMetaValue(mvkey);
+            sp.precursor_mass_tolerance = (double) old_sp.getMetaValue(mvkey);
           }
           else if (mvkey.hasSuffix("precursor_mass_tolerance_ppm"))
           {
-            sp.precursor_mass_tolerance_ppm = prot.getMetaValue(mvkey).toBool();
+            sp.precursor_mass_tolerance_ppm = old_sp.getMetaValue(mvkey).toBool();
           }
           else if (mvkey.hasSuffix("digestion_enzyme"))
           {
-            Protease p = *(ProteaseDB::getInstance()->getEnzyme(prot.getMetaValue(mvkey)));
+            Protease p = *(ProteaseDB::getInstance()->getEnzyme(old_sp.getMetaValue(mvkey)));
             sp.digestion_enzyme = p;
           }
           else if (mvkey.hasSuffix("enzyme_term_specificity"))
           {
-            sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) prot.getMetaValue(mvkey));
+            sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>((int) old_sp.getMetaValue(mvkey));
           }
         }
       }
@@ -344,6 +348,9 @@ protected:
 
     //TODO check if settings are same/similar
     bool allsamese = true;
+    // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
+    // we assume that they are the same or similar
+    ProteinIdentification::SearchParameters new_sp = get<2>(se_ver_settings[0]);
     for (const auto& se_ver_setting : se_ver_settings)
     {
       allsamese = allsamese &&
@@ -352,37 +359,35 @@ protected:
 
       const ProteinIdentification::SearchParameters& sp = get<2>(se_ver_setting);
       const String& SE = get<0>(se_ver_setting);
-      prot_id.setMetaValue("SE:" + SE, get<1>(se_ver_setting));
-      prot_id.setMetaValue(SE+":db",sp.db);
-      prot_id.setMetaValue(SE+":db_version",sp.db_version);
-      prot_id.setMetaValue(SE+":taxonomy",sp.taxonomy);
-      prot_id.setMetaValue(SE+":charges",sp.charges);
-      prot_id.setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
-      prot_id.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
-      prot_id.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
-      prot_id.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
-      prot_id.setMetaValue(SE+":fragment_mass_tolerance_unit",sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
-      prot_id.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
-      prot_id.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
-      prot_id.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
-      prot_id.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
+      new_sp.setMetaValue("SE:" + SE, get<1>(se_ver_setting));
+      new_sp.setMetaValue(SE+":db",sp.db);
+      new_sp.setMetaValue(SE+":db_version",sp.db_version);
+      new_sp.setMetaValue(SE+":taxonomy",sp.taxonomy);
+      new_sp.setMetaValue(SE+":charges",sp.charges);
+      new_sp.setMetaValue(SE+":fixed_modifications",ListUtils::concatenate(sp.fixed_modifications, ","));
+      new_sp.setMetaValue(SE+":variable_modifications",ListUtils::concatenate(sp.variable_modifications, ","));
+      new_sp.setMetaValue(SE+":missed_cleavages",sp.missed_cleavages);
+      new_sp.setMetaValue(SE+":fragment_mass_tolerance",sp.fragment_mass_tolerance);
+      new_sp.setMetaValue(SE+":fragment_mass_tolerance_unit",sp.fragment_mass_tolerance_ppm ? "ppm" : "Da");
+      new_sp.setMetaValue(SE+":precursor_mass_tolerance",sp.precursor_mass_tolerance);
+      new_sp.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
+      new_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
+      new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
-    // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
-    // we assume that they are the same or similar
-    ProteinIdentification::SearchParameters search_params = get<2>(se_ver_settings[0]);
+
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
-    search_params.fixed_modifications    = fixed_mods;
-    search_params.variable_modifications = var_mods;
+    new_sp.fixed_modifications    = fixed_mods;
+    new_sp.variable_modifications = var_mods;
 
     prot_id.setDateTime(DateTime::now());
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_id.setSearchEngineVersion(VersionInfo::getVersion());
-    prot_id.setSearchParameters(search_params);
+    prot_id.setSearchParameters(new_sp);
 
     //TODO for completeness we could in the other algorithms, collect all search engines and put them here
     // or maybe put it in a DataProcessingStep
