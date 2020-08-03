@@ -44,6 +44,7 @@
   - @subpage TOPP_TOPPView - A viewer for mass spectrometry data.
   - @subpage TOPP_TOPPAS - An assistant for GUI-driven TOPP workflow design.
   - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
+  - @subpage TOPP_SwathWizard - A user-friendly step-by-step wizard for SWATH data analysis
 
   <b>File Handling</b>
   - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
