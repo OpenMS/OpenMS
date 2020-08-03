@@ -3184,7 +3184,7 @@ namespace OpenMS
     {
       //Size n_search_engine_scores = mz_tab.getMetaData().psm_search_engine_score.size();
       //TODO since we currently only support getting the main score for psms, maximally reserve one column
-      Size n_search_engine_scores = std::min(mz_tab.getMetaData().psm_search_engine_score.size(), 1ul);
+      Size n_search_engine_scores = std::min<unsigned long>(mz_tab.getMetaData().psm_search_engine_score.size(), 1ul);
       if (n_search_engine_scores == 0)
       {
         // TODO warn
