@@ -830,7 +830,6 @@ protected:
       os_tsv << "general: num. of modified top-hits" << '\t' << modified_peptide_count << '\n';
       os_tsv << "general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
              << '\t' << peptides.size() << '\n';
-
     }
     else if (in_type == FileTypes::PEPXML)
     {
