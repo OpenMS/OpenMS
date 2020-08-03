@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/Suitability.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -169,19 +170,13 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    // load mzML file in scope because we only need the number of ms2 spectra and no data
-    // this saves some memory
-    Size count_ms2_lvl;
-    {
-      MzMLFile m;
-      PeakFileOptions op;
-      op.setMSLevels({ 2 }); // only ms2
-      op.setFillData(false); // no data
-      m.setOptions(op);
-      PeakMap exp;
-      m.load(in_spec, exp);
-      count_ms2_lvl = exp.size();
-    }
+    
+    MzMLFile m;
+    PeakFileOptions op;
+    op.setMSLevels({ 2 }); // only ms2
+    m.setOptions(op);
+    PeakMap exp;
+    m.load(in_spec, exp);
     
     IdXMLFile x;
     vector<ProteinIdentification> prot_ids;
@@ -196,141 +191,20 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    // db suitability
+    Suitability s;
+    double id_rate = s.computeSpectraQuality(exp, novo_peps);
+    double suitability = s.computeSuitability(pep_ids, FDR, novo_fract, no_re_rank);
+    map<String, double> data = s.getData();
+    double count_novo_seqs = data["#novor_seqs"];
+    double count_ms2_lvl = data["#MS2_spectra"];
+    double unique_novor_seqs = data["#unique_novor_seqs"];
 
-    double cut_off{};
-    if (!no_re_rank)
-    {
-      cut_off = getDecoyCutOff_(pep_ids, novo_fract);
-      if (cut_off == DBL_MAX)
-      {
-        OPENMS_LOG_ERROR << "Could not compute decoy cut off. Re-ranking impossible. If you want to ignore this, set the 'force_no_re_rank' flag." << endl;
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-
-    Size count_db = 0;
-    Size count_novo = 0;
-    Size count_re_ranked = 0;
-    Size count_interest = 0;
-
-    for (auto& pep_id : pep_ids)
-    {
-      vector<PeptideHit>& hits = pep_id.getHits();
-      bool q_value_score = (pep_id.getScoreType() == "q-value");
-
-      if (hits.empty()) continue;
-
-      // sort hits by q-value
-      if (q_value_score)
-      {
-        sort(hits.begin(), hits.end(),
-          [](const PeptideHit& a, const PeptideHit& b)
-          {
-            return a.getScore() < b.getScore();
-          });
-      }
-      else
-      {
-        if (!hits[0].metaValueExists("q-value"))
-        {
-          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
-        }
-
-        sort(hits.begin(), hits.end(),
-          [](const PeptideHit& a, const PeptideHit& b)
-          {
-            return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
-          });
-      }
-
-
-      const PeptideHit& top_hit = hits[0];
-
-      // skip if the top hit is a decoy hit
-      if (!top_hit.metaValueExists("target_decoy"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
-      }
-      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
-
-      // skip if top hit is out ouf FDR
-      if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
-
-      // check if top hit is found in de novo protein
-      if (!isNovoHit_(top_hit)) // top hit is db hit
-      {
-        ++count_db;
-        continue;
-      }
-
-      // find the second target hit, skip all decoy or novo hits inbetween
-      const PeptideHit* second_hit = nullptr;
-      String target = "target";
-      for (UInt i = 1; i < hits.size(); ++i)
-        {
-        // check for FDR
-        if (scoreHigherThanFDR_(hits[i], FDR, q_value_score)) break;
-
-        if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
-        {
-          // check if hit is novo hit
-          if (isNovoHit_(hits[i])) continue;
-          
-          second_hit = &hits[i];
-          break;
-        }
-      }
-      if (second_hit == nullptr) // no second target hit with given FDR found
-      {
-        ++count_novo;
-        continue;
-      }
-
-      // second hit is db hit
-      ++count_interest;
-
-      // check for re-ranking
-      if (no_re_rank)
-      {
-        ++count_novo;
-        continue;
-      }
-
-      // check for xcorr score
-      if (!top_hit.metaValueExists("MS:1002252") || !second_hit->metaValueExists("MS:1002252"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-      }
-      
-      double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
-      double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
-      if (top_xscore_mw - second_xscore_mw <= cut_off)
-      {
-        ++count_db;
-        ++count_re_ranked;
-      }
-      else
-      {
-        ++count_novo;
-      }
-    }
-
-    double suitability = double(count_db) / (count_db + count_novo); //db suitability
-
-    // spectra quality
-
-    Size count_novo_seq = 0;
-    set<AASequence> unique_novo;
-
-    for (const auto& pep_id : novo_peps)
-    {
-      if (pep_id.getHits().empty()) continue;
-      ++count_novo_seq;
-      unique_novo.insert(pep_id.getHits()[0].getSequence());
-    }
-
-    double id_rate = double(count_novo_seq) / count_ms2_lvl; // spectral quality (id rate of novo seqs)
+    double count_db = data["#top_novo_hits"];
+    double count_novo = data["#top_db_hits"];
+    double count_interest = data["#re_ranked"];
+    double count_re_ranked = data["#possible_re_ranks"];
+    double cut_off = data["cut_off"];
+    
 
     //-------------------------------------------------------------
     // writing output
@@ -340,7 +214,7 @@ protected:
     OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suitability << endl << endl;
-    OPENMS_LOG_INFO << unique_novo.size() << " / " << count_novo_seq << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << unique_novor_seqs << " / " << count_novo_seqs << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << id_rate << endl << endl;
 
@@ -354,133 +228,14 @@ protected:
       os << "#top_db_hits\t" << count_db << "\n";
       os << "#top_novo_hits\t" << count_novo << "\n";
       os << "db_suitability\t" << suitability << "\n";
-      os << "#total_novo_seqs\t" << count_novo_seq << "\n";
-      os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
+      os << "#total_novo_seqs\t" << count_novo_seqs << "\n";
+      os << "#unique_novo_seqs\t" << unique_novor_seqs << "\n";
       os << "#ms2_spectra\t" << count_ms2_lvl << "\n";
       os << "spectral_quality\t" << id_rate << "\n";
       os.close();
     }
 
     return EXECUTION_OK;
-  }
-private:
-  // Calculates the difference of the xcorr scores from the first two decoy hits in a peptide identification.
-  // If there aren't at least two decoy hits in the top ten, DBL_MAX is returned.
-  // Also checks for target-decoy information and if FDR was run.
-  double getDecoyDiff_(const PeptideIdentification& pep_id)
-  {
-    double diff = DBL_MAX;
-
-    // get the score of the first two decoy hits
-    double decoy_1 = DBL_MAX;
-    double decoy_2 = DBL_MAX;
-    UInt curr_hit = 0;
-
-    for (const auto& hit : pep_id.getHits())
-    {
-      if (curr_hit > 10) break;
-      ++curr_hit;
-
-      if (!hit.metaValueExists("target_decoy"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
-      }
-
-      if (pep_id.getScoreType() != "q-value")
-      {
-        if (!hit.metaValueExists("q-value"))
-        {
-          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
-        }
-      }
-
-      if (!hit.metaValueExists("MS:1002252"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-      }
-
-      if (decoy_1 == DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
-      {
-        decoy_1 = hit.getMetaValue("MS:1002252");
-        continue;
-      }
-      if (decoy_1 < DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
-      {
-        decoy_2 = hit.getMetaValue("MS:1002252");
-        break;
-      }
-    }
-
-    if (decoy_2 < DBL_MAX) // if there are two decoy hits
-    {
-      diff = abs(decoy_1 - decoy_2) / pep_id.getHits()[0].getSequence().getMonoWeight(); // normalized by mw
-    }
-
-    // if there aren't two decoy hits DBL_MAX is returned
-    return diff;
-  }
-
-  // Calculates all decoy differences of N given peptide identifications.
-  // Returns the the (1-novor_fract)*N highest one.
-  double getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
-  {
-    // get all decoy diffs of peptide ids with at least two decoy hits
-    vector<double> diffs;
-    for (const auto& pep_id : pep_ids)
-    {
-      double diff = getDecoyDiff_(pep_id);
-      if (diff < DBL_MAX)
-      {
-        diffs.push_back(diff);
-      }
-    }
-
-    if (double(diffs.size()) / pep_ids.size() < 0.2)
-    {
-      throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score."));
-    }
-
-    // sort the diffs decreasing and get the (1-novo_fract)*N one
-    auto sort_end = diffs.begin() + (1 - novor_fract) * diffs.size();
-    
-    std::partial_sort(diffs.begin(), sort_end + 1, diffs.end(), std::greater<double>());
-
-    return *sort_end;
-  }
-
-  // Checks if all protein accessions contain 'CONCAT_PEPTIDE' (appended by IDFileConverter) and the hit is therefore considered a de novo hit.
-  // If at least one accession doesn't contain 'CONCAT_PEPTIDE' the hit is considered a database hit.
-  bool isNovoHit_(const PeptideHit& hit)
-  {
-    const set<String> accessions = hit.extractProteinAccessionsSet();
-    for (const String& acc : accessions)
-    {
-      if (acc.find(Constants::UserParam::CONCAT_PEPTIDE) == String::npos)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Checks if the q-value of a peptide hit is higher than a given FDR.
-  // Throws an error if no q-value is found.
-  bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score)
-  {
-    if (q_value_score) // score type is q-value
-    {
-      if (hit.getScore() > FDR) return true;
-      return false;
-    }
-    
-    if (hit.metaValueExists("q-value")) // look for q-value at metavalues
-    {
-      if (float(hit.getMetaValue("q-value")) > FDR) return true;
-      return false;
-    }
-    
-    // no q-value found
-    throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
   }
 };
 
