@@ -40,10 +40,10 @@ jobs:
 #      run: |
 #        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.Enterprise -q --includeRecommended --add "Microsoft.VisualStudio.Component.Windows10SDK.18362" --add "Microsoft.VisualStudio.Component.VC.CLI.Support" --add "Microsoft.VisualStudio.Component.VC.Modules.x86.x64" --add "Microsoft.VisualStudio.Component.VC.Tools.x86.x64" --add "Microsoft.VisualStudio.Component.VC.v141.x86.x64" --add "Microsoft.VisualStudio.Component.VC.140" --add "Microsoft.VisualStudio.Component.VC.Redist.14.Latest" --add "Microsoft.VisualStudio.Component.VC.CoreIde" --add "Microsoft.VisualStudio.Component.VC.CMake.Project"
 
-    - name: Install Buildtools 
-      shell: cmd
-      run: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" install --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.BuildTools -q
+#    - name: Install Buildtools 
+#      shell: cmd
+#      run: |
+#        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" install --channelId VisualStudio.16.Release --productId Microsoft.VisualStudio.Product.BuildTools -q
 
     - name: Configure x64 environment
       if: runner.os == 'Windows'
@@ -96,7 +96,7 @@ jobs:
             pip install -U numpy
             pip install -U wheel
 
-            conda deactivate
+            #conda deactivate
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
@@ -106,6 +106,10 @@ jobs:
 
             # copy to directory
             cp pyOpenMS/dist/*.whl pyopenms_whls/
+
+            # deactivate  
+            conda deactivate
+
             # clean up
             conda remove --name pyoms-bld-$py --all
 
