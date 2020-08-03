@@ -20,6 +20,7 @@ ConsensusIDAlgorithmWorst.h
 ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
+FIAMSScheduler.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h

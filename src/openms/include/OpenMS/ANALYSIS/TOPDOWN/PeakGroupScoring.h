@@ -58,7 +58,7 @@ namespace OpenMS
 
     double getPredictionScore(PeakGroup &pg, int charge); //
 
-    static double getAvgMassPpmError(PeakGroup &pg);
+    //static double getAvgMassPpmError(PeakGroup &pg);
 
 
     static bool checkChargeDistribution(double *perChargeIntensity, int range, int threshold);

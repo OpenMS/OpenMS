@@ -46,6 +46,8 @@ namespace Ui
 
 namespace OpenMS
 {
+  class OutputDirectory;
+
   /**
       @brief Dialog which allows to specify the directory for the output files
 
@@ -60,17 +62,14 @@ namespace OpenMS
 public:
 
     /// Constructor
-    TOPPASOutputFilesDialog(const QString & dir_name, int num_jobs);
+    TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
     ~TOPPASOutputFilesDialog();
 
     /// Returns the name of the directory
-    QString getDirectory();
+    QString getDirectory() const;
 
     /// Returns the maximum number of jobs in the spinbox
-    int getNumJobs();
-
-    /// Returns if the directory is valid (is a directory and writable)
-    static bool dirNameValid(const QString & dir_name);
+    int getNumJobs() const;
 
 public slots:
 
@@ -86,3 +85,5 @@ private:
   };
 
 }
+
+using OutputDirectory = OpenMS::OutputDirectory;

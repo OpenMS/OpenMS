@@ -32,7 +32,7 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIDaBridgeFunctions.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
 
 
 namespace OpenMS

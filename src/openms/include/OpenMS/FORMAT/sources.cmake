@@ -38,6 +38,7 @@ FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
+HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
 IndexedMzMLFileLoader.h

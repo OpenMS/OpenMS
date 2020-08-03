@@ -42,6 +42,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -68,7 +69,6 @@ public:
     ConsensusXMLFile();
     ///Destructor
     ~ConsensusXMLFile() override;
-
 
     /**
     @brief Loads a consensus map from file and calls updateRanges
@@ -105,10 +105,18 @@ protected:
     // Docu in base class
     void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
-
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
     void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
 
+    /// Add data from ProteinGroups to a MetaInfoInterface
+    /// Since it can be used during load and store, it needs to take a param for the current mode (LOAD/STORE)
+    /// to throw appropriate warnings/errors
+    void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
+                           const String& group_name, const std::unordered_map<std::string, UInt>& accession_to_id,
+                           const String& runid, XMLHandler::ActionMode mode);
+
+    /// Read and store ProteinGroup data
+    void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
 
     /// Options that can be set
     PeakFileOptions options_;
@@ -136,7 +144,7 @@ protected:
     /// Map from protein id to accession
     Map<String, String> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id
-    Map<String, Size> accession_to_id_;
+    std::unordered_map<std::string, UInt> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
     Map<String, String> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
@@ -145,7 +153,6 @@ protected:
     ProteinIdentification::SearchParameters search_param_;
 
     UInt progress_;
-
   };
 } // namespace OpenMS
 

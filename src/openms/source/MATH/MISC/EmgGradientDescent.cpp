@@ -496,7 +496,7 @@ namespace OpenMS
     std::vector<double> derivatives(xs.size() + 1); // One more element to account for derivatives from right to left
     derivatives.front() = 1.0;
     derivatives.back() = -1.0;
-    for (Size k = i - 1; k < xs.size() && k <= j + 1; ++k)
+    for (Size k = i - 1; k < xs.size() && k <= j + 1 && i > 1; ++k)
     {
       derivatives[k] = (ys[k] - ys[k - 1]) / (xs[k] - xs[k - 1]);
     }

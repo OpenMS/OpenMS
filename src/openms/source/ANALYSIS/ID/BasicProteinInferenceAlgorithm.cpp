@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <algorithm>
 #include <map>
@@ -156,6 +157,7 @@ namespace OpenMS
     best_pep.clear();
 
     prot_run.setInferenceEngine("TOPPProteinInference");
+    prot_run.setInferenceEngineVersion(VersionInfo::getVersion());
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
     sp.setMetaValue("TOPPProteinInference:aggregation_method", agg_method_string);
     sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);

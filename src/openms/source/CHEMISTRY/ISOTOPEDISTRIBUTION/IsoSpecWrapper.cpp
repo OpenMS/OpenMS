@@ -39,7 +39,13 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <iterator>
+#include <memory>
 #include <string>
+#include <utility>
+
+#define ISOSPEC_GOT_SYSTEM_MMAN false
+#define ISOSPEC_GOT_MMAN false
+#define ISOSPEC_BUILDING_OPENMS true
 
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
@@ -49,6 +55,7 @@
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
 #include "IsoSpec/misc.cpp"
+#include "IsoSpec/fasta.cpp"
 
 using namespace std;
 using namespace IsoSpec;
@@ -78,19 +85,16 @@ namespace OpenMS
     int dimNumber = isotopeNr.size();
 
     // Convert vector of vector to double**
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
+    std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
+    std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
     for (int i=0; i<dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM.get(), IP.get());
     
-    delete[] IM;
-    delete[] IP;
-
     return ret;
   }
 
@@ -151,15 +155,13 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, total_prob_hint)
   {};
 
   IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double total_prob_hint) :
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, total_prob_hint)
   {};
 
 
@@ -219,15 +221,19 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double _total_prob,
+                    bool _do_p_trim) :
+  ILG(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities), 1024, 1024, true, _total_prob),
+  target_prob(_total_prob),
+  do_p_trim(_do_p_trim)
   {};
 
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
-                    double total_prob,
-                    bool do_p_trim) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+                    double _total_prob,
+                    bool _do_p_trim) :
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), 1024, 1024, true, _total_prob),
+  target_prob(_total_prob),
+  do_p_trim(_do_p_trim)
   {};
 
 
@@ -237,15 +243,61 @@ namespace OpenMS
     // There is no sensible way to precalculate the number of configurations 
     // in IsoLayeredGenerator
 
-    while (ILG.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+    double acc_prob = 0.0;
+
+    while (acc_prob < target_prob && ILG.advanceToNextConfiguration())
+    {
+        double p = ILG.prob();
+        acc_prob += p;
+        distribution.emplace_back(Peak1D(ILG.mass(), p));
+    }
+
+    if (do_p_trim)
+    {
+        // the p_trim: extract the rest of the last layer, and perform quickselect
+
+        while (ILG.advanceToNextConfigurationWithinLayer())
+            distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+
+        size_t start = 0;
+        size_t end = distribution.size();
+        double sum_to_start = 0.0;
+
+        while (start < end)
+        {
+            // Partition part
+            size_t len = end - start;
+            size_t pivot = len/2 + start;
+            double pprob = distribution[pivot].getIntensity();
+            std::swap(distribution[pivot], distribution[end-1]);
+
+            double new_csum = sum_to_start;
+
+            size_t loweridx = start;
+            for (size_t ii = start; ii < end-1; ii++)
+                if (distribution[ii].getIntensity() > pprob)
+                {
+                    std::swap(distribution[ii], distribution[loweridx]);
+                    new_csum += distribution[loweridx].getIntensity();
+                    loweridx++;
+                }
+
+            std::swap(distribution[end-1], distribution[loweridx]);
+
+            // Selection part
+            if (new_csum < target_prob)
+            {
+                start = loweridx + 1;
+                sum_to_start = new_csum + distribution[loweridx].getIntensity();
+            }
+            else
+                end = loweridx;
+        }
+        distribution.resize(end);
+    }
 
     IsotopeDistribution ID;
-
     ID.set(std::move(distribution));
-
     return ID;
-  }
-
 }
-
+}  // namespace OpenMS

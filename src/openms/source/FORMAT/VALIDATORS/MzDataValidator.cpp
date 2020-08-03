@@ -72,21 +72,21 @@ namespace OpenMS
           if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
-            fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+            ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
             break;
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            set<String> child_terms;
-            cv_.getAllChildTerms(child_terms, term.getAccession());
-            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            auto searcher = [&parsed_term] (const String& child)
             {
-              if (*it == parsed_term.accession)
-              {
-                allowed = true;
-                fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
-                break;
-              }
+              return child == parsed_term.accession;
+            };
+
+            if (cv_.iterateAllChildren(term.getAccession(), searcher))
+            {
+              allowed = true;
+              ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
+              break;
             }
           }
         }
@@ -112,13 +112,15 @@ namespace OpenMS
               if (term.units.find(parsed_term.unit_accession) == term.units.end())
               {
                 // last chance, a child term of the units was used
-                set<String> child_terms;
+                auto lambda = [&parsed_term] (const String& child)
+                {
+                  return child == parsed_term.unit_accession;
+                };
 
                 bool found_unit(false);
                 for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
-                  cv_.getAllChildTerms(child_terms, *it);
-                  if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+                  if (cv_.iterateAllChildren(*it, lambda))
                   {
                     found_unit = true;
                     break;

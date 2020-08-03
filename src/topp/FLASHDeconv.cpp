@@ -102,7 +102,7 @@ protected:
     registerDoubleOption_("max_mass", "<max_mass>", 100000.0, "maximum mass (Da)", false, false);
 
     registerDoubleList_("min_isotope_cosine",
-                        "<ms1_isotope_cos ms2_isotpe_cos, ...>", // TODO polish descriptions
+                        "<ms1_isotope_cos ms2_isotpe_cos, ...>",
                         {.75, .75},
                         "cosine threshold between avg. and observed isotope pattern for MS1, 2, ... "
                         "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)",
@@ -120,19 +120,23 @@ protected:
                      "<ms1_min_supporting_peaks ms2_min_supproting_peaks, ...>",
                      {3, 1},
                      "minimum number of supporting peaks for MS1, 2, ... "
-                     "(e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectivly",
+                     "(e.g., -min_peaks 3 2 to specify 3 and 2 for MS1 and MS2, respectively",
                      false,
                      true);
 
-    registerIntList_("max_mass_count", "<ms1_max_mass_count, ms2_max_mass_count, ...>", {-1, -1},
-        "maximum mass count per spec for MS1, 2, ..."
-        "(e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectivly. -1 specifies unlimited)", false, true);
+    registerIntList_("max_mass_count",
+                     "<ms1_max_mass_count, ms2_max_mass_count, ...>",
+                     {-1, -1},
+                     "maximum mass count per spec for MS1, 2, ..."
+                     "(e.g., -max_mass_count 100 50 to specify 100 and 50 for MS1 and MS2, respectively. -1 specifies unlimited)",
+                     false,
+                     true);
     //
     registerDoubleOption_("min_intensity", "<min_intensity>", 0, "intensity threshold (default 0.0)", false, true);
     registerDoubleOption_("RT_window",
                           "<seconds>",
                           0.0,
-                          "RT window duration in seconds (if 0, RT window contains 15 MS1 spectra)",
+                          "RT window duration in seconds. (if 0, RT window contains 15 MS1 spectra)",
                           false,
                           true);
 
@@ -140,13 +144,28 @@ protected:
     registerIntOption_("write_detail",
                        "<1:true 0:false>",
                        0,
-                       "to write per spectrum deconvoluted masses in detail or not in [prefix]_MSn_spec.tsv files. If set, all peak information per mass is reported.",
+                       "to write peak info per deconvoluted mass in detail or not in [prefix]_MSn_spec.tsv files. If set to 1, all peak information (m/z, intensity, charge, and isotope index) per mass is reported.",
                        false,
                        false);
 
-    registerIntOption_("promex_out", "", 0, "if set, promexoutput ([prefix]]_FD.ms1ft) is generated", false, true);
-    registerIntOption_("topfd_out", "", 0, "if set, topfdoutput ([prefix]_FD_ms2.msalign) is generated", false, true);
-    registerIntOption_("mzml_out", "", 0, "if set, [preifx].mzml (deconvoluted spectrum) file is generated", false, true);
+    registerIntOption_("promex_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for MS1 spectra) are reported in promex output format ([prefix]]_FD.ms1ft)",
+                       false,
+                       true);
+    registerIntOption_("topfd_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for MS2 spectra) are reported in topfd output format ([prefix]_FD_ms2.msalign)",
+                       false,
+                       true);
+    registerIntOption_("mzml_out",
+                       "",
+                       0,
+                       "if set, deconvoluted masses (for all spectra) are reported in mzml format ([preifx].mzml)",
+                       false,
+                       true);
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
   }
@@ -155,7 +174,27 @@ protected:
   {
     Parameter param;
     param.minCharge = getIntOption_("min_charge");
-    param.currentChargeRange = param.chargeRange = getIntOption_("max_charge") - param.minCharge + 1;
+    int maxCharge = getIntOption_("max_charge");
+
+    if (maxCharge < 0 && param.minCharge < 0)
+    {
+      param.minCharge = -param.minCharge;
+      maxCharge = -maxCharge;
+      param.chargeMass = Constants::ELECTRON_MASS_U;
+    }
+    else
+    {
+      param.chargeMass = Constants::PROTON_MASS_U;
+    }
+
+    if (param.minCharge > maxCharge)
+    {
+      int tmp = param.minCharge;
+      param.minCharge = maxCharge;
+      maxCharge = tmp;
+    }
+
+    param.currentChargeRange = param.chargeRange = maxCharge - param.minCharge + 1;
     param.currentMaxMass = param.maxMass = getDoubleOption_("max_mass");
     param.minMass = getDoubleOption_("min_mass");
     param.tolerance = getDoubleList_("tol");
@@ -214,7 +253,10 @@ protected:
     fill_n(total_massCntr, param.maxMSLevel, 0);
     auto total_featureCntr = 0;
 
-    //int specIndex = 0, massIndex = 0;
+    int specIndex = 1;
+    int massIndex = 1;
+    int featureIndex = 1;
+
     double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
     fstream featureOut, promexOut, topfdOut;
     String mzmlOut;
@@ -289,9 +331,7 @@ protected:
         fill_n(qspecCntr, param.maxMSLevel, 0);
         fill_n(massCntr, param.maxMSLevel, 0);
 
-        //specIndex = 0;
         featureCntr = 0;
-        //massIndex = 0;
       }
       MSExperiment map;
       MzMLFile mzml;
@@ -356,8 +396,6 @@ protected:
         {
           specOut[n - 1].open(outfilePath + outfileName + "_MS" + n + "_spec.tsv", fstream::out);
           DeconvolutedSpectrum::writeDeconvolutedMassesHeader(specOut[n - 1], n, param.writeDetail);
-
-
         }
         if (param.mzmlOut)
         {
@@ -405,10 +443,7 @@ protected:
 
       OPENMS_LOG_INFO << "Running FLASHDeconv ... " << endl;
 
-      int scanNumber = 0, id = 0;
-      int specIndex = 1;
-      int massIndex = 1;
-
+      int scanNumber = 0;
       float prevProgress = .0;
 
       auto massTracer = MassFeatureTrace(param, mtd_param, avgine);
@@ -416,7 +451,6 @@ protected:
 
       MSExperiment exp;
       auto fd = FLASHDeconvAlgorithm(avgine, param);
-
 
       for (auto it = map.begin(); it != map.end(); ++it)
       {
@@ -434,18 +468,17 @@ protected:
         // per spec deconvolution
         auto deconvolutedSpectrum = DeconvolutedSpectrum(*it, scanNumber);
 
-        bool proceed = true;
+        //bool proceed = true;
         param.currentChargeRange = param.chargeRange;
         param.currentMaxMass = param.maxMass;
         if (msLevel > 1 && lastDeconvolutedSpectra.find(msLevel - 1) != lastDeconvolutedSpectra.end())
         {
-          proceed = deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
+          deconvolutedSpectrum.registerPrecursor(lastDeconvolutedSpectra[msLevel - 1]);
         }
-        if (proceed)
-        {
-          fd.getPeakGroups(deconvolutedSpectrum, scanNumber, specIndex, massIndex);
-        }
-
+        //if (proceed)
+        //{
+        fd.getPeakGroups(deconvolutedSpectrum, specIndex, massIndex);
+        //}
         if(param.mzmlOut){
           exp.addSpectrum(deconvolutedSpectrum.toSpectrum());
         }
@@ -463,12 +496,12 @@ protected:
 
         massTracer.addDeconvolutedSpectrum(deconvolutedSpectrum);
         qspecCntr[msLevel - 1]++;
-        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups->size();
+        massCntr[msLevel - 1] += deconvolutedSpectrum.peakGroups.size();
         deconvolutedSpectrum.writeDeconvolutedMasses(specOut[msLevel - 1], param);
 
         if (param.topfdOut)
         {
-          deconvolutedSpectrum.writeTopFD(topfdOut, id++);
+          deconvolutedSpectrum.writeTopFD(topfdOut, specIndex - 1);
         }
 
         deconvolutedSpectrum.clearPeakGroupsChargeInfo();
@@ -483,7 +516,7 @@ protected:
       std::cout << std::endl;
       std::unordered_map<UInt, DeconvolutedSpectrum>().swap(lastDeconvolutedSpectra);
 
-      massTracer.findFeatures(featureCntr, featureOut, promexOut);
+      massTracer.findFeatures(featureCntr, featureIndex, featureOut, promexOut);
 
       if(param.mzmlOut)
       {

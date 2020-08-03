@@ -60,8 +60,9 @@ namespace OpenMS
   }
 
   void PeakGroup::updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
-                                                                     int offset,
-                                                                     int maxIsoIndex)
+                                           double chargeMass,
+                                           int offset,
+                                           int maxIsoIndex)
   {
     //
 
@@ -89,7 +90,7 @@ namespace OpenMS
     {
       double pi = p.intensity;
       intensity += pi;
-      nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
+      nominator += pi * (p.getUnchargedMass(chargeMass) - p.isotopeIndex * Constants::C13C12_MASSDIFF_U);
 
     }
     monoisotopicMass = nominator / intensity;

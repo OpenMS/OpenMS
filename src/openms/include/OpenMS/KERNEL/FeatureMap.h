@@ -132,6 +132,7 @@ public:
     using privvec::back; // FeatureXMLFile
 
     using privvec::push_back;
+    using privvec::emplace_back;
     using privvec::pop_back; // FeatureXMLFile
     using privvec::erase; // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
 

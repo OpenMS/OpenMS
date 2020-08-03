@@ -13,7 +13,7 @@ namespace OpenMS
   {
    // param.print();
     setFilters();
-    updateLogMzPeaks();
+    updateLogMzPeaks(p.chargeMass);
   }
 
   /// default destructor
@@ -72,7 +72,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumDeconvolution::updateLogMzPeaks()
+  void SpectrumDeconvolution::updateLogMzPeaks(double chargeMass)
   {
     logMzPeaks.reserve(spec.size());
     //int index = 0;
@@ -83,7 +83,7 @@ namespace OpenMS
       {
         continue;
       }
-      LogMzPeak logMzPeak(peak);
+      LogMzPeak logMzPeak(peak, chargeMass);
       //logMzPeak.index = index++;
       logMzPeaks.push_back(logMzPeak);
     }
@@ -1013,15 +1013,16 @@ namespace OpenMS
           if (maxIntensity < p.intensity)
           {
             maxIntensity = p.intensity;
-            maxMass = p.getUnchargedMass();
+            maxMass = p.getUnchargedMass(param.chargeMass);
           }
         }
         double isoDelta = tol * maxMass;
         int minOff = 10000;
         for (auto &p : pg.peaks)
         {
-          p.isotopeIndex = round((p.getUnchargedMass() - maxMass) / Constants::ISOTOPE_MASSDIFF_55K_U);
-          if (abs(maxMass - p.getUnchargedMass() + Constants::ISOTOPE_MASSDIFF_55K_U * p.isotopeIndex) > isoDelta)
+          p.isotopeIndex = round((p.getUnchargedMass(param.chargeMass) - maxMass) / Constants::ISOTOPE_MASSDIFF_55K_U);
+          if (abs(maxMass - p.getUnchargedMass(param.chargeMass) + Constants::ISOTOPE_MASSDIFF_55K_U * p.isotopeIndex) >
+              isoDelta)
           {
             continue;
           }
@@ -1102,7 +1103,6 @@ namespace OpenMS
     massBins = boost::dynamic_bitset<>(massBinNumber);
     massBinsForThisSpectrum = boost::dynamic_bitset<>(massBinNumber);
 
-    
     if (msLevel == 1)
     {
       unionPrevMassBins(massBinMinValue, prevMassBinVector, prevMinBinLogMassVector, msLevel);
@@ -1114,7 +1114,7 @@ namespace OpenMS
                            massIntensities,
                            perMassChargeRanges, avg, msLevel);
 
-   
+
     PeakGroupScoring scorer = PeakGroupScoring(peakGroups, param);
     
     peakGroups = scorer.scoreAndFilterPeakGroups(msLevel, avg);

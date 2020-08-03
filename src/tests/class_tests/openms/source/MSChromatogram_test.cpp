@@ -77,6 +77,14 @@ ChromatogramPeak p3;
 p3.setIntensity(3.0f);
 p3.setRT(30.0);
 
+ChromatogramPeak p4;
+p4.setIntensity(6.0f);
+p4.setRT(30);
+
+ChromatogramPeak p5;
+p5.setIntensity(3.0f);
+p5.setRT(30.0001);
+
 
 START_SECTION((const String& getName() const ))
 {
@@ -1067,6 +1075,26 @@ START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a,
     TEST_EQUAL(MSChromatogram::MZLess().operator ()(b,a), false)
 
     TEST_EQUAL(MSChromatogram::MZLess().operator ()(a,a), false)
+}
+END_SECTION
+
+START_SECTION(void mergePeaks(MSChromatogram & other) )
+{
+  MSChromatogram a, b, c;
+  a.push_back(p1);
+  b.push_back(p2);
+  a.push_back(p3);
+  b.push_back(p5);
+  c.push_back(p1);
+  c.push_back(p2);
+  c.push_back(p4);
+  a.sortByPosition();
+  b.sortByPosition();
+  c.sortByPosition();
+  a.mergePeaks(b, true);
+  DoubleList dl = { b.getMZ() };
+  c.setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, dl);
+  TEST_EQUAL(a, c)
 }
 END_SECTION
 

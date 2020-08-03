@@ -125,7 +125,7 @@ namespace OpenMS
 #endif
   }
 
-  void SpectrumCanvas::setFilters(const DataFilters & filters)
+  void SpectrumCanvas::setFilters(const DataFilters& filters)
   {
     //set filters
     layers_[current_layer_].filters = filters;
@@ -394,7 +394,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.setPeakData(map);
     new_layer.setOnDiscPeakData(od_map);
 
@@ -433,7 +433,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getFeatureMap() = map;
     new_layer.type = LayerData::DT_FEATURE;
 
@@ -452,7 +452,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.getConsensusMap() = map;
     new_layer.type = LayerData::DT_CONSENSUS;
 
@@ -472,7 +472,7 @@ namespace OpenMS
     LayerData new_layer;
     new_layer.param = param_;
     new_layer.filename = filename;
-    new_layer.name = QFileInfo(filename.toQString()).baseName();
+    new_layer.name = QFileInfo(filename.toQString()).completeBaseName();
     new_layer.peptides.swap(peptides);
     new_layer.type = LayerData::DT_IDENT;
 
@@ -484,6 +484,13 @@ namespace OpenMS
       
     layers_.insert(it.base(), std::move(new_layer));
     return finishAdding_(); 
+  }
+
+  void SpectrumCanvas::popIncompleteLayer_(const QString& error_message)
+  {
+    layers_.pop_back();
+    current_layer_ = layers_.size() - 1;
+    if (!error_message.isEmpty()) QMessageBox::critical(this, "Error", error_message);
   }
 
   void SpectrumCanvas::setLayerName(Size i, const String & name)

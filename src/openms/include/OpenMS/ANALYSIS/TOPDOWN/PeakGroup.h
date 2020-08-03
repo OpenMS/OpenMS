@@ -60,6 +60,7 @@ namespace OpenMS
 
     bool operator==(const PeakGroup &a) const;
 
-    void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines, int offset = 0, int maxIsoIndex = 0);
+    void updateMassesAndIntensity(FLASHDeconvHelperStructs::PrecalculatedAveragine &averagines,
+                                  double chargeMass, int offset = 0, int maxIsoIndex = 0);
   };
 }

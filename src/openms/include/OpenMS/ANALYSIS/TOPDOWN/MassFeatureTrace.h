@@ -44,7 +44,8 @@ namespace OpenMS
 
     void addDeconvolutedSpectrum(DeconvolutedSpectrum &deconvolutedSpectrum);
 
-    void findFeatures(int &featureCntr, std::fstream &fsf, std::fstream &fsp);
+    void findFeatures(int &featureCntr, int &featureIndex, std::fstream &fsf, std::fstream &fsp);
+
     static void writeHeader(std::fstream &fs);
     static void writePromexHeader(std::fstream &fs);
 

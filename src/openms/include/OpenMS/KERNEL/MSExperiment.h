@@ -545,6 +545,13 @@ public:
     */
     void clear(bool clear_meta_data);
 
+    /// returns true if at least one of the spectra has the specified level
+    bool containsScanOfLevel(size_t ms_level) const;
+
+    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    bool hasZeroIntensities(size_t ms_level) const;
+
+
 protected:
 
     /// MS levels of the data

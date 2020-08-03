@@ -219,9 +219,9 @@ START_SECTION((String(float f)))
   float f = 50254.199219;
   double d = f;
   String s(f);
-  TEST_EQUAL(s,"50254.199219")
+  TEST_EQUAL(s,"5.02542e04")
   String s2(d);
-  TEST_EQUAL(s2, "50254.19921875")
+  TEST_EQUAL(s2, "5.025419921875e04")
 END_SECTION
 
 START_SECTION((String(double d, bool full_precision = true)))
@@ -579,9 +579,9 @@ START_SECTION((float toFloat() const))
   s = "123.9";
   TEST_REAL_SIMILAR(s.toFloat(),123.9);
   s = "73629.9";
-  TEST_EQUAL(String(s.toFloat()),"73629.898438");
+  TEST_EQUAL(String(s.toFloat()),"7.36299e04");
   s = "47218.8";
-  TEST_EQUAL(String(s.toFloat()),"47218.800781");
+  TEST_EQUAL(String(s.toFloat()),"4.72188e04");
   s = String("nan");
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
@@ -599,9 +599,9 @@ START_SECTION((double toDouble() const))
   s = "123.99999";
   TEST_REAL_SIMILAR(s.toDouble(),123.99999);
   s = "73629.980123";
-  TEST_EQUAL(String(s.toDouble()),"73629.980123000001186");
+  TEST_EQUAL(String(s.toDouble()),"7.3629980123e04");
   s = "47218.890000001";
-  TEST_EQUAL(String(s.toDouble()),"47218.8900000010035");
+  TEST_EQUAL(String(s.toDouble()),"4.7218890000001e04");
   s = "nan";
   TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "NaN";

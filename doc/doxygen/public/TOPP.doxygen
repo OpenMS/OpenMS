@@ -169,8 +169,11 @@
   - @subpage TOPP_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
   - @subpage TOPP_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
-  <b>Misc</b>
+  <b>Quality Control</b>
   - @subpage TOPP_QualityControl - A one-in-all QC tool to generate an augmented mzTab
+  - @subpage TOPP_DatabaseSuitability - Calculates the suitability of a database for peptide identification search using a de novo approach.
+
+  <b>Misc</b>
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.

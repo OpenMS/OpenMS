@@ -43,12 +43,12 @@ namespace OpenMS
   {
     prevMassBinMap = std::vector<std::vector<Size>>();
     prevMinBinLogMassMap = std::vector<double>();
-    peakGroups = std::vector<PeakGroup>();
+    //peakGroups = std::vector<PeakGroup>();
   }
 
   FLASHDeconvAlgorithm::~FLASHDeconvAlgorithm()
   {
-    std::vector<PeakGroup>().swap(peakGroups);
+    //std::vector<PeakGroup>().swap(peakGroups);
   }
 
   FLASHDeconvAlgorithm &FLASHDeconvAlgorithm::operator=(const FLASHDeconvAlgorithm &fd)
@@ -67,7 +67,7 @@ namespace OpenMS
     return (int) (m * 0.999497 + .5);
   }
 
-  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int& scanNumber, int& specIndex, int& massIndex)
+  void FLASHDeconvAlgorithm::getPeakGroups(DeconvolutedSpectrum &dspec, int& specIndex, int& massIndex)
   {
 
     auto* spec = dspec.spec;
@@ -83,29 +83,27 @@ namespace OpenMS
 
     auto sd = SpectrumDeconvolution(*spec, param);
 
-    peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
+    dspec.peakGroups = sd.getPeakGroupsFromSpectrum(prevMassBinMap,
                                                prevMinBinLogMassMap,
                                                avg, msLevel);
 
-    dspec.peakGroups = &peakGroups;
 
-    if(peakGroups.empty()){
+    if (dspec.empty())
+    {
       return;
     }
 
-    for (auto &pg : peakGroups)
+    for (auto &pg : (dspec.peakGroups))
     {
       sort(pg.peaks.begin(), pg.peaks.end());
       pg.spec = spec;
       pg.specIndex = specIndex;
-      pg.scanNumber = scanNumber;
+      pg.scanNumber = dspec.scanNumber;
       pg.massIndex = massIndex++;
     }
 
     specIndex++;
   }
-
-
 }
 
 

@@ -10,13 +10,17 @@ ColorSelector.h
 EnhancedTabBar.h
 EnhancedTabBarWidgetInterface.h
 EnhancedWorkspace.h
+FilterList.h
 GUIProgressLoggerImpl.h
 HistogramWidget.h
+InputFile.h
+InputFileList.h
 LayerData.h
 ListEditor.h
 MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
+OutputDirectory.h
 ParamEditor.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h
@@ -29,6 +33,7 @@ Spectrum3DOpenGLCanvas.h
 Spectrum3DWidget.h
 SpectrumCanvas.h
 SpectrumWidget.h
+SwathLibraryStats.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASLogWindow.h

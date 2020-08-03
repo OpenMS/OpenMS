@@ -42,6 +42,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
+#include <boost/optional.hpp>
+
 #include <map>
 #include <vector>
 #include <list>
@@ -70,220 +72,172 @@ namespace OpenMS
     SIZE_OF_MZTAB_CELLTYPE
   };
 
-  /// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-  class OPENMS_DLLAPI MzTabNullAbleInterface
-  {
-public:
-    virtual ~MzTabNullAbleInterface();
-    virtual bool isNull() const = 0;
-    virtual void setNull(bool b) = 0;
-    virtual String toCellString() const = 0;
-    virtual void fromCellString(const String&) = 0;
-  };
-
-  /// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
-    public MzTabNullAbleInterface
-  {
-public:
-    ~MzTabNullNaNAndInfAbleInterface() override;
-    virtual bool isNaN() const = 0;
-    virtual void setNaN() = 0;
-    virtual bool isInf() const = 0;
-    virtual void setInf() = 0;
-  };
-
-  /// base class for atomic, non-container types (Double, Int)
-  class OPENMS_DLLAPI MzTabNullAbleBase :
-    public MzTabNullAbleInterface
-  {
-public:
-    MzTabNullAbleBase();
-
-    ~MzTabNullAbleBase() override;
-
-    bool isNull() const override;
-
-    void setNull(bool b) override;
-
-protected:
-    bool null_;
-  };
-
-  /// base class for the atomic non-container like MzTab data types (Double, Int)
-  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
-    public MzTabNullNaNAndInfAbleInterface
-  {
-public:
-    MzTabNullNaNAndInfAbleBase();
-
-    ~MzTabNullNaNAndInfAbleBase() override;
-
-    bool isNull() const override;
-
-    void setNull(bool b) override;
-
-    bool isNaN() const override;
-
-    void setNaN() override;
-
-    bool isInf() const override;
-
-    void setInf() override;
-
-protected:
-    MzTabCellStateType state_;
-  };
-
-  class OPENMS_DLLAPI MzTabDouble :
-    public MzTabNullNaNAndInfAbleBase
+  class OPENMS_DLLAPI MzTabDouble
   {
 public:
     MzTabDouble();
 
     explicit MzTabDouble(const double v);
 
-    ~MzTabDouble() override;
-
     void set(const double& value);
 
     double get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    bool isNull() const;
+
+    void setNull(bool b);
+
+    bool isNaN() const;
+
+    void setNaN();
+
+    bool isInf() const;
+
+    void setInf();
+
+    ~MzTabDouble() = default;
 protected:
     double value_;
+    MzTabCellStateType state_;
   };
 
-  class OPENMS_DLLAPI MzTabDoubleList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabDoubleList
   {
 public:
-    MzTabDoubleList();
+    MzTabDoubleList() = default;
 
-    ~MzTabDoubleList() override;
+    bool isNull() const;
 
-    bool isNull() const override;
+    void setNull(bool b);
 
-    void setNull(bool b) override;
+    String toCellString() const;
 
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabDouble> get() const;
 
     void set(const std::vector<MzTabDouble>& entries);
 
+    ~MzTabDoubleList() = default;
 protected:
     std::vector<MzTabDouble> entries_;
   };
 
-  class OPENMS_DLLAPI MzTabInteger :
-    public MzTabNullNaNAndInfAbleBase
+  class OPENMS_DLLAPI MzTabInteger
   {
 public:
     MzTabInteger();
 
     explicit MzTabInteger(const int v);
 
-    ~MzTabInteger() override;
-
     void set(const Int& value);
 
     Int get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    bool isNull() const;
+
+    void setNull(bool b);
+
+    bool isNaN() const;
+
+    void setNaN();
+
+    bool isInf() const;
+
+    void setInf();
+
+    ~MzTabInteger() = default;
 protected:
     Int value_;
+    MzTabCellStateType state_;
   };
 
-  class OPENMS_DLLAPI MzTabIntegerList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabIntegerList
   {
 public:
-    MzTabIntegerList();
+    MzTabIntegerList() = default;
 
-    bool isNull() const override;
+    bool isNull() const;
 
-    void setNull(bool b) override;
+    void setNull(bool b);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabInteger> get() const;
 
     void set(const std::vector<MzTabInteger>& entries);
 
+    ~MzTabIntegerList() = default;
 protected:
     std::vector<MzTabInteger> entries_;
   };
 
-  class OPENMS_DLLAPI MzTabBoolean :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabBoolean
   {
 public:
     MzTabBoolean();
 
-    explicit MzTabBoolean(bool v);
+    bool isNull() const;
 
-    ~MzTabBoolean() override;
+    void setNull(bool b);
+
+    explicit MzTabBoolean(bool v);
 
     void set(const bool& value);
 
     Int get() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    ~MzTabBoolean() = default;
 protected:
-    bool value_;
+    int value_;
   };
 
-  class OPENMS_DLLAPI MzTabString :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabString
   {
 public:
     MzTabString();
 
     explicit MzTabString(const String& s);
 
-    ~MzTabString() override;
+    bool isNull() const;
+
+    void setNull(bool b);
 
     void set(const String& value);
 
     String get() const;
 
-    bool isNull() const override;
+    String toCellString() const;
 
-    void setNull(bool b) override;
+    void fromCellString(const String& s);
 
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
-
+    ~MzTabString() = default;
 protected:
     String value_;
   };
 
-  class OPENMS_DLLAPI MzTabParameter :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabParameter
   {
 public:
     MzTabParameter();
 
-    ~MzTabParameter() override;
+    bool isNull() const;
 
-    bool isNull() const override;
-
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     void setCVLabel(const String& CV_label);
 
@@ -301,10 +255,11 @@ public:
 
     String getValue() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    ~MzTabParameter() = default;
 protected:
     String CV_label_;
     String accession_;
@@ -312,68 +267,62 @@ protected:
     String value_;
   };
 
-  class OPENMS_DLLAPI MzTabParameterList :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabParameterList
   {
 public:
+    MzTabParameterList() = default;
 
-    ~MzTabParameterList() override;
+    bool isNull() const;
 
-    bool isNull() const override;
+    void setNull(bool b);
 
-    void setNull(bool b) override;
+    String toCellString() const;
 
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabParameter> get() const;
 
     void set(const std::vector<MzTabParameter>& parameters);
 
+    ~MzTabParameterList() = default;
 protected:
     std::vector<MzTabParameter> parameters_;
   };
 
-  class OPENMS_DLLAPI MzTabStringList :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabStringList
   {
 public:
     MzTabStringList();
 
-    ~MzTabStringList() override;
+    bool isNull() const;
+
+    void setNull(bool b);
 
     /// needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
 
-    bool isNull() const override;
+    String toCellString() const;
 
-    void setNull(bool b) override;
-
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabString> get() const;
 
     void set(const std::vector<MzTabString>& entries);
 
+    ~MzTabStringList() = default;
 protected:
     std::vector<MzTabString> entries_;
     char sep_;
   };
 
-  class OPENMS_DLLAPI MzTabModification :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabModification
   {
 public:
     MzTabModification();
 
-    ~MzTabModification() override;
+    bool isNull() const;
 
-    bool isNull() const override;
-
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     /// set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
     void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp);
@@ -384,49 +333,44 @@ public:
 
     MzTabString getModOrSubstIdentifier() const;
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    ~MzTabModification() = default;
 protected:
     std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
     MzTabString mod_identifier_;
   };
 
-  class OPENMS_DLLAPI MzTabModificationList :
-    public MzTabNullAbleBase
+  class OPENMS_DLLAPI MzTabModificationList
   {
 public:
-    ~MzTabModificationList() override;
+    bool isNull() const;
 
-    bool isNull() const override;
+    void setNull(bool b);
 
-    void setNull(bool b) override;
+    String toCellString() const;
 
-    String toCellString() const override;
-
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
     std::vector<MzTabModification> get() const;
 
     void set(const std::vector<MzTabModification>& entries);
 
+    ~MzTabModificationList() = default;
 protected:
     std::vector<MzTabModification> entries_;
-
   };
 
-  class OPENMS_DLLAPI MzTabSpectraRef :
-    public MzTabNullAbleInterface
+  class OPENMS_DLLAPI MzTabSpectraRef
   {
 public:
     MzTabSpectraRef();
 
-    ~MzTabSpectraRef() override;
+    bool isNull() const;
 
-    bool isNull() const override;
-
-    void setNull(bool b) override;
+    void setNull(bool b);
 
     void setMSFile(Size index);
 
@@ -438,10 +382,11 @@ public:
 
     void setSpecRefFile(const String& spec_ref);
 
-    String toCellString() const override;
+    String toCellString() const;
 
-    void fromCellString(const String& s) override;
+    void fromCellString(const String& s);
 
+    ~MzTabSpectraRef() = default;
 protected:
     Size ms_run_; //< number is specified in the meta data section.
     String spec_ref_;
@@ -786,8 +731,8 @@ public:
     MzTabString uri; ///< Location of the oligonucleotide's source entry.
     MzTabString pre;
     MzTabString post;
-    MzTabString start;
-    MzTabString end;
+    MzTabInteger start;
+    MzTabInteger end;
     std::vector<MzTabOptionalColumnEntry> opt_; ///< Optional columns must start with “opt_”.
 
     /// Comparison operator for sorting rows
@@ -856,22 +801,26 @@ public:
   {
   public:
     /// Default constructor
-    MzTab();
-
-    /// Destructor
-    virtual ~MzTab();
+    MzTab() = default;
+    ~MzTab() = default;
 
     const MzTabMetaData& getMetaData() const;
 
     void setMetaData(const MzTabMetaData& md);
 
+    MzTabProteinSectionRows& getProteinSectionRows();
+
     const MzTabProteinSectionRows& getProteinSectionRows() const;
 
     void setProteinSectionRows(const MzTabProteinSectionRows& psd);
 
+    MzTabPeptideSectionRows& getPeptideSectionRows();
+
     const MzTabPeptideSectionRows& getPeptideSectionRows() const;
 
     void setPeptideSectionRows(const MzTabPeptideSectionRows& psd);
+
+    MzTabPSMSectionRows& getPSMSectionRows();
 
     const MzTabPSMSectionRows& getPSMSectionRows() const;
 
@@ -913,15 +862,13 @@ public:
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
-
     /**
       @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
 
       @param peptide_evidences Vector of PeptideEvidence holding internal data.
       @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
-      @param rows Vector of MzTabPSMSectionRow to add the differently updated rows to.
     */
-    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows);
+    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row);
 
     /// Extract opt_ (custom, optional column names)
     std::vector<String> getNucleicAcidOptionalColumnNames() const;
@@ -951,8 +898,6 @@ public:
       * @param[in] peptide_ids Data structure containing peptide identifications
       * @param[in] filename Input idXML file name
       * @param[in] first_run_inference_only Is all protein inference information stored in the first run?
-      * @param[out] map_run_fileidx_2_msfileidx Mapping from (run index, input file index) to experimental design file index. The experimental design file index is either given, or a simplified version created from the input file index on the fly.
-      * @param[out] idrun_2_run_index Mapping from protein identification identifier (search engine + date) to run index, i.e. for storing file origins from different runs
       *
       * @return mzTab object
     */
@@ -961,26 +906,27 @@ public:
         const std::vector<PeptideIdentification>& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
-        std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
-        std::map<String, size_t>& idrun_2_run_index,
-        bool export_empty_pep_ids = false);
+        bool export_empty_pep_ids = false,
+        const String& title = "ID export from OpenMS");
 
-    /// Generate MzTab style list of PTMs from AASequence object.
+
+    /// Generate MzTab style list of PTMs from PeptideHit (PSM) object.
     /// All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     /// In contrast, all modifications are reported in the PSM section (see standard document for details).
-    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
+    /// If meta values for modification localization are found, this information is added.
+    static MzTabModificationList extractModificationList(const PeptideHit& pep_hit, const std::vector<String>& fixed_mods, const std::vector<String>& localization_mods);
 
-		/**
-		 * @brief export linked peptide features aka consensus map
-		 *
-		 * @param consensus_map		data structure of the linked peptide features
-		 * @param filename		input consensusXML file name
-		 * @param export_unidentified_features		Should not identified peptide features be exported?
-		 * @param export_unassigned_ids		Should unassigned identifications be exported?
-		 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
-		 *
-		 * @return mzTab object
-		 */
+	/**
+	 * @brief export linked peptide features aka consensus map
+	 *
+	 * @param consensus_map		data structure of the linked peptide features
+	 * @param filename		input consensusXML file name
+	 * @param export_unidentified_features		Should not identified peptide features be exported?
+	 * @param export_unassigned_ids		Should unassigned identifications be exported?
+	 * @param export_subfeatures		The position of the consensus feature will always be exported. Should the individual subfeatures be exported as well?
+	 *
+	 * @return mzTab object
+	 */
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap& consensus_map,
       const String& filename,
@@ -991,8 +937,267 @@ public:
       const bool export_empty_pep_ids = false,
       const String& title = "ConsensusMap export from OpenMS");
 
+    class IDMzTabStream
+    {
+       public:
+        IDMzTabStream(
+          const std::vector<const ProteinIdentification*>& prot_ids,
+          const std::vector<const PeptideIdentification*>& peptide_ids,
+          const String& filename,
+          bool first_run_inference_only,
+          bool export_empty_pep_ids = false,
+          const String& title = "ID export from OpenMS");
 
+         const MzTabMetaData& getMetaData() const;
+
+         const std::vector<String>& getProteinOptionalColumnNames() const; 
+         const std::vector<String>& getPeptideOptionalColumnNames() const;
+         const std::vector<String>& getPSMOptionalColumnNames() const;
+
+         bool nextPRTRow(MzTabProteinSectionRow& row);
+         bool nextPEPRow(MzTabPeptideSectionRow& row);
+         bool nextPSMRow(MzTabPSMSectionRow& row);
+       private:
+         std::set<String> protein_hit_user_value_keys_;
+         std::set<String> peptide_id_user_value_keys_;
+         std::set<String> peptide_hit_user_value_keys_;
+
+         // beautiful mapping structs
+         std::map<Size, std::set<Size>> ind2prot_;
+         std::map<Size, std::set<Size>> pg2prot_;
+         std::map<String, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
+         std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
+         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+
+         std::vector<const ProteinIdentification*> prot_ids_;
+         std::vector<const PeptideIdentification*> peptide_ids_;
+
+         StringList ms_runs_;
+         bool first_run_inference_;
+         String filename_;
+         StringList fixed_mods_;
+         bool export_unidentified_features_; 
+         bool export_subfeatures_;
+         bool export_empty_pep_ids_; 
+         size_t quant_study_variables_ = 0;
+         size_t n_study_variables_ = 0;
+         size_t PRT_STATE_ = 0;
+         size_t prt_run_id_ = 0; // current (protein) identification run
+         size_t prt_hit_id_ = 0; // current protein in (protein) identification run
+         size_t prt_group_id_ = 0;
+         size_t prt_indistgroup_id_ = 0;
+         size_t pep_id_ = 0;
+         size_t psm_id_ = 0;
+         MzTabString db_, db_version_;
+
+         std::vector<String> prt_optional_column_names_;
+         std::vector<String> pep_optional_column_names_;
+         std::vector<String> psm_optional_column_names_;
+
+         MzTabMetaData meta_data_;
+    };
+
+    class CMMzTabStream
+    {
+       public:
+        CMMzTabStream(
+          const ConsensusMap& consensus_map,
+          const String& filename,
+          const bool first_run_inference_only,
+          const bool export_unidentified_features,
+          const bool export_unassigned_ids,
+          const bool export_subfeatures,
+          const bool export_empty_pep_ids = false,
+          const String& title = "ConsensusMap export from OpenMS");
+
+         const MzTabMetaData& getMetaData() const;
+
+         const std::vector<String>& getProteinOptionalColumnNames() const; 
+         const std::vector<String>& getPeptideOptionalColumnNames() const;
+         const std::vector<String>& getPSMOptionalColumnNames() const;
+
+         bool nextPRTRow(MzTabProteinSectionRow& row);
+         bool nextPEPRow(MzTabPeptideSectionRow& row);
+         bool nextPSMRow(MzTabPSMSectionRow& row);
+       private:
+         const ConsensusMap& consensus_map_;
+         std::set<String> protein_hit_user_value_keys_;
+         std::set<String> consensus_feature_user_value_keys_;
+         std::set<String> consensus_feature_peptide_hit_user_value_keys_;
+
+         // beautiful mapping structs
+         std::map<Size, std::set<Size>> ind2prot_;
+         std::map<Size, std::set<Size>> pg2prot_;
+         std::map<String, size_t> idrunid_2_idrunindex_;
+         std::map<Size, std::vector<std::pair<String, String>>> run_to_search_engines_;
+         std::map<Size, std::vector<std::vector<std::pair<String, String>>>> run_to_search_engines_settings_;
+         std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
+         std::map<std::pair< String, unsigned >, unsigned> path_label_to_assay_;
+
+         std::vector<const ProteinIdentification*> prot_ids_;
+         std::vector<const PeptideIdentification*> peptide_ids_;
+
+         StringList ms_runs_;
+         bool first_run_inference_;
+         String filename_;
+         StringList fixed_mods_;
+         bool export_unidentified_features_; 
+         bool export_subfeatures_;
+         bool export_empty_pep_ids_; 
+         size_t quant_study_variables_ = 0;
+         size_t n_study_variables_ = 0;
+         size_t PRT_STATE_ = 0;
+         size_t prt_run_id_ = 0; // current (protein) identification run
+         size_t prt_hit_id_ = 0; // current protein in (protein) identification run
+         size_t prt_group_id_ = 0;
+         size_t prt_indistgroup_id_ = 0;
+         size_t pep_id_ = 0;
+         size_t psm_id_ = 0;
+         MzTabString db_, db_version_;
+
+         std::vector<String> prt_optional_column_names_;
+         std::vector<String> pep_optional_column_names_;
+         std::vector<String> psm_optional_column_names_;
+
+         MzTabMetaData meta_data_;
+    };
+
+     
   protected:
+    // extract basic mappings
+
+    static std::map<String, Size> mapIDRunIdentifier2IDRunIndex_(const std::vector<const ProteinIdentification*>& prot_ids);
+
+    static boost::optional<MzTabPSMSectionRow> PSMSectionRowFromPeptideID_(
+     const PeptideIdentification& pid,
+     const std::vector<const ProteinIdentification*>& prot_id,
+     std::map<String, size_t>& idrun_2_run_index,
+     std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+     std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+     const int psm_id,
+     const MzTabString& db,
+     const MzTabString& db_version,
+     const bool export_empty_pep_ids);
+
+    static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
+      const ConsensusFeature& c, 
+      const ConsensusMap& consensus_map,
+      const StringList& ms_runs,
+      const Size n_study_variables,
+      const std::set<String>& consensus_feature_user_value_keys,
+      const std::set<String>& peptide_hit_user_value_keys,
+      const std::map<String, size_t>& idrun_2_run_index,
+      const std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
+      const std::map< std::pair< String, unsigned >, unsigned>& path_label_to_assay,
+      const std::vector<String>& fixed_mods,
+      bool export_subfeatures);
+
+    static MzTabPeptideSectionRow peptideSectionRowFromFeature_(
+      const Feature& c, 
+      const std::set<String>& feature_user_value_keys,
+      const std::set<String>& peptide_hit_user_value_keys,
+      const std::vector<String>& fixed_mods);
+
+    static MzTabProteinSectionRow proteinSectionRowFromProteinHit_(
+      const ProteinHit& hit,
+      const MzTabString& db,
+      const MzTabString& db_version,
+      const std::set<String>& protein_hit_user_value_keys);
+
+    static MzTabProteinSectionRow nextProteinSectionRowFromProteinGroup_(
+      const ProteinIdentification::ProteinGroup& group,
+      const MzTabString& db,
+      const MzTabString& db_version);
+
+    static MzTabProteinSectionRow nextProteinSectionRowFromIndistinguishableGroup_(
+      const std::vector<ProteinHit>& protein_hits,
+      const ProteinIdentification::ProteinGroup& group,
+      const size_t g,
+      const std::map<Size, std::set<Size>>& ind2prot,
+      const MzTabString& db,
+      const MzTabString& db_version);
+
+    static void addMSRunMetaData_(
+      const std::map<size_t, String>& msrunindex_2_msfilename,
+      MzTabMetaData& meta_data);
+
+    static void mapBetweenMSFileNameAndMSRunIndex_(
+      const std::vector<const ProteinIdentification*>& prot_ids, 
+      bool skip_first, 
+      std::map<String, size_t>& msfilename_2_msrunindex,
+      std::map<size_t, String>& msrunindex_2_msfilename);
+
+    static size_t getQuantStudyVariables_(const ProteinIdentification& pid);
+
+    static MzTabParameter getProteinScoreType_(const ProteinIdentification& prot_id);
+
+    // TODO: move to core classes?
+    static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, std::set<String>& consensus_feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+
+    static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+
+    static void getIdentificationMetaValues_(
+      const std::vector<const ProteinIdentification*>& prot_ids, 
+      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::set<String>& protein_hit_user_value_keys,
+      std::set<String>& peptide_id_user_value_keys,
+      std::set<String>& peptide_hit_user_value_keys);
+
+
+    template <class ForwardIterator>
+    static void replaceWhiteSpaces_(ForwardIterator first, ForwardIterator last)
+    {
+      while (first!=last) 
+      {
+        first->substitute(' ', '_');
+        ++first;
+      }
+    }
+
+    static void replaceWhiteSpaces_(std::set<String>& keys)
+    {
+      std::set<String> tmp_keys;
+      auto first = keys.begin();
+      while (first != keys.end()) 
+      {
+        String s = *first;
+        s.substitute(' ', '_');
+        tmp_keys.insert(std::move(s));
+        ++first;
+      }      
+      std::swap(keys, tmp_keys);
+    }
+
+    // determine spectrum reference identifier type (e.g., Thermo nativeID) from spectrum references
+    static MzTabParameter getMSRunSpectrumIdentifierType_(const std::vector<const PeptideIdentification*>& peptide_ids_);
+
+    static void mapBetweenRunAndSearchEngines_(
+      const std::vector<const ProteinIdentification*>& prot_ids,
+      bool skip_first_run,
+      std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
+      std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
+      std::map<Size, std::vector<std::vector<std::pair<String, String>>>>& run_to_search_engines_settings,
+      std::map<String, std::vector<std::pair<String, String>>>& search_engine_to_settings);
+
+    static std::map<Size, std::set<Size>> mapGroupsToProteins_(
+      const std::vector<ProteinIdentification::ProteinGroup>& groups, 
+      const std::vector<ProteinHit>& proteins);
+
+    static void addSearchMetaData_(
+        const std::vector<const ProteinIdentification*>& prot_ids,
+        const std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
+        const std::map<String, std::vector<std::pair<String,String>>>& search_engine_to_settings,
+        MzTabMetaData& meta_data,
+        bool first_run_inference_only);
+
+    static void mapIDRunFileIndex2MSFileIndex_(
+      const std::vector<const ProteinIdentification*>& prot_ids,
+      const std::map<String, size_t>& msfilename_2_msrunindex,
+      bool skip_first_run, 
+      std::map<std::pair<size_t, size_t>, size_t>& map_run_fileidx_2_msfileidx);
+
     /// Helper function for "get...OptionalColumnNames" functions
     template <typename SectionRows>
     std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
@@ -1003,7 +1208,7 @@ public:
       {
         for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
         {
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
+          for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
           {
             if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
             {
@@ -1014,6 +1219,11 @@ public:
       }
       return names;
     }
+
+    static void getSearchModifications_(
+      const std::vector<const ProteinIdentification*> prot_ids, 
+      StringList& var_mods, 
+      StringList& fixed_mods);
 
     static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 
@@ -1032,4 +1242,3 @@ public:
 } // namespace OpenMS
 
 #pragma clang diagnostic pop
-
