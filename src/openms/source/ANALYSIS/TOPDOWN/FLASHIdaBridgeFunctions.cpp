@@ -68,6 +68,7 @@ namespace OpenMS
         param.RTwindow = inputs["RT_window"][0];
         //param.over
         auto maxMassCount = inputs["max_mass_count"];
+        param.maxMassCount.clear();
         for(auto& item : maxMassCount){
           param.maxMassCount.push_back((int)item);
         }
