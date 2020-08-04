@@ -94,6 +94,11 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
+    registerInputFile_("in_oligo_params", "<file>", "", "input file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_params", ListUtils::create<String>("paramXML"));
+    registerInputFile_("in_oligo_trainset", "<file>", "", "input file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_trainset", ListUtils::create<String>("txt"));
+
     registerOutputFile_("out", "<file>", "", "output file\n");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
@@ -142,11 +147,16 @@ protected:
     // additional parameters from additional files.
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
-      inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
+      inputFileReadable_(in_params_name, "in_oligo_params");
 
       Param additional_parameters;
       ParamXMLFile paramFile;
-      paramFile.load(svmfile_name + "_additional_parameters", additional_parameters);
+      paramFile.load(in_params_name, additional_parameters);
+      if (additional_parameters.exists("first_dim_rt")
+         && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
+      {
+        first_dim_rt = additional_parameters.getValue("first_dim_rt").toBool();
+      }
       if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
       {
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
@@ -234,10 +244,10 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        inputFileReadable_((svmfile_name + "_samples"), "svm_model (derived)");
+        inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
-        training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
-        svm.setTrainingSample(training_data);
+        training_samples.load(in_trainset_name);
+        svm.setTrainingSample(training_samples);
 
         svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
         svm.setParameter(SVMWrapper::SIGMA, sigma);
