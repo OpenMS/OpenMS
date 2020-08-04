@@ -49,6 +49,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <algorithm>
 #include <fstream>
@@ -1017,6 +1018,33 @@ protected:
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");
+
+    // reannotate file oriin and native ids
+    MSExperiment exp;
+    MzMLFile().load(inputfile_name, exp);
+    protein_identification.setPrimaryMSRunPath({inputfile_name}, exp);
+
+    // add RT and precursor m/z to the peptide IDs (look them up in the spectra):
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp);
+
+    for (auto& p : peptide_ids)
+    {
+      String ref = p.getMetaValue("spectrum_reference");
+      Size index = lookup.findByNativeID(ref);
+      if (index < exp.size())
+      {
+        p.setRT(exp[index].getRT());
+        if (!exp[index].getPrecursors().empty())
+        {
+          p.setMZ(exp[index].getPrecursors()[0].getMZ());
+        }
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
+      }
+    }
 
     //-------------------------------------------------------------
     // writing output
