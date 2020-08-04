@@ -208,7 +208,7 @@ namespace OpenMS
       // ProteomeDiscoverer):
       lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
       // X! Tandem Percolator format:
-      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+");
+      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+$");
     }
 
     vector<String> items;
