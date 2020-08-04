@@ -632,7 +632,7 @@ protected:
       }
 
       ParamXMLFile paramFile;
-      paramFile.store(outputfile_name + "_additional_parameters", additional_parameters);
+      paramFile.store(param_outfile_name, additional_parameters);
     }
 
     return EXECUTION_OK;
