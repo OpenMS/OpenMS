@@ -151,7 +151,7 @@ protected:
     setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
 
     //Fragment Ions
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5,
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.01,
                           "This is half the bin size, which is used to segment the MS/MS spectrum. Thus, the value should be a bit higher than for other search engines, since the bin might not be centered around the peak apex (see 'fragment_bin_offset')."
                           "CAUTION: Low tolerances have heavy impact on RAM usage (since Comet uses a lot of bins in this case). Consider using use_sparse_matrix and/or spectrum_batch_size.", false);
     setMinFloat_("fragment_mass_tolerance", 0.0001);
@@ -159,7 +159,7 @@ protected:
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     setValidStrings_("fragment_error_units", { "Da" }); // only Da allowed
     
-    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.4, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
     setMinFloat_("fragment_bin_offset", 0.0);
     setMaxFloat_("fragment_bin_offset", 1.0);
 
