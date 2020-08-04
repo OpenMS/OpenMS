@@ -538,35 +538,37 @@ protected:
     //      add_N/Cterm_peptide = xxx       protein not available yet
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<ResidueModification> fixed_modifications = getModifications_(fixed_modifications_names);
-    // Comet sets Carbamidometyl (C) as modification as default even if not specified
-    // Therefor there is the need to set it to 0 if not set as flag
-    if (fixed_modifications.empty())
+
+    // merge duplicates, targeting the same AA
+    Map<String, double> mods;
+    // Comet sets Carbamidometyl (C) as modification as default even if not specified.
+    // Therefor there is the need to set it to 0, unless its set as flag (see loop below)
+    mods["add_C_cysteine"] = 0;
+
+    for (const auto& fm : fixed_modifications)
     {
-      os << "add_C_cysteine = 0.0000" << endl;
-    }
-    else
-    {
-      for (const auto& fm : fixed_modifications)
+      // check modification (amino acid or terminal)
+      String AA = fm.getOrigin(); // X (constructor) or amino acid (e.g. K)
+      String term_specificity = fm.getTermSpecificityName(); // N-term, C-term, none
+      if ((AA != "X") && (term_specificity == "none"))
       {
-        // check modification (amino acid or terminal)
-        String AA = fm.getOrigin(); // X (constructor) or amino acid (e.g. K)
-        String term_specificity = fm.getTermSpecificityName(); // N-term, C-term, none
-        if ((AA != "X") && (term_specificity == "none"))
-        {
-          const Residue* r = ResidueDB::getInstance()->getResidue(AA);
-          String name = r->getName();
-          os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << fm.getDiffMonoMass() << endl;
-        }
-        else if (term_specificity == "N-term" || term_specificity == "C-term")
-        {
-          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << fm.getDiffMonoMass() << endl;
-        }
-        else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
-        {
-          term_specificity.erase(0,8); // remove "Protein "
-          os << "add_" << term_specificity.erase(1,1) << "_protein = " << fm.getDiffMonoMass() << endl;
-        }
+        const Residue* r = ResidueDB::getInstance()->getResidue(AA);
+        String name = r->getName();
+        mods["add_" + r->getOneLetterCode() + "_" + name.toLower()] += fm.getDiffMonoMass();
       }
+      else if (term_specificity == "N-term" || term_specificity == "C-term")
+      {
+        mods["add_" + term_specificity.erase(1,1) + "_peptide"] += fm.getDiffMonoMass();
+      }
+      else if (term_specificity == "Protein N-term" || term_specificity == "Protein C-term")
+      {
+        term_specificity.erase(0,8); // remove "Protein "
+        mods["add_" + term_specificity.erase(1,1) + "_protein"] += fm.getDiffMonoMass();
+      }
+    }
+    for (const auto& mod : mods)
+    {
+      os << mod.first << " = " << mod.second << "\n";
     }
 
     //TODO register cut_before and cut_after in Enzymes.xml plus datastructures to add all our Enzymes with our names instead.
