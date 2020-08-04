@@ -102,17 +102,16 @@ namespace OpenMS
 
   Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
-  By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
-  So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
+  By default, the enzyme and the specificity used during search is derived from metadata in the idXML files ('auto' setting).
   
-  We make two exceptions to the specificity constraints:
+  We make two exceptions to any specificity constraints:
   1) for peptides starting at the second or third position of a protein are still considered N-terminally specific,
   since the residues can be cleaved off in vivo; X!Tandem reports these peptides. For example, the two peptides ABAR and LABAR would both match a protein starting with MLABAR.
   2) adventitious cleavage at Asp|Pro (Aspartate/D | Proline/P) is allowed for all enzymes (as supported by X!Tandem), i.e. counts as a proper cleavage site (see http://www.thegpm.org/tandem/release.html).
   
   You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
   or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
-  unless the search engine was instructed to search peptides in the same way.
+  unless the search engine was instructed to search peptides in the same way (but then the default 'auto' setting will do the correct thing).
   
   The FASTA file should not contain duplicate protein accessions (since accessions are not validated) if a correct unique-matching annotation is important (target/decoy annotation is still correct).
 
@@ -125,6 +124,8 @@ namespace OpenMS
     public DefaultParamHandler, public ProgressLogger
   {
 public:
+
+    char const* const AUTO_MODE = "auto"; ///< name of enzyme which signals that the enzyme should be taken from meta information
 
     /// Exit codes
     enum ExitCodes
@@ -210,23 +211,20 @@ public:
       // parsing parameters, correcting xtandem and MSGFPlus parameters
       //---------------------------------------------------------------
       ProteaseDigestion enzyme;
-      if (!enzyme_name_.empty())
-      {
+      if (!enzyme_name_.empty() && (enzyme_name_.compare(AUTO_MODE) != 0))
+      { // use param (not empty, not 'auto')
         enzyme.setEnzyme(enzyme_name_);
       }
-      else
-      {
-        if (prot_ids.empty() || prot_ids[0].getSearchParameters().digestion_enzyme.getName() == "unknown_enzyme")
-        {
-          OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin" << std::endl;
-          enzyme.setEnzyme("Trypsin");
-        }
-        else
-        {
-          // this assumes all runs used the same enzyme
-          enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
-        }
+      else if (!prot_ids.empty() && prot_ids[0].getSearchParameters().digestion_enzyme.getName() != "unknown_enzyme")
+      { // take from meta (this assumes all runs used the same enzyme)
+        OPENMS_LOG_INFO << "Info: using '" << prot_ids[0].getSearchParameters().digestion_enzyme.getName() << "' as enzyme (obtained from idXML) for digestion." << std::endl;
+        enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
       }
+      else
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin!" << std::endl;
+        enzyme.setEnzyme("Trypsin");
+      } 
 
       bool xtandem_fix_parameters = true;
       bool msgfplus_fix_parameters = true;
@@ -250,21 +248,19 @@ public:
 
       OPENMS_LOG_INFO << "Enzyme: " << enzyme.getEnzymeName() << std::endl;
 
-      if (!enzyme_specificity_.empty())
-      {
+      if (!enzyme_specificity_.empty() && (enzyme_specificity_.compare(AUTO_MODE) != 0))
+      { // use param (not empty and not 'auto')
         enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(enzyme_specificity_));
       }
+      else if (!prot_ids.empty() && prot_ids[0].getSearchParameters().enzyme_term_specificity != ProteaseDigestion::SPEC_UNKNOWN)
+      { // deduce from data ('auto')
+        enzyme.setSpecificity(prot_ids[0].getSearchParameters().enzyme_term_specificity);
+        OPENMS_LOG_INFO << "Info: using '" << EnzymaticDigestion::NamesOfSpecificity[prot_ids[0].getSearchParameters().enzyme_term_specificity] << "' as enzyme specificity (obtained from idXML) for digestion." << std::endl;
+      }
       else
-      {
-        if (prot_ids.empty() || prot_ids[0].getSearchParameters().enzyme_term_specificity == ProteaseDigestion::SPEC_UNKNOWN)
-        {
-          OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'";
-          enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
-        }
-        else
-        {
-          enzyme.setSpecificity(prot_ids[0].getSearchParameters().enzyme_term_specificity);
-        }
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'!" << std::endl;
+        enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
       }
 
       //-------------------------------------------------------------

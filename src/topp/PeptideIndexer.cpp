@@ -52,19 +52,19 @@ using namespace OpenMS;
 
   @brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PeptideIndexer \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
-        </tr>
-    </table>
-</CENTER>
+  <CENTER>
+      <table>
+          <tr>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PeptideIndexer \f$ \longrightarrow \f$</td>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+          </tr>
+      </table>
+  </CENTER>
 
   PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
   The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
@@ -92,7 +92,7 @@ using namespace OpenMS;
   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
-  Further details can be found in the underlying PeptideIndexing implementation.
+  Further details can be found in the underlying @ref OpenMS::PeptideIndexing implementation.
   
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
