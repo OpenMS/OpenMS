@@ -461,7 +461,7 @@ protected:
       }
       catch (...)
       {
-        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did you mistype its name?" << std::endl;
+        OPENMS_LOG_ERROR << "Unable to find database '" << db_name << "' (searched all folders). Did generate the PSQ file (see OMSSAAdapter documentation)." << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
