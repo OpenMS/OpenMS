@@ -101,8 +101,8 @@ protected:
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     setValidStrings_("mods", all_mods);
 
-    registerStringOption_("presets", "<name>", "", "Add predefined sets, as shortcut to manually specifying a lot of modifications.", false);
-    setValidStrings_("presets", { "N15" });
+    registerStringOption_("presets", "<name>", "none", "Add predefined sets, as shortcut to manually specifying a lot of modifications.", false);
+    setValidStrings_("presets", { "none", "N15" });
   }
 
   /// insert a mod into a container C and report it to commandline if its new
