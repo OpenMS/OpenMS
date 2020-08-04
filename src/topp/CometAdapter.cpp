@@ -151,15 +151,18 @@ protected:
     setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
 
     //Fragment Ions
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3,
-                          "Fragment mass error (one-sided)."
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5,
+                          "This is half the bin size, which is used to segment the MS/MS spectrum. Thus, the value should be a bit higher than for other search engines, since the bin might not be centered around the peak apex (see 'fragment_bin_offset')."
                           "CAUTION: Low tolerances have heavy impact on RAM usage (since Comet uses a lot of bins in this case). Consider using use_sparse_matrix and/or spectrum_batch_size.", false);
-    setMinFloat_("fragment_mass_tolerance", 0.01);
+    setMinFloat_("fragment_mass_tolerance", 0.0001);
+    
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
     setValidStrings_("fragment_error_units", { "Da" }); // only Da allowed
-    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
+    
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.4, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
     setMinFloat_("fragment_bin_offset", 0.0);
     setMaxFloat_("fragment_bin_offset", 1.0);
+
     registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high-res: sum of intensities plus flanking bins, ion trap (low-res) ms/ms: sum of intensities of central M bin only", false);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
@@ -247,7 +250,7 @@ protected:
         "List of modification group indices. Indices correspond to the binary modification index used by comet to group individually searched lists of variable modifications.\n" 
         "Note: if set, both variable_modifications and binary_modifications need to have the same number of entries as the N-th entry corresponds to the N-th variable_modification.\n"
         "      if left empty (default), all entries are internally set to 0 generating all permutations of modified and unmodified residues.\n"
-        "      For a detailed explanation please see the parameter description in the comet help.",
+        "      For a detailed explanation please see the parameter description in the Comet help.",
         false);
 
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
@@ -431,7 +434,7 @@ protected:
     String instrument = getStringOption_("instrument");
     double bin_tol = getDoubleOption_("fragment_mass_tolerance") * 2; // convert 1-sided tolerance to bin size
     double bin_offset = getDoubleOption_("fragment_bin_offset");
-    if (instrument == "low_res" && (bin_tol < 0.6 || bin_offset <= 0.2))
+    if (instrument == "low_res" && (bin_tol < 0.8 || bin_offset <= 0.2))
     {
       OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite low for low-res instruments (Comet recommends 1.005 Da bin size & 0.4 Da offset). "
                        << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol/2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;

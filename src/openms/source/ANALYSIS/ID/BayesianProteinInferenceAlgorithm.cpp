@@ -852,6 +852,8 @@ namespace OpenMS
         std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinIDs[0].getHits()));
         unassigned_for_run.clear();
       }
+
+      proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
     }
     else if (cmap.getProteinIdentifications().size() > 1)
     {
@@ -877,10 +879,12 @@ namespace OpenMS
         {
           auto& unassigned_for_run = unassigned.at(proteinIDs[0].getIdentifier());
           for (auto& h : unassigned_for_run) h.setScore(0.);
-          proteinIDs[0].getHits().reserve(proteinIDs[0].getHits().size() + unassigned_for_run.size());
-          std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinIDs[0].getHits()));
+          proteinID.getHits().reserve(proteinID.getHits().size() + unassigned_for_run.size());
+          std::move(std::begin(unassigned_for_run), std::end(unassigned_for_run), std::back_inserter(proteinID.getHits()));
           unassigned_for_run.clear();
         }
+
+        proteinID.fillIndistinguishableGroupsWithSingletons();
       }
     }
   }
@@ -1087,6 +1091,7 @@ namespace OpenMS
     setScoreTypeAndSettings_(proteinIDs[0]);
     IDBoostGraph ibg(proteinIDs[0], peptideIDs, nr_top_psms, use_run_info, keep_all_psms, exp_des);
     inferPosteriorProbabilities_(ibg);
+    proteinIDs[0].fillIndistinguishableGroupsWithSingletons();
 
     if (!keep_all_psms)
       OPENMS_LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0, proteinIDs[0].getIdentifier()) << std::endl;
