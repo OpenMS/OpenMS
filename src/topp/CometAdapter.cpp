@@ -120,11 +120,11 @@ protected:
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", { "mzML" } );
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", { "idXML"} );
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
+    setValidFormats_("database", { "FASTA" } );
     registerInputFile_("comet_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
       "comet.exe", // this is the name on ALL platforms currently...
@@ -141,8 +141,8 @@ protected:
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.", false, false);
-    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false, false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.",false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
@@ -150,34 +150,17 @@ protected:
     registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
     setValidStrings_(Constants::UserParam::ISOTOPE_ERROR, ListUtils::create<String>("off,0/1,0/1/2,0/1/2/3,-8/-4/0/4/8"));
 
-    //Search Enzyme
-    vector<String> all_enzymes;
-    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
-    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
-    setValidStrings_("enzyme", all_enzymes);
-    registerStringOption_("second_enzyme", "<cleavage site>", "", "The enzyme used for peptide digestion.", false, true);
-    setValidStrings_("second_enzyme", all_enzymes);
-
-    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
-    setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
-    registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
-    setMinInt_("allowed_missed_cleavages", 0);
-    setMaxInt_("allowed_missed_cleavages", 5);
-
-    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
-    setMinInt_("min_peptide_length", 5);
-    setMaxInt_("min_peptide_length", 63);
-    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
-    setMinInt_("max_peptide_length", 5);
-    setMaxInt_("max_peptide_length", 63);
-
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
-    setMinFloat_("fragment_bin_tolerance", 0.01);
-    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3,
+                          "Fragment mass error (one-sided)."
+                          "CAUTION: Low tolerances have heavy impact on RAM usage (since Comet uses a lot of bins in this case). Consider using use_sparse_matrix and/or spectrum_batch_size.", false);
+    setMinFloat_("fragment_mass_tolerance", 0.01);
+    registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
+    setValidStrings_("fragment_error_units", { "Da" }); // only Da allowed
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins. Recommended by Comet: low-res: 0.4, high-res: 0.0", false);
     setMinFloat_("fragment_bin_offset", 0.0);
     setMaxFloat_("fragment_bin_offset", 1.0);
-    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
+    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high-res: sum of intensities plus flanking bins, ion trap (low-res) ms/ms: sum of intensities of central M bin only", false);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
     setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
@@ -193,6 +176,27 @@ protected:
     setValidStrings_("use_Z_ions", ListUtils::create<String>("true,false"));
     registerStringOption_("use_NL_ions", "<num>", "false", "use neutral loss (NH3, H2O) ions from b/y for PSM", false, true);
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
+
+    //Search Enzyme
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
+    setValidStrings_("enzyme", all_enzymes);
+    registerStringOption_("second_enzyme", "<cleavage site>", "", "Additional enzyme used for peptide digestion.", false, true);
+    setValidStrings_("second_enzyme", all_enzymes);
+
+    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
+    setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
+    registerIntOption_("missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
+    setMinInt_("missed_cleavages", 0);
+    setMaxInt_("missed_cleavages", 5);
+
+    registerIntOption_("min_peptide_length", "<num>", 5, "Minimum peptide length to consider.", false);
+    setMinInt_("min_peptide_length", 5);
+    setMaxInt_("min_peptide_length", 63);
+    registerIntOption_("max_peptide_length", "<num>", 63, "Maximum peptide length to consider.", false);
+    setMinInt_("max_peptide_length", 5);
+    setMaxInt_("max_peptide_length", 63);
 
     //Output
     registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
@@ -268,7 +272,7 @@ protected:
     return modifications;
   }
 
-  void createParamFile_(ostream& os, const String& comet_version)
+  ExitCodes createParamFile_(ostream& os, const String& comet_version)
   {
     os << comet_version << "\n";              // required as first line in the param file
     os << "# Comet MS/MS search engine parameters file.\n";
@@ -314,7 +318,7 @@ protected:
     os << "search_enzyme_number = " << enzyme_number << "\n";                // choose from list at end of this params file
     os << "search_enzyme2_number = " << enzyme2_number << "\n";              // second enzyme; set to 0 if no second enzyme
     os << "num_enzyme_termini = " << num_enzyme_termini[getStringOption_("num_enzyme_termini")] << "\n"; // 1 (semi-digested), 2 (fully digested, default), 8 C-term unspecific , 9 N-term unspecific
-    os << "allowed_missed_cleavage = " << getIntOption_("allowed_missed_cleavages") << "\n";             // maximum value is 5; for enzyme search
+    os << "allowed_missed_cleavage = " << getIntOption_("missed_cleavages") << "\n";             // maximum value is 5; for enzyme search
 
     // Up to 9 variable modifications are supported
     // # format:  <mass> <residues> <0=variable/else binary> <max_mods_per_peptide> <term_distance> <n/c-term> <required> <neutral_loss>
@@ -323,7 +327,7 @@ protected:
     vector<ResidueModification> variable_modifications = getModifications_(variable_modifications_names);
     if (variable_modifications.size() > 9)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet supports at most 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
     }
 
     IntList binary_modifications = getIntList_("binary_modifications");
@@ -343,12 +347,8 @@ protected:
       String residues = mod.getOrigin();
 
       // support for binary groups, e.g. for SILAC
-      int binary_group;
-      if (binary_modifications.empty())
-      {
-        binary_group = 0;
-      }
-      else
+      int binary_group{0};
+      if (!binary_modifications.empty())
       {
         binary_group = binary_modifications[var_mod_index];
       }
@@ -429,15 +429,21 @@ protected:
     // high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
 
     String instrument = getStringOption_("instrument");
-    double bin_tol = getDoubleOption_("fragment_bin_tolerance");
+    double bin_tol = getDoubleOption_("fragment_mass_tolerance") * 2; // convert 1-sided tolerance to bin size
     double bin_offset = getDoubleOption_("fragment_bin_offset");
-    if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset <= 0.2))
+    if (instrument == "low_res" && (bin_tol < 0.6 || bin_offset <= 0.2))
     {
-      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
+      OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite low for low-res instruments (Comet recommends 1.005 Da bin size & 0.4 Da offset). "
+                       << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol/2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
+      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
-    else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
+    else if (instrument == "high_res" && (bin_tol > 0.1 || bin_offset > 0.1))
     {
-      OPENMS_LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
+      OPENMS_LOG_ERROR << "Fragment bin size (== 2x 'fragment_mass_tolerance') or offset is quite high for high-res instruments (Comet recommends 0.02 Da bin size & 0.0 Da offset). "
+                       << "Current value: fragment bin size = " << bin_tol << "(=2x" << bin_tol / 2 << ") and offset = " << bin_offset << ". Use the '-force' flag to continue anyway." << std::endl;
+      if (!getFlag_("force")) return ExitCodes::ILLEGAL_PARAMETERS;
+      OPENMS_LOG_ERROR << "You used the '-force'!" << std::endl;
     }
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
@@ -577,6 +583,8 @@ protected:
     os << "8.  Glu_C                  1      DE          P" << "\n";
     os << "9.  PepsinA                1      FL          P" << "\n";
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
+
+    return ExitCodes::EXECUTION_OK;
   }
 
   ExitCodes main_(int, const char**) override
@@ -639,8 +647,12 @@ protected:
     {
         tmp_file = tmp_dir.getPath() + "param.txt";
         ofstream os(tmp_file.c_str());
-        createParamFile_(os, comet_version);
+        auto ret = createParamFile_(os, comet_version);
         os.close();
+        if (ret != EXECUTION_OK)
+        {
+          return ret;
+        }
     }
     else
     {
