@@ -126,6 +126,9 @@ using namespace std;
 
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
+    Hint: this adapter supports 15N labeling by setting the '-tem' and '-tom' parameters to '2'. However, the resulting peptide sequences in the idXML file
+    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
+
     @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.

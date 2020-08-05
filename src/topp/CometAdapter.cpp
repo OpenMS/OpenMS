@@ -75,6 +75,8 @@ using namespace std;
 
     @em Comet must be installed before this wrapper can be used. This wrapper
     has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
+    
+    @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
     Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
@@ -83,9 +85,10 @@ using namespace std;
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
 
-    Please cite: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
+    To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
     PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
 
+    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
