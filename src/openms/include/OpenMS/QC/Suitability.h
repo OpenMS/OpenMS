@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <cfloat>
 #include <map>
 #include <vector>
 
@@ -46,47 +47,87 @@ namespace OpenMS
 	class PeptideHit;
 
 	/**
-	* @brief This class serves as the library representation of @ref TOPP_DatabaseSuitability
+	* @brief This class serves as the library representation @ref TOPP_DatabaseSuitability
 	*
-	* This class holds the functionality of calculating the database suitability and everything
-	* that is needed for this. Quality of LC-MS/MS spectra can also be calculated.
+	* This class holds the functionality of calculating the database suitability.
+	* This can only be done if a combined deNovo+database identification search was performed.
+	* Currently only Comet search is supported.
+	*
+	* Allows for multiple usage, because results are stored internally and can be returned
+	* using getResults().
+	*
 	*/
 	class OPENMS_DLLAPI Suitability
 	{
 	public:
+
+		struct SuitabilityData
+		{
+			Size num_top_novo = 0;
+			Size num_top_db = 0;
+			Size num_re_ranked = 0;
+			Size num_interest = 0;
+			double cut_off = DBL_MAX;
+			double suitability = 0;
+		};
+
 		/// Constructor
-		Suitability() = default;
+		/// Settings are set to their default values:
+		/// no_re_rank = false, novo_fract = 1, FDR = 0.01
+		Suitability();
+
+		/// Constructor with settings:
+		/// no_re_rank: option to turn off re-ranking of deNovo/db hits
+		/// novo_fract: fraction of re-ranking cases should be re-ranked
+		/// FDR:				FDR that should be established
+		Suitability(bool no_re_rank, double novo_fract, double FDR);
 
 		/// Destructor
 		~Suitability() = default;
 
 		/**
-		* @brief Computes quality of LC-MS/MS spectra (id-rate of deNovo sequences)
+		* @brief Computes suitability of a database used to search a mzML
 		*
-		* spectra quality = #deNovo seqs / #MS2 spectra
+		* Counts top deNovo and top database hits. The ratio of db hits vs
+		* all hits yields the suitability.
+		* To re-rank cases, where a de novo peptide scores just higher than
+		* the database peptide, a decoy cut-off is calculated. This functionality
+		* can be turned off. This will result in an underestimated suitability,
+		* but it can solve problems like different search engines or to few decoy hits.
 		*
-		* @param exp MSExperiment from which the deNovo sequences where calculated
-		* @param pep_ids vector containing the deNovo sequences as pepIDs
-		* @return spectral quality
-		* @throws MissingInformation if no MS2 spectra are found
+		* Result is appended to the result member. This allows for multiple usage.
+		*
+		* @param pep_ids			vector containing pepIDs coming from a deNovo+database 
+		*											identification search (currently only Comet-support)
+		* @throws							MissingInformation if decoy cut-off could not be calculated
+		* @throws							MissingInformation if no target/decoy annotation is found
+		* @throws							MissingInformation if no xcorr is found
+		* @throws							Precondition if FDR wasn't calculated
 		*/
-		double computeSpectraQuality(const MSExperiment& exp, const std::vector<PeptideIdentification>& pep_ids);
+		void computeSuitability(std::vector<PeptideIdentification>& pep_ids);
 
-		double computeSuitability(const std::vector<PeptideIdentification>& pepIDs, double FDR, double novo_fract, bool no_re_rank);
+		std::vector<SuitabilityData> getResults() const;
 
-		std::map<String, double> getData();
+		/// Access to the settings
+		void setNoReRank(bool no_re_rank);
+		void setNovoFract(double novo_fract);
+		void setFDR(double FDR);
+		bool getNoReRank();
+		double getNovoFract();
+		double getFDR();
 
 	private:
-		Size num_novo_seqs;
-		Size num_ms2;
-		Size num_unique_novo_seqs;
-		double spectral_quality;
-		Size num_top_novo;
-		Size num_top_db;
-		Size num_re_ranked;
-		Size num_interest;
-		double cut_off;
-		double suitability;
+		/// settings
+		
+		// enable/disable re-ranking
+		bool no_re_rank_;
+		// fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank
+		double novo_fract_;
+		// filtering peptide hits based on this q-value
+		double FDR_;
+
+		/// result vector
+		std::vector<SuitabilityData> results;
 
 		/**
 		* @brief Calculates the xcorr difference between the top two hits marked as decoy
@@ -94,26 +135,26 @@ namespace OpenMS
 		* Only searches the top ten hits for two decoys. If there aren't two decoys, DBL_MAX
 		* is returned.
 		*
-		* @param pep_id pepID from where the decoy difference will be calculated
-		* @return xcorr difference
-		* @throws MissingInformation if no target/decoy annotation is found
-		* @throws MissingInformation if no xcorr is found
+		* @param pep_id			pepID from where the decoy difference will be calculated
+		* @returns					xcorr difference
+		* @throws						MissingInformation if no target/decoy annotation is found
+		* @throws						MissingInformation if no xcorr is found
 		*/
 		double getDecoyDiff_(const PeptideIdentification& pep_id);
 
 		/**
 		* @brief Calculates a xcorr cut-off based on decoy hits
 		*
-		* All N decoy differences are calculated. The (1-novor_fract)*N highest one
-		* is returned.
-		* It is asssumed that this difference accounts for novor_fract re-ranking cases.
+		* Decoy differences of all N pepIDs are calculated. The (1-novo_fract)*N highest
+		* one is returned.
+		* It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
+		* 'novo_fract' can be set using the constructor or setNovoFract.
 		*
-		* @param pep_ids vector containing the pepIDs
-		* @param novor_fract fraction of re-ranking cases should be re-ranked
-		* @return xcorr cut-off
-		* @throws MissingInformation if no more than 20 % of the pepIDs have two decoys in there top ten
+		* @param pep_ids			vector containing the pepIDs
+		* @returns						xcorr cut-off
+		* @throws							MissingInformation if no more than 20 % of the pepIDs have two decoys in there top ten
 		*/
-		double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double novor_fract);
+		double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids);
 
 		/**
 		* @brief Tests if a PeptideHit is considered a deNovo hit
@@ -122,23 +163,23 @@ namespace OpenMS
 		* If only the deNovo protein is found, 'true' is returned.
 		* If one database protein is found, 'false' is returned.
 		*
-		* @param hit PepHit in question
-		* @return true/false
+		* @param hit			PepHit in question
+		* @returns				true/false
 		*/
 		bool isNovoHit_(const PeptideHit& hit);
 
 		/**
 		* @brief Tests if a PeptideHit has a higher q-value the given FDR
 		*
+		* FDR can be set unsing the constructor or setFDR.
 		* Q-value is searched at score and at meta-value level.
 		*
-		* @param hit PepHit in question
-		* @param FDR value to check against
-		* @param q_value_score is q-value the current score type?
-		* @return true/false
-		* @throws Precondition if no q-value is found
+		* @param hit						PepHit in question
+		* @param q_value_score	is q-value the current score type?
+		* @returns							true/false
+		* @throws								Precondition if no q-value is found
 		*/
-		bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score);
+		bool scoreHigherThanFDR_(const PeptideHit& hit, bool q_value_score);
 	};
 }
 

@@ -32,7 +32,9 @@
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -42,57 +44,39 @@ using namespace std;
 
 namespace OpenMS
 {
-  double Suitability::computeSpectraQuality(const MSExperiment& exp, const std::vector<PeptideIdentification>& pep_ids)
+  Suitability::Suitability()
+    : no_re_rank_(false), novo_fract_(1), FDR_(0.01), results{}
+  {}
+
+  Suitability::Suitability(bool no_re_rank, double novo_fract, double FDR)
+    : no_re_rank_(no_re_rank), novo_fract_(novo_fract), FDR_(FDR), results{}
+  {}
+  
+  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids)
   {
-    num_ms2 = 0;
-    for (auto const& spec : exp.getSpectra())
+    SuitabilityData d;
+
+    Param p;
+    p.setValue("use_all_hits", "true");
+    p.setValue("add_decoy_peptides", "true");
+    p.setValue("add_decoy_proteins", "true");
+
+    FalseDiscoveryRate fdr;
+    fdr.setParameters(p);
+    fdr.apply(pep_ids);
+
+    if (!no_re_rank_)
     {
-      if (spec.getMSLevel() == 2)
-      {
-        ++num_ms2;
-      }
-    }
-
-    if (num_ms2 == 0)
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
-    }
-
-    num_novo_seqs = 0;
-    set<AASequence> unique_novo;
-
-    for (const auto& pep_id : pep_ids)
-    {
-      if (pep_id.getHits().empty()) continue;
-      ++num_novo_seqs;
-      unique_novo.insert(pep_id.getHits()[0].getSequence());
-    }
-
-    num_unique_novo_seqs = unique_novo.size();
-    spectral_quality = double(num_ms2) / num_novo_seqs;
-
-    return spectral_quality;
-  }
-  /*
-  double Suitability::computeSuitability(const vector<PeptideIdentification>& pepIDs, double FDR = 0.01, double novo_fract = 1, bool no_re_rank = false)
-  {
-    if (!no_re_rank)
-    {
-      cut_off = getDecoyCutOff_(pepIDs, novo_fract);
-      if (cut_off == DBL_MAX)
+      d.cut_off = getDecoyCutOff_(pep_ids);
+      if (d.cut_off == DBL_MAX)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not compute decoy cut off. Re-ranking impossible. If you want to ignore this, disable re-ranking.");
       }
     }
 
-    num_top_db = 0;
-    num_top_novo = 0;
-    num_re_ranked = 0;
-    num_interest = 0;
-
-    for (const PeptideIdentification& pep_id : pepIDs)
+    for (PeptideIdentification& pep_id : pep_ids)
     {
-      const vector<PeptideHit>& hits = pep_id.getHits();
+      vector<PeptideHit>& hits = pep_id.getHits();
       bool q_value_score = (pep_id.getScoreType() == "q-value");
 
       if (hits.empty()) continue;
@@ -131,12 +115,12 @@ namespace OpenMS
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // skip if top hit is out ouf FDR
-      if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
+      if (scoreHigherThanFDR_(top_hit, q_value_score)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
       {
-        ++num_top_db;
+        ++d.num_top_db;
         continue;
       }
 
@@ -146,7 +130,7 @@ namespace OpenMS
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
-        if (scoreHigherThanFDR_(hits[i], FDR, q_value_score)) break;
+        if (scoreHigherThanFDR_(hits[i], q_value_score)) break;
 
         if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
@@ -159,17 +143,17 @@ namespace OpenMS
       }
       if (second_hit == nullptr) // no second target hit with given FDR found
       {
-        ++num_top_novo;
+        ++d.num_top_novo;
         continue;
       }
 
       // second hit is db hit
-      ++num_interest;
+      ++d.num_interest;
 
       // check for re-ranking
-      if (no_re_rank)
+      if (no_re_rank_)
       {
-        ++num_top_novo;
+        ++d.num_top_novo;
         continue;
       }
 
@@ -181,39 +165,65 @@ namespace OpenMS
 
       double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
       double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
-      if (top_xscore_mw - second_xscore_mw <= cut_off)
+      if (top_xscore_mw - second_xscore_mw <= d.cut_off)
       {
-        ++num_top_db;
-        ++num_re_ranked;
+        ++d.num_top_db;
+        ++d.num_re_ranked;
       }
       else
       {
-        ++num_top_novo;
+        ++d.num_top_novo;
       }
     }
 
-    suitability = double(num_top_db) / (num_top_db + num_top_novo);
+    d.suitability = double(d.num_top_db) / (d.num_top_db + d.num_top_novo);
 
-    return suitability;
+    results.push_back(d);
   }
 
-  map<String, double> Suitability::getData()
+  std::vector<Suitability::SuitabilityData> Suitability::getResults() const
   {
-    map<String, double> data_map;
+    return results;
+  }
 
-    data_map["#novor_seqs"] = double(num_novo_seqs);
-    data_map["#MS2_spectra"] = double(num_ms2);
-    data_map["#unique_novor_seqs"] = double(num_unique_novo_seqs);
-    data_map["spectral_quality"] = spectral_quality;
+  void Suitability::setNoReRank(bool no_re_rank)
+  {
+    no_re_rank_ = no_re_rank;
+  }
 
-    data_map["#top_novo_hits"] = double(num_top_novo);
-    data_map["#top_db_hits"] = double(num_top_db);
-    data_map["#re_ranked"] = double(num_re_ranked);
-    data_map["#possible_re_ranks"] = double(num_interest);
-    data_map["cut_off"] = cut_off;
-    data_map["suitability"] = suitability;
+  void Suitability::setNovoFract(double novo_fract)
+  {
+    if (novo_fract > 1 || novo_fract < 0)
+    {
+      OPENMS_LOG_WARN << "'novo_fract' has to have a value between 0 and 1!" << endl;
+      return;
+    }
+    novo_fract_ = novo_fract;
+  }
 
-    return data_map;
+  void Suitability::setFDR(double FDR)
+  {
+    if (FDR > 1 || FDR < 0)
+    {
+      OPENMS_LOG_WARN << "'FDR' has to have a value between 0 and 1!" << endl;
+      return;
+    }
+    FDR_ = FDR;
+  }
+
+  bool Suitability::getNoReRank()
+  {
+    return no_re_rank_;
+  }
+
+  double Suitability::getNovoFract()
+  {
+    return novo_fract_;
+  }
+
+  double Suitability::getFDR()
+  {
+    return FDR_;
   }
 
   double Suitability::getDecoyDiff_(const PeptideIdentification& pep_id)
@@ -269,7 +279,7 @@ namespace OpenMS
     return diff;
   }
 
-  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novor_fract)
+  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids)
   {
     // get all decoy diffs of peptide ids with at least two decoy hits
     vector<double> diffs;
@@ -288,7 +298,7 @@ namespace OpenMS
     }
 
     // sort the diffs decreasing and get the (1-novo_fract)*N one
-    auto sort_end = diffs.begin() + (1 - novor_fract) * diffs.size();
+    auto sort_end = diffs.begin() + (1 - novo_fract_) * diffs.size();
 
     partial_sort(diffs.begin(), sort_end + 1, diffs.end(), greater<double>());
 
@@ -308,21 +318,21 @@ namespace OpenMS
     return true;
   }
 
-  bool Suitability::scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score)
+  bool Suitability::scoreHigherThanFDR_(const PeptideHit& hit, bool q_value_score)
   {
     if (q_value_score) // score type is q-value
     {
-      if (hit.getScore() > FDR) return true;
+      if (hit.getScore() > FDR_) return true;
       return false;
     }
 
     if (hit.metaValueExists("q-value")) // look for q-value at metavalues
     {
-      if (float(hit.getMetaValue("q-value")) > FDR) return true;
+      if (float(hit.getMetaValue("q-value")) > FDR_) return true;
       return false;
     }
 
     // no q-value found
     throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
-  }*/
+  }
 }

@@ -13,6 +13,7 @@ set(sources_list
   PeptideMass.cpp
   QCBase.cpp
   RTAlignment.cpp
+  SpectralQuality.cpp
   Suitability.cpp
   TIC.cpp
 )

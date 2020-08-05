@@ -38,11 +38,11 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/SpectralQuality.h>
 #include <OpenMS/QC/Suitability.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
-#include <cfloat>
 
 using namespace OpenMS;
 using namespace std;
@@ -191,19 +191,23 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    Suitability s;
-    double id_rate = s.computeSpectraQuality(exp, novo_peps);
-    double suitability = s.computeSuitability(pep_ids, FDR, novo_fract, no_re_rank);
-    map<String, double> data = s.getData();
-    double count_novo_seqs = data["#novor_seqs"];
-    double count_ms2_lvl = data["#MS2_spectra"];
-    double unique_novor_seqs = data["#unique_novor_seqs"];
+    SpectralQuality q;
+    Suitability s(no_re_rank, novo_fract, FDR);
+    q.computeSpectraQuality(exp, novo_peps);
+    s.computeSuitability(pep_ids);
+    SpectralQuality::SpectralData quality = q.getResults()[0];
+    Suitability::SuitabilityData suit = s.getResults()[0];
+    Size count_novo_seqs = quality.num_novo_seqs;
+    Size count_ms2_lvl = quality.num_ms2;
+    Size unique_novor_seqs = quality.num_unique_novo_seqs;
+    double id_rate = quality.spectral_quality;
 
-    double count_db = data["#top_novo_hits"];
-    double count_novo = data["#top_db_hits"];
-    double count_interest = data["#re_ranked"];
-    double count_re_ranked = data["#possible_re_ranks"];
-    double cut_off = data["cut_off"];
+    Size count_novo = suit.num_top_novo;
+    Size count_db = suit.num_top_db;
+    Size count_re_ranked = suit.num_re_ranked;
+    Size count_interest = suit.num_interest;
+    double cut_off = suit.cut_off;
+    double suitability = suit.suitability;
     
 
     //-------------------------------------------------------------
