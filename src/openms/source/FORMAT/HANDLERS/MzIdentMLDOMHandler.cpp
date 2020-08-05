@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Eugen Netz $
+// $Authors: Mathias Walzer, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
