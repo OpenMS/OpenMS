@@ -61,6 +61,7 @@ namespace OpenMS
 	{
 	public:
 
+		/// struct to store results
 		struct SuitabilityData
 		{
 			Size num_top_novo = 0;
@@ -99,13 +100,15 @@ namespace OpenMS
 		*
 		* @param pep_ids			vector containing pepIDs coming from a deNovo+database 
 		*											identification search (currently only Comet-support)
+		* @param fdr_done			q-value already calculated for pep_ids?
 		* @throws							MissingInformation if decoy cut-off could not be calculated
 		* @throws							MissingInformation if no target/decoy annotation is found
 		* @throws							MissingInformation if no xcorr is found
 		* @throws							Precondition if FDR wasn't calculated
 		*/
-		void computeSuitability(std::vector<PeptideIdentification>& pep_ids);
+		void computeSuitability(std::vector<PeptideIdentification>& pep_ids, bool fdr_done = false);
 
+		/// return results
 		std::vector<SuitabilityData> getResults() const;
 
 		/// Access to the settings

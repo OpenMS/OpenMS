@@ -52,18 +52,21 @@ namespace OpenMS
     : no_re_rank_(no_re_rank), novo_fract_(novo_fract), FDR_(FDR), results{}
   {}
   
-  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids)
+  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids, bool fdr_done)
   {
     SuitabilityData d;
 
-    Param p;
-    p.setValue("use_all_hits", "true");
-    p.setValue("add_decoy_peptides", "true");
-    p.setValue("add_decoy_proteins", "true");
+    if (!fdr_done)
+    {
+      Param p;
+      p.setValue("use_all_hits", "true");
+      p.setValue("add_decoy_peptides", "true");
+      p.setValue("add_decoy_proteins", "true");
 
-    FalseDiscoveryRate fdr;
-    fdr.setParameters(p);
-    fdr.apply(pep_ids);
+      FalseDiscoveryRate fdr;
+      fdr.setParameters(p);
+      fdr.apply(pep_ids);
+    }
 
     if (!no_re_rank_)
     {

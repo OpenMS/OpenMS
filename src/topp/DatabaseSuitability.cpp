@@ -136,7 +136,7 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide (after FDR)");
+    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide. PeptideIndexer is needed, FDR is not.");
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });
@@ -151,6 +151,7 @@ protected:
     setMinFloat_("FDR", 0);
     setMaxFloat_("FDR", 1);
     registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
+    registerFlag_("FDR_performed", "Use this flag if q-values are already calculated for the peptide identifications. If FalseDiscoveryRate was used for this make sure no hits were filtered and decoy hits are exported.", true);
   }
 
   // the main_ function is called after all parameters are read
@@ -166,6 +167,7 @@ protected:
     double novo_fract = getDoubleOption_("novor_fract");
     double FDR = getDoubleOption_("FDR");
     bool no_re_rank = getFlag_("force_no_re_rank");
+    bool FDR_performed = getFlag_("FDR_performed");
 
     //-------------------------------------------------------------
     // reading input
@@ -194,7 +196,7 @@ protected:
     SpectralQuality q;
     Suitability s(no_re_rank, novo_fract, FDR);
     q.computeSpectraQuality(exp, novo_peps);
-    s.computeSuitability(pep_ids);
+    s.computeSuitability(pep_ids, FDR_performed);
     SpectralQuality::SpectralData quality = q.getResults()[0];
     Suitability::SuitabilityData suit = s.getResults()[0];
     Size count_novo_seqs = quality.num_novo_seqs;

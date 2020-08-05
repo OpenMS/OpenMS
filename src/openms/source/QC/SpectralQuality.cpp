@@ -43,31 +43,40 @@ namespace OpenMS
 {
   void SpectralQuality::computeSpectraQuality(const MSExperiment& exp, const std::vector<PeptideIdentification>& pep_ids)
   {
-    SpectralData d;
+    Size count_ms2{};
     for (auto const& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 2)
       {
-        ++d.num_ms2;
+        ++count_ms2;
       }
     }
 
-    if (d.num_ms2 == 0)
+    if (count_ms2 == 0)
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS2 spectra found.");
     }
 
     set<AASequence> unique_novo;
+    Size count_ids{};
 
     for (const auto& pep_id : pep_ids)
     {
       if (pep_id.getHits().empty()) continue;
-      ++d.num_novo_seqs;
+      ++count_ids;
       unique_novo.insert(pep_id.getHits()[0].getSequence());
     }
 
+    if (count_ms2 < count_ids)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
+    }
+
+    SpectralData d;
+    d.num_ms2 = count_ms2;
+    d.num_novo_seqs = count_ids;
     d.num_unique_novo_seqs = unique_novo.size();
-    d.spectral_quality = d.num_novo_seqs / double(d.num_ms2);
+    d.spectral_quality = count_ids / double(count_ms2);
 
     results.push_back(d);
   }

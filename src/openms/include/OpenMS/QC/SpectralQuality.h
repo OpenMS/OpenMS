@@ -77,6 +77,7 @@ namespace OpenMS
 			* @param exp				MSExperiment from which the deNovo sequences where calculated
 			* @param pep_ids		vector containing the deNovo sequences as pepIDs
 			* @throws						MissingInformation if no MS2 spectra are found
+			* @throws						Precondition if more MS2 spectra are found than pepIDs
 			*/
 		void computeSpectraQuality(const MSExperiment& exp, const std::vector<PeptideIdentification>& pep_ids);
 
