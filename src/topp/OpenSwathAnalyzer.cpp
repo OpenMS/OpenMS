@@ -150,7 +150,7 @@ protected:
                            "Swath files that were used to extract the transitions. "
                            "If present, SWATH specific scoring will be used.",
                            false);
-    setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
+    setValidFormats_("swath_files", ListUtils::create<String>("mzML,cachedMzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "[applies only if you have full MS2 spectra maps] "
