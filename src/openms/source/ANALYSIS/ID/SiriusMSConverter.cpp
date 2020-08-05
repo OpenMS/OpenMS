@@ -473,7 +473,7 @@ namespace OpenMS
     AccessionInfo ainfo;
 
     // sourcefile
-    if (spectra.getSourceFiles().size() == 0)
+    if (spectra.getSourceFiles().empty())
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
     }
