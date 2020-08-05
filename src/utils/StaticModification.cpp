@@ -88,7 +88,6 @@ public:
   }
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
