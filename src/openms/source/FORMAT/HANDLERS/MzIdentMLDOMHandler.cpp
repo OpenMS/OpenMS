@@ -2009,14 +2009,12 @@ namespace OpenMS
 //      String massTable_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("massTable_ref")));
 
       XSValue::Status status;
-      XSValue* val = XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status);
+      std::unique_ptr<XSValue> val(XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status));
       bool pass = false;
       if (status == XSValue::st_Init)
       {
         pass = val->fData.fValue.f_bool;
       }
-      delete val;
-      OPENMS_LOG_DEBUG << "'passThreshold' value " << pass;
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
