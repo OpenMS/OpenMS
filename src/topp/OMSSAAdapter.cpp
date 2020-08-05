@@ -1030,20 +1030,9 @@ protected:
 
     for (auto& p : peptide_ids)
     {
-      String ref = p.getMetaValue("spectrum_reference");
-      Size index = lookup.findByNativeID(ref);
-      if (index < exp.size())
-      {
-        p.setRT(exp[index].getRT());
-        if (!exp[index].getPrecursors().empty())
-        {
-          p.setMZ(exp[index].getPrecursors()[0].getMZ());
-        }
-      }
-      else
-      {
-        OPENMS_LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
-      }
+      Size scan_id = lookup.findByRT(p.getRT());
+      PeakSpectrum& temp = exp.getSpectrum(scan_id);
+      p.setMetaValue("spectrum_reference", temp.getIdentifier());
     }
 
     //-------------------------------------------------------------
