@@ -51,20 +51,20 @@ using namespace std;
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
     defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn,silent"));
 
-    defaults_.setValue("enzyme:name", "", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input");
+    defaults_.setValue("enzyme:name", AUTO_MODE, "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input");
 
     StringList enzymes{};
     ProteaseDB::getInstance()->getAllNames(enzymes);
-    enzymes.emplace_back("");
+    enzymes.emplace(enzymes.begin(), AUTO_MODE); // make it the first item
     defaults_.setValidStrings("enzyme:name", enzymes);
 
-    defaults_.setValue("enzyme:specificity", "", "Specificity of the enzyme. Default: deduce from input."
+    defaults_.setValue("enzyme:specificity", AUTO_MODE, "Specificity of the enzyme. Default: deduce from input."
       "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL] + "': both internal cleavage sites must match."
       "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI] + "': one of two internal cleavage sites must match."
-      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE] + "': allow all peptide hits no matter their context."
-                                                            " Therefore, the enzyme chosen does not play a role here");
+      "\n  '" + EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE] + "': allow all peptide hits no matter their context (enzyme is irrelevant).");
 
-    defaults_.setValidStrings("enzyme:specificity", {"",EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL],
+    defaults_.setValidStrings("enzyme:specificity", {AUTO_MODE,
+                                                     EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_FULL],
                                                      EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_SEMI],
                                                      EnzymaticDigestion::NamesOfSpecificity[EnzymaticDigestion::SPEC_NONE]});
 
