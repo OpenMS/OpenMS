@@ -189,8 +189,8 @@ protected:
     setValidStrings_("second_enzyme", all_enzymes);
 
     registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
-    setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
-    registerIntOption_("missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
+    setValidStrings_("num_enzyme_termini", { "semi", "fully", "C-term unspecific", "N-term unspecific" } );
+    registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("missed_cleavages", 0);
     setMaxInt_("missed_cleavages", 5);
 
@@ -451,7 +451,7 @@ protected:
 
     os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
     os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
-    os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bin, 1=use M bin only
+    os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bins as well; 1=use M bin only
     os << "use_A_ions = " << (int)(getStringOption_("use_A_ions")=="true") << "\n";
     os << "use_B_ions = " << (int)(getStringOption_("use_B_ions")=="true") << "\n";
     os << "use_C_ions = " << (int)(getStringOption_("use_C_ions")=="true") << "\n";
