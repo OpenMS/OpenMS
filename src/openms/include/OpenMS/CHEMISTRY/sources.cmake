@@ -5,6 +5,7 @@ set(directory include/OpenMS/CHEMISTRY)
 set(sources_list_h
 AAIndex.h
 AASequence.h
+AdductInfo.h
 CrossLinksDB.h
 DecoyGenerator.h
 Element.h
