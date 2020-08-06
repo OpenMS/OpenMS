@@ -600,8 +600,6 @@ protected:
 
     svm.saveModel(outputfile_name);
 
-
-
     // If the oligo-border kernel is used some additional information has to be stored
     if (temp_type == SVMWrapper::OLIGO)
     {

@@ -98,7 +98,6 @@ protected:
     setValidFormats_("in_oligo_params", ListUtils::create<String>("paramXML"));
     registerInputFile_("in_oligo_trainset", "<file>", "", "input file with the used training dataset when using the OLIGO kernel", false);
     setValidFormats_("in_oligo_trainset", ListUtils::create<String>("txt"));
-
     registerOutputFile_("out", "<file>", "", "output file\n");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
