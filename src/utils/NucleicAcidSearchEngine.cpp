@@ -261,16 +261,18 @@ protected:
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
   }
 
+  typedef boost::optional<IdentificationData::AdductRef> AdductOpt;
+
   // relevant information about an MS2 precursor ion
   struct PrecursorInfo
   {
     Size scan_index;
     Int charge;
     Size isotope;
-    String adduct;
+    AdductOpt adduct;
 
     PrecursorInfo(Size scan_index, Int charge, Size isotope,
-                  const String& adduct):
+                  const AdductOpt& adduct = boost::none):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {
     }
@@ -344,7 +346,8 @@ protected:
   };
 
   // turn an adduct string (param. "precursor:potential_adducts") into a formula
-  EmpiricalFormula parseAdduct_(const String& adduct)
+  // @TODO: adapt "AdductInfo::parseAdductString" and use that
+  AdductInfo parseAdduct_(const String& adduct)
   {
     StringList parts;
     adduct.split(':', parts);
@@ -366,18 +369,9 @@ protected:
                                     error, adduct);
     }
 
-    // generate the formula for the adduct at neutral charge (!) -
-    // compensate for intrinsic charge by adding/removing hydrogens:
     EmpiricalFormula ef(parts[0]);
-    if (pos_charge > 0)
-    {
-      ef -= EmpiricalFormula("H" + String(pos_charge));
-    }
-    else if ((neg_charge > 0) && (parts[0] != "H-1"))
-    {
-      ef += EmpiricalFormula("H" + String(neg_charge));
-    }
-    return ef;
+    int charge = (pos_charge > 0) ? pos_charge : -neg_charge;
+    return AdductInfo(adduct, ef, charge);
   }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
@@ -801,10 +795,7 @@ protected:
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
-        if (!hit.precursor_ref->adduct.empty())
-        {
-          match.setMetaValue("adduct", hit.precursor_ref->adduct);
-        }
+        match.adduct_opt = hit.precursor_ref->adduct;
 #pragma omp critical (id_data_access)
         id_data.registerMoleculeQueryMatch(match);
       }
@@ -843,7 +834,7 @@ protected:
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    using AdductedOligo = pair<NASequence, String>; // oligo, adduct
+    using AdductedOligo = pair<NASequence, AdductOpt>; // oligo, adduct
     using PrecursorPair = pair<double, double>; // precursor intensity, RT
     // mapping: charge -> list of precursors
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
@@ -853,7 +844,7 @@ protected:
     {
       const NASequence& seq =
         match.identified_molecule_var.getIdentifiedOligoRef()->sequence;
-      auto key = make_pair(seq, match.getMetaValue("adduct"));
+      auto key = make_pair(seq, match.adduct_opt);
       double rt = match.data_query_ref->rt;
       double prec_int =
         match.data_query_ref->getMetaValue("precursor_intensity");
@@ -868,10 +859,11 @@ protected:
     {
       String name = entry.first.first.toString();
       EmpiricalFormula ef = entry.first.first.getFormula();
-      if (!entry.first.second.empty()) // adduct given
+      const AdductOpt& adduct = entry.first.second;
+      if (adduct)
       {
-        name += "+[" + entry.first.second + "]";
-        ef += parseAdduct_(entry.first.second);
+        name += "+[" + (*adduct)->getName() + "]";
+        ef += (*adduct)->getEmpiricalFormula();
       }
       // @TODO: use charge-specific RTs?
       vector<Int> charges;
@@ -899,6 +891,8 @@ protected:
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
+
+    IdentificationData id_data; // container for results
 
     // load parameters and check validity:
     String in_mzml = getStringOption_("in");
@@ -985,20 +979,22 @@ protected:
 
     StringList potential_adducts =
       getStringList_("precursor:potential_adducts");
-    map<double, String> adduct_masses;
-    adduct_masses[0.0] = ""; // always consider "no adduct"
+    // @TODO: allow different adducts with same mass?
+    map<double, AdductOpt> adduct_masses;
+    adduct_masses[0.0] = boost::none; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
-      for (const String& adduct : potential_adducts)
+      for (const String& adduct_name : potential_adducts)
       {
-        EmpiricalFormula ef = parseAdduct_(adduct);
-        double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
-        adduct_masses[mass] = adduct;
-        OPENMS_LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass
-                         << endl;
+        AdductInfo adduct = parseAdduct_(adduct_name);
+        double mass = adduct.getMassShift(use_avg_mass);
+        IdentificationData::AdductRef ref = id_data.registerAdduct(adduct);
+        adduct_masses[mass] = ref;
+        OPENMS_LOG_DEBUG << "Added adduct: " << adduct_name << ", mass shift: "
+                         << mass << endl;
       }
     }
 
@@ -1013,7 +1009,6 @@ protected:
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
 
-    IdentificationData id_data;
     // input file meta data:
     String input_name = test_mode_ ? File::basename(in_mzml) : in_mzml;
     IdentificationData::InputFile input(input_name);
