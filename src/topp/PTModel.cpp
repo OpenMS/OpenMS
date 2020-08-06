@@ -621,7 +621,7 @@ protected:
         trainset_outfile_name = outfile_name + "_samples";
         writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
       }
-      encoded_training_sample.store(trainset_outfile_name);
+      encoder.storeLibSVMProblem(trainset_outfile_name, encoded_training_sample);
       additional_parameters.setValue("kernel_type", temp_type);
 
       if (temp_type == SVMWrapper::OLIGO)

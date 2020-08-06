@@ -120,6 +120,7 @@ protected:
     vector<double> predicted_labels;
     map<String, double> predicted_data;
     svm_problem* training_data = nullptr;
+    SVMData training_samples;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -147,16 +148,17 @@ protected:
     // additional parameters from additional files.
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
+      String in_params_name = getStringOption_("in_oligo_params");
+      if (in_params_name.empty())
+      {
+        in_params_name = svmfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+      }
       inputFileReadable_(in_params_name, "in_oligo_params");
 
       Param additional_parameters;
       ParamXMLFile paramFile;
       paramFile.load(in_params_name, additional_parameters);
-      if (additional_parameters.exists("first_dim_rt")
-         && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
-      {
-        first_dim_rt = additional_parameters.getValue("first_dim_rt").toBool();
-      }
       if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
       {
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
@@ -244,6 +246,12 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
+        String in_trainset_name = getStringOption_("in_oligo_trainset");
+        if (in_trainset_name.empty())
+        {
+          in_trainset_name = svmfile_name + "_samples";
+          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+        }
         inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
         training_samples.load(in_trainset_name);
