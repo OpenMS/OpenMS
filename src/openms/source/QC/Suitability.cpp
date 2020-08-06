@@ -49,12 +49,13 @@ namespace OpenMS
   {
     defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
     defaults_.setValidStrings("no_re_rank", ListUtils::create<String>("true,false"));
-    defaults_.setValue("novo_fract", 1, "Fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank");
-    defaults_.setMinFloat("novo_fract", 0);
-    defaults_.setMaxFloat("novo_fract", 1);
+    defaults_.setValue("novo_fract", 1., "Fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank");
+    defaults_.setMinFloat("novo_fract", 0.);
+    defaults_.setMaxFloat("novo_fract", 1.);
     defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
-    defaults_.setMinFloat("FDR", 0);
-    defaults_.setMaxFloat("FDR", 1);
+    defaults_.setMinFloat("FDR", 0.);
+    defaults_.setMaxFloat("FDR", 1.);
+    defaultsToParam_();
   }
   
   void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids)
