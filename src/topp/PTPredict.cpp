@@ -119,8 +119,7 @@ protected:
     vector<double> predicted_likelihoods;
     vector<double> predicted_labels;
     map<String, double> predicted_data;
-    svm_problem* training_data = nullptr;
-    SVMData training_samples;
+    svm_problem* training_samples = nullptr;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -254,7 +253,7 @@ protected:
         }
         inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
-        training_samples.load(in_trainset_name);
+        training_samples = encoder.loadLibSVMProblem(in_trainset_name);
         svm.setTrainingSample(training_samples);
 
         svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
