@@ -45,16 +45,44 @@ using namespace std;
 namespace OpenMS
 {
   Suitability::Suitability()
-    : no_re_rank_(false), novo_fract_(1), FDR_(0.01), results{}
-  {}
-
-  Suitability::Suitability(bool no_re_rank, double novo_fract, double FDR)
-    : no_re_rank_(no_re_rank), novo_fract_(novo_fract), FDR_(FDR), results{}
-  {}
-  
-  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids, bool fdr_done)
+    : DefaultParamHandler("Suitability"), results_{}
   {
+    defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
+    defaults_.setValidStrings("no_re_rank", ListUtils::create<String>("true,false"));
+    defaults_.setValue("novo_fract", 1, "Fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank");
+    defaults_.setMinFloat("novo_fract", 0);
+    defaults_.setMaxFloat("novo_fract", 1);
+    defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
+    defaults_.setMinFloat("FDR", 0);
+    defaults_.setMaxFloat("FDR", 1);
+  }
+  
+  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids)
+  {
+    bool no_re_rank = param_.getValue("no_re_rank").toBool();
+    double novo_fract = param_.getValue("novo_fract");
+    double FDR = param_.getValue("FDR");
+
     SuitabilityData d;
+
+    bool fdr_done = false;
+    bool q_value_score = false;
+    if (pep_ids[0].getScoreType() == "q-value")
+    {
+      fdr_done = true;
+      q_value_score = true;
+    }
+    else
+    {
+      for (const auto& id : pep_ids)
+      {
+        if (id.getHits().empty()) continue;
+        if (id.getHits()[0].metaValueExists("q-value"))
+        {
+          fdr_done = true;
+        }
+      }
+    }
 
     if (!fdr_done)
     {
@@ -66,11 +94,12 @@ namespace OpenMS
       FalseDiscoveryRate fdr;
       fdr.setParameters(p);
       fdr.apply(pep_ids);
+      q_value_score = true;
     }
 
-    if (!no_re_rank_)
+    if (!no_re_rank)
     {
-      d.cut_off = getDecoyCutOff_(pep_ids);
+      d.cut_off = getDecoyCutOff_(pep_ids, novo_fract);
       if (d.cut_off == DBL_MAX)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not compute decoy cut off. Re-ranking impossible. If you want to ignore this, disable re-ranking.");
@@ -80,7 +109,6 @@ namespace OpenMS
     for (PeptideIdentification& pep_id : pep_ids)
     {
       vector<PeptideHit>& hits = pep_id.getHits();
-      bool q_value_score = (pep_id.getScoreType() == "q-value");
 
       if (hits.empty()) continue;
 
@@ -95,18 +123,12 @@ namespace OpenMS
       }
       else
       {
-        if (!hits[0].metaValueExists("q-value"))
-        {
-          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
-        }
-
         sort(hits.begin(), hits.end(),
           [](const PeptideHit& a, const PeptideHit& b)
           {
             return float(a.getMetaValue("q-value")) < float(b.getMetaValue("q-value"));
           });
       }
-
 
       const PeptideHit& top_hit = hits[0];
 
@@ -118,7 +140,7 @@ namespace OpenMS
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // skip if top hit is out ouf FDR
-      if (scoreHigherThanFDR_(top_hit, q_value_score)) continue;
+      if (scoreHigherThanFDR_(top_hit, FDR, q_value_score)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
@@ -133,7 +155,7 @@ namespace OpenMS
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
-        if (scoreHigherThanFDR_(hits[i], q_value_score)) break;
+        if (scoreHigherThanFDR_(hits[i], FDR, q_value_score)) break;
 
         if (target.find(String(hits[i].getMetaValue("target_decoy"), 0)) == 0) // also check for "target+decoy" value
         {
@@ -154,7 +176,7 @@ namespace OpenMS
       ++d.num_interest;
 
       // check for re-ranking
-      if (no_re_rank_)
+      if (no_re_rank)
       {
         ++d.num_top_novo;
         continue;
@@ -181,52 +203,12 @@ namespace OpenMS
 
     d.suitability = double(d.num_top_db) / (d.num_top_db + d.num_top_novo);
 
-    results.push_back(d);
+    results_.push_back(d);
   }
 
   std::vector<Suitability::SuitabilityData> Suitability::getResults() const
   {
-    return results;
-  }
-
-  void Suitability::setNoReRank(bool no_re_rank)
-  {
-    no_re_rank_ = no_re_rank;
-  }
-
-  void Suitability::setNovoFract(double novo_fract)
-  {
-    if (novo_fract > 1 || novo_fract < 0)
-    {
-      OPENMS_LOG_WARN << "'novo_fract' has to have a value between 0 and 1!" << endl;
-      return;
-    }
-    novo_fract_ = novo_fract;
-  }
-
-  void Suitability::setFDR(double FDR)
-  {
-    if (FDR > 1 || FDR < 0)
-    {
-      OPENMS_LOG_WARN << "'FDR' has to have a value between 0 and 1!" << endl;
-      return;
-    }
-    FDR_ = FDR;
-  }
-
-  bool Suitability::getNoReRank()
-  {
-    return no_re_rank_;
-  }
-
-  double Suitability::getNovoFract()
-  {
-    return novo_fract_;
-  }
-
-  double Suitability::getFDR()
-  {
-    return FDR_;
+    return results_;
   }
 
   double Suitability::getDecoyDiff_(const PeptideIdentification& pep_id)
@@ -246,14 +228,6 @@ namespace OpenMS
       if (!hit.metaValueExists("target_decoy"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
-      }
-
-      if (pep_id.getScoreType() != "q-value")
-      {
-        if (!hit.metaValueExists("q-value"))
-        {
-          throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
-        }
       }
 
       if (!hit.metaValueExists("MS:1002252"))
@@ -282,7 +256,7 @@ namespace OpenMS
     return diff;
   }
 
-  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids)
+  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novo_fract)
   {
     // get all decoy diffs of peptide ids with at least two decoy hits
     vector<double> diffs;
@@ -301,7 +275,7 @@ namespace OpenMS
     }
 
     // sort the diffs decreasing and get the (1-novo_fract)*N one
-    auto sort_end = diffs.begin() + (1 - novo_fract_) * diffs.size();
+    auto sort_end = diffs.begin() + (1 - novo_fract) * diffs.size();
 
     partial_sort(diffs.begin(), sort_end + 1, diffs.end(), greater<double>());
 
@@ -321,21 +295,21 @@ namespace OpenMS
     return true;
   }
 
-  bool Suitability::scoreHigherThanFDR_(const PeptideHit& hit, bool q_value_score)
+  bool Suitability::scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score)
   {
     if (q_value_score) // score type is q-value
     {
-      if (hit.getScore() > FDR_) return true;
+      if (hit.getScore() > FDR) return true;
       return false;
     }
 
     if (hit.metaValueExists("q-value")) // look for q-value at metavalues
     {
-      if (float(hit.getMetaValue("q-value")) > FDR_) return true;
+      if (float(hit.getMetaValue("q-value")) > FDR) return true;
       return false;
     }
 
     // no q-value found
-    throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits. Make sure 'False Discovery Rate' is run beforehand."));
+    throw(Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification nor at peptide hits."));
   }
 }

@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <cfloat>
 #include <map>
@@ -57,7 +58,8 @@ namespace OpenMS
 	* using getResults().
 	*
 	*/
-	class OPENMS_DLLAPI Suitability
+	class OPENMS_DLLAPI Suitability:
+		public DefaultParamHandler
 	{
 	public:
 
@@ -73,15 +75,9 @@ namespace OpenMS
 		};
 
 		/// Constructor
-		/// Settings are set to their default values:
+		/// Settings are initialized with their default values:
 		/// no_re_rank = false, novo_fract = 1, FDR = 0.01
 		Suitability();
-
-		/// Constructor with settings:
-		/// no_re_rank: option to turn off re-ranking of deNovo/db hits
-		/// novo_fract: fraction of re-ranking cases should be re-ranked
-		/// FDR:				FDR that should be established
-		Suitability(bool no_re_rank, double novo_fract, double FDR);
 
 		/// Destructor
 		~Suitability() = default;
@@ -100,37 +96,19 @@ namespace OpenMS
 		*
 		* @param pep_ids			vector containing pepIDs coming from a deNovo+database 
 		*											identification search (currently only Comet-support)
-		* @param fdr_done			q-value already calculated for pep_ids?
 		* @throws							MissingInformation if decoy cut-off could not be calculated
 		* @throws							MissingInformation if no target/decoy annotation is found
 		* @throws							MissingInformation if no xcorr is found
 		* @throws							Precondition if FDR wasn't calculated
 		*/
-		void computeSuitability(std::vector<PeptideIdentification>& pep_ids, bool fdr_done = false);
+		void computeSuitability(std::vector<PeptideIdentification>& pep_ids);
 
 		/// return results
 		std::vector<SuitabilityData> getResults() const;
 
-		/// Access to the settings
-		void setNoReRank(bool no_re_rank);
-		void setNovoFract(double novo_fract);
-		void setFDR(double FDR);
-		bool getNoReRank();
-		double getNovoFract();
-		double getFDR();
-
 	private:
-		/// settings
-		
-		// enable/disable re-ranking
-		bool no_re_rank_;
-		// fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank
-		double novo_fract_;
-		// filtering peptide hits based on this q-value
-		double FDR_;
-
 		/// result vector
-		std::vector<SuitabilityData> results;
+		std::vector<SuitabilityData> results_;
 
 		/**
 		* @brief Calculates the xcorr difference between the top two hits marked as decoy
@@ -151,13 +129,13 @@ namespace OpenMS
 		* Decoy differences of all N pepIDs are calculated. The (1-novo_fract)*N highest
 		* one is returned.
 		* It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
-		* 'novo_fract' can be set using the constructor or setNovoFract.
 		*
 		* @param pep_ids			vector containing the pepIDs
+		* @param novo_fract		fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank
 		* @returns						xcorr cut-off
 		* @throws							MissingInformation if no more than 20 % of the pepIDs have two decoys in there top ten
 		*/
-		double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids);
+		double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double novo_fract);
 
 		/**
 		* @brief Tests if a PeptideHit is considered a deNovo hit
@@ -174,15 +152,15 @@ namespace OpenMS
 		/**
 		* @brief Tests if a PeptideHit has a higher q-value the given FDR
 		*
-		* FDR can be set unsing the constructor or setFDR.
 		* Q-value is searched at score and at meta-value level.
 		*
 		* @param hit						PepHit in question
+		* @param FDR						FDR to check against
 		* @param q_value_score	is q-value the current score type?
 		* @returns							true/false
 		* @throws								Precondition if no q-value is found
 		*/
-		bool scoreHigherThanFDR_(const PeptideHit& hit, bool q_value_score);
+		bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR, bool q_value_score);
 	};
 }
 

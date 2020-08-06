@@ -140,7 +140,7 @@ protected:
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });
-    registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides");
+    registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides (unfiltered)");
     setValidFormats_("in_novo", { "idXML" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
@@ -151,7 +151,6 @@ protected:
     setMinFloat_("FDR", 0);
     setMaxFloat_("FDR", 1);
     registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
-    registerFlag_("FDR_performed", "Use this flag if q-values are already calculated for the peptide identifications. If FalseDiscoveryRate was used for this make sure no hits were filtered and decoy hits are exported.", true);
   }
 
   // the main_ function is called after all parameters are read
@@ -167,7 +166,6 @@ protected:
     double novo_fract = getDoubleOption_("novor_fract");
     double FDR = getDoubleOption_("FDR");
     bool no_re_rank = getFlag_("force_no_re_rank");
-    bool FDR_performed = getFlag_("FDR_performed");
 
     //-------------------------------------------------------------
     // reading input
@@ -193,36 +191,31 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    SpectralQuality q;
-    Suitability s(no_re_rank, novo_fract, FDR);
-    q.computeSpectraQuality(exp, novo_peps);
-    s.computeSuitability(pep_ids, FDR_performed);
-    SpectralQuality::SpectralData quality = q.getResults()[0];
-    Suitability::SuitabilityData suit = s.getResults()[0];
-    Size count_novo_seqs = quality.num_novo_seqs;
-    Size count_ms2_lvl = quality.num_ms2;
-    Size unique_novor_seqs = quality.num_unique_novo_seqs;
-    double id_rate = quality.spectral_quality;
+    Suitability s;
+    Param p;
+    p.setValue("no_re_rank", no_re_rank ? "true" : "false");
+    p.setValue("novo_fract", novo_fract);
+    p.setValue("FDR", FDR);
+    s.setParameters(p);
+    s.computeSuitability(pep_ids);
 
-    Size count_novo = suit.num_top_novo;
-    Size count_db = suit.num_top_db;
-    Size count_re_ranked = suit.num_re_ranked;
-    Size count_interest = suit.num_interest;
-    double cut_off = suit.cut_off;
-    double suitability = suit.suitability;
-    
+    SpectralQuality q;
+    q.computeSpectraQuality(exp, novo_peps);
+
+    SpectralQuality::SpectralData quality = q.getResults()[0];
+    Suitability::SuitabilityData suit = s.getResults()[0];    
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-    OPENMS_LOG_INFO << count_db << " / " << (count_db + count_novo) << " top hits were found in the database." << endl;
-    OPENMS_LOG_INFO << count_novo << " / " << (count_db + count_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
-    OPENMS_LOG_INFO << count_interest << " times scored a de novo hit above a database hit. Of those times " << count_re_ranked << " top de novo hits where re-ranked." << endl;
-    OPENMS_LOG_INFO << "database suitability [0, 1]: " << suitability << endl << endl;
-    OPENMS_LOG_INFO << unique_novor_seqs << " / " << count_novo_seqs << " de novo sequences are unique" << endl;
-    OPENMS_LOG_INFO << count_ms2_lvl << " ms2 spectra found" << endl;
-    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << id_rate << endl << endl;
+    OPENMS_LOG_INFO << suit.num_top_db << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were found in the database." << endl;
+    OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
+    OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
+    OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl << endl;
+    OPENMS_LOG_INFO << quality.num_unique_novo_seqs << " / " << quality.num_novo_seqs << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << quality.num_ms2 << " ms2 spectra found" << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << quality.spectral_quality << endl << endl;
 
     if (!out.empty())
     {
@@ -231,13 +224,13 @@ protected:
       std::ofstream os(out);
       os.precision(writtenDigits(double()));
       os << "key\tvalue\n";
-      os << "#top_db_hits\t" << count_db << "\n";
-      os << "#top_novo_hits\t" << count_novo << "\n";
-      os << "db_suitability\t" << suitability << "\n";
-      os << "#total_novo_seqs\t" << count_novo_seqs << "\n";
-      os << "#unique_novo_seqs\t" << unique_novor_seqs << "\n";
-      os << "#ms2_spectra\t" << count_ms2_lvl << "\n";
-      os << "spectral_quality\t" << id_rate << "\n";
+      os << "#top_db_hits\t" << suit.num_top_db << "\n";
+      os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
+      os << "db_suitability\t" << suit.suitability << "\n";
+      os << "#total_novo_seqs\t" << quality.num_novo_seqs << "\n";
+      os << "#unique_novo_seqs\t" << quality.num_unique_novo_seqs << "\n";
+      os << "#ms2_spectra\t" << quality.num_ms2 << "\n";
+      os << "spectral_quality\t" << quality.spectral_quality << "\n";
       os.close();
     }
 
