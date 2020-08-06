@@ -528,13 +528,19 @@ START_SECTION((static bool isBetterScore(double first, double second, bool highe
 }
 END_SECTION
 
-
 START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
+{
   IdentificationData id;
   String file = "file://ROOT/FOLDER/SPECTRA.mzML";
   auto file_ref = id.registerInputFile(id);
  
+  // register a score type 
+  IdentificationData::ScoreType score("MySearchEngineScore", true);
+  auto score_ref = id.registerScoreType(score);
+
+  // register software (connected to score)
   IdentificationData::DataProcessingSoftware sw("MySearchEngineTool", "1.0");
+  sw.assigned_scores.push_back(score_ref);
   auto sw_ref = id.registerDataProcessingSoftware(sw);
 
   // all supported search settings
@@ -557,42 +563,42 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   auto search_param_ref = id.registerDBSearchParam(search_param);
 
   // file has been processed by software
-  vector<IdentificationData::InputFileRef> file_refs(1, file_ref);
-  IdentificationData::DataProcessingStep step(sw_ref, file_refs);
-  auto step_ref = id.registerDataProcessingStep(step);
-
-  // ???
   IdentificationData::DataProcessingStep step(sw_ref);
-  step_ref = id.registerDataProcessingStep(step, search_param_ref);
+  step.input_file_refs.push_back(file_ref);
+  auto step_ref = id.registerDataProcessingStep(step, search_param_ref);
+  // all further data comes from this processing step
+  id.setCurrentProcessingStep(step_ref);
  
-  // register a score type 
-  IdentificationData::ScoreType score("MySearchEngineScore", true);
-  auto score_ref = id.registerScoreType(score);
-
   // register spectrum 
   IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
   auto query_ref = id.registerDataQuery(query);
 
-  // peptide without protein reference (yet):
-  IdentificationData::IdentifiedPeptide peptide;
-  peptide.sequence = AASequence::fromString("TESTPEPTIDR"); 
+  // peptide without protein reference (yet)
+  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
   auto peptide_ref = id.registerIdentifiedPeptide(peptide);
 
+  // peptide-spectrum match
+  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref); // both are required
+  match.addScore(score_ref, 123, step_ref);
+  id.registerMoleculeQueryMatch(match);
+
   // some calculations, inference etc. could take place ...
-  IdentificationData::ParentMolecule protein();
-  protein.accession = "protein_1";
-  protein.sequence = "TESTPRT";
+  IdentificationData::ParentMolecule protein("protein_1"); // accession is required
+  protein.sequence = "PRTTESTPEPTIDRPRT";
   protein.description = "Human Random Protein 1";
-  protein.molecule_type = IdentificationData::MoleculeType::Protein;
-  protein.coverage = 0.0; // not determined yet
-  protein.is_decoy = false;
   auto protein_ref = id.registerParentMolecule(protein);
 
   // now I want to add and update references to parents
-  ???.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(4, 10));
+  IdentificationData::IdentifiedPeptide augmented_pep = *peptide_ref;
+  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(4, 10));
+  id.registerIdentifiedPeptide(augmented_pep); // protein reference will be added
+  // peptide_ref should still be valid and now contain link to protein
+  TEST_EQUAL(peptide_ref->sequence, augmented_pep.sequence);
+  TEST_EQUAL(peptide_ref->parent_matches.size(), 1);
 
   // and now update protein coverage of all proteins
-  ???
+  id.calculateCoverages();
+  TEST_NOT_EQUAL(protein_ref->coverage, 0.0);
 }
 END_SECTION
 
