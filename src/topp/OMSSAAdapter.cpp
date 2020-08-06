@@ -1032,7 +1032,7 @@ protected:
     {
       Size scan_id = lookup.findByRT(p.getRT());
       PeakSpectrum& temp = exp.getSpectrum(scan_id);
-      p.setMetaValue("spectrum_reference", temp.getIdentifier());
+      p.setMetaValue("spectrum_reference", temp.getNativeID());
     }
 
     //-------------------------------------------------------------
