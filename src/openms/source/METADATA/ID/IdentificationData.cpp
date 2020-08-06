@@ -365,6 +365,20 @@ namespace OpenMS
   }
 
 
+  IdentificationData::AdductRef
+  IdentificationData::registerAdduct(const AdductInfo& adduct)
+  {
+    auto result = adducts_.insert(adduct);
+    if (!result.second && (result.first->getName() != adduct.getName()))
+    {
+      OPENMS_LOG_WARN << "Warning: adduct '" << adduct.getName()
+                      << "' is already known under the name '"
+                      << result.first->getName() << "'";
+    }
+    return result.first;
+  }
+
+
   IdentificationData::QueryMatchRef
   IdentificationData::registerMoleculeQueryMatch(const MoleculeQueryMatch&
                                                  match)
@@ -405,6 +419,13 @@ namespace OpenMS
       if (!isValidHashedReference_(match.data_query_ref, data_query_lookup_))
       {
         String msg = "invalid reference to a data query - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      if (match.adduct_opt && !isValidReference_(*match.adduct_opt, adducts_))
+      {
+        String msg = "invalid reference to an adduct - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -846,8 +867,8 @@ namespace OpenMS
             data_queries_.empty() && parent_molecules_.empty() &&
             parent_molecule_groupings_.empty() &&
             identified_peptides_.empty() && identified_compounds_.empty() &&
-            identified_oligos_.empty() && query_matches_.empty() &&
-            query_match_groups_.empty());
+            identified_oligos_.empty() && adducts_.empty() &&
+            query_matches_.empty() && query_match_groups_.empty());
   }
 
 
@@ -1004,6 +1025,13 @@ namespace OpenMS
       mergeScoredProcessingResults_(copy, *other_ref, step_refs, score_refs);
       compound_refs[other_ref] = registerIdentifiedCompound(copy);
     }
+    // adducts:
+    map<AdductRef, AdductRef> adduct_refs;
+    for (AdductRef other_ref = other.getAdducts().begin();
+         other_ref != other.getAdducts().end(); ++other_ref)
+    {
+      adduct_refs[other_ref] = registerAdduct(*other_ref);
+    }
     // molecule-query matches:
     map<QueryMatchRef, QueryMatchRef> match_refs;
     for (QueryMatchRef other_ref = other.getMoleculeQueryMatches().begin();
@@ -1027,6 +1055,10 @@ namespace OpenMS
       }
       DataQueryRef query_ref = query_refs[other_ref->data_query_ref];
       MoleculeQueryMatch copy(molecule_var, query_ref, other_ref->charge);
+      if (other_ref->adduct_opt)
+      {
+        copy.adduct_opt = adduct_refs[*other_ref->adduct_opt];
+      }
       for (const auto& pair : other_ref->peak_annotations)
       {
         boost::optional<ProcessingStepRef> opt_ref;

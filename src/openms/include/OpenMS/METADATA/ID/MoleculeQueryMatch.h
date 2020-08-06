@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
+#include <OpenMS/CHEMISTRY/AdductInfo.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -52,6 +53,20 @@ namespace OpenMS
     typedef std::map<boost::optional<ProcessingStepRef>,
                      PeakAnnotations> PeakAnnotationSteps;
 
+    /// Comparator for adducts
+    struct AdductCompare
+    {
+      bool operator()(const AdductInfo& left, const AdductInfo& right)
+      {
+        return (std::make_pair(left.getCharge(), left.getEmpiricalFormula()) <
+                std::make_pair(right.getCharge(), right.getEmpiricalFormula()));
+      }
+    };
+
+    typedef std::set<AdductInfo, AdductCompare> Adducts;
+    typedef IteratorWrapper<Adducts::iterator> AdductRef;
+
+
     /// Representation of a search hit (e.g. peptide-spectrum match).
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
@@ -61,6 +76,8 @@ namespace OpenMS
 
       Int charge;
 
+      boost::optional<AdductRef> adduct_opt; ///< optional reference to adduct
+
       // peak annotations (fragment ion matches), potentially from different
       // data processing steps:
       PeakAnnotationSteps peak_annotations;
@@ -68,11 +85,12 @@ namespace OpenMS
       explicit MoleculeQueryMatch(
         IdentifiedMolecule identified_molecule_var,
         DataQueryRef data_query_ref, Int charge = 0,
+        const boost::optional<AdductRef>& adduct_opt = boost::none,
         const AppliedProcessingSteps& steps_and_scores = AppliedProcessingSteps(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(steps_and_scores),
         identified_molecule_var(identified_molecule_var),
-        data_query_ref(data_query_ref), charge(charge),
+        data_query_ref(data_query_ref), charge(charge), adduct_opt(adduct_opt),
         peak_annotations(peak_annotations)
       {
       }
@@ -83,6 +101,7 @@ namespace OpenMS
       {
         ScoredProcessingResult::operator+=(other);
         if (charge == 0) charge = other.charge;
+        if (!adduct_opt) adduct_opt = other.adduct_opt;
         peak_annotations.insert(other.peak_annotations.begin(),
                                 other.peak_annotations.end());
         return *this;

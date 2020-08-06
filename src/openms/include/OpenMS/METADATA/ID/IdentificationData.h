@@ -156,6 +156,9 @@ namespace OpenMS
 
     using PeakAnnotations = IdentificationDataInternal::PeakAnnotations;
 
+    using Adducts = IdentificationDataInternal::Adducts;
+    using AdductRef = IdentificationDataInternal::AdductRef;
+
     using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
     using MoleculeQueryMatches =
       IdentificationDataInternal::MoleculeQueryMatches;
@@ -307,13 +310,22 @@ namespace OpenMS
     IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo);
 
     /*!
+      @brief Register an adduct
+
+      @return Reference to the registered adduct
+    */
+    AdductRef registerAdduct(const AdductInfo& adduct);
+
+    /*!
       @brief Register a molecule-query match (e.g. peptide-spectrum match)
+
       @return Reference to the registered molecule-query match
     */
     QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match);
 
     /*!
       @brief Register a group of associated molecule-query matches
+
       @return Reference to the registered group of matches
     */
     MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group);
@@ -388,6 +400,12 @@ namespace OpenMS
     const IdentifiedOligos& getIdentifiedOligos() const
     {
       return identified_oligos_;
+    }
+
+    /// Return the registered adducts (immutable)
+    const Adducts& getAdducts() const
+    {
+      return adducts_;
     }
 
     /// Return the registered molecule-query matches (immutable)
@@ -546,6 +564,7 @@ namespace OpenMS
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
+    Adducts adducts_;
     MoleculeQueryMatches query_matches_;
     QueryMatchGroups query_match_groups_;
 
