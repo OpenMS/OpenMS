@@ -39,7 +39,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <OpenMS/QC/SpectralQuality.h>
 #include <OpenMS/QC/Suitability.h>
 #include <algorithm>
 #include <cmath>
@@ -202,6 +201,13 @@ protected:
 
     Ms2IdentificationRate q;
     q.compute(novo_peps, exp, true);
+    
+    set<AASequence> unique_novo;
+    for (const auto& pep_id : novo_peps)
+    {
+      if (pep_id.getHits().empty()) continue;
+      unique_novo.insert(pep_id.getHits()[0].getSequence());
+    }
 
     Ms2IdentificationRate::IdentificationRateData quality = q.getResults()[0];
     Suitability::SuitabilityData suit = s.getResults()[0];    
@@ -214,7 +220,8 @@ protected:
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl << endl;
-    OPENMS_LOG_INFO << quality.num_peptide_identification << " identifications found for " << quality.num_ms2_spectra << " ms2 spectra." << endl;
+    OPENMS_LOG_INFO << unique_novo.size() << " / " << quality.num_peptide_identification << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << quality.num_ms2_spectra << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << quality.identification_rate << endl << endl;
 
     if (!out.empty())
@@ -228,6 +235,7 @@ protected:
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
       os << "#total_novo_seqs\t" << quality.num_peptide_identification << "\n";
+      os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << quality.num_ms2_spectra << "\n";
       os << "spectral_quality\t" << quality.identification_rate << "\n";
       os.close();
