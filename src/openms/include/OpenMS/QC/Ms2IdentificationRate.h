@@ -44,6 +44,8 @@ namespace OpenMS
   class FeatureMap;
   class MSExperiment;
   class MzTabMetaData;
+  class PeptideIdentification;
+
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
    
@@ -57,8 +59,8 @@ namespace OpenMS
     /// Structure for storing results
     struct IdentificationRateData
     {
-      UInt64 num_peptide_identification = 0;
-      UInt64 num_ms2_spectra = 0;
+      Size num_peptide_identification = 0;
+      Size num_ms2_spectra = 0;
       double identification_rate = 0.;
     };
 
@@ -68,6 +70,12 @@ namespace OpenMS
     
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
+
+    Size getMS2Count_(const MSExperiment& exp);
+
+    static void countPepID_(const PeptideIdentification& id, Size& counter, bool force_fdr);
+
+    void writeResults_(Size pep_ids, Size ms2_spectra);
 
   public:
     /// Default constructor
@@ -91,6 +99,8 @@ namespace OpenMS
      * @exception Exception::Precondition is thrown if there are more identifications than MS2 spectra
      */
     void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_fdr = false);
+
+    void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_fdr = false);
 
     /// returns the name of the metric
     const String& getName() const override;
