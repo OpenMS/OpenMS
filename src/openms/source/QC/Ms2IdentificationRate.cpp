@@ -48,40 +48,40 @@ namespace OpenMS
 {
   //computes number of peptide identifications, number of ms2 spectra and ratio
   //data is stored in vector of structs
-  void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_fdr)
+  void Ms2IdentificationRate::compute(const FeatureMap& feature_map,const MSExperiment& exp, bool force_index)
   {
     //count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
 
-    //counts peptideIdentifications
+    //count peptideIdentifications
     Size peptide_identification_counter{};
 
     auto f =
-      [force_fdr, &peptide_identification_counter](const PeptideIdentification& id)
+      [force_index, &peptide_identification_counter](const PeptideIdentification& id)
     {
-      countPepID_(id, peptide_identification_counter, force_fdr);
+      countPepID_(id, peptide_identification_counter, force_index);
     };
 
     //iterates through all PeptideIdentifications in FeatureMap, applies function f to all of them
     feature_map.applyFunctionOnPeptideIDs(f, true);
 
-    writeResults_(ms2_level_counter, peptide_identification_counter);
+    writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
-  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_fdr)
+  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_index)
   {
     //count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
 
-    //counts peptideIdentifications
+    //count peptideIdentifications
     Size peptide_identification_counter{};
 
     for (const auto& id : pep_ids)
     {
-      countPepID_(id, peptide_identification_counter, force_fdr);
+      countPepID_(id, peptide_identification_counter, force_index);
     }
 
-    writeResults_(ms2_level_counter, peptide_identification_counter);
+    writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
   
@@ -123,7 +123,6 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
     }
 
-    // counts ms2 spectra
     Size ms2_counter{};
     for (auto const& spec : exp.getSpectra())
     {
@@ -141,20 +140,20 @@ namespace OpenMS
     return ms2_counter;
   }
 
-  void Ms2IdentificationRate::countPepID_(const PeptideIdentification& id, Size& counter, bool force_fdr)
+  void Ms2IdentificationRate::countPepID_(const PeptideIdentification& id, Size& counter, bool force_index)
   {
     if (id.getHits().empty())
     {
       return;
     }
-    if (force_fdr)
+    if (force_index)
     {
       ++counter;
       return;
     }
     if (!(id.getHits()[0].metaValueExists("target_decoy")))
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotaion found. If you want to continue regardless use -MS2_id_rate:force_no_index");
     }
     if (id.getHits()[0].getMetaValue("target_decoy") == "target")
     {
@@ -170,10 +169,10 @@ namespace OpenMS
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There are more Identifications than MS2 spectra. Please check your data.");
     }
 
-    //computes ratio
+    //compute ratio
     double ratio = (double)pep_ids / ms2_spectra;
 
-    // struct that is made to store results
+    // struct to store results
     IdentificationRateData id_rate_data{};
 
     //store results

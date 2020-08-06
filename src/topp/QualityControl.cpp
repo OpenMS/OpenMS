@@ -141,7 +141,7 @@ protected:
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
-    registerFlag_("MS2_id_rate:force_no_fdr", "Forces the metric to run if FDR is missing (accepts all pep_ids as target hits).", false);
+    registerFlag_("MS2_id_rate:force_no_pep_index", "Forces the metric to run if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     //TODO get ProteinQuantifier output for PRT section
   }
 
@@ -227,7 +227,7 @@ protected:
 
 
     // check flags
-    bool fdr_flag = getFlag_("MS2_id_rate:force_no_fdr");
+    bool pep_index_flag = getFlag_("MS2_id_rate:force_no_pep_index");
     double tolerance_value = getDoubleOption_("FragmentMassError:tolerance");
 
     auto it = std::find(FragmentMassError::names_of_toleranceUnit, FragmentMassError::names_of_toleranceUnit + (int)FragmentMassError::ToleranceUnit::SIZE_OF_TOLERANCEUNIT, getStringOption_("FragmentMassError:unit"));
@@ -299,7 +299,7 @@ protected:
 
       if (qc_ms2ir.isRunnable(status))
       {
-        qc_ms2ir.compute(*fmap, exp, fdr_flag);
+        qc_ms2ir.compute(*fmap, exp, pep_index_flag);
       }
 
       if (qc_mz_calibration.isRunnable(status))

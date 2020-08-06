@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <OpenMS/QC/SpectralQuality.h>
 #include <OpenMS/QC/Suitability.h>
 #include <algorithm>
@@ -199,10 +200,10 @@ protected:
     s.setParameters(p);
     s.computeSuitability(pep_ids);
 
-    SpectralQuality q;
-    q.computeSpectraQuality(exp, novo_peps);
+    Ms2IdentificationRate q;
+    q.compute(novo_peps, exp, true);
 
-    SpectralQuality::SpectralData quality = q.getResults()[0];
+    Ms2IdentificationRate::IdentificationRateData quality = q.getResults()[0];
     Suitability::SuitabilityData suit = s.getResults()[0];    
 
     //-------------------------------------------------------------
@@ -213,9 +214,8 @@ protected:
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl << endl;
-    OPENMS_LOG_INFO << quality.num_unique_novo_seqs << " / " << quality.num_novo_seqs << " de novo sequences are unique" << endl;
-    OPENMS_LOG_INFO << quality.num_ms2 << " ms2 spectra found" << endl;
-    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << quality.spectral_quality << endl << endl;
+    OPENMS_LOG_INFO << quality.num_peptide_identification << " identifications found for " << quality.num_ms2_spectra << " ms2 spectra." << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << quality.identification_rate << endl << endl;
 
     if (!out.empty())
     {
@@ -227,10 +227,9 @@ protected:
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
-      os << "#total_novo_seqs\t" << quality.num_novo_seqs << "\n";
-      os << "#unique_novo_seqs\t" << quality.num_unique_novo_seqs << "\n";
-      os << "#ms2_spectra\t" << quality.num_ms2 << "\n";
-      os << "spectral_quality\t" << quality.spectral_quality << "\n";
+      os << "#total_novo_seqs\t" << quality.num_peptide_identification << "\n";
+      os << "#ms2_spectra\t" << quality.num_ms2_spectra << "\n";
+      os << "spectral_quality\t" << quality.identification_rate << "\n";
       os.close();
     }
 
