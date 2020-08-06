@@ -528,6 +528,74 @@ START_SECTION((static bool isBetterScore(double first, double second, bool highe
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
+  IdentificationData id;
+  String file = "file://ROOT/FOLDER/SPECTRA.mzML";
+  auto file_ref = id.registerInputFile(id);
+ 
+  IdentificationData::DataProcessingSoftware sw("MySearchEngineTool", "1.0");
+  auto sw_ref = id.registerDataProcessingSoftware(sw);
+
+  // all supported search settings
+  IdentificationData::DBSearchParam search_param;
+  search_param.database = "file://ROOT/FOLDER/DATABASE.fasta";
+  search_param.database_version = "nextprot1234";
+  search_param.taxonomy = "Homo Sapiens";
+  search_param.charges = {2,3,4,5};
+  search_param.precursor_mass_tolerance = 8.0;
+  search_param.precursor_mass_tolerance_ppm = true;
+  search_param.fixed_mods = {"Carbamidomethyl (C)"};
+  search_param.variable_mods = {"Oxidation (M)"};
+  search_param.digestion_enzyme = ProteaseDB()::getInstance()->getEnzyme("Trypsin");
+  search_param.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
+  search_param.missed_cleavages = 2;
+  search_param.min_length = 6;
+  search_param.max_length = 40; 
+  search_param.fragment_mass_tolerance = 0.3;
+  search_param.fragment_mass_tolerance_ppm = true;
+  auto search_param_ref = id.registerDBSearchParam(search_param);
+
+  // file has been processed by software
+  vector<IdentificationData::InputFileRef> file_refs(1, file_ref);
+  IdentificationData::DataProcessingStep step(sw_ref, file_refs);
+  auto step_ref = id.registerDataProcessingStep(step);
+
+  // ???
+  IdentificationData::DataProcessingStep step(sw_ref);
+  step_ref = id.registerDataProcessingStep(step, search_param_ref);
+ 
+  // register a score type 
+  IdentificationData::ScoreType score("MySearchEngineScore", true);
+  auto score_ref = id.registerScoreType(score);
+
+  // register spectrum 
+  IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
+  auto query_ref = id.registerDataQuery(query);
+
+  // peptide without protein reference (yet):
+  IdentificationData::IdentifiedPeptide peptide;
+  peptide.sequence = AASequence::fromString("TESTPEPTIDR"); 
+  auto peptide_ref = id.registerIdentifiedPeptide(peptide);
+
+  // some calculations, inference etc. could take place ...
+  IdentificationData::ParentMolecule protein();
+  protein.accession = "protein_1";
+  protein.sequence = "TESTPRT";
+  protein.description = "Human Random Protein 1";
+  protein.molecule_type = IdentificationData::MoleculeType::Protein;
+  protein.coverage = 0.0; // not determined yet
+  protein.is_decoy = false;
+  auto protein_ref = id.registerParentMolecule(protein);
+
+  // now I want to add and update references to parents
+  ???.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(4, 10));
+
+  // and now update protein coverage of all proteins
+  ???
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
