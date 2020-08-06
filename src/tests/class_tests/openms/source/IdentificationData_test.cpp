@@ -39,6 +39,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 ///////////////////////////
 
@@ -531,8 +532,9 @@ END_SECTION
 START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
 {
   IdentificationData id;
-  String file = "file://ROOT/FOLDER/SPECTRA.mzML";
-  auto file_ref = id.registerInputFile(id);
+  
+  IdentificationData::InputFile file("file://ROOT/FOLDER/SPECTRA.mzML");
+  auto file_ref = id.registerInputFile(file);
  
   // register a score type 
   IdentificationData::ScoreType score("MySearchEngineScore", true);
@@ -550,16 +552,16 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   search_param.taxonomy = "Homo Sapiens";
   search_param.charges = {2,3,4,5};
   search_param.precursor_mass_tolerance = 8.0;
-  search_param.precursor_mass_tolerance_ppm = true;
+  search_param.precursor_tolerance_ppm = true;
   search_param.fixed_mods = {"Carbamidomethyl (C)"};
   search_param.variable_mods = {"Oxidation (M)"};
-  search_param.digestion_enzyme = ProteaseDB()::getInstance()->getEnzyme("Trypsin");
+  search_param.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme("Trypsin");
   search_param.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
   search_param.missed_cleavages = 2;
   search_param.min_length = 6;
   search_param.max_length = 40; 
   search_param.fragment_mass_tolerance = 0.3;
-  search_param.fragment_mass_tolerance_ppm = true;
+  search_param.fragment_tolerance_ppm = true;
   auto search_param_ref = id.registerDBSearchParam(search_param);
 
   // file has been processed by software
@@ -576,21 +578,24 @@ START_SECTION(([EXTRA] UseCaseBuildBottomUpProteomicsID()))
   // peptide without protein reference (yet)
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("TESTPEPTIDR")); // seq. is required
   auto peptide_ref = id.registerIdentifiedPeptide(peptide);
-
+  TEST_EQUAL(peptide_ref->parent_matches.size(), 0); // no protein ref. yet
+  
   // peptide-spectrum match
-  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref); // both are required
+  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref); // both refs. are required
   match.addScore(score_ref, 123, step_ref);
   id.registerMoleculeQueryMatch(match);
-
+  
   // some calculations, inference etc. could take place ...
   IdentificationData::ParentMolecule protein("protein_1"); // accession is required
   protein.sequence = "PRTTESTPEPTIDRPRT";
   protein.description = "Human Random Protein 1";
   auto protein_ref = id.registerParentMolecule(protein);
+  TEST_EQUAL(protein_ref->coverage, 0.0); // coverage not yet calculated
 
-  // now I want to add and update references to parents
+  // add reference to parent (protein) and update peptide
   IdentificationData::IdentifiedPeptide augmented_pep = *peptide_ref;
-  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(4, 10));
+  // @TODO: wrap this in a convenience function (like "match.addScore" above)
+  augmented_pep.parent_matches[protein_ref].insert(IdentificationData::MoleculeParentMatch(3, 13));
   id.registerIdentifiedPeptide(augmented_pep); // protein reference will be added
   // peptide_ref should still be valid and now contain link to protein
   TEST_EQUAL(peptide_ref->sequence, augmented_pep.sequence);
