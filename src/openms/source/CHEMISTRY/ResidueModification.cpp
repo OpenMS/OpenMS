@@ -531,9 +531,9 @@ namespace OpenMS
     return synonyms_;
   }
 
-  void ResidueModification::setNeutralLossDiffFormulas(const vector<EmpiricalFormula>& diff_formula)
+  void ResidueModification::setNeutralLossDiffFormulas(const vector<EmpiricalFormula>& diff_formulas)
   {
-    neutral_loss_diff_formulas_ = diff_formula;
+    neutral_loss_diff_formulas_ = diff_formulas;
   }
 
   const vector<EmpiricalFormula>& ResidueModification::getNeutralLossDiffFormulas() const

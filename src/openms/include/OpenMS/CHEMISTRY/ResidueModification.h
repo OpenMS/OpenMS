@@ -309,7 +309,7 @@ public:
     const std::set<String>& getSynonyms() const;
 
     /// sets the neutral loss formula
-    void setNeutralLossDiffFormulas(const std::vector<EmpiricalFormula>& loss);
+    void setNeutralLossDiffFormulas(const std::vector<EmpiricalFormula>& diff_formulas);
 
     /// returns the neutral loss diff formula (if available)
     const std::vector<EmpiricalFormula>& getNeutralLossDiffFormulas() const;
