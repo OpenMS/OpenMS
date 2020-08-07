@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2020.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Nico Pfeifer, Chris Bielow $
@@ -97,17 +97,17 @@ START_SECTION((ProteinIdentification(const ProteinIdentification &source)))
 	hits.insertProteinGroup(g);
 	hits.insertProteinGroup(g);
 	hits.setSearchParameters(param);
-	
+
 	ProteinIdentification hits2(hits);
 
 	TEST_EQUAL(hits.getDateTime() == hits2.getDateTime(), true)
 	TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
 	TEST_EQUAL(hits.getHits().size() == 1, true)
-	TEST_EQUAL(hits.getHits()[0].getSequence(), String(""))	
-	TEST_EQUAL(hits.getHits()[0] == protein_hit, true)	
+	TEST_EQUAL(hits.getHits()[0].getSequence(), String(""))
+	TEST_EQUAL(hits.getHits()[0] == protein_hit, true)
 	TEST_EQUAL(hits.getProteinGroups().size() == 2, true)
-	TEST_EQUAL(hits.getProteinGroups()[0] == g, true)	
-	TEST_EQUAL(hits.getProteinGroups()[1] == g, true)	
+	TEST_EQUAL(hits.getProteinGroups()[0] == g, true)
+	TEST_EQUAL(hits.getProteinGroups()[1] == g, true)
 	TEST_EQUAL((UInt)hits.getMetaValue("label"), 17)
 	TEST_EQUAL(hits.getIdentifier(), "id")
 	TEST_EQUAL(hits.getScoreType(), "score_type")
@@ -136,16 +136,16 @@ START_SECTION((ProteinIdentification& operator=(const ProteinIdentification& sou
 	ProteinIdentification::SearchParameters param;
 	param.db = "RefSeq";
 	hits.setSearchParameters(param);
-		
+
 	ProteinIdentification hits2;
 	hits2 = hits;
-	
+
 	TEST_EQUAL(hits.getDateTime() == hits2.getDateTime(), true)
 	TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
 	TEST_EQUAL(hits2.getHits().size() == 1, true)
 	TEST_EQUAL(*(hits2.getHits().begin()) == protein_hit, true)
 	TEST_EQUAL(hits2.getProteinGroups().size() == 1, true)
-	TEST_EQUAL(hits2.getProteinGroups()[0] == g, true)	
+	TEST_EQUAL(hits2.getProteinGroups()[0] == g, true)
 	TEST_EQUAL(hits2.getIdentifier(), "id")
 	TEST_EQUAL(hits2.getScoreType(), "score_type")
 	TEST_EQUAL(hits2.isHigherScoreBetter(), false)
@@ -159,39 +159,39 @@ START_SECTION((bool operator==(const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 == search2, true)
-	
+
 	search1.setDateTime(DateTime::now());
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
-		
+
 	search1.setSignificanceThreshold(protein_significance_threshold);
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 	search2.setIdentifier("id");
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 	search2.setScoreType("score_type");
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 	search2.setHigherScoreBetter(false);
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 	search2.setSearchEngine("Mascot");
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
-	
+
 	search2.setSearchEngineVersion("2.1");
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
-	
+
 	ProteinIdentification::SearchParameters param;
 	param.db = "RefSeq";
 	search2.setSearchParameters(param);
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 	ProteinIdentification::ProteinGroup g;
@@ -199,7 +199,7 @@ START_SECTION((bool operator==(const ProteinIdentification& rhs) const))
 	g.accessions.push_back("protein0");
 	g.accessions.push_back("protein3");
 	search2.insertProteinGroup(g);
-	TEST_EQUAL(search1 == search2, false)	
+	TEST_EQUAL(search1 == search2, false)
 	search1 = search2;
 
 END_SECTION
@@ -209,9 +209,9 @@ START_SECTION((bool operator!=(const ProteinIdentification& rhs) const))
 	ProteinIdentification search1;
 	ProteinIdentification search2;
 	TEST_EQUAL(search1 != search2, false)
-	
+
 	search1.setDateTime(DateTime::now());
-	TEST_EQUAL(search1 != search2, true)	
+	TEST_EQUAL(search1 != search2, true)
 
 	//rest does not need to be tested, as it is tested in the operator== test implicitly!
 END_SECTION
@@ -229,7 +229,7 @@ END_SECTION
 START_SECTION((double getSignificanceThreshold() const))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
-	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)	
+	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)
 END_SECTION
 
 
@@ -237,7 +237,7 @@ START_SECTION((const std::vector<ProteinHit>& getHits() const))
 	ProteinIdentification hits;
 	hits.insertHit(protein_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
-	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)	
+	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)
 END_SECTION
 
 
@@ -245,7 +245,7 @@ START_SECTION((std::vector<ProteinHit>& getHits()))
 	ProteinIdentification hits;
 	hits.insertHit(protein_hit);
 	TEST_EQUAL(hits.getHits().size() == 1, true)
-	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)	
+	TEST_EQUAL(*(hits.getHits().begin()) == protein_hit, true)
 END_SECTION
 
 
@@ -278,7 +278,7 @@ START_SECTION((void setHits(const std::vector<ProteinHit> &hits)))
 	ProteinHit hit_3;
 	vector<ProteinHit> hits;
 	ProteinIdentification id;
-	
+
 	hit_1.setScore(23);
 	hit_2.setScore(11);
 	hit_3.setScore(45);
@@ -388,14 +388,14 @@ START_SECTION((void sort()))
 	hit.setScore(7);
 	hit.setAccession("THIRDPROTEIN");
 	id.insertHit(hit);
-	
+
 	//higher score is better
 	id.sort();
 
 	TEST_EQUAL(id.getHits()[0].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "THIRDPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getScore(), 45)	
+	TEST_EQUAL(id.getHits()[0].getScore(), 45)
 	TEST_EQUAL(id.getHits()[1].getScore(), 23)
 	TEST_EQUAL(id.getHits()[2].getScore(), 7)
 
@@ -406,7 +406,7 @@ START_SECTION((void sort()))
 	TEST_EQUAL(id.getHits()[0].getAccession(), "THIRDPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "FIRSTPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getScore(), 7)	
+	TEST_EQUAL(id.getHits()[0].getScore(), 7)
 	TEST_EQUAL(id.getHits()[1].getScore(), 23)
 	TEST_EQUAL(id.getHits()[2].getScore(), 45)
 }
@@ -425,7 +425,7 @@ START_SECTION((void sort()))
 	hit.setScore(99);
 	hit.setAccession("FIRSTPROTEIN");
 	id.insertHit(hit);
-	
+
 	ProteinIdentification::ProteinGroup g1, g2;
 	g1.probability = 0.99;
 	g1.accessions.push_back("FIRSTPROTEIN");
@@ -436,22 +436,22 @@ START_SECTION((void sort()))
 	g2.accessions.push_back("SECONDPROTEIN");
 	g2.accessions.push_back("THIRDPROTEIN");
 	id.insertProteinGroup(g2);
-	
+
 	//higher score is better
 	id.sort();
 
 	TEST_EQUAL(id.getHits()[0].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "THIRDPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getScore(), 99)	
+	TEST_EQUAL(id.getHits()[0].getScore(), 99)
 	TEST_EQUAL(id.getHits()[1].getScore(), 45)
 	TEST_EQUAL(id.getHits()[2].getScore(), 23)
 
 	TEST_EQUAL(id.getProteinGroups().size(), 2);
-	TEST_EQUAL(id.getProteinGroups()[0] == g1, true);	
+	TEST_EQUAL(id.getProteinGroups()[0] == g1, true);
 	TEST_EQUAL(id.getProteinGroups()[1] == g2, true);
 }
-	
+
 END_SECTION
 
 
@@ -473,7 +473,7 @@ START_SECTION((void assignRanks()))
 	TEST_EQUAL(id.getHits()[0].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "THIRDPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getRank(), 1)	
+	TEST_EQUAL(id.getHits()[0].getRank(), 1)
 	TEST_EQUAL(id.getHits()[1].getRank(), 2)
 	TEST_EQUAL(id.getHits()[2].getRank(), 3)
 END_SECTION
@@ -481,7 +481,7 @@ END_SECTION
 
 START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids)))
 	ProteinIdentification id;
-	
+
   // prep hit
   ProteinHit hit;
   hit.setAccession("P1");
@@ -534,7 +534,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   pe.setEnd(179);
   phit2.addPeptideEvidence(pe);
   phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
-  pid2.insertHit(phit2); 
+  pid2.insertHit(phit2);
   pep_ids.push_back(pid2);
 
   id.computeCoverage(pep_ids);
@@ -551,18 +551,18 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   pe2.setEnd(18);
   phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("PEMPVLENRAAQGDITAPP")); // 1st half
-  pid3.insertHit(phit3); 
+  pid3.insertHit(phit3);
   pe2.setStart(19);
   pe2.setEnd(37);
   phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("GGARRLTGDQTAALRDSLS")); // 2nd half
-  pid3.insertHit(phit3); 
+  pid3.insertHit(phit3);
   pe2.setStart(8);
   pe2.setEnd(26);
   phit3.addPeptideEvidence(pe2);
   phit3.setSequence(AASequence::fromString("RAAQGDITAPPGGARRLTG")); // middle half
-  pid3.insertHit(phit3); 
-  
+  pid3.insertHit(phit3);
+
   pep_ids.push_back(pid3);
 
   id.computeCoverage(pep_ids);
@@ -608,7 +608,7 @@ START_SECTION(([ProteinIdentification::ProteinGroup] bool operator<(const Protei
   p2.probability = 0.2;
   TEST_EQUAL(p2 < p1, true); // yes! (see documentation)
   TEST_EQUAL(p1 < p2, false);
-  
+
   // equal again:
   p2.probability = 0.1;
   p1.accessions.push_back("bla");
@@ -631,7 +631,7 @@ END_SECTION
 
 START_SECTION(([ProteinIdentification::SearchParameters] SearchParameters()))
   ProteinIdentification::SearchParameters sp;
-  
+
   TEST_EQUAL(sp.db.size(), 0)
   TEST_EQUAL(sp.db_version.size(), 0)
   TEST_EQUAL(sp.taxonomy.size(), 0)
@@ -663,6 +663,29 @@ START_SECTION(([ProteinIdentification::SearchParameters] bool operator!=(const S
 END_SECTION
 
 
+START_SECTION(([ProteinIdentification::SearchParameters] pair<int,int> getChargeRange() const))
+{
+  ProteinIdentification::SearchParameters sp;
+  sp.charges = "1,2,3";
+  auto range = sp.getChargeRange();
+  TEST_EQUAL(range.first, 1);
+  TEST_EQUAL(range.second, 3);
+  sp.charges = "+2-+5";
+  range = sp.getChargeRange();
+  TEST_EQUAL(range.first, 2);
+  TEST_EQUAL(range.second, 5);
+  sp.charges = "-1,-2,-3";
+  range = sp.getChargeRange();
+  TEST_EQUAL(range.first, -3);
+  TEST_EQUAL(range.second, -1);
+  sp.charges = "2";
+  range = sp.getChargeRange();
+  TEST_EQUAL(range.first, 2);
+  TEST_EQUAL(range.second, 2);
+}
+END_SECTION
+
+
 START_SECTION((const vector<ProteinGroup>& getProteinGroups() const))
 	ProteinIdentification id;
 	ProteinIdentification::ProteinGroup g;
@@ -670,7 +693,7 @@ START_SECTION((const vector<ProteinGroup>& getProteinGroups() const))
 	g.accessions.push_back("protein0");
 	g.accessions.push_back("protein3");
 	id.insertProteinGroup(g);
-	
+
 	TEST_EQUAL(id.getProteinGroups().size(), 1);
 	TEST_EQUAL(id.getProteinGroups()[0] == g, true);
 END_SECTION
@@ -683,9 +706,9 @@ START_SECTION((vector<ProteinGroup>& getProteinGroups()))
 	g.accessions.push_back("protein0");
 	g.accessions.push_back("protein3");
 	id.insertProteinGroup(g);
-	
+
 	TEST_EQUAL(id.getProteinGroups().size(), 1);
-	TEST_EQUAL(id.getProteinGroups()[0] == g, true);  
+	TEST_EQUAL(id.getProteinGroups()[0] == g, true);
   TEST_EQUAL(id.getProteinGroups()[0].probability, 0.99);
 END_SECTION
 
@@ -702,7 +725,7 @@ START_SECTION((const vector<ProteinGroup>& getIndistinguishableProteins() const)
 	g.accessions.push_back("protein0");
 	g.accessions.push_back("protein3");
 	id.insertIndistinguishableProteins(g);
-	
+
 	TEST_EQUAL(id.getIndistinguishableProteins().size(), 1);
 	TEST_EQUAL(id.getIndistinguishableProteins()[0] == g, true);
 END_SECTION
@@ -715,7 +738,7 @@ START_SECTION((vector<ProteinGroup>& getIndistinguishableProteins()))
 	g.accessions.push_back("protein0");
 	g.accessions.push_back("protein3");
 	id.insertIndistinguishableProteins(g);
-	
+
 	TEST_EQUAL(id.getIndistinguishableProteins().size(), 1);
 	TEST_EQUAL(id.getIndistinguishableProteins()[0] == g, true);
   id.getIndistinguishableProteins()[0].accessions.push_back("protein1");
