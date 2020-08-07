@@ -117,9 +117,31 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   TEST_EQUAL(proteins_in[1].getDateTime().get(),
              proteins_out[1].getDateTime().get());
 
-  TEST_EQUAL(proteins_in[0].getSearchParameters() == proteins_out[0].getSearchParameters(), true)
-  TEST_EQUAL(proteins_in[1].getSearchParameters() == proteins_out[1].getSearchParameters(), true)
-
+  TEST_EQUAL(proteins_in[0].getSearchParameters() == proteins_out[0].getSearchParameters(), true);
+  TEST_EQUAL(proteins_in[1].getSearchParameters() == proteins_out[1].getSearchParameters(), true);
+  // if something breaks and the search parameters don't match, find where the difference is:
+  /*
+  for (Size i = 0; i <= 1; ++i)
+  {
+    TEST_EQUAL(static_cast<MetaInfoInterface>(proteins_in[i].getSearchParameters()) ==
+               static_cast<MetaInfoInterface>(proteins_out[i].getSearchParameters()), true);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().db, proteins_out[i].getSearchParameters().db);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().db_version, proteins_out[i].getSearchParameters().db_version);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().taxonomy, proteins_out[i].getSearchParameters().taxonomy);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().charges, proteins_out[i].getSearchParameters().charges);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().mass_type, proteins_out[i].getSearchParameters().mass_type);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().fixed_modifications ==
+               proteins_out[i].getSearchParameters().fixed_modifications, true);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().variable_modifications ==
+               proteins_out[i].getSearchParameters().variable_modifications, true);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().missed_cleavages, proteins_out[i].getSearchParameters().missed_cleavages);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().fragment_mass_tolerance, proteins_out[i].getSearchParameters().fragment_mass_tolerance);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().fragment_mass_tolerance_ppm, proteins_out[i].getSearchParameters().fragment_mass_tolerance_ppm);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().precursor_mass_tolerance, proteins_out[i].getSearchParameters().precursor_mass_tolerance);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().precursor_mass_tolerance_ppm, proteins_out[i].getSearchParameters().precursor_mass_tolerance_ppm);
+    TEST_EQUAL(proteins_in[i].getSearchParameters().digestion_enzyme ==  proteins_out[i].getSearchParameters().digestion_enzyme, true);
+  }
+  */
   // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);
 }
@@ -181,11 +203,10 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   }
   TEST_EQUAL(hits_in.size(), hits_out.size());
   // order of hits is different, check that every output one is in the input:
-  for (const auto& hit : hits_out)
+  TEST_EQUAL(all_of(hits_out.begin(), hits_out.end(), [&hits_in](const PeptideHit& hit)
   {
-    TEST_EQUAL(find(hits_in.begin(), hits_in.end(), hit) != hits_in.end(),
-               true);
-  }
+    return find(hits_in.begin(), hits_in.end(), hit) != hits_in.end();
+  }), true);
 
   // filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.idXML");
   // IdXMLFile().store(filename, proteins_out, peptides_out);
