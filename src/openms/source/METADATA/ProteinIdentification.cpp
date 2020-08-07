@@ -205,14 +205,10 @@ namespace OpenMS
 
     if (charges.hasSubstring(',')) //it's probably a list
     {
-      StringList chgs;
-      charges.split(',', chgs);
-      for (String& chg : chgs)
-      {
-        int val = getChargeValue_(chg);
-        if (val < result.first) result.first = val;
-        if (val > result.second) result.second = val;
-      }
+      IntList chgs = ListUtils::create<Int>(charges);
+      auto minmax = minmax_element(chgs.begin(), chgs.end());
+      result.first = *minmax.first;
+      result.second = *minmax.second;
     }
     else if (charges.hasSubstring(':')) //it's probably a range
     {
@@ -250,7 +246,6 @@ namespace OpenMS
         String second = charges.substr(split_pos + 1, string::npos);
         result.first = getChargeValue_(first);
         result.second = getChargeValue_(second);
-
       }
     }
     return result;
@@ -884,4 +879,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-
