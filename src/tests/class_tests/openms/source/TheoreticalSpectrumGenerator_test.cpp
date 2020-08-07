@@ -771,7 +771,7 @@ START_SECTION(([EXTRA] test SpectrumAnnotator ))
   tgp.setValue("add_x_ions", "true");
   t_gen.setParameters(tgp);
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
-  TEST_EQUAL(tmp.size(), 519)
+  TEST_EQUAL(tmp.size(), 465)
 
   tmp.clear(true);
   tgp.setValue("add_metainfo", "true");
@@ -785,7 +785,7 @@ START_SECTION(([EXTRA] test SpectrumAnnotator ))
   tgp.setValue("add_x_ions", "false");
   t_gen.setParameters(tgp);
   t_gen.getSpectrum(tmp, tmp_aa, 1, 1);
-  TEST_EQUAL(tmp.size(), 123)
+  TEST_EQUAL(tmp.size(), 121)
 
   // for (Size k = 0; k < tmp.size(); k++)
   // {

@@ -113,7 +113,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
 
   MRMIonSeries::IonSeries ionseries3 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, true, true);
 
-  TEST_EQUAL(ionseries3.size(), 15)
+  TEST_EQUAL(ionseries3.size(), 12)
 
   TEST_REAL_SIMILAR(ionseries3["y1^1"], 186.0162)
   TEST_REAL_SIMILAR(ionseries3["y1-H3O4P1^2"], 44.5233)
@@ -145,7 +145,7 @@ START_SECTION((boost::unordered_map<String, double> MRMIonSeries::getIonSeries(A
 
   MRMIonSeries::IonSeries ionseries5 = mrmis.getIonSeries(AASequence::fromString(String("ES(Phospho)")), 3, fragment_types, fragment_charges, true, false);
 
-  TEST_EQUAL(ionseries5.size(), 12)
+  TEST_EQUAL(ionseries5.size(), 9)
 
   TEST_REAL_SIMILAR(ionseries5["y1^1"], 186.0162)
   TEST_REAL_SIMILAR(ionseries5["y1-H3O4P1^2"], 44.5233)
