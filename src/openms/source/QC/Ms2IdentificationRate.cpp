@@ -153,7 +153,7 @@ namespace OpenMS
     }
     if (!(id.getHits()[0].metaValueExists("target_decoy")))
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotaion found. If you want to continue regardless use -MS2_id_rate:force_no_index");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotaion found. If you want to continue regardless use -MS2_id_rate:force_no_pep_index");
     }
     if (id.getHits()[0].getMetaValue("target_decoy") == "target")
     {
