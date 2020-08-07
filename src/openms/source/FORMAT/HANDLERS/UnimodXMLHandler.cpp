@@ -221,7 +221,7 @@ namespace OpenMS
         }
       }
 
-      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      if ( (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss") && !diff_formula_.isEmpty() )
       {
         // now diff_formula_ contains the neutral loss diff formula
         neutral_loss_diff_formula_.push_back(diff_formula_);
