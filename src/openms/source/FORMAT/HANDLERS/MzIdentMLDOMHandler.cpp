@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Eugen Netz $
+// $Authors: Mathias Walzer, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
@@ -2041,7 +2041,7 @@ namespace OpenMS
             break;
           }
         }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
+        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
@@ -2054,6 +2054,14 @@ namespace OpenMS
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
+          scoretype = true;
+          break;
+        }
+        else if (scoreit->first == "MS:1001143")
+        {
+          spectrum_identification.setScoreType("PSM-level search engine specific statistic");
+          // TODO this is just an assumption for unknown scores
+          spectrum_identification.setHigherScoreBetter(true);
           scoretype = true;
         }
       }
@@ -2069,11 +2077,15 @@ namespace OpenMS
             {
               hit.setMetaValue(cvs->first, cv->getValue().toString());
             }
+            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            {
+              continue;
+            }
             else
             {
-            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            }
           }
-        }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
         {

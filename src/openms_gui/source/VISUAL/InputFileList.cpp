@@ -195,8 +195,12 @@ namespace OpenMS
       QListWidgetItem* item = ui_->input_file_list->currentItem();
       if (!item)
       {
-        return;
+        if (ui_->input_file_list->count() == 0) return;
+        // use the first item if none is selected
+        ui_->input_file_list->setCurrentItem(ui_->input_file_list->item(0));
+        item = ui_->input_file_list->currentItem();
       }
+
       TOPPASInputFileDialog tifd(item->text());
       if (tifd.exec())
       {

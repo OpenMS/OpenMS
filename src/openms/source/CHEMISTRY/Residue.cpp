@@ -484,8 +484,8 @@ namespace OpenMS
     loss_names_.clear();
     if (mod->hasNeutralLoss())
     {
-      loss_formulas_.push_back(mod->getNeutralLossDiffFormula());
-      loss_names_.push_back(mod->getNeutralLossDiffFormula().toString());
+      loss_formulas_.insert(loss_formulas_.end(), mod->getNeutralLossDiffFormulas().begin(), mod->getNeutralLossDiffFormulas().end());
+      loss_names_.insert(loss_names_.end(), loss_names_.begin(), loss_names_.end());
     }
   }
 
