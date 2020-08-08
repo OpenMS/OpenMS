@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.01" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="3" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.01" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Met-loss (Protein N-term M)" />
 		<VariableModification name="Acetyl (Protein N-term)" />
 		<VariableModification name="Carbamidomethyl (N-term)" />
-			<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2019-04-12T10:21:43" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-08-08T12:20:12" search_engine="Comet" search_engine_version="# comet_version 2019.01 rev. 5" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="DECOY_tr|Q5QTS3|Q5QTS3_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
@@ -15,7 +16,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_2" accession="sp|P84103|SRSF3_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/builder/jenkins/ws/openms_pr_ci/c797036f/source/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="633.705382698566723" RT="1821.299999999999955" spectrum_reference="controllerType=0 controllerNumber=1 scan=6304" >
 			<PeptideHit score="107.0" sequence=".(Acetyl)VLLGHTKLVETYKDIK" charge="3" aa_before="-" aa_after="K" protein_refs="PH_0" >

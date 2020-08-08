@@ -258,11 +258,8 @@ protected:
     // iterate over modification names and add to vector
     for (const auto& modification : modNames)
     {
-      if (modNames.empty())
-      {
-        continue;
-      }
-      modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
+
+        modifications.push_back(*ModificationsDB::getInstance()->getModification(modification));
     }
 
     return modifications;
