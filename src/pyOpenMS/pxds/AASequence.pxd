@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # wrap-doc:
         #   Representation of a peptide/protein sequence
         #   This class represents amino acid sequences in OpenMS. An AASequence
-        #   instance primarily contains a sequence of residues. 
+        #   instance primarily contains a sequence of residues.
 
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
@@ -122,10 +122,9 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
-        
+
         # static members
         AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence wrap-as:fromStringPermissive
-        
+
         # static members
         AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
-

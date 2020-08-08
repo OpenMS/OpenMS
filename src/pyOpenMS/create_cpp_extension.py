@@ -11,15 +11,15 @@ from logging import basicConfig
 basicConfig(level=21)
 
 # import config
-from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
-                 OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
-                 OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
-                 Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
+# from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
+#                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
+#                  OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
+#                  Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
 
-IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
+# IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
-if iswin and IS_DEBUG:
-    raise Exception("building pyopenms on windows in debug mode not tested yet.")
+# if iswin and IS_DEBUG:
+#     raise Exception("building pyopenms on windows in debug mode not tested yet.")
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import autowrap.Main
@@ -48,6 +48,9 @@ def chunkIt(seq, num):
     return out
 
 j = os.path.join
+OPEN_MS_SRC = "C:\\Users\\nkshe\\OpenMS"
+PY_NUM_THREADS = 1
+PY_NUM_MODULES = 1
 
 src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
@@ -70,22 +73,22 @@ for de in decls:
     pxd_decl_mapping[ de.cpp_decl.pxd_path] = tmp
 
 # add __str__ if toString() method is declared:
-for d in decls:
-    # enums, free functions, .. do not have a methods attribute
-    methods = getattr(d, "methods", dict())
-    to_strings = []
-    for name, mdecls in methods.items():
-        for mdecl in mdecls:
-            name = mdecl.cpp_decl.annotations.get("wrap-cast", name)
-            name = mdecl.cpp_decl.annotations.get("wrap-as", name)
-            if name == "toString":
-                to_strings.append(mdecl)
-
-    for to_string in to_strings:
-        if len(to_string.arguments) == 0:
-            d.methods.setdefault("__str__", []).append(to_string)
-            print("ADDED __str__ method to", d.name)
-            break
+# for d in decls:
+#     # enums, free functions, .. do not have a methods attribute
+#     methods = getattr(d, "methods", dict())
+#     to_strings = []
+#     for name, mdecls in methods.items():
+#         for mdecl in mdecls:
+#             name = mdecl.cpp_decl.annotations.get("wrap-cast", name)
+#             name = mdecl.cpp_decl.annotations.get("wrap-as", name)
+#             if name == "toString":
+#                 to_strings.append(mdecl)
+#
+#     for to_string in to_strings:
+#         if len(to_string.arguments) == 0:
+#             d.methods.setdefault("__str__", []).append(to_string)
+#             print("ADDED __str__ method to", d.name)
+#             break
 
 # Split into chunks based on pxd files and store the mapping to decls, addons
 # and actual pxd files in a hash. We need to produce the exact number of chunks
@@ -108,6 +111,7 @@ for pxd_f, m in zip(pxd_files_chunk, mnames):
 
     allDecl_mapping[m] =  {"decls" : tmp_decls, "addons" : [] , "files" : pxd_f}
 
+# Commenting out for now.
 # Deal with addons, make sure the addons are added to the correct compilation
 # unit (e.g. where the name corresponds to the pxd file).
 # Note that there are some special cases, e.g. addons that go into the first
@@ -154,15 +158,15 @@ for modname in mnames:
                 is_added[k] = True
 
 # add any addons that did not get added anywhere else
-for k, got_added in enumerate(is_added):
-    if not got_added:
-        # add to all modules
-        for m in mnames:
-            allDecl_mapping[m]["addons"].append( addons[k] )
+# for k, got_added in enumerate(is_added):
+#     if not got_added:
+#         # add to all modules
+#         for m in mnames:
+#             allDecl_mapping[m]["addons"].append( addons[k] )
 
 
 def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
-    m_filename = "pyopenms/%s.pyx" % modname
+    m_filename = "pyopenms/%s.R" % modname
     cimports, manual_code = autowrap.Main.collect_manual_code(allDecl_mapping[modname]["addons"])
     autowrap.Main.register_converters(converters)
     autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
@@ -209,15 +213,15 @@ for modname in mnames:
     pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
 argzip = [ (modname, allDecl_mapping[modname]["inc_dirs"]) for modname in mnames]
-for arg in argzip:
-    doCythonCompile(arg)
+# for arg in argzip:
+#     doCythonCompile(arg)
 
-print("created pyopenms.cpp")
+print("created pyopenms.R")
 
 
-with open("pyopenms/all_modules.py", "w") as fp:
-    for modname in mnames:
-        fp.write("from .%s import *\n" % modname)
+# with open("pyopenms/all_modules.py", "w") as fp:
+#     for modname in mnames:
+#         fp.write("from .%s import *\n" % modname)
 
 
 # create version information
