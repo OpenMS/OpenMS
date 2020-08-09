@@ -32,7 +32,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://OpenPepXLLF_input.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="787.740356445312955" RT="2175.300299999999879" spectrum_reference="controllerType=0 controllerNumber=1 scan=2395" >
-			<PeptideHit score="0.016159569010225" sequence="IVEGLK(Xlink:DSS)FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >
+			<PeptideHit score="0.016159569010225" sequence="IVEGLK(Xlink:DSS[156])FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="446.2843017578125,0.012478295713663,1,&quot;[alpha|ci$y4]&quot;|516.26025390625,0.013793655671179,3,&quot;[alpha|xi$b12]&quot;|913.46435546875,0.091375932097435,1,&quot;[alpha|ci$y8-H2O1]&quot;|1108.56494140625,0.429302453994751,2,&quot;[alpha|xi$b18]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=2395"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>
@@ -155,7 +155,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenPepXL:score" higher_score_better="true" significance_threshold="0.0" MZ="738.72900390625" RT="4706.791199999999662" spectrum_reference="controllerType=0 controllerNumber=1 scan=9705" >
-			<PeptideHit score="0.258873993871556" sequence="VEPSWLGPLFPDK(Xlink:DSS)TSNLR" charge="3" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+			<PeptideHit score="0.258873993871556" sequence="VEPSWLGPLFPDK(Xlink:DSS[156])TSNLR" charge="3" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="496.26251220703125,0.022027505561709,2,&quot;[alpha|xi$y7]&quot;|713.3824462890625,0.80065792798996,1,&quot;[alpha|ci$b6]&quot;|813.43035888671875,0.177123248577118,2,&quot;[alpha|xi$b13]&quot;|1108.561767578125,0.016015261411667,1,&quot;[alpha|ci$b10-H2O1]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9705"/>
 				<UserParam type="float" name="xl_mass" value="156.078644309999987"/>

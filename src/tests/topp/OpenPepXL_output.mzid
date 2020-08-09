@@ -55,13 +55,13 @@
  	<Peptide id="PEP_1196373166564353753" name="EVIELPLK[283.189592797499984]NPELFLR">
 		<PeptideSequence>EVIELPLKNPELFLR</PeptideSequence>
 		<Modification location="8" residues="K">
-			<cvParam accession="UNIMOD:1789" name="Xlink:DSS-NH2" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1789" name="Xlink:DSS[155]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12999979801269632061" name="GGVHVK[284.173608765599965]LAHLSK">
 		<PeptideSequence>GGVHVKLAHLSK</PeptideSequence>
 		<Modification location="6" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14509930621887606273" name="SAVIKTSTR">
@@ -139,7 +139,7 @@
  	<Peptide id="PEP_6182960951962378739" name="EVIELPLK[284.173608765599965]NPELFLR">
 		<PeptideSequence>EVIELPLKNPELFLR</PeptideSequence>
 		<Modification location="8" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7344192187426184761" name="SAVIKTSTR">

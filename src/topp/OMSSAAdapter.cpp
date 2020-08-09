@@ -723,8 +723,15 @@ protected:
           double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
           double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getMonoWeight();
-          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormula().getAverageWeight();
+
+          double neutral_loss_mono = 0;
+          double neutral_loss_avg = 0;
+
+          if (!ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas().empty())
+          {
+            neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getMonoWeight();
+            neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second)->getNeutralLossDiffFormulas()[0].getAverageWeight();
+          }
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -800,7 +807,7 @@ protected:
                 ofs.open(unique_input_name + String(chunk) + ".mgf", std::ofstream::out);
                 empty = true;
             }
-            
+
             UInt lvl = s.getMSLevel();
             bool profile = s.getType() == MSSpectrum::SpectrumType::PROFILE;
             if (lvl == 2 && !profile)
@@ -810,7 +817,7 @@ protected:
                 empty = false;
             }
         };
-        
+
         c.setSpectraProcessingFunc(f);
         MzMLFile().transform(inputfile_name, &c, true);
         ofs.close();

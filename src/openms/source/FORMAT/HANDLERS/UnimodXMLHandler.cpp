@@ -83,7 +83,8 @@ namespace OpenMS
       // which residues are allowed?
       if (tag_ == "umod:specificity" || tag_ == "specificity")
       {
-        neutral_loss_diff_formula_ = EmpiricalFormula();
+        // neutral_loss_diff_formula_ = EmpiricalFormula();
+        neutral_loss_diff_formula_.clear();
 
         // classification of mod
         // TODO do this for all mods, do not overwrite for each specificity
@@ -192,7 +193,7 @@ namespace OpenMS
           ResidueModification* new_mod = new ResidueModification(*modification_);
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
-          new_mod->setNeutralLossDiffFormula(neutral_loss_diff_formulas_[i]);
+          new_mod->setNeutralLossDiffFormulas(neutral_loss_diff_formulas_[i]);
           modifications_.push_back(new_mod);
         }
 
@@ -212,16 +213,20 @@ namespace OpenMS
         if (was_valid_peptide_modification_) // as we exclude "Protein" modifications (see above)
         {
           neutral_loss_diff_formulas_.push_back(neutral_loss_diff_formula_);
-          neutral_loss_diff_formula_ = EmpiricalFormula();
+          modification_->setNeutralLossMonoMasses(neutral_loss_mono_masses_);
+          modification_->setNeutralLossAverageMasses(neutral_loss_avg_masses_);
+          neutral_loss_diff_formula_.clear();
+          neutral_loss_mono_masses_.clear();
+          neutral_loss_avg_masses_.clear();
         }
       }
 
-      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      if ( (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss") && !diff_formula_.isEmpty() )
       {
         // now diff_formula_ contains the neutral loss diff formula
-        neutral_loss_diff_formula_ = diff_formula_;
-        modification_->setNeutralLossMonoMass(mono_mass_);
-        modification_->setNeutralLossAverageMass(avge_mass_);
+        neutral_loss_diff_formula_.push_back(diff_formula_);
+        neutral_loss_mono_masses_.push_back(mono_mass_);
+        neutral_loss_avg_masses_.push_back(avge_mass_);
         avge_mass_ = 0.0;
         mono_mass_ = 0.0;
         diff_formula_ = EmpiricalFormula();
