@@ -41,7 +41,7 @@ using namespace std;
 
   char const* const PeptideIndexing::AUTO_MODE = "auto";
   const std::array<std::string, (Size)PeptideIndexing::Unmatched::SIZE_OF_UNMATCHED> PeptideIndexing::names_of_unmatched = { "error", "warn", "remove" };
-  const std::array<std::string, (Size)PeptideIndexing::MissingDecoy::SIZE_OF_MISSING_DECOY> PeptideIndexing::names_of_missing_decoy = { "error" ," warn" , "silent" };
+  const std::array<std::string, (Size)PeptideIndexing::MissingDecoy::SIZE_OF_MISSING_DECOY> PeptideIndexing::names_of_missing_decoy = { "error" , "warn" , "silent" };
 
   PeptideIndexing::PeptideIndexing()
     : DefaultParamHandler("PeptideIndexing")
