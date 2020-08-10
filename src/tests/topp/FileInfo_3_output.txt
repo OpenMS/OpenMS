@@ -6,7 +6,7 @@ File type: featureXML
 Number of features: 10
 
 Ranges:
-  retention time: 537.41 .. 539.23
+  retention time: 537.41 .. 539.23 sec (0.0 min)
   mass-to-charge: 407.58 .. 648.39
   intensity:      1376.00 .. 6712.00
 
