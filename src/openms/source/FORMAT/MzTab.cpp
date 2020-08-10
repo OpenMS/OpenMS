@@ -2246,7 +2246,8 @@ namespace OpenMS
   // static
   MzTabString MzTab::getModificationIdentifier_(const ResidueModification& r)
   {
-    String unimod = r.getUniModAccession().toUpper();
+    String unimod = r.getUniModAccession();
+    unimod.toUpper();
     if (!unimod.empty())
     {
       return MzTabString(unimod);
