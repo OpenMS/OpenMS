@@ -1429,23 +1429,53 @@ namespace OpenMS
 
   void AASequence::setNTerminalModification(const String& modification)
   {
-    if (modification == "")
+    if (modification.empty())
     {
       n_term_mod_ = nullptr;
       return;
     }
 
-    n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    String residue = "";
+    char last_char_no_parentheses = modification[modification.length()-2];
+    if (isupper(last_char_no_parentheses))
+    {
+      residue = last_char_no_parentheses;
+    }
+
+    if (!modification.hasSubstring("Protein N-term"))
+    {
+      n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::N_TERM);
+    }
+    else
+    {
+      n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
+    }
+
   }
 
   void AASequence::setCTerminalModification(const String& modification)
   {
-    if (modification == "")
+    if (modification.empty())
     {
       c_term_mod_ = nullptr;
       return;
     }
-    c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+
+    String residue = "";
+    char last_char_no_parentheses = modification[modification.length()-2];
+    if (isupper(last_char_no_parentheses))
+    {
+      residue = last_char_no_parentheses;
+    }
+
+    if (!modification.hasSubstring("Protein N-term"))
+    {
+      c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
+    }
+    else
+    {
+      c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
+    }
   }
 
   void AASequence::setCTerminalModification(const ResidueModification* modification)
