@@ -9,3 +9,4 @@ Also please:
 # Checklist:
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] New and existing unit tests pass locally with my changes
+- [ ] Updated or added python bindings for changed or new classes
