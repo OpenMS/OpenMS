@@ -197,7 +197,7 @@ protected:
     p.setValue("novo_fract", novo_fract);
     p.setValue("FDR", FDR);
     s.setParameters(p);
-    s.computeSuitability(pep_ids);
+    s.compute(pep_ids);
 
     Ms2IdentificationRate q;
     q.compute(novo_peps, exp, true);

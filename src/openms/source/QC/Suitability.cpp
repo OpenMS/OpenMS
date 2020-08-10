@@ -58,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void Suitability::computeSuitability(vector<PeptideIdentification>& pep_ids)
+  void Suitability::compute(vector<PeptideIdentification>& pep_ids)
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
     double novo_fract = param_.getValue("novo_fract");

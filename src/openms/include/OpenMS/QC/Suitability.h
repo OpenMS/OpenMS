@@ -43,7 +43,6 @@
 
 namespace OpenMS
 {
-	class MSExperiment;
 	class PeptideIdentification;
 	class PeptideHit;
 
@@ -101,7 +100,7 @@ namespace OpenMS
 		* @throws							MissingInformation if no xcorr is found
 		* @throws							Precondition if FDR wasn't calculated
 		*/
-		void computeSuitability(std::vector<PeptideIdentification>& pep_ids);
+		void compute(std::vector<PeptideIdentification>& pep_ids);
 
 		/// return results
 		std::vector<SuitabilityData> getResults() const;
