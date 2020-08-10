@@ -74,13 +74,21 @@ namespace OpenMS
     /// returns number of all ms2 spectra in an MSExperiment
     Size getMS2Count_(const MSExperiment& exp);
 
-    /// increases a 'counter' if PeptideIdentification is considered 'target' (target/decoy annotation needed)
-    /// if force_index is true, 'counter' is increased regardless
-    /// is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
-    static void countPepID_(const PeptideIdentification& id, Size& counter, bool force_index);
+    /*
+    * @brief Checks pepID for target/decoy
+    *
+    * Only checks the first (!) hit, all other hits are ignored
+    * Is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
+    *
+    * @param id             pepID to be checked
+    * @param all_targets    always returns true (if the hits aren't empty)
+    * @return               true/false
+    * @throws               MissingInformation if target/decoy annotation is missing
+    */
+    static bool isTargetPeptide_(const PeptideIdentification& id, bool all_targets);
 
     /// writes id-rate, num_ms2 and num_ids in IdentificationRateData object and appends it to result vector
-    void writeResults_(Size pep_ids, Size ms2_spectra);
+    void writeResults_(Size pep_ids_count, Size ms2_spectra_count);
 
   public:
     /// Default constructor
@@ -95,14 +103,14 @@ namespace OpenMS
      * stores results as a struct in a vector
      * Only pep-ids with target/decoy annotation as 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
      *
-     * @param feature_map Input FeatureMap with target/decoy annotation
-     * @param exp MSExperiment for counting number of MS2 spectra
-     * @param force_index Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
-     * @exception Exception::MissingInformation is thrown if the mzML is empty
-     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain MS2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than MS2 spectra
+     * @param feature_map       Input FeatureMap with target/decoy annotation
+     * @param exp               MSExperiment for counting number of MS2 spectra
+     * @param assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
+     * @exception               MissingInformation is thrown if the mzML is empty
+     * @exception               MissingInformation is thrown if the experiment doesn't contain MS2 spectra
+     * @exception               Precondition is thrown if there are more identifications than MS2 spectra
      */
-    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool force_index = false);
+    void compute(const FeatureMap& feature_map, const MSExperiment& exp, bool assume_all_target = false);
 
     /**
      * @brief computes Ms2 Identification Rate with PeptideIdentifications
@@ -110,14 +118,14 @@ namespace OpenMS
      * stores results as a struct in a vector
      * Only pep-ids with target/decoy annotation as 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
      *
-     * @param pep_ids Input PeptideIdentifications with target/decoy annotation
-     * @param exp MSExperiment for counting number of MS2 spectra
-     * @param force_index Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
-     * @exception Exception::MissingInformation is thrown if the mzML is empty
-     * @exception Exception::MissingInformation is thrown if the experiment doesn't contain MS2 spectra
-     * @exception Exception::Precondition is thrown if there are more identifications than MS2 spectra
+     * @param pep_ids           Input PeptideIdentifications with target/decoy annotation
+     * @param exp               MSExperiment for counting number of MS2 spectra
+     * @param assume_all_target Count all(!) PepIDs towards number of identified MS2 spectra (ignore target/decoy information if any)
+     * @exception               MissingInformation is thrown if the mzML is empty
+     * @exception               MissingInformation is thrown if the experiment doesn't contain MS2 spectra
+     * @exception               Precondition is thrown if there are more identifications than MS2 spectra
      */
-    void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_index = false);
+    void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
 
     /// returns the name of the metric
     const String& getName() const override;
