@@ -69,15 +69,13 @@ digraph sample_workflow {
   decoy_db [ label="DecoyDatabase" URL="\ref OpenMS::DecoyDatabase" group=2];
   comet [ label="CometAdapter" URL="\ref OpenMS::CometAdapter" group=1];
   pep_ind [ label="PeptideIndexer" URL="\ref OpenMS::PeptideIndexer" group=1];
-  fdr [ label="FalseDiscoveryRate" URL="\ref OpenMS::FalseDiscoveryRate" group=1];
   db_suit [ label="DatabaseSuitability" fillcolor="#6F42C1" fontcolor=white group=3];
   tsv [ label="optional\ntsv output" shape=oval fillcolor=white group=3];
   {rank = same; db_suit; decoy_db;}
   mzml -> novor;
   mzml -> comet;
   comet -> pep_ind;
-  pep_ind -> fdr;
-  fdr -> db_suit [ xlabel="in_id" ];
+  pep_ind -> db_suit [ xlabel="in_id" ];
   novor -> id_filter;
   id_filter -> id_convert;
   id_convert -> decoy_db;
@@ -96,7 +94,7 @@ To generate the de novo "database":
       - @ref TOPP_IDFileConverter generates the de novo fasta file.
 
 For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p novor_fract option.@n
-For this to work it is important that FDR filtering is done in this tool and not beforehand by @ref TOPP_FalseDiscoveryRate. You can provide the wanted FDR using the corresponding flag.
+For this to work it is important that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
 @note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
 You can still uses other search engines and disable the re-ranking via the @p force_no_re_rank flag in this tool. This will probably result in an underestimated suitability though.@n
@@ -136,7 +134,7 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide. PeptideIndexer is needed, FDR is not.");
+    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide. PeptideIndexer is needed, FDR is forbidden.");
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });

@@ -90,7 +90,11 @@ namespace OpenMS
       }
     }
 
-    
+    if (!no_re_rank)
+    {
+      data.cut_off = getDecoyCutOff_(pep_ids, novo_fract);
+    }
+
     Param p;
     p.setValue("use_all_hits", "true");
     p.setValue("add_decoy_peptides", "true");
@@ -99,11 +103,6 @@ namespace OpenMS
     FalseDiscoveryRate fdr;
     fdr.setParameters(p);
     fdr.apply(pep_ids);
-
-    if (!no_re_rank)
-    {
-      data.cut_off = getDecoyCutOff_(pep_ids, novo_fract);
-    }
 
     for (PeptideIdentification& pep_id : pep_ids)
     {
