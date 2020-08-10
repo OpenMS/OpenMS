@@ -1228,7 +1228,7 @@ public:
     // create MzTab compatible modification identifier from ResidueModification
     // If the Modification has a unimod identifier it will be prefixed as UNIMOD
     // otherwise as CHEMMOD (see MzTab specification for details)
-    static MzTabString getModificationIdentifier_(const ResidueModification* r);
+    static MzTabString getModificationIdentifier_(const ResidueModification& r);
 
     static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 
