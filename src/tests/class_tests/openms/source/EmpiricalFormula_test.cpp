@@ -608,7 +608,22 @@ START_SECTION(([EXTRA] Check correct charge semantics))
   TEST_EQUAL(ef11.getCharge(), 3)
 END_SECTION
 
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H");
+  EmpiricalFormula h = EmpiricalFormula::hydrogen();
+  TEST_EQUAL(f, h);
+}
+END_SECTION
+
+START_SECTION((static EmpiricalFormula hydrogen(int n_atoms = 1)))
+{
+  EmpiricalFormula f("H2O");
+  EmpiricalFormula w = EmpiricalFormula::water();
+  TEST_EQUAL(f, w);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
