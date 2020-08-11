@@ -23,7 +23,7 @@ class OpenMSDPosition2(TypeConverterBase):
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         cr_ref = False
-        dp = "_dp_%s" % arg_num
+        dp = "dp_%s" % arg_num
         code = Code().add("""
             |$dp <- r_to_py($argument_var)
         """, locals())
@@ -71,7 +71,7 @@ class OpenMSDPosition2Vector(TypeConverterBase):
         return "is.matrix(%s) && NROW(%s) == 2 && is_double(%s[1,]) && is_double(%s[2,])" % (argument_var,argument_var,argument_var,argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
-        dp = "_dp_%s" % arg_num
+        dp = "dp_%s" % arg_num
         cr_ref = False
         # vec ="_dp_vec_%s" % arg_num
         # ii = "_dp_ii_%s" % arg_num
@@ -148,7 +148,7 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "is.R6(%s) && class(%s)[1] == \"DataValue\""
+        return "is.R6(%s) && class(%s)[1] == \"DataValue\"" % (argument_var,argument_var)
         # return "is_scalar_integer(%s) || is_scalar_double(%s) || is_list(%s) || is_character(%s)" % (argument_var,argument_var,argument_var,argument_var)
         # return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
 
@@ -370,7 +370,7 @@ class StdVectorStringConverter(TypeConverterBase):
         cr_ref = False
         temp_var = "v%d" % arg_num
         code = Code().add("""
-            |$temp_var = r_to_py(modify_depth($argument_var,1,py_builtin$bytes($argument_var,'utf-8')))
+            |$temp_var = r_to_py(modify_depth($argument_var,1,py_builtin$$bytes($argument_var,'utf-8')))
             """, locals())
         # code = Code().add("""
         #     |cdef libcpp_vector[_String] * $temp_var = new libcpp_vector[_String]()
@@ -471,7 +471,7 @@ class StdSetStringConverter(TypeConverterBase):
         cr_ref = False
         temp_var = "v%d" % arg_num
         code = Code().add("""
-            |$temp_var = py_builtin$$set(modify_depth($argument_var,1,py_builtin$bytes($argument_var,'utf-8')))
+            |$temp_var = py_builtin$$set(modify_depth($argument_var,1,py_builtin$$bytes($argument_var,'utf-8')))
             """, locals())
         # code = Code().add("""
         #     |cdef libcpp_set[_String] * $temp_var = new libcpp_set[_String]()
@@ -529,11 +529,11 @@ class OpenMSMapConverter(StdMapConverter):
         inner_check_1 = inner_conv_1.type_check_expression(tt_key, "k")
         inner_check_2 = inner_conv_2.type_check_expression(tt_value, "v")
 
-        return Code().add("""
-          |is.environment($arg_var) && identical(parent.env($arg_var), asNamespace("collections")) && identical(strsplit(capture.output($arg_var$$$$print())," ")[[1]][1], "dict")
-          + && all(sapply($arg_var$$$$keys(),function(k) $inner_check_1))
-          + && all(sapply($arg_var$$$$values(),function(v) $inner_check_2))
-          """, locals()).render()
+        return """
+          is.environment(%s) && identical(parent.env(%s), asNamespace("collections")) && identical(strsplit(capture.output(%s$print())," ")[[1]][1], "dict")
+          && all(sapply(%s$keys(),function(k) %s))
+          && all(sapply(%s$values(),function(v) %s))
+          """ % (arg_var,arg_var,arg_var,arg_var,inner_check_1,arg_var,inner_check_2)
         # return Code().add("""
         #   |isinstance($arg_var, dict)
         #   + and all($inner_check_1 for k in $arg_var.keys())
@@ -677,11 +677,11 @@ class CVTermMapConverter(TypeConverterBase):
         return "dict"
 
     def type_check_expression(self, cpp_type, arg_var):
-        return Code().add("""
-          |is.environment($arg_var) && identical(parent.env($arg_var), asNamespace("collections")) && identical(strsplit(capture.output($arg_var$$$$print())," ")[[1]][1], "dict")
-          + && all(sapply($arg_var$$$$keys(),is_scalar_character))
-          + && all(sapply($arg_var$$$$values(), function(in) is_list(in) && sapply(in, function(in1) is.R6(in1) && class(in1)[1] == "CVTerm")))
-          """, locals()).render()
+        return """
+          is.environment(%s) && identical(parent.env(%s), asNamespace("collections")) && identical(strsplit(capture.output(%s$print())," ")[[1]][1], "dict")
+          && all(sapply(%s$keys(),is_scalar_character))
+          && all(sapply(%s$values(), function(v) is_list(v) && sapply(v, function(v1) is.R6(v1) && class(v1)[1] == "CVTerm")))
+          """ % (arg_var,arg_var,arg_var,arg_var,arg_var)
         # return Code().add("""
         #   |isinstance($arg_var, dict)
         #   + and all(isinstance(k, bytes) for k in $arg_var.keys())
@@ -692,7 +692,7 @@ class CVTermMapConverter(TypeConverterBase):
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         cr_ref = False
-        map_name = "_map_%d" % arg_num
+        map_name = "map_%d" % arg_num
         # v_vec = "_v_vec_%d" % arg_num
         # v_ptr = "_v_ptr_%d" % arg_num
         # v_i = "_v_i_%d" % arg_num
@@ -772,7 +772,8 @@ class CVTermMapConverter(TypeConverterBase):
         #     |$output_py_var = dict()
         #     |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
         #     + = $input_cpp_var.begin()
-        #     |cdef libcpp_vector[_CVTerm].iterator $inner_it
+        #     |cdef libcpp_vector[_CVTerm].iter
+        #     ator $inner_it
         #     |cdef CVTerm $item
         #     |cdef bytes $inner_key
         #     |cdef list $inner_values
