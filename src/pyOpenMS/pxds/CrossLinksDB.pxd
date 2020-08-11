@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
 
         bool has(String modification) nogil except +
 
-        void addModification(ResidueModification * new_mod) nogil except +
+        #void addModification(std::unique_ptr<ResidueModification> new_mod) nogil except +
 
         Size findModificationIndex(const String & mod_name) nogil except +
 
