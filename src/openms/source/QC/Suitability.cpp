@@ -49,7 +49,7 @@ namespace OpenMS
   {
     defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
     defaults_.setValidStrings("no_re_rank", { "true", "false" });
-    defaults_.setValue("novo_fract", 1., "Fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank");
+    defaults_.setValue("novo_fract", 1., "Fraction of how many cases, where a deNovo peptide scores just higher than the database peptide, will be re-rank");
     defaults_.setMinFloat("novo_fract", 0.);
     defaults_.setMaxFloat("novo_fract", 1.);
     defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
@@ -78,15 +78,12 @@ namespace OpenMS
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
     }
-    else
+    for (const auto& id : pep_ids)
     {
-      for (const auto& id : pep_ids)
+      if (id.getHits().empty()) continue;
+      if (id.getHits()[0].metaValueExists("q-value"))
       {
-        if (id.getHits().empty()) continue;
-        if (id.getHits()[0].metaValueExists("q-value"))
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-        }
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
       }
     }
 
@@ -123,7 +120,7 @@ namespace OpenMS
       if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
 
       // skip if top hit is out ouf FDR
-      if (scoreHigherThanFDR_(top_hit, FDR)) continue;
+      if (!passesFDR_(top_hit, FDR)) continue;
 
       // check if top hit is found in de novo protein
       if (!isNovoHit_(top_hit)) // top hit is db hit
@@ -137,7 +134,7 @@ namespace OpenMS
       for (UInt i = 1; i < hits.size(); ++i)
       {
         // check for FDR
-        if (scoreHigherThanFDR_(hits[i], FDR)) break;
+        if (!passesFDR_(hits[i], FDR)) break;
 
         // check if target, also check for "target+decoy" value
         String td_info(hits[i].getMetaValue("target_decoy"));
@@ -237,9 +234,9 @@ namespace OpenMS
     return diff;
   }
 
-  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double novo_fract)
+  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double cut_off_fract)
   {
-    if (novo_fract < 0 || novo_fract > 1)
+    if (cut_off_fract < 0 || cut_off_fract > 1)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is not within its allowed range [0,1]. Please select a valid value.");
     }
@@ -261,14 +258,14 @@ namespace OpenMS
     }
 
     // sort the diffs decreasing and get the (1-novo_fract)*N one
-    UInt index = round((1 - novo_fract) * diffs.size());
+    UInt index = round((1 - cut_off_fract) * diffs.size());
     
     if (index >= diffs.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is set to low. Please set the parameter to a higher value.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is set too low. Please set the parameter to a higher value.");
     }
 
-    nth_element(diffs.begin(), diffs.begin() + index + 1, diffs.end(), greater<double>());
+    nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());
 
     return diffs[index];
   }
@@ -286,9 +283,9 @@ namespace OpenMS
     return true;
   }
 
-  bool Suitability::scoreHigherThanFDR_(const PeptideHit& hit, double FDR)
+  bool Suitability::passesFDR_(const PeptideHit& hit, double FDR)
   {
-    if (hit.getScore() > FDR) return true;
-    return false;
+    if (hit.getScore() > FDR) return false;
+    return true;
   }
 }

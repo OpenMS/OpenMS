@@ -189,6 +189,23 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
+    set<AASequence> unique_novo;
+    for (const auto& pep_id : novo_peps)
+    {
+      if (pep_id.getScoreType() != "novorscore")
+      {
+        OPENMS_LOG_ERROR << in_novo << " contains at least one identification without a novorscore! Make sure this file contains only deNovo sequences." << endl;
+        return INPUT_FILE_CORRUPT;
+      }
+      if (pep_id.getHits().empty()) continue;
+      unique_novo.insert(pep_id.getHits()[0].getSequence());
+    }
+
+    Ms2IdentificationRate q;
+    q.compute(novo_peps, exp, true);
+
+    Ms2IdentificationRate::IdentificationRateData spectral_quality = q.getResults()[0];
+
     Suitability s;
     Param p;
     p.setValue("no_re_rank", no_re_rank ? "true" : "false");
@@ -197,18 +214,7 @@ protected:
     s.setParameters(p);
     s.compute(pep_ids);
 
-    Ms2IdentificationRate q;
-    q.compute(novo_peps, exp, true);
-    
-    set<AASequence> unique_novo;
-    for (const auto& pep_id : novo_peps)
-    {
-      if (pep_id.getHits().empty()) continue;
-      unique_novo.insert(pep_id.getHits()[0].getSequence());
-    }
-
-    Ms2IdentificationRate::IdentificationRateData quality = q.getResults()[0];
-    Suitability::SuitabilityData suit = s.getResults()[0];    
+    Suitability::SuitabilityData suit = s.getResults()[0];
 
     //-------------------------------------------------------------
     // writing output
@@ -218,9 +224,9 @@ protected:
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
     OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl << endl;
-    OPENMS_LOG_INFO << unique_novo.size() << " / " << quality.num_peptide_identification << " de novo sequences are unique" << endl;
-    OPENMS_LOG_INFO << quality.num_ms2_spectra << " ms2 spectra found" << endl;
-    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << quality.identification_rate << endl << endl;
+    OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
+    OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
+    OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl << endl;
 
     if (!out.empty())
     {
@@ -232,10 +238,10 @@ protected:
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
-      os << "#total_novo_seqs\t" << quality.num_peptide_identification << "\n";
+      os << "#total_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
-      os << "#ms2_spectra\t" << quality.num_ms2_spectra << "\n";
-      os << "spectral_quality\t" << quality.identification_rate << "\n";
+      os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
+      os << "spectral_quality\t" << spectral_quality.identification_rate << "\n";
       os.close();
     }
 

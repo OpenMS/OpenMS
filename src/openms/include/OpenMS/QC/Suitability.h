@@ -96,11 +96,13 @@ namespace OpenMS
     *                no_re_rank - re-ranking can be turned off with this
     *                novo_fract - percent of deNovo peptides to capture in re-ranking
     *                FDR        - q-value that should be filtered for
+    *                             Preliminary tests have shown that database suitability
+    *                             is rather stable across common FDR thresholds from 0 - 5 %
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
-    * Attention: This function will calculate q-values for all peptide hits. Your input
-    *            will not be the same afterwards.
+    * Attention: This function will calculate q-values for all peptide hits and therefore
+    *            change the input. Maybe pass a copy if you want to keep your original data.
     *
     * @param pep_ids      vector containing pepIDs coming from a deNovo+database 
     *                     identification search without FDR (currently only Comet-support)
@@ -133,25 +135,25 @@ namespace OpenMS
     /**
     * @brief Calculates a xcorr cut-off based on decoy hits
     *
-    * Decoy differences of all N pepIDs are calculated. The (1-novo_fract)*N highest
+    * Decoy differences of all N pepIDs are calculated. The (1-cut_off_fract)*N highest
     * one is returned.
     * It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
     *
-    * @param pep_ids      vector containing the pepIDs
-    * @param novo_fract   fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank
-    * @returns            xcorr cut-off
-    * @throws             IllegalArgument if novo_fract isn't in range [0,1]
-    * @throws             IllegalArgument if novo_fract is to low for a decoy cut-off to be calculated
-    * @throws             MissingInformation if no more than 20 % of the pepIDs have two decoys in there top ten
+    * @param pep_ids        vector containing the pepIDs
+    * @param cut_off_fract  fraction that determines which cut-off will be returned
+    * @returns              xcorr cut-off
+    * @throws               IllegalArgument if novo_fract isn't in range [0,1]
+    * @throws               IllegalArgument if novo_fract is too low for a decoy cut-off to be calculated
+    * @throws               MissingInformation if no more than 20 % of the pepIDs have two decoys in their top ten
     */
-    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double novo_fract);
+    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double cut_off_fract);
 
     /**
     * @brief Tests if a PeptideHit is considered a deNovo hit
     *
     * To test this the function looks into the protein accessions.
     * If only the deNovo protein is found, 'true' is returned.
-    * If one database protein is found, 'false' is returned.
+    * If at least one database protein is found, 'false' is returned.
     *
     * @param hit      PepHit in question
     * @returns        true/false
@@ -159,15 +161,15 @@ namespace OpenMS
     bool isNovoHit_(const PeptideHit& hit);
 
     /**
-    * @brief Tests if a PeptideHit has a higher q-value the given FDR
+    * @brief Tests if a PeptideHit has a lower q-value the given FDR threshold, i.e. passes FDR
     *
     * Q-value is searched at score and at meta-value level.
     *
     * @param hit            PepHit in question
-    * @param FDR            FDR to check against
+    * @param FDR            FDR threshold to check against
     * @returns              true/false
     */
-    bool scoreHigherThanFDR_(const PeptideHit& hit, double FDR);
+    bool passesFDR_(const PeptideHit& hit, double FDR);
   };
 }
 
