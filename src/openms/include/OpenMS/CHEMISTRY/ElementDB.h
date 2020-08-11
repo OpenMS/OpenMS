@@ -69,7 +69,7 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-    
+
     /** @name Accessors
     */
     //@{
@@ -79,22 +79,22 @@ public:
     static const ElementDB* getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
-    const Map<String, const Element *> & getNames() const;
+    const Map<String, const Element*>& getNames() const;
 
     /// returns a hashmap that contains symbols mapped to pointers to the elements
-    const Map<String, const Element *> & getSymbols() const;
+    const Map<String, const Element*>& getSymbols() const;
 
     /// returns a hashmap that contains atomic numbers mapped to pointers of the elements
-    const Map<UInt, const Element *> & getAtomicNumbers() const;
+    const Map<UInt, const Element*>& getAtomicNumbers() const;
 
     /** returns a pointer to the element with name or symbol given in parameter name;
         *	if no element exists with that name or symbol 0 is returned
         *	@param name: name or symbol of the element
     */
-    const Element * getElement(const String & name) const;
+    const Element* getElement(const String& name) const;
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
-    const Element * getElement(UInt atomic_number) const;
+    const Element* getElement(UInt atomic_number) const;
 
     //@}
 
@@ -102,7 +102,7 @@ public:
     */
     //@{
     /// returns true if the db contains an element with the given name
-    bool hasElement(const String & name) const;
+    bool hasElement(const String& name) const;
 
     /// returns true if the db contains an element with the given atomic_number
     bool hasElement(UInt atomic_number) const;
@@ -118,18 +118,18 @@ protected:
 
     /*_ calculates the average weight based on isotope abundance and mass
      */
-    double calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass);
+    double calculateAvgWeight_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
 
     /*_ calculates the mono weight based on the smallest isotope mass
      */
-    double calculateMonoWeight_(const Map<UInt, double> & Z_to_mass);
+    double calculateMonoWeight_(const Map<UInt, double>& Z_to_mass);
 
     /*_ read elements from a XML file, formatted as a Param file.
 
             @throw throws ParseError if the file cannot be parsed
             @throw throws FileNotFound if the file could not be found
      */
-    void readFromFile_(const String & file_name);
+    void readFromFile_(const String& file_name);
 
 
     /// store element after parsing it
@@ -139,11 +139,11 @@ protected:
      */
     void clear_();
 
-    Map<String, const Element *> names_;
+    Map<String, const Element*> names_;
 
-    Map<String, const Element *> symbols_;
+    Map<String, const Element*> symbols_;
 
-    Map<UInt, const Element *> atomic_numbers_;
+    Map<UInt, const Element*> atomic_numbers_;
 
 private:
     ElementDB();
