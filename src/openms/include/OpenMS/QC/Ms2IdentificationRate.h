@@ -50,7 +50,7 @@ namespace OpenMS
    @brief This class is a metric for the QualityControl-ToppTool.
    
    This class computes the MS2 Identification Rate (as #identified PSMs divided by total number of MS2 scans) given a FeatureMap and an MSExperiment.
-   Only pep-ids with FDR metavalue 'target_decoy' equal to 'target' are counted, unless force_index flag is set (assumes all pep-ids are target peptides)
+   Only pep-ids with FDR metavalue 'target_decoy' equal to 'target' are counted, unless assume_all_target flag is set (assumes all pep-ids are target peptides)
 
    */
   class OPENMS_DLLAPI Ms2IdentificationRate : public QCBase
@@ -87,7 +87,12 @@ namespace OpenMS
     */
     static bool isTargetPeptide_(const PeptideIdentification& id, bool all_targets);
 
-    /// writes id-rate, num_ms2 and num_ids in IdentificationRateData object and appends it to result vector
+    /*
+    * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
+    *
+    * @param ms2_spectra_count  number of found ms2 spectra
+    * @param pep_ids_count      number of found (target) peptide identifications
+    */
     void writeResults_(Size pep_ids_count, Size ms2_spectra_count);
 
   public:

@@ -90,15 +90,23 @@ namespace OpenMS
     * the database peptide, a decoy cut-off is calculated. This functionality
     * can be turned off. This will result in an underestimated suitability,
     * but it can solve problems like different search engines or to few decoy hits.
+    * 
+    * Parameters can be set using the functionality of DefaultParamHandler.
+    * Parameters are:
+    *                no_re_rank - re-ranking can be turned off with this
+    *                novo_fract - percent of deNovo peptides to capture in re-ranking
+    *                FDR        - q-value that should be filtered for
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
+    * Attention: This function will calculate q-values for all peptide hits. Your input
+    *            will not be the same afterwards.
+    *
     * @param pep_ids      vector containing pepIDs coming from a deNovo+database 
-    *                     identification search (currently only Comet-support)
-    * @throws             MissingInformation if decoy cut-off could not be calculated
+    *                     identification search without FDR (currently only Comet-support)
     * @throws             MissingInformation if no target/decoy annotation is found
     * @throws             MissingInformation if no xcorr is found
-    * @throws             Precondition if FDR wasn't calculated
+    * @throws             Precondition if a q-value is found in the input
     */
     void compute(std::vector<PeptideIdentification>& pep_ids);
 
@@ -132,6 +140,8 @@ namespace OpenMS
     * @param pep_ids      vector containing the pepIDs
     * @param novo_fract   fraction of how many cases, where a de novo peptide scores just higher than the database peptide, will be re-rank
     * @returns            xcorr cut-off
+    * @throws             IllegalArgument if novo_fract isn't in range [0,1]
+    * @throws             IllegalArgument if novo_fract is to low for a decoy cut-off to be calculated
     * @throws             MissingInformation if no more than 20 % of the pepIDs have two decoys in there top ten
     */
     double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double novo_fract);

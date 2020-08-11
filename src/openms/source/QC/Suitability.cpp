@@ -265,7 +265,7 @@ namespace OpenMS
     
     if (index >= diffs.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is set to high. Please set the parameter to a lower value.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is set to low. Please set the parameter to a higher value.");
     }
 
     nth_element(diffs.begin(), diffs.begin() + index + 1, diffs.end(), greater<double>());
