@@ -198,7 +198,7 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   }
 
   //no fdr
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "No target/decoy annotaion found. If you want to continue regardless use -MS2_id_rate:force_no_pep_index")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target")
 
   // force no fdr
   ms2ir_force_fdr.compute(fmap_fdr, ms_exp, true);
@@ -259,7 +259,7 @@ START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, co
   }
 
   //no fdr
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, id_rate_no_index.compute(pep_ids_fdr, ms_exp), "No target/decoy annotaion found. If you want to continue regardless use -MS2_id_rate:force_no_pep_index")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, id_rate_no_index.compute(pep_ids_fdr, ms_exp), "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target")
 
   // force no fdr
   id_rate_force_no_index.compute(pep_ids_fdr, ms_exp, true);
