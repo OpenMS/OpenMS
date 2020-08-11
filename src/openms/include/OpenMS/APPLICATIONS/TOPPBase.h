@@ -821,8 +821,12 @@ protected:
 
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
-    /// Runs an external process via ExternalProcess and reports its status in the logs
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
     ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
+
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
+    /// Additionally returns the process' stdout and stderr
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir = "") const;
     //@}
 
     /**

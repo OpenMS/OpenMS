@@ -995,7 +995,6 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     file.store(tmp_filename, exp_original);
-    file.store(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1_test.tmp"), exp_original);
     //load written map
     PeakMap exp;
     file.load(tmp_filename, exp);

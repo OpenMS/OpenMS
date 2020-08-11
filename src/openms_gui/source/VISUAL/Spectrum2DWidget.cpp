@@ -354,9 +354,9 @@ namespace OpenMS
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
 
     // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_horz_->canvas()->mzToXAxis(true); 
+    projection_horz_->canvas()->mzToXAxis(true);
     projection_horz_->canvas()->setSwappedAxis(true);
-    
+
     projection_horz_->showLegend(false);
     Spectrum1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
     projection_horz_->canvas()->setIntensityMode(intensity);
@@ -379,6 +379,7 @@ namespace OpenMS
       projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
       projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
       projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+      projection_horz_->canvas()->setSwappedAxis(false);
     }
     projection_horz_->show();
     projection_box_->show();
@@ -388,7 +389,7 @@ namespace OpenMS
   {
     LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_vert_->canvas()->mzToXAxis(false); 
+    projection_vert_->canvas()->mzToXAxis(false);
     projection_vert_->canvas()->setSwappedAxis(true);
 
     projection_vert_->showLegend(false);
@@ -413,6 +414,7 @@ namespace OpenMS
       projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
       projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
       projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+      projection_vert_->canvas()->setSwappedAxis(false);
     }
     projection_box_->show();
     projection_vert_->show();

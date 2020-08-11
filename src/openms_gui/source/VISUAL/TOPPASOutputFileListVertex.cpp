@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -353,4 +353,8 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
+  void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  {
+    openContainingFolder();
+  }
 }
