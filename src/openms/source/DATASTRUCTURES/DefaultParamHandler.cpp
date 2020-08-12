@@ -172,9 +172,9 @@ namespace OpenMS
     return subsections_;
   }
 
-  void DefaultParamHandler::writeParametersToMetaValues(MetaInfoInterface& write_here, String prefix) const
+  void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix)
   {
-    for (auto it = param_.begin(); it != param_.end(); it++)
+    for (auto it = write_this.begin(); it != write_this.end(); it++)
     {
       write_here.setMetaValue(prefix + (*it).name, (*it).value);
     }
