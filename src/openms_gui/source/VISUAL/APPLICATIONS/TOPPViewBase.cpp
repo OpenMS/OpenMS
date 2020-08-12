@@ -493,7 +493,7 @@ namespace OpenMS
     connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, this, &TOPPViewBase::showSpectrumMetaData);
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)),              this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (std::vector<int>)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)),              &spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, showSpectrumAs1D, (int)));
+    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)),              &spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), &spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (const std::vector<int>&)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)),              this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
     connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (std::vector<int>)));
