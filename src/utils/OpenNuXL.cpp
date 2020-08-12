@@ -3839,6 +3839,107 @@ static void scoreXLIons_(
     size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
   };
 
+
+  XLTags getLongestABYLadderWithShift(
+       const vector<double>& ab, 
+       const vector<double>& y, 
+       const vector<double>& ab_xl, 
+       const vector<double>& y_xl)
+  {
+    OPENMS_PRECONDITION(ab.size() == y.size(), "b and y ion arrays must have same size");
+    OPENMS_PRECONDITION(ab_xl.size() == y_xl.size(), "cross-linked b and y ion arrays must have same size");
+
+    XLTags tags;
+
+    const size_t n = ab.size();
+
+    // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
+    vector<int> runAB(n, 0);
+    size_t run(0);
+    size_t max_ab_run(0);
+    for (int l = 0; l != n; ++l)
+    {
+      if (ab[l] == 0) { run = 0; continue; }
+      ++run;
+      runAB[l] = run;
+      if (run > max_ab_run) max_ab_run = run;
+    }
+    // runAB[i] now contains current run length e.g.: 000123400100 for prefix ions
+
+    vector<int> runY(n, 0);
+    run = 0;
+    size_t max_y_run(0);
+    for (int l = (int)n - 1; l >= 0; --l)
+    {
+      if (y[l] == 0) { run = 0; continue; }
+      ++run;
+      runY[l] = run;
+      if (run > max_y_run) max_y_run = run;
+    }
+    // runY[i] now contains current run length e.g.: 000432100100 for suffix ions
+
+    tags.tag_unshifted = std::max(max_ab_run, max_y_run);
+
+    const size_t n_xl = ab_xl.size();
+    if (n_xl != 0)
+    {
+      OPENMS_PRECONDITION(n_xl == n, "xl and non-xl arrays need to have same size");
+
+      // for XL we calculate the runs in reverse order so we can later quickly calculate the maximum run
+      // through non-cross-linked and cross-linked ions
+
+      vector<int> runAB_XL(n_xl, 0);
+      run = 0;
+      size_t max_ab_shifted(0);
+      for (int x = (int)n_xl - 1; x >= 0; --x) // note the reverse order
+      {
+        if (ab_xl[x] == 0) { run = 0; continue; }
+        ++run;
+        runAB_XL[x] = run;
+        if (run > max_ab_shifted) max_ab_shifted = run;
+      }
+      // max_ab_shifted contains longest run of shifted ab ions
+      // runAB_XL[i] now contains the longest run in X starting at position i e.g.: 00003210000 for prefix ions
+    
+      vector<int> runY_XL(n_xl, 0);
+      run = 0;
+      size_t max_y_shifted(0);
+      for (int x = 0; x != n_xl; ++x)
+      {
+        if (y_xl[x] == 0) { run = 0; continue; }
+        ++run;
+        runY_XL[x] = run;
+        if (run > max_y_shifted) max_y_shifted = run;
+      }
+      // runY_XL[i] now contains the longest run in X starting at position i e.g.: 00001230000 for suffix ions
+
+      tags.tag_shifted = std::max(max_ab_shifted, max_y_shifted);
+
+      size_t maximum_ab_tag_length(0);
+
+      // calculate maximum tag that spans linear intensities and at least one XLed amino acid for prefix ions
+      for (Size i = 0; i < n_xl - 1; ++i)
+      {
+        if (runAB[i] == 0 || runAB_XL[i + 1] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        const size_t tag_length = runAB[i] + runAB_XL[i + 1]; // tag length if cross-link is introduced at amino acid i+1
+        if (tag_length > maximum_ab_tag_length) maximum_ab_tag_length = tag_length; 
+      }
+
+      size_t maximum_y_tag_length(0);
+
+      // same for suffix ions
+      for (Size i = 0; i < n_xl - 1; ++i)
+      {
+        if (runY_XL[i] == 0 || runY[i + 1] == 0) continue; // must have one cross-linked amino acid next to non-cross-linked amino acid
+        const size_t tag_length = runY_XL[i] + runY[i + 1]; // tag length with cross-linked part and non-cross-linked
+        if (tag_length > maximum_y_tag_length) maximum_y_tag_length = tag_length; 
+      }
+      tags.tag_XLed = std::max(maximum_ab_tag_length, maximum_y_tag_length);
+    }
+     
+    return tags;
+  }
+
   XLTags getLongestLadderWithShift(const vector<double>& intL, const vector<double>& intXL)
   {
     // calculate longest consecutive unshifted / shifted sequence and longest sequence spanning unshifted + shifted residues
@@ -4753,7 +4854,10 @@ static void scoreXLIons_(
                   ah.wTop50 = rankscores.wTop50;
 
                   // do we have at least one ladder peak
-                  const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, vector<double>());
+//                  const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, vector<double>());
+
+                  const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, vector<double>(), vector<double>());
+
 #ifdef FILTER_BAD_SCORES_ID_TAGS
                   if (longest_tags.tag_unshifted == 0) continue;
 #endif
@@ -4899,10 +5003,9 @@ static void scoreXLIons_(
 
                     vector<double> intensity_xls(total_loss_template_z1_b_ions.size(), 0.0);
 
-#ifdef DONT_ACCUMULATE_PARTIAL_ION_SCORES
-                    std::fill(b_ions.begin(), b_ions.end(), 0);
-                    std::fill(y_ions.begin(), y_ions.end(), 0);
-#endif
+                    vector<double> b_xl_ions(b_ions.size(), 0.0);
+                    vector<double> y_xl_ions(b_ions.size(), 0.0);
+
                     float plss_MIC(0), 
                       plss_err(1.0), 
                       plss_Morph(0), 
@@ -4920,8 +5023,8 @@ static void scoreXLIons_(
                                  partial_loss_template_z1_yions,
                                  marker_ions_sub_score_spectrum_z1,
                                  intensity_xls,
-                                 b_ions,
-                                 y_ions,
+                                 b_xl_ions,
+                                 y_xl_ions,
                                  peak_matched,
                                  partial_loss_sub_score,
                                  marker_ions_sub_score,
@@ -4995,7 +5098,8 @@ static void scoreXLIons_(
 
 
                     // does it have at least one shift from non-cross-linked AA to the neighboring cross-linked one
-                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
+//                    const XLTags longest_tags = getLongestLadderWithShift(intensity_linear, intensity_xls);
+                    const XLTags longest_tags = getLongestABYLadderWithShift(b_ions, y_ions, b_xl_ions, y_xl_ions);
 
 #ifdef FILTER_BAD_SCORES_ID_TAGS
                     if (longest_tags.tag_XLed == 0) { continue; }
