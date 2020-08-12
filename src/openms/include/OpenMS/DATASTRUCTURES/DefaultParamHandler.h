@@ -138,10 +138,11 @@ public:
     *
     * Parameters are written with 'name' as key and 'value' as value
     *
+    * @param write_this  Params to be written
     * @param write_here  a MetaInfoInterface object were the meta values will be written
-    * @param prefix      string that will be added infront of the parameter 'name' for the meta value key
+    * @param prefix      will be added infront of the parameter name with an ':' as the meta value key
     */
-    void writeParametersToMetaValues(MetaInfoInterface& write_here, String prefix = "") const;
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
 
 protected:
     /**
