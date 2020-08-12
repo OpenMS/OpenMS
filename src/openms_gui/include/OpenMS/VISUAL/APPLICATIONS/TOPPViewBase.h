@@ -313,7 +313,7 @@ public slots:
     void showSpectrumAlignmentDialog();
     /// Shows the spectrum with index @p index of the active layer in 1D
     void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
