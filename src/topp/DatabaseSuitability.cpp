@@ -142,7 +142,7 @@ protected:
     setValidFormats_("in_novo", { "idXML" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
-    registerDoubleOption_("novor_fract", "<double>", 1, "Set the fraction of how many cases, where a de novo peptide scores just higher than the database peptide, you wish to re-rank.", false, true);
+    registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentil to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
     setMinFloat_("novor_fract", 0);
     setMaxFloat_("novor_fract", 1);
     registerDoubleOption_("FDR", "<double>", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)", false, true);
@@ -161,7 +161,7 @@ protected:
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
     String out = getStringOption_("out");
-    double novo_fract = getDoubleOption_("novor_fract");
+    double cut_off_fract = getDoubleOption_("cut_off_fract");
     double FDR = getDoubleOption_("FDR");
     bool no_re_rank = getFlag_("force_no_re_rank");
 
@@ -209,7 +209,7 @@ protected:
     Suitability s;
     Param p;
     p.setValue("no_re_rank", no_re_rank ? "true" : "false");
-    p.setValue("novo_fract", novo_fract);
+    p.setValue("cut_off_fract", cut_off_fract);
     p.setValue("FDR", FDR);
     s.setParameters(p);
     s.compute(pep_ids);

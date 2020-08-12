@@ -49,19 +49,19 @@ namespace OpenMS
   {
     defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
     defaults_.setValidStrings("no_re_rank", { "true", "false" });
-    defaults_.setValue("novo_fract", 1., "Fraction of how many cases, where a deNovo peptide scores just higher than the database peptide, will be re-rank");
-    defaults_.setMinFloat("novo_fract", 0.);
-    defaults_.setMaxFloat("novo_fract", 1.);
+    defaults_.setValue("cut_off_fract", 1., "Percentil to determine which decoy cut-off to use.");
+    defaults_.setMinFloat("cut_off_fract", 0.);
+    defaults_.setMaxFloat("cut_off_fract", 1.);
     defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
     defaults_.setMinFloat("FDR", 0.);
     defaults_.setMaxFloat("FDR", 1.);
     defaultsToParam_();
   }
   
-  void Suitability::compute(vector<PeptideIdentification>& pep_ids)
+  void Suitability::compute(vector<PeptideIdentification> pep_ids)
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
-    double novo_fract = param_.getValue("novo_fract");
+    double cut_off_fract = param_.getValue("cut_off_fract");
     double FDR = param_.getValue("FDR");
 
     SuitabilityData d;
@@ -89,7 +89,7 @@ namespace OpenMS
 
     if (!no_re_rank)
     {
-      data.cut_off = getDecoyCutOff_(pep_ids, novo_fract);
+      data.cut_off = getDecoyCutOff_(pep_ids, cut_off_fract);
     }
 
     Param p;
@@ -181,6 +181,13 @@ namespace OpenMS
       }
     }
 
+    if (data.num_top_db == 0 && data.num_top_novo == 0)
+    {
+      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR is to strict." << endl;
+      data.suitability = DBL_MAX;
+      return;
+    }
+
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
 
@@ -238,7 +245,7 @@ namespace OpenMS
   {
     if (cut_off_fract < 0 || cut_off_fract > 1)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is not within its allowed range [0,1]. Please select a valid value.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'cut_off_fract' is not within its allowed range [0,1]. Please select a valid value.");
     }
 
     // get all decoy diffs of peptide ids with at least two decoy hits
@@ -262,7 +269,7 @@ namespace OpenMS
     
     if (index >= diffs.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'novo_fract' is set too low. Please set the parameter to a higher value.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'cut_off_fract' is set too low. Please set the parameter to a higher value.");
     }
 
     nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());

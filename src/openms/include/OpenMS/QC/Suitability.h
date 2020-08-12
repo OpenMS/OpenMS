@@ -99,10 +99,9 @@ namespace OpenMS
     *                             Preliminary tests have shown that database suitability
     *                             is rather stable across common FDR thresholds from 0 - 5 %
     *
-    * Result is appended to the result member. This allows for multiple usage.
+    * Since q-values need to be calculated the identifications are taken by copy.
     *
-    * Attention: This function will calculate q-values for all peptide hits and therefore
-    *            change the input. Maybe pass a copy if you want to keep your original data.
+    * Result is appended to the result member. This allows for multiple usage.
     *
     * @param pep_ids      vector containing pepIDs coming from a deNovo+database 
     *                     identification search without FDR (currently only Comet-support)
@@ -110,7 +109,7 @@ namespace OpenMS
     * @throws             MissingInformation if no xcorr is found
     * @throws             Precondition if a q-value is found in the input
     */
-    void compute(std::vector<PeptideIdentification>& pep_ids);
+    void compute(std::vector<PeptideIdentification> pep_ids);
 
     /// return results
     const std::vector<SuitabilityData>& getResults() const;
@@ -140,7 +139,7 @@ namespace OpenMS
     * It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
     *
     * @param pep_ids        vector containing the pepIDs
-    * @param cut_off_fract  fraction that determines which cut-off will be returned
+    * @param cut_off_fract  percentil that determines which cut-off will be returned
     * @returns              xcorr cut-off
     * @throws               IllegalArgument if novo_fract isn't in range [0,1]
     * @throws               IllegalArgument if novo_fract is too low for a decoy cut-off to be calculated
