@@ -1897,6 +1897,7 @@ namespace OpenMS
 
   void TOPPViewBase::layerActivated()
   {
+    updateLayerBar();
     updateToolBar();
     updateViewBar();
     updateCurrentPath();
