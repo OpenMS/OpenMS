@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,14 +105,14 @@ protected:
     registerInputFile_("ext_calibrants", "<file>", "", "input file containing the external calibrant spectra (peak or raw data)\n");
     setValidFormats_("ext_calibrants", ListUtils::create<String>("mzML"));
     registerInputFile_("ref_masses", "<file>", "", "input file containing reference masses of the external calibrant spectra (one per line)", true);
-    setValidFormats_("ref_masses", ListUtils::create<String>("txt"));
+    setValidFormats_("ref_masses", ListUtils::create<String>("txt,tsv"));
     registerInputFile_("tof_const", "<file>", "", "File containing TOF conversion constants."
                                                   " These can be either two or three constants\n"
                                                   "per set, depending on the conversion type. Either one set for all calibrant spectra \n"
                                                   "(tab separated), or one for each spectrum.\n"
                                                   "For a detailed description, please have a look at the doxygen documentation."
                                                   "(one set, tab separated, per line)", true);
-    setValidFormats_("tof_const", ListUtils::create<String>("csv"));
+    setValidFormats_("tof_const", ListUtils::create<String>("tsv"));
     registerFlag_("peak_data", "set this flag, if you have peak data, not raw data (the picking parameters are accessible only from the INI file).");
 
     registerSubsection_("algorithm", "Algorithm section for peak picking");

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -232,7 +232,7 @@ namespace OpenMS
                     int i = std::atoi(what[1].first);
                     ion_series[ion_type].at(i-1) = true;
                   }
-                  catch (std::out_of_range)
+                  catch (std::out_of_range&)
                   {
                     OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
                              << " will be ignored for max_series " << ph->getSequence().toString() << endl;

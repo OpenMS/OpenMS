@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -173,6 +173,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+    registerStringOption_("output_directory", "<directory>", "", "Output directory for MaRaCluster original consensus output", false);
+
 
     //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
@@ -284,7 +286,8 @@ protected:
 
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
- 
+
+    String maracluster_output_directory = getStringOption_("output_directory");   
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
 
@@ -307,13 +310,13 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
     String txt_designator = File::getUniqueName();
-    String input_file_list(temp_directory_body + txt_designator + ".file_list.txt");
-    String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
+    String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
@@ -335,7 +338,7 @@ protected:
     {
       arguments << "batch";
       arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << temp_directory_body.toQString();
+      arguments << "-f" << tmp_dir.getPath().toQString();
       arguments << "-a" << txt_designator.toQString();
 
       map<String,int> precursor_tolerance_units;
@@ -357,7 +360,11 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLog_("Executing maracluster ...");
-    runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -365,6 +372,21 @@ protected:
     Map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
+
+    //if specified keep original output in designated directory
+    if (!maracluster_output_directory.empty())
+    {
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
+
+      if (copy_status)
+      { 
+        OPENMS_LOG_INFO << "MaRaCluster original output was successfully copied to " << maracluster_output_directory << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "MaRaCluster original output could not be copied to " << maracluster_output_directory << ". Please run MaRaClusterAdapter with debug >= 2." << std::endl;
+      }
+    }
 
     //output idXML containing scannumber and cluster id annotation
     if (!out.empty())
@@ -440,7 +462,7 @@ protected:
       {
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << temp_directory_body.toQString();
+        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
         arguments_consensus << "-o" << consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();

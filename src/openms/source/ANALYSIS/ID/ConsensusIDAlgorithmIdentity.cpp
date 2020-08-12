@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,6 +80,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids,
+                                            const map<String, String>& se_info,
                                             SequenceGrouping& results)
   {
     preprocess_(ids);
@@ -88,21 +89,41 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
+      String score_type = pep_it->getScoreType();
+      auto se = se_info.find(pep_it->getIdentifier());
+      if (se != se_info.end())
+      {
+        score_type = se->second + "_" + score_type;
+      }
+
       for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
            hit_it != pep_it->getHits().end(); ++hit_it)
       {
         const AASequence& seq = hit_it->getSequence();
-        SequenceGrouping::iterator pos = results.find(seq);
+        auto pos = results.find(seq);
         if (pos == results.end()) // new sequence
         {
-          results[seq] = make_pair(hit_it->getCharge(), 
-                                   vector<double>(1, hit_it->getScore()));
+          auto ev = hit_it->getPeptideEvidences();
+          results[seq] = HitInfo{
+              hit_it->getCharge(),
+              {hit_it->getScore()},
+              {score_type},
+              hit_it->getMetaValue("target_decoy").toString(),
+              {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
+              0.,
+              0.
+          };
         }
         else // previously seen sequence
         {
-          compareChargeStates_(pos->second.first, hit_it->getCharge(),
+          compareChargeStates_(pos->second.charge, hit_it->getCharge(),
                                pos->first);
-          pos->second.second.push_back(hit_it->getScore());
+          pos->second.scores.emplace_back(hit_it->getScore());
+          pos->second.types.emplace_back(score_type);
+          for (const auto& ev : hit_it->getPeptideEvidences())
+          {
+            pos->second.evidence.emplace(ev);
+          }
         }
       }
     }
@@ -113,17 +134,16 @@ namespace OpenMS
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {
-      double score = getAggregateScore_(res_it->second.second, higher_better);
+      double score = getAggregateScore_(res_it->second.scores, higher_better);
       // if 'count_empty' is false, 'n_other_ids' may be zero, in which case
       // we define the support to be one to avoid a NaN:
       double support = 1.0;
       if (n_other_ids > 0) // the normal case
       {
-        support = (res_it->second.second.size() - 1.0) / n_other_ids;
+        support = (res_it->second.scores.size() - 1.0) / n_other_ids;
       }
-      res_it->second.second.resize(2);
-      res_it->second.second[0] = score;
-      res_it->second.second[1] = support;
+      res_it->second.final_score = score;
+      res_it->second.support = support;
     }
   }
 

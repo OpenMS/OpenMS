@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,13 +49,12 @@ START_TEST(IDBoostGraph, "$Id$")
       vector<PeptideIdentification> peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
-      IDBoostGraph idb{prots[0], peps, 1, false};
+      IDBoostGraph idb{prots[0], peps, 1, false, false};
       TEST_EQUAL(idb.getNrConnectedComponents(), 0)
+      // 6 proteins (1 unmatched and omitted since we build the graph psm-centric) plus 4 peptides (top per psm).
       TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
       idb.computeConnectedComponents();
       TEST_EQUAL(idb.getNrConnectedComponents(), 3)
-      // The next lines do not sum up to 9 because protein PH2 is unmatched
-      // If you want to avoid that, filter unmatched proteins first!
       TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 3)
       TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 4)
       TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
@@ -69,21 +68,47 @@ START_TEST(IDBoostGraph, "$Id$")
     }
     END_SECTION
 
+    /* TODO test graph-based resolution
+    START_SECTION(IDBoostGraph graph-based group resolution)
+        {
+          vector<ProteinIdentification> prots;
+          vector<PeptideIdentification> peps;
+          IdXMLFile idf;
+          idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+          IDBoostGraph idb{prots[0], peps, 1, false};
+          TEST_EQUAL(idb.getNrConnectedComponents(), 0)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
+          idb.computeConnectedComponents();
+          TEST_EQUAL(idb.getNrConnectedComponents(), 3)
+          // The next lines do not sum up to 9 because protein PH2 is unmatched
+          // If you want to avoid that, filter unmatched proteins first!
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 3)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 4)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
+          TEST_EXCEPTION(Exception::MissingInformation, idb.clusterIndistProteinsAndPeptidesAndExtendGraph());
+          idb.clusterIndistProteinsAndPeptides();
+          TEST_EQUAL(idb.getNrConnectedComponents(), 3)
+          // Only cc 0 and 1 have indist prot group
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 4)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 5)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
+        }
+    END_SECTION
+     */
+
     START_SECTION(IDBoostGraph all PSMs)
         {
           vector<ProteinIdentification> prots;
           vector<PeptideIdentification> peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
-          IDBoostGraph idb{prots[0], peps, 0, false};
+          IDBoostGraph idb{prots[0], peps, 0, false, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 14)
           idb.computeConnectedComponents();
           // Now it is 5 ccs because there is an unmatched peptide and a new PSM that only matches to
           // previously uncovered protein PH2.
           TEST_EQUAL(idb.getNrConnectedComponents(), 5)
-          // The next lines do not sum up to 9 because protein PH2 is unmatched
-          // If you want to avoid that, filter unmatched proteins first!
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 4)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 2)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 5)
@@ -99,13 +124,11 @@ START_TEST(IDBoostGraph, "$Id$")
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("IDBoostGraph_test_in.idXML"),prots,peps);
 
-          IDBoostGraph idb{prots[0], peps, 1, true};
+          IDBoostGraph idb{prots[0], peps, 1, true, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 8)
           idb.computeConnectedComponents();
           TEST_EQUAL(idb.getNrConnectedComponents(), 2)
-          // The next lines do not sum up to 9 because protein PH2 is unmatched
-          // If you want to avoid that, filter unmatched proteins first!
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 6)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 2)
 
@@ -117,6 +140,39 @@ START_TEST(IDBoostGraph, "$Id$")
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 25)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 11)
 
+        }
+    END_SECTION
+
+    START_SECTION(IDBoostGraph graph-based group resolution)
+        {
+          vector<ProteinIdentification> prots;
+          vector<PeptideIdentification> peps;
+          IdXMLFile idf;
+          idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+          IDBoostGraph idb{prots[0], peps, 1, false, false};
+          TEST_EQUAL(idb.getNrConnectedComponents(), 0)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 9)
+          idb.computeConnectedComponents();
+          TEST_EQUAL(idb.getNrConnectedComponents(), 3)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 3)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 4)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
+          TEST_EXCEPTION(Exception::MissingInformation, idb.clusterIndistProteinsAndPeptidesAndExtendGraph());
+          idb.clusterIndistProteinsAndPeptides();
+          // Only cc 0 and 1 have indist prot group
+          TEST_EQUAL(boost::num_edges(idb.getComponent(0)), 3)
+          TEST_EQUAL(boost::num_edges(idb.getComponent(1)), 4)
+          TEST_EQUAL(boost::num_edges(idb.getComponent(2)), 1)
+          idb.resolveGraphPeptideCentric();
+          TEST_EQUAL(idb.getNrConnectedComponents(), 3)
+          // Only cc 0 and 1 have indist prot group
+          TEST_EQUAL(boost::num_edges(idb.getComponent(0)), 3)
+          // There is one shared peptide in the second component whose edge will be resolved
+          TEST_EQUAL(boost::num_edges(idb.getComponent(1)), 3)
+          TEST_EQUAL(boost::num_edges(idb.getComponent(2)), 1)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 4)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(1)), 5)
+          TEST_EQUAL(boost::num_vertices(idb.getComponent(2)), 2)
         }
     END_SECTION
 

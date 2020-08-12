@@ -39,3 +39,15 @@ application/x-paramxml paramXML
 application/x-percolatortab tab
 application/x-pqp pqp
 application/x-ms ms
+application/x-splib splib
+application/x-novor novor
+application/x-obo obo
+application/x-analysisxml analysisXML
+application/x-sqmass sqMass
+application/x-osw osw
+application/x-psms psms
+application/x-pin pin
+application/x-pin pout
+application/x-paramxml paramXML
+application/x-xquestxml xml
+application/x-specxml xml

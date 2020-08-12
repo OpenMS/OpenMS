@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -67,7 +69,7 @@ namespace OpenMS
 
     String toString() const
     {
-      return (prefix + (counter != -1 ? String(counter).fillLeft('0', 3) + "." : "") + suffix);
+      return (prefix + (counter != -1 ? String("_") + String(counter).fillLeft('0', 3) : String()) + "." + suffix);
     }
   };
 
@@ -501,6 +503,11 @@ namespace OpenMS
 
     bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
+    // maximum number of filenames per TOPP parameter file-list to put on the commandline
+    // If more filenames are needed, e.g. for MapAligner's -in/-out etc., they are put in the .INI file
+    // to avoid exceeding the 8KB length limit of the Windows commandline
+    static constexpr int MAX_FILES_CMDLINE {10};
+
     for (int round = 0; round < round_total_; ++round)
     {
       debugOut_(String("Enqueueing process nr ") + round + "/" + round_total_);
@@ -525,19 +532,22 @@ namespace OpenMS
 
         String param_name = in_params[param_index].param_name;
 
+        const QStringList& file_list = ite->second.filenames.get();
+
         bool store_to_ini = false;
         // check for GenericWrapper input/output files and put them in INI file:
-        if (param_name.hasPrefix("ETool:"))
+        // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
+        if (param_name.hasPrefix("ETool:") || file_list.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
         }
+
         if (!store_to_ini)
-          args << "-" + param_name.toQString();
-
-        const QStringList& file_list = ite->second.filenames.get();
-
-        if (store_to_ini)
+        {
+          args << "-" + param_name.toQString() << file_list;
+        }
+        else
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
           {
@@ -552,11 +562,6 @@ namespace OpenMS
             param_tmp.setValue(param_name, String(file_list[0]));
           }
         }
-        else
-        {
-          args << file_list;
-        }
-
       }
 
       // OUTGOING EDGES
@@ -570,18 +575,23 @@ namespace OpenMS
         String param_name = out_params[param_index].param_name;
 
         bool store_to_ini = false;
+        
+        const QStringList& output_files = output_files_[round][param_index].filenames.get();
+        
         // check for GenericWrapper input/output files and put them in INI file:
-        if (param_name.hasPrefix("ETool:"))
+        // OR if there are a lot of input files (which might exceed the 8k length limit of cmd.exe on Windows)
+        if (param_name.hasPrefix("ETool:") || output_files.size() > MAX_FILES_CMDLINE)
         {
           store_to_ini = true;
           ini_round_dependent = true;
         }
+
+        
         if (!store_to_ini)
-          args << "-" + param_name.toQString();
-
-        const QStringList& output_files = output_files_[round][param_index].filenames.get();
-
-        if (store_to_ini)
+        {
+          args << "-" + param_name.toQString() << output_files;
+        }
+        else
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
           {
@@ -592,10 +602,6 @@ namespace OpenMS
             if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             param_tmp.setValue(param_name, String(output_files[0]));
           }
-        }
-        else
-        {
-          args << output_files;
         }
       }
 
@@ -661,6 +667,17 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     TOPPASScene* ts = getScene_();
+    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+
+    RAIICleanup clean([&]() {
+      // clean up at end
+      if (p)
+      {
+        delete p;
+      }
+
+      ts->processFinished();
+    });
 
     //** ERROR handling
     if (es != QProcess::NormalExit)
@@ -707,14 +724,7 @@ namespace OpenMS
       }
     }
 
-    //clean up
-    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
-    if (p)
-    {
-      delete p;
-    }
-
-    ts->processFinished();
+   
 
     __DEBUG_END_METHOD__
   }
@@ -729,17 +739,20 @@ namespace OpenMS
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
-    foreach(QString file, files)
+    for (const QString& file : files)
     {
-      QFileInfo fi(file);
-      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file));
-      String new_prefix = String(fi.path() + "/" + fi.baseName()) + ".";
+      String new_prefix = FileHandler::stripExtension(file);
+      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
+      if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
+      {
+        new_suffix = String(file).suffix(new_suffix.size());
+      }
       NameComponent nc(new_prefix, new_suffix);
       name_old_to_new[file] = nc;
       ++name_new_count[nc.toString()];
     }
     // for all names which occur more than once, introduce a counter  
-    foreach(QString file, files)
+    for (const QString& file : files)
     {
       if (name_new_count[name_old_to_new[file].toString()] > 1) // candidate for counter
       {
@@ -757,8 +770,8 @@ namespace OpenMS
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
           // rename file and update record
-          String old_filename = it->second.filenames[fi];
-          String new_filename = name_old_to_new[it->second.filenames[fi]].toString();
+          String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
+          String new_filename = QDir::toNativeSeparators(name_old_to_new[it->second.filenames[fi]].toString().toQString());
           if (QFileInfo(old_filename.toQString()).canonicalFilePath() == QFileInfo(new_filename.toQString()).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
@@ -1125,7 +1138,7 @@ namespace OpenMS
   String TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
+    String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
       workflow_dir = "Untitled_workflow";

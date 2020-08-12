@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,17 +117,20 @@ using namespace OpenMS;
   </CENTER>
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXLLF.cli
+  @verbinclude TOPP_OpenPepXLLF.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXLLF.html
+  @htmlinclude TOPP_OpenPepXLLF.html
 */
+
+/// @cond TOPPCLASSES
+
 
 class TOPPOpenPepXLLF :
   public TOPPBase
 {
 public:
   TOPPOpenPepXLLF() :
-    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", false)
+    TOPPBase("OpenPepXLLF", "Tool for protein-protein cross linking with label-free linkers.", true)
   {
   }
 
@@ -154,10 +157,10 @@ protected:
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
 
     registerOutputFile_("out_xquestxml", "<xQuestXML_file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
-    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xquest.xml"));
 
     registerOutputFile_("out_xquest_specxml", "<xQuestSpecXML_file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
-    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
+    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("spec.xml"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -217,9 +220,9 @@ protected:
     PeakMap spectra;
 
     OpenPepXLLFAlgorithm search_algorithm;
-    Param this_param = getParam_().copy("", true);
+    Param this_param = getParam_();
     Param algo_param = search_algorithm.getParameters();
-    algo_param.update(this_param, false, OpenMS_Log_debug); // suppress param. update message
+    algo_param.update(this_param, false, false, false, false, OpenMS_Log_debug); // suppress param. update message
     search_algorithm.setParameters(algo_param);
     search_algorithm.setLogType(this->log_type_);
 
@@ -295,3 +298,5 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
+
+/// @endcond

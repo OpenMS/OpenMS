@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,6 +113,13 @@ namespace OpenMS
   {
     FMEStatistics result;
 
+    bool has_pepIDs = QCBase::hasPepID(fmap);
+    // if there are no matching peaks, the counter is zero and it is not possible to find ppms
+    if (!has_pepIDs)
+    {
+      results_.push_back(result);
+      return;
+    }
     // accumulates ppm errors over all first PeptideHits
     double accumulator_ppm{};
 
@@ -151,7 +158,8 @@ namespace OpenMS
     bool print_warning {false};
 
     // computes the FragmentMassError
-    auto lamCompPPM = [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
+    std::function<void(PeptideIdentification&)> fCompPPM =
+        [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -237,7 +245,8 @@ namespace OpenMS
       pep_id.getHits()[0].setMetaValue("fragment_mass_error_da", dalton);
     };
 
-    auto lamVar = [&result](const PeptideIdentification& pep_id)
+    auto fVar =
+        [&result](const PeptideIdentification& pep_id)
     {
       if (pep_id.getHits().empty())
       {
@@ -251,7 +260,7 @@ namespace OpenMS
     };
 
     // computation of ppms
-    QCBase::iterateFeatureMap(fmap, lamCompPPM);
+    fmap.applyFunctionOnPeptideIDs(fCompPPM);
     // if there are no matching peaks, the counter is zero and it is not possible to find ppms
     if (counter_ppm == 0)
     {
@@ -263,7 +272,7 @@ namespace OpenMS
     result.average_ppm = accumulator_ppm / counter_ppm;
 
     // computes variance
-    QCBase::iterateFeatureMap(fmap, lamVar);
+    fmap.applyFunctionOnPeptideIDs(fVar);
 
     result.variance_ppm = result.variance_ppm / counter_ppm;
 
@@ -273,7 +282,8 @@ namespace OpenMS
 
   const String& FragmentMassError::getName() const
   {
-    return name_;
+    static const String& name = "FragmentMassError";
+    return name;
   }
 
   const std::vector<FragmentMassError::FMEStatistics>& FragmentMassError::getResults() const

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -297,7 +297,7 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
         if (keep_subelements)
         {
-          std::function<void(PeptideIdentification &)> saveOldMapIndex =
+          auto saveOldMapIndex =
             [](PeptideIdentification &p)
             {
               if (p.metaValueExists("map_index"))

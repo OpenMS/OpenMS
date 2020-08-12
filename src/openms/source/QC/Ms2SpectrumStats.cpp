@@ -1,7 +1,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,11 +53,11 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
+    std::function<void(PeptideIdentification&)> l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
     {
       setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
     };
-    iterateFeatureMap(features, l_f);
+    features.applyFunctionOnPeptideIDs(l_f);
     
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 
 #include <algorithm> // for "min"
 #include <string>
+#include <cstring>
 #include <vector>
 
 class QString;
@@ -512,16 +513,21 @@ public:
       if (size_ > other.size_) return false;
 
       // same size
-      const char * b = begin_;
-      const char * bo = other.begin_;
-      
-      for (Size i = 0; i != size_; ++i, ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-        if (*b > *bo) return false;
-      }
- 
-      return false;
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return false;
+
+      return strncmp(begin_, other.begin_, size_) < 0;
+    }
+
+    bool operator==(const StringView other) const
+    {
+      if (size_ != other.size_) return false;
+
+      //same size
+      // same sequence, if both Views point to the same start
+      if (begin_ == other.begin_) return true;
+
+      return strncmp(begin_, other.begin_, size_) == 0;
     }
 
     /// create view that references a substring of the original string

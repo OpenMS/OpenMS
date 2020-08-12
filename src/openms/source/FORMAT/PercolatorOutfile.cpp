@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,7 +208,7 @@ namespace OpenMS
       // ProteomeDiscoverer):
       lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
       // X! Tandem Percolator format:
-      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+");
+      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+$");
     }
 
     vector<String> items;

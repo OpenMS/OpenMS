@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,11 +154,20 @@ namespace OpenMS
 
     namespace UserParam
     {
-      // User parameter name for precursor mz error in ppm
-      const std::string PRECURSOR_ERROR_PPM_USERPARAM = "OMS:precursor_mz_error_ppm";
+      //User parameter name for identifier of concatenated peptides
+      const std::string CONCAT_PEPTIDE = "concatenated_peptides";
 
-      // User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer x with the correction being x times C13C12_MASSDIFF_U)
-      const std::string PRECURSOR_ASSIGNMENT_CORRECTION = "precursor_correction";
+      // User parameter name for the M/Z of other chromatograms which have been merged into this one
+      const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
+
+      // User parameter name for precursor mz error in ppm
+      const std::string LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
+
+      // User parameter name for precursor mz error in ppm
+      const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
+
+      // User parameter name for fragment mz error in ppm
+      const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
 
       // User parameter name for precursor mz error in ppm
       const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
@@ -171,6 +180,9 @@ namespace OpenMS
 
       // User parameter name for a delta score: a score ratio between a rank x hit and the rank x+1 hit
       const std::string DELTA_SCORE = "delta_score";
+
+      // User parameter name for monoisotopic peak misassignment correction of a precursor (usually an integer x with the correction being -x times C13C12_MASSDIFF_U)
+      const std::string ISOTOPE_ERROR = "isotope_error";
 
       // Cross-Linking Mass Spectrometry user parameters
       // Name of OpenPepXL main score (MzIdentML CV term)

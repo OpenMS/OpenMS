@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -181,6 +181,8 @@ protected:
     OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
     sw.reset();
 
+    // groups will be reannotated or scores will not make sense anymore -> delete
+    inferred_protein_ids[0].getIndistinguishableProteins().clear();
 
     OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
     BasicProteinInferenceAlgorithm pi;
@@ -199,14 +201,14 @@ protected:
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
       // but it is quite fast right now.
       IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids, 1
-                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false};
+                       /*static_cast<Size>(getIntOption_("nr_psms_per_spectrum"))*/, false, false};
       sw.start();
       //TODO allow computation without splitting into components. Might be worthwhile in some cases
       OPENMS_LOG_INFO << "Splitting into connected components..." << std::endl;
       ibg.computeConnectedComponents();
       OPENMS_LOG_INFO << "Splitting into connected components took " << sw.toString() << std::endl;
       sw.clear();
-      ibg.annotateIndistProteins(true);
+      ibg.calculateAndAnnotateIndistProteins(true);
     }
 
     OPENMS_LOG_INFO << "Storing output..." << std::endl;
