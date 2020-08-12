@@ -143,8 +143,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
     registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentil to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
-    setMinFloat_("novor_fract", 0);
-    setMaxFloat_("novor_fract", 1);
+    setMinFloat_("cut_off_fract", 0);
+    setMaxFloat_("cut_off_fract", 1);
     registerDoubleOption_("FDR", "<double>", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)", false, true);
     setMinFloat_("FDR", 0);
     setMaxFloat_("FDR", 1);
@@ -233,6 +233,11 @@ protected:
       OPENMS_LOG_INFO << "Writing output to: " << out << endl << endl;
 
       std::ofstream os(out);
+      if (!os.is_open())
+      {
+        OPENMS_LOG_ERROR << "Output file given in 'out' isn't writable." << endl;
+        return CANNOT_WRITE_OUTPUT_FILE;
+      }
       os.precision(writtenDigits(double()));
       os << "key\tvalue\n";
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
