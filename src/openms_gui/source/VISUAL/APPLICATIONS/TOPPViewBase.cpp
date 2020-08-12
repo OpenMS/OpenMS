@@ -2043,40 +2043,39 @@ namespace OpenMS
   void TOPPViewBase::showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption)
   {
     ws_->addSubWindow(sw);
-    connect(sw->canvas(), SIGNAL(preferencesChange()), this, SLOT(updateLayerBar()));
-    connect(sw->canvas(), SIGNAL(layerActivated(QWidget*)), this, SLOT(layerActivated()));
-    connect(sw->canvas(), SIGNAL(layerModficationChange(Size, bool)), this, SLOT(updateLayerBar()));
-    connect(sw->canvas(), SIGNAL(layerZoomChanged(QWidget*)), this, SLOT(layerZoomChanged()));
-    connect(sw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
-    connect(sw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
-    connect(sw, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
+    connect(sw->canvas(), &SpectrumCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
+    connect(sw->canvas(), &SpectrumCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
+    connect(sw->canvas(), &SpectrumCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
+    connect(sw->canvas(), &SpectrumCanvas::layerZoomChanged, this, &TOPPViewBase::layerZoomChanged);
+    connect(sw, &SpectrumWidget::sendStatusMessage, this, &TOPPViewBase::showStatusMessage);
+    connect(sw, &SpectrumWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+    connect(sw, &SpectrumWidget::dropReceived, this, &TOPPViewBase::copyLayer);
 
     // 1D spectrum specific signals
     Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(sw);
     if (sw1 != nullptr)
     {
-      connect(sw1, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
-      connect(sw1, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
-      connect(sw1, SIGNAL(showCurrentPeaksAsIonMobility()), this, SLOT(showCurrentPeaksAsIonMobility()));
-      connect(sw1, SIGNAL(showCurrentPeaksAsDIA()), this, SLOT(showCurrentPeaksAsDIA()));
+      connect(sw1, &Spectrum1DWidget::showCurrentPeaksAs2D, this, &TOPPViewBase::showCurrentPeaksAs2D);
+      connect(sw1, &Spectrum1DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
+      connect(sw1, &Spectrum1DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
+      connect(sw1, &Spectrum1DWidget::showCurrentPeaksAsDIA, this, &TOPPViewBase::showCurrentPeaksAsDIA);
     }
 
     // 2D spectrum specific signals
     Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
     if (sw2 != nullptr)
     {
-      connect(sw2->getHorizontalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
-      connect(sw2->getVerticalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatusInvert(double, double)));
-      connect(sw2, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-//      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
-      connect(sw2, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
+      connect(sw2->getHorizontalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+      connect(sw2->getVerticalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
+      connect(sw2, CONNECTCAST(Spectrum2DWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
+      connect(sw2, &Spectrum2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
     // 3D spectrum specific signals
     Spectrum3DWidget* sw3 = qobject_cast<Spectrum3DWidget*>(sw);
     if (sw3 != nullptr)
     {
-      connect(sw3, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
+      connect(sw3, &Spectrum3DWidget::showCurrentPeaksAs2D,this, &TOPPViewBase::showCurrentPeaksAs2D);
     }
 
     sw->setWindowTitle(caption.toQString());
@@ -2092,7 +2091,7 @@ namespace OpenMS
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-    connect(sw, SIGNAL(aboutToBeDestroyed(int)), tab_bar_, SLOT(removeId(int)));
+    connect(sw, &SpectrumWidget::aboutToBeDestroyed, tab_bar_, &EnhancedTabBar::removeId);
 
     tab_bar_->setCurrentId(sw->getWindowId());
 
@@ -2452,9 +2451,8 @@ namespace OpenMS
     topp_.process->setProcessChannelMode(QProcess::MergedChannels);
 
     // connect slots
-    connect(topp_.process, SIGNAL(readyReadStandardOutput()), this, SLOT(updateProcessLog()));
-    connect(topp_.process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finishTOPPToolExecution(int, QProcess::ExitStatus)));
-
+    connect(topp_.process, &QProcess::readyReadStandardOutput, this, &TOPPViewBase::updateProcessLog);
+    connect(topp_.process, CONNECTCAST(QProcess, finished, (int, QProcess::ExitStatus)), this, &TOPPViewBase::finishTOPPToolExecution);
     QString tool_executable;
     try
     {
