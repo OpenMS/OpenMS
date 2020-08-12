@@ -42,6 +42,7 @@
 
 namespace OpenMS
 {
+  class MetaInfoInterface;
   /**
       @brief A base class for all classes handling default parameters.
 
@@ -131,6 +132,16 @@ public:
 
     /// Non-mutable access to the registered subsections
     const std::vector<String>& getSubsections() const;
+
+    /**
+    * @brief Writes all parameters to meta values
+    *
+    * Parameters are written with 'name' as key and 'value' as value
+    *
+    * @param write_here  a MetaInfoInterface object were the meta values will be written
+    * @param prefix      string that will be added infront of the parameter 'name' for the meta value key
+    */
+    void writeParametersToMetaValues(MetaInfoInterface& write_here, String prefix = "") const;
 
 protected:
     /**

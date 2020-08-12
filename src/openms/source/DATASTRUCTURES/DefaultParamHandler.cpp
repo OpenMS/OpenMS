@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using namespace std;
 
@@ -169,6 +170,14 @@ namespace OpenMS
   const std::vector<String>& DefaultParamHandler::getSubsections() const
   {
     return subsections_;
+  }
+
+  void DefaultParamHandler::writeParametersToMetaValues(MetaInfoInterface& write_here, String prefix) const
+  {
+    for (auto it = param_.begin(); it != param_.end(); it++)
+    {
+      write_here.setMetaValue(prefix + (*it).name, (*it).value);
+    }
   }
 
 } // namespace OpenMS
