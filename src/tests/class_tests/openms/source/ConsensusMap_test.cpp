@@ -679,6 +679,107 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
 }
 END_SECTION
 
+START_SECTION(void split(std::vector<FeatureMap>& fmaps, SplitMeta mode = SplitMeta::DISCARD) const)
+{
+  // prepare test data
+  ConsensusMap cm;
+  auto& headers = cm.getColumnHeaders();
+  headers[0].filename = "file.FeatureXML";
+  headers[1].filename = "file2.FeatureXML";
+
+  ConsensusFeature cf1, cf2;
+  cf1.insert(FeatureHandle(0, Peak2D({ 10, 433.33 }, 100000), 0));
+  cf1.insert(FeatureHandle(1, Peak2D({ 11, 434.33 }, 200000), 0));
+
+  PeptideIdentification id1, id2;
+  id1.setRT(10);
+  id1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("AAA")));
+  id1.setMetaValue("map_index", 0);
+  cf1.getPeptideIdentifications().push_back(id1);
+  cf1.setMetaValue("test", "some information");
+  cm.push_back(cf1);
+
+  cf2.insert(FeatureHandle(0, Peak2D({ 20, 433.33 }, 300000), 0));
+  cf2.insert(FeatureHandle(1, Peak2D({ 21, 433.33 }, 400000), 0));
+  id2.setRT(20);
+  id2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("WWW")));
+  id2.setMetaValue("map_index", 1);
+  cf2.getPeptideIdentifications().push_back(id2);
+
+  cm.push_back(cf2);
+
+  PeptideIdentification uid1, uid2;
+  uid1.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("LLL")));
+  uid1.setMetaValue("map_index", 0);
+  uid2.insertHit(PeptideHit(0.1, 1, 3, AASequence::fromString("KKK")));
+  uid2.setMetaValue("map_index", 1);
+  cm.getUnassignedPeptideIdentifications().push_back(uid1);
+  cm.getUnassignedPeptideIdentifications().push_back(uid2);
+
+  vector<FeatureMap> fmaps;
+
+  // test with non iso analyze data
+  fmaps = cm.split(ConsensusMap::SplitMeta::DISCARD);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 2);
+  ABORT_IF(fmaps[1].size() != 2);
+  // map 0
+  TEST_EQUAL(fmaps[0][0].getRT(), 10);
+  TEST_EQUAL(fmaps[0][0].getIntensity(), 100000);
+  TEST_EQUAL(fmaps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAA");
+  TEST_EQUAL(fmaps[0][0].metaValueExists("test"), false);
+  TEST_EQUAL(fmaps[0][1].getRT(), 20);
+  TEST_EQUAL(fmaps[0][1].getIntensity(), 300000);
+  TEST_EQUAL(fmaps[0][1].getPeptideIdentifications().empty(), true);
+  // map 1
+  TEST_EQUAL(fmaps[1][0].getRT(), 11);
+  TEST_EQUAL(fmaps[1][0].getIntensity(), 200000);
+  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications().empty(), true);
+  TEST_EQUAL(fmaps[1][1].getRT(), 21);
+  TEST_EQUAL(fmaps[1][1].getIntensity(), 400000);
+  TEST_EQUAL(fmaps[1][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "WWW");
+  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LLL");
+  TEST_EQUAL(fmaps[1].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "KKK");
+
+  // test with iso analyze data
+  DataProcessing p;
+  set<DataProcessing::ProcessingAction> actions;
+  actions.insert(DataProcessing::QUANTITATION);
+  p.setProcessingActions(actions);
+  p.setSoftware(Software("IsobaricAnalyzer"));
+  cm.getDataProcessing().push_back(p);
+  fmaps = cm.split(ConsensusMap::SplitMeta::DISCARD);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 2);
+  ABORT_IF(fmaps[1].size() != 2);
+  const auto pi00 = fmaps[0][0].getPeptideIdentifications();
+  const auto pi01 = fmaps[0][1].getPeptideIdentifications();
+  TEST_EQUAL(pi00[0].getHits()[0].getSequence(),AASequence::fromString("AAA"));
+  TEST_EQUAL(pi01[0].getHits()[0].getSequence(),AASequence::fromString("WWW"));
+  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("LLL"));
+  TEST_EQUAL(fmaps[0].getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("KKK"));
+  TEST_EQUAL(fmaps[1][0].getPeptideIdentifications().empty(), true);
+  TEST_EQUAL(fmaps[1][1].getPeptideIdentifications().empty(), true);
+
+  // test different all meta value modes
+  fmaps = cm.split(ConsensusMap::SplitMeta::COPY_FIRST);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 2);
+  ABORT_IF(fmaps[1].size() != 2);
+  TEST_EQUAL(fmaps[0][0].metaValueExists("test"), true);
+  TEST_EQUAL(fmaps[0][0].getMetaValue("test"), "some information");
+  TEST_EQUAL(fmaps[1][0].metaValueExists("test"), false);
+  
+  fmaps = cm.split(ConsensusMap::SplitMeta::COPY_ALL);
+  ABORT_IF(fmaps.size() != 2);
+  ABORT_IF(fmaps[0].size() != 2);
+  ABORT_IF(fmaps[1].size() != 2);
+  TEST_EQUAL(fmaps[0][0].metaValueExists("test"), true);
+  TEST_EQUAL(fmaps[0][0].getMetaValue("test"),"some information");
+  TEST_EQUAL(fmaps[1][0].metaValueExists("test"), true);
+  TEST_EQUAL(fmaps[1][0].getMetaValue("test"),"some information");
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

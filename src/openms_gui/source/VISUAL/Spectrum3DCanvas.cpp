@@ -108,7 +108,7 @@ namespace OpenMS
   {
     if (layers_.back().type != LayerData::DT_PEAK)
     {
-      QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
+      popIncompleteLayer_("This widget supports peak data only. Aborting!");
       return false;
     }
 
@@ -117,10 +117,7 @@ namespace OpenMS
     //Abort if no data points are contained
     if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
     {
-      layers_.resize(getLayerCount() - 1);
-      if (current_layer_ != 0)
-        current_layer_ = current_layer_ - 1;
-      QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
+      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
 

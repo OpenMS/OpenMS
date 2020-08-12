@@ -54,7 +54,7 @@ namespace OpenMS
     int rc = sqlite3_open(filename.c_str(), &db_);
     if (rc)
     {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db_));
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
 

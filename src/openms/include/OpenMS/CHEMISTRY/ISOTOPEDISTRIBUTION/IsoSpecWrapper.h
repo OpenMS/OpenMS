@@ -49,6 +49,7 @@
 // Override IsoSpec's use of mmap whenever it is available
 #define ISOSPEC_GOT_SYSTEM_MMAN false
 #define ISOSPEC_GOT_MMAN false
+#define ISOSPEC_BUILDING_OPENMS true
 
 #include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
 
@@ -196,9 +197,14 @@ public:
    *
    * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
    * the requested p. By default these extra isotopologues are returned too (as they have to be computed
-   * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
-   * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
-   * should not be done unless there is a good reason to.
+   * anyway). It is possible to request them to be discarded, but not in the generator class - one should
+   * use IsoSpecTotalProbWrapper instead, at a greater computational and memory cost.
+   *
+   * The p is used as a hint for the algorithm - configurations will be returned in such an order that
+   * once the total accumulated probability crosses p, the returned set will be close to optimal.
+   * If exactly the optimal set is required, one should use (again, at an increased cost) the
+   * IsoSpecTotalProbWrapper class. The generator will still go over the entire configuration space
+   * if the user keeps requesting more configurations after crossing p.
    *
    * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
    */
@@ -213,7 +219,6 @@ public:
       * @param isotopeMasses Array with the individual elements isotopic masses
       * @param isotopeProbabilities Array with the individual elements isotopic probabilities
       * @param p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
-      * @param do_p_trim Whether to discard extra configurations that have been computed
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.
@@ -223,14 +228,13 @@ public:
              const std::vector<int>& atomCounts,
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities,
-             double p,
-             bool do_p_trim = false);
+             double p);
 
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
-    IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula, double p, bool do_p_trim = false);
+    IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula, double p);
 
     virtual inline bool nextConf() override final { return ILG.advanceToNextConfiguration(); };
     virtual inline Peak1D getConf() override final { return Peak1D(ILG.mass(), ILG.prob()); };
@@ -258,8 +262,8 @@ protected:
    * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
    * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbGeneratorWrapper
    * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
-   * instead in most cases. The trade-off is that it's (slightly) slower than Threshold algorithm. This speed gap will
-   * be dramatically improved with IsoSpec 2.0.
+   * instead in most cases. The trade-off is that it's (slightly, though much less than it used to be) slower than
+   * Threshold algorithm.
    *
    * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
    */
@@ -413,7 +417,8 @@ public:
 
 protected:
     IsoSpec::IsoLayeredGenerator ILG;
-
+    const double target_prob;
+    const bool do_p_trim;
   };
 
   /**

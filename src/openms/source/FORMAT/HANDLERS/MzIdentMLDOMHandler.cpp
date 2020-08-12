@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Eugen Netz $
+// $Authors: Mathias Walzer, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
@@ -735,7 +735,7 @@ namespace OpenMS
             {
               aas = parsePeptideSiblings_(element_pep);
             }
-            catch (Exception::MissingInformation)
+            catch (Exception::MissingInformation&)
             {
               // We found an unknown modification, we could try to rescue this
               // situation. The "name" attribute, if present, may be parsable:
@@ -1039,6 +1039,11 @@ namespace OpenMS
                 catch (exception& e)
                 {
                   OPENMS_LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
+                }
+                if (missedCleavages < 0)
+                {
+                  OPENMS_LOG_WARN << "missedCleavages has a negative value. Assuming unlimited and setting it to 1000." << endl;
+                  missedCleavages = 1000;
                 }
                 sp.missed_cleavages = missedCleavages;
 
@@ -2038,7 +2043,7 @@ namespace OpenMS
             break;
           }
         }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
+        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
@@ -2051,6 +2056,14 @@ namespace OpenMS
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
+          scoretype = true;
+          break;
+        }
+        else if (scoreit->first == "MS:1001143")
+        {
+          spectrum_identification.setScoreType("PSM-level search engine specific statistic");
+          // TODO this is just an assumption for unknown scores
+          spectrum_identification.setHigherScoreBetter(true);
           scoretype = true;
         }
       }
@@ -2066,11 +2079,15 @@ namespace OpenMS
             {
               hit.setMetaValue(cvs->first, cv->getValue().toString());
             }
+            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            {
+              continue;
+            }
             else
             {
-            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            }
           }
-        }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
         {
@@ -2987,6 +3004,8 @@ namespace OpenMS
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
+      int minCharge = 0;
+      int maxCharge = 0;
       for (map<String, DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
         if (upit->first == "taxonomy")
@@ -2997,10 +3016,26 @@ namespace OpenMS
         {
           sp.charges = upit->second.toString();
         }
+        else if (upit->first == "MinCharge")
+        {
+          minCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "MaxCharge")
+        {
+          maxCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "NumTolerableTermini")
+        {
+          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+        }
         else
         {
           sp.setMetaValue(upit->first, upit->second);
         }
+      }
+      if (minCharge != 0 || maxCharge != 0) // this means "MinCharge" and "MaxCharge" get preference over "charges"
+      {
+        sp.charges = String(minCharge) + "-" + String(maxCharge);
       }
       return sp;
     }

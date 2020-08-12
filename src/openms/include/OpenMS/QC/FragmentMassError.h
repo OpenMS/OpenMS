@@ -103,11 +103,7 @@ namespace OpenMS
     */
     QCBase::Status requires() const override;
 
-
   private:
-    /// name of the metric
-    const String name_ = "FragmentMassError";
-    
     /// container that stores results
     std::vector<FMEStatistics> results_{};
   };

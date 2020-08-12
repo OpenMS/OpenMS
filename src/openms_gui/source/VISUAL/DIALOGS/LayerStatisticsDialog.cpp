@@ -108,7 +108,7 @@ namespace OpenMS
     {
       computeConsensusStats_();
 
-      // add thres rows for charge, quality and elements
+      // add three rows: charge, quality and elements
       ui_->table_->setRowCount(ui_->table_->rowCount() + 3);
       QTableWidgetItem * item = new QTableWidgetItem();
       item->setText(QString("Charge"));

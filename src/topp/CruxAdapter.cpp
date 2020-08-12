@@ -143,7 +143,7 @@ protected:
     setValidStrings_("precursor_mass_units", ListUtils::create<String>("mass,mz,ppm"));
     registerDoubleOption_("fragment_bin_offset", "<offset>", 0.0, "In the discretization of the m/z axes of the observed and theoretical spectra, this parameter specifies the location of the left edge of the first bin, relative to mass = 0 (i.e., mz-bin-offset = 0.xx means the left edge of the first bin will be located at +0.xx Da).", false, false);
     registerDoubleOption_("fragment_bin_width", "<width>", 0.02, "Before calculation of the XCorr score, the m/z axes of the observed and theoretical spectra are discretized. This parameter specifies the size of each bin. The exact formula for computing the discretized m/z value is floor((x/mz-bin-width) + 1.0 - mz-bin-offset), where x is the observed m/z value. For low resolution ion trap ms/ms data 1.0005079 and for high resolution ms/ms 0.02 is recommended.", false, false);
-    registerStringOption_("isotope_error", "<choice>", "", "List of positive, non-zero integers.", false, false);
+    registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "", "List of positive, non-zero integers.", false, false);
 
     registerStringOption_("run_percolator", "<true/false>", "true", "Whether to run percolator after tide-search", false, false);
     setValidStrings_("run_percolator", ListUtils::create<String>("true,false"));
@@ -186,24 +186,6 @@ protected:
       arg = arg.substr(1, arg.size());
     }
     return arg;
-  }
-
-  void removeTempDir_(const String& tmp_dir)
-  {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) 
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      }
-      File::removeDirRecursively(tmp_dir);
-    }
   }
 
   ExitCodes main_(int, const char**) override
@@ -255,14 +237,14 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
-    String output_dir = tmp_dir + "crux-output";
+    String output_dir = tmp_dir.getPath() + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
     String concat = " --concat T"; // concat target and decoy
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
-    String tmp_mzml = tmp_dir + "input.mzML";
+    String tmp_mzml = tmp_dir.getPath() + "input.mzML";
 
     // Low memory conversion
     {
@@ -279,7 +261,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     String crux_executable = getStringOption_("crux_executable");
-    String idx_name = tmp_dir + "tmp_idx";
+    String idx_name = tmp_dir.getPath() + "tmp_idx";
 
     // create index
     {
@@ -343,7 +325,7 @@ protected:
       params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
       params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
       if (deisotope) params += " --deisotope ";
-      if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
+      if (!getStringOption_(Constants::UserParam::ISOTOPE_ERROR).empty()) params += " --isotope-error " + getStringOption_(Constants::UserParam::ISOTOPE_ERROR);
 
       // add extra arguments passed on the command-line (pass through args)
       if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));

@@ -76,10 +76,7 @@
 #include <cassert>
 #include <limits>
 
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-
 
 namespace OpenMS
 {

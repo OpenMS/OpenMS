@@ -53,11 +53,11 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    auto l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
+    std::function<void(PeptideIdentification&)> l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
     {
       setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
     };
-    iterateFeatureMap(features, l_f);
+    features.applyFunctionOnPeptideIDs(l_f);
     
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);

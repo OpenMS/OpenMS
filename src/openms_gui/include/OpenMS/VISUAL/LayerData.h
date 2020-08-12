@@ -447,7 +447,23 @@ public:
     int peptide_id_index;
     int peptide_hit_index;
 
+    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+    String getDecoratedName() const
+    {
+      String n = name;
+      if (flipped)
+      {
+        n += " [flipped]";
+      }
+      if (modified)
+      {
+        n += '*';
+      }
+      return n;
+    }
+
 private:
+
 
     /// Update current cached spectrum for easy retrieval
     void updateCache_();

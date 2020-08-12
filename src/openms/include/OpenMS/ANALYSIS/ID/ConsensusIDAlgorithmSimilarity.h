@@ -82,7 +82,8 @@ namespace OpenMS
 
     /// Consensus scoring
     void apply_(std::vector<PeptideIdentification>& ids,
-                        SequenceGrouping& results) override;
+        const std::map<String, String>& se_info,
+        SequenceGrouping& results) override;
   };
 
 } // namespace OpenMS

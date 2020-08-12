@@ -1375,7 +1375,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1397,7 +1397,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1419,7 +1419,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1441,7 +1441,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());

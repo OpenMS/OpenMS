@@ -111,7 +111,7 @@ namespace OpenMS
 
     /// get averagine distribution given mass
     OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, 
+                                         std::vector<std::pair<double, double> >& isotopesSpec,
                                          const double charge = 1.,
                                          const int nr_isotopes = 4,
                                          const double mannmass = 1.00048);

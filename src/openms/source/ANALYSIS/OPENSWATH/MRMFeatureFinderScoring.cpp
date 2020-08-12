@@ -1050,8 +1050,10 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
-                                                              TransformationDescription trafo, double rt_extraction_window)
+                                                              TargetedExpType& transition_exp,
+                                                              TransitionGroupMapType& transition_group_map,
+                                                              TransformationDescription trafo,
+                                                              double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();

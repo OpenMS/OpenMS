@@ -76,6 +76,8 @@ namespace OpenMS
       traml_id = "TRAML_ID";
     }
 
+    startProgress(0, 1, "reading PQP file (SQL warmup)");
+
     // Open database
     SqliteConnector conn(filename);
     db = conn.getDB();

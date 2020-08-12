@@ -37,7 +37,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <functional>
 
 namespace OpenMS
@@ -47,7 +47,6 @@ namespace OpenMS
     @brief A 1-dimensional raw data point or peak for chromatograms.
 
     This datastructure is intended for chromatograms.
-    If you want to annotated single peaks with meta data, use RichChromatogramPeak instead.
 
     @ingroup Kernel
   */

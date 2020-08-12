@@ -48,7 +48,10 @@ namespace OpenMS
 
   SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
     ms_experiment_(rhs.ms_experiment_)
-  {}
+  {
+    // this only copies the pointers and not the actual data ... 
+  }
+
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
   {

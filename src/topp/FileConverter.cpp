@@ -466,40 +466,27 @@ protected:
       }
       writeLog_("RawFileReader reading tool. Copyright 2016 by Thermo Fisher Scientific, Inc. All rights reserved");
       String net_executable = getStringOption_("NET_executable");
-      TOPPBase::ExitCodes exit_code;
       QStringList arguments;
 #ifdef OPENMS_WINDOWSPLATFORM      
       if (net_executable.empty())
-      { // default on Windows: if no mono executable is set use the "native" .NET one
-        arguments << String("-i=" + in).toQString()
-                  << String("--output_file=" + out).toQString()
-                  << String("-f=2").toQString() // indexedMzML
-                  << String("-e").toQString(); // ignore instrument errors
-        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-        exit_code = runExternalProcess_(getStringOption_("ThermoRaw_executable").toQString(), arguments);
+      { // default on Windows: if NO mono executable is set use the "native" .NET one
+        net_executable = getStringOption_("ThermoRaw_executable");
       }
       else
       { // use e.g., mono
-        arguments << getStringOption_("ThermoRaw_executable").toQString()
-                  << String("-i=" + in).toQString()
-                  << String("--output_file=" + out).toQString()
-                  << String("-f=2").toQString()
-                  << String("-e").toQString();
-        if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-        exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+        arguments << getStringOption_("ThermoRaw_executable").toQString();
       }      
 #else
       // default on Mac, Linux: use mono
       net_executable = net_executable.empty() ? "mono" : net_executable;
-      arguments << getStringOption_("ThermoRaw_executable").toQString()
-                << String("-i=" + in).toQString()
-                << String("--output_file=" + out).toQString()
-                << String("-f=2").toQString()
-                << String("-e").toQString();
-      if (no_peak_picking)  { arguments << String("--noPeakPicking").toQString(); }
-      exit_code = runExternalProcess_(net_executable.toQString(), arguments);       
+      arguments << getStringOption_("ThermoRaw_executable").toQString();
 #endif            
-      return exit_code;
+      arguments << ("-i=" + in).c_str()
+                << ("--output_file=" + out).c_str()
+                << "-f=2" // indexedMzML
+                << "-e"; // ignore instrument errors
+      if (no_peak_picking) arguments << "--noPeakPicking";
+      return runExternalProcess_(net_executable.toQString(), arguments);
     }
     else if (in_type == FileTypes::EDTA)
     {

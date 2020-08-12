@@ -32,7 +32,7 @@
 # $Authors: Witold Wolski, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project("OpenMS_class_tests_superhirn")
 
 #------------------------------------------------------------------------------
@@ -89,5 +89,6 @@ endif()
 foreach(i ${superhirn_tests})
   add_executable(${i} source/${i}.cpp)
   target_link_libraries(${i} SuperHirn OpenMS)
+  target_compile_definitions(${i} PRIVATE BOOST_ALL_NO_LIB)
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)

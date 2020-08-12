@@ -331,7 +331,7 @@ START_SECTION(([EXTRA]
 
   TEST_REAL_SIMILAR(scores.im_drift, -1)
   TEST_REAL_SIMILAR(scores.im_drift_weighted, -1)
-  TEST_EQUAL(std::isnan(scores.im_delta_score), true)
+  TEST_REAL_SIMILAR(scores.im_delta_score, -1)
 
   TEST_EQUAL(std::isnan(scores.im_xcorr_shape_score), true)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0)

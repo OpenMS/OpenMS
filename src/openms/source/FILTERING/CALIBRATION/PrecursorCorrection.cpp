@@ -201,22 +201,16 @@ namespace OpenMS
           continue;
         }
 
-        // get tolerance window and left/right iterator
+        // get tolerance window and index of highest peak
         std::pair<double,double> tolerance_window = Math::getTolWindow(mz, mz_tolerance, ppm);
-        MSSpectrum::ConstIterator left = rt_it->MZBegin(tolerance_window.first);
-        MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
+        int highest_peak_idx = rt_it->findHighestInWindow(mz, mz-tolerance_window.first, tolerance_window.second-mz);
 
         // no MS1 precursor peak in +- tolerance window found
-        if  (left == right)
+        if (highest_peak_idx == -1)
         {
           count_error_highest_intenstiy += 1;
           continue;
         }
-
-        MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-        // find peak (index) with highest intensity to expected position
-        Size highest_peak_idx = max_intensity_it - rt_it->begin();
 
         // get actual position and intensity of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();

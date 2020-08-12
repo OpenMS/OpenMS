@@ -241,6 +241,31 @@ namespace OpenMS
     static void applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
   
   protected:
+
+    /// statistics when adding peptide calibrants
+    struct CalibrantStats_
+    {
+      CalibrantStats_(const double tol_ppm)
+        : tol_ppm_(tol_ppm)
+      {};
+      Size cnt_empty = 0; ///< cases of empty PepIDs (no hits)
+      Size cnt_nomz = 0; ///< cases of no m/z value
+      Size cnt_nort = 0; ///< cases of no RT value
+      Size cnt_decal = 0; ///< cases of large gap (>tol_ppm) between theoretical peptide weight (from sequence) and precursor mass
+      Size cnt_total = 0; ///< total number of cases
+
+      void print() const
+      {
+        if (cnt_empty > 0) OPENMS_LOG_WARN << "Warning: " << cnt_empty << "/" << cnt_total << " calibrations points were skipped, since they have no peptide sequence!" << std::endl;
+        if (cnt_nomz > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nomz << "/" << cnt_total << " calibrations points were skipped, since they have no m/z value!" << std::endl;
+        if (cnt_nort > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nort << "/" << cnt_total << " calibrations points were skipped, since they have no RT value!" << std::endl;
+        if (cnt_decal > 0) OPENMS_LOG_WARN << "Warning: " << cnt_decal << "/" << cnt_total << " calibrations points were skipped, since their theoretical weight is more than " << tol_ppm_ << " ppm away from their measured mass!" << std::endl;
+      }
+
+      private:
+      const double tol_ppm_; ///< tolerance used for counting cnt_decal
+    };
+
     /**
       @brief Add(no prior clear) calibrants to internal list.
       
@@ -252,11 +277,18 @@ namespace OpenMS
       Since precursor masses could be annotated wrongly (e.g. isotope peak instead of mono),
       larger outliers are removed before accepting an ID as calibrant.
 
-      @param pep_ids Peptide ids (e.g. from an idXML file)
+      @param pep_id A single PeptideID (e.g. from an idXML file); only the top peptide hit is used
       @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
+      @param stats Update stats, if calibrant cannot be used (no RT, no MZ, no sequence, out-of tolerance)
 
     */
-    void fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm );
+    void fillID_( const PeptideIdentification& pep_id, const double tol_ppm, CalibrantStats_& stats);
+
+    /// calls fillID_ on all PeptideIDs
+    void fillIDs_(const std::vector<PeptideIdentification>& pep_ids, const double tol_ppm, CalibrantStats_& stats);
+
+    /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
+    bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
 
     /*
      @brief Calibrate m/z of a spectrum, ignoring precursors!
@@ -267,8 +299,6 @@ namespace OpenMS
 
   private:
     CalibrationData cal_data_;
-
-
   }; // class InternalCalibration
   
 } // namespace OpenMS
