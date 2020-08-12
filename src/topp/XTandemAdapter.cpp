@@ -79,9 +79,12 @@ using namespace std;
     This wrapper has been successfully tested with several versions of @em X!Tandem.
     The earliest version known to work is "PILEDRIVER" (2015-04-01). The latest is "ALANINE" (2017-02-01).
 
-    @note @em X!Tandem only support uncompressed mzML files (e.g. no zlib compression or other fancy things like numpress) may be used internally!
+    @note @em X!Tandem only support <b>uncompressed mzML files</b> (e.g. no zlib compression or other fancy things like numpress) may be used internally!
     This converter only forwards the mzML filename and you will get an error like 'Fatal error: unsupported CODEC used for mzML peak data (CODEC type=zlib compression)'.
     If this happens, preprocess the mzML files using OpenMS' @ref TOPP_FileConverter to write a plain mzML which @em X!Tandem understands.
+
+    @em X!Tandem has a build-in adventitious cleavage rule for Asp|Pro (Aspartate/D | Proline/P), which it allows as cutting site for all enzymes.
+    Furthermore, it treats any occurence of 'X' as stop codon (and thus as cleavage site). The resulting peptide will be non- or semi-tryptic.
 
     To speed up computations, FASTA databases can be compressed using the fasta_pro.exe tool of @em X!Tandem.
     It is contained in the "bin" folder of the @em X!Tandem installation.
