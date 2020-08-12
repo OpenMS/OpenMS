@@ -134,6 +134,8 @@ using namespace boost::accumulators;
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
 #define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
 
+#define ANNOTATED_QUANTILES 1
+
 #ifdef ANNOTATED_QUANTILES
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
 #endif
@@ -1750,7 +1752,30 @@ static void scoreXLIons_(
     }
 };
 
+  RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
+  {
+    RankScores r;
+    double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
+    vector<double> matched_ranks;
+    for (size_t i = 0; i != peak_matched.size(); ++i)
+    {
+      if (!peak_matched[i]) { continue; }
+      matched_ranks.push_back(spectrum.getIntegerDataArrays()[IA_RANK_INDEX][i]);
+    }
+    std::sort(matched_ranks.begin(), matched_ranks.end());
 
+    // optimal ranking would be 0,1, ... , (number_of_matched_peaks - 1)
+    // calculate number of "insertions" of higher-intensity peaks compared to optimal ranking
+    size_t sum_rank_diff(matched_ranks[0]);
+    for (size_t i = 1; i != matched_ranks.size(); ++i)
+    {
+      sum_rank_diff += matched_ranks[i] - matched_ranks[0] - 1;
+    }
+
+    r.wTop50 = log10(1.0 + sum_rank_diff);
+    return r;
+  }
+/*
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
     double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
@@ -1781,6 +1806,7 @@ static void scoreXLIons_(
     r.rp = exp(r.rp - 1.0 / matched * lgamma(matched+1)); // = rp / lowest possible rp given number of matches
     return r;
   }
+*/
 
 #ifdef FILTER_AMBIGIOUS_PEAKS
   static map<double, double> mass2high_frequency_;
