@@ -61,7 +61,6 @@ namespace OpenMS
     public DefaultParamHandler
   {
   public:
-
     /// struct to store results
     struct SuitabilityData
     {
