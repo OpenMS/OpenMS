@@ -65,7 +65,7 @@ namespace OpenMS
 
     typedef std::set<AdductInfo, AdductCompare> Adducts;
     typedef IteratorWrapper<Adducts::iterator> AdductRef;
-
+    typedef boost::optional<AdductRef> AdductOpt;
 
     /// Representation of a search hit (e.g. peptide-spectrum match).
     struct MoleculeQueryMatch: public ScoredProcessingResult
@@ -76,7 +76,7 @@ namespace OpenMS
 
       Int charge;
 
-      boost::optional<AdductRef> adduct_opt; ///< optional reference to adduct
+      AdductOpt adduct_opt; ///< optional reference to adduct
 
       // peak annotations (fragment ion matches), potentially from different
       // data processing steps:
@@ -119,7 +119,9 @@ namespace OpenMS
                                        &MoleculeQueryMatch::data_query_ref>,
             boost::multi_index::member<
               MoleculeQueryMatch, IdentifiedMolecule,
-              &MoleculeQueryMatch::identified_molecule_var>>>>
+              &MoleculeQueryMatch::identified_molecule_var>,
+            boost::multi_index::member<MoleculeQueryMatch, AdductOpt,
+                                       &MoleculeQueryMatch::adduct_opt>>>>
       > MoleculeQueryMatches;
 
     typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;

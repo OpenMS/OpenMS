@@ -360,6 +360,10 @@ namespace OpenMS
         hit.setMetaValue("molecule_type", "compound");
       }
       hit.setCharge(query_match.charge);
+      if (query_match.adduct_opt)
+      {
+        hit.setMetaValue("adduct", (*query_match.adduct_opt)->getName());
+      }
       // @TODO: is this needed? don't we copy over all meta values above?
       if (query_match.metaValueExists(ppm_error_name))
       {

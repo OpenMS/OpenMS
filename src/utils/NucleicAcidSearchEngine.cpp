@@ -261,18 +261,16 @@ protected:
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
   }
 
-  typedef boost::optional<IdentificationData::AdductRef> AdductOpt;
-
   // relevant information about an MS2 precursor ion
   struct PrecursorInfo
   {
     Size scan_index;
     Int charge;
     Size isotope;
-    AdductOpt adduct;
+    IdentificationData::AdductOpt adduct;
 
     PrecursorInfo(Size scan_index, Int charge, Size isotope,
-                  const AdductOpt& adduct = boost::none):
+                  const IdentificationData::AdductOpt& adduct = boost::none):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {
     }
@@ -834,7 +832,7 @@ protected:
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    using AdductedOligo = pair<NASequence, AdductOpt>; // oligo, adduct
+    using AdductedOligo = pair<NASequence, IdentificationData::AdductOpt>;
     using PrecursorPair = pair<double, double>; // precursor intensity, RT
     // mapping: charge -> list of precursors
     using PrecursorsByCharge = map<Int, vector<PrecursorPair>>;
@@ -859,7 +857,7 @@ protected:
     {
       String name = entry.first.first.toString();
       EmpiricalFormula ef = entry.first.first.getFormula();
-      const AdductOpt& adduct = entry.first.second;
+      const IdentificationData::AdductOpt& adduct = entry.first.second;
       if (adduct)
       {
         name += "+[" + (*adduct)->getName() + "]";
@@ -980,7 +978,7 @@ protected:
     StringList potential_adducts =
       getStringList_("precursor:potential_adducts");
     // @TODO: allow different adducts with same mass?
-    map<double, AdductOpt> adduct_masses;
+    map<double, IdentificationData::AdductOpt> adduct_masses;
     adduct_masses[0.0] = boost::none; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");

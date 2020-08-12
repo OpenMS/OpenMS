@@ -158,6 +158,7 @@ namespace OpenMS
 
     using Adducts = IdentificationDataInternal::Adducts;
     using AdductRef = IdentificationDataInternal::AdductRef;
+    using AdductOpt = IdentificationDataInternal::AdductOpt;
 
     using MoleculeQueryMatch = IdentificationDataInternal::MoleculeQueryMatch;
     using MoleculeQueryMatches =
