@@ -40,13 +40,14 @@
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
@@ -79,8 +80,6 @@ class QWorkspace;
 
 namespace OpenMS
 {
-  class EnhancedWorkspace;
-  class EnhancedTabBar;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
@@ -225,7 +224,7 @@ public:
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
     /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
-    EnhancedWorkspace* getWorkspace() const;
+    EnhancedWorkspace* getWorkspace();
 
     /// returns a pointer to the active SpectrumWidget (0 if none is active)
     SpectrumWidget* getActiveSpectrumWidget() const;
@@ -313,7 +312,7 @@ public slots:
     void showSpectrumAlignmentDialog();
     /// Shows the spectrum with index @p index of the active layer in 1D
     void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
@@ -483,11 +482,11 @@ protected:
     QAction* dm_ident_2d_;
     //@}
 
-    /// Main workspace
-    EnhancedWorkspace* ws_;
 
+    /// Main workspace
+    EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    EnhancedTabBar* tab_bar_;
+    EnhancedTabBar tab_bar_;
 
     /** @name Status bar
     */
