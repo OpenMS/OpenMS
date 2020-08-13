@@ -72,13 +72,19 @@ namespace OpenMS
     /// original string used for parsing
     const String& getName() const;
 
-    /// Sum formula of adduct itself. Useful for comparison with feature adduct annotation
+    /// sum formula of adduct itself. Useful for comparison with feature adduct annotation
     const EmpiricalFormula& getEmpiricalFormula() const;
+
+    /// get molecular multiplier
+    UInt getMolMultiplier() const;
 
     /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
     /// e.g. M+H;1+
     /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
     static AdductInfo parseAdductString(const String& adduct);
+
+    /// equality operator
+    bool operator==(const AdductInfo& other) const;
 
   private:
     /// members

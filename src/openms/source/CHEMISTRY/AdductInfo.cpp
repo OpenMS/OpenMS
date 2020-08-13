@@ -56,6 +56,10 @@ namespace OpenMS
       // we just use the uncharged formula and take care of charge ourselves
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "EmpiricalFormula must not have a charge (" + ef_.toString() + "), since the internal weight computation of EF is unsuitable for adducts.");
     }
+    if (mol_multiplier_ == 0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mol. multiplier of 0 is not allowed for an adduct (" + ef_.toString() + ")");
+    }
     mass_ = ef_.getMonoWeight();
   }
 
@@ -117,6 +121,17 @@ namespace OpenMS
   const EmpiricalFormula& AdductInfo::getEmpiricalFormula() const
   {
     return ef_;
+  }
+
+  UInt AdductInfo::getMolMultiplier() const
+  {
+    return mol_multiplier_;
+  }
+
+  bool AdductInfo::operator==(const AdductInfo& other) const
+  {
+    return (name_ == other.name_) && (ef_ == other.ef_) &&
+      (charge_ == other.charge_) && (mol_multiplier_ == other.mol_multiplier_);
   }
 
   AdductInfo AdductInfo::parseAdductString(const String& adduct)
