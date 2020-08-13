@@ -3,6 +3,33 @@
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="/abi-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="XTandemAdapter:1:in" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
+				<UserParam type="string" name="XTandemAdapter:1:out" value="XTandemAdapter_1_out.tmp"/>
+				<UserParam type="string" name="XTandemAdapter:1:xml_out" value=""/>
+				<UserParam type="string" name="XTandemAdapter:1:database" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="string" name="XTandemAdapter:1:xtandem_executable" value="tandem.exe"/>
+				<UserParam type="string" name="XTandemAdapter:1:default_config_file" value="CHEMISTRY/XTandem_default_input.xml"/>
+				<UserParam type="string" name="XTandemAdapter:1:ignore_adapter_param" value="false"/>
+				<UserParam type="float" name="XTandemAdapter:1:precursor_mass_tolerance" value="5.0"/>
+				<UserParam type="float" name="XTandemAdapter:1:fragment_mass_tolerance" value="0.3"/>
+				<UserParam type="string" name="XTandemAdapter:1:precursor_error_units" value="ppm"/>
+				<UserParam type="string" name="XTandemAdapter:1:fragment_error_units" value="Da"/>
+				<UserParam type="int" name="XTandemAdapter:1:max_precursor_charge" value="0"/>
+				<UserParam type="string" name="XTandemAdapter:1:no_isotope_error" value="false"/>
+				<UserParam type="stringList" name="XTandemAdapter:1:fixed_modifications" value="[]"/>
+				<UserParam type="stringList" name="XTandemAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
+				<UserParam type="float" name="XTandemAdapter:1:minimum_fragment_mz" value="150.0"/>
+				<UserParam type="string" name="XTandemAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="int" name="XTandemAdapter:1:missed_cleavages" value="1"/>
+				<UserParam type="string" name="XTandemAdapter:1:semi_cleavage" value="false"/>
+				<UserParam type="string" name="XTandemAdapter:1:output_results" value="all"/>
+				<UserParam type="float" name="XTandemAdapter:1:max_valid_expect" value="0.1"/>
+				<UserParam type="string" name="XTandemAdapter:1:log" value=""/>
+				<UserParam type="int" name="XTandemAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="XTandemAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="XTandemAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="XTandemAdapter:1:force" value="false"/>
+				<UserParam type="string" name="XTandemAdapter:1:test" value="true"/>
 	</SearchParameters>
 	<IdentificationRun date="2014-05-27T14:37:29" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
