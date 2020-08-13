@@ -14,7 +14,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///Users/pfeuffer/git/OpenMS-inference-src/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a262023f28d63389e25eac6007d172b040fde24f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -264,7 +264,7 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.389999999999986" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.559999999999945" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="2.3433e04" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
@@ -330,6 +330,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="16.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="17.77" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="15.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="36" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
 							<cvParam cvRef="MS" accession="MS:1000598" name="electron transfer dissociation" />
@@ -513,16 +518,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13958</offset>
-		<offset idRef="index=1">18045</offset>
-		<offset idRef="index=2">26678</offset>
-		<offset idRef="index=3">31488</offset>
+		<offset idRef="index=0">13971</offset>
+		<offset idRef="index=1">18058</offset>
+		<offset idRef="index=2">26944</offset>
+		<offset idRef="index=3">31754</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32826</offset>
-		<offset idRef="sic native">34205</offset>
+		<offset idRef="tic native">33092</offset>
+		<offset idRef="sic native">34471</offset>
 	</index>
 </indexList>
-<indexListOffset>35786</indexListOffset>
+<indexListOffset>36052</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

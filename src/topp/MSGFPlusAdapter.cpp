@@ -775,9 +775,11 @@ protected:
         for (auto& pid : protein_ids)
         {
           pid.getSearchParameters().missed_cleavages = 1000; // use a high value (1000 was used in previous MSGF+ version)
+          pid.getSearchParameters().digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
         }
         // set the MS-GF+ spectral e-value as new peptide identification score
         for (auto& pep : peptide_ids) { switchScores_(pep); }
+
 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
       }
