@@ -9,7 +9,6 @@ ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
 DatabaseFilter
-DBsearchDeconvMass
 DecoyDatabase
 DeMeanderize
 Digestor
