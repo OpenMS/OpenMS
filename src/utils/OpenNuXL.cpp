@@ -633,7 +633,7 @@ protected:
     // Nd/w (number of peaks in spectrum * fragment mass tolerance in Da / MS/MS mass range in Da - see phoshoRS)
     //const double p = peaks_in_spectrum * fragment_mass_tolerance_Da / mass_range_Da;
 
-    const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see ThresholdMower)
+    const double p = 20.0 / 100.0; // level 20.0 / mz 100.0 (see WindowMower)
     const double pscore = boost::math::ibeta(matched_size + 1, N - matched_size, p);
     if (pscore <= std::numeric_limits<double>::min()) return -log10(std::numeric_limits<double>::min());
     const double minusLog10p1pscore = -log10(pscore);
@@ -1041,6 +1041,9 @@ protected:
     double dot_product(0.0), b_mean_err(0.0), y_mean_err(0.0);
     const Size N = intensity_sum.size(); // number of bonds = length of peptide - 1
 
+    size_t comparisons(0);
+    size_t matches(0);
+
     // maximum charge considered
     const unsigned int max_z = std::min(2U, static_cast<unsigned int>(pc_charge - 1));
 
@@ -1082,8 +1085,10 @@ protected:
                 dot_product += intensity;
                 b_ions[i] += intensity;            
                 peak_matched[index] = true;
+                matches++;
               }
             }
+            ++comparisons;
           }
         } 
       }
@@ -1124,8 +1129,10 @@ protected:
               dot_product += intensity;                  
               y_ions[N-1 - i] += intensity;      
               peak_matched[index] = true;
+              matches++;
             }
           }
+          ++comparisons;
         }
       }  
     }
@@ -1199,8 +1206,10 @@ protected:
               plss_pc_MIC += intensity;
               pc_match_count += 1.0;
               peak_matched[index] = true;
+              matches++;
             }
           }
+          ++comparisons;
         }      
       }
     }
@@ -1222,8 +1231,10 @@ protected:
           {
             score += exp_spectrum[index].getIntensity();      
             peak_matched[index] = true;
+            matches++;
           }
         } 
+        ++comparisons;
       };
 
     static const double imY = EmpiricalFormula("C8H10NO").getMonoWeight();
@@ -1299,12 +1310,22 @@ protected:
 
     const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000;
 
+#ifdef MODDS_ON_ABY_IONS_ONLY
     plss_modds = matchOddsScore_(
      partial_loss_template_z1_b_ions.size() + partial_loss_template_z1_y_ions.size(), 
      fragment_mass_tolerance_Da,
      exp_spectrum.size(),
      exp_spectrum.back().getMZ(),
      (int)plss_Morph);
+#else
+    plss_modds = matchOddsScore_(
+     comparisons, 
+     fragment_mass_tolerance_Da,
+     exp_spectrum.size(),
+     exp_spectrum.back().getMZ(),
+     matches);
+#endif
+
   } 
 
 /*
@@ -5068,6 +5089,7 @@ static void scoreXLIons_(
                     { 
                       continue; 
                     }
+
                     const double mass_error_ppm = (current_peptide_mass - l->first) / l->first * 1e6;
                     const double mass_error_score = pdf(gaussian_mass_error, mass_error_ppm) / pdf(gaussian_mass_error, 0.0);
                     
@@ -5337,16 +5359,16 @@ static void scoreXLIons_(
       for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
       {
         PeptideIdentification& pi = peptide_ids[scan_index];
-        cout << "score\tpeptides\tXLs\ttype" << endl;
+//        cout << "score\tpeptides\tXLs\ttype" << endl;
         for (auto & ph : pi.getHits())
         {
           if (ph.getMetaValue("NuXL:isXL") == "1")
           {
-            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / p_square_quantile(annotated_peptides_quantiles_XLs[scan_index]));
+            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / (1.0 + p_square_quantile(annotated_peptides_quantiles_XLs[scan_index])));
           }
           else
           {
-            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / p_square_quantile(annotated_peptides_quantiles_peptides[scan_index]));
+            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / (1.0 + p_square_quantile(annotated_peptides_quantiles_peptides[scan_index])));
           }
         }
       }
