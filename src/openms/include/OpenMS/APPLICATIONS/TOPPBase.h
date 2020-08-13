@@ -191,6 +191,14 @@ public:
     */
     static void setMaxNumberOfThreads(int num_threads);
 
+    /**
+      @brief Returns the prefix used to identify a tool
+    
+      @param tool_name        Tool name
+      @param instance_number  Instance number (usually 1)
+    */
+    static String getToolPrefix(const String& tool_name, int instance_number = 1);
+
 private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
