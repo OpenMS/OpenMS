@@ -795,7 +795,10 @@ protected:
       }
 
       // write all (!) parameters as metavalues to the search parameters
-      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), this->toolName_() + "_");
+      if (!protein_ids.empty())
+      {
+        DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+      }
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }

@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -396,6 +397,9 @@ protected:
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");
       protein_id.setSearchEngine("XTandem");
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_id.getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
 
       protein_ids.push_back(protein_id);
 
