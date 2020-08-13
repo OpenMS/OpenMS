@@ -1436,10 +1436,13 @@ namespace OpenMS
     }
 
     String residue = "";
-    char last_char_no_parentheses = modification[modification.length()-2];
-    if (isupper(last_char_no_parentheses))
+    if (modification.size() > 3 && modification.hasSuffix(")"))
     {
-      residue = last_char_no_parentheses;
+      char last_char_no_parentheses = modification[modification.length()-2];
+      if (isupper(last_char_no_parentheses))
+      {
+        residue = last_char_no_parentheses;
+      }
     }
 
     if (!modification.hasSubstring("Protein N-term"))
@@ -1462,13 +1465,16 @@ namespace OpenMS
     }
 
     String residue = "";
-    char last_char_no_parentheses = modification[modification.length()-2];
-    if (isupper(last_char_no_parentheses))
+    if (modification.size() > 3 && modification.hasSuffix(")"))
     {
-      residue = last_char_no_parentheses;
+      char last_char_no_parentheses = modification[modification.length()-2];
+      if (isupper(last_char_no_parentheses))
+      {
+        residue = last_char_no_parentheses;
+      }
     }
 
-    if (!modification.hasSubstring("Protein N-term"))
+    if (!modification.hasSubstring("Protein C-term"))
     {
       c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
     }
