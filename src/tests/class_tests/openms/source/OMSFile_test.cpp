@@ -28,12 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Julianus Pfeuffer $
-// $Authors: Julianus Pfeuffer, Oliver Alka $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
+// #include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -41,9 +41,6 @@
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
-
-#include <OpenMS/FORMAT/SqliteConnector.h>
-#include <sqlite3.h>
 
 ///////////////////////////
 
@@ -68,6 +65,12 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
   peptides_in[0].setHigherScoreBetter(true);
 
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
+  // add an adduct (not supported by idXML):
+  AdductInfo adduct("Cl-", EmpiricalFormula("Cl"), -1);
+  auto adduct_ref = ids.registerAdduct(adduct);
+  IdentificationData::MoleculeQueryMatch match = *ids.getMoleculeQueryMatches().begin();
+  match.adduct_opt = adduct_ref;
+  ids.registerMoleculeQueryMatch(match);
 
   NEW_TMP_FILE(oms_path);
   // oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
@@ -99,16 +102,27 @@ START_SECTION(void load(const String& filename, IdentificationData& id_data))
              out.getIdentifiedOligos().size());
   TEST_EQUAL(ids.getIdentifiedCompounds().size(),
              out.getIdentifiedCompounds().size());
+  TEST_EQUAL(ids.getAdducts().size(), out.getAdducts().size());
   TEST_EQUAL(ids.getMoleculeQueryMatches().size(),
              out.getMoleculeQueryMatches().size());
   auto it1 = ids.getMoleculeQueryMatches().begin();
   auto it2 = out.getMoleculeQueryMatches().begin();
+  auto adduct_it = out.getMoleculeQueryMatches().end();
   for (; (it1 != ids.getMoleculeQueryMatches().end()) &&
          (it2 != out.getMoleculeQueryMatches().end()); ++it1, ++it2)
   {
     TEST_EQUAL(it1->steps_and_scores.size(),
                it2->steps_and_scores.size());
+    if (it2->adduct_opt) adduct_it = it2; // found PSM with adduct
   }
+  // check PSM with adduct:
+  TEST_EQUAL(adduct_it != out.getMoleculeQueryMatches().end(), true);
+  ABORT_IF(adduct_it == out.getMoleculeQueryMatches().end());
+  TEST_EQUAL(adduct_it->data_query_ref->data_id,
+             ids.getMoleculeQueryMatches().begin()->data_query_ref->data_id);
+  TEST_EQUAL(adduct_it->identified_molecule_var.toString(),
+             ids.getMoleculeQueryMatches().begin()->identified_molecule_var.toString());
+  TEST_EQUAL((*adduct_it->adduct_opt)->getName(), "Cl-");
 }
 END_SECTION
 

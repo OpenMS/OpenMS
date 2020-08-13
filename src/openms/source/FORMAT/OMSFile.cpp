@@ -1115,6 +1115,42 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileStore::storeAdducts()
+  {
+    if (id_data_.getAdducts().empty()) return;
+
+    createTable_(
+      "AdductInfo",
+      "id INTEGER PRIMARY KEY NOT NULL, " \
+      "name TEXT, " \
+      "formula TEXT NOT NULL, " \
+      "charge INTEGER NOT NULL, " \
+      "mol_multiplier INTEGER NOT NULL CHECK (mol_multiplier > 0) DEFAULT 1, " \
+      "UNIQUE (formula, charge)");
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.prepare("INSERT INTO AdductInfo VALUES (" \
+                  ":id, "                           \
+                  ":name, "                         \
+                  ":formula, "                      \
+                  ":charge, "                       \
+                  ":mol_multiplier)");
+    for (const AdductInfo& adduct : id_data_.getAdducts())
+    {
+      query.bindValue(":id", Key(&adduct));
+      query.bindValue(":name", adduct.getName().toQString());
+      query.bindValue(":formula", adduct.getEmpiricalFormula().toString().toQString());
+      query.bindValue(":charge", adduct.getCharge());
+      query.bindValue(":mol_multiplier", adduct.getMolMultiplier());
+      if (!query.exec())
+      {
+        raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "error inserting data");
+      }
+    }
+  }
+
+
   void OMSFile::OMSFileStore::storeMoleculeQueryMatches()
   {
     if (id_data_.getMoleculeQueryMatches().empty()) return;
@@ -1124,15 +1160,18 @@ namespace OpenMS
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
       "data_query_id INTEGER NOT NULL, "                                \
+      "adduct_id INTEGER, "                                             \
       "charge INTEGER, "                                                \
       "FOREIGN KEY (identified_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
-      "FOREIGN KEY (data_query_id) REFERENCES ID_DataQuery (id)");
+      "FOREIGN KEY (data_query_id) REFERENCES ID_DataQuery (id), "      \
+      "FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)");
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_MoleculeQueryMatch VALUES ("  \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
                   ":data_query_id, "                            \
+                  ":adduct_id, "                                \
                   ":charge)");
     bool any_peak_annotations = false;
     for (const ID::MoleculeQueryMatch& match :
@@ -1161,6 +1200,14 @@ namespace OpenMS
       }
       query.bindValue(":identified_molecule_id", molecule_id);
       query.bindValue(":data_query_id", Key(&(*match.data_query_ref)));
+      if (match.adduct_opt)
+      {
+        query.bindValue(":adduct_id", Key(&(**match.adduct_opt)));
+      }
+      else // bind NULL value
+      {
+        query.bindValue(":adduct_id", QVariant(QVariant::Int));
+      }
       query.bindValue(":charge", match.charge);
       if (!query.exec())
       {
@@ -1230,7 +1277,7 @@ namespace OpenMS
   void OMSFile::store(const String& filename, const IdentificationData& id_data)
   {
     OMSFileStore helper(filename, id_data);
-    startProgress(0, 12, "Writing data to file");
+    startProgress(0, 13, "Writing data to file");
     // generally, create tables only if we have data to write - no empty ones!
     helper.storeVersionAndDate();
     nextProgress();
@@ -1253,6 +1300,8 @@ namespace OpenMS
     helper.storeIdentifiedCompounds();
     nextProgress();
     helper.storeIdentifiedSequences();
+    nextProgress();
+    helper.storeAdducts();
     nextProgress();
     helper.storeMoleculeQueryMatches();
     endProgress();
@@ -2005,6 +2054,30 @@ namespace OpenMS
   }
 
 
+  void OMSFile::OMSFileLoad::loadAdducts()
+  {
+    if (!tableExists_(db_name_, "AdductInfo")) return;
+
+    QSqlQuery query(QSqlDatabase::database(db_name_));
+    query.setForwardOnly(true);
+    if (!query.exec("SELECT * FROM AdductInfo"))
+    {
+      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+                    "error reading from database");
+    }
+
+    while (query.next())
+    {
+      EmpiricalFormula formula(query.value("formula").toString());
+      AdductInfo adduct(query.value("name").toString(), formula,
+                        query.value("charge").toInt(),
+                        query.value("mol_multiplier").toInt());
+      ID::AdductRef ref = id_data_.registerAdduct(adduct);
+      adduct_refs_[query.value("id").toLongLong()] = ref;
+    }
+  }
+
+
   void OMSFile::OMSFileLoad::loadMoleculeQueryMatches()
   {
     if (!tableExists_(db_name_, "ID_MoleculeQueryMatch")) return;
@@ -2044,6 +2117,11 @@ namespace OpenMS
       ID::MoleculeQueryMatch match(identified_molecule_vars_[molecule_id],
                                    data_query_refs_[query_id],
                                    query.value("charge").toInt());
+      QVariant adduct_id = query.value("adduct_id"); // adduct is optional
+      if (!adduct_id.isNull())
+      {
+        match.adduct_opt = adduct_refs_[adduct_id.toLongLong()];
+      }
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, match, id);
@@ -2065,7 +2143,7 @@ namespace OpenMS
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
     OMSFileLoad helper(filename, id_data);
-    startProgress(0, 11, "Reading data from file");
+    startProgress(0, 12, "Reading data from file");
     helper.loadInputFiles();
     nextProgress();
     helper.loadScoreTypes();
@@ -2085,6 +2163,8 @@ namespace OpenMS
     helper.loadIdentifiedCompounds();
     nextProgress();
     helper.loadIdentifiedSequences();
+    nextProgress();
+    helper.loadAdducts();
     nextProgress();
     helper.loadMoleculeQueryMatches();
     endProgress();

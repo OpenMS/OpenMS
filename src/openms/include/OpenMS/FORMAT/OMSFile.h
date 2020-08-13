@@ -117,6 +117,8 @@ namespace OpenMS
 
       void storeIdentifiedSequences();
 
+      void storeAdducts();
+
       void storeMoleculeQueryMatches();
 
     private:
@@ -233,6 +235,8 @@ namespace OpenMS
 
       void loadIdentifiedSequences();
 
+      void loadAdducts();
+
       void loadMoleculeQueryMatches();
 
     private:
@@ -273,6 +277,7 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ParentMoleculeRef> parent_molecule_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::QueryMatchRef> query_match_refs_;
+      std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
     };
 
   };
