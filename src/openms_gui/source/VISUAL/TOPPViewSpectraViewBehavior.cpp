@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -187,7 +187,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1
@@ -252,10 +252,7 @@ namespace OpenMS
     // basic behavior 2
 
     tv_->showSpectrumWidgetInWindow(w, caption);
-    tv_->updateLayerBar();
-    tv_->updateViewBar();
-    tv_->updateFilterBar();
-    tv_->updateMenu();
+    tv_->updateBarsAndMenus();
   }
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
@@ -311,14 +308,11 @@ namespace OpenMS
       widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "false");
       widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
 
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      tv_->updateBarsAndMenus();
     }
   }
 
-  void TOPPViewSpectraViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
@@ -373,10 +367,7 @@ namespace OpenMS
         widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
       }
 
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      tv_->updateBarsAndMenus();
     }
   }
 

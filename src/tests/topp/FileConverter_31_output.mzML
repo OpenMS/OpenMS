@@ -13,8 +13,8 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_30_output.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="941fccdd35f63069f09b1e4f2b68aba229e4dd6f" />
+			<sourceFile id="sf_ru_0" name="FileConverter_30_output.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="3830c517b77dedb930f76ccd7494a1ccfc30aae1" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
@@ -76,7 +76,7 @@
 				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
 				<userParam name="parameter: force" type="xsd:string" value="false"/>
 				<userParam name="parameter: test" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:pc_mz_range" type="xsd:string" value=":"/>
 				<userParam name="parameter: peak_options:pc_mz_list" type="xsd:string" value="[]"/>
@@ -89,7 +89,7 @@
 				<userParam name="parameter: peak_options:indexed_file" type="xsd:string" value="true"/>
 				<userParam name="parameter: peak_options:zlib_compression" type="xsd:string" value="false"/>
 				<userParam name="parameter: peak_options:numpress:masstime" type="xsd:string" value="none"/>
-				<userParam name="parameter: peak_options:numpress:lossy_mass_accuracy" type="xsd:double" value="-1"/>
+				<userParam name="parameter: peak_options:numpress:lossy_mass_accuracy" type="xsd:double" value="-1.0"/>
 				<userParam name="parameter: peak_options:numpress:intensity" type="xsd:string" value="none"/>
 				<userParam name="parameter: peak_options:numpress:float_da" type="xsd:string" value="none"/>
 				<userParam name="parameter: spectra:remove_zoom" type="xsd:string" value="false"/>
@@ -104,7 +104,7 @@
 				<userParam name="parameter: spectra:select_isolation_window_width" type="xsd:string" value=":"/>
 				<userParam name="parameter: spectra:select_polarity" type="xsd:string" value=""/>
 				<userParam name="parameter: spectra:blackorwhitelist:file" type="xsd:string" value=""/>
-				<userParam name="parameter: spectra:blackorwhitelist:similarity_threshold" type="xsd:double" value="-1"/>
+				<userParam name="parameter: spectra:blackorwhitelist:similarity_threshold" type="xsd:double" value="-1.0"/>
 				<userParam name="parameter: spectra:blackorwhitelist:rt" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: spectra:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: spectra:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
@@ -115,7 +115,7 @@
 				<userParam name="parameter: consensus:blackorwhitelist:blacklist" type="xsd:string" value="true"/>
 				<userParam name="parameter: consensus:blackorwhitelist:file" type="xsd:string" value=""/>
 				<userParam name="parameter: consensus:blackorwhitelist:maps" type="xsd:string" value="[]"/>
-				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60"/>
+				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60.0"/>
 				<userParam name="parameter: consensus:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
 				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
@@ -131,16 +131,16 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 				<userParam name="parameter: algorithm:SignalToNoise:write_log_messages" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
@@ -223,6 +223,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -291,6 +296,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -359,6 +369,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -427,6 +442,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -458,16 +478,16 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=10">13702</offset>
-		<offset idRef="spectrum=11">16745</offset>
-		<offset idRef="spectrum=12">25458</offset>
-		<offset idRef="spectrum=13">28473</offset>
-		<offset idRef="spectrum=14">37186</offset>
-		<offset idRef="spectrum=15">40201</offset>
-		<offset idRef="spectrum=16">48914</offset>
-		<offset idRef="spectrum=17">51929</offset>
+		<offset idRef="spectrum=10">13732</offset>
+		<offset idRef="spectrum=11">16775</offset>
+		<offset idRef="spectrum=12">25739</offset>
+		<offset idRef="spectrum=13">28754</offset>
+		<offset idRef="spectrum=14">37718</offset>
+		<offset idRef="spectrum=15">40733</offset>
+		<offset idRef="spectrum=16">49697</offset>
+		<offset idRef="spectrum=17">52712</offset>
 	</index>
 </indexList>
-<indexListOffset>60672</indexListOffset>
+<indexListOffset>61706</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

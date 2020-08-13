@@ -4,6 +4,8 @@ set(directory source/VISUAL/APPLICATIONS)
 ### list all filenames of the directory here
 set(sources_list
 INIFileEditorWindow.cpp
+SwathWizardBase.cpp
+SwathWizardBase.ui
 TOPPViewBase.cpp
 TOPPASBase.cpp
 MISC/QApplicationTOPP.cpp

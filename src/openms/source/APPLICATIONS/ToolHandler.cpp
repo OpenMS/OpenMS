@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ namespace OpenMS
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
     tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
+    tools_map["DatabaseSuitability"] = Internal::ToolDescription("DatabaseSuitability", "Quality Control");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
@@ -209,8 +210,6 @@ namespace OpenMS
     util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
-    util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
-    util_map["LowMemPeakPickerHiResRandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiResRandomAccess", util_category);
     util_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -464,7 +464,7 @@ namespace OpenMS
 
     // create temporary input file (.ms)
     os.open(msfile.c_str());
-     if (!os)
+    if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
@@ -472,26 +472,35 @@ namespace OpenMS
 
     AccessionInfo ainfo;
 
-    // sourcefile 
-    ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
-    ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+    // sourcefile
+    if (spectra.getSourceFiles().empty())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
+    }
+    else
+    {
+      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+      ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+
+      // native_id
+      ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
+      ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+    }
  
     // extract accession by name
-    std::set<String> terms;
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.getAllChildTerms(terms, "MS:1000560");
-    for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+    auto lambda = [&ainfo, &cv] (const String& child)
     {
-      if (cv.getTerm(*it).name == ainfo.sf_type)
+      const ControlledVocabulary::CVTerm& c = cv.getTerm(child);
+      if (c.name == ainfo.sf_type)
       {
-          cv.getTerm(*it);
-          ainfo.sf_accession = cv.getTerm(*it).id;
+        ainfo.sf_accession = c.id;
+        return true;
       }
-    }  
-    // native_id
-    ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
-    ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+      return false;
+    };
+    cv.iterateAllChildren("MS:1000560", lambda);
 
     vector<String> adducts;
     String description;

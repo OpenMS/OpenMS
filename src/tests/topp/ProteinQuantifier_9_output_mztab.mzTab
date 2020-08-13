@@ -1,0 +1,62 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	title	ConsensusMap export from OpenMS
+MTD	description	OpenMS export from consensusXML
+MTD	protein_search_engine_score[1]	[, , one-peptide-rule, ]
+MTD	peptide_search_engine_score[1]	[, , Mascot, ]
+MTD	psm_search_engine_score[1]	[, , Mascot, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-plfq-spec-count-2020-05-24]
+MTD	software[2]	[, , Mascot, ]
+MTD	software[2]-setting[1]	db:null
+MTD	software[2]-setting[2]	db_version:null
+MTD	software[2]-setting[3]	fragment_mass_tolerance:0.0
+MTD	software[2]-setting[4]	fragment_mass_tolerance_unit:Da
+MTD	software[2]-setting[5]	precursor_mass_tolerance:0.0
+MTD	software[2]-setting[6]	precursor_mass_tolerance_unit:Da
+MTD	software[2]-setting[7]	enzyme:unknown_enzyme
+MTD	software[2]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[2]-setting[9]	charges:null
+MTD	software[2]-setting[10]	missed_cleavages:0
+MTD	software[2]-setting[11]	fixed_modifications:null
+MTD	software[2]-setting[12]	variable_modifications:null
+MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+MTD	protein-quantification_unit	[, , Abundance, ]
+MTD	peptide-quantification_unit	[, , Abundance, ]
+MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[1]-location	file://sample1.mzML
+MTD	ms_run[1]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[2]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[2]-location	file://sample2.mzML
+MTD	ms_run[2]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	ms_run[3]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[3]-location	file://sample3.mzML
+MTD	ms_run[3]-id_format	[MS, MS:1001530, mzML unique identifier, ]
+MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[1]-ms_run_ref	ms_run[1]
+MTD	assay[2]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[2]-ms_run_ref	ms_run[2]
+MTD	assay[3]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[3]-ms_run_ref	ms_run[3]
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	no description given
+MTD	study_variable[2]-assay_refs	assay[2]
+MTD	study_variable[2]-description	no description given
+MTD	study_variable[3]-assay_refs	assay[3]
+MTD	study_variable[3]-description	no description given
+
+PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	opt_global_result_type
+PRT	Protein	null	null	null	null	null	null	0.9097144245	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	protein_details
+PRT	Protein	null	null	null	null	null	null	0.9097144245	Protein	null	null	1230.0	230.0	1030.0	1230.0	null	null	230.0	null	null	1030.0	null	null	single_protein
+
+PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	opt_global_cv_MS:1000889_peptidoform_sequence
+PEP	AAA	Protein	1	null	null	null	1.0	1.0	null	null	null	100.0	null	2	100.0	null	1000.0	null	null	null	null	null	1000.0	null	null	AAA
+PEP	CCC	Protein	1	null	null	null	1.0	1.0	null	null	null	200.0	null	2	200.0	null	200.0	null	null	200.0	null	null	null	null	null	CCC
+PEP	EEE	Protein	1	null	null	null	1.0	null	1.0	null	null	300.0	null	2	300.0	null	30.0	null	null	30.0	null	null	30.0	null	null	EEE
+PEP	GGG	Protein	1	null	null	null	1.0	null	null	1.0	null	400.0	null	2	400.0	null	4.0	null	null	4.0	null	null	null	null	null	GGG
+
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_id_merge_index	opt_global_cv_MS:1000889_peptidoform_sequence
+PSM	AAA	0	Protein	1	null	null	[, , Mascot, ]	1.0	null	100.0	2	100.0	116.568230237921029	null	null	null	null	null	0	AAA
+PSM	CCC	1	Protein	1	null	null	[, , Mascot, ]	1.0	null	200.0	2	200.0	164.526336332921005	null	null	null	null	null	0	CCC
+PSM	EEE	2	Protein	1	null	null	[, , Mascot, ]	1.0	null	300.0	2	300.0	203.576450333621011	null	null	null	null	null	1	EEE
+PSM	GGG	3	Protein	1	null	null	[, , Mascot, ]	1.0	null	400.0	2	400.0	95.544755142220993	null	null	null	null	null	2	GGG

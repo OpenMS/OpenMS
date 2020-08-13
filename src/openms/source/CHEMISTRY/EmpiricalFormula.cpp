@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -235,7 +235,7 @@ namespace OpenMS
 
     for (const auto& it : new_formula)
     {
-      formula += it.first + String(it.second);
+      (formula += it.first) += String(it.second);
     }
     return formula;
   }
@@ -643,16 +643,9 @@ namespace OpenMS
       return formula_.size() < rhs.formula_.size();
     }
 
-    // both maps have same size
-    auto it = formula_.begin();
-    auto rhs_it = rhs.formula_.begin();
-    for (; it != formula_.end(); ++it, ++rhs_it)
-    {
-      if (*(it->first) != *(rhs_it->first)) return *(it->first) < *(rhs_it->first); // element
-      if (it->second != rhs_it->second) return it->second < rhs_it->second; // count
-    }
+    if (charge_ != rhs.charge_) return charge_ < rhs.charge_;
 
-    return charge_ < rhs.charge_;
+    return formula_ < rhs.formula_;
   }
 
 

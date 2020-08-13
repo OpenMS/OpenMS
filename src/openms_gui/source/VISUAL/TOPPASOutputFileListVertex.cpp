@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -186,7 +186,6 @@ namespace OpenMS
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
-                // look for <name>_type (more generic, supporting more than just 'out')
                 if (p.exists(out_type))
                 {
                   ft = FileTypes::nameToType(p.getValue(out_type));
@@ -197,11 +196,8 @@ namespace OpenMS
           }
         }
 
-        if (ft != FileTypes::UNKNOWN)
-        { // replace old suffix by new suffix
-          String new_suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
-        }
+        // replace old suffix by new suffix
+        FileHandler::swapExtension(new_file, ft);
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
@@ -357,4 +353,8 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
+  void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  {
+    openContainingFolder();
+  }
 }

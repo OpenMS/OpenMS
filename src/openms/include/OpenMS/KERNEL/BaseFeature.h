@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-
+  class FeatureHandle;
   class PeptideIdentification;
 
   /**
@@ -100,6 +100,9 @@ public:
 
     /// Constructor from raw data point with meta information
     explicit BaseFeature(const RichPeak2D& point);
+
+    /// Constructor from a featurehandle
+    explicit BaseFeature(const FeatureHandle& fh);
 
     /// Destructor
     ~BaseFeature() override;
@@ -184,7 +187,7 @@ protected:
     /// Width (FWHM) for the feature. The default value is 0.0, a feature finding algorithm can compute this form the model.
     WidthType width_;
 
-    /// Peptide PeptideIdentifications belonging to the feature
+    /// PeptideIdentifications belonging to the feature
     std::vector<PeptideIdentification> peptides_;
   };
 

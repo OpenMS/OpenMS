@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,6 +94,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
+    registerInputFile_("in_oligo_params", "<file>", "", "input file with additional model parameters when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_params", ListUtils::create<String>("paramXML"));
+    registerInputFile_("in_oligo_trainset", "<file>", "", "input file with the used training dataset when using the OLIGO kernel", false);
+    setValidFormats_("in_oligo_trainset", ListUtils::create<String>("txt"));
     registerOutputFile_("out", "<file>", "", "output file\n");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
@@ -114,7 +118,7 @@ protected:
     vector<double> predicted_likelihoods;
     vector<double> predicted_labels;
     map<String, double> predicted_data;
-    svm_problem* training_data = nullptr;
+    svm_problem* training_samples = nullptr;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -142,11 +146,17 @@ protected:
     // additional parameters from additional files.
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
-      inputFileReadable_(svmfile_name + "_additional_parameters", "svm_model (derived)");
+      String in_params_name = getStringOption_("in_oligo_params");
+      if (in_params_name.empty())
+      {
+        in_params_name = svmfile_name + "_additional_parameters";
+        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+      }
+      inputFileReadable_(in_params_name, "in_oligo_params");
 
       Param additional_parameters;
       ParamXMLFile paramFile;
-      paramFile.load(svmfile_name + "_additional_parameters", additional_parameters);
+      paramFile.load(in_params_name, additional_parameters);
       if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
       {
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
@@ -234,10 +244,16 @@ protected:
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        inputFileReadable_((svmfile_name + "_samples"), "svm_model (derived)");
+        String in_trainset_name = getStringOption_("in_oligo_trainset");
+        if (in_trainset_name.empty())
+        {
+          in_trainset_name = svmfile_name + "_samples";
+          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+        }
+        inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
-        training_data = encoder.loadLibSVMProblem(svmfile_name + "_samples");
-        svm.setTrainingSample(training_data);
+        training_samples = encoder.loadLibSVMProblem(in_trainset_name);
+        svm.setTrainingSample(training_samples);
 
         svm.setParameter(SVMWrapper::BORDER_LENGTH, (Int) border_length);
         svm.setParameter(SVMWrapper::SIGMA, sigma);

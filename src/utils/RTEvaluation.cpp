@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,8 +89,8 @@ protected:
     registerInputFile_("sequences_file", "<file>", "", "Fasta File", false);
     setValidFormats_("sequences_file", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output file ");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
-    registerFlag_("latex", "Indicates whether the output file format of the table should be LaTeX or CSV (default)");
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    registerFlag_("latex", "Indicates whether the output file format of the table should be LaTeX or TSV (default)");
     registerDoubleOption_("p_value_dim_1", "<float>", 0.01, "Significance level of first dimension RT filter", false);
     setMinFloat_("p_value_dim_1", 0);
     setMaxFloat_("p_value_dim_1", 1);
@@ -377,11 +377,11 @@ protected:
     ofstream output_file(outputfile_name.c_str());
     if (latex)
     {
-      output_file << "q-value_threshold & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision" << endl;
+      output_file << "q-value_threshold & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision & tp & fp & tn & fn & precision \\\\" << endl;
     }
     else
     {
-      output_file << "q-value_threshold ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision ; tp ; fp ; tn ; fn ; precision" << endl;
+      output_file << "q-value_threshold\ttp\tfp\ttn\tfn\tprecision\ttp\tfp\ttn\tfn\tprecision\ttp\tfp\ttn\tfn\tprecision\ttp\tfp\ttn\tfn\tprecision\n";
     }
 
     for (SignedSize i = performances.size() - 1; i >= 0; --i)
@@ -391,24 +391,31 @@ protected:
       {
         if (latex)
         {
-          output_file << " &";
+          output_file << " & ";
         }
         else
         {
-          output_file << " ;";
+          output_file << "\t";
         }
 
 
         if (j % 5 == 4)
         {
-          output_file << " " << (performances[i][j - 4] / ((double) performances[i][j - 4] + performances[i][j - 3]));
+          output_file <<  (performances[i][j - 4] / ((double) performances[i][j - 4] + performances[i][j - 3]));
         }
         else
         {
-          output_file << " " << performances[i][j];
+          output_file << performances[i][j];
         }
       }
-      output_file << endl;
+      if (latex)
+      {
+        output_file << "\\\\\n";
+      }
+      else
+      {
+        output_file << "\n";
+      }
     }
     output_file << flush;
     output_file.close();

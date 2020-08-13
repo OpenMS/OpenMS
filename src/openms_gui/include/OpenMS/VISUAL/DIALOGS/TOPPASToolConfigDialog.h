@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,8 +72,8 @@ public:
         @param parent Qt parent widget
         @param param The param we are editing
         @param default_dir The default directory for loading and storing INI files
-        @param tool_name The name of the tool
-        @param tool_type The type of the tool
+        @param tool_name The name of the TOPP tool (used to invoke it on the commandline)
+        @param tool_type The type of the tool ('-type' parameter of TOPP tool on the commandline). Leave empty if no type exists.
 @param hidden_entries List of entries that are used already in edges etc and should not be shown
     */
     TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);

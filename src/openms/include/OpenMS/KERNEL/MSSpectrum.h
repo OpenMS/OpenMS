@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,6 +75,30 @@ public:
     struct OPENMS_DLLAPI RTLess : public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+
+    /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
+    struct Chunk {
+      Size start; ///< inclusive
+      Size end; ///< not inclusive
+      bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
+      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+    };
+
+    struct Chunks {
+      public:
+        Chunks(const MSSpectrum& s) : spec_(s) {}
+        void add(bool is_sorted)
+        {
+          chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), is_sorted);
+        }
+        std::vector<Chunk>& getChunks()
+        {
+          return chunks_;
+        }
+      private:
+        std::vector<Chunk> chunks_;
+        const MSSpectrum& spec_;
     };
 
     ///@name Base type definitions
@@ -286,6 +310,12 @@ public:
     */
     void sortByPosition();
 
+    /**
+      @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
+      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+    */
+    void sortByPositionPresorted(const std::vector<Chunk>& chunks);
+
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
 
@@ -332,6 +362,19 @@ public:
       @note Search for the left border is done using a binary search followed by a linear scan
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
+
+    /**
+      @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied to both sides of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+      @note Peaks exactly on borders are considered in tolerance window.
+    */
+    Int findHighestInWindow(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
 
     /**
       @brief Binary search for peak range begin
@@ -460,6 +503,9 @@ public:
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
+    /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    bool containsIMData() const;
 
     //@}
 

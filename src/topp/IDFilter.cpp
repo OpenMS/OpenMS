@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/ANALYSIS/ID/IDRipper.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -139,12 +141,12 @@ protected:
     StringList specificity;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
-    specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
+    specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + 3); //only allow none,semi,full for now
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", {"idXML","consensusXML"});
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", {"idXML","consensusXML"});
 
     registerTOPPSubsection_("precursor", "Filtering by precursor attributes (RT, m/z, charge, length)");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
@@ -154,8 +156,8 @@ protected:
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept.", false);
-    registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
-
+    registerDoubleOption_("score:prot", "<score>", 0, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
+    registerDoubleOption_("score:protgroup", "<score>", 0, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides.", false);
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are not referencing a protein in this file are removed.\n"
@@ -238,12 +240,46 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    const String tmp_feature_id_metaval_ = "tmp_feature_id";
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
-    IdXMLFile().load(inputfile_name, proteins, peptides);
+
+    //only used for cxml
+    ConsensusMap cmap;
+    unordered_map<UInt64, ConsensusFeature*> id_to_featureref;
+
+    const auto& infiletype = FileHandler::getType(inputfile_name);
+    if (infiletype == FileTypes::IDXML)
+    {
+      IdXMLFile().load(inputfile_name, proteins, peptides);
+    }
+    else if (infiletype == FileTypes::CONSENSUSXML)
+    {
+      ConsensusXMLFile().load(inputfile_name, cmap);
+      for (auto& f : cmap)
+      {
+        UInt64 id = f.getUniqueId();
+        id_to_featureref[id] = &f;
+        for (auto& p : f.getPeptideIdentifications())
+        {
+          p.setMetaValue(tmp_feature_id_metaval_, String(id));
+          peptides.push_back(std::move(p));
+          //if ((UInt64)peptides.back().getMetaValue(tmp_feature_id_metaval_) != id) std::cout << "WHAT THE FUCK" << std::endl;
+        }
+        f.getPeptideIdentifications().clear();
+      }
+      auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+      peptides.reserve(peptides.size() + unassigned.size());
+      std::move(std::begin(unassigned),std::end(unassigned),
+          std::back_inserter(peptides));
+      unassigned.clear();
+
+      std::swap(proteins, cmap.getProteinIdentifications());
+    }
+
 
     Size n_prot_ids = proteins.size();
     Size n_prot_hits = IDFilter::countHits(proteins);
@@ -604,6 +640,18 @@ protected:
       IDFilter::removeDecoyHits(proteins);
     }
 
+    // Filtering protein identifications according to set criteria
+    double prot_grp_score = getDoubleOption_("score:protgroup");
+    // @TODO: what if 0 is a reasonable cut-off for some score?
+    if (prot_grp_score != 0)
+    {
+      for (auto& proteinid : proteins)
+      {
+        OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
+        IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
+        IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
+      }
+    }
 
     // remove peptide hits with meta values:
     if (remove_meta_enabled)
@@ -656,25 +704,14 @@ protected:
 
     // Clean-up:
 
+    // propagate filter from PSM level to protein level
     if (!getFlag_("keep_unreferenced_protein_hits"))
     {
       OPENMS_LOG_INFO << "Removing unreferenced protein hits..." << endl;
       IDFilter::removeUnreferencedProteins(proteins, peptides);
     }
 
-    IDFilter::updateHitRanks(proteins);
-    IDFilter::updateHitRanks(peptides);
-
-    // remove non-existant protein references from peptides (and optionally:
-    // remove peptides with no proteins):
-    bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
-    if (rm_pep) OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
-    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
-
-    IDFilter::removeEmptyIdentifications(peptides);
-    // we want to keep "empty" protein IDs because they contain search meta data
-
-    // update protein groupings if necessary:
+    // propagate filter from protein level to protein group level
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
@@ -686,12 +723,30 @@ protected:
       }
 
       valid = IDFilter::updateProteinGroups(
-        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+          prot_it->getIndistinguishableProteins(), prot_it->getHits());
       if (!valid)
       {
         OPENMS_LOG_WARN << "Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
       }
+
+      if (prot_grp_score != 0.0)
+      {
+        // Pass potential filtering on group level down to proteins
+        IDFilter::removeUngroupedProteins(prot_it->getIndistinguishableProteins(), prot_it->getHits());
+      }
     }
+
+    // remove non-existant protein references from peptides (and optionally:
+    // remove peptides with no proteins):
+    bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
+    if (rm_pep) OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
+
+    IDFilter::removeEmptyIdentifications(peptides);
+    // we want to keep "empty" protein IDs because they contain search meta data
+
+    IDFilter::updateHitRanks(proteins);
+    IDFilter::updateHitRanks(peptides);
 
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"
@@ -705,7 +760,32 @@ protected:
              << peptides.size() << " spectra identified with "
              << IDFilter::countHits(peptides) << " spectrum matches." << endl;
 
-    IdXMLFile().store(outputfile_name, proteins, peptides);
+    if (infiletype == FileTypes::IDXML)
+    {
+      IdXMLFile().store(outputfile_name, proteins, peptides);
+    }
+    else if (infiletype == FileTypes::CONSENSUSXML)
+    {
+      for (auto& p : peptides)
+      {
+        if (p.metaValueExists(tmp_feature_id_metaval_))
+        {
+          UInt64 id(0);
+          std::stringstream(p.getMetaValue(tmp_feature_id_metaval_).toString()) >> id;
+          p.removeMetaValue(tmp_feature_id_metaval_);
+          auto& f = id_to_featureref[id];
+          f->getPeptideIdentifications().push_back(std::move(p));
+        }
+        else
+        {
+          cmap.getUnassignedPeptideIdentifications().push_back(std::move(p));
+        }
+      }
+      peptides.clear();
+      std::swap(proteins, cmap.getProteinIdentifications());
+      proteins.clear();
+      ConsensusXMLFile().store(outputfile_name, cmap);
+    }
 
     return EXECUTION_OK;
   }

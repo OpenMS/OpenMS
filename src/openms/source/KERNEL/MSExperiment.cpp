@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -714,6 +714,39 @@ namespace OpenMS
       ms_levels_.clear();
       total_size_ = 0;
     }
+  }
+
+  // static
+  bool MSExperiment::containsScanOfLevel(size_t ms_level) const
+  {
+    //test if no scans with MS-level 1 exist
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() == ms_level)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool MSExperiment::hasZeroIntensities(size_t ms_level) const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (spec.getMSLevel() != ms_level)
+      {
+        continue;
+      }
+      for (const auto& p : spec)
+      {
+        if (p.getIntensity() == 0.0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -155,6 +155,7 @@ CHECK_INCLUDE_FILE_CXX("time.h" OPENMS_HAS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("sys/types.h" OPENMS_HAS_SYS_TYPES_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
+CHECK_INCLUDE_FILE_CXX("sys/resource.h"  OPENMS_HAS_SYS_RESOURCE_H)
 CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
 
 #------------------------------------------------------------------------------

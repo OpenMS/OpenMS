@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,10 +69,10 @@ using namespace std;
      </tr>
     <tr>
       <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
-      <td VALIGN="middle" ALIGN="center" ROWSPAN=3> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=3> @ref TOPP_ProteinQuantifier \n(via @p protein_groups parameter) </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability \n(with @p prob_correct option) </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref UTILS_IDScoreSwitcher </td>
@@ -90,7 +90,7 @@ using namespace std;
 
  <b>Input format:</b>
 
- Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer.@n
+ Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer .@n
  In addition, the scores for peptide hits in the input data have to be posterior probabilities - as produced e.g. by PeptideProphet in the TPP or by @ref TOPP_IDPosteriorErrorProbability (with the @p prob_correct option switched on) in OpenMS. If scores are found to be posterior error probabilities (PEPs, lower is better), they are converted to posterior probabilities (higher is better) using "1 - PEP".@n
  If the posterior (error) probabilities are stored in user parameters ("UserParam") in the idXML instead of in the score fields, @ref UTILS_IDScoreSwitcher can be used to rewrite the scores. (This may be the case e.g. if @ref TOPP_FalseDiscoveryRate and @ref TOPP_IDFilter were applied for FDR filtering prior to protein inference.)
 
