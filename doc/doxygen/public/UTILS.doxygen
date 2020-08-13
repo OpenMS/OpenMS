@@ -50,8 +50,6 @@
 -->
 
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
-  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
   - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
