@@ -65,8 +65,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
@@ -136,6 +134,8 @@ namespace OpenMS
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
+    ws_(this),
+    tab_bar_(this),
     identificationview_behavior_(this), // controller for spectra and identification view
     spectraview_behavior_(this)         
   {
@@ -163,25 +163,19 @@ namespace OpenMS
     QVBoxLayout* box_layout = new QVBoxLayout(dummy_cw);
 
     // create empty tab bar and workspace which will hold the main visualization widgets (e.g. spectrawidgets...)
-    tab_bar_ = new EnhancedTabBar(dummy_cw);
-    tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
-    tab_bar_->addTab("dummy", 4710);
-    tab_bar_->setMinimumSize(tab_bar_->sizeHint());
-    tab_bar_->removeId(4710);
+    tab_bar_.setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
+    tab_bar_.addTab("dummy", 4710);
+    tab_bar_.setMinimumSize(tab_bar_.sizeHint());
+    tab_bar_.removeId(4710);
+    connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::enhancedWorkspaceWindowChanged);
+    connect(&tab_bar_, &EnhancedTabBar::aboutToCloseId, this, &TOPPViewBase::closeByTab);
+    connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ this->copyLayer(data, source); });
+    connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
+    box_layout->addWidget(&tab_bar_);
 
-    connect(tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::enhancedWorkspaceWindowChanged);
-    connect(tab_bar_, &EnhancedTabBar::aboutToCloseId, this, &TOPPViewBase::closeByTab);
-
-    //connect signals and slots for drag-and-drop
-    connect(tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ this->copyLayer(data, source); });
-    connect(tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
-    box_layout->addWidget(tab_bar_);
-
-    ws_ = new EnhancedWorkspace(dummy_cw);
-    connect(ws_, &EnhancedWorkspace::subWindowActivated, this, &TOPPViewBase::updateBarsAndMenus);
-    connect(ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
-
-    box_layout->addWidget(ws_);
+    connect(&ws_, &EnhancedWorkspace::subWindowActivated, this, &TOPPViewBase::updateBarsAndMenus);
+    connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
+    box_layout->addWidget(&ws_);
 
     //################## MENUS #################
     // File menu
@@ -241,10 +235,10 @@ namespace OpenMS
     // Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", ws_, &EnhancedWorkspace::cascadeSubWindows);
-    windows->addAction("&Tile automatic", ws_, &EnhancedWorkspace::tileSubWindows);
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", ws_, &EnhancedWorkspace::tileVertical);
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", ws_, &EnhancedWorkspace::tileHorizontal);
+    windows->addAction("&Cascade", &ws_, &EnhancedWorkspace::cascadeSubWindows);
+    windows->addAction("&Tile automatic", &ws_, &EnhancedWorkspace::tileSubWindows);
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", &ws_, &EnhancedWorkspace::tileVertical);
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", &ws_, &EnhancedWorkspace::tileHorizontal);
     linkZoom_action_ = windows->addAction("Link &Zoom", this, &TOPPViewBase::linkZoom);
     windows->addSeparator();
 
@@ -611,7 +605,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
-    ws_->closeAllSubWindows();
+    ws_.closeAllSubWindows();
     QSettings settings("OpenMS", "TOPPView");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
@@ -682,8 +676,8 @@ namespace OpenMS
   {
     set<String> filename_set;
     // iterate over all windows
-    QList<QMdiSubWindow *> wl = ws_->subWindowList();
-    for (int i = 0; i != ws_->subWindowList().count(); ++i)
+    QList<QMdiSubWindow *> wl = ws_.subWindowList();
+    for (int i = 0; i != ws_.subWindowList().count(); ++i)
     {
       QWidget* w = wl[i];
       // iterate over all widgets
@@ -1051,15 +1045,15 @@ namespace OpenMS
     {
       if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Spectrum1DWidget(getSpectrumParameters(1), ws_);
+        target_window = new Spectrum1DWidget(getSpectrumParameters(1), &ws_);
       }
       else if (maps_as_2d || mergeable) //2d or features/IDs
       {
-        target_window = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+        target_window = new Spectrum2DWidget(getSpectrumParameters(2), &ws_);
       }
       else // 3d
       {
-        target_window = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
+        target_window = new Spectrum3DWidget(getSpectrumParameters(3), &ws_);
       }
     }
 
@@ -1207,7 +1201,7 @@ namespace OpenMS
   EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
     // return window with window_id == id
-    QList<QMdiSubWindow *> windows = ws_->subWindowList();
+    QList<QMdiSubWindow *> windows = ws_.subWindowList();
 
     // return the actual widget
     for (int i = 0; i < windows.size(); ++i)
@@ -1266,7 +1260,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeFile()
   {
-    ws_->activeSubWindow()->close();
+    ws_.activeSubWindow()->close();
     updateMenu();
   }
 
@@ -1797,12 +1791,12 @@ namespace OpenMS
     // Update tab bar and window title
     if (getActiveCanvas()->getLayerCount() != 0)
     {
-      tab_bar_->setTabText(tab_bar_->currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
+      tab_bar_.setTabText(tab_bar_.currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
       getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
     }
     else
     {
-      tab_bar_->setTabText(tab_bar_->currentIndex(), "empty");
+      tab_bar_.setTabText(tab_bar_.currentIndex(), "empty");
       getActiveSpectrumWidget()->setWindowTitle("empty");
     }
 
@@ -1867,7 +1861,7 @@ namespace OpenMS
     {
       EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w->widget());
       Int window_id = tbw->getWindowId();
-      tab_bar_->setCurrentId(window_id);
+      tab_bar_.setCurrentId(window_id);
     }
   }
 
@@ -1896,7 +1890,7 @@ namespace OpenMS
 
   void TOPPViewBase::layerZoomChanged()
   {
-    QList<QMdiSubWindow *> windows = ws_->subWindowList();
+    QList<QMdiSubWindow *> windows = ws_.subWindowList();
     if (!windows.count())
       return;
 
@@ -2033,7 +2027,7 @@ namespace OpenMS
 
   void TOPPViewBase::showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption)
   {
-    ws_->addSubWindow(sw);
+    ws_.addSubWindow(sw);
     connect(sw->canvas(), &SpectrumCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &SpectrumCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &SpectrumCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
@@ -2076,18 +2070,18 @@ namespace OpenMS
 
     sw->setWindowId(window_counter++);
 
-    tab_bar_->addTab(caption.toQString(), sw->getWindowId());
+    tab_bar_.addTab(caption.toQString(), sw->getWindowId());
 
     //connect slots and signals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-    connect(sw, &SpectrumWidget::aboutToBeDestroyed, tab_bar_, &EnhancedTabBar::removeId);
+    connect(sw, &SpectrumWidget::aboutToBeDestroyed, &tab_bar_, &EnhancedTabBar::removeId);
 
-    tab_bar_->setCurrentId(sw->getWindowId());
+    tab_bar_.setCurrentId(sw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
-    if (ws_->subWindowList().count() == 1)
+    if (ws_.subWindowList().count() == 1)
     {
       sw->showMaximized();
     }
@@ -2107,27 +2101,27 @@ namespace OpenMS
     }
   }
 
-  EnhancedWorkspace* TOPPViewBase::getWorkspace() const
+  EnhancedWorkspace* TOPPViewBase::getWorkspace()
   {
-    return ws_;
+    return &ws_;
   }
 
   SpectrumWidget* TOPPViewBase::getActiveSpectrumWidget() const
   {
-    if (!ws_->activeSubWindow())
+    if (!ws_.activeSubWindow())
     {
       return nullptr;
     }
-    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
+    return qobject_cast<SpectrumWidget*>(ws_.activeSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    if (ws_->currentSubWindow() == nullptr)
+    if (ws_.currentSubWindow() == nullptr)
     {
       return nullptr;
     }
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->currentSubWindow()->widget());
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_.currentSubWindow()->widget());
     if (sw == nullptr)
     {
       return nullptr;
@@ -2246,7 +2240,7 @@ namespace OpenMS
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
     // store active sub window
-    QMdiSubWindow* old_active = ws_->activeSubWindow();
+    QMdiSubWindow* old_active = ws_.activeSubWindow();
     
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
@@ -2269,7 +2263,7 @@ namespace OpenMS
     }
 
     // restore active sub window
-    ws_->setActiveSubWindow(old_active);
+    ws_.setActiveSubWindow(old_active);
     
     return file_names;
   }
@@ -2889,7 +2883,7 @@ namespace OpenMS
     ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     //open new 2D widget
-    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), &ws_);
 
     //add data
     if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
@@ -2953,7 +2947,7 @@ namespace OpenMS
     tmpe->setMetaValue("ion_mobility_unit", "ms");
 
     // open new 2D widget
-    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), &ws_);
 
     // add data
     if (!w->canvas()->addLayer(tmpe, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
@@ -3043,7 +3037,7 @@ namespace OpenMS
     tmpe->updateRanges();
 
     // open new 2D widget
-    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), &ws_);
 
     // add data
     if (!w->canvas()->addLayer(tmpe, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
@@ -3102,7 +3096,7 @@ namespace OpenMS
       showLogMessage_(LS_NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
     //open new 3D widget
-    Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
+    Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), &ws_);
 
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
 
@@ -3544,13 +3538,13 @@ namespace OpenMS
       return;
     }
 
-    QList<QMdiSubWindow *> wl = ws_->subWindowList();
+    QList<QMdiSubWindow *> wl = ws_.subWindowList();
 
     // iterate over all windows and determine which need an update
     std::vector<std::pair<const SpectrumWidget*, Size> > needs_update;
-    for (int i = 0; i != ws_->subWindowList().count(); ++i)
+    for (int i = 0; i != ws_.subWindowList().count(); ++i)
     {
-      //std::cout << "Number of windows: " << ws_->subWindowList().count() << std::endl;
+      //std::cout << "Number of windows: " << ws_.subWindowList().count() << std::endl;
       QWidget* w = wl[i];
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
       if (sw != nullptr)
