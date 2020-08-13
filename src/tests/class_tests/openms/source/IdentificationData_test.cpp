@@ -69,6 +69,7 @@ IdentificationData::ParentMoleculeRef protein_ref, rna_ref;
 IdentificationData::IdentifiedPeptideRef peptide_ref;
 IdentificationData::IdentifiedOligoRef oligo_ref;
 IdentificationData::IdentifiedCompoundRef compound_ref;
+IdentificationData::AdductRef adduct_ref;
 IdentificationData::QueryMatchRef match_ref1, match_ref2, match_ref3;
 
 START_SECTION((const InputFiles& getInputFiles() const))
@@ -372,6 +373,22 @@ START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const Identified
 }
 END_SECTION
 
+START_SECTION((const Adducts& getAdducts() const))
+{
+  TEST_EQUAL(data.getAdducts().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((AdductRef registerAdduct(const AdductInfo& adduct)))
+{
+  AdductInfo adduct("Na+", EmpiricalFormula("Na"), 1);
+  adduct_ref = data.registerAdduct(adduct);
+  TEST_EQUAL(data.getAdducts().size(), 1);
+  TEST_EQUAL(*adduct_ref == adduct, true);
+}
+END_SECTION
+
 START_SECTION((const MoleculeQueryMatches& getMoleculeQueryMatches() const))
 {
   TEST_EQUAL(data.getMoleculeQueryMatches().empty(), true);
@@ -387,11 +404,13 @@ START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 1);
   TEST_EQUAL(*match_ref1 == match, true);
 
-  // match with an oligo:
-  match = IdentificationData::MoleculeQueryMatch(oligo_ref, query_ref, 2);
+  // match with an oligo (+ adduct):
+  match = IdentificationData::MoleculeQueryMatch(oligo_ref, query_ref, 2,
+                                                 adduct_ref);
   match_ref2 = data.registerMoleculeQueryMatch(match);
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 2);
   TEST_EQUAL(*match_ref2 == match, true);
+  TEST_EQUAL((*match_ref2->adduct_opt)->getName(), "Na+");
 
   // match with a compound:
   match = IdentificationData::MoleculeQueryMatch(compound_ref, query_ref, 1);

@@ -54,6 +54,8 @@ namespace OpenMS
                      PeakAnnotations> PeakAnnotationSteps;
 
     /// Comparator for adducts
+    // @TODO: this allows adducts with duplicate names, but requires different
+    // sum formulas/charges - is this what we want?
     struct AdductCompare
     {
       bool operator()(const AdductInfo& left, const AdductInfo& right)
