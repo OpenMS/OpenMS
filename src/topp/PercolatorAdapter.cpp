@@ -1041,20 +1041,13 @@ protected:
       if (max_iter != 10) arguments << "-i" << String(max_iter).toQString();
       Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
-<<<<<<< HEAD
       if (getFlag_("quick_validation")) arguments << "-x";
       if (getFlag_("post_processing_tdc")) arguments << "-Y";
       if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
-      
-=======
-      if (getFlag_("quick-validation")) arguments << "-x";
-      if (getFlag_("post-processing-tdc")) arguments << "-Y";
-      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       if (getFlag_("static")) arguments << "--static";
       Int nested_xval_bins = getIntOption_("nested-xval-bins");
       if (nested_xval_bins > 1) arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
  
->>>>>>> upstream/develop
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init_weights");
       String default_search_direction = getStringOption_("default-direction");
@@ -1300,14 +1293,9 @@ protected:
         search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
         search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
         search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
-<<<<<<< HEAD
-        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset_max_train"));
-        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick_validation"));
-=======
-        search_parameters.setMetaValue("Percolator:subset-max-train", getIntOption_("subset-max-train"));
-        search_parameters.setMetaValue("Percolator:quick-validation", getFlag_("quick-validation"));
+        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset-max-train"));
+        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick-validation"));
         search_parameters.setMetaValue("Percolator:static", getFlag_("static"));
->>>>>>> upstream/develop
         search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
         search_parameters.setMetaValue("Percolator:init_weights", getStringOption_("init_weights"));
         search_parameters.setMetaValue("Percolator:default_direction", getStringOption_("default_direction"));
