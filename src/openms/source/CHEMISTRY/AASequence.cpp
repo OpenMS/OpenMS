@@ -87,7 +87,6 @@ namespace OpenMS
       const std::string& mod,
       const std::string& res)
   {
-
     ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
     ResidueModification::TermSpecificity protein_term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;;
 
@@ -1445,9 +1444,19 @@ namespace OpenMS
       }
     }
 
+    // For strings in our most common UniMod format
     if (!modification.hasSubstring("Protein N-term"))
     {
-      n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::N_TERM);
+      try
+      {
+        n_term_mod_ = ModificationsDB::getInstance()
+            ->getModification(modification, residue, ResidueModification::N_TERM);
+      }
+      catch (...)
+      {
+        n_term_mod_ = ModificationsDB::getInstance()
+            ->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
+      }
     }
     else
     {
@@ -1476,7 +1485,14 @@ namespace OpenMS
 
     if (!modification.hasSubstring("Protein C-term"))
     {
-      c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
+      try
+      {
+        c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
+      }
+      catch (...)
+      {
+        c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
+      }
     }
     else
     {

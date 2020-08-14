@@ -142,7 +142,7 @@ public:
     const ResidueModification* getModification(const String& mod_name, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY) const;
 
     /// Returns true if the modification exists
-    bool has(String modification) const;
+    bool has(const String& modification) const;
 
     /**
        @brief Add a new modification to ModificationsDB.
