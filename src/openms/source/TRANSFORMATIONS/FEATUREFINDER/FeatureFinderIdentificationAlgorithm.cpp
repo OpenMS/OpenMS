@@ -252,7 +252,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // prepare molecule map
     //-------------------------------------------------------------
-    OPENMS_LOG_INFO << "Preparing mapping of target molecules..." << endl;
+    OPENMS_LOG_INFO << "Preparing data..." << endl;
     molecule_map_.clear();
 
     // @TODO: expose score choice to user via a parameter
@@ -293,7 +293,6 @@ namespace OpenMS
     }
     n_external_targets_ = molecule_map_.size() - n_internal_targets_ - n_seed_targets_;
 
-    OPENMS_LOG_INFO << "Creating assay library..." << endl;
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
         SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
@@ -305,7 +304,7 @@ namespace OpenMS
       // Warning: this step is pretty inefficient, since it does the whole library generation twice
       // Really use for debug only
       createAssayLibrary_(molecule_map_.begin(), molecule_map_.end(), target_info_map);
-      cout << "Writing debug.traml file..." << endl;
+      OPENMS_LOG_DEBUG << "Writing debug.traml file..." << endl;
       TraMLFile().store("debug.traml", library_);
       target_info_map.clear();
       library_.clear(true);
@@ -314,11 +313,15 @@ namespace OpenMS
     //-------------------------------------------------------------
     // run feature detection
     //-------------------------------------------------------------
-    OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
-    for (auto& chunk : chunks)
+    for (Size chunk_index = 0; chunk_index < chunks.size(); ++chunk_index)
     {
+      OPENMS_LOG_INFO << "Processing chunk " << chunk_index + 1 << " of "
+                      << chunks.size() << ":" << endl;
+      auto chunk = chunks[chunk_index];
+      OPENMS_LOG_INFO << "Creating assay library..." << endl;
       createAssayLibrary_(chunk.first, chunk.second, target_info_map);
 
+      OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
       {
@@ -357,20 +360,25 @@ namespace OpenMS
 
     ms_data_.reset(); // not needed anymore, free up the memory
 
+    // convert IDs to legacy format for inclusion in output feature map:
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
     // @TODO: if input to FFId is idXML, can we avoid this conversion?
     IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
     features.getProteinIdentifications().insert(features.getProteinIdentifications().end(),
                                                 proteins.begin(), proteins.end());
+    // generate look-up table to map from new (MoleculeQueryMatch) to old (PeptideIdent.):
     PepIDLookup pep_id_lookup;
     for (const auto& peptide : peptides)
     {
       const PeptideHit& hit = peptide.getHits()[0];
       const AASequence& seq = hit.getSequence();
       String molecule = seq.empty() ? String(hit.getMetaValue("label")) : seq.toString();
+      String adduct = hit.getMetaValue("adduct", "");
+      if (!adduct.empty()) molecule += "+[" + adduct + "]";
       auto key = make_tuple(peptide.getRT(), peptide.getMZ(), molecule);
-      pep_id_lookup.insert(make_pair(key, &peptide));
+      OPENMS_LOG_DEBUG << "Inserting PeptideIdentification at RT=" << String(get<0>(key)) << ", m/z=" << String(get<1>(key)) << ", id=" << get<2>(key) << endl;
+       pep_id_lookup.insert(make_pair(key, &peptide));
     }
     // complete feature annotation:
     annotateFeatures_(features, target_info_map, pep_id_lookup);
@@ -679,7 +687,8 @@ namespace OpenMS
 
     for (auto mm_it = begin; mm_it != end; ++mm_it)
     {
-      const ID::IdentifiedMolecule& molecule = mm_it->first;
+      const ID::IdentifiedMolecule& molecule = mm_it->first.first;
+      const IdentificationData::AdductOpt& adduct = mm_it->first.second;
       ID::MoleculeType molecule_type = molecule.getMoleculeType();
       String molecule_id;
       double mass = 0.0;
@@ -702,6 +711,7 @@ namespace OpenMS
         default: // avoid compiler warning
           break;
       }
+      if (adduct) molecule_id += "+[" + (*adduct)->getName() + "]";
       OPENMS_LOG_DEBUG << "\nMolecule: " << molecule_id << endl;
 
       // @TODO: use "TargetedExperiment::Peptide" for peptides?
@@ -711,10 +721,16 @@ namespace OpenMS
       EmpiricalFormula formula = molecule.getFormula();
       if (!formula.isEmpty())
       {
-        target.molecular_formula = formula.toString();
         iso_dist = formula.getIsotopeDistribution(iso_gen);
-        // @TODO: add support for adducts (e.g. from NucleicAcidSearchEngine)
         target.theoretical_mass = (mass > 0.0) ? mass : formula.getMonoWeight();
+        if (adduct)
+        {
+          target.theoretical_mass += (*adduct)->getMassShift();
+          // when adding sum formulas, balance adduct charge with hydrogens:
+          formula += (*adduct)->getEmpiricalFormula() -
+            EmpiricalFormula::hydrogen((*adduct)->getCharge());
+        }
+        target.molecular_formula = formula.toString();
       }
       else // seed
       {
@@ -760,6 +776,7 @@ namespace OpenMS
         String ion_id = molecule_id + "/" + String(charge);
         TargetInfo target_info;
         target_info.molecule = molecule;
+        target_info.adduct = adduct;
 
         // we want to detect one feature per peptide and charge state - if there
         // are multiple RT regions, group them together:
@@ -926,7 +943,7 @@ namespace OpenMS
   {
     for (const PepIDKey& key : pep_id_keys)
     {
-      // OPENMS_LOG_DEBUG << "Looking up: " << get<2>(key) << endl;
+      OPENMS_LOG_DEBUG << "Looking up: " << get<2>(key) << endl;
       auto range = pep_id_lookup.equal_range(key);
       if (range.first == range.second) // key not found
       {
@@ -937,7 +954,7 @@ namespace OpenMS
       }
       for (auto it = range.first; it != range.second; ++it)
       {
-        // OPENMS_LOG_DEBUG << "Look-up found: " << it->second->getHits()[0].getSequence() << endl;
+        OPENMS_LOG_DEBUG << "Look-up found: " << (it->second->getHits()[0].getSequence().empty() ? String(it->second->getHits()[0].getMetaValue("label")) : it->second->getHits()[0].getSequence().toString()) << endl;
         output.push_back(*(it->second));
       }
     }
@@ -978,8 +995,10 @@ namespace OpenMS
         set<PepIDKey> pep_id_keys;
         for (ID::QueryMatchRef ref : feat_ids[best_index])
         {
+          String id = ref->identified_molecule_var.toString();
+          if (ref->adduct_opt) id += "+[" + (*ref->adduct_opt)->getName() + "]";
           auto key = make_tuple(ref->data_query_ref->rt, ref->data_query_ref->mz,
-                                ref->identified_molecule_var.toString());
+                                id);
           pep_id_keys.insert(key);
         }
         lookUpPeptideIDs_(pep_id_keys, pep_id_lookup,
@@ -1013,6 +1032,8 @@ namespace OpenMS
     FeatureMap& features, TargetInfoMap& target_info_map,
     const PepIDLookup& pep_id_lookup)
   {
+    // feature candidates from one assay appear consecutively; we want to find
+    // the best candidate per assay, map IDs to it, remove all other candidates:
     String previous_id, target_id;
     RTMap transformed_internal;
     map<Size, vector<ID::QueryMatchRef>> feat_ids;
@@ -1035,7 +1056,7 @@ namespace OpenMS
           annotateFeaturesFinalizeAssay_(
             features, feat_ids, target_info_map.at(previous_id).internal_ids,
             pep_id_lookup);
-          // note that "...FinalizeAssay_" clears its last two arguments
+          // note that "...FinalizeAssay_" clears its middle two arguments
         }
         previous_id = target_id;
       }
@@ -1134,6 +1155,10 @@ namespace OpenMS
             IdentificationDataConverter::exportParentMatches(ref->parent_matches,
                                                              hit);
           }
+        }
+        if (target_info.adduct)
+        {
+          hit.setMetaValue("adduct", (*target_info.adduct)->getName());
         }
         pep_id.insertHit(hit);
         feature.getPeptideIdentifications().push_back(pep_id);
@@ -1250,15 +1275,18 @@ namespace OpenMS
     Int charge = ref->charge;
     double rt = ref->data_query_ref->rt;
     RTMap::value_type pair = make_pair(rt, ref);
+    AdductedID id = make_pair(ref->identified_molecule_var,
+                              ref->adduct_opt);
     if (!external)
     {
       OPENMS_LOG_DEBUG << "Adding " << ref->identified_molecule_var.toString()
-                       << " " << charge << " " << rt << endl;
-      molecule_map_[ref->identified_molecule_var][charge].first.insert(pair);
+                       << (ref->adduct_opt ? " [" + (*ref->adduct_opt)->getName() + "] " : " ")
+                       << charge << " " << rt << endl;
+      molecule_map_[id][charge].first.insert(pair);
     }
     else
     {
-      molecule_map_[ref->identified_molecule_var][charge].second.insert(pair);
+      molecule_map_[id][charge].second.insert(pair);
     }
   }
 

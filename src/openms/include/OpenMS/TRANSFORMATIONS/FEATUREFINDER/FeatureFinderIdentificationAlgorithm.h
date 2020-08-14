@@ -93,16 +93,20 @@ protected:
   // aggregate all search hits (internal and external) grouped by molecule (e.g.
   // peptide) and charge state, ordered by RT:
 
+  typedef std::pair<IdentificationData::IdentifiedMolecule,
+                    boost::optional<IdentificationData::AdductRef>> AdductedID;
+
   /// mapping: RT (not necessarily unique) -> reference to search hit
   typedef std::multimap<double, IdentificationData::QueryMatchRef> RTMap;
   /// mapping: charge -> internal/external: (RT -> ref. to search hit)
   typedef std::map<Int, std::pair<RTMap, RTMap>> ChargeMap;
-  /// mapping: sequence -> charge -> internal/external ID information
-  typedef std::map<IdentificationData::IdentifiedMolecule, ChargeMap> MoleculeMap;
+  /// mapping: sequence (with adduct?) -> charge -> internal/external ID information
+  typedef std::map<AdductedID, ChargeMap> MoleculeMap;
 
   struct TargetInfo
   {
     IdentificationData::IdentifiedMolecule molecule;
+    IdentificationData::AdductOpt adduct;
     RTMap internal_ids;
     RTMap external_ids;
   };
