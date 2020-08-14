@@ -893,7 +893,7 @@ namespace OpenMS
 
     for (const auto& aa : peptide)
     {
-      os << aa.toSequence();
+      os << aa.toString();
     }
     
     // deal with C-terminal modifications

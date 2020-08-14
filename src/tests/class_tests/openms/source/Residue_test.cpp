@@ -320,6 +320,17 @@ START_SECTION(void setModification(const String& name))
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 
+START_SECTION(String Residue::toString() const)
+	auto rr(*db->getResidue("MET"));
+	TEST_EQUAL(rr.toString(), "M");
+	TEST_EQUAL(rr.getModification() == nullptr, true)
+	rr.setModification("Oxidation");
+	TEST_EQUAL(rr.getModificationName(), "Oxidation")
+	TEST_EQUAL(rr.toString(), "M(Oxidation)");
+	const ResidueModification* mod = ResidueModification::createUnknownFromMassString("123", 123.0, false, ResidueModification::ANYWHERE, &rr);
+	rr.setModification(mod);
+  TEST_EQUAL(rr.toString(), "M[123]");
+END_SECTION
 
 START_SECTION(const String& getModificationName() const)
   NOT_TESTABLE // tested above

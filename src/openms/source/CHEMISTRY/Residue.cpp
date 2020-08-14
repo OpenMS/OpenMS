@@ -640,7 +640,7 @@ namespace OpenMS
     return ' ';
   }
 
-  String Residue::toSequence() const
+  String Residue::toString() const
   {
     if (getOneLetterCode().empty())
     {
