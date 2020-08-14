@@ -288,8 +288,6 @@ public slots:
     void updateFilterBar();
     /// enabled/disabled menu entries depending on the current state
     void updateMenu();
-    /// brings the tab corresponding to the active window in front
-    void updateTabBar(QMdiSubWindow* w);
 
     /**
       @brief Shows a status message in the status bar.
@@ -414,9 +412,6 @@ protected:
         @brief Shows a dialog where the user can select files
     */
     QStringList getFileList_(const String& path_overwrite = "");
-
-    /// Returns the enhanced tabbar widget with id @p id
-    EnhancedTabBarWidgetInterface* window_(int id) const;
 
     ///@name dock widgets
     //@{

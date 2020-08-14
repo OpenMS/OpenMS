@@ -34,31 +34,40 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 namespace OpenMS
 {
+  class EnhancedTabBar;
   /**
     @brief Widgets that are placed into an EnhancedTabBar must implement this interface
 
     @ingroup Visual
   */
-  class EnhancedTabBarWidgetInterface
+  class OPENMS_GUI_DLLAPI EnhancedTabBarWidgetInterface
   {
 public:
+    /// C'tor; creates a new ID;
+    EnhancedTabBarWidgetInterface();
     /// Destructor
-    virtual ~EnhancedTabBarWidgetInterface() {}
+    virtual ~EnhancedTabBarWidgetInterface();
+
+    /// adds itself to this tabbar and upon destruction removes itself again.
+    /// Make sure the tabbar still exists when you call this function and this object is destroyed
+    void addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab = true);
 
     /// get the EnhancedTabBar unique window id
-    virtual Int getWindowId() = 0;
+    Int getWindowId();
 
-    /// set the EnhancedTabBar unique window id
-    virtual void setWindowId(Int window_id) = 0;
+    /// the first object to be created will get this ID
+    static Int getFirstWindowID();
+
+private:
+    
+    Int window_id_ { -1 };
+    EnhancedTabBar* parent_ { nullptr }; ///< this is our parent. Which will delete us automatically when we destruct
   };
 }  // namespace OpenMS
 

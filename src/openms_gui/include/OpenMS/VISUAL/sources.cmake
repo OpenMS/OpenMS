@@ -43,7 +43,6 @@ TOPPASResource.h
 TOPPASResources.h
 TOPPASScene.h
 TOPPASSplitterVertex.h
-TOPPASTabBar.h
 TOPPASToolVertex.h
 TOPPASTreeView.h
 TOPPASVertex.h

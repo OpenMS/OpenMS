@@ -49,7 +49,6 @@ TOPPASResource.cpp
 TOPPASResources.cpp
 TOPPASScene.cpp
 TOPPASSplitterVertex.cpp
-TOPPASTabBar.cpp
 TOPPASToolVertex.cpp
 TOPPASTreeView.cpp
 TOPPASVertex.cpp

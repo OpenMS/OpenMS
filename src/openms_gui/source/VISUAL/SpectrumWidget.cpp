@@ -112,7 +112,6 @@ namespace OpenMS
 
   SpectrumWidget::~SpectrumWidget()
   {
-    emit aboutToBeDestroyed(window_id_);
   }
 
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
@@ -351,20 +350,8 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), this->getWindowId());
     event->acceptProposedAction();
-  }
-
-  // from interface EnhancedTabBarInterface
-  Int SpectrumWidget::getWindowId()
-  {
-    return window_id_;
-  }
-
-  // from interface EnhancedTabBarInterface
-  void SpectrumWidget::setWindowId(Int window_id)
-  {
-    window_id_ = window_id;
   }
 
 } //namespace OpenMS

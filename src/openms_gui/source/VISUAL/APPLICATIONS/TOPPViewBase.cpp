@@ -168,7 +168,7 @@ namespace OpenMS
     tab_bar_.setMinimumSize(tab_bar_.sizeHint());
     tab_bar_.removeId(4710);
     connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::enhancedWorkspaceWindowChanged);
-    connect(&tab_bar_, &EnhancedTabBar::aboutToCloseId, this, &TOPPViewBase::closeByTab);
+    connect(&tab_bar_, &EnhancedTabBar::closeRequested, this, &TOPPViewBase::closeByTab);
     connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ this->copyLayer(data, source); });
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
@@ -965,7 +965,7 @@ namespace OpenMS
 
     // set the window where (new layer) data could be opened in
     // get EnhancedTabBarWidget with given id
-    EnhancedTabBarWidgetInterface* tab_bar_target = window_(window_id);
+    EnhancedTabBarWidgetInterface* tab_bar_target = ws_.getWidget(window_id);
 
     // cast to SpectrumWidget
     SpectrumWidget* target_window = dynamic_cast<SpectrumWidget*>(tab_bar_target);
@@ -1186,34 +1186,19 @@ namespace OpenMS
   }
 
 
-  EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
-  {
-    // return window with window_id == id
-    QList<QMdiSubWindow *> windows = ws_.subWindowList();
-
-    // return the actual widget
-    for (int i = 0; i < windows.size(); ++i)
-    {
-      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i)->widget());
-      if (w != 0 && w->getWindowId() == id) { return w; }
-    }
-    return nullptr;
-  }
-
   void TOPPViewBase::closeByTab(int id)
   {
-    QWidget* w = dynamic_cast<QWidget*>(window_(id));
+    QWidget* w = dynamic_cast<QWidget*>(ws_.getWidget(id));
     if (w)
     {
       QMdiSubWindow* parent = qobject_cast<QMdiSubWindow*>(w->parentWidget());
-      parent->close();
-      updateMenu();
+      if (parent->close()) updateMenu();
     }
   }
 
   void TOPPViewBase::enhancedWorkspaceWindowChanged(int id)
   {
-    QWidget* w = dynamic_cast<QWidget*>(window_(id));
+    QWidget* w = dynamic_cast<QWidget*>(ws_.getWidget(id));
     if (!w) return;
 
     w->setFocus();
@@ -1843,17 +1828,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateTabBar(QMdiSubWindow* w)
-  {
-    if (w)
-    {
-      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w->widget());
-      Int window_id = tbw->getWindowId();
-      tab_bar_.setCurrentId(window_id);
-    }
-  }
-
-
   void TOPPViewBase::linkZoom()
   {
     zoom_together_ = !zoom_together_;
@@ -2052,22 +2026,8 @@ namespace OpenMS
     }
 
     sw->setWindowTitle(caption.toQString());
-
-    //add tab with id
-    static int window_counter = 4711;
-
-    sw->setWindowId(window_counter++);
-
-    tab_bar_.addTab(caption.toQString(), sw->getWindowId());
-
-    //connect slots and signals for removing the widget from the bar, when it is closed
-    //- through the menu entry
-    //- through the tab bar
-    //- through the MDI close button
-    connect(sw, &SpectrumWidget::aboutToBeDestroyed, &tab_bar_, &EnhancedTabBar::removeId);
-
-    tab_bar_.setCurrentId(sw->getWindowId());
-
+    sw->addToTabBar(&tab_bar_, caption, true);
+    
     //show first window maximized (only visible windows are in the list)
     if (ws_.subWindowList().count() == 1)
     {

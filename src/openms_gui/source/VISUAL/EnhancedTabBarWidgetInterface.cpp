@@ -33,3 +33,40 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
+
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+
+namespace OpenMS
+{
+
+  EnhancedTabBarWidgetInterface::EnhancedTabBarWidgetInterface()
+  {
+    /// every new window gets a new ID automatically
+    static Int window_counter_ = getFirstWindowID();
+    window_id_ = ++window_counter_;
+  }
+
+  EnhancedTabBarWidgetInterface::~EnhancedTabBarWidgetInterface()
+  { // remove ourselves from the tab bar
+    if (parent_) parent_->removeId(window_id_);
+  }
+
+  void EnhancedTabBarWidgetInterface::addToTabBar(EnhancedTabBar* const parent, const String& caption, const bool make_active_tab)
+  {
+    parent_ = parent;
+    parent_->addTab(caption.toQString(), window_id_);
+    if (make_active_tab) parent_->setCurrentId(window_id_);
+  }
+
+  Int EnhancedTabBarWidgetInterface::getWindowId()
+  {
+    return window_id_;
+  }
+
+  /*static*/ Int EnhancedTabBarWidgetInterface::getFirstWindowID()
+  {
+    return 1234;
+  }
+
+}
+

@@ -82,8 +82,8 @@ signals:
     /// Signal that indicates that the current tab changed
     void currentIdChanged(int id);
 
-    /// Signal that indicates that the tab with identifier @p id is about to be removed (double click or context menu)
-    void aboutToCloseId(int id);
+    /// Signal that indicates that the tab with identifier @p id is requested to be removed (double click or context menu)
+    void closeRequested(int id);
 
     /// Signal that is emitted, when a drag-and-drop action ends on a tab
     void dropOnTab(const QMimeData * data, QWidget * source, int id);
