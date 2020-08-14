@@ -1455,17 +1455,11 @@ namespace OpenMS
       {
         n_term_mod_ = ModificationsDB::getInstance()
             ->getModification(modification, residue, ResidueModification::N_TERM);
+        return; // we found a mod. return
       }
-      catch (...)
-      {
-        n_term_mod_ = ModificationsDB::getInstance()
-            ->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
-      }
+      catch (...) {}
     }
-    else
-    {
-      n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
-    }
+    n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
   }
 
   void AASequence::setCTerminalModification(const String& modification)
@@ -1489,23 +1483,18 @@ namespace OpenMS
     // For strings in our most common UniMod format
     if (!modification.hasSubstring("Protein C-term"))
     {
-      // since this method is called setNTerminalModification without further specification
+      // since this method is called setCTerminalModification without further specification
       // we have to look for both general terminus and Protein terminus.
       // For backwards compatibility we look for the general terminus first
       // We have to use try-catch since getModification unfortunately throws Exceptions.
       try
       {
         c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
+        return; // we found a mod. return
       }
-      catch (...)
-      {
-        c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
-      }
+      catch (...) {}
     }
-    else
-    {
-      c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
-    }
+    c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_C_TERM);
   }
 
   void AASequence::setCTerminalModification(const ResidueModification* modification)
