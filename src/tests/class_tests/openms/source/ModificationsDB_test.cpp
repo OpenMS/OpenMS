@@ -289,9 +289,9 @@ END_SECTION
 START_SECTION((bool addModification(ResidueModification* modification)))
 {
   TEST_EQUAL(ptr->has("Phospho (A)"), false);
-  ResidueModification* modification = new ResidueModification();
+  std::unique_ptr<ResidueModification> modification(new ResidueModification());
   modification->setFullId("Phospho (A)");
-  ptr->addModification(modification);
+  ptr->addModification(std::move(modification));
   TEST_EQUAL(ptr->has("Phospho (A)"), true);
 }
 END_SECTION
@@ -315,12 +315,12 @@ START_SECTION([EXTRA] multithreaded example)
   {
     int mod_id = k;
     String modname = "mod" + String(mod_id);
-    ResidueModification * new_mod = new ResidueModification();
+    std::unique_ptr<ResidueModification> new_mod(new ResidueModification());
     new_mod->setFullId(modname);
     new_mod->setMonoMass( 0.11 * mod_id);
     new_mod->setAverageMass(1.0);
     new_mod->setDiffMonoMass( 0.05 * mod_id);
-    mdb->addModification(new_mod);
+    mdb->addModification(std::move(new_mod));
     int tmp = (int)mdb->getModification(modname)->getAverageMass();
     test += tmp;
   }
@@ -335,12 +335,12 @@ START_SECTION([EXTRA] multithreaded example)
     String modname = "mod" + String(mod_id);
     if (!mdb->has(modname))
     {
-      ResidueModification * new_mod = new ResidueModification();
+      std::unique_ptr<ResidueModification> new_mod(new ResidueModification());
       new_mod->setFullId(modname);
       new_mod->setMonoMass( 0.11 * mod_id);
       new_mod->setAverageMass(1.0);
       new_mod->setDiffMonoMass( 0.05 * mod_id);
-      mdb->addModification(new_mod);
+      mdb->addModification(std::move(new_mod));
     }
     int tmp = (int)mdb->getModification(modname)->getAverageMass();
     test += tmp;
