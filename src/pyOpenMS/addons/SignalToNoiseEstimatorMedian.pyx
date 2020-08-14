@@ -33,4 +33,5 @@ cdef class SignalToNoiseEstimatorMedianChrom:
     def getSignalToNoise(self, index ):
         assert isinstance(index, int), 'arg data_point wrong type'
 
-        self.inst.get().getSignalToNoise(index)
+        cdef double r = self.inst.get().getSignalToNoise(index)
+        return r
