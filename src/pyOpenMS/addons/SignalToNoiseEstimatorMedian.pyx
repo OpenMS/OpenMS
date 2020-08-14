@@ -30,7 +30,7 @@ cdef class SignalToNoiseEstimatorMedianChrom:
         else:
                raise Exception('can not handle type of %s' % (args,))
 
-    def getSignalToNoise(self, ChromatogramPeak data_point ):
-        assert isinstance(data_point, ChromatogramPeak), 'arg data_point wrong type'
+    def getSignalToNoise(self, Size index ):
+        assert isinstance(index, Size), 'arg data_point wrong type'
 
-        self.inst.get().getSignalToNoise((deref(data_point.inst.get())))
+        self.inst.get().getSignalToNoise(index)
