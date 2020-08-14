@@ -1447,6 +1447,10 @@ namespace OpenMS
     // For strings in our most common UniMod format
     if (!modification.hasSubstring("Protein N-term"))
     {
+      // since this method is called setNTerminalModification without further specification
+      // we have to look for both general terminus and Protein terminus.
+      // For backwards compatibility we look for the general terminus first
+      // We have to use try-catch since getModification unfortunately throws Exceptions.
       try
       {
         n_term_mod_ = ModificationsDB::getInstance()
@@ -1462,7 +1466,6 @@ namespace OpenMS
     {
       n_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::PROTEIN_N_TERM);
     }
-
   }
 
   void AASequence::setCTerminalModification(const String& modification)
@@ -1483,8 +1486,13 @@ namespace OpenMS
       }
     }
 
+    // For strings in our most common UniMod format
     if (!modification.hasSubstring("Protein C-term"))
     {
+      // since this method is called setNTerminalModification without further specification
+      // we have to look for both general terminus and Protein terminus.
+      // For backwards compatibility we look for the general terminus first
+      // We have to use try-catch since getModification unfortunately throws Exceptions.
       try
       {
         c_term_mod_ = ModificationsDB::getInstance()->getModification(modification, residue, ResidueModification::C_TERM);
