@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
         SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian) nogil except +
 
         void init(MSSpectrum & spectrum) nogil except +
-        void getSignalToNoise(Size index) nogil except +
+        double getSignalToNoise(Size index) nogil except +
 
         double getSparseWindowPercent() nogil except +
         double getHistogramRightmostPercent() nogil except +
