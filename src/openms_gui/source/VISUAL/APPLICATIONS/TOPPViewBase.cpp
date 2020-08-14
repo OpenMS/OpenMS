@@ -1085,29 +1085,17 @@ namespace OpenMS
         if (use_intensity_cutoff)
         {
           double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
-          //create filter
-          DataFilters::DataFilter filter;
-          filter.field = DataFilters::INTENSITY;
-          filter.op = DataFilters::GREATER_EQUAL;
-          filter.value = cutoff;
-          ///add filter
           DataFilters filters;
-          filters.add(filter);
+          filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
           target_window->canvas()->setFilters(filters);
         }
         else // no mower, hide zeros if wanted
         {
           if (target_window->canvas()->getCurrentLayer().getPeakData()->hasZeroIntensities(1))
           {
-            // create filter
-            DataFilters::DataFilter filter;
-            filter.field = DataFilters::INTENSITY;
-            filter.op = DataFilters::GREATER_EQUAL;
-            filter.value = 0.001;
             statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
-            // add filter
             DataFilters filters;
-            filters.add(filter);
+            filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
             target_window->canvas()->setFilters(filters);
           }
         }
