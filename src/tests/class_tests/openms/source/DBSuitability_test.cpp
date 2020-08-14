@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/QC/Suitability.h>
+#include <OpenMS/QC/DBSuitability.h>
 
 #include <vector>
 
@@ -170,16 +170,16 @@ FDR_id.push_back(pep_id);
 ///////////////////// START TESTING /////////////////////////
 /////////////////////////////////////////////////////////////
 
-Suitability* ptr = nullptr;
-Suitability* nulpt = nullptr;
-START_SECTION(Suitability())
+DBSuitability* ptr = nullptr;
+DBSuitability* nulpt = nullptr;
+START_SECTION(DBSuitability())
 {
-  ptr = new Suitability();
+  ptr = new DBSuitability();
   TEST_NOT_EQUAL(ptr, nulpt)
 }
 END_SECTION
 
-START_SECTION(~Suitability())
+START_SECTION(~DBSuitability())
 {
   delete ptr;
 }
@@ -187,7 +187,7 @@ END_SECTION
 
 START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
 {
-  Suitability s;
+  DBSuitability s;
   s.compute(pep_ids);
   Param p;
   p.setValue("cut_off_fract", 2./3);
@@ -195,10 +195,10 @@ START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
   s.setParameters(p);
   s.compute(pep_ids_2);
   s.compute(top_decoy);
-  vector<Suitability::SuitabilityData> d = s.getResults();
-  Suitability::SuitabilityData data_fract_1 = d[0];
-  Suitability::SuitabilityData data_fract_05 = d[1];
-  Suitability::SuitabilityData data_decoy_top = d[2];
+  vector<DBSuitability::SuitabilityData> d = s.getResults();
+  DBSuitability::SuitabilityData data_fract_1 = d[0];
+  DBSuitability::SuitabilityData data_fract_05 = d[1];
+  DBSuitability::SuitabilityData data_decoy_top = d[2];
   TEST_REAL_SIMILAR(data_fract_1.cut_off, 0.00044);
   TEST_REAL_SIMILAR(data_fract_05.cut_off, 0.00029);
   TEST_REAL_SIMILAR(data_decoy_top.cut_off, 0.00029);

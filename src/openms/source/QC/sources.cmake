@@ -13,7 +13,7 @@ set(sources_list
   PeptideMass.cpp
   QCBase.cpp
   RTAlignment.cpp
-  Suitability.cpp
+  DBSuitability.cpp
   TIC.cpp
 )
 

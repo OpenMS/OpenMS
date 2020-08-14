@@ -13,7 +13,7 @@ set(sources_list_h
   PeptideMass.h
   QCBase.h
   RTAlignment.h
-  Suitability.h
+  DBSuitability.h
   TIC.h
 )
 

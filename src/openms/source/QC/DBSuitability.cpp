@@ -38,14 +38,14 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/QC/Suitability.h>
+#include <OpenMS/QC/DBSuitability.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  Suitability::Suitability()
-    : DefaultParamHandler("Suitability"), results_{}
+  DBSuitability::DBSuitability()
+    : DefaultParamHandler("DBSuitability"), results_{}
   {
     defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
     defaults_.setValidStrings("no_re_rank", { "true", "false" });
@@ -58,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void Suitability::compute(vector<PeptideIdentification> pep_ids)
+  void DBSuitability::compute(vector<PeptideIdentification> pep_ids)
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
     double cut_off_fract = param_.getValue("cut_off_fract");
@@ -70,7 +70,7 @@ namespace OpenMS
 
     if (pep_ids.empty())
     {
-      OPENMS_LOG_WARN << "No peptide identifications given to Suitability! No calculations performed." << endl;
+      OPENMS_LOG_WARN << "No peptide identifications given to DBSuitability! No calculations performed." << endl;
       return;
     }
 
@@ -191,12 +191,12 @@ namespace OpenMS
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
 
-  const std::vector<Suitability::SuitabilityData>& Suitability::getResults() const
+  const std::vector<DBSuitability::SuitabilityData>& DBSuitability::getResults() const
   {
     return results_;
   }
 
-  double Suitability::getDecoyDiff_(const PeptideIdentification& pep_id)
+  double DBSuitability::getDecoyDiff_(const PeptideIdentification& pep_id)
   {
     double diff = DBL_MAX;
 
@@ -241,7 +241,7 @@ namespace OpenMS
     return diff;
   }
 
-  double Suitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double cut_off_fract)
+  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double cut_off_fract)
   {
     if (cut_off_fract < 0 || cut_off_fract > 1)
     {
@@ -277,7 +277,7 @@ namespace OpenMS
     return diffs[index];
   }
 
-  bool Suitability::isNovoHit_(const PeptideHit& hit)
+  bool DBSuitability::isNovoHit_(const PeptideHit& hit)
   {
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
@@ -290,7 +290,7 @@ namespace OpenMS
     return true;
   }
 
-  bool Suitability::passesFDR_(const PeptideHit& hit, double FDR)
+  bool DBSuitability::passesFDR_(const PeptideHit& hit, double FDR)
   {
     if (hit.getScore() > FDR) return false;
     return true;

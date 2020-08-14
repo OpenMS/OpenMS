@@ -26,7 +26,7 @@ set(qc_executables_list
   PeptideMass_test
   QCBase_test
   RTAlignment_test
-  Suitability_test
+  DBSuitability_test
   TIC_test
 )
 

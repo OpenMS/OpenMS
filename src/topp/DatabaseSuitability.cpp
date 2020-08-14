@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
-#include <OpenMS/QC/Suitability.h>
+#include <OpenMS/QC/DBSuitability.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -206,7 +206,7 @@ protected:
 
     Ms2IdentificationRate::IdentificationRateData spectral_quality = q.getResults()[0];
 
-    Suitability s;
+    DBSuitability s;
     Param p;
     p.setValue("no_re_rank", no_re_rank ? "true" : "false");
     p.setValue("cut_off_fract", cut_off_fract);
@@ -214,7 +214,7 @@ protected:
     s.setParameters(p);
     s.compute(pep_ids);
 
-    Suitability::SuitabilityData suit = s.getResults()[0];
+    DBSuitability::SuitabilityData suit = s.getResults()[0];
 
     //-------------------------------------------------------------
     // writing output

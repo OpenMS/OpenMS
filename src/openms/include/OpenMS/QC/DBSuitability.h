@@ -47,7 +47,7 @@ namespace OpenMS
   class PeptideHit;
 
   /**
-  * @brief This class serves as the library representation @ref TOPP_DatabaseSuitability
+  * @brief This class serves as the library representation @ref TOPP_DatabaseDBSuitability
   *
   * This class holds the functionality of calculating the database suitability.
   * This can only be done if a combined deNovo+database identification search was performed.
@@ -57,28 +57,49 @@ namespace OpenMS
   * using getResults().
   *
   */
-  class OPENMS_DLLAPI Suitability:
+  class OPENMS_DLLAPI DBSuitability:
     public DefaultParamHandler
   {
   public:
     /// struct to store results
     struct SuitabilityData
     {
+      /// number of times the top hit is considered to be a deNovo hit
       Size num_top_novo = 0;
+
+      /// number of times the top hit is considered to be a database hit
       Size num_top_db = 0;
-      Size num_re_ranked = 0;
+      
+      /// number of times a deNovo hit scored on top of a database hit
       Size num_interest = 0;
+
+      /// number of times a deNovo hit scored on top of a database hit,
+      /// but their score difference was small enough, that it was still counted as a database hit
+      Size num_re_ranked = 0;
+
+      /// the cut-off that was used to determine when a score difference was "small enough"
+      /// this is normalized by mw
       double cut_off = DBL_MAX;
+
+      /// the suitability of the database used for identification search, calculated with:
+      ///               #db_hits / (#db_hits + #deNovo_hit)
+      /// can reach from 0 -> the database was not at all suited to 1 -> the perfect database was used
+      ///
+      /// Preliminary tests have shown that databases of the right organism or close related organisms
+      /// score around 0.9 to 0.95, organisms from the same class can still score around 0.8, organisms
+      /// from the same phylum score around 0.5 to 0.6 and after that it quickly falls to suitabilities
+      /// of 0.15 or even 0.05.
+      /// Note that these test were only performed for one mzML and your results might differ.
       double suitability = 0;
     };
 
     /// Constructor
     /// Settings are initialized with their default values:
     /// no_re_rank = false, novo_fract = 1, FDR = 0.01
-    Suitability();
+    DBSuitability();
 
     /// Destructor
-    ~Suitability() = default;
+    ~DBSuitability() = default;
 
     /**
     * @brief Computes suitability of a database used to search a mzML
@@ -110,7 +131,15 @@ namespace OpenMS
     */
     void compute(std::vector<PeptideIdentification> pep_ids);
 
-    /// return results
+    /**
+    * @brief Returns results calculated by this metric
+    *
+    * The returned vector contains one DBSuitabilityData object for each time compute was called.
+    * Each of these objects contains the suitability information that was extracted from the
+    * identifications used for the corresponding call of compute.
+    *
+    * @returns  DBSuitabilityData objects in a vector
+    */
     const std::vector<SuitabilityData>& getResults() const;
 
   private:
