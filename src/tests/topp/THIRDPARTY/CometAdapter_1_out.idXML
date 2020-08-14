@@ -11,13 +11,8 @@
 				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="3.0"/>
 				<UserParam type="string" name="CometAdapter:1:precursor_error_units" value="ppm"/>
 				<UserParam type="string" name="CometAdapter:1:isotope_error" value="off"/>
-				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
-				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
-				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
-				<UserParam type="int" name="CometAdapter:1:allowed_missed_cleavages" value="1"/>
-				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
-				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
-				<UserParam type="float" name="CometAdapter:1:fragment_bin_tolerance" value="1.0005"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_mass_tolerance" value="0.50025"/>
+				<UserParam type="string" name="CometAdapter:1:fragment_error_units" value="Da"/>
 				<UserParam type="float" name="CometAdapter:1:fragment_bin_offset" value="0.25"/>
 				<UserParam type="string" name="CometAdapter:1:instrument" value="high_res"/>
 				<UserParam type="string" name="CometAdapter:1:use_A_ions" value="false"/>
@@ -27,6 +22,12 @@
 				<UserParam type="string" name="CometAdapter:1:use_Y_ions" value="true"/>
 				<UserParam type="string" name="CometAdapter:1:use_Z_ions" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:use_NL_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
+				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
+				<UserParam type="int" name="CometAdapter:1:missed_cleavages" value="1"/>
+				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
+				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
 				<UserParam type="int" name="CometAdapter:1:num_hits" value="5"/>
 				<UserParam type="string" name="CometAdapter:1:precursor_charge" value="0:0"/>
 				<UserParam type="string" name="CometAdapter:1:override_charge" value="keep any known"/>
@@ -52,7 +53,7 @@
 				<UserParam type="int" name="CometAdapter:1:debug" value="0"/>
 				<UserParam type="int" name="CometAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
-				<UserParam type="string" name="CometAdapter:1:force" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:force" value="true"/>
 				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
@@ -65,7 +66,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/workspace/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="520.263366031899977" RT="2655.099999999999909" spectrum_reference="spectrum=0" >
-			<PeptideHit score="0.00365" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
+			<PeptideHit score="3.65e-03" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
 				<UserParam type="string" name="MS:1002258" value="26"/>
 				<UserParam type="string" name="MS:1002259" value="52"/>
 				<UserParam type="string" name="num_matched_peptides" value="1"/>
@@ -74,7 +75,7 @@
 				<UserParam type="float" name="MS:1002254" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="1214.900000000000091"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
-				<UserParam type="float" name="MS:1002257" value="0.00365"/>
+				<UserParam type="float" name="MS:1002257" value="3.65e-03"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="775.387755698566707" RT="4923.800000000000182" spectrum_reference="spectrum=2" >

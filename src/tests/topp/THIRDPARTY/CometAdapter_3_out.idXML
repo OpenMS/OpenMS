@@ -14,13 +14,8 @@
 				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="5.0"/>
 				<UserParam type="string" name="CometAdapter:1:precursor_error_units" value="ppm"/>
 				<UserParam type="string" name="CometAdapter:1:isotope_error" value="off"/>
-				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
-				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
-				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
-				<UserParam type="int" name="CometAdapter:1:allowed_missed_cleavages" value="3"/>
-				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
-				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
-				<UserParam type="float" name="CometAdapter:1:fragment_bin_tolerance" value="0.02"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_mass_tolerance" value="0.01"/>
+				<UserParam type="string" name="CometAdapter:1:fragment_error_units" value="Da"/>
 				<UserParam type="float" name="CometAdapter:1:fragment_bin_offset" value="0.0"/>
 				<UserParam type="string" name="CometAdapter:1:instrument" value="high_res"/>
 				<UserParam type="string" name="CometAdapter:1:use_A_ions" value="false"/>
@@ -30,6 +25,12 @@
 				<UserParam type="string" name="CometAdapter:1:use_Y_ions" value="true"/>
 				<UserParam type="string" name="CometAdapter:1:use_Z_ions" value="false"/>
 				<UserParam type="string" name="CometAdapter:1:use_NL_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
+				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
+				<UserParam type="int" name="CometAdapter:1:missed_cleavages" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
+				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
 				<UserParam type="int" name="CometAdapter:1:num_hits" value="5"/>
 				<UserParam type="string" name="CometAdapter:1:precursor_charge" value="0:0"/>
 				<UserParam type="string" name="CometAdapter:1:override_charge" value="keep known search unknown"/>
