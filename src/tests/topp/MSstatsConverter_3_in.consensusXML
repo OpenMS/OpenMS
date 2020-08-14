@@ -228,17 +228,10 @@
 				<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-<<<<<<< HEAD
-				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,IsotopeError,MSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
+				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
 				<UserParam type="int" name="Percolator:peptide_level_fdrs" value="0"/>
 				<UserParam type="int" name="Percolator:protein_level_fdrs" value="0"/>
 				<UserParam type="int" name="Percolator:generic_feature_set" value="0"/>
-=======
-				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
-				<UserParam type="int" name="Percolator:peptide-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:protein-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:generic-feature-set" value="0"/>
->>>>>>> upstream/develop
 				<UserParam type="float" name="Percolator:testFDR" value="0.01"/>
 				<UserParam type="float" name="Percolator:trainFDR" value="0.01"/>
 				<UserParam type="int" name="Percolator:maxiter" value="10"/>
