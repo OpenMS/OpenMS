@@ -280,7 +280,7 @@ protected:
     setValidFormats_("init_weights", ListUtils::create<String>("tsv"), !force_openms_format);
     registerFlag_("static", "Use static model (requires init-weights parameter to be set)", is_advanced_option);
 
-    registerStringOption_("default-direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
+    registerStringOption_("default_direction", "<featurename>", "", "The most informative feature given as the feature name, can be negated to indicate that a lower value is better.", !is_required, is_advanced_option);
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerFlag_("unitnorm", "Use unit normalization [0-1] instead of standard deviation normalization", is_advanced_option);
     registerFlag_("test_each_iteration", "Measure performance on test set each iteration", is_advanced_option);
