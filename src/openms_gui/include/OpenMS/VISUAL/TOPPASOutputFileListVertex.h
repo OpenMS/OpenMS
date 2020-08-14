@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,8 @@ public:
     QRectF boundingRect() const override;
     // documented in base class
     void reset(bool reset_all_files = false) override;
+    /// opens the folder containing the output data
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
     /// Called when the parent node has finished execution
     void run() override;
     /// Returns the full directory (including preceding output path as selected by user)

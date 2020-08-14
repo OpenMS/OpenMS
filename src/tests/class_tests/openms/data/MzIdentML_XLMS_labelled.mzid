@@ -50,13 +50,13 @@
  	<Peptide id="PEP_1196373166564353753" name="EVIELPLK[284.173608765599965]NPELFLR">
 		<PeptideSequence>EVIELPLKNPELFLR</PeptideSequence>
 		<Modification location="8" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12999979801269632061" name="GGVHVK[284.173608765599965]LAHLSK">
 		<PeptideSequence>GGVHVKLAHLSK</PeptideSequence>
 		<Modification location="6" residues="K">
-			<cvParam accession="UNIMOD:1020" name="Xlink:DSS" cvRef="UNIMOD"/>
+			<cvParam accession="UNIMOD:1020" name="Xlink:DSS[156]" cvRef="UNIMOD"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13641829453453140763" name="FIVKASSGPR">

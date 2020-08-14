@@ -50,7 +50,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_MetaboliteAdductDecharger
+   @page UTILS_MetaboliteAdductDecharger MetaboliteAdductDecharger
 
    @brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities.
 <CENTER>

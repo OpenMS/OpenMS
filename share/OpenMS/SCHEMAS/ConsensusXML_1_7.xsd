@@ -497,7 +497,7 @@
 				<xs:documentation>significance threshold as calculated by the search engine</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
-		<xs:attribute name="spectrum_reference" type="xs:unsignedInt">
+		<xs:attribute name="spectrum_reference" type="xs:string">
 			<xs:annotation>
 				<xs:documentation>Integer reference number of the identified spectrum (or feature)</xs:documentation>
 			</xs:annotation>
