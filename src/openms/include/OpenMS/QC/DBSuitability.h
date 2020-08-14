@@ -47,7 +47,7 @@ namespace OpenMS
   class PeptideHit;
 
   /**
-  * @brief This class serves as the library representation @ref TOPP_DatabaseDBSuitability
+  * @brief This class serves as the library representation @ref TOPP_DatabaseSuitability
   *
   * This class holds the functionality of calculating the database suitability.
   * This can only be done if a combined deNovo+database identification search was performed.
