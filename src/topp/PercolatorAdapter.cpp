@@ -1045,7 +1045,7 @@ protected:
       if (getFlag_("post_processing_tdc")) arguments << "-Y";
       if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
       if (getFlag_("static")) arguments << "--static";
-      Int nested_xval_bins = getIntOption_("nested-xval-bins");
+      Int nested_xval_bins = getIntOption_("nested_xval_bins");
       if (nested_xval_bins > 1) arguments << "--nested-xval-bins" << String(nested_xval_bins).toQString();
  
       String weights_file = getStringOption_("weights");
