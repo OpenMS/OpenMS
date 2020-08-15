@@ -563,7 +563,7 @@ namespace OpenMS
           {
             // create and register this modified residue
             res = new Residue(*residue_names_[res_name]);
-            res->setModification_(*mod);
+            res->setModification(mod);
             addResidue_(res);
           }
         }

@@ -67,10 +67,10 @@ class TestSignalToNoiseEstimator
 
   protected:
 
-  void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
+  void computeSTN_(const MSSpectrum& C)
       throw() override
   {
-    if (scan_first_ == scan_last_)
+    if (C.begin() == C.end())
     {
       std::cout << "bla";
     }
@@ -95,7 +95,7 @@ END_SECTION
 START_SECTION((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum spec;
-  sne.init(spec.begin(), spec.end());
+  sne.init(spec);
   TestSignalToNoiseEstimator sne_copy(sne);
 	NOT_TESTABLE
 END_SECTION
@@ -104,7 +104,7 @@ END_SECTION
 START_SECTION((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum spec;
-  sne.init(spec.begin(), spec.end());
+  sne.init(spec);
   TestSignalToNoiseEstimator sne_copy;
   sne_copy = sne;
 	NOT_TESTABLE
@@ -116,13 +116,6 @@ START_SECTION((virtual ~SignalToNoiseEstimator()))
 END_SECTION
 
 
-START_SECTION((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
-  TestSignalToNoiseEstimator sne;
-  MSSpectrum spec;
-  sne.init(spec.begin(), spec.end());
-	NOT_TESTABLE
-END_SECTION
-
 START_SECTION((virtual void init(const Container& c)))
   TestSignalToNoiseEstimator sne;
   MSSpectrum spec;
@@ -130,12 +123,8 @@ START_SECTION((virtual void init(const Container& c)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((virtual double getSignalToNoise(const PeakIterator& data_point)))
-  // hard to do without implementing computeSTN_ properly
-	NOT_TESTABLE
-END_SECTION
 
-START_SECTION((virtual double getSignalToNoise(const PeakType &data_point)))
+START_SECTION((virtual double getSignalToNoise(const Size index)))
   // hard to do without implementing computeSTN_ properly
 	NOT_TESTABLE
 END_SECTION

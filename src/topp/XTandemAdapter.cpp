@@ -101,6 +101,14 @@ using namespace std;
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
 
+    Hint: this adapter supports 15N labeling by specifying
+@code
+<note type="input" label="protein, modified residue mass file">/path/to/bioml.xml</note>
+@endcode
+    in a default config file. See https://www.thegpm.org/TANDEM/api/pmrmf.html for details. Warning: if the filename is invalid, @em X!Tandem will simply ignore the setting without feedback!
+    However, the resulting peptide sequences in the idXML file
+    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
+
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
@@ -316,8 +324,7 @@ protected:
       infile.setDefaultParametersFilename(default_XML_config);
     }
 
-    infile.write(input_filename, getFlag_("ignore_adapter_param"),
-                 getFlag_("force"));
+    infile.write(input_filename, getFlag_("ignore_adapter_param"), getFlag_("force"));
 
     //-------------------------------------------------------------
     // calculations

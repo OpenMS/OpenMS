@@ -76,7 +76,7 @@
   <note type="input" label="protein, cleavage semi">no</note>
   <note type="input" label="protein, quick acetyl">yes</note>
   <note type="input" label="protein, quick pyrolidone">yes</note>
-  <note type="input" label="protein, modified residue mass file"></note>
+  <note type="input" label="protein, modified residue mass file"></note>               !!!!! fill in a filename here for 15N labeling etc.. make sure the PATH is valid, or Tandem will silently ignore it!
   <note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
   <note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
   <note type="input" label="protein, N-terminal residue modification mass">0.0</note>
