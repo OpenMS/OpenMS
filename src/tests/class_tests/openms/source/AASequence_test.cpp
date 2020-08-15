@@ -1051,7 +1051,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   // test C-terminal modification
   {
-    AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
+    const AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[1617.2333940319]")
     TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[1617.2333940319]")
@@ -1070,14 +1070,15 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1617.2333940319]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
     // test that we can re-read the string from BracketString
-    test_other = AASequence::fromString(test_seq.toBracketString(false, true));
+    auto bs = test_seq.toBracketString(false, true);
+    test_other = AASequence::fromString(bs);
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)

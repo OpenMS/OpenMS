@@ -829,6 +829,10 @@ protected:
         os << it->first << " " << it->second;
       }
 
+      for (const auto& se : search_engines)
+      {
+        os_tsv << "general: search engine" << '\t' << se.first << '\t' << "(version: " << se.second << ")" << '\n';
+      }
       os_tsv << "general: num. of runs" << '\t' << runs_count << '\n';
       os_tsv << "general: num. of protein hits" << '\t' << protein_hit_count << '\n';
       os_tsv << "general: num. of non-redundant protein hits (only hits that differ in the accession)"

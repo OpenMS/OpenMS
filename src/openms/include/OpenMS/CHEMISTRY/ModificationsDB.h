@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
+#include <memory>  // unique_ptr
 #include <unordered_map>
 
 namespace OpenMS
@@ -146,9 +147,12 @@ public:
 
     /**
        @brief Add a new modification to ModificationsDB.
-       Will skip adding if modification already exists (based on its fullID)
+       If the modification already exists (based on its fullID) it is not added.
+       The function returns a pointer to the modification in the ModificationDB (which can be differ from input if mod was already present).
+
+       @param new_mod Owning pointer, which transfers ownership to ModificationsDB (mod might get deleted if already present!)
     */
-    void addModification(ResidueModification * new_mod);
+    const ResidueModification* addModification(std::unique_ptr<ResidueModification> new_mod);
 
     /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
