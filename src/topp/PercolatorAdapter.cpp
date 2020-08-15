@@ -1050,7 +1050,7 @@ protected:
  
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init_weights");
-      String default_search_direction = getStringOption_("default-direction");
+      String default_search_direction = getStringOption_("default_direction");
       if (!weights_file.empty()) arguments << "-w" << weights_file.toQString();
       if (!init_weights_file.empty()) arguments << "-W" << init_weights_file.toQString();
       if (!default_search_direction.empty()) arguments << "-V" << default_search_direction.toQString();
@@ -1293,8 +1293,8 @@ protected:
         search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
         search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
         search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
-        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset-max-train"));
-        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick-validation"));
+        search_parameters.setMetaValue("Percolator:subset_max_train", getIntOption_("subset_max_train"));
+        search_parameters.setMetaValue("Percolator:quick_validation", getFlag_("quick_validation"));
         search_parameters.setMetaValue("Percolator:static", getFlag_("static"));
         search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
         search_parameters.setMetaValue("Percolator:init_weights", getStringOption_("init_weights"));
