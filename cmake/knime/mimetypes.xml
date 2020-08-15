@@ -37,6 +37,21 @@
  <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
  <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
  <mimetype name="PERCOLATORTAB" binary="false" description="Percolator tab seperated in/output" ext="tab"/>
- <mimetype name="PQP" binary="true" description="The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files." ext="pqp"/>
+ <mimetype name="PQP" binary="true" description="Peptide query parameter files are SQLite databases consisting of several tables representing the data contained in TraML files." ext="pqp"/>
  <mimetype name="MS" binary="false" description="SIRIUS file format" ext="ms"/  >
+ <mimetype name="SPLIB" binary="false" description="SpectraST spectral library format" ext="splib"/  >
+ <mimetype name="OBO" binary="false" description="Open Biomedical Ontologies format" ext="obo"/  >
+ <mimetype name="HTML" binary="false" description="Hypertext markup language" ext="html"/  >
+ <mimetype name="PIN" binary="false" description="Percolator input format" ext="pin"/  >
+ <mimetype name="POUT" binary="false" description="Percolator output format" ext="pout"/  >
+ <mimetype name="OSW" binary="false" description="OpenSWATH format" ext="osw"/  >
+ <mimetype name="SQMASS" binary="false" description="SQL based mass-spec format" ext="sqmass"/  >
+ <mimetype name="NOVOR" binary="false" description="novoR deNovo search engine output format" ext="novor"/  >
+ <mimetype name="SPECXML" binary="false" description="XQuest spectrum matches format" ext="xml"/  >
+ <mimetype name="XQUESTXML" binary="false" description="XQuest results format" ext="xml"/  >
+ <mimetype name="MRM" binary="false" description="Multiple reaction monitoring format" ext="mrm"/  >
+ <mimetype name="PSQ" binary="false" description="Blast database index for protein database needed for OMSSA" ext="psq"/  >
+ <mimetype name="PSMS" binary="false" description="Simple file format for peptide-spectrum matches" ext="psms"/  >
+ <mimetype name="JSON" binary="false" description="JSON" ext="json"/  >
+ <mimetype name="XSD" binary="false" description="XML schema definitions" ext="xsd"/  >
 </mimetypes>

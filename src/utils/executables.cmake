@@ -25,8 +25,6 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 LabeledEval
-LowMemPeakPickerHiRes
-LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
@@ -61,6 +59,7 @@ SimpleSearchEngine
 SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
+StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation

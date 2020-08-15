@@ -256,7 +256,16 @@ private:
       void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;
 
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
-      static double transformScore_(const String & engine, const PeptideHit & hit);
+      /// @param engine the search engine name as in the SE param object
+      /// @hit the PeptideHit to extract transformed scores from
+      /// @current_score_type the current score type of the PeptideIdentification to take precedence
+      static double transformScore_(const String& engine, const PeptideHit& hit, const String& current_score_type);
+
+      /// gets a specific score (either main score [preferred] or metavalue)
+      /// @requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
+      /// @hit the PeptideHit to extract from
+      /// @actual_score_type the current score type to take preference if matching
+      static double getScore_(const StringList& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);

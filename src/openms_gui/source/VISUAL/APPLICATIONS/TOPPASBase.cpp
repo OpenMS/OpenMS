@@ -851,7 +851,7 @@ namespace OpenMS
     //- through the menu entry
     //- through the tab bar
     //- through the MDI close button
-    connect(tw, SIGNAL(aboutToBeDestroyed(int)), tab_bar_, SLOT(removeId(int)));
+    connect(tw, &TOPPASWidget::aboutToBeDestroyed, tab_bar_, &TOPPASTabBar::removeId);
 
     tab_bar_->setCurrentId(tw->getWindowId());
 

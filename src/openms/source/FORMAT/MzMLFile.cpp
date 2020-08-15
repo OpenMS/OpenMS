@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
@@ -250,6 +251,33 @@ namespace OpenMS
     handler.getCounts(scount, ccount);
     consumer->setExpectedSize(scount, ccount);
     consumer->setExperimentalSettings(experimental_settings);
+  }
+
+  std::map<UInt,std::pair<Size,Size>> MzMLFile::getCentroidInfo(const String& filename)
+  {
+    bool oldoption = options_.getFillData();
+    options_.setFillData(false);
+    MSDataTransformingConsumer c{};
+    std::map<UInt,std::pair<Size,Size>> ret;
+    auto f = [&ret](const MSSpectrum& s)
+    {
+        UInt lvl = s.getMSLevel();
+        bool centroided = s.getType() == MSSpectrum::SpectrumType::CENTROID;
+        auto success_mapiter = ret.emplace(lvl,
+                                           std::make_pair(0u,0u));
+        if (centroided)
+        {
+            success_mapiter.first->second.first++;
+        }
+        else
+        {
+            success_mapiter.first->second.second++;
+        }
+    };
+    c.setSpectraProcessingFunc(f);
+    transform(filename, &c);
+    options_.setFillData(oldoption);
+    return ret;
   }
 
 } // namespace OpenMS

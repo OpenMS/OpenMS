@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -68,7 +69,7 @@ namespace OpenMS
 
     String toString() const
     {
-      return (prefix + (counter != -1 ? String(counter).fillLeft('0', 3) + "." : "") + suffix);
+      return (prefix + (counter != -1 ? String("_") + String(counter).fillLeft('0', 3) : String()) + "." + suffix);
     }
   };
 
@@ -666,6 +667,17 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     TOPPASScene* ts = getScene_();
+    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
+
+    RAIICleanup clean([&]() {
+      // clean up at end
+      if (p)
+      {
+        delete p;
+      }
+
+      ts->processFinished();
+    });
 
     //** ERROR handling
     if (es != QProcess::NormalExit)
@@ -712,14 +724,7 @@ namespace OpenMS
       }
     }
 
-    //clean up
-    QProcess* p = qobject_cast<QProcess*>(QObject::sender());
-    if (p)
-    {
-      delete p;
-    }
-
-    ts->processFinished();
+   
 
     __DEBUG_END_METHOD__
   }
@@ -734,17 +739,20 @@ namespace OpenMS
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 
-    foreach(QString file, files)
+    for (const QString& file : files)
     {
-      QFileInfo fi(file);
-      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file));
-      String new_prefix = String(fi.path() + "/" + fi.baseName()) + ".";
+      String new_prefix = FileHandler::stripExtension(file);
+      String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
+      if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
+      {
+        new_suffix = String(file).suffix(new_suffix.size());
+      }
       NameComponent nc(new_prefix, new_suffix);
       name_old_to_new[file] = nc;
       ++name_new_count[nc.toString()];
     }
     // for all names which occur more than once, introduce a counter  
-    foreach(QString file, files)
+    for (const QString& file : files)
     {
       if (name_new_count[name_old_to_new[file].toString()] > 1) // candidate for counter
       {
@@ -762,8 +770,8 @@ namespace OpenMS
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
           // rename file and update record
-          String old_filename = it->second.filenames[fi];
-          String new_filename = name_old_to_new[it->second.filenames[fi]].toString();
+          String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
+          String new_filename = QDir::toNativeSeparators(name_old_to_new[it->second.filenames[fi]].toString().toQString());
           if (QFileInfo(old_filename.toQString()).canonicalFilePath() == QFileInfo(new_filename.toQString()).canonicalFilePath())
           { // source and target are identical -- no action required
             continue;
@@ -1130,7 +1138,7 @@ namespace OpenMS
   String TOPPASToolVertex::getOutputDir() const
   {
     TOPPASScene* ts = getScene_();
-    String workflow_dir = File::removeExtension(File::basename(ts->getSaveFileName()));
+    String workflow_dir = FileHandler::stripExtension(File::basename(ts->getSaveFileName()));
     if (workflow_dir == "")
     {
       workflow_dir = "Untitled_workflow";

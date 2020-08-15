@@ -65,8 +65,8 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c CMAKE_BUILD_TYPE</td>
-    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
-        precondition/postcondition checks enabled).
+    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled)
+        or 'Debug' (debug info and precondition/postcondition checks enabled).
         @n The default is 'Release'.</td>
   </tr>
   <tr>
@@ -75,7 +75,9 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c MY_CXX_FLAGS</td>
-    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). This might be useful, for example, for adding debug symbols to a Release build, or for performance analysis (e.g. for '... -DMY_CXX_FLAGS="-g;-fno-omit-frame-pointer" ...')</td>
+    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). 
+        This might be useful, for example, for adding debug symbols to a Release build, or for performance 
+        analysis (e.g. for '... -DMY_CXX_FLAGS="-Og;-ggdb;-g3;-fno-omit-frame-pointer" ...')</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_C_COMPILER</td>

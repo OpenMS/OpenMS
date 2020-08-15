@@ -18,10 +18,12 @@ set(concept_executables_list
 set(qc_executables_list
   Contaminants_test
   FragmentMassError_test
+  FWHM_test
   MissedCleavages_test
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MzCalibration_test
+  PeptideMass_test
   QCBase_test
   RTAlignment_test
   TIC_test
@@ -123,9 +125,11 @@ set(metadata_executables_list
 )
 
 set(system_executables_list
+  ExternalProcess_test
   File_test
   FileWatcher_test
   JavaInfo_test
+  PythonInfo_test
   StopWatch_test
   SysInfo_test
 )
@@ -383,6 +387,7 @@ set(chemistry_executables_list
   AASequence_test
   CoarseIsotopeDistribution_test
   CrossLinksDB_test
+  DecoyGenerator_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -478,6 +483,7 @@ set(analysis_executables_list
   IDMapper_test
   IDMergerAlgorithm_test
   IDRipper_test
+  IDScoreSwitcherAlgorithm_test
   ILPDCWrapper_test
   IncludeExcludeTarget_test
   InclusionExclusionList_test

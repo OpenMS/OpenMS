@@ -203,7 +203,9 @@ namespace OpenMS
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
-                    "corrected");
+                    "corrected");    
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // disabled in OpenSWATH
+    
     feat_finder_.setParameters(params);
     feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
@@ -392,6 +394,11 @@ namespace OpenMS
       if (debug_level_ < 1) OpenMS_Log_info.insert(cout); // revert logging change
       chrom_data_.clear(true);
       library_.clear(true);
+      // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
+      // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
+      // Usually we could sanitize the identifiers or merge the runs, but since they are empty and we add the
+      // "real" proteins later -> just clear them
+      features.getProteinIdentifications().clear();
     }
 
     OPENMS_LOG_INFO << "Found " << features.size() << " feature candidates in total."

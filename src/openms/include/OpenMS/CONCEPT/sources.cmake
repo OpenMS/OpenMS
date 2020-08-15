@@ -5,6 +5,7 @@ set(directory include/OpenMS/CONCEPT)
 set(sources_list_h
 ClassTest.h
 Constants.h
+EnumHelpers.h
 Exception.h
 Factory.h
 FactoryBase.h
@@ -18,6 +19,7 @@ Macros.h
 MacrosTest.h
 PrecisionWrapper.h
 ProgressLogger.h
+RAIICleanup.h
 SingletonRegistry.h
 StreamHandler.h
 Types.h

@@ -1222,7 +1222,7 @@ OPENMS_THREAD_CRITICAL(oms_log)
             }
             this->root_.insert(local_entry, prefix); //->setValue(it.getName(), local_entry.value, local_entry.description, local_entry.tags);
           }
-          else
+          else if (verbose)
           {
 OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;

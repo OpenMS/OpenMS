@@ -853,25 +853,25 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
     
     String txt_designator = File::getUniqueName();
     String pin_file;
     if (getStringOption_("out_pin").empty())
     {
-      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+      pin_file = tmp_dir.getPath() + txt_designator + "_pin.tab";
     }
     else
     {
       pin_file = getStringOption_("out_pin");
     }
     
-    String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
-    String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
-    String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
-    String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
-    String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
-    String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
+    String pout_target_file(tmp_dir.getPath() + txt_designator + "_target_pout_psms.tab");
+    String pout_decoy_file(tmp_dir.getPath() + txt_designator + "_decoy_pout_psms.tab");
+    String pout_target_file_peptides(tmp_dir.getPath() + txt_designator + "_target_pout_peptides.tab");
+    String pout_decoy_file_peptides(tmp_dir.getPath() + txt_designator + "_decoy_pout_peptides.tab");
+    String pout_target_file_proteins(tmp_dir.getPath() + txt_designator + "_target_pout_proteins.tab");
+    String pout_decoy_file_proteins(tmp_dir.getPath() + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
     if (out_type == FileTypes::OSW && in_osw != out)
@@ -1151,7 +1151,14 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType(scoreType);
+        if (scoreType == "pep")
+        {
+          it->setScoreType("Posterior Error Probability");
+        }
+        else
+        {
+          it->setScoreType(scoreType);
+        }
         it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
@@ -1212,7 +1219,17 @@ protected:
           }
         }
       }
-      OPENMS_LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
+
+      if (!peptide_level_fdrs)
+      {
+      OPENMS_LOG_INFO << "PSM-level FDR: All PSMs are returned by percolator. Reannotating all PSMs in input data with percolator output." << endl;
+      }
+      else
+      {
+      OPENMS_LOG_INFO << "Peptide-level FDR: Only the best PSM per Peptide is returned by percolator. Reannotating the best PSM in input data with percolator output." << endl;
+      }
+      OPENMS_LOG_INFO << "Scores of all other PSMs will be set to 1.0." << endl;
+      OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)

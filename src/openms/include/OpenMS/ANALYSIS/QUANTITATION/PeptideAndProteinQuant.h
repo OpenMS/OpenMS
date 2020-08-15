@@ -64,18 +64,23 @@ public:
       /// mapping: fraction -> charge -> sample -> abundance
       std::map<Int, std::map<Int, SampleAbundances>> abundances;
 
+      /// mapping: fraction -> charge -> sample -> abundance
+      std::map<Int, std::map<Int, SampleAbundances>> psm_counts;
+
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
+
+      /// spectral counting-based abundances
+      SampleAbundances total_psm_counts;
 
       /// protein accessions for this peptide
       std::set<String> accessions;
 
-      /// number of identifications
-      Size id_count;
+      /// total number of identifications
+      Size psm_count = 0;
 
       /// constructor
-      PeptideData() :
-        id_count(0) {}
+      PeptideData() = default;
     };
 
     /// Mapping: peptide sequence (modified) -> peptide data
@@ -87,15 +92,22 @@ public:
       /// mapping: peptide (unmodified) -> sample -> abundance
       std::map<String, SampleAbundances> abundances;
 
+      std::map<String, SampleAbundances> psm_counts;
+
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
 
-      /// total number of identifications (of peptides mapping to this protein)
-      Size id_count;
+      /// spectral counting-based abundances
+      SampleAbundances total_psm_counts;
+
+      /// number of distinct peptide sequences
+      SampleAbundances total_distinct_peptides;
+
+      /// total number of PSMs mapping to this protein
+      Size psm_count = 0;
 
       /// constructor
-      ProteinData() :
-        id_count(0) {}
+      ProteinData() = default;
     };
 
     /// Mapping: protein accession -> protein data
@@ -192,7 +204,8 @@ public:
     static void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
-      const UInt n_samples);
+      const UInt n_samples,
+      bool remove_unquantified = true);
 
 private:
 
@@ -332,11 +345,11 @@ private:
                          std::map<String, String>& accession_to_leader);
 
     /**
-         @brief Count the number of identifications (best hits only) of each peptide sequence.
+         @brief Count the number of identifications (best hits only) of each peptide sequence and initializes the result structure over all fractions.
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification>& peptides);
+    void countPeptides_(std::vector<PeptideIdentification>& peptides, const Size& n_fractions);
 
     /// Clear all data when parameters are set
     void updateMembers_() override;

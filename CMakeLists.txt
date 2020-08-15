@@ -33,6 +33,13 @@
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+
+# Handle default build type
+get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+endif()
+
 project("OpenMS_host")
 
 # required for cmake < 3.13 if ccache is used
@@ -121,10 +128,14 @@ if(NOT GIT_TRACKING)
   if(NOT DEFINED OPENMS_GIT_SHORT_REFSPEC)
     set(OPENMS_GIT_SHORT_REFSPEC "disabled")
   endif()
+  if(NOT DEFINED OPENMS_GIT_LC_DATE)
+    set(OPENMS_GIT_LC_DATE "1970-01-01")
+  endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
 elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
+  set(OPENMS_GIT_LC_DATE "1970-01-01")
   message(STATUS "  [CMake cannot track Git commits and branching, since Git or the .git folder was not found. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
@@ -178,14 +189,6 @@ if (CMAKE_SIZEOF_VOID_P MATCHES "8")
 else()
 	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
 	message(STATUS "Architecture: 32 bit")
-endif()
-
-#------------------------------------------------------------------------------
-# Handle build type
-#------------------------------------------------------------------------------
-# Set default build type (if not set by user on command line)
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Force build type into the cache (needs to be set beforehand)

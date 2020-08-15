@@ -1,6 +1,9 @@
+## Use CMake 3.17 to correctly find OpenMP on macOS
+cmake_minimum_required(VERSION 3.9)
+
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
-cmake_minimum_required(VERSION 3.8)
+
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
@@ -21,10 +24,9 @@ set(my_sources
 ## to automate adding the aforementioned find_dependency calls during export.
 find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
-## Same here. This should be made optional somehow. Figure out how to do that. And figure out, why on macOS it works already.
-if (NOT APPLE)
-  find_package(OpenMP)
-endif()
+## Same here. This should be made optional somehow. Figure out how to do that (probably just target_link_library OpenMP privately)
+## Since CMake 3.17 OpenMP also auto-detects libomp from brew for AppleClang. 
+find_package(OpenMP)
 
 ## find OpenMS package and register target "OpenMS" (our library)
 ## Note: This is customized to fit the nightly test scenario. In a
@@ -46,13 +48,15 @@ if (OpenMS_FOUND)
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
   target_link_libraries(my_custom_lib OpenMS)
+  ## disable auto-linking of boost (mainly needed for Windows. CMake takes care of choosing the right library)
+  target_compile_definitions(my_custom_lib PUBLIC BOOST_ALL_NO_LIB)
 
   ## add targets for the executables
   foreach(i ${my_executables})
     # create the executable
     add_executable(${i} ${i}.cpp)
     ## link executables against OpenMS
-	target_link_libraries(${i} OpenMS my_custom_lib)
+    target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
 
 else(OpenMS_FOUND)

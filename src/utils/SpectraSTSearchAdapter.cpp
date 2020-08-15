@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -173,7 +171,7 @@ protected:
 
      // Add library file argument, terminate if the corresponding spidx is not present
      String library_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_library_file);
-     String index_file = File::removeExtension(library_file).append(".spidx");
+     String index_file = FileHandler::stripExtension(library_file).append(".spidx");
      if (! File::exists(index_file))
      {
          OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
@@ -323,7 +321,7 @@ protected:
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        QString actual_path = temp_dir_qt.filePath(File::removeExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
+        QString actual_path = temp_dir_qt.filePath(FileHandler::stripExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
 
         std::ifstream ifs(actual_path.toStdString().c_str(), std::ios::in | std::ios::binary);
         std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);

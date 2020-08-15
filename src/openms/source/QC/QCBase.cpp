@@ -29,12 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Swenja Wagner, Patricia Scheil $
+// $Authors: Chris Bielow, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/QC/QCBase.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
@@ -89,9 +90,22 @@ namespace OpenMS
     {
       if (this->requires().isSuperSetOf(QCBase::Status(QCBase::Requires(i))) && !s.isSuperSetOf(QCBase::Status(QCBase::Requires (i))) )
       {
-        OPENMS_LOG_WARN << "Metric '" << this->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
+        OPENMS_LOG_WARN << "Note: Metric '" << this->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
       }
     }
     return false;
   }
+
+  bool QCBase::isLabeledExperiment(const ConsensusMap& cm)
+  {
+    bool iso_analyze = true;
+    auto cm_dp = cm.getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
+    if (all_of(cm_dp.begin(), cm_dp.end(), [](const OpenMS::DataProcessing& dp)
+    { return (dp.getSoftware().getName() != "IsobaricAnalyzer"); }))
+    {
+      iso_analyze = false;
+    }
+    return iso_analyze;
+  }
+
 } //namespace OpenMS

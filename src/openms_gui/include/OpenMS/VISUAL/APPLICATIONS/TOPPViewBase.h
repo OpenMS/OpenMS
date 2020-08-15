@@ -40,12 +40,14 @@
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
@@ -78,8 +80,6 @@ class QWorkspace;
 
 namespace OpenMS
 {
-  class EnhancedWorkspace;
-  class EnhancedTabBar;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
@@ -224,7 +224,7 @@ public:
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
     /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
-    EnhancedWorkspace* getWorkspace() const;
+    EnhancedWorkspace* getWorkspace();
 
     /// returns a pointer to the active SpectrumWidget (0 if none is active)
     SpectrumWidget* getActiveSpectrumWidget() const;
@@ -251,12 +251,8 @@ public:
 public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
-    /// shows the URL stored in the data of the sender QAction
-    void showURL();
-    /// shows the file dialog for opening files
-    void openFileDialog();
-    /// shows the file dialog for opening example files
-    void openExampleDialog();
+    /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
+    void openFileDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog();
     /// shows the preferences dialog
@@ -275,6 +271,9 @@ public slots:
     void layerDeactivated();
     /// closes the active window
     void closeFile();
+
+    /// calls update*Bar and updateMenu_() to make sure the interface matches the current data
+    void updateBarsAndMenus();
     /// updates the toolbar
     void updateToolBar();
     /// adapts the layer bar to the active window
@@ -291,10 +290,7 @@ public slots:
     void updateMenu();
     /// brings the tab corresponding to the active window in front
     void updateTabBar(QMdiSubWindow* w);
-    /// tile the open windows vertically
-    void tileVertical();
-    /// tile the open windows horizontally
-    void tileHorizontal();
+
     /**
       @brief Shows a status message in the status bar.
 
@@ -316,7 +312,7 @@ public slots:
     void showSpectrumAlignmentDialog();
     /// Shows the spectrum with index @p index of the active layer in 1D
     void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
@@ -325,8 +321,6 @@ public slots:
     void showCurrentPeaksAsIonMobility();
     /// Shows the current peak data of the active layer as DIA data
     void showCurrentPeaksAsDIA();
-    /// Shows the 'About' dialog
-    void showAboutDialog();
     /// Saves the whole current layer data
     void saveLayerAll();
     /// Saves the visible layer data
@@ -357,24 +351,21 @@ public slots:
     /// Loads a file given by the passed string
     void loadFile(QString);
 
+    /// Enables/disables the data filters for the current layer
+    void layerFilterVisibilityChange(bool);
+
 protected slots:
     /** @name Layer manager and filter manager slots
     */
     //@{
     /// slot for layer manager selection change
     void layerSelectionChange(int);
-    /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
     /// slot for layer manager context menu
     void layerContextMenu(const QPoint& pos);
     /// slot for log window context menu
     void logContextMenu(const QPoint& pos);
     /// slot for layer manager visibility change (check box)
     void layerVisibilityChange(QListWidgetItem* item);
-    /// slot for filter manager context menu
-    void filterContextMenu(const QPoint& pos);
-    /// slot for editing a filter
-    void filterEdit(QListWidgetItem* item);
     /// slot for editing the preferences of the current layer
     void layerEdit(QListWidgetItem* /*item*/);
     //@}
@@ -443,20 +434,19 @@ protected:
     /// Layer management widget
     QListWidget* layers_view_;
 
-    ///@name Filter widgets
+    ///@name Filter widget
     //@{
-    QListWidget* filters_;
-    QCheckBox* filters_check_box_;
+    FilterList* filter_list_;
     //@}
 
     /// Watcher that tracks file changes (in order to update the data in the different views)
-    FileWatcher* watcher_;
+    FileWatcher* watcher_ = nullptr;
 
     /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
-    bool watcher_msgbox_;
+    bool watcher_msgbox_ = false;
 
     /// Stores whether the individual windows should zoom together (be linked) or not
-    bool zoom_together_;
+    bool zoom_together_ = false;
 
     QAction* linkZoom_action_;
 
@@ -492,11 +482,11 @@ protected:
     QAction* dm_ident_2d_;
     //@}
 
-    /// Main workspace
-    EnhancedWorkspace* ws_;
 
+    /// Main workspace
+    EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    EnhancedTabBar* tab_bar_;
+    EnhancedTabBar tab_bar_;
 
     /** @name Status bar
     */
@@ -537,7 +527,7 @@ protected:
       String layer_name;
       UInt window_id;
       Size spectrum_id;
-      QProcess* process;
+      QProcess* process = nullptr;
       QTime timer;
       bool visible;
     } topp_;
@@ -574,23 +564,13 @@ protected:
     QTabWidget* views_tabwidget_;
 
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior* identificationview_behavior_;
+    TOPPViewIdentificationViewBehavior identificationview_behavior_;
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    TOPPViewSpectraViewBehavior spectraview_behavior_;
 
-    // static helper functions
 public:
-    /// Returns true if @p contains at least one MS1 spectrum
-    static bool containsMS1Scans(const ExperimentType& exp);
-
-    /// Returns true if @p contains ion mobility data
-    static bool containsIMData(const MSSpectrum& s);
-
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
-
-    /// Returns true of experiment has at least one exact zero valued peak in any of its MS1 spectra
-    static bool hasMS1Zeros(const ExperimentType& exp);
+    static float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
     /// Returns true if the experiment map contains peptide identifications
     static bool hasPeptideIdentifications(const ExperimentType& map);

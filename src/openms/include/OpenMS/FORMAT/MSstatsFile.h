@@ -268,8 +268,8 @@ namespace OpenMS
         friend bool operator<(const MSstatsTMTLine_ &l,
                               const MSstatsTMTLine_ &r) {
 
-          return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.mixture_, l.precursor_charge_, l.sequence_) <
-                  std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.mixture_, r.precursor_charge_, r.sequence_);
+          return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.mixture_, l.precursor_charge_, l.sequence_, l.channel_) <
+                  std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.mixture_, r.precursor_charge_, r.sequence_, r.channel_);
         }
 
 

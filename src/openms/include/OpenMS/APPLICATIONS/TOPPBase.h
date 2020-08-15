@@ -204,12 +204,6 @@ private:
     /// Location in the ini file where to look for parameters.
     String const ini_location_;
 
-    /// An optional temporary working directory.
-    String working_dir_;
-
-    /// Debug level at which to keep working dir.
-    Int working_dir_keep_debug_lvl_;
-
     /// No default constructor.  It is "declared away".
     TOPPBase();
 
@@ -769,6 +763,18 @@ protected:
     void checkParam_(const Param& param, const String& filename, const String& location) const;
 
     /**
+      @brief checks if files of an input file list exist
+
+      Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
+      
+      @param param_value As given via commandline/ini/default
+      @param param_name Name of the parameter (key)
+      @param p All meta information for this param
+
+    */
+    void fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const;
+
+    /**
       @brief checks if an input file exists (respecting the flags)
 
       Checks if String/Format restrictions are met (or throws InvalidParameter() otherwise).
@@ -778,12 +784,12 @@ protected:
       
       For OutputFile(s), it checks if the file is writeable.
 
-      @param filename ...as given via commandline/ini/default
+      @param param_value As given via commandline/ini/default
       @param param_name Name of the parameter (key)
       @param p All meta information for this param
 
     */
-    void fileParamValidityCheck_(String& filename, const String& param_name, const ParameterInformation& p) const;
+    void fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const;
 
     /**
       @brief Checks if the parameters of the provided ini file are applicable to this tool
@@ -813,26 +819,14 @@ protected:
     void writeDebug_(const String& text, const Param& param, UInt min_level) const;
     //@}
 
-    ///@name Temporary directories
-    //@{
-    /// Creates a unique temporary directory and returns its name (you have to clean it up yourself)
-    String makeTempDirectory_() const;
-
-    /// Creates a unique temporary directory and returns its name (will be cleaned up automatically if debug level is high enough)
-    String makeAutoRemoveTempDirectory_(Int keep_debug = 2);
-
-    /**
-       @brief Removes a (temporary) directory
-
-       If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
-    */
-    void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
-    //@}
-
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
-    /// Runs an external process via QProcess and reports its status in the logs
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
     ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
+
+    /// Runs an external process via ExternalProcess and prints its stderr output on failure or if debug_level > 4
+    /// Additionally returns the process' stdout and stderr
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir = "") const;
     //@}
 
     /**
