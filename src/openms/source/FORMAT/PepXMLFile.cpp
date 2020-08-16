@@ -230,15 +230,6 @@ namespace OpenMS
       if (!mods.empty())
       {
         registered_mod = mods[0];
-        // for unknown terminus it looks for everything, otherwise just for the specific terminus
-        // TODO we might also need to search for Protein-X-Term in case of X-Term
-        //  since some tools seem to forget to annotate
-        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
-            mods, this->massdiff, mod_tol_, this->aminoacid, term_spec);
-      }
-      if (!mods.empty())
-      {
-        registered_mod = mods[0];
         if (mods.size() > 1)
         {
           String mod_str = mods[0]->getFullId();
@@ -1872,7 +1863,8 @@ namespace OpenMS
 
       for (const auto& mod : fixed_modifications_)
       {
-        if (mod.getTerminus() == "n")
+        if (mod.getRegisteredMod()->getTermSpecificityName() == "N-term" ||
+            mod.getRegisteredMod()->getTermSpecificityName() == "Protein N-term")
         {
           if (!temp_aa_sequence.hasNTerminalModification())
           {
@@ -1883,9 +1875,10 @@ namespace OpenMS
             //TODO warn
           }
         }
-        else if (mod.getTerminus() == "c")
+        else if (mod.getRegisteredMod()->getTermSpecificityName() == "C-term" ||
+            mod.getRegisteredMod()->getTermSpecificityName() == "Protein C-term")
         {
-          if (!temp_aa_sequence.hasNTerminalModification())
+          if (!temp_aa_sequence.hasCTerminalModification())
           {
             temp_aa_sequence.setCTerminalModification(mod.getRegisteredMod());
           }
