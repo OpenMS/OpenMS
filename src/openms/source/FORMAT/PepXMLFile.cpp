@@ -281,7 +281,7 @@ namespace OpenMS
     hydrogen_ = *db->getElement("Hydrogen");
   }
 
-  const double PepXMLFile::mod_tol_ = 0.001;
+  const double PepXMLFile::mod_tol_ = 0.002;
   const double PepXMLFile::xtandem_artificial_mod_tol_ = 0.0005; // according to cpp in some old version of xtandem somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
 
   PepXMLFile::~PepXMLFile() = default;
