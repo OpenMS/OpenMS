@@ -123,15 +123,18 @@ namespace OpenMS
 
   PepXMLFile::AminoAcidModification::AminoAcidModification(
       const String& aminoacid, const String& massdiff, const String& mass,
-      String variable, const String& description, String terminus, const String& protein_terminus) :
-      aminoacid(aminoacid),
-      massdiff(massdiff.toDouble()),
-      mass(mass.toDouble()),
-      variable(variable.toLower() == "y"),
-      description(description),
-      terminus(terminus.toLower())
+      String variable, const String& description, String terminus, const String& protein_terminus)
   {
+    this->aminoacid = aminoacid;
+    this->massdiff = massdiff.toDouble();
+    this->mass = mass.toDouble();
+    this->variable = variable.toLower() == "y";
+    this->description = description;
     this->registered_mod = nullptr;
+    this->terminus = terminus.toLower();
+    this->protein_terminus = false;
+    this->term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+
     //TODO value "nc" for any terminus is actually not supported by us, yet!
     /*if (aa_mod.terminus == "nc")
     {
@@ -142,16 +145,17 @@ namespace OpenMS
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
     // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
     // Unfortunately there is an overlap for the letter "n". We will try to handle both based on the case:
-    String entry_lower = protein_terminus;
-    entry_lower = entry_lower.toLower();
-    if (entry_lower == "y")
+    String protein_terminus_lower = protein_terminus;
+    protein_terminus_lower = protein_terminus_lower.toLower();
+
+    if (protein_terminus_lower == "y")
     {
       this->protein_terminus = true;
     }
-    else if (entry_lower == "c")
+    else if (protein_terminus_lower == "c")
     {
       this->protein_terminus = true;
-      this->terminus = entry_lower; // protein_terminus takes precedence. I would assume they are the same
+      this->terminus = protein_terminus_lower; // protein_terminus takes precedence. I would assume they are the same
     }
     else if (protein_terminus == "n")
     {
@@ -163,7 +167,6 @@ namespace OpenMS
       this->protein_terminus = false;
     }
 
-    this->term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
     // Now set our internal enum based on the inferred values
     if (this->terminus == "n")
     {
@@ -188,16 +191,14 @@ namespace OpenMS
       }
     }
 
-    String desc = "";
     // check if the modification is uniquely defined:
-    if (!this->description.empty())
+    if (!description.empty())
     {
       try
       {
-        registered_mod = ModificationsDB::getInstance()->getModification(this->description, this->aminoacid, this->term_spec);
-        desc = registered_mod->getFullId();
+        registered_mod = ModificationsDB::getInstance()->getModification(description, aminoacid, this->term_spec);
       }
-      catch ( Exception::BaseException& )
+      catch (Exception::BaseException&)
       {
         //TODO
         //error(LOAD, "Modification '" + this->description + "' of residue '" + this->aminoacid + "' could not be matched. Trying by modification mass.");
@@ -209,7 +210,7 @@ namespace OpenMS
       //error(LOAD, "No modification description given. Trying to define by modification mass.");
     }
 
-    if (desc.empty())
+    if (registered_mod == nullptr)
     {
       std::vector<const ResidueModification*> mods;
       // if terminus was not specified
@@ -228,7 +229,15 @@ namespace OpenMS
       }
       if (!mods.empty())
       {
-        desc = mods[0]->getFullId();
+        registered_mod = mods[0];
+        // for unknown terminus it looks for everything, otherwise just for the specific terminus
+        // TODO we might also need to search for Protein-X-Term in case of X-Term
+        //  since some tools seem to forget to annotate
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+            mods, this->massdiff, mod_tol_, this->aminoacid, term_spec);
+      }
+      if (!mods.empty())
+      {
         registered_mod = mods[0];
         if (mods.size() > 1)
         {
@@ -250,10 +259,10 @@ namespace OpenMS
         const Residue* r = ResidueDB::getInstance()->getResidue(this->aminoacid[0]);
         //TODO check if it is better to create from mass or massdiff
         this->registered_mod = ResidueModification::createUnknownFromMassString(String(this->massdiff),
-                                                                                              this->massdiff,
-                                                                                              true,
-                                                                                              this->term_spec,
-                                                                                              r);
+                                                                                this->massdiff,
+                                                                                true,
+                                                                                this->term_spec,
+                                                                                r);
 
         //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
         //TODO
