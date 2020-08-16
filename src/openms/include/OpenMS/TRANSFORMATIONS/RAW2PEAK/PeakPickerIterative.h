@@ -209,7 +209,7 @@ private:
         {
           if (signal_to_noise_ > 0.0)
           {
-            if (snt.getSignalToNoise(input[i - k]) < signal_to_noise_)
+            if (snt.getSignalToNoise(i - k) < signal_to_noise_)
             {
               break;
             }
@@ -229,7 +229,7 @@ private:
         {
           if (signal_to_noise_ > 0.0)
           {
-            if (snt.getSignalToNoise(input[i + k]) < signal_to_noise_)
+            if (snt.getSignalToNoise(i + k) < signal_to_noise_)
             {
               break;
             }

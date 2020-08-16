@@ -206,12 +206,12 @@ public:
       if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
       {
         // prev is closer to the apex
-        return sn_.getSignalToNoise(*prev);
+        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));
       }
       else
       {
         // iter is closer to the apex
-        return sn_.getSignalToNoise(*iter);
+        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),iter));
       }
     }
 
