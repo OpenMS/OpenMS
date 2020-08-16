@@ -51,9 +51,10 @@ class TestAcquisitionInfo(unittest.TestCase):
 			self.assertEqual(i.isMetaEmpty(), False)  # always is False
 		
 		# accession already tested in 2nd section
+		tmp = exp.getSpectra()
+		tmp[0].setAcquisitionInfo(neac)
+		exp.setSpectra(tmp)
 
-		# I'd expect assignment to work somewhere
-		exp[0].setAcquisitionInfo(neac)
 		self.assertEqual(exp[0].getAcquisitionInfo().size(), magicnumber)  # should be magicnumber
 
 		for i in exp[0].getAcquisitionInfo():
