@@ -345,6 +345,13 @@ protected:
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
     set<String> var_mods_set;
+    double prec_tol = 0.;
+    double frag_tol = 0.;
+    int min_chg = 10000;
+    int max_chg = -10000;
+    Size mc = 0;
+    String enz;
+    String spec;
 
     //TODO check if settings are same/similar
     bool allsamese = true;
@@ -373,6 +380,31 @@ protected:
       new_sp.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       new_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
       new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
+      
+      const auto& chg_pair = sp.getChargeRange();
+      if (chg_pair.first != 0 && chg_pair.first < min_chg) min_chg = chg_pair.first;
+      if (chg_pair.second != 0 && chg_pair.second > max_chg) max_chg = chg_pair.second;
+      if (sp.missed_cleavages > mc ) mc = sp.missed_cleavages;
+      if (sp.fragment_mass_tolerance > frag_tol) frag_tol = sp.fragment_mass_tolerance;
+      if (sp.precursor_mass_tolerance > prec_tol) prec_tol = sp.precursor_mass_tolerance;
+      // extends "" to Trypsin and e.g. Trypsin to Trypsin/P
+      if (sp.digestion_enzyme.getName().hasSubstring(enz))
+      {
+        enz = sp.digestion_enzyme.getName();
+      }
+      if (spec.empty())
+      {
+        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
+      }
+      //TODO does not handle no-cterm and no-nterm
+      else if (spec == "full" && (sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_SEMI || sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_NONE))
+      {
+        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
+      }
+      else if (spec == "semi" && sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_NONE)
+      {
+        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
+      }
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
@@ -383,6 +415,13 @@ protected:
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     new_sp.fixed_modifications    = fixed_mods;
     new_sp.variable_modifications = var_mods;
+
+    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enz);
+    new_sp.charges = String(min_chg) + "-" + String(max_chg);
+    new_sp.fragment_mass_tolerance = frag_tol;
+    new_sp.precursor_mass_tolerance = prec_tol;
+    new_sp.missed_cleavages = mc;
+    new_sp.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
 
     prot_id.setDateTime(DateTime::now());
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
