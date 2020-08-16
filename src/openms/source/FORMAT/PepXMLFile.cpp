@@ -1621,7 +1621,6 @@ namespace OpenMS
       String aminoacid;
       String terminus;
       String is_variable = attributeAsString_(attributes, "variable");
-      ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
 
       if (element == "aminoacid_modification")
       {
