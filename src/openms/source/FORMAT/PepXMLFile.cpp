@@ -1898,7 +1898,6 @@ namespace OpenMS
                 // weight to the weight of the modification (set above)
                 temp_aa_sequence.setModification(s,
                                                  ResidueDB::getInstance()->getModifiedResidue(r, mod.getRegisteredMod()->getFullId()));
-                temp_aa_sequence.setModification(s, r);
               }
             }
           }

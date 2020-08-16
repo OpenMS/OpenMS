@@ -49,7 +49,7 @@
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="516.267699031899951" RT="687.714600000000019" >
 			<PeptideHit score="0.013" sequence="AVQAVVHHNETADR" charge="3" aa_before="K X X" aa_after="A X X" protein_refs="PH_7 PH_8 PH_9" >
 			</PeptideHit>
-			<PeptideHit score="1.4" sequence="GKGVVTISVAECGNR" charge="3" aa_before="K X X" aa_after="V X X" protein_refs="PH_10 PH_11 PH_12" >
+			<PeptideHit score="1.4" sequence="GKGVVTISVAEC(Carbamidomethyl)GNR" charge="3" aa_before="K X X" aa_after="V X X" protein_refs="PH_10 PH_11 PH_12" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

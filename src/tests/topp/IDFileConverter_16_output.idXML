@@ -117,7 +117,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="681.293347492839985" RT="0.0" >
-			<PeptideHit score="2.01282e-05" sequence=".(Ammonia-loss)CLPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
+			<PeptideHit score="2.01282e-05" sequence=".(Ammonia-loss)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="7.0e-04"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>
