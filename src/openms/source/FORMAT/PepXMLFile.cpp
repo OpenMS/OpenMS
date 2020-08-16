@@ -46,6 +46,226 @@ using namespace std;
 namespace OpenMS
 {
 
+  String PepXMLFile::AminoAcidModification::toUnimodLikeString() const
+  {
+    String desc = "";
+    if (this->massdiff >= 0)
+    {
+      desc += "+" + String(this->massdiff);
+    }
+    else
+    {
+      desc += String(this->massdiff);
+    }
+
+    if (!this->aminoacid.empty() || !this->terminus.empty())
+    {
+      desc += " (";
+      if (!this->terminus.empty())
+      {
+        if (this->protein_terminus)
+        {
+          desc += "Protein ";
+        }
+        {
+          String t = this->terminus;
+          desc += t.toUpper() + "-term";
+        }
+        if (!this->aminoacid.empty())
+        {
+          desc += " ";
+        }
+      }
+      if (!this->aminoacid.empty())
+      {
+        String a = this->aminoacid;
+        desc += a.toUpper();
+      }
+      desc += ")";
+    }
+    return desc;
+  }
+
+  const String& PepXMLFile::AminoAcidModification::getDescription() const
+  {
+    return registered_mod->getFullId();
+  }
+
+  bool PepXMLFile::AminoAcidModification::isVariable() const
+  {
+    return variable;
+  }
+
+  double PepXMLFile::AminoAcidModification::getMass() const
+  {
+    return mass;
+  }
+
+  double PepXMLFile::AminoAcidModification::getMassDiff() const
+  {
+    return massdiff;
+  }
+
+  const String& PepXMLFile::AminoAcidModification::getTerminus() const
+  {
+    return terminus;
+  }
+
+  const String& PepXMLFile::AminoAcidModification::getAminoAcid() const
+  {
+    return aminoacid;
+  }
+
+  const ResidueModification* PepXMLFile::AminoAcidModification::getRegisteredMod() const
+  {
+    return registered_mod;
+  }
+
+  PepXMLFile::AminoAcidModification::AminoAcidModification(
+      const String& aminoacid, const String& massdiff, const String& mass,
+      String variable, const String& description, String terminus, const String& protein_terminus) :
+      aminoacid(aminoacid),
+      massdiff(massdiff.toDouble()),
+      mass(mass.toDouble()),
+      variable(variable.toLower() == "y"),
+      description(description),
+      terminus(terminus.toLower())
+  {
+    this->registered_mod = nullptr;
+    //TODO value "nc" for any terminus is actually not supported by us, yet!
+    /*if (aa_mod.terminus == "nc")
+    {
+      warning(LOAD, "Warning: value 'nc' for aminoacid terminus not supported."
+                    "The modification will be parsed as a non-restricted modification.");
+    }*/
+
+    // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
+    // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
+    // Unfortunately there is an overlap for the letter "n". We will try to handle both based on the case:
+    String entry_lower = protein_terminus;
+    entry_lower = entry_lower.toLower();
+    if (entry_lower == "y")
+    {
+      this->protein_terminus = true;
+    }
+    else if (entry_lower == "c")
+    {
+      this->protein_terminus = true;
+      this->terminus = entry_lower; // protein_terminus takes precedence. I would assume they are the same
+    }
+    else if (protein_terminus == "n")
+    {
+      this->protein_terminus = true;
+      this->terminus = protein_terminus;
+    }
+    else if (protein_terminus == "N")
+    {
+      this->protein_terminus = false;
+    }
+
+    this->term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+    // Now set our internal enum based on the inferred values
+    if (this->terminus == "n")
+    {
+      if (this->protein_terminus)
+      {
+        this->term_spec = ResidueModification::PROTEIN_N_TERM;
+      }
+      else
+      {
+        this->term_spec = ResidueModification::N_TERM;
+      }
+    }
+    else if (this->terminus == "c")
+    {
+      if (this->protein_terminus)
+      {
+        this->term_spec = ResidueModification::PROTEIN_C_TERM;
+      }
+      else
+      {
+        this->term_spec = ResidueModification::C_TERM;
+      }
+    }
+
+    String desc = "";
+    // check if the modification is uniquely defined:
+    if (!this->description.empty())
+    {
+      try
+      {
+        registered_mod = ModificationsDB::getInstance()->getModification(this->description, this->aminoacid, this->term_spec);
+        desc = registered_mod->getFullId();
+      }
+      catch ( Exception::BaseException& )
+      {
+        //TODO
+        //error(LOAD, "Modification '" + this->description + "' of residue '" + this->aminoacid + "' could not be matched. Trying by modification mass.");
+      }
+    }
+    else
+    {
+      //TODO
+      //error(LOAD, "No modification description given. Trying to define by modification mass.");
+    }
+
+    if (desc.empty())
+    {
+      std::vector<const ResidueModification*> mods;
+      // if terminus was not specified
+      if (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try least specific search first
+      {
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+            mods, this->massdiff, mod_tol_, this->aminoacid, ResidueModification::ANYWHERE);
+      }
+      if (mods.empty())
+      {
+        // for unknown terminus it looks for everything, otherwise just for the specific terminus
+        // TODO we might also need to search for Protein-X-Term in case of X-Term
+        //  since some tools seem to forget to annotate
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
+            mods, this->massdiff, mod_tol_, this->aminoacid, term_spec);
+      }
+      if (!mods.empty())
+      {
+        desc = mods[0]->getFullId();
+        registered_mod = mods[0];
+        if (mods.size() > 1)
+        {
+          String mod_str = mods[0]->getFullId();
+          for (const auto& m : mods)
+          {
+            mod_str += ", " + m->getFullId();
+          }
+          //TODO
+          //error(LOAD,
+          //      "Modification '" + String(this->mass) + "' is not uniquely defined by the given data. Using '" +
+          //      mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
+        }
+      }
+      // If we could not find a registered mod in our DB, create and register it. This will be used later for lookup in the sequences.
+      else if (this->massdiff != 0)
+      {
+        // r will be nullptr if not found. The next line handles it.
+        const Residue* r = ResidueDB::getInstance()->getResidue(this->aminoacid[0]);
+        //TODO check if it is better to create from mass or massdiff
+        this->registered_mod = ResidueModification::createUnknownFromMassString(String(this->massdiff),
+                                                                                              this->massdiff,
+                                                                                              true,
+                                                                                              this->term_spec,
+                                                                                              r);
+
+        //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
+        //TODO
+        /*error(LOAD,
+              "Modification '" + String(this->mass) + "/delta " + String(this->massdiff) +
+              "' is unknown. Resuming with '" + desc +
+              "', which could lead to failures using the data downstream.");
+        */
+      }
+    }
+  }
+
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
@@ -64,9 +284,7 @@ namespace OpenMS
   const double PepXMLFile::mod_tol_ = 0.001;
   const double PepXMLFile::xtandem_artificial_mod_tol_ = 0.0005; // according to cpp in some old version of xtandem somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
 
-  PepXMLFile::~PepXMLFile()
-  {
-  }
+  PepXMLFile::~PepXMLFile() = default;
 
   void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
@@ -640,9 +858,8 @@ namespace OpenMS
     f.close();
   }
 
-  void PepXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
+  void PepXMLFile::matchModification_(double mass, const String& origin, String& modification_description, const ResidueModification::TermSpecificity& potential_term)
   {
-    //TODO Why do we here, in comparison to terminal modifications, NOT lookup the registered modifications from the header???
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
     // try more specific search first:
@@ -1180,35 +1397,41 @@ namespace OpenMS
       {
         // look up the modification in the search_summary by mass
         //TODO why? we dont do that for regular amino acid modifications. This has to be unified!
+        bool found = false;
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
           //TODO what if there are two modifications with the same mass??
           //TODO what about floating point comparison? unsafe?
-          if (mod_nterm_mass == it->mass && it->terminus == "n")
+          if (mod_nterm_mass == it->getMass() && it->getTerminus() == "n")
           {
-            double massdiff = (it->massdiff).toDouble();
-            vector<String> mods;
-            //TODO why do we look them up again in our DB?? We did that in the beginning already.
-            // Can't we just take the description now?
-            if (!it->protein_terminus)
-            {
-              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::N_TERM);
-            }
-            else
-            {
-              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
-            }
-
-            if (!mods.empty())
-            {
-              current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
-            }
-            else
-            {
-              error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
-            }
+            current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
+            found = true;
             break; // only one modification should match, so we can stop the loop here
           }
+        }
+
+        if (!found)
+        {
+          // It was not registered in the pepXML header. Search it in DB.
+          std::vector<const ResidueModification*> mods;
+          try
+          {
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::N_TERM);
+          }
+          catch(...)
+          {
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
+          }
+
+          if (!mods.empty())
+          {
+            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+          }
+          else
+          {
+            error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
+          }
+          //TODO we should create and register a mod here
         }
       }
 
@@ -1217,30 +1440,41 @@ namespace OpenMS
       if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
       {
         // look up the modification in the search_summary by mass
+        bool found = false;
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          if (mod_cterm_mass == it->mass && it->terminus == "c")
+          //TODO what if there are two modifications with the same mass??
+          //TODO what about floating point comparison? unsafe?
+          if (mod_nterm_mass == it->getMass() && it->getTerminus() == "c")
           {
-            double massdiff = (it->massdiff).toDouble();
-            vector<String> mods;
-            if (!it->protein_terminus)
-            {
-              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::C_TERM);
-            }
-            else
-            {
-              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, massdiff, mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
-            }
-            if (!mods.empty())
-            {
-              current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
-            }
-            else
-            {
-              error(LOAD, String("Cannot find C-terminal modification with mass " + String(mod_cterm_mass) + "."));
-            }
+            current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
+            found = true;
             break; // only one modification should match, so we can stop the loop here
           }
+        }
+
+        if (!found)
+        {
+          // It was not registered in the pepXML header. Search it in DB.
+          std::vector<const ResidueModification*> mods;
+          try
+          {
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::C_TERM);
+          }
+          catch(...)
+          {
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass, mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
+          }
+
+          if (!mods.empty())
+          {
+            current_modifications_.emplace_back(mods[0], 42); // 42, because position does not matter
+          }
+          else
+          {
+            error(LOAD, String("Cannot find N-terminal modification with mass " + String(mod_nterm_mass) + "."));
+          }
+          //TODO we should create and register a mod here
         }
       }
     }
@@ -1288,51 +1522,124 @@ namespace OpenMS
       // amino acid (pepXML limitation)
       double modification_mass = attributeAsDouble_(attributes, "mass");
       Size modification_position = attributeAsInt_(attributes, "position");
+
       // the modification position is 1-based
       String origin = String(current_sequence_[modification_position - 1]);
       String temp_description = "";
 
-      // TODO Shouldn't this function use the knowledge about the position to
-      //  only look for terminal mods if first or last??
-      // does a tolerant search and may return terminal mods
-      matchModification_(modification_mass, origin, temp_description);
 
-      if (!temp_description.empty())
+      //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
+      // Only in some cases probably, since it is an optional attribute
+      bool found = false;
+      for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin();
+           it != fixed_modifications_.end();
+           ++it)
       {
-        //TODO how to handle protein terminal mods? Can we check if it is a protein terminal peptide?
-        if ((temp_description.hasSubstring("N-term") && modification_position != 1) ||
-            (temp_description.hasSubstring("C-term") && modification_position != current_sequence_.length() - 1))
+        if (fabs(modification_mass - it->getMass()) < 1e-4)
         {
-          double delta_mass = modification_mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
-          // we did not find a matching modification (potentially a terminal modification in a decoy
-          // which is e.g. by Comet not enforced to follow term spec.) -> parse at end of search_hit as unknown
-          current_modifications_.emplace_back(String(delta_mass), modification_position);
-        }
-        else
-        {
-          current_modifications_.emplace_back(temp_description, modification_position);
+          if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
+          {
+            current_modifications_
+                .emplace_back(it->getRegisteredMod(), modification_position - 1); // position not needed for terminus
+            found = true;
+            break; // only one modification should match, so we can stop the loop here
+          }
         }
       }
-      else // nothing found, register as unknown at end of search_hit element
+
+      if (!found)
       {
-        current_modifications_.emplace_back(String(modification_mass), modification_position);
-        //error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
+        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
+        {
+          if (fabs(modification_mass - it->getMass()) < 1e-4)
+          {
+            if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
+            {
+              current_modifications_
+                  .emplace_back(it->getRegisteredMod(), modification_position - 1); // position not needed for terminus
+              found = true;
+              break; // only one modification should match, so we can stop the loop here
+            }
+          }
+        }
+      }
+
+      if (!found)
+      {
+        String psimod_id;
+        optionalAttributeAsString_(psimod_id, attributes, "id");
+        if (!psimod_id.empty())
+        {
+          try
+          {
+            current_modifications_.emplace_back(ModificationsDB::getInstance()->getModification(psimod_id, origin), modification_position - 1);
+            found = true;
+          }
+          catch (...) {}
+        }
+
+        if (!found)
+        {
+          //TODO also here, maybe the static/variable attribute is better for diffmass?
+          double diffmass = modification_mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+          vector<const ResidueModification*> mods;
+          // try least specific search first:
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diffmass, mod_tol_, origin, ResidueModification::ANYWHERE);
+          if (mods.empty())
+          {
+            if (modification_position == 1)
+            {
+              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diffmass, mod_tol_, origin, ResidueModification::N_TERM);
+              if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diffmass, mod_tol_, origin, ResidueModification::PROTEIN_N_TERM);
+            }
+            else if (modification_position == current_sequence_.length())
+            {
+              ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diffmass, mod_tol_, origin, ResidueModification::C_TERM);
+              if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diffmass, mod_tol_, origin, ResidueModification::PROTEIN_C_TERM);
+            }
+          }
+          if (!mods.empty())
+          {
+            if (mods.size() > 1)
+            {
+              warning(LOAD, String("Modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position "
+              + String(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
+              " Using " + mods[0]->getFullId());
+              current_modifications_.emplace_back(mods[0], modification_position - 1);
+            }
+          }
+          else
+          {
+            // nothing found, register as unknown
+            current_modifications_.emplace_back(
+                ResidueModification::createUnknownFromMassString(
+                    String(modification_mass),
+                    modification_mass,
+                    false,
+                    ResidueModification::ANYWHERE, // since it is at an amino acid it is probably NOT a terminal mod
+                    ResidueDB::getInstance()->getResidue(current_sequence_[modification_position - 1])),
+                modification_position - 1
+            );
+          }
+        }
       }
     }
     else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
     {
-      AminoAcidModification aa_mod;
-      optionalAttributeAsString_(aa_mod.description, attributes, "description");
-      aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
-      aa_mod.mass = attributeAsDouble_(attributes, "mass");
-      String protein_terminus_entry = "";
-
+      String description;
+      optionalAttributeAsString_(description, attributes, "description");
+      String massdiff = attributeAsString_(attributes, "massdiff");
+      String mass = attributeAsDouble_(attributes, "mass");
+      String protein_terminus_entry;
+      String aminoacid;
+      String terminus;
       String is_variable = attributeAsString_(attributes, "variable");
       ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+
       if (element == "aminoacid_modification")
       {
-        aa_mod.aminoacid = attributeAsString_(attributes, "aminoacid");
-        optionalAttributeAsString_(aa_mod.terminus, attributes, "peptide_terminus");
+        aminoacid = attributeAsString_(attributes, "aminoacid");
+        optionalAttributeAsString_(terminus, attributes, "peptide_terminus");
         optionalAttributeAsString_(protein_terminus_entry, attributes, "protein_terminus");
         // can't set term_spec to "ANYWHERE", because terminal mods. may not be registered as such
         // (this is an issue especially with Comet)!
@@ -1340,175 +1647,30 @@ namespace OpenMS
       else //terminal_modification
       {
         // Somehow very small fixed modifications (electron mass?) get annotated by X!Tandem. Don't add them as they interfere with other mods.
-        if (fabs(aa_mod.massdiff.toDouble()) < xtandem_artificial_mod_tol_)
+        if (fabs(massdiff.toDouble()) < xtandem_artificial_mod_tol_)
         {
           return;
         }
 
-        optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
-        aa_mod.terminus = String(attributeAsString_(attributes, "terminus")).toLower();
-        protein_terminus_entry = String(attributeAsString_(attributes, "protein_terminus"));
+        optionalAttributeAsString_(aminoacid, attributes, "aminoacid");
+        terminus = attributeAsString_(attributes, "terminus");
+        protein_terminus_entry = attributeAsString_(attributes, "protein_terminus");
       }
 
-      //TODO value "nc" for any terminus is actually not supported by us, yet!
-      if (aa_mod.terminus == "nc")
+      AminoAcidModification aa_mod{
+        aminoacid, massdiff, mass, is_variable, description, terminus, protein_terminus_entry
+      };
+      if (aa_mod.getRegisteredMod() != nullptr)
       {
-        warning(LOAD, "Warning: value 'nc' for aminoacid terminus not supported."
-                      "The modification will be parsed as a non-restricted modification.");
-      }
-
-      // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
-      // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
-      // Unfortunately there is an overlap for the letter "n". We will try to handle both based on the case:
-      String entry_lower = protein_terminus_entry;
-      entry_lower = entry_lower.toLower();
-      if (entry_lower == "y")
-      {
-        aa_mod.protein_terminus = true;
-        if (aa_mod.terminus.empty())
-        {
-          error(LOAD, "Terminus specificity of modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be parsed. Reset to unrestricted modification.");
-        }
-      }
-      else if (entry_lower == "c")
-      {
-        aa_mod.protein_terminus = true;
-        aa_mod.terminus = entry_lower; // protein_terminus takes precedence. I would assume they are the same
-      }
-      else if (protein_terminus_entry == "n")
-      {
-        aa_mod.protein_terminus = true;
-        aa_mod.terminus = protein_terminus_entry;
-      }
-      else if (protein_terminus_entry == "N")
-      {
-        aa_mod.protein_terminus = false;
-        warning(LOAD, "Ambiguous protein_terminus specificity 'N' of modification with massdiff '" + aa_mod.massdiff + "' of residue '" + aa_mod.aminoacid + "'."
-                " The official schema requires it to be 'n' or 'c' for the name of the terminus. Some software however uses 'N' for 'No'. OpenMS therefore"
-                "decides based on the case. Make sure this is what you want and otherwise report it to the tool developer of the upstream tool.");
-      }
-
-      // Now set our internal enum based on the inferred values
-      if (aa_mod.terminus == "n")
-      {
-        if (aa_mod.protein_terminus)
-        {
-          term_spec = ResidueModification::PROTEIN_N_TERM;
-        }
-        else
-        {
-          term_spec = ResidueModification::N_TERM;
-        }
-      }
-      else if (aa_mod.terminus == "c")
-      {
-        if (aa_mod.protein_terminus)
-        {
-          term_spec = ResidueModification::PROTEIN_C_TERM;
-        }
-        else
-        {
-          term_spec = ResidueModification::C_TERM;
-        }
-      }
-
-      String desc = "";
-      // check if the modification is uniquely defined:
-      if (!aa_mod.description.empty())
-      {
-	      try
-        {
-          const ResidueModification* r = ModificationsDB::getInstance()->getModification(aa_mod.description, aa_mod.aminoacid, term_spec);
-          desc = r->getFullId();
-        }
-        catch ( Exception::BaseException& )
-        {
-          error(LOAD, "Modification '" + aa_mod.description + "' of residue '" + aa_mod.aminoacid + "' could not be matched. Trying by modification mass.");
-        }
-      }
-      else
-      {
-        error(LOAD, "No modification description given. Trying to define by modification mass.");
-      }
-      if (desc.empty())
-      {
-        vector<String> mods;
-        // if terminus was not specified
-        if (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try more specific search first
-        {
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
-            mods, aa_mod.massdiff.toDouble(), mod_tol_, aa_mod.aminoacid, ResidueModification::ANYWHERE);
-        }
-        if (mods.empty())
-        {
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
-            mods, aa_mod.massdiff.toDouble(), mod_tol_, aa_mod.aminoacid, term_spec);
-        }
-        // If we could not find a registered mod in our DB, create a Unimod-like description
-        // e.g. "+123.45 (Protein C-term M)". This will be used later for lookup in the sequences.
-        if (mods.empty() && aa_mod.massdiff.toDouble() != 0)
-        {
-          if (aa_mod.massdiff.toDouble() >= 0)
-          {
-            desc += "+" + String(aa_mod.massdiff);
-          }
-          else
-          {
-            desc += String(aa_mod.massdiff);
-          }
-
-          if (!aa_mod.aminoacid.empty() || !aa_mod.terminus.empty())
-          {
-            desc += " (";
-            if (!aa_mod.terminus.empty())
-            {
-              if (aa_mod.protein_terminus)
-              {
-                desc += "Protein ";
-              }
-              {
-                desc += aa_mod.terminus.toUpper() + "-term";
-              }
-              if (!aa_mod.aminoacid.empty())
-              {
-                desc += " ";
-              }
-            }
-            if (!aa_mod.aminoacid.empty())
-            {
-              desc += aa_mod.aminoacid.toUpper();
-            }
-            desc += ")";
-          }
-          //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
-          error(LOAD, "Modification '" + String(aa_mod.mass) + "/delta " + String(aa_mod.massdiff) + "' is unknown. Resuming with '" + desc +  "', which could lead to failures using the data downstream.");
-        }
-        else if (!mods.empty())
-        {
-          desc = mods[0];
-          if (mods.size() > 1)
-          {
-            String mod_str = mods[0];
-            for (vector<String>::const_iterator mit = ++mods.begin(); mit != mods.end(); ++mit)
-            {
-              mod_str += ", " + *mit;
-            }
-            error(LOAD, "Modification '" + String(aa_mod.mass) + "' is not uniquely defined by the given data. Using '" + mods[0] +  "' to represent any of '" + mod_str + "'.");
-          }
-        }
-      }
-
-      if (!desc.empty())
-      {
-        if (is_variable == "Y")
+        if (aa_mod.isVariable())
         {
           variable_modifications_.push_back(aa_mod);
-          params_.variable_modifications.push_back(desc);
+          params_.variable_modifications.push_back(aa_mod.getDescription());
         }
         else
         {
           fixed_modifications_.push_back(aa_mod);
-          params_.fixed_modifications.push_back(desc);
+          params_.fixed_modifications.push_back(aa_mod.getDescription());
         }
       }
     }
@@ -1674,6 +1836,90 @@ namespace OpenMS
       // the modification_info element is probably not possible since modifications may have special
       // symbols that we would need to save and lookup additionally
 
+      for (const auto& mod : current_modifications_)
+      {
+        if (mod.first->getTermSpecificity() == ResidueModification::N_TERM ||
+            mod.first->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        {
+          if (!temp_aa_sequence.hasNTerminalModification())
+          {
+            temp_aa_sequence.setNTerminalModification(mod.first);
+          }
+          else
+          {
+           //TODO warn
+          }
+        }
+        else if (mod.first->getTermSpecificity() == ResidueModification::C_TERM ||
+                 mod.first->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+        {
+          if (!temp_aa_sequence.hasNTerminalModification())
+          {
+            temp_aa_sequence.setCTerminalModification(mod.first);
+          }
+          else
+          {
+            //TODO warn
+          }
+        }
+        else
+        {
+          if (!temp_aa_sequence[mod.second].isModified())
+          {
+            temp_aa_sequence.setModification(mod.second, mod.first->getFullId());
+          }
+          else
+          {
+            //TODO warn
+          }
+        }
+      }
+
+      for (const auto& mod : fixed_modifications_)
+      {
+        if (mod.getTerminus() == "n")
+        {
+          if (!temp_aa_sequence.hasNTerminalModification())
+          {
+            temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
+          }
+          else
+          {
+            //TODO warn
+          }
+        }
+        else if (mod.getTerminus() == "c")
+        {
+          if (!temp_aa_sequence.hasNTerminalModification())
+          {
+            temp_aa_sequence.setCTerminalModification(mod.getRegisteredMod());
+          }
+          else
+          {
+            //TODO warn
+          }
+        }
+        else // go through the sequence and look for unmodified residues that match:
+        {
+          for (Size s = 0; s < temp_aa_sequence.size(); s++)
+          {
+            Residue const* r = &temp_aa_sequence[s];
+            if (!r->isModified())
+            {
+              if (mod.getAminoAcid().hasSubstring(r->getOneLetterCode()))
+              {
+                // Note: this calls setModification_ on a new Residue which changes its
+                // weight to the weight of the modification (set above)
+                temp_aa_sequence.setModification(s,
+                                                 ResidueDB::getInstance()->getModifiedResidue(r, mod.getRegisteredMod()->getFullId()));
+                temp_aa_sequence.setModification(s, r);
+              }
+            }
+          }
+        }
+      }
+
+      /*
       //TODO: Why not make current_modifications_ hold the inferred ResidueModification objects already??
       // Now we have to parse the descriptions again. E.g. make current_sequence an AASeq object and modify
       // on the go.
@@ -1727,8 +1973,11 @@ namespace OpenMS
           }
         }
       }
+      */
 
-      // fixed modifications
+      /*
+      // This part of the parsing (probably) makes sure that in case the fixed modifications are not
+      // annotated at the sequence element of pepXML, they get added anyway.
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
         bool mass_only = it->aminoacid == "" ? true : false;
@@ -1810,6 +2059,7 @@ namespace OpenMS
           }
         }
       }
+      */
 
       peptide_hit_.setSequence(temp_aa_sequence);
       current_peptide_.insertHit(peptide_hit_);

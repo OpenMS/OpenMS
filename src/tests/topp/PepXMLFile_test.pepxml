@@ -246,7 +246,7 @@
 	<search_summary base_name="./PepXMLFile_test" search_engine="SEQUEST" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="out" out_data=".tgz" search_id="1">
 	  <search_database local_path="/home/sorcerer/fasta/ipi.HUMAN.v3.52.fasta" type="AA"/>
 	  <aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N"/>
-    <aminoacid_modification aminoacid="O" massdiff="0.0000" mass="0.0000" variable="N" />
+      <aminoacid_modification aminoacid="O" massdiff="0.0000" mass="0.0000" variable="N" />
 	  <aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y" symbol="*"/>
 	  <parameter name="peptide_mass_tol" value="50.000"/>
 	  <parameter name="fragment_ion_tol" value="0.000"/>
