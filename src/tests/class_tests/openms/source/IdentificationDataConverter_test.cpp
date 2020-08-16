@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 using namespace OpenMS;
 using namespace std;
 
-struct ComparePIdSize 
+struct ComparePIdSize
 {
       bool operator()(const ProteinIdentification lhs, const ProteinIdentification rhs) const
       {
@@ -198,7 +198,23 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   NEW_TMP_FILE(filename);
   MzTabFile().store(filename, mztab);
 
-  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.mzTab"));
+  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out1.mzTab"));
+
+  // RNA data, oligonucleotide that matches several times in the same RNA:
+  IdentificationData rna_ids;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "AUCGAUCG");
+  IdentificationData::ParentMoleculeRef ref = rna_ids.registerParentMolecule(rna);
+  IdentificationData::IdentifiedOligo oli(NASequence::fromString("AUCG"));
+  IdentificationData::MoleculeParentMatch match1(0, 3), match2(4, 7);
+  oli.parent_matches[ref].insert(match1);
+  oli.parent_matches[ref].insert(match2);
+  rna_ids.registerIdentifiedOligo(oli);
+
+  mztab = IdentificationDataConverter::exportMzTab(rna_ids);
+  NEW_TMP_FILE(filename);
+  MzTabFile().store(filename, mztab);
+
+  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.mzTab"));
 }
 END_SECTION
 

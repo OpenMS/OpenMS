@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -227,6 +227,7 @@ protected:
     PeakMap exp;
     MzMLFile mzml_file;
     mzml_file.getOptions().addMSLevel(2); // only load MS level 2
+    mzml_file.getOptions().setFillData(false); // do not fill the actual spectra. We only need RT and mz info for mapping
     mzml_file.setLogType(log_type_);
     mzml_file.load(in, exp);
 

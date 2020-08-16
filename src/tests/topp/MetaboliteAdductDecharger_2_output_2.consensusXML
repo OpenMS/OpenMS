@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_469667120743513835" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2020-04-16T22:03:17">
+		<software name="MetaboliteAdductDecharger" version="2.6.0-pre-topic-MetaboliteAdductDecharger-write-to-opt-out-2020-04-09" />
+		<processingAction name="Charge deconvolution" />
+		<UserParam type="string" name="parameter: in" value="MetaboliteAdductDecharger_input.featureXML"/>
+	</dataProcessing>
+	<mapList count="1">
+		<map id="0" name="MetaboliteAdductDecharger_input.featureXML" label="decharged features" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_3019959988858701180" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="0:0"/>
+			<UserParam type="string" name="CP" value="3(H3):3(H2Na1) Delta M: -2.248999994236556e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_16895172903754261659" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):3(H1Na2) Delta M: -4.497999988473111e-06 Score: 0.010000000552584"/>
+		</consensusElement>
+		<consensusElement id="e_15298278829356317256" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):3(Na3) Delta M: -6.7470000431058e-06 Score: 0.001000000082888"/>
+		</consensusElement>
+		<consensusElement id="e_8178080024890164754" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):2(H2) Delta M: 4.667709527783615e-07 Score: 0.400000012575407"/>
+		</consensusElement>
+		<consensusElement id="e_3054713636923479439" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):2(H5N1) Delta M: -6.289290546135362e-07 Score: 0.040000002362709"/>
+		</consensusElement>
+		<consensusElement id="e_5224417883532108479" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):2(H1Na1) Delta M: -1.782229041680239e-06 Score: 0.040000002362709"/>
+		</consensusElement>
+		<consensusElement id="e_4899605569488405295" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H3):2(H1K1) Delta M: 8.186709763435829e-07 Score: 0.016000000494426"/>
+		</consensusElement>
+		<consensusElement id="e_16300010593469511923" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):2(Na2) Delta M: -4.031229032364081e-06 Score: 0.004000000346788"/>
+		</consensusElement>
+		<consensusElement id="e_5488235235177988308" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):1(H1) Delta M: 9.335419624001418e-07 Score: 0.160000010060326"/>
+		</consensusElement>
+		<consensusElement id="e_1385339393027052639" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):1(H4N1) Delta M: -1.162158042689043e-06 Score: 0.0160000014481"/>
+		</consensusElement>
+		<consensusElement id="e_17654404032911453385" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:0"/>
+			<UserParam type="string" name="CP" value="3(H3):1(Na1) Delta M: -1.315458032280503e-06 Score: 0.0160000014481"/>
+		</consensusElement>
+		<consensusElement id="e_3336801970173571724" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="101.007276000000005" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H3):1(K1) Delta M: 1.285441989296032e-06 Score: 0.006400000398977"/>
+		</consensusElement>
+		<consensusElement id="e_5328748121825953002" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):2(H2) Delta M: 2.715770946792873e-06 Score: 0.249999999047673"/>
+		</consensusElement>
+		<consensusElement id="e_4385912935092438413" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):2(H5N1) Delta M: 1.62007093962302e-06 Score: 0.025000000595497"/>
+		</consensusElement>
+		<consensusElement id="e_1878217417899981535" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):2(H1K1) Delta M: 3.067670970580139e-06 Score: 0.009999999956538"/>
+		</consensusElement>
+		<consensusElement id="e_6722513084974030078" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):1(H1) Delta M: 3.182541956192608e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_17427075109915843160" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):1(H4N1) Delta M: 1.086841951547513e-06 Score: 0.010000000552584"/>
+		</consensusElement>
+		<consensusElement id="e_3766857173646944442" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):1(K1) Delta M: 3.534441979979874e-06 Score: 0.004000000108369"/>
+		</consensusElement>
+		<consensusElement id="e_1280612681719910125" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):2(H2) Delta M: 4.964770937476715e-06 Score: 0.025000000595497"/>
+		</consensusElement>
+		<consensusElement id="e_2490898282914326694" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):2(H5N1) Delta M: 3.869070933859575e-06 Score: 0.015624999821439"/>
+		</consensusElement>
+		<consensusElement id="e_8991056805499129977" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):2(H1K1) Delta M: 5.316670964816694e-06 Score: 0.006249999752537"/>
+		</consensusElement>
+		<consensusElement id="e_8956506554237035285" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):1(H1) Delta M: 5.431541950429164e-06 Score: 0.062499999523836"/>
+		</consensusElement>
+		<consensusElement id="e_175498116419970257" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):1(H4N1) Delta M: 3.335841949336782e-06 Score: 0.006250000125066"/>
+		</consensusElement>
+		<consensusElement id="e_10921682276458571030" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):1(K1) Delta M: 5.783441977769144e-06 Score: 0.002499999979611"/>
+		</consensusElement>
+		<consensusElement id="e_4045733404375339432" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(Na3):2(H2) Delta M: 7.213770985003976e-06 Score: 0.002500000128623"/>
+		</consensusElement>
+		<consensusElement id="e_12667206752691541200" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(Na3):2(H5N1) Delta M: 6.11807098493955e-06 Score: 0.001562500025315"/>
+		</consensusElement>
+		<consensusElement id="e_22375960655797198" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(Na3):2(H1K1) Delta M: 7.565671012343955e-06 Score: 6.249999925219714e-04"/>
+		</consensusElement>
+		<consensusElement id="e_8224123191679994554" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(Na3):1(H1) Delta M: 7.680541997956425e-06 Score: 0.006250000125066"/>
+		</consensusElement>
+		<consensusElement id="e_16496112582545845284" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(Na3):1(H4N1) Delta M: 5.584842000416757e-06 Score: 0.00390624994048"/>
+		</consensusElement>
+		<consensusElement id="e_15561297982900002615" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(Na3):1(K1) Delta M: 8.032442025296405e-06 Score: 0.001562499932182"/>
+		</consensusElement>
+		<consensusElement id="e_9093524675777131959" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H2):2(H5N1) Delta M: -1.095700007169853e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_11982930081451568239" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H2):2(H1Na1) Delta M: -2.248999994236556e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_4841521768089917493" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H2):2(H1K1) Delta M: 3.519000273399797e-07 Score: 0.039999999978523"/>
+		</consensusElement>
+		<consensusElement id="e_13042772806737534740" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H2):2(Na2) Delta M: -4.497999988473111e-06 Score: 0.010000000552584"/>
+		</consensusElement>
+		<consensusElement id="e_16903384362864022195" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H2):1(H1) Delta M: 4.667710096217803e-07 Score: 0.400000012575407"/>
+		</consensusElement>
+		<consensusElement id="e_11111728977407313504" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H2):1(H4N1) Delta M: -1.62892899524536e-06 Score: 0.040000002362709"/>
+		</consensusElement>
+		<consensusElement id="e_12904849225927480167" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H2):1(Na1) Delta M: -1.78222898483682e-06 Score: 0.040000002362709"/>
+		</consensusElement>
+		<consensusElement id="e_5261014221398862878" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="151.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H2):1(K1) Delta M: 8.186710331870017e-07 Score: 0.016000000494426"/>
+		</consensusElement>
+		<consensusElement id="e_18288048231440588007" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H5N1):2(H1Na1) Delta M: -1.153299987066703e-06 Score: 0.062499999523836"/>
+		</consensusElement>
+		<consensusElement id="e_9406788177322663572" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H5N1):2(H1K1) Delta M: 1.447600030957119e-06 Score: 0.024999999105381"/>
+		</consensusElement>
+		<consensusElement id="e_4663741246410295171" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H5N1):2(Na2) Delta M: -3.402299977750545e-06 Score: 0.006250000125066"/>
+		</consensusElement>
+		<consensusElement id="e_9877940637665029355" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H5N1):1(H1) Delta M: 1.562471016569589e-06 Score: 0.249999999047673"/>
+		</consensusElement>
+		<consensusElement id="e_6532163965506910570" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H5N1):1(Na1) Delta M: -6.86528977666967e-07 Score: 0.025000000595497"/>
+		</consensusElement>
+		<consensusElement id="e_8956489089039483824" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H5N1):1(K1) Delta M: 1.914371040356855e-06 Score: 0.009999999956538"/>
+		</consensusElement>
+		<consensusElement id="e_16131986387681915915" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):2(H1K1) Delta M: 2.600900018023822e-06 Score: 0.024999999105381"/>
+		</consensusElement>
+		<consensusElement id="e_15951317683953533713" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):1(H1) Delta M: 2.715771003636291e-06 Score: 0.249999999047673"/>
+		</consensusElement>
+		<consensusElement id="e_15866089206163215691" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):1(H4N1) Delta M: 6.200709989911957e-07 Score: 0.025000000595497"/>
+		</consensusElement>
+		<consensusElement id="e_15686669117896152570" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):1(K1) Delta M: 3.067671027423557e-06 Score: 0.009999999956538"/>
+		</consensusElement>
+		<consensusElement id="e_9721717079958859394" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="169.985217000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H1K1):2(Na2) Delta M: -4.849900008707664e-06 Score: 0.002499999979611"/>
+		</consensusElement>
+		<consensusElement id="e_5703390074318832396" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="169.985217000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1K1):1(H1) Delta M: 1.148709856124697e-07 Score: 0.099999996802456"/>
+		</consensusElement>
+		<consensusElement id="e_27375375276013541" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="169.985217000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1K1):1(H4N1) Delta M: -1.980829019032626e-06 Score: 0.009999999956538"/>
+		</consensusElement>
+		<consensusElement id="e_13296669540787962556" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="169.985217000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1K1):1(Na1) Delta M: -2.134129008624086e-06 Score: 0.009999999956538"/>
+		</consensusElement>
+		<consensusElement id="e_7637568093376967197" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="172.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(Na2):1(H1) Delta M: 4.964770994320134e-06 Score: 0.025000000595497"/>
+		</consensusElement>
+		<consensusElement id="e_6617422833738937547" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="172.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(Na2):1(H4N1) Delta M: 2.869070993227751e-06 Score: 0.015624999821439"/>
+		</consensusElement>
+		<consensusElement id="e_11144001655138598892" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="172.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(Na2):1(K1) Delta M: 5.316671021660113e-06 Score: 0.006249999752537"/>
+		</consensusElement>
+		<consensusElement id="e_1828462775463658152" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="301.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H1):1(H4N1) Delta M: -2.095700004645096e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_1094653358989851264" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="301.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H1):1(Na1) Delta M: -2.248999994236556e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_8775788682179614526" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="301.00727599999999" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H1):1(K1) Delta M: 3.519000273399797e-07 Score: 0.039999999978523"/>
+		</consensusElement>
+		<consensusElement id="e_690820760481540208" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="318.033822999999984" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H4N1):1(Na1) Delta M: -1.5329998959146e-07 Score: 0.062499999523836"/>
+		</consensusElement>
+		<consensusElement id="e_9263480886242555320" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="318.033822999999984" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H4N1):1(K1) Delta M: 2.447600028432362e-06 Score: 0.024999999105381"/>
+		</consensusElement>
+		<consensusElement id="e_7860786441244463613" quality="0.0" charge="1">
+			<centroid rt="100.0" mz="322.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(Na1):1(K1) Delta M: 2.600900018023822e-06 Score: 0.024999999105381"/>
+		</consensusElement>
+		<consensusElement id="e_14429229822576083367" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="342.033822999999984" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="100.0" mz="342.033822999999984" it="100.0" charge="2"/>
+				<element map="0" id="14" rt="100.0" mz="344.971159999999998" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="0:0"/>
+			<UserParam type="string" name="CP" value="2(H1K1):2(Na2) Delta M: -0.133332849899958 Score: 0.002499999979611"/>
+		</consensusElement>
+		<consensusElement id="e_2148064083726731600" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:3"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):3(H1Na2) Delta M: -2.248999994236556e-06 Score: 0.099000002735292"/>
+		</consensusElement>
+		<consensusElement id="e_12973344791037520740" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:3"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):3(Na3) Delta M: -4.49800004531653e-06 Score: 0.009900000547058"/>
+		</consensusElement>
+		<consensusElement id="e_14264481645581164696" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):2(H1Na1) Delta M: 4.667709527783615e-07 Score: 0.396000012449653"/>
+		</consensusElement>
+		<consensusElement id="e_15894892082649944469" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):2(Na2) Delta M: -1.782229041680239e-06 Score: 0.039600002339082"/>
+		</consensusElement>
+		<consensusElement id="e_15253168511716931778" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="108.334590000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H2Na1):1(Na1) Delta M: 9.335419624001418e-07 Score: 0.158400009959722"/>
+		</consensusElement>
+		<consensusElement id="e_16849657148550880652" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:3"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):3(Na3) Delta M: -2.249000051079975e-06 Score: 0.099000002735292"/>
+		</consensusElement>
+		<consensusElement id="e_16269301545020411812" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):2(H1Na1) Delta M: 2.715770946792873e-06 Score: 0.247499999057196"/>
+		</consensusElement>
+		<consensusElement id="e_4826534781332344526" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):2(Na2) Delta M: 4.667709527783615e-07 Score: 0.396000012449653"/>
+		</consensusElement>
+		<consensusElement id="e_6401831819548472474" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="115.661904000000007" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(H1Na2):1(Na1) Delta M: 3.182541956192608e-06 Score: 0.099000002735292"/>
+		</consensusElement>
+		<consensusElement id="e_6962725361852003193" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(Na3):2(H1Na1) Delta M: 4.964770994320134e-06 Score: 0.024750000589543"/>
+		</consensusElement>
+		<consensusElement id="e_10574273974543004997" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:2"/>
+			<UserParam type="string" name="CP" value="3(Na3):2(Na2) Delta M: 2.715771003636291e-06 Score: 0.247499999057196"/>
+		</consensusElement>
+		<consensusElement id="e_10109581537009627602" quality="0.0" charge="3">
+			<centroid rt="100.0" mz="122.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="3:1"/>
+			<UserParam type="string" name="CP" value="3(Na3):1(Na1) Delta M: 5.431542007272583e-06 Score: 0.061874999528598"/>
+		</consensusElement>
+		<consensusElement id="e_2259537664166468116" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="159.520549999999986" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H5N1):1(H4N1) Delta M: -5.332289878534624e-07 Score: 0.396000012449653"/>
+		</consensusElement>
+		<consensusElement id="e_10281691737738479389" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:2"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):2(Na2) Delta M: -2.248999994236556e-06 Score: 0.099000002735292"/>
+		</consensusElement>
+		<consensusElement id="e_3769925697320944206" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="161.998246999999992" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1Na1):1(Na1) Delta M: 4.667710096217803e-07 Score: 0.396000012449653"/>
+		</consensusElement>
+		<consensusElement id="e_10363745163678069844" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="169.985217000000006" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H1K1):1(K1) Delta M: 4.667710096217803e-07 Score: 0.396000012449653"/>
+		</consensusElement>
+		<consensusElement id="e_6896399523403337918" quality="0.0" charge="2">
+			<centroid rt="100.0" mz="172.989217999999994" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(Na2):1(Na1) Delta M: 2.715771003636291e-06 Score: 0.247499999057196"/>
+		</consensusElement>
+		<consensusElement id="e_4365550908806163045" quality="0.0" charge="2">
+			<centroid rt="102.0" mz="148.99272400000001" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="101" rt="102.0" mz="148.99272400000001" it="100.0" charge="2"/>
+				<element map="0" id="104" rt="102.0" mz="334.969402000000002" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="2:1"/>
+			<UserParam type="string" name="CP" value="2(H2):1(K1) Delta M: 0.035348818670975 Score: 0.016000000494426"/>
+		</consensusElement>
+		<consensusElement id="e_10087491015453642716" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="280.981609999999989" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102.0" mz="298.99272400000001" it="100.0" charge="1"/>
+				<element map="0" id="102" rt="102.0" mz="280.981609999999989" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="0:0"/>
+			<UserParam type="string" name="CP" value="1(H-1O-1):1(H1) Delta M: 5.489362000190567e-04 Score: 0.049999998305995"/>
+		</consensusElement>
+		<consensusElement id="e_4733304262994854746" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="280.981609999999989" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="102" rt="102.0" mz="280.981609999999989" it="100.0" charge="1"/>
+				<element map="0" id="103" rt="102.0" mz="320.974666000000013" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H-1O-1):1(Na1) Delta M: 5.466872000283729e-04 Score: 0.004999999968746"/>
+		</consensusElement>
+		<consensusElement id="e_11120269888071659190" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="280.981609999999989" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="102" rt="102.0" mz="280.981609999999989" it="100.0" charge="1"/>
+				<element map="0" id="105" rt="102.0" mz="336.948605999999984" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:0"/>
+			<UserParam type="string" name="CP" value="1(H-1O-1):1(K1) Delta M: 5.492880999895533e-04 Score: 0.001999999931166"/>
+		</consensusElement>
+		<consensusElement id="e_13050945770267420548" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="298.99272400000001" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102.0" mz="298.99272400000001" it="100.0" charge="1"/>
+				<element map="0" id="103" rt="102.0" mz="320.974666000000013" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H1):1(Na1) Delta M: -2.248999994236556e-06 Score: 0.100000002762921"/>
+		</consensusElement>
+		<consensusElement id="e_7515622631562210618" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="298.99272400000001" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102.0" mz="298.99272400000001" it="100.0" charge="1"/>
+				<element map="0" id="105" rt="102.0" mz="336.948605999999984" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(H1):1(K1) Delta M: 3.518999704965609e-07 Score: 0.039999999978523"/>
+		</consensusElement>
+		<consensusElement id="e_2890650442480917703" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="320.974666000000013" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="103" rt="102.0" mz="320.974666000000013" it="100.0" charge="1"/>
+				<element map="0" id="105" rt="102.0" mz="336.948605999999984" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="1:1"/>
+			<UserParam type="string" name="CP" value="1(Na1):1(K1) Delta M: 2.600899961180403e-06 Score: 0.024999999105381"/>
+		</consensusElement>
+		<consensusElement id="e_719185458260337001" quality="0.0" charge="1">
+			<centroid rt="102.0" mz="344.998200999999995" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="106" rt="102.0" mz="378.918884999999989" it="100.0" charge="1"/>
+				<element map="0" id="108" rt="102.0" mz="344.998200999999995" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="Old_charges" value="0:0"/>
+			<UserParam type="string" name="CP" value="1(H-2Na1O-1):1(K1) Delta M: -0.063818462900016 Score: 0.001249999912919"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

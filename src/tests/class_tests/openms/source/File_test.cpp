@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -152,13 +152,6 @@ END_SECTION
 
 START_SECTION((static String getOpenMSDataPath()))
   NOT_TESTABLE
-END_SECTION
-
-START_SECTION((static String removeExtension(const String& file)))
-  TEST_STRING_EQUAL(File::removeExtension(""),"")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
 END_SECTION
 
 START_SECTION((static bool isDirectory(const String& path)))

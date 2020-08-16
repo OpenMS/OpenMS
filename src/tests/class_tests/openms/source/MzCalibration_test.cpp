@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -240,7 +240,7 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   exp.getSpectra()[0].setNativeID("XTandem::4");
   exp.getSpectra()[0].setMSLevel(1);
   spectra_map.calculateMap(exp);
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not a MS2 Spectrum.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, cal.compute(fmap, exp, spectra_map), "The matching spectrum of the mzML is not an MS2 Spectrum.");
 
   //test exception PepID without 'spectrum_reference'
   fmap = fmap_ref; // reset FeatureMap

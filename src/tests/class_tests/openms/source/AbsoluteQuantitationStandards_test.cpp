@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ FeatureMap fm;
 Feature feature;
 vector<Feature> subordinates;
 
-fm.setPrimaryMSRunPath({"sample1"});
+fm.setPrimaryMSRunPath({"sample1.mzML"});
 for (Size i = 0; i < 5; ++i)
 {
   Feature f;
@@ -97,7 +97,7 @@ fmaps.push_back(fm);
 // The first FeatureMap has sample_name: "sample1".  It contains 1 feature. This feature has 10 subordinates:
 // 5 subordinates have native_id: "component0" to "component4", and the other 5 subordinates have native_id: "IS_component0" to "IS_component4".
 
-fm.setPrimaryMSRunPath({"sample2"});
+fm.setPrimaryMSRunPath({"sample2.txt"});
 Feature f;
 f.setMetaValue("native_id", String("component10"));
 subordinates.push_back(f);

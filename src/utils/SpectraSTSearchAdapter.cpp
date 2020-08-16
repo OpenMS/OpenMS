@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -75,7 +73,6 @@ class TOPPSpectraSTSearchAdapter :
   // Define parameter name
   static const String param_executable;
   static const String param_spectra_files;
-  static const String param_spectra_files_formats;
   static const String param_library_file;
   static const String param_sequence_database_file;
   static const String param_sequence_database_type;
@@ -107,7 +104,7 @@ protected:
 
       // register spectra input files
       registerInputFileList_(TOPPSpectraSTSearchAdapter::param_spectra_files, "<SearchFileName1> [ <SearchFileName2> ... <SearchFileNameN> ]", empty, "File names(s) of spectra to be searched.", true, false);
-      setValidFormats_(TOPPSpectraSTSearchAdapter::param_spectra_files, ListUtils::create<String>(TOPPSpectraSTSearchAdapter::param_spectra_files_formats), false);
+      setValidFormats_(TOPPSpectraSTSearchAdapter::param_spectra_files, ListUtils::create<String>(TOPPSpectraSTSearchAdapter::param_input_file_formats), false);
 
       // register Output files
       registerOutputFileList_(TOPPSpectraSTSearchAdapter::param_output_files, "<OutputFile1> [ <OutputFileName2> ... <OutputFileNameN> ]", empty, "Output files. Make sure to specify one output file for each input file", true, false);
@@ -174,7 +171,7 @@ protected:
 
      // Add library file argument, terminate if the corresponding spidx is not present
      String library_file = getStringOption_(TOPPSpectraSTSearchAdapter::param_library_file);
-     String index_file = File::removeExtension(library_file).append(".spidx");
+     String index_file = FileHandler::stripExtension(library_file).append(".spidx");
      if (! File::exists(index_file))
      {
          OPENMS_LOG_ERROR << "ERROR: Index file required by spectrast not found:\n" << index_file << endl;
@@ -324,7 +321,7 @@ protected:
      for (size_t i = 0; i < spectra_files.size(); i++)
      {
         String spectra_file = spectra_files[i];
-        QString actual_path = temp_dir_qt.filePath(File::removeExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
+        QString actual_path = temp_dir_qt.filePath(FileHandler::stripExtension(File::basename(spectra_file)).toQString().append(".").append(outputFormat.toQString()));
 
         std::ifstream ifs(actual_path.toStdString().c_str(), std::ios::in | std::ios::binary);
         std::ofstream ofs(output_files[i].c_str(), std::ios::out | std::ios::binary);
@@ -341,7 +338,6 @@ protected:
 // Definition of static members
 const String TOPPSpectraSTSearchAdapter::param_executable = "executable";
 const String TOPPSpectraSTSearchAdapter::param_spectra_files = "spectra_files";
-const String TOPPSpectraSTSearchAdapter::param_spectra_files_formats = "mzML,mzXML,mzData,dta,msp";
 const String TOPPSpectraSTSearchAdapter::param_library_file = "library_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_file = "sequence_database_file";
 const String TOPPSpectraSTSearchAdapter::param_sequence_database_type = "sequence_database_type";
@@ -352,7 +348,7 @@ const String TOPPSpectraSTSearchAdapter::param_use_isotopically_averaged_mass = 
 const String TOPPSpectraSTSearchAdapter::param_use_all_charge_states = "use_all_charge_states";
 const String TOPPSpectraSTSearchAdapter::param_output_files = "output_files";
 const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
-const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
+const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,tsv,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
 
 // the actual main function needed to create an executable
@@ -362,3 +358,4 @@ int main(int argc, const char ** argv)
   return tool.main(argc, argv);
 }
 
+///@endcond

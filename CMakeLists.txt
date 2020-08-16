@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,13 @@
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
+
+# Handle default build type
+get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
+endif()
+
 project("OpenMS_host")
 
 # required for cmake < 3.13 if ccache is used
@@ -98,7 +105,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "4")
+set(OPENMS_PACKAGE_VERSION_MINOR "6")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -113,13 +120,19 @@ if (GIT_TRACKING)
 endif()
 
 if(NOT GIT_TRACKING)
-  set(OPENMS_GIT_SHORT_SHA1 "disabled")
-  set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  ## allow overwriting of the following variables in case we build release versions
+  ## from a source package (e.g. on bioconda)
+  if(NOT DEFINED OPENMS_GIT_SHORT_SHA1)
+    set(OPENMS_GIT_SHORT_SHA1 "disabled")
+  endif()
+  if(NOT DEFINED OPENMS_GIT_SHORT_REFSPEC)
+    set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+  endif()
   message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
-elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
+elseif(OPENMS_GIT_SHORT_REFSPEC STREQUAL "GIT-NOTFOUND" OR OPENMS_GIT_SHORT_REFSPEC STREQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
-  message(STATUS "  [CMake cannot track Git commits and branching, since Git was not found. ('-D GIT_TRACKING=On')]")
+  message(STATUS "  [CMake cannot track Git commits and branching, since Git or the .git folder was not found. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
@@ -130,12 +143,12 @@ endif()
 
 # Additional versioning information for packaging
 # If it is not built from a release branch (or master) it will add the branch name
-# and the last change date to everything that can handle strings in the version (eg. installer filenames).
-if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "disabled" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "exported")
+# and the last change date to everything that can handle strings in the version (e.g. installer filenames)
+if(OPENMS_GIT_SHORT_REFSPEC MATCHES "disabled" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "exported")
   string(TIMESTAMP DATE "%Y%m%d")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC}-${DATE}")
-  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
-elseif(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "master")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-pre-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+elseif(OPENMS_GIT_SHORT_REFSPEC MATCHES "release*" OR OPENMS_GIT_SHORT_REFSPEC MATCHES "master")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
 else()
@@ -145,7 +158,7 @@ else()
   separate_arguments(OPENMS_GIT_LC_DATE_LIST)
   list(GET OPENMS_GIT_LC_DATE_LIST 0 OPENMS_GIT_LC_DATE_ONLY)
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC_REPLACED_AGAIN}-${OPENMS_GIT_LC_DATE_ONLY}")
-  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-pre-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
 endif()
 
 
@@ -174,14 +187,6 @@ else()
 	message(STATUS "Architecture: 32 bit")
 endif()
 
-#------------------------------------------------------------------------------
-# Handle build type
-#------------------------------------------------------------------------------
-# Set default build type (if not set by user on command line)
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
-endif()
-
 # Force build type into the cache (needs to be set beforehand)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
@@ -194,6 +199,15 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 set(CF_OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
+
+# Visibility settings
+if (NOT CMAKE_CXX_VISIBILITY_PRESET)
+  set(CMAKE_CXX_VISIBILITY_PRESET "hidden")
+  cmake_policy(SET CMP0063 NEW)
+endif()
+if (CMAKE_VISIBILITY_INLINES_HIDDEN)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+endif()
 
 #------------------------------------------------------------------------------
 # Enable STL debug mode (GCC only)
@@ -320,33 +334,44 @@ set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Never use RPATH. We have other means on every platform.
+# Never use RPATH by default. We have other means on every platform.
 # E.g. not yet compatible with our fix_mac_dependencies script.
-SET(CMAKE_MACOSX_RPATH FALSE)
+if(NOT DEFINED CMAKE_MACOSX_RPATH)
+  SET(CMAKE_MACOSX_RPATH FALSE)
+endif()
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
-SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
-
-if(UNIX AND NOT APPLE)
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-if (ENABLE_PREPARE_KNIME_PACKAGE)
-  ## Since we rely on copying instead of "installing" for KNIME packaging
-  ## we need to do it during building already.
-  ## In this case, make sure that QT is in a system path if you want to test it locally.
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-else()
-  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+if(NOT DEFINED CMAKE_INSTALL_NAME_DIR)
+  SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 endif()
 
-# the RPATH to be used when installing
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+if(UNIX AND NOT APPLE)
+	# use, i.e. don't skip the full RPATH for the build tree
+	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
+	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	endif()
 
-# don't add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	# when building, don't use the install RPATH already
+	# (but later on when installing)
+	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
+		if (ENABLE_PREPARE_KNIME_PACKAGE)
+			## Since we rely on copying instead of "installing" for KNIME packaging
+			## we need to do it during building already.
+			## In this case, make sure that QT is in a system path if you want to test it locally.
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+		else()
+			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+		endif()
+  endif()
+	# the RPATH to be used when installing
+	if(NOT DEFINED CMAKE_INSTALL_RPATH)
+		SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+	endif()
+
+	# don't add the automatically determined parts of the RPATH
+	# which point to directories outside the build tree to the install RPATH
+	if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

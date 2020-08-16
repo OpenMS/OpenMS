@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,10 +163,10 @@ namespace OpenMS
     }
 
     // Read the last few bytes and hope our offset is there to be found
-    char* buffer = new char[buffersize + 1];
+    std::unique_ptr<char[]> buffer(new char[buffersize + 1]);
     f.seekg(-buffersize, f.end);
-    f.read(buffer, buffersize);
-    buffer[buffersize] = '\0';
+    f.read(buffer.get(), buffersize);
+    buffer.get()[buffersize] = '\0';
 
 #ifdef DEBUG_READER
     std::cout << " reading file " << filename  << " with size " << buffersize << std::endl;
@@ -179,7 +179,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     boost::regex listoffset_rx("<[^>/]*indexListOffset\\s*>\\s*(\\d*)");
     boost::cmatch matches;
-    boost::regex_search(buffer, matches, listoffset_rx);
+    boost::regex_search(buffer.get(), matches, listoffset_rx);
     String thismatch(matches[1].first, matches[1].second);
     if (thismatch.size() > 0)
     {
@@ -191,20 +191,15 @@ namespace OpenMS
       {
         std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
         // free resources and re-throw
-        delete[] buffer;
-        f.close();
         throw;  // re-throw conversion error
       }
     }
     else
     {
-      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " <<
-      buffersize << " bytes. Maybe this is not a indexedMzML." << std::endl;
-      std::cerr << buffer << std::endl;
+      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last "
+                << buffersize << " bytes. Maybe this is not a indexedMzML."
+                << buffer.get() << std::endl;
     }
-
-    f.close();
-    delete[] buffer;
 
     return indexoffset;
   }

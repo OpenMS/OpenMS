@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
 
     /// @brief filter and annotate search results
     /// most of the parameters are used to properly add meta data to the id objects
-    static void postProcessHits_(const PeakMap& exp, 
+    void postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
       std::vector<PeptideIdentification>& peptide_ids, 
@@ -104,7 +104,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const String& enzyme,
-      const String& database_name);
+      const String& database_name) const;
 
     double precursor_mass_tolerance_;
     String precursor_mass_tolerance_unit_;
@@ -125,6 +125,10 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     Size modifications_max_variable_mods_per_peptide_;
 
     String enzyme_;
+
+    bool decoys_;
+
+    StringList annotate_psm_;
 
     Size peptide_min_size_;
     Size peptide_max_size_;

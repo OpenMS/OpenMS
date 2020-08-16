@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+    @page UTILS_MSFraggerAdapter MSFraggerAdapter
 
     @brief Peptide Identification with MSFragger
 
@@ -647,7 +647,7 @@ protected:
     }
 
     // convert from pepXML to idXML
-    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
+    String pepxmlfile = FileHandler::swapExtension(input_file, FileTypes::PEPXML);
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);

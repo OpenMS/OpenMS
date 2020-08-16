@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ namespace OpenMS
       BimapType;
 
       /// Binomial GLM
-      struct
+      struct GLM_
       {
         double intercept;
         double rt_coef;
@@ -91,7 +91,7 @@ namespace OpenMS
       } glm_;
 
       /// Helper for RT normalization (range 0-100)
-      struct
+      struct RTNorm_
       {
         double min_rt;
         double max_rt;

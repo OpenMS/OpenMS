@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -357,7 +357,21 @@ namespace OpenMS
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
             {
-              protein_accessions.push_back("PH_" + String(accession_to_id[protein_accession]));
+              const auto acc = accession_to_id.find(protein_accession);
+              if (acc != accession_to_id.end())
+              {
+                protein_accessions.emplace_back("PH_" + String(acc->second));
+              }
+              else
+              {
+                throw Exception::ElementNotFound(
+                    __FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "No accession " + protein_accession + " found in run '" + protein_ids[i].getIdentifier() +
+                    "' for PSM " + p_hit.getSequence().toString() + "_" + String(p_hit.getCharge()) +
+                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.");
+              }
             }
           }
 
@@ -868,10 +882,10 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      if (prot_ids_->size() == 0)
+      if (prot_ids_->empty())
       {
         // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
-        prot_ids_->push_back(prot_id_);
+        prot_ids_->emplace_back(std::move(prot_id_));
       }
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
@@ -885,9 +899,9 @@ namespace OpenMS
     //PEPTIDES
     else if (tag == "PeptideIdentification")
     {
-      pep_ids_->push_back(pep_id_);
+      pep_ids_->emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
-      last_meta_  = nullptr;
+      last_meta_ = nullptr;
     }
     else if (tag == "PeptideHit")
     {

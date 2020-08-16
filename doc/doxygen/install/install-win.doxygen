@@ -32,12 +32,13 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li>Have a Visual Studio 2015 or 2017 installed (The C++ Express editions should work as well, we tested VSE2015 Update 3).
+      <li><b>Visual Studio</b>: VS2015 and above are supported, but we thoroughly recommend <b>VS2019</b> (faster compilation, faster executables and it fixes a bug in OpenMP multithreading - see <a href="https://github.com/OpenMS/OpenMS/issues/4389" target="_new">issue #4389</a>).
+             The C++ Express editions should work as well, we tested VSE2015 Update 3.
         <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li>Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
+      <li><b>CMake</b>: Have at least CMake 3.1 or greater installed (see http://www.cmake.org). For building with our contrib package please use 3.14+. <br>
 	      CMake's Generator (-G flag) also must support your version of Visual Studio. If it doesn't, please upgrade CMake.<br>
-      <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
+      <li><b>7-Zip</b>: To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
     </ul>
@@ -45,7 +46,7 @@
 
   @section install_win_required Installing required dependency libraries
 
-    %OpenMS depends on several other libraries. On a windows system, these are usually not present.
+    %OpenMS depends on several other libraries. On a Windows system, these are usually not present.
 
   @subsection install_win_contrib Contrib installation
         In order to make the
@@ -79,7 +80,7 @@
       <li>Open a <b>VisualStudio Developer Command prompt</b> (by default you will get a 32-bit environment which you most likely do not want; use a x64 environment if you want 64 bit apps!)<br>
 					@note VS2015 does not provide a commandline shortcut for a 64bit command prompt. Call <tt>"C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64</tt> to get one!
 					@note VS2017 has a (well hidden) batch-file which correctly configures your environment for 64bit builds. It should be located at
-					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>
+					<tt>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"</tt>. (Same goes for VS2019)
       <li>Create a build directory for the %OpenMS contrib<br>
           e.g. <tt>mkdir contrib_win64_build</tt>
       <li>Call CMake to build the contrib<br>
@@ -88,17 +89,17 @@
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "<generator>" "<path_to_contrib>"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "<generator>" -A x64 "<path_to_contrib>"
         \endcode
 
         The <tt>&lt;generator&gt;</tt> you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
-        Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
-        Type <tt>cmake</tt> to see a list of available generators.<br>
+        Use the <tt>-A x64</tt> flag to build 64-bit libraries for the contrib (32-bit does not really make any sense for LC-MS data processing)!
+        Type <tt>cmake -help</tt> to see a list of available generators.<br>
 
         Example:
         \code
         cd c:\dev\contrib_win64_build
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 15 2017 Win64" "c:\dev\OpenMS\contrib"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 16 2019" -A x64 "c:\dev\OpenMS\contrib"
         \endcode
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
@@ -134,7 +135,7 @@
             cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
+          <li>To save disk space, we use the <tt>-prefix</tt> switch to install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
               Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers). Note that part of Qt requires Python to compile, so its a good idea to add the Python executable to your path
             \code
             PATH=%PATH%;C:\Python27\
@@ -149,7 +150,7 @@
 	    nmake install
 	    \endcode
           <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
-          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
+          <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" and subsequently "jom install" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
@@ -158,7 +159,7 @@
       <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
       <li>set the environment variable QT_QPA_PLATFORM_PLUGIN_PATH to <tt>&lt;path-to-qt&gt;/plugins/platforms</tt>,
           otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin "windows".
-          Alternatively, you can copy the entire platforms-folder into the folder where your openms executables will be created (but they will depend on the build-type, i.e. release|debug|...).
+          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release|debug|...).
     </ol>
 
 
@@ -214,24 +215,30 @@
 
     Now, we create the build system:
     <ol>
-      <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
+      <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps -- and yes, you want that!)
       <li>Create a build directory for %OpenMS, e.g. <tt>mkdir OpenMS_Win64</tt>
       @note Due to Windows restrictions concerning the maximum length of a file path (of 260 characters) and the rather deep folder hierarchies created by CMake and Visual Studio, we advise to restrict the length of the base path to your build directory. We suggest less than 40 characters if possible.
       <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" -T host=x64 "<path_to_OpenMS>"
+        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" -A x64 -T host=x64 "<path_to_OpenMS>"
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
-        The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake</tt> to see a list of available generators.
+        @note If you build Qt5 from source, the build directories will be located at <tt>&lt;path_to_qt&gt;/mkspecs</tt>. Here you will need to choose the matching directory for your architecture and Visual Studio version.
+        @note Example CMAKE_PREFIX_PATH: <tt>C:\dev\qt-5.9\mkspecs\winrt-x64-msvc2017</tt>
+        
+        The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake --help</tt> to see a list of available generators.
+        
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
+        Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 15 2017 Win64" -T host=x64 ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 16 2019" -A x64 -T host=x64 ..\OpenMS
         \endcode
+       
     </ol>
 
     \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
@@ -285,7 +292,7 @@
   there by cmake for convenience), which allows to build the most important
   targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
   notation. Call it without arguments to see its usage help text. For example
-  to build only the OpenMS library in release mode, call
+  to build only the %OpenMS library in release mode, call
 
   \code
   build OpenMS r

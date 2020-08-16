@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -542,6 +542,15 @@ public:
                   items.end());
     }
 
+    /// Move items that satisfy a condition to a container (e.g. vector)
+    template <class Container, class Predicate>
+    static void moveMatchingItems(Container& items, const Predicate& pred, Container& target)
+    {
+        auto part = std::partition(items.begin(), items.end(), std::not1(pred));
+        std::move(part, items.end(), std::back_inserter(target));
+        items.erase(part, items.end());
+    }
+
     /// Remove Hit items that satisfy a condition in one of our ID containers (e.g. vector of Peptide or ProteinIDs)
     template <class IDContainer, class Predicate>
     static void removeMatchingItemsUnroll(IDContainer& items, const Predicate& pred)
@@ -580,6 +589,16 @@ public:
         removeMatchingItemsUnroll(feat.getPeptideIdentifications(), pred);
       }
       removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
+    }
+
+    template <class MapType, class Predicate>
+    static void removeMatchingPeptideIdentifications(MapType& prot_and_pep_ids, Predicate& pred)
+    {
+      for (auto& feat : prot_and_pep_ids)
+      {
+        removeMatchingItems(feat.getPeptideIdentifications(), pred);
+      }
+      removeMatchingItems(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
     }
 
     ///@}
@@ -677,8 +696,14 @@ public:
       std::set<String>& sequences, bool ignore_mods = false);
 
     /**
-       @brief remove peptide evidences based on a filter
+     * @brief Extracts all proteins not matched by PSMs in features
+     * @param cmap the Input ConsensusMap
+     * @return extracted ProteinHits for every IDRun
+     */
+    static std::map<String,std::vector<ProteinHit>> extractUnassignedProteins(ConsensusMap& cmap);
 
+    /**
+       @brief remove peptide evidences based on a filter
        @param filter filter function that overloads ()(PeptideEvidence&) operator
        @param peptides a collection of peptide evidences
      */
@@ -719,6 +744,10 @@ public:
         it->assignRanks();
       }
     }
+
+    /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
+    /// or if requested in the unassigned peptide list
+    static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
 
     /// Removes protein hits from @p proteins that are not referenced by a peptide in @p peptides
     static void removeUnreferencedProteins(
@@ -1124,7 +1153,8 @@ public:
     template <class MapType>
     static void removeEmptyIdentifications(MapType& prot_and_pep_ids)
     {
-      removeMatchingPeptideHits(prot_and_pep_ids, HasNoHits<PeptideHit>());
+      const auto pred = HasNoHits<PeptideIdentification>();
+      removeMatchingPeptideIdentifications(prot_and_pep_ids, pred);
     }
 
     /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
@@ -1142,8 +1172,9 @@ public:
       keepMatchingItemsUnroll(pep_ids, best_per_peptide);
     }
 
+    //TODO allow skipping unassigned?
     template <class MapType>
-    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    static void annotateBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       const auto& prot_ids = prot_and_pep_ids.getProteinIdentifications();
 
@@ -1159,7 +1190,12 @@ public:
       }
 
       annotateBestPerPeptidePerRunWithData(best_peps_per_run, prot_and_pep_ids.getUnassignedPeptideIdentifications(), ignore_mods, ignore_charges, nr_best_spectrum);
+    }
 
+    template <class MapType>
+    static void keepBestPerPeptidePerRun(MapType& prot_and_pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      annotateBestPerPeptidePerRun(prot_and_pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
       HasMetaValue<PeptideHit> best_per_peptide{"best_per_peptide", 1};
       keepMatchingPeptideHits(prot_and_pep_ids, best_per_peptide);
     }

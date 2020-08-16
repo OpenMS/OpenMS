@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -331,7 +331,7 @@ START_SECTION(([EXTRA]
 
   TEST_REAL_SIMILAR(scores.im_drift, -1)
   TEST_REAL_SIMILAR(scores.im_drift_weighted, -1)
-  TEST_EQUAL(std::isnan(scores.im_delta_score), true)
+  TEST_REAL_SIMILAR(scores.im_delta_score, -1)
 
   TEST_EQUAL(std::isnan(scores.im_xcorr_shape_score), true)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0)

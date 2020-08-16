@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@ namespace OpenMS
 {
   class FeatureMap;
   class MSExperiment;
+  class MzTabMetaData;
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
    
@@ -56,9 +57,9 @@ namespace OpenMS
     /// Structure for storing results
     struct IdentificationRateData
     {
-      UInt64 num_peptide_identification;
-      UInt64 num_ms2_spectra;
-      double identification_rate;
+      UInt64 num_peptide_identification = 0;
+      UInt64 num_ms2_spectra = 0;
+      double identification_rate = 0.;
     };
 
   private:
@@ -102,6 +103,8 @@ namespace OpenMS
      * @return Status for RAWMZML and POSTFDRFEAT
      */
     QCBase::Status requires() const override;
+
+    void addMetaDataMetricsToMzTab(MzTabMetaData& meta);
   };
 
 } // namespace OpenMS

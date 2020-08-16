@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -122,8 +122,11 @@ def handleDependencies(otool_out, targetPath, currentLib)
     # (\/usr\/lib|\/System)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
-    elsif fix_lib.start_with?($executableId)
-      puts "Ignoring libs that were already relinked (#{fix_lib})"
+    elsif fix_lib.start_with?("@")
+      puts "Ignoring libs that are referenced from a relative reference (#{fix_lib})"
+      if not fix_lib.start_with?($executableId)
+        puts "Warning: (#{fix_lib}) does not match the requested prefix, though."
+      end
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
       debug "we do not fix libs which are in the same directory #{fix_lib}"
     else

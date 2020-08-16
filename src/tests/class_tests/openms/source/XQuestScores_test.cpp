@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,37 +104,37 @@ START_SECTION(static double matchOddsScore(const PeakSpectrum& theoretical_spec,
         TEST_REAL_SIMILAR(theo_spec_1.back().getMZ() - theo_spec_1[0].getMZ(), 1903.33405)
         TEST_REAL_SIMILAR(std::log(theo_spec_1.back().getMZ()) - std::log(theo_spec_1[0].getMZ()), 3.99930)
 
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.1, false), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 0.1, false), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.1, false), 106.63674);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 0.1, false), 111.87796);
         TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment2.size(), 0.1, false), 28.07671);
         TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 0.1, false), 24.22081);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 2), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 0.2, false, true, 2), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 2), 106.63373);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 0.2, false, true, 2), 111.87432);
         TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 0.2, false), 17.11504);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment2.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 20, true, true, 2), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 20, true), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 10, true), 187.24386);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 10, true), 198.42811);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment2.size(), 10, true), 58.41773);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 10, true), 63.85680);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 20, true, true, 2), 187.24367);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 20, true), 56.24576);
 END_SECTION
 
 START_SECTION(static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm))
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.1, false), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 0.1, false), 31.58350);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 0.1, false), 35.63818);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.2, false), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.1, false), 126.59011);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 0.1, false), 31.58523);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 0.1, false), 35.52062);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.2, false), 106.63674);
         TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 0.2, false), 28.07671);
         TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 0.2, false), 24.22081);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 10, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 20, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 20, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 20, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 200, true), 708.39641);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 200, true), 36.04365);
-        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 200, true), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 10, true), 214.75707);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 10, true), 68.84436);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 10, true), 73.47408);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 20, true), 194.66285);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 20, true), 61.22836);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 20, true), 65.85512);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 200, true), 128.01463);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment2.size(), 200, true), 36.05495);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 200, true), 40.62847);
 END_SECTION
 
 START_SECTION(static double weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link))

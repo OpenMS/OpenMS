@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,8 @@ namespace OpenMS
     if (basename.hasSuffix(".xquest.xml"))
       return FileTypes::XQUESTXML;
 
+    if (basename.hasSuffix(".spec.xml"))
+      return FileTypes::SPECXML;
     try
     {
       tmp = basename.suffix('.');
@@ -111,6 +113,32 @@ namespace OpenMS
   {
     FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
     return (ft == type || ft == FileTypes::UNKNOWN);
+  }
+
+  String FileHandler::stripExtension(const String& filename)
+  {
+    if (!filename.has('.')) return filename;
+
+    // we don't just search for the last '.' and remove the suffix, because this could be wrong, e.g. bla.mzML.gz would become bla.mzML
+    auto type = getTypeByFileName(filename);
+    auto s_type = FileTypes::typeToName(type);
+    size_t pos = String(filename).toLower().rfind(s_type.toLower()); // search backwards in entire string, because we could search for 'mzML' and have 'mzML.gz'
+    if (pos == string::npos) // file type was FileTypes::UNKNOWN and we did not find '.unknown' as ending
+    {
+      size_t ext_pos = filename.rfind('.');
+      size_t dir_sep = filename.find_last_of("/\\"); // look for '/' or '\'
+      if (dir_sep != string::npos && dir_sep > ext_pos) // we found a directory separator after the last '.', e.g. '/my.dotted.dir/filename'! Ouch!
+      { // do not strip anything, because there is no extension to strip
+        return filename;
+      }
+      return filename.prefix(ext_pos);
+    }
+    return filename.prefix(pos - 1); // strip the '.' as well
+  }
+
+  String FileHandler::swapExtension(const String& filename, const FileTypes::Type new_type)
+  {
+    return stripExtension(filename) + "." + FileTypes::typeToName(new_type);
   }
 
   bool FileHandler::isSupported(FileTypes::Type type)

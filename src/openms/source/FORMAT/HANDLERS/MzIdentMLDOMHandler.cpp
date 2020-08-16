@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -735,7 +735,7 @@ namespace OpenMS
             {
               aas = parsePeptideSiblings_(element_pep);
             }
-            catch (Exception::MissingInformation)
+            catch (Exception::MissingInformation&)
             {
               // We found an unknown modification, we could try to rescue this
               // situation. The "name" attribute, if present, may be parsable:

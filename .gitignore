@@ -1,6 +1,7 @@
 qrc_resources.cxx
 DartConfiguration.tcl
-/*.cmake
+/**/*.cmake
+/**/*.canno
 Testing
 CMakeCache.txt
 CMakeFiles
@@ -26,4 +27,6 @@ openms-build
 *.swp
 cmake-build-debug
 cmake-build-release
-
+cmake-build-*
+*.code-workspace
+.vs

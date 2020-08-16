@@ -10,7 +10,7 @@
 		<feature id="f_6565892897288149707">
 			<position dim="0">281.25</position>
 			<position dim="1">160.07500553925999</position>
-			<intensity>36310.199219</intensity>
+			<intensity>3.63102e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>2.09303e-05</overallquality>
@@ -436,7 +436,7 @@
 			<intensity>2.15267e06</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.001294</overallquality>
+			<overallquality>1.29416e-03</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="299.0" y="160.134540569243001" />
@@ -1118,7 +1118,7 @@
 		<feature id="f_12964529961937795257">
 			<position dim="0">261.25</position>
 			<position dim="1">161.132412915304997</position>
-			<intensity>18965.900391</intensity>
+			<intensity>1.89659e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
 			<overallquality>1.09325e-05</overallquality>
@@ -1192,7 +1192,7 @@
 			<intensity>1.94672e06</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.00114</overallquality>
+			<overallquality>1.13951e-03</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="277.5" y="163.041011164832014" />

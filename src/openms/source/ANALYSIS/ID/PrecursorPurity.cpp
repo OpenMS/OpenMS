@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,10 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
 
@@ -52,23 +56,12 @@ namespace OpenMS
     auto lower_it = ms1.MZBegin(lower);
     auto upper_it = ms1.MZEnd(upper);
 
-    // std::cout << "charge: " << charge << " | lower: " << lower << " | target: " << target_mz << " | upper: " << upper << std::endl;
-    // std::cout << "lower offset: " << pre.getIsolationWindowLowerOffset() << " | upper offset: " << pre.getIsolationWindowUpperOffset() << std::endl;
-    // std::cout << "lower peak: " << (*lower_it).getMZ() << " | upper peak: " << (*upper_it).getMZ() << std::endl;
-
     PeakSpectrum isolated_window;
     while (lower_it != upper_it)
     {
       isolated_window.push_back(*lower_it);
       lower_it++;
     }
-
-    // std::cout << "Isolation window peaks: " << isolated_window.size();
-    // for (const auto& peak : isolated_window)
-    // {
-    //   std::cout << " | " << peak.getMZ();
-    // }
-    // std::cout << std::endl;
 
     // total intensity in isolation window
     double total_intensity(0);
@@ -94,12 +87,10 @@ namespace OpenMS
       iso++;
     }
 
-    // std::cout << "target peaks: ";
     // deisotoping (try to find isotopic peaks of the precursor mass, even if the actual precursor peak is missing)
     while (true) // runs as long as the next mz is within the isolation window
     {
       double next_peak = target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge);
-      // std::cout << iso << " : iso | " << next_peak << " : next peak | ";
 
       // stop loop when new mz is outside the isolation window
       // changes through the isotope index iso
@@ -112,35 +103,21 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        // std::cout << isolated_window[next_iso_index].getMZ() << " : matched | ";
-
         isolated_window.erase(isolated_window.begin()+next_iso_index);
         target_peak_count++;
       }
       // always increment iso to progress the loop
       iso++;
     }
-    // std::cout << std::endl;
-
-    // // std::cout << "noise peaks: ";
-    // double noise_intensity(0);
-    // for (const auto& peak : isolated_window)
-    // {
-    //   noise_intensity += peak.getIntensity();
-    //   // std::cout << peak.getMZ() << " | ";
-    // }
-    // // std::cout << std::endl;
 
     double rel_sig(0);
     if (target_intensity > 0.0)
     {
       rel_sig = target_intensity / total_intensity;
     }
-    double noise_intensity = total_intensity - target_intensity;
 
     score.total_intensity = total_intensity;
     score.target_intensity = target_intensity;
-    score.residual_intensity = noise_intensity;
     score.signal_proportion = rel_sig;
     score.target_peak_count = target_peak_count;
     score.residual_peak_count = isolated_window.size();
@@ -153,7 +130,6 @@ namespace OpenMS
     PrecursorPurity::PurityScores score;
     score.total_intensity = score1.total_intensity + score2.total_intensity;
     score.target_intensity = score1.target_intensity + score2.target_intensity;
-    score.residual_intensity = score1.residual_intensity + score2.residual_intensity;
     if (score.target_intensity > 0.0) // otherwise default value of 0 is used
     {
       score.signal_proportion = score.target_intensity / score.total_intensity;
@@ -164,68 +140,59 @@ namespace OpenMS
     return score;
   }
 
-  std::vector<PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
-    std::vector<PrecursorPurity::PurityScores> purityscores;
+    std::map<String, PrecursorPurity::PurityScores> purityscores;
+    std::pair<std::map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
+    int spectra_size = static_cast<int>(spectra.size());
 
-    // TODO throw an exception or at least a warning?
-    // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
-    if (spectra[0].getMSLevel() == 2)
+    if (spectra[0].getMSLevel() != 1)
     {
-      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
+      OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. First Spectrum is not MS1. Precursor Purity info will not be calculated!\n";
       return purityscores;
     }
 
-    // keep the index of the two MS1 spectra flanking the current group of MS2 spectra
-    Size current_parent_index = 0;
-    Size next_parent_index = 0;
-    bool lastMS1(false);
-    for (Size i = 0; i < spectra.size(); ++i)
+    for (int i = 0; i < spectra_size; ++i)
     {
-      // change current parent index if a new MS1 spectrum is reached
-      if (spectra[i].getMSLevel() == 1)
+      if (spectra[i].getMSLevel() == 2)
       {
-        current_parent_index = i;
+        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
+        if (parent_spectrum_it == spectra.end())
+        {
+          OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
+          return std::map<String, PrecursorPurity::PurityScores>();
+        }
+        if (spectra[i].getNativeID().empty())
+        {
+          OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Spectrum without an ID. Precursor Purity info will not be calculated!\n";
+          return std::map<String, PrecursorPurity::PurityScores>();
+        }
+
+        // check for uniqueness of IDs by inserting initialized (0-value) scores into map
+        insert_return_value = purityscores.insert(std::pair<String, PrecursorPurity::PurityScores>(spectra[i].getNativeID(), PrecursorPurity::PurityScores()));
+        if (!insert_return_value.second)
+        {
+          OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Duplicate Spectrum IDs. Precursor Purity info will not be calculated!\n";
+          return std::map<String, PrecursorPurity::PurityScores>();
+        }
       }
-      else if (spectra[i].getMSLevel() == 2)
+    }
+
+#pragma omp parallel for schedule(guided)
+    for (int i = 0; i < spectra_size; ++i)
+    {
+      if (spectra[i].getMSLevel() == 2)
       {
-        // update next MS1 index, if it is lower than the current MS2 index
-        if (next_parent_index < i)
+        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
+        PrecursorPurity::PurityScores score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+#pragma omp critical (purityscores_access)
         {
-          for (Size j = i+1; j < spectra.size(); ++j)
-          {
-            if (spectra[j].getMSLevel() == 1)
-            {
-              next_parent_index = j;
-              break;
-            }
-          }
-          // if the next MS1 index was not updated,
-          // the end of the PeakMap was reached right after this current group of MS2 spectra
-          if (next_parent_index < i)
-          {
-            lastMS1 = true;
-          }
+          // replace the initialized values
+          purityscores[spectra[i].getNativeID()] = score;
         }
-
-        // std::cout << "MS1 Spectrum: " << spectra[current_parent_index].getNativeID() << " | MS2 : " << spectra[i].getNativeID() << std::endl;
-        PrecursorPurity::PurityScores score1 = PrecursorPurity::computePrecursorPurity(spectra[current_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-        // use default values of 0, if there is an MS2 spectrum without an MS1 after it (may happen for the last group of MS2 spectra)
-        PrecursorPurity::PurityScores score2;
-        if (!lastMS1) // there is an MS1 after this MS2
-        {
-          score2 = PrecursorPurity::computePrecursorPurity(spectra[next_parent_index], spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-        }
-        PrecursorPurity::PurityScores score = PrecursorPurity::combinePrecursorPurities(score1, score2);
-        purityscores.push_back(score);
-
-        // std::cout << "Score1 | Spectrum: " << i << " | total intensity: " << score1.total_intensity << " | target intensity: " << score1.target_intensity << " | noise intensity: " << score1.residual_intensity << " | rel_sig: " << score1.signal_proportion << std::endl;
-        // std::cout << "Score2 | Spectrum: " << i << " | total intensity: " << score2.total_intensity << " | target intensity: " << score2.target_intensity << " | noise intensity: " << score2.residual_intensity << " | rel_sig: " << score2.signal_proportion << std::endl;
-        // std::cout << "Combin | Spectrum: " << i << " | total intensity: " << score.total_intensity << " | target intensity: " << score.target_intensity << " | noise intensity: " << score.residual_intensity << " | rel_sig: " << score.signal_proportion << std::endl;
-        // std::cout << "#################################################################################################################" << std::endl;
-
       } // end of MS2 spectrum
-    } // spectra loop
+    } // end of parallelized spectra loop
     return purityscores;
   } // end of function def
 

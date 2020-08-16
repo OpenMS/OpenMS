@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -454,18 +454,18 @@ namespace OpenMS
       // iterate over neighboring grid cells (2nd dimension):
       for (int j = y - 1; j <= y + 1; ++j)
       {
-        try
-        {
-          const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
+        auto act_pos = grid.grid_find(Grid::CellIndex(i, j));
 
-          for (Grid::const_cell_iterator it_cell = act_pos.begin();
-               it_cell != act_pos.end(); ++it_cell)
+        if (act_pos != grid.grid_end())
+        {
+          for (Grid::const_cell_iterator it_cell = act_pos->second.begin();
+               it_cell != act_pos->second.end(); ++it_cell)
           {
             OpenMS::GridFeature* neighbor_feature = it_cell->second;
 
-#ifdef DEBUG_QTCLUSTERFINDER
+            #ifdef DEBUG_QTCLUSTERFINDER
             std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< std::endl;
-#endif
+            #endif
 
             // Skip features that we have already used -> we cannot add them to
             // be neighbors any more
@@ -488,9 +488,6 @@ namespace OpenMS
               cluster.add(neighbor_feature, dist);
             }
           }
-        }
-        catch (std::out_of_range&)
-        {
         }
       }
     }
@@ -561,8 +558,6 @@ namespace OpenMS
   }
   
 
-  QTClusterFinder::~QTClusterFinder()
-  {
-  }
+  QTClusterFinder::~QTClusterFinder() = default;
 
 } // namespace OpenMS

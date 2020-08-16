@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -62,6 +64,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
@@ -124,6 +130,13 @@ namespace OpenMS
     defaults_.setValue("enzyme", "Trypsin", "The enzyme used for peptide digestion.");
     defaults_.setValidStrings("enzyme", all_enzymes);
 
+    defaults_.setValue("decoys", "false", "Should decoys be generated?");
+    defaults_.setValidStrings("decoys", {"true","false"} );
+
+    defaults_.setValue("annotate:PSM", StringList{}, "Annotations added to each PSM.");
+    defaults_.setValidStrings("annotate:PSM", StringList{Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM});
+    defaults_.setSectionDescription("annotate", "Annotation Options");
+
     defaults_.setValue("peptide:min_size", 7, "Minimum size a peptide must have after digestion to be considered in the search.");
     defaults_.setValue("peptide:max_size", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).");
     defaults_.setValue("peptide:missed_cleavages", 1, "Number of missed cleavages.");
@@ -164,6 +177,9 @@ namespace OpenMS
     peptide_motif_ = param_.getValue("peptide:motif");
 
     report_top_hits_ = param_.getValue("report:top_hits");
+
+    decoys_ = param_.getValue("decoys") == "true";
+    annotate_psm_ = param_.getValue("annotate:PSM");
   }
 
   // static
@@ -213,7 +229,6 @@ namespace OpenMS
     }
   }
 
-  // static
 void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
@@ -232,7 +247,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const Int precursor_min_charge,
       const Int precursor_max_charge,
       const String& enzyme,
-      const String& database_name)
+      const String& database_name) const
   {
     // remove all but top n scoring
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
@@ -245,29 +260,35 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       annotated_hits.shrink_to_fit();
     }
 
-#pragma omp parallel for default(none) shared(annotated_hits, exp, fixed_modifications, variable_modifications, peptide_ids, max_variable_mods_per_peptide)
+    bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
+    bool annotation_fragment_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM) != annotate_psm_.end();
+
+#pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       if (!annotated_hits[scan_index].empty())
       {
+        const MSSpectrum& spec = exp[scan_index];
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi{};
+        pi.setMetaValue("spectrum_reference", spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
-        pi.setRT(exp[scan_index].getRT());
-        pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-        Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+        double mz = spec.getPrecursors()[0].getMZ();
+        pi.setRT(spec.getRT());
+        pi.setMZ(mz);
+        Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
-        for (vector<AnnotatedHit_>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
           ph.setCharge(charge);
 
           // get unmodified string
-          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+          AASequence aas = AASequence::fromString(ah.sequence.getString());
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
@@ -275,9 +296,37 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
-          ph.setScore(a_it->score);
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
+          ph.setScore(ah.score);
           ph.setSequence(fixed_and_variable_modified_peptide);
+
+          if (annotation_fragment_error_ppm)
+          {
+            TheoreticalSpectrumGenerator tsg;
+            vector<pair<Size, Size> > alignment;
+            MSSpectrum theoretical_spec;
+            tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, std::min((int)charge - 1, 2));
+            SpectrumAlignment sa;
+            sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
+
+            vector<double> err;
+            for (const auto& match : alignment)
+            {
+              double fragment_error = fabs(Math::getPPM(spec[match.second].getMZ(), theoretical_spec[match.first].getMZ()));
+              err.push_back(fragment_error);
+            }
+            double median_ppm_error(0);
+            if (!err.empty()) { median_ppm_error = Math::median(err.begin(), err.end(), false); }
+            ph.setMetaValue(Constants::UserParam::FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM, median_ppm_error);
+          }
+
+          if (annotation_precursor_error_ppm)
+          {
+            double theo_mz = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge)/static_cast<double>(charge);
+            double ppm_difference = Math::getPPM(mz, theo_mz);
+            ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
+          }
+          // store PSM
           phs.push_back(ph);
         }
         pi.setHits(phs);
@@ -412,8 +461,29 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_);
-    digestor.setMissedCleavages(peptide_missed_cleavages_);
+    // generate decoy protein sequences by reversing them
+    if (decoys_)
+    {
+      digestor.setMissedCleavages(0);
+      startProgress(0, 1, "Generate decoys...");
 
+      DecoyGenerator decoy_generator;
+
+      // append decoy proteins
+      const size_t old_size = fasta_db.size();
+      for (size_t i = 0; i != old_size; ++i)
+      {
+        FASTAFile::FASTAEntry e = fasta_db[i];
+        e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
+        e.identifier = "DECOY_" + e.identifier;
+        fasta_db.push_back(e);
+      }
+      // randomize order of targets and decoys to introduce no global bias in the case that
+      // many targets have the same score as their decoy. (As we always take the first best scoring one)
+      std::random_shuffle(fasta_db.begin(), fasta_db.end());
+      endProgress();
+      digestor.setMissedCleavages(peptide_missed_cleavages_);
+    }
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
