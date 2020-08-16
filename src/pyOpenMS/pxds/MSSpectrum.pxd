@@ -43,7 +43,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         Size size() nogil except +
         void reserve(size_t n) nogil except + 
 
-        Peak1D operator[](int) nogil except + # wrap-upper-limit:size()
+        Peak1D& operator[](int) nogil except + # wrap-upper-limit:size()
 
         void updateRanges() nogil except +
         void clear(bool clear_meta_data) nogil except + #wrap-doc:Clears all data (and meta data if clear_meta_data is true)
