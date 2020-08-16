@@ -139,20 +139,6 @@ private:
     /// Read RT, m/z, charge information from attributes of "spectrum_query"
     void readRTMZCharge_(const xercesc::Attributes& attributes);
 
-    /**
-        @brief find modification name given a modified AA mass
-
-        Matches a mass of a modified AA to a mod in our modification db
-        For ambiguous mods, the first (arbitrary) is returned
-        If no mod is found an error is issued and the return string is empty
-        @note A duplicate of this function is also used in ProtXMLFile
-
-        @param mass Modified AA's mass
-        @param origin AA one letter code
-        @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
-    */
-    void matchModification_(double mass, const String& origin, String& modification_description, const ResidueModification::TermSpecificity& potential_term);
-
     struct AminoAcidModification
     {
       private:

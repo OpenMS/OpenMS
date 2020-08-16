@@ -858,20 +858,6 @@ namespace OpenMS
     f.close();
   }
 
-  void PepXMLFile::matchModification_(double mass, const String& origin, String& modification_description, const ResidueModification::TermSpecificity& potential_term)
-  {
-    double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
-    vector<String> mods;
-    // try more specific search first:
-    ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin, ResidueModification::ANYWHERE);
-    if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin);
-
-    // no notification about ambiguities here - that was done when the
-    // modification definitions were parsed ("aminoacid_modification" and
-    // "terminal_modification" elements)
-    if (!mods.empty()) modification_description = mods[0];
-  }
-
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
@@ -1518,6 +1504,7 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
+      double tolerance_to_header = 1e-3;
       // this element should only be used for internal AA mods OR Terminal mods at a specific
       // amino acid (pepXML limitation)
       double modification_mass = attributeAsDouble_(attributes, "mass");
@@ -1535,7 +1522,7 @@ namespace OpenMS
            it != fixed_modifications_.end();
            ++it)
       {
-        if (fabs(modification_mass - it->getMass()) < 1e-4)
+        if (fabs(modification_mass - it->getMass()) < tolerance_to_header)
         {
           if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
           {
@@ -1551,7 +1538,7 @@ namespace OpenMS
       {
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          if (fabs(modification_mass - it->getMass()) < 1e-4)
+          if (fabs(modification_mass - it->getMass()) < tolerance_to_header)
           {
             if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
             {
@@ -1918,148 +1905,6 @@ namespace OpenMS
           }
         }
       }
-
-      /*
-      //TODO: Why not make current_modifications_ hold the inferred ResidueModification objects already??
-      // Now we have to parse the descriptions again. E.g. make current_sequence an AASeq object and modify
-      // on the go.
-      // Especially since setModification will lookup the ModDB again.
-
-      //TODO: Currently it may happen that a search_hit has a terminal mod entry and
-      // the first amino_acid has a 'general' mod entry that fits to a terminal modification.
-      // We would only take the last one that was parsed since setXTerminalMod would override previous.
-      // -> Make terminal mod entries take preference!
-      for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)
-      {
-        // e.g. Carboxymethyl (C)
-        vector<String> mod_split;
-        it->first.split(' ', mod_split);
-        if (it->first.hasSubstring("C-term"))
-        {
-          temp_aa_sequence.setCTerminalModification(it->first);
-        }
-        else if (it->first.hasSubstring("N-term"))
-        {
-          temp_aa_sequence.setNTerminalModification(it->first);
-        }
-        else if (mod_split.size() == 2)
-        {
-          // modification position is 1-based
-          temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
-        }
-        else
-        {
-          try
-          {
-            // modification position is 1-based
-            const Residue* res = &temp_aa_sequence.getResidue(it->second - 1);
-            //TODO check if there can be delta_masses in pepXML? I don't think so.
-            //TODO double-check that the following produces correct results for terminal mods as well
-            //We assume that non-delta masses are internal residue mass (no H2O) + mod. mass.
-            //Internal residue mass will be subtracted in the function
-            const ResidueModification* new_mod = ResidueModification::createUnknownFromMassString(mod_split[0],
-                                                                                                  mod_split[0].toDouble(),
-                                                                                                  false,
-                                                                                                  ResidueModification::TermSpecificity::ANYWHERE,
-                                                                                                  res);
-            // Note: this calls setModification_ on a new Residue which changes its
-            // weight to the weight of the modification (set above)
-            temp_aa_sequence.setModification(it->second - 1,ResidueDB::getInstance()->
-                                                              getModifiedResidue(res, new_mod->getFullId()));
-          }
-          catch (Exception::ConversionError&)
-          {
-            error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
-          }
-        }
-      }
-      */
-
-      /*
-      // This part of the parsing (probably) makes sure that in case the fixed modifications are not
-      // annotated at the sequence element of pepXML, they get added anyway.
-      for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
-      {
-        bool mass_only = it->aminoacid == "" ? true : false;
-
-        if (mass_only)
-        {
-          double new_mass = it->massdiff.toDouble();
-          if (it->terminus == "n")
-          {
-            vector<String> mods;
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::N_TERM);
-            if (!mods.empty())
-            {
-              if (!temp_aa_sequence.hasNTerminalModification())
-              {
-                temp_aa_sequence.setNTerminalModification(mods[0]);
-              }
-              else
-              {
-                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
-                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
-              }
-            }
-            else
-            {
-              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
-                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
-            }
-          }
-          else if (it->terminus == "c")
-          {
-            vector<String> mods;
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::C_TERM);
-            if (!mods.empty())
-            {
-              if (!temp_aa_sequence.hasCTerminalModification())
-              {
-                temp_aa_sequence.setCTerminalModification(mods[0]);
-              }
-              else
-              {
-                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
-                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
-              }
-            }
-            else
-            {
-              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
-                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
-            }
-          }
-          else
-          {
-            error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "', delta mass: " +
-                  it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
-          }
-        }
-        else
-        {
-          const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
-
-          double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
-          vector<String> mods;
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid, ResidueModification::ANYWHERE);
-          if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid);
-          if (!mods.empty())
-          {
-            for (Size i = 0; i < temp_aa_sequence.size(); ++i)
-            {
-              if (it->aminoacid.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
-              {
-                temp_aa_sequence.setModification(i, mods[0]);
-              }
-            }
-          }
-          else
-          {
-            error(LOAD, String("Cannot parse modification of amino acid '") + it->aminoacid + "'");
-          }
-        }
-      }
-      */
 
       peptide_hit_.setSequence(temp_aa_sequence);
       current_peptide_.insertHit(peptide_hit_);
