@@ -345,13 +345,13 @@ protected:
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
     set<String> var_mods_set;
+    set<EnzymaticDigestion::Specificity> specs;
     double prec_tol = 0.;
     double frag_tol = 0.;
     int min_chg = 10000;
     int max_chg = -10000;
     Size mc = 0;
     String enz;
-    String spec;
 
     //TODO check if settings are same/similar
     bool allsamese = true;
@@ -392,24 +392,32 @@ protected:
       {
         enz = sp.digestion_enzyme.getName();
       }
-      if (spec.empty())
-      {
-        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
-      }
-      //TODO does not handle no-cterm and no-nterm
-      else if (spec == "full" && (sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_SEMI || sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_NONE))
-      {
-        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
-      }
-      else if (spec == "semi" && sp.enzyme_term_specificity == EnzymaticDigestion::SPEC_NONE)
-      {
-        spec = EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity];
-      }
+      specs.insert(sp.enzyme_term_specificity);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
+    if (specs.find(EnzymaticDigestion::SPEC_NONE) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_SEMI) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NONTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NOCTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NOCTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_FULL) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+    }
 
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
@@ -421,7 +429,6 @@ protected:
     new_sp.fragment_mass_tolerance = frag_tol;
     new_sp.precursor_mass_tolerance = prec_tol;
     new_sp.missed_cleavages = mc;
-    new_sp.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
 
     prot_id.setDateTime(DateTime::now());
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
