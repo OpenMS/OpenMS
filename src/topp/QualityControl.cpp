@@ -141,7 +141,7 @@ protected:
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
-    registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
+    registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     //TODO get ProteinQuantifier output for PRT section
   }
 

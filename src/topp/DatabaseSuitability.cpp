@@ -142,7 +142,7 @@ protected:
     setValidFormats_("in_novo", { "idXML" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
-    registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentil to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
+    registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentile to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
     setMinFloat_("cut_off_fract", 0);
     setMaxFloat_("cut_off_fract", 1);
     registerDoubleOption_("FDR", "<double>", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)", false, true);

@@ -49,19 +49,19 @@ namespace OpenMS
   /**
   * @brief This class holds the functionality of calculating the database suitability.
   *
-  * To calculate the suitability of a database for a specific mzML for identification search it
+  * To calculate the suitability of a database for a specific mzML for identification search, it
   * is vital to perform a combined deNovo+database identification search. Meaning that the database
   * should be appended with an additional entry derived from concatenated deNovo sequences from said mzML.
   * Currently only Comet search is supported.
   *
-  * This class will calculate q-values by itself and will throw an error if any q-value calculation is done beforehand.
+  * This class will calculate q-values by itself and will throw an error if any q-value calculation was done beforehand.
   *
   * The algorithm parameters can be set using setParams().
   *
   * Allows for multiple usage of the compute function. The result of each call is stored internally in a vector.
-  * Therefore old results will not be overridden by a new call. This vector than can be returned using getResults().
+  * Therefore old results will not be overridden by a new call. This vector then can be returned using getResults().
   *
-  * This class serves as the library representation @ref TOPP_DatabaseDBSuitability
+  * This class serves as the library representation of @ref TOPP_DatabaseDBSuitability
   */
   class OPENMS_DLLAPI DBSuitability:
     public DefaultParamHandler
@@ -120,7 +120,7 @@ namespace OpenMS
     * Parameters can be set using the functionality of DefaultParamHandler.
     * Parameters are:
     *                no_re_rank    - re-ranking can be turned off with this
-    *                cut_off_fract -  percentil that determines which cut-off will be returned
+    *                cut_off_fract - percentile that determines which cut-off will be returned
     *                FDR           - q-value that should be filtered for
     *                                Preliminary tests have shown that database suitability
     *                                is rather stable across common FDR thresholds from 0 - 5 %
@@ -173,11 +173,11 @@ namespace OpenMS
     * It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
     *
     * @param pep_ids        vector containing the pepIDs
-    * @param cut_off_fract  percentil that determines which cut-off will be returned
+    * @param cut_off_fract  percentile that determines which cut-off will be returned
     * @returns              xcorr cut-off
     * @throws               IllegalArgument if novo_fract isn't in range [0,1]
     * @throws               IllegalArgument if novo_fract is too low for a decoy cut-off to be calculated
-    * @throws               MissingInformation if no more than 20 % of the pepIDs have two decoys in their top ten
+    * @throws               MissingInformation if no more than 20 % of the peptide IDs have two decoys in their top ten peptide hits
     */
     double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double cut_off_fract);
 
@@ -194,7 +194,7 @@ namespace OpenMS
     bool isNovoHit_(const PeptideHit& hit);
 
     /**
-    * @brief Tests if a PeptideHit has a lower q-value the given FDR threshold, i.e. passes FDR
+    * @brief Tests if a PeptideHit has a lower q-value than the given FDR threshold, i.e. passes FDR
     *
     * Q-value is searched at score and at meta-value level.
     *

@@ -49,7 +49,7 @@ namespace OpenMS
   {
     defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
     defaults_.setValidStrings("no_re_rank", { "true", "false" });
-    defaults_.setValue("cut_off_fract", 1., "Percentil to determine which decoy cut-off to use.");
+    defaults_.setValue("cut_off_fract", 1., "Percentile to determine which decoy cut-off to use.");
     defaults_.setMinFloat("cut_off_fract", 0.);
     defaults_.setMaxFloat("cut_off_fract", 1.);
     defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
@@ -183,7 +183,7 @@ namespace OpenMS
 
     if (data.num_top_db == 0 && data.num_top_novo == 0)
     {
-      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR is too strict." << endl;
+      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR threshold is too strict." << endl;
       data.suitability = DBL_MAX;
       return;
     }
