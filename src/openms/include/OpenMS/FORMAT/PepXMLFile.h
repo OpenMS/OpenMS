@@ -187,6 +187,8 @@ private:
 
       const String& getAminoAcid() const;
 
+      const std::vector<String>& getErrors() const;
+
     };
 
     /// Pointer to the list of identified proteins

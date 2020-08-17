@@ -121,6 +121,11 @@ namespace OpenMS
     return registered_mod;
   }
 
+  const vector<String>& PepXMLFile::AminoAcidModification::getErrors() const
+  {
+    return errors;
+  }
+
   PepXMLFile::AminoAcidModification::AminoAcidModification(
       const String& aminoacid, const String& massdiff, const String& mass,
       String variable, const String& description, String terminus, const String& protein_terminus)
@@ -136,11 +141,11 @@ namespace OpenMS
     this->term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
 
     //TODO value "nc" for any terminus is actually not supported by us, yet!
-    /*if (aa_mod.terminus == "nc")
+    if (this->terminus == "nc")
     {
-      warning(LOAD, "Warning: value 'nc' for aminoacid terminus not supported."
+      errors.emplace_back("Warning: value 'nc' for aminoacid terminus not supported."
                     "The modification will be parsed as a non-restricted modification.");
-    }*/
+    }
 
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
     // BUT: Many tools will put "Y" or "N" there in conjunction with the terminus attribute.
@@ -200,14 +205,12 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        //TODO
-        //error(LOAD, "Modification '" + this->description + "' of residue '" + this->aminoacid + "' could not be matched. Trying by modification mass.");
+        errors.emplace_back("Modification '" + this->description + "' of residue '" + this->aminoacid + "' could not be matched. Trying by modification mass.");
       }
     }
     else
     {
-      //TODO
-      //error(LOAD, "No modification description given. Trying to define by modification mass.");
+      errors.emplace_back("No modification description given. Trying to define by modification mass.");
     }
 
     if (registered_mod == nullptr)
@@ -237,10 +240,8 @@ namespace OpenMS
           {
             mod_str += ", " + m->getFullId();
           }
-          //TODO
-          //error(LOAD,
-          //      "Modification '" + String(this->mass) + "' is not uniquely defined by the given data. Using '" +
-          //      mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
+          errors.emplace_back("Modification '" + String(this->mass) + "' is not uniquely defined by the given data. Using '" +
+            mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
         }
       }
       // If we could not find a registered mod in our DB, create and register it. This will be used later for lookup in the sequences.
@@ -255,13 +256,12 @@ namespace OpenMS
                                                                                 this->term_spec,
                                                                                 r);
 
-        //Modification unknown, but trying to continue as we want to be able to read the rest despite of the modifications but warning this will fail downstream
-        //TODO
-        /*error(LOAD,
+        //Modification unknown, but trying to continue as we want to be able to read the rest despite
+        // of the modifications but warning this will fail downstream
+        errors.emplace_back(
               "Modification '" + String(this->mass) + "/delta " + String(this->massdiff) +
-              "' is unknown. Resuming with '" + desc +
+              "' is unknown. Resuming with '" + this->registered_mod->getFullId() +
               "', which could lead to failures using the data downstream.");
-        */
       }
     }
   }
@@ -1382,19 +1382,17 @@ namespace OpenMS
       if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
       {
         // look up the modification in the search_summary by mass
-        //TODO why? we dont do that for regular amino acid modifications. This has to be unified!
         bool found = false;
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          //TODO what if there are two modifications with the same mass??
-          //TODO what about floating point comparison? unsafe?
-          if (mod_nterm_mass == it->getMass() && it->getTerminus() == "n")
+          if ((fabs(mod_nterm_mass - it->getMass()) < mod_tol_) && it->getTerminus() == "n")
           {
             current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
         }
+        //TODO why only look in variable mods?
 
         if (!found)
         {
@@ -1429,15 +1427,14 @@ namespace OpenMS
         bool found = false;
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          //TODO what if there are two modifications with the same mass??
-          //TODO what about floating point comparison? unsafe?
-          if (mod_nterm_mass == it->getMass() && it->getTerminus() == "c")
+          if ((fabs(mod_cterm_mass - it->getMass()) < mod_tol_) && it->getTerminus() == "c")
           {
             current_modifications_.emplace_back(it->getRegisteredMod(), 42); // position not needed for terminus
             found = true;
             break; // only one modification should match, so we can stop the loop here
           }
         }
+        //TODO why only look in variable mods?
 
         if (!found)
         {
@@ -1567,7 +1564,7 @@ namespace OpenMS
 
         if (!found)
         {
-          //TODO also here, maybe the static/variable attribute is better for diffmass?
+          //TODO also here, maybe the static/variable attribute is better for diffmass if present?
           double diffmass = modification_mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
           vector<const ResidueModification*> mods;
           // try least specific search first:
@@ -1646,6 +1643,13 @@ namespace OpenMS
       AminoAcidModification aa_mod{
         aminoacid, massdiff, mass, is_variable, description, terminus, protein_terminus_entry
       };
+
+      for (const auto& e : aa_mod.getErrors())
+      {
+        error(LOAD, "Errors during parsing of aminoacid/terminal modification element:");
+        error(LOAD, e);
+      }
+
       if (aa_mod.getRegisteredMod() != nullptr)
       {
         if (aa_mod.isVariable())
