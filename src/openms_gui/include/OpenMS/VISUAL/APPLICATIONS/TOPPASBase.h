@@ -67,7 +67,7 @@ namespace OpenMS
   class EnhancedTabBar;
   class TOPPASWidget;
   class TOPPASScene;
-  class TOPPASLogWindow;
+  class LogWindow;
   class TOPPASResources;
 
   /**
@@ -206,7 +206,7 @@ protected slots:
 protected:
 
     /// Log output window
-    TOPPASLogWindow* log_;
+    LogWindow* log_;
     /// Workflow Description window
     QTextEdit* desc_;
 
@@ -266,16 +266,6 @@ protected:
     void closeEvent(QCloseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
     //@}
-
-    ///Log message states
-    enum LogState
-    {
-      LS_NOTICE, ///< Notice
-      LS_WARNING, ///< Warning
-      LS_ERROR ///< Fatal error
-    };
-    /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String& heading, const String& body);
 
     /// The clipboard
     TOPPASScene* clipboard_scene_;

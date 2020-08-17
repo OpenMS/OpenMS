@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,45 +37,61 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
-class QContextMenuEvent;
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <QTextEdit>
 
 namespace OpenMS
 {
+  class String;
+
   /**
-      @brief QTextEdit implementation with a "clear" button in the context menu
-      @ingroup Visual
+    @brief A log window (QTextEdit) with convenience functions
+
+
   */
-  class OPENMS_GUI_DLLAPI TOPPASLogWindow :
-    public QTextEdit
+  class LogWindow
+    : public QTextEdit
   {
     Q_OBJECT
     Q_PROPERTY(int max_length READ maxLength WRITE setMaxLength)
 
   public:
-    /// Constructor
-    TOPPASLogWindow(QWidget * parent = nullptr);
-    /// Destructor
-    ~TOPPASLogWindow() override;
+    ///Log message states
+    enum LogState
+    {
+      NOTICE, ///< Notice
+      WARNING, ///< Warning
+      CRITICAL ///< Fatal error
+    };
+
+    /// Default constructor
+    LogWindow(QWidget* parent);
+
+    /// appends text and shows the window
+    void appendText(const QString& text);
+
+    void appendTextWithHeader(const LogState state, const String& heading, const String& body);
+
+    void addNewline();
 
     /// read max_length
     int maxLength() const;
     /// set max_length
     void setMaxLength(int max_length);
 
-  protected:
-    ///@name Reimplemented Qt events
-    //@{
-    void contextMenuEvent(QContextMenuEvent * e) override;
-    //@}
-
-    /// Members:
-    int max_length_;  /// -1 by default, which means there is no maximum length
+  signals:
 
   protected slots:
     /// if text length reached max_length_, then delete prefix until length of text is 1/2 of max_length_
     void trimText_();
 
+  private:
+
+    void contextMenuEvent(QContextMenuEvent* event) override;
+    int max_length_ { -1 };  ///< -1 by default, which means there is no maximum length
+
   };
-}
+
+} //namespace
+

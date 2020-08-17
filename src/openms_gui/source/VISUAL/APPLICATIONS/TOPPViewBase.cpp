@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
@@ -66,6 +67,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/LayerListView.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
@@ -107,7 +109,6 @@
 #include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtWidgets/QStatusBar>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolTip>
 #include <QtWidgets/QToolButton>
@@ -519,10 +520,7 @@ namespace OpenMS
     QDockWidget* log_bar = new QDockWidget("Log", this);
     log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
-    log_ = new QTextEdit(log_bar);
-    log_->setReadOnly(true);
-    log_->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(log_, &QTextEdit::customContextMenuRequested, this, &TOPPViewBase::logContextMenu);
+    log_ = new LogWindow(log_bar);
     log_bar->setWidget(log_);
     windows->addAction(log_bar->toggleViewAction());
 
@@ -603,52 +601,7 @@ namespace OpenMS
     settings.setValue("windowState", saveState());
     event->accept();
   }
-
-  float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
-  {
-    if (!exp.containsScanOfLevel(1))
-    {
-      return 0.0;
-    }
-
-    float noise = 0.0;
-    UInt count = 0;
-    srand(time(nullptr));
-    while (count < n_scans)
-    {
-      UInt scan = (UInt)((double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size() - 1));
-
-      if (scan < exp.size() && exp[scan].getMSLevel() == 1 && exp[scan].size() != 0)
-      {
-        vector<float> tmp;
-        tmp.reserve(exp[scan].size());
-        for (SpectrumType::ConstIterator it = exp[scan].begin()
-             ; it != exp[scan].end()
-             ; ++it)
-        {
-          tmp.push_back(it->getIntensity());
-        }
-        std::sort(tmp.begin(), tmp.end());
-        noise += tmp[(UInt)ceil((float)(tmp.size() - 1) / 1.25f)];
-        ++count;
-      }
-    }
-    return noise / (double)n_scans;
-  }
   
-  // static
-  bool TOPPViewBase::hasPeptideIdentifications(const ExperimentType& map)
-  {
-    for (Size i = 0; i != map.size(); ++i)
-    {
-      if (!map[i].getPeptideIdentifications().empty())
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void TOPPViewBase::preferencesDialog()
   {
     Internal::TOPPViewPrefDialog dlg(this);
@@ -673,7 +626,7 @@ namespace OpenMS
     // check if the file exists
     if (!File::exists(abs_filename))
     {
-      showLogMessage_(LS_ERROR, "Open file error", String("The file '") + abs_filename + "' does not exist!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The file '") + abs_filename + "' does not exist!");
       return;
     }
 
@@ -682,14 +635,14 @@ namespace OpenMS
     FileTypes::Type file_type = fh.getType(abs_filename);
     if (file_type == FileTypes::UNKNOWN)
     {
-      showLogMessage_(LS_ERROR, "Open file error", String("Could not determine file type of '") + abs_filename + "'!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Open file error", String("Could not determine file type of '") + abs_filename + "'!");
       return;
     }
 
     // abort if file type unsupported
     if (file_type == FileTypes::INI)
     {
-      showLogMessage_(LS_ERROR, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
       return;
     }
 
@@ -749,7 +702,7 @@ namespace OpenMS
           String msg = String(diff) + " peptide identification(s) without"
                                       " sequence and/or retention time information were removed.\n" +
                        peptides_with_rt.size() + " peptide identification(s) remaining.";
-          showLogMessage_(LS_WARNING, "While loading file:", msg);
+          log_->appendTextWithHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
         }
         if (peptides_with_rt.empty())
         {
@@ -782,7 +735,7 @@ namespace OpenMS
           String msg = String(diff) + " peptide identification(s) without"
                                       " sequence and/or retention time information were removed.\n" +
                        peptides_with_rt.size() + " peptide identification(s) remaining.";
-          showLogMessage_(LS_WARNING, "While loading file:", msg);
+          log_->appendTextWithHeader(LogWindow::LogState::WARNING, "While loading file:", msg);
         }
         if (peptides_with_rt.empty())
         {
@@ -861,7 +814,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      showLogMessage_(LS_ERROR, "Error while loading file:", e.what());
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Error while loading file:", e.what());
       return;
     }
 
@@ -1052,7 +1005,7 @@ namespace OpenMS
         //calculate noise
         if (use_intensity_cutoff)
         {
-          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
+          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 10, 80);
           DataFilters filters;
           filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
           target_window->canvas()->setFilters(filters);
@@ -1164,7 +1117,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::enhancedWorkspaceWindowChanged(int id)
+  void TOPPViewBase::enhancedWorkspaceWindowChanged(int id) // todo: move
   {
     QWidget* w = dynamic_cast<QWidget*>(ws_.getWidget(id));
     if (!w) return;
@@ -1178,7 +1131,7 @@ namespace OpenMS
     if (sw->canvas()->getLayerCount() == 0) return;
 
     const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
-    if (hasPeptideIdentifications(map))
+    if (map.hasPeptideIdentifications())
     {
       views_tabwidget_->setTabEnabled(1, true);
       if (dynamic_cast<Spectrum2DWidget*>(w))
@@ -1212,7 +1165,7 @@ namespace OpenMS
     // warn if hidden layer => wrong layer selected...
     if (!canvas->getCurrentLayer().visible)
     {
-      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
     //show editable meta data dialog
@@ -1445,7 +1398,7 @@ namespace OpenMS
       }
       else
       {
-        showLogMessage_(LS_ERROR, OPENMS_PRETTY_FUNCTION, "Button for intensity mode does not exist");
+        log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, OPENMS_PRETTY_FUNCTION, "Button for intensity mode does not exist");
       }
     }
 
@@ -1633,15 +1586,6 @@ namespace OpenMS
     updateViewBar();
   }
 
-
-  void TOPPViewBase::logContextMenu(const QPoint& pos)
-  {
-    QMenu context_menu;
-    context_menu.addAction("Clear", [&]() {
-      log_->clear();
-    });
-    context_menu.exec(log_->mapToGlobal(pos));
-  }
 
   void TOPPViewBase::updateFilterBar()
   {
@@ -2065,7 +2009,7 @@ namespace OpenMS
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     if (!layer.visible)
     {
-      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
     //run the tool
@@ -2084,14 +2028,14 @@ namespace OpenMS
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     if (!layer.visible)
     {
-      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
     }
 
     //create and store unique file name prefix for files
     topp_.file_name = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
     if (!File::writable(topp_.file_name + "_ini"))
     {
-      showLogMessage_(LS_ERROR, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
     ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, getCurrentLayer()->type);
@@ -2120,12 +2064,12 @@ namespace OpenMS
     //test if files are writable
     if (!File::writable(topp_.file_name + "_in"))
     {
-      showLogMessage_(LS_ERROR, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in'!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in'!");
       return;
     }
     if (!File::writable(topp_.file_name + "_out"))
     {
-      showLogMessage_(LS_ERROR, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_out!");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_out!");
       return;
     }
 
@@ -2212,7 +2156,7 @@ namespace OpenMS
     }
 
     // start log and show it
-    showLogMessage_(LS_NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
+    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
 
     // initialize process
     topp_.process = new QProcess();
@@ -2229,7 +2173,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound& /*ex*/)
     {
-      showLogMessage_(LS_ERROR, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
       return;
     }
 
@@ -2243,7 +2187,7 @@ namespace OpenMS
 
     if (topp_.process->error() == QProcess::FailedToStart)
     {
-      showLogMessage_(LS_ERROR, QString("Failed to execute '%1'").arg(topp_.tool.toQString()), QString("Execution of TOPP tool '%1' failed with error: %2").arg(topp_.tool.toQString(), topp_.process->errorString()));
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, QString("Failed to execute '%1'").arg(topp_.tool.toQString()), QString("Execution of TOPP tool '%1' failed with error: %2").arg(topp_.tool.toQString(), topp_.process->errorString()));
 
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
@@ -2259,24 +2203,23 @@ namespace OpenMS
 
   void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
   {
-    //finish with new line
-    log_->append("");
+    log_->addNewline();
 
     String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
 
     if (topp_.process->exitStatus() == QProcess::CrashExit)
     {
-      showLogMessage_(LS_ERROR, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
                       QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
                               " or enable 'debug' mode in the TOPP ini file.").arg(tmp_dir.toQString()));
     }
     else if (topp_.out != "")
     {
-      showLogMessage_(LS_NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
       if (!File::readable(topp_.file_name + "_out"))
       {
-        showLogMessage_(LS_ERROR, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name + "_out'!");
+        log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name + "_out'!");
       }
       else
       {
@@ -2340,7 +2283,7 @@ namespace OpenMS
       Param p = im.getParameters();
       p.setValue("rt_tolerance", 30.0);
       im.setParameters(p);
-      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
       im.annotate((*layer.getPeakDataMuteable()), identifications, true, true);
     }
     else
@@ -2356,7 +2299,7 @@ namespace OpenMS
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
     {
-      showLogMessage_(LS_NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action? Aborting.");
       return;
     }
 
@@ -2471,7 +2414,7 @@ namespace OpenMS
       return;
     }
 
-    showLogMessage_(LS_NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
+    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
     updateViewBar();
   }
 
@@ -2860,7 +2803,7 @@ namespace OpenMS
 
     if (best_candidate == BIGINDEX)
     {
-      showLogMessage_(LS_NOTICE, "No compatible layer",
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "No compatible layer",
           "No layer found which is supported by the 3D view.");
       return;
     }
@@ -2868,7 +2811,7 @@ namespace OpenMS
 
     if (best_candidate != target_layer)
     {
-      showLogMessage_(LS_NOTICE, "Auto-selected compatible layer",
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Auto-selected compatible layer",
           "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
     }
 
@@ -2876,7 +2819,7 @@ namespace OpenMS
 
     if (layer.type != LayerData::DT_PEAK)
     {
-      showLogMessage_(LS_NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
     }
     //open new 3D widget
     Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), &ws_);
@@ -2926,13 +2869,7 @@ namespace OpenMS
 
   void TOPPViewBase::updateProcessLog()
   {
-    //show log if there is output
-    qobject_cast<QWidget*>(log_->parent())->show();
-
-    //update log_
-    log_->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
-    log_->insertPlainText(topp_.process->readAllStandardOutput());
-
+    log_->appendText(topp_.process->readAllStandardOutput());
   }
 
   Param TOPPViewBase::getSpectrumParameters(UInt dim)
@@ -2954,7 +2891,7 @@ namespace OpenMS
       topp_.process = nullptr;
 
       //finish log with new line
-      log_->append("");
+      log_->addNewline();
 
       updateMenu();
     }
@@ -3127,30 +3064,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showLogMessage_(TOPPViewBase::LogState state, const String& heading, const String& body)
-  {
-    //Compose current time string
-    DateTime d = DateTime::now();
-
-    String state_string;
-    switch (state)
-    {
-    case LS_NOTICE: state_string = "NOTICE"; break;
-
-    case LS_WARNING: state_string = "WARNING"; break;
-
-    case LS_ERROR: state_string = "ERROR"; break;
-    }
-
-    //update log
-    log_->append("==============================================================================");
-    log_->append((d.getTime() + " " + state_string + ": " + heading).toQString());
-    log_->append(body.toQString());
-
-    //show log tool window
-    qobject_cast<QWidget*>(log_->parent())->show();
-  }
-
   void TOPPViewBase::saveLayerAll()
   {
     getActiveCanvas()->saveCurrentLayer(false);
@@ -3284,7 +3197,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      showLogMessage_(LS_ERROR, "Error while creating layer", e.what());
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Error while creating layer", e.what());
     }
   }
 

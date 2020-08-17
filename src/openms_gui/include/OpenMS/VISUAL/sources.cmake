@@ -18,6 +18,7 @@ InputFileList.h
 LayerListView.h
 LayerData.h
 ListEditor.h
+LogWindow.h
 MetaDataBrowser.h
 MultiGradient.h
 MultiGradientSelector.h
@@ -37,7 +38,6 @@ SpectrumWidget.h
 SwathLibraryStats.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
-TOPPASLogWindow.h
 TOPPASMergerVertex.h
 TOPPASOutputFileListVertex.h
 TOPPASResource.h

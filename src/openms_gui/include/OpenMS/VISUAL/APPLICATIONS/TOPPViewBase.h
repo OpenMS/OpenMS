@@ -72,15 +72,14 @@ class QTreeWidgetItem;
 class QDockWidget;
 class QToolButton;
 class QCloseEvent;
-class QTextEdit;
 class QCheckBox;
 class QSplashScreen;
 class QToolButton;
-class QWorkspace;
 
 namespace OpenMS
 {
   class FileWatcher;
+  class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
   class Spectrum1DWidget;
@@ -354,9 +353,6 @@ public slots:
     void layerFilterVisibilityChange(bool);
 
 protected slots:
-    /// slot for log window context menu
-    void logContextMenu(const QPoint& pos);
-
     /// slot for the finished signal of the TOPP tools execution
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     /// aborts the execution of a TOPP tool
@@ -432,7 +428,7 @@ protected:
     QAction* linkZoom_action_;
 
     /// Log output window
-    QTextEdit* log_;
+    LogWindow* log_;
 
     /** @name Toolbar
     */
@@ -521,16 +517,6 @@ protected:
     void closeEvent(QCloseEvent* event) override;
     //@}
 
-    ///Log message states
-    enum LogState
-    {
-      LS_NOTICE, ///< Notice
-      LS_WARNING, ///< Warning
-      LS_ERROR ///< Fatal error
-    };
-    /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String& heading, const String& body);
-
     ///Additional context menu for 2D layers
     QMenu* add_2d_context_;
 
@@ -548,13 +534,6 @@ protected:
     TOPPViewIdentificationViewBehavior identificationview_behavior_;
     /// TOPPView behavior for the spectra view
     TOPPViewSpectraViewBehavior spectraview_behavior_;
-
-public:
-    /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    static float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
-
-    /// Returns true if the experiment map contains peptide identifications
-    static bool hasPeptideIdentifications(const ExperimentType& map);
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

@@ -48,7 +48,7 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASLogWindow.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
@@ -227,8 +227,7 @@ namespace OpenMS
     QDockWidget* log_bar = new QDockWidget("Log", this);
     log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
-    log_ = new TOPPASLogWindow(log_bar);
-    log_->setReadOnly(true);
+    log_ = new LogWindow(log_bar);
     log_->setMaxLength(1e7); // limit to 10 mio characters, and trim to 5 mio upon reaching this limit
     log_bar->setWidget(log_);
     log_bar->hide();
@@ -245,7 +244,6 @@ namespace OpenMS
     desc_->setTextColor(Qt::black);
     desc_->document()->setDefaultFont(QFont("Arial", 12));
     description_bar->setWidget(desc_);
-    //windows->addAction("&Show log window",log_bar,SLOT(show()));
     windows->addAction(description_bar->toggleViewAction());
     connect(desc_, SIGNAL(textChanged()), this, SLOT(descriptionUpdated_()));
 
@@ -307,7 +305,7 @@ namespace OpenMS
     r->deleteLater();
     if (r->error() != QNetworkReply::NoError)
     {
-      showLogMessage_(LS_ERROR, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
       return;
     }
 
@@ -328,7 +326,7 @@ namespace OpenMS
     // check if the user clicked cancel, to avoid saving .toppas somewhere
     if (String(filename).trim().empty())
     {
-      showLogMessage_(LS_NOTICE, "Download succeeded, but saving aborted by user!", "");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
       return;
     }
 
@@ -340,7 +338,7 @@ namespace OpenMS
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-      showLogMessage_(LS_NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
       return;
     }
 
@@ -349,7 +347,7 @@ namespace OpenMS
     file.close();
 
     this->addTOPPASFile(filename);
-    showLogMessage_(LS_NOTICE, "File successfully saved to '" + filename + "'.", "");
+    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
 */
   }
   
@@ -375,7 +373,7 @@ namespace OpenMS
       connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
       // .. end debug
 
-      showLogMessage_(LS_NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
       // webview_->close(); QT5 replace with QWebEngine
     }
     else
@@ -1153,31 +1151,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPASBase::showLogMessage_(TOPPASBase::LogState state, const String& heading, const String& body)
-  {
-    //Compose current time string
-    DateTime d = DateTime::now();
-
-    String state_string;
-    switch (state)
-    {
-    case LS_NOTICE: state_string = "NOTICE"; break;
-
-    case LS_WARNING: state_string = "WARNING"; break;
-
-    case LS_ERROR: state_string = "ERROR"; break;
-    }
-
-    //update log
-    log_->append("==============================================================================");
-    log_->append((d.getTime() + " " + state_string + ": " + heading).toQString());
-    log_->append(body.toQString());
-
-    //show log tool window
-    dynamic_cast<QWidget*>(log_->parent())->show();
-    log_->moveCursor(QTextCursor::End);
-  }
-
   void TOPPASBase::keyPressEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_F5)
@@ -1329,7 +1302,7 @@ namespace OpenMS
       }
       text += " of node #" + String(tv->getTopoNr()) + " started. Processing ...";
 
-      showLogMessage_(LS_NOTICE, text, "");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
     }
     updateMenu();
   }
@@ -1347,7 +1320,7 @@ namespace OpenMS
       }
       text += " finished!";
 
-      showLogMessage_(LS_NOTICE, text, "");
+      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
     }
     updateMenu();
   }
@@ -1365,7 +1338,7 @@ namespace OpenMS
       }
       text += " crashed!";
 
-      showLogMessage_(LS_ERROR, text, "");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, text, "");
     }
     updateMenu();
   }
@@ -1383,7 +1356,7 @@ namespace OpenMS
       }
       text += " failed!";
 
-      showLogMessage_(LS_ERROR, text, "");
+      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, text, "");
     }
     updateMenu();
   }
@@ -1391,7 +1364,7 @@ namespace OpenMS
   void TOPPASBase::outputVertexFinished(const String& file)
   {
     String text = "Output file '" + file + "' written.";
-    showLogMessage_(LS_NOTICE, text, "");
+    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
   }
 
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
@@ -1410,7 +1383,7 @@ namespace OpenMS
 
   void TOPPASBase::showPipelineFinishedLogMessage()
   {
-    showLogMessage_(LS_NOTICE, "Entire pipeline execution finished!", "");
+    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Entire pipeline execution finished!", "");
   }
 
   void TOPPASBase::insertNewVertexInCenter_(QTreeWidgetItem* item)

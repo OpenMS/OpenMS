@@ -21,6 +21,7 @@ InputFileList.ui
 LayerListView.cpp
 LayerData.cpp
 ListEditor.cpp
+LogWindow.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
@@ -43,7 +44,6 @@ SwathLibraryStats.cpp
 SwathLibraryStats.ui
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
-TOPPASLogWindow.cpp
 TOPPASMergerVertex.cpp
 TOPPASOutputFileListVertex.cpp
 TOPPASResource.cpp
