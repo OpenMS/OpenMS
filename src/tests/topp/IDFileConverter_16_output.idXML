@@ -99,7 +99,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="608.957491373046651" RT="0.0" >
-			<PeptideHit score="0.999999" sequence="SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
+			<PeptideHit score="0.999999" sequence=".(Acetyl)SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="1.0"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
