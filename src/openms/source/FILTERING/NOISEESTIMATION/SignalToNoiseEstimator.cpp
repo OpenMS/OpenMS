@@ -29,7 +29,43 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+using namespace std;
+
+namespace OpenMS
+{
+
+  float estimateNoiseFromRandomMS1Scans(const MSExperiment& exp, const UInt n_scans, const double percentile)
+  {
+    vector<Size> ms1_indices;
+    for (Size i = 0; i < exp.size(); ++i) if (exp[i].getMSLevel() == 1 && !exp[i].empty()) ms1_indices.push_back(i);
+
+    if (ms1_indices.empty()) return 0.0f;
+
+    float noise = 0.0;
+    UInt count = 0;
+    srand(time(nullptr));
+    vector<float> tmp;
+    while (count++ < n_scans)
+    {
+      UInt scan = (UInt)(rand() / ((double)RAND_MAX) * (ms1_indices.size() - 1));
+      tmp.clear();
+      for (const auto& peak : exp[scan])
+      {
+        tmp.push_back(peak.getIntensity());
+      }
+      Size idx = tmp.size() * percentile / 100;
+      std::nth_element(tmp.begin(), tmp.begin() + idx, tmp.end());
+      noise += tmp[idx];
+    }
+    return noise / n_scans;
+  }
+
+}
