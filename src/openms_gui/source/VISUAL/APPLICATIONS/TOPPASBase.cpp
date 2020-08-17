@@ -44,7 +44,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/VISUAL/EnhancedWorkSpace.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
