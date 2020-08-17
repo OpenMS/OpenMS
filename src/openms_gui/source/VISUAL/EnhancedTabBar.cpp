@@ -60,6 +60,11 @@ namespace OpenMS
 
   }
 
+  void EnhancedTabBar::setTabText(const QString& text)
+  {
+    QTabBar::setTabText(currentIndex(),  text);
+  }
+
   void EnhancedTabBar::dragEnterEvent(QDragEnterEvent * e)
   {
     e->acceptProposedAction();

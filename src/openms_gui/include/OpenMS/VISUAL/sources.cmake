@@ -15,6 +15,7 @@ GUIProgressLoggerImpl.h
 HistogramWidget.h
 InputFile.h
 InputFileList.h
+LayerListView.h
 LayerData.h
 ListEditor.h
 MetaDataBrowser.h

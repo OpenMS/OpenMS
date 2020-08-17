@@ -18,6 +18,7 @@ InputFile.cpp
 InputFile.ui
 InputFileList.cpp
 InputFileList.ui
+LayerListView.cpp
 LayerData.cpp
 ListEditor.cpp
 MetaDataBrowser.cpp

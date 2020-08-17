@@ -80,12 +80,13 @@ class QWorkspace;
 
 namespace OpenMS
 {
+  class FileWatcher;
+  class LayerListView;
+  class MultiGradientSelector;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
   class ToolsDialog;
-  class MultiGradientSelector;
-  class FileWatcher;
 
   /**
     @brief Main window of TOPPView tool
@@ -353,20 +354,8 @@ public slots:
     void layerFilterVisibilityChange(bool);
 
 protected slots:
-    /** @name Layer manager and filter manager slots
-    */
-    //@{
-    /// slot for layer manager selection change
-    void layerSelectionChange(int);
-    /// slot for layer manager context menu
-    void layerContextMenu(const QPoint& pos);
     /// slot for log window context menu
     void logContextMenu(const QPoint& pos);
-    /// slot for layer manager visibility change (check box)
-    void layerVisibilityChange(QListWidgetItem* item);
-    /// slot for editing the preferences of the current layer
-    void layerEdit(QListWidgetItem* /*item*/);
-    //@}
 
     /// slot for the finished signal of the TOPP tools execution
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
@@ -424,7 +413,7 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layers_view_;
+    LayerListView* layers_view_;
 
     ///@name Filter widget
     //@{

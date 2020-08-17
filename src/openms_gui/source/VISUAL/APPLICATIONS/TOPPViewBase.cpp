@@ -65,6 +65,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
@@ -100,8 +101,6 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QInputDialog>
-#include <QtWidgets/QListWidget>
-#include <QtWidgets/QListWidgetItem>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
@@ -169,11 +168,11 @@ namespace OpenMS
     tab_bar_.removeId(4710);
     connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::enhancedWorkspaceWindowChanged);
     connect(&tab_bar_, &EnhancedTabBar::closeRequested, this, &TOPPViewBase::closeByTab);
-    connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ this->copyLayer(data, source); });
+    connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ copyLayer(data, source); });
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
-    connect(&ws_, &EnhancedWorkspace::subWindowActivated, this, &TOPPViewBase::updateBarsAndMenus);
+    connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) { if (window != nullptr) /* 0 upon terminate */ updateBarsAndMenus(); });
     connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&ws_);
 
@@ -462,17 +461,10 @@ namespace OpenMS
     layer_dock_widget_ = new QDockWidget("Layers", this);
     layer_dock_widget_->setObjectName("layer_dock_widget");
     addDockWidget(Qt::RightDockWidgetArea, layer_dock_widget_);
-    layers_view_ = new QListWidget(layer_dock_widget_);
-    layers_view_->setWhatsThis("Layer bar<BR><BR>Here the available layers are shown. Left-click on a layer to select it.<BR>Layers can be shown and hidden using the checkboxes in front of the name.<BR> Renaming and removing a layer is possible through the context menu.<BR>Dragging a layer to the tab bar copies the layer.<BR>Double-clicking a layer open its preferences.<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.");
-
+    layers_view_ = new LayerListView(layer_dock_widget_);
+    
+    connect(layers_view_, &LayerListView::layerDataChanged, this, &TOPPViewBase::updateBarsAndMenus);
     layer_dock_widget_->setWidget(layers_view_);
-    layers_view_->setContextMenuPolicy(Qt::CustomContextMenu);
-    layers_view_->setDragEnabled(true);
-    connect(layers_view_, &QListWidget::currentRowChanged, this, &TOPPViewBase::layerSelectionChange);
-    connect(layers_view_, &QListWidget::customContextMenuRequested, this, &TOPPViewBase::layerContextMenu);
-    connect(layers_view_, &QListWidget::itemChanged, this, &TOPPViewBase::layerVisibilityChange);
-    connect(layers_view_, &QListWidget::itemDoubleClicked, this, &TOPPViewBase::layerEdit);
-
     windows->addAction(layer_dock_widget_->toggleViewAction());
 
     // Views dock widget
@@ -661,7 +653,6 @@ namespace OpenMS
   {
     Internal::TOPPViewPrefDialog dlg(this);
     dlg.setParam(param_);
-
 
     // --------------------------------------------------------------------
     // Execute dialog and update parameter object with user modified values
@@ -1426,6 +1417,19 @@ namespace OpenMS
     //Update filter bar, spectrum bar and layer bar
     layerActivated();
     updateMenu();
+
+
+    // Update tab bar and window title
+    if (getActiveCanvas()->getLayerCount() != 0)
+    {
+      tab_bar_.setTabText(getActiveCanvas()->getLayer(0).name.toQString());
+      getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
+    }
+    else
+    {
+      tab_bar_.setTabText("empty");
+      getActiveSpectrumWidget()->setWindowTitle("empty");
+    }
   }
 
   void TOPPViewBase::updateToolBar()
@@ -1524,67 +1528,10 @@ namespace OpenMS
 
   void TOPPViewBase::updateLayerBar()
   {
-    // reset
-    layers_view_->clear();
-    SpectrumCanvas* cc = getActiveCanvas();
-    if (cc == nullptr) { return; }
-
-    // determine if this is a 1D view (for text color)
-    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
-
-    layers_view_->blockSignals(true);
-    RAIICleanup cl([&]() { layers_view_->blockSignals(false); });
-
-    for (Size i = 0; i < cc->getLayerCount(); ++i)
-    {
-      const LayerData& layer = cc->getLayer(i);
-
-      // add item
-      QListWidgetItem* item = new QListWidgetItem(layers_view_);
-      QString name = layer.getDecoratedName().toQString();
-      
-      item->setText(name);
-      item->setToolTip(layer.filename.toQString());
-
-      if (is_1d_view)
-      { 
-        if (cc->getLayerCount() > 1)
-        {
-          QPixmap icon(7, 7);
-          icon.fill(QColor(layer.param.getValue("peak_color").toQString()));
-          item->setIcon(icon);
-        }
-      }
-      else
-      {  // 2D/3D map view
-        switch (layer.type)
-        {
-         case LayerData::DT_PEAK:
-           item->setIcon(QIcon(":/peaks.png"));
-  	 break;
-         case LayerData::DT_FEATURE:
-           item->setIcon(QIcon(":/convexhull.png"));
-         break;
-         case LayerData::DT_CONSENSUS:
-           item->setIcon(QIcon(":/elements.png"));
-         break;
-         default:
-         break;
-        }
-      }
-
-      item->setCheckState(layer.visible ? Qt::Checked : Qt::Unchecked);
-      
-      // highlight active item
-      if (i == cc->activeLayerIndex())
-      {
-        layers_view_->setCurrentItem(item);
-      }
-    }
-    
+    layers_view_->update(getActiveSpectrumWidget());
   }
 
-  void TOPPViewBase::updateViewBar()
+  void TOPPViewBase::updateViewBar()  // todo move to member
   {
     SpectrumCanvas* cc = getActiveCanvas();
     int layer_row = layers_view_->currentRow();
@@ -1686,72 +1633,6 @@ namespace OpenMS
     updateViewBar();
   }
 
-  void TOPPViewBase::layerSelectionChange(int i)
-  {
-    // after adding a layer i is -1. TODO: check if this is the correct behaviour
-    if (i != -1)
-    {
-      getActiveCanvas()->activateLayer(i); // emits layerActivated 
-    }
-  }
-
-  void TOPPViewBase::layerContextMenu(const QPoint& pos)
-  {
-    QListWidgetItem* item = layers_view_->itemAt(pos);
-    if (!item) return;
-
-    int layer = layers_view_->row(item);
-    QMenu* context_menu = new QMenu(layers_view_);
-    context_menu->addAction("Rename", [&]() {
-      QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
-      if (name != "")
-      {
-        getActiveCanvas()->setLayerName(layer, name);
-      }});
-    context_menu->addAction("Delete", [&]() {getActiveCanvas()->removeLayer(layer);});
-
-    QAction* new_action = nullptr;
-    if (getActiveCanvas()->getLayer(layer).flipped)
-    {
-      new_action = context_menu->addAction("Flip upwards (1D)", [&]() {
-        getActive1DWidget()->canvas()->flipLayer(layer);
-        bool b = getActive1DWidget()->canvas()->flippedLayersExist();
-        getActive1DWidget()->canvas()->setMirrorModeActive(b);
-      });
-    }
-    else
-    {
-      new_action = context_menu->addAction("Flip downwards (1D)", [&]() {
-        getActive1DWidget()->canvas()->flipLayer(layer);
-        getActive1DWidget()->canvas()->setMirrorModeActive(true);
-      });
-    }
-    if (!getActive1DWidget())
-    {
-      new_action->setEnabled(false);
-    }
-
-    context_menu->addSeparator();
-    context_menu->addAction("Preferences", [&]() {
-      getActiveCanvas()->showCurrentLayerPreferences();
-    });
-
-    context_menu->exec(layers_view_->mapToGlobal(pos));
-    
-    // Update tab bar and window title
-    if (getActiveCanvas()->getLayerCount() != 0)
-    {
-      tab_bar_.setTabText(tab_bar_.currentIndex(), getActiveCanvas()->getLayer(0).name.toQString());
-      getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
-    }
-    else
-    {
-      tab_bar_.setTabText(tab_bar_.currentIndex(), "empty");
-      getActiveSpectrumWidget()->setWindowTitle("empty");
-    }
-
-    updateBarsAndMenus();
-  }
 
   void TOPPViewBase::logContextMenu(const QPoint& pos)
   {
@@ -1760,12 +1641,6 @@ namespace OpenMS
       log_->clear();
     });
     context_menu.exec(log_->mapToGlobal(pos));
-  }
-
-
-  void TOPPViewBase::layerEdit(QListWidgetItem* /*item*/)
-  {
-    getActiveCanvas()->showCurrentLayerPreferences();
   }
 
   void TOPPViewBase::updateFilterBar()
@@ -1785,23 +1660,6 @@ namespace OpenMS
     if (getActiveCanvas())
     {
       getActiveCanvas()->changeLayerFilterState(getActiveCanvas()->activeLayerIndex(), on);
-    }
-  }
-
-  void TOPPViewBase::layerVisibilityChange(QListWidgetItem* item)
-  {
-    int layer;
-    bool visible;
-    layer = layers_view_->row(item);
-    visible = getActiveCanvas()->getLayer(layer).visible;
-
-    if (item->checkState() == Qt::Unchecked && visible)
-    {
-      getActiveCanvas()->changeVisibility(layer, false);
-    }
-    else if (item->checkState() == Qt::Checked && !visible)
-    {
-      getActiveCanvas()->changeVisibility(layer, true);
     }
   }
 

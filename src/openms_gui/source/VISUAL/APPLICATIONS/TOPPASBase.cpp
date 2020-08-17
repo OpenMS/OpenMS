@@ -662,8 +662,7 @@ namespace OpenMS
       // update tab title
       if (savedFileName != "")
       {
-        QString caption = File::basename(savedFileName).toQString();
-        tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+        tab_bar_->setTabText(File::basename(savedFileName).toQString());
       }
     }
   }
@@ -674,8 +673,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::savePipelineAs(w, current_path_.toQString());
     if (file_name != "")
     {
-      QString caption = File::basename(file_name).toQString();
-      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+      tab_bar_->setTabText(File::basename(file_name).toQString());
     }
   }
 
@@ -1150,7 +1148,7 @@ namespace OpenMS
       {
         title = asterisk_shown ? title.right(title.size() - 1) : QString("*") + title;
         tw->setWindowTitle(title);
-        tab_bar_->setTabText(tab_bar_->currentIndex(), title);
+        tab_bar_->setTabText(title);
       }
     }
   }
@@ -1452,8 +1450,7 @@ namespace OpenMS
     QString file_name = TOPPASBase::refreshPipelineParameters(w, current_path_.toQString());
     if (file_name != "")
     {
-      QString caption = File::basename(file_name).toQString();
-      tab_bar_->setTabText(tab_bar_->currentIndex(), caption);
+      tab_bar_->setTabText(File::basename(file_name).toQString());
     }
   }
 

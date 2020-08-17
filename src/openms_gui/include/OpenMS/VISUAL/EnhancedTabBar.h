@@ -68,6 +68,9 @@ public:
     /// Destructor
     ~EnhancedTabBar() override;
 
+    /// sets the text of the current tab
+    void setTabText(const QString& text);
+
     /// Adds a new tab with the name @p text and the identifier @p id
     int addTab(const String & text, int id);
 
