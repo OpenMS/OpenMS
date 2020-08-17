@@ -346,8 +346,10 @@ protected:
     set<String> fixed_mods_set;
     set<String> var_mods_set;
     set<EnzymaticDigestion::Specificity> specs;
-    double prec_tol = 0.;
-    double frag_tol = 0.;
+    double prec_tol_ppm = 0.;
+    double prec_tol_da = 0.;
+    double frag_tol_ppm = 0.;
+    double frag_tol_da = 0.;
     int min_chg = 10000;
     int max_chg = -10000;
     Size mc = 0;
@@ -385,13 +387,35 @@ protected:
       if (chg_pair.first != 0 && chg_pair.first < min_chg) min_chg = chg_pair.first;
       if (chg_pair.second != 0 && chg_pair.second > max_chg) max_chg = chg_pair.second;
       if (sp.missed_cleavages > mc ) mc = sp.missed_cleavages;
-      if (sp.fragment_mass_tolerance > frag_tol) frag_tol = sp.fragment_mass_tolerance;
-      if (sp.precursor_mass_tolerance > prec_tol) prec_tol = sp.precursor_mass_tolerance;
+      if (sp.fragment_mass_tolerance_ppm)
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_ppm) frag_tol_ppm = sp.fragment_mass_tolerance;
+      }
+      else
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_da) frag_tol_da = sp.fragment_mass_tolerance;
+      }
+      if (sp.precursor_mass_tolerance_ppm)
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_ppm) prec_tol_ppm = sp.precursor_mass_tolerance;
+      }
+      else
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_da) prec_tol_da = sp.precursor_mass_tolerance;
+      }
+
       // extends "" to Trypsin and e.g. Trypsin to Trypsin/P
       if (sp.digestion_enzyme.getName().hasSubstring(enz))
       {
         enz = sp.digestion_enzyme.getName();
       }
+      else if (!enz.hasSubstring(sp.digestion_enzyme.getName()))
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
+        "OpenMS officially supports only one enzyme per search. Using " + enz + " to (incompletely)"
+        " represent the combined run. This might or might not lead to inconsistencies downstream.";
+      }
+      
       specs.insert(sp.enzyme_term_specificity);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
@@ -426,8 +450,37 @@ protected:
 
     new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enz);
     new_sp.charges = String(min_chg) + "-" + String(max_chg);
-    new_sp.fragment_mass_tolerance = frag_tol;
-    new_sp.precursor_mass_tolerance = prec_tol;
+    if (prec_tol_da > 0 && prec_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "precursor tolerance units. Using Da for the combined run.";
+    }
+    if (prec_tol_da > 0)
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_da;
+      new_sp.precursor_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_ppm;
+      new_sp.precursor_mass_tolerance_ppm = true;
+    }
+    if (frag_tol_da > 0 && frag_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "fragment tolerance units. Using Da for the combined run.";
+    }
+    if (frag_tol_da > 0)
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_da;
+      new_sp.fragment_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_ppm;
+      new_sp.fragment_mass_tolerance_ppm = true;
+    }
+    
     new_sp.missed_cleavages = mc;
 
     prot_id.setDateTime(DateTime::now());
