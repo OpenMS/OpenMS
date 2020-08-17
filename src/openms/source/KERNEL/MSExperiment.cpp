@@ -749,6 +749,18 @@ namespace OpenMS
     return false;
   }
 
+  bool MSExperiment::hasPeptideIdentifications() const
+  {
+    for (const auto& spec : getSpectra())
+    {
+      if (!spec.getPeptideIdentifications().empty())
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());
