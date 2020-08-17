@@ -20,8 +20,8 @@
 				<UserParam type="int" name="CruxAdapter:1:allowed_missed_cleavages" value="0"/>
 				<UserParam type="string" name="CruxAdapter:1:custom_enzyme" value=""/>
 				<UserParam type="string" name="CruxAdapter:1:decoy_prefix" value="decoy_"/>
-				<UserParam type="string" name="CruxAdapter:1:decoy-format" value="peptide-reverse"/>
-				<UserParam type="string" name="CruxAdapter:1:keep-terminal-aminos" value="NC"/>
+				<UserParam type="string" name="CruxAdapter:1:decoy_format" value="peptide-reverse"/>
+				<UserParam type="string" name="CruxAdapter:1:keep_terminal_aminos" value="NC"/>
 				<UserParam type="string" name="CruxAdapter:1:cterm_modifications" value=""/>
 				<UserParam type="string" name="CruxAdapter:1:nterm_modifications" value=""/>
 				<UserParam type="string" name="CruxAdapter:1:modifications" value=""/>
