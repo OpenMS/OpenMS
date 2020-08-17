@@ -76,7 +76,7 @@ namespace OpenMS
     /// show preferences dialog
     void itemDoubleClickedAction_(QListWidgetItem*);
 
-    SpectrumWidget* spectrum_widget_ = nullptr; ///<
+    SpectrumWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
 
   };
 
