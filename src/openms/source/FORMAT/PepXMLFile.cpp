@@ -1501,7 +1501,6 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
-      double tolerance_to_header = 1e-3;
       // this element should only be used for internal AA mods OR Terminal mods at a specific
       // amino acid (pepXML limitation)
       double modification_mass = attributeAsDouble_(attributes, "mass");
