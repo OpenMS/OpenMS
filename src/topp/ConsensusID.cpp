@@ -464,7 +464,8 @@ protected:
     String final_db_bn = final_db;
     final_db_bn.substitute("\\","/");
     final_db_bn = File::basename(final_db_bn);
-    for (auto db : dbs)
+    // we need to copy to substitute anyway
+    for (auto db : dbs) // OMS_CODING_TEST_EXCLUDE
     {
       db.substitute("\\","/");
       if (File::basename(db) != final_db_bn)
