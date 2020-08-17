@@ -258,7 +258,19 @@ public:
       @param unknowns A FeatureMap to quantify.
 
     */ 
-    void quantifyComponents(FeatureMap& unknowns);    
+    void quantifyComponents(FeatureMap& unknowns);
+    
+    
+    /**
+      @brief This function calculates the mass distribution vector (MDV)
+      either normalized to the highest mass intensity (norm_max) or normalized
+      to the sum of all mass intensities (norm_sum)
+     
+      @param[in]   mass_intensity_type    Mass intensity type (either norm_max or norm_sum)
+      @param[in]   measured_featuremap    FeatureMap with measured intensity for each component
+      @param[out]  normalized_featuremap  FeatureMap with normalized values for each component
+     */
+    void calculateMDV(FeatureMap& measured_featuremap, FeatureMap& normalized_featuremap, const String& mass_intensity_type);
 
 protected:
     /**
