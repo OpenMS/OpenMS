@@ -148,7 +148,7 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${CRUX_BINARY} STREQUAL "CRUX_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
-  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -crux_executable "${CRUX_BINARY}" -run_percolator false -decoy-format peptide-reverse)
+  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -crux_executable "${CRUX_BINARY}" -run_percolator false -decoy-decoy_format peptide-reverse)
   add_test("TOPP_CruxAdapter_1_out1" ${DIFF} -in1 CruxAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:crux_executable\" value=")
   set_tests_properties("TOPP_CruxAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CruxAdapter_1")
 endif()

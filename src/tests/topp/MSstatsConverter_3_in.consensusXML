@@ -50,17 +50,17 @@
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
-				<UserParam type="int" name="Percolator:peptide-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:protein-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:generic-feature-set" value="0"/>
+				<UserParam type="int" name="Percolator:peptide_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:protein_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:generic_feature_set" value="0"/>
 				<UserParam type="float" name="Percolator:testFDR" value="0.01"/>
 				<UserParam type="float" name="Percolator:trainFDR" value="0.01"/>
 				<UserParam type="int" name="Percolator:maxiter" value="10"/>
-				<UserParam type="int" name="Percolator:subset-max-train" value="0"/>
-				<UserParam type="int" name="Percolator:quick-validation" value="0"/>
+				<UserParam type="int" name="Percolator:subset_max_train" value="0"/>
+				<UserParam type="int" name="Percolator:quick_validation" value="0"/>
 				<UserParam type="string" name="Percolator:weights" value=""/>
-				<UserParam type="string" name="Percolator:init-weights" value=""/>
-				<UserParam type="string" name="Percolator:default-direction" value=""/>
+				<UserParam type="string" name="Percolator:init_weights" value=""/>
+				<UserParam type="string" name="Percolator:default_direction" value=""/>
 				<UserParam type="float" name="Percolator:cpos" value="0.0"/>
 				<UserParam type="float" name="Percolator:cneg" value="0.0"/>
 				<UserParam type="int" name="Percolator:unitnorm" value="0"/>
@@ -69,9 +69,9 @@
 				<UserParam type="int" name="Percolator:doc" value="0"/>
 				<UserParam type="int" name="Percolator:klammer" value="0"/>
 				<UserParam type="string" name="Percolator:fasta" value=""/>
-				<UserParam type="string" name="Percolator:decoy-pattern" value="random"/>
-				<UserParam type="int" name="Percolator:post-processing-tdc" value="0"/>
-				<UserParam type="int" name="Percolator:train-best-positive" value="0"/>
+				<UserParam type="string" name="Percolator:decoy_pattern" value="random"/>
+				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
+				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_50" accession="sp|Q9Y520|PRC2C_HUMAN" score="0" sequence="">
@@ -229,17 +229,17 @@
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_errorMSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
-				<UserParam type="int" name="Percolator:peptide-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:protein-level-fdrs" value="0"/>
-				<UserParam type="int" name="Percolator:generic-feature-set" value="0"/>
+				<UserParam type="int" name="Percolator:peptide_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:protein_level_fdrs" value="0"/>
+				<UserParam type="int" name="Percolator:generic_feature_set" value="0"/>
 				<UserParam type="float" name="Percolator:testFDR" value="0.01"/>
 				<UserParam type="float" name="Percolator:trainFDR" value="0.01"/>
 				<UserParam type="int" name="Percolator:maxiter" value="10"/>
-				<UserParam type="int" name="Percolator:subset-max-train" value="0"/>
-				<UserParam type="int" name="Percolator:quick-validation" value="0"/>
+				<UserParam type="int" name="Percolator:subset_max_train" value="0"/>
+				<UserParam type="int" name="Percolator:quick_validation" value="0"/>
 				<UserParam type="string" name="Percolator:weights" value=""/>
-				<UserParam type="string" name="Percolator:init-weights" value=""/>
-				<UserParam type="string" name="Percolator:default-direction" value=""/>
+				<UserParam type="string" name="Percolator:init_weights" value=""/>
+				<UserParam type="string" name="Percolator:default_direction" value=""/>
 				<UserParam type="float" name="Percolator:cpos" value="0.0"/>
 				<UserParam type="float" name="Percolator:cneg" value="0.0"/>
 				<UserParam type="int" name="Percolator:unitnorm" value="0"/>
@@ -248,9 +248,9 @@
 				<UserParam type="int" name="Percolator:doc" value="0"/>
 				<UserParam type="int" name="Percolator:klammer" value="0"/>
 				<UserParam type="string" name="Percolator:fasta" value=""/>
-				<UserParam type="string" name="Percolator:decoy-pattern" value="random"/>
-				<UserParam type="int" name="Percolator:post-processing-tdc" value="0"/>
-				<UserParam type="int" name="Percolator:train-best-positive" value="0"/>
+				<UserParam type="string" name="Percolator:decoy_pattern" value="random"/>
+				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
+				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 <ProteinHit id="PH_3318" accession="sp|Q9Y6K9|NEMO_HUMAN" score="0" sequence="">

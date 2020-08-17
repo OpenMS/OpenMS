@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         ExperimentalSettings getExperimentalSettings() nogil except +
         
         # COMMENT: Spectra functions
-        MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
+        MSSpectrum& operator[](int) nogil except + # wrap-upper-limit:size()
         MSSpectrum getSpectrum(Size id_) nogil except + # wrap-ignore
         void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
