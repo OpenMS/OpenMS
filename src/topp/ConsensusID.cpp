@@ -353,9 +353,10 @@ protected:
     int min_chg = 10000;
     int max_chg = -10000;
     Size mc = 0;
-    String enz;
+    // we sort them to pick the same entries, no matter the order of the inputs
+    set<String, std::greater<String>> enzymes;
+    set<String, std::greater<String>> dbs;
 
-    //TODO check if settings are same/similar
     bool allsamese = true;
     // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
     // we assume that they are the same or similar
@@ -404,18 +405,8 @@ protected:
         if (sp.precursor_mass_tolerance > prec_tol_da) prec_tol_da = sp.precursor_mass_tolerance;
       }
 
-      // extends "" to Trypsin and e.g. Trypsin to Trypsin/P
-      if (sp.digestion_enzyme.getName().hasSubstring(enz))
-      {
-        enz = sp.digestion_enzyme.getName();
-      }
-      else if (!enz.hasSubstring(sp.digestion_enzyme.getName()))
-      {
-        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
-        "OpenMS officially supports only one enzyme per search. Using " + enz + " to (incompletely)"
-        " represent the combined run. This might or might not lead to inconsistencies downstream.";
-      }
-      
+      enzymes.insert(sp.digestion_enzyme.getName());
+      dbs.insert(sp.db);
       specs.insert(sp.enzyme_term_specificity);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
@@ -448,7 +439,42 @@ protected:
     new_sp.fixed_modifications    = fixed_mods;
     new_sp.variable_modifications = var_mods;
 
-    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enz);
+    String final_enz;
+    for (const auto& enz : enzymes)
+    {
+      if (enz != "unknown_enzyme")
+      {
+        // Although the set should be sorted to start with the longest
+        // versions, this extends "" to Trypsin and e.g. Trypsin to Trypsin/P
+        if (enz.hasSubstring(final_enz))
+        {
+          final_enz = enz;
+        }
+        else if (!final_enz.hasSubstring(enz))
+        {
+          OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
+          " OpenMS officially supports only one enzyme per search. Using " + final_enz + " to (incompletely)"
+          " represent the combined run. This might or might not lead to inconsistencies downstream.";
+        }
+      }
+    }
+    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz);
+
+    String final_db = *dbs.begin();
+    String final_db_bn = final_db;
+    final_db_bn.substitute("\\","/");
+    final_db_bn = File::basename(final_db_bn);
+    for (auto db : dbs)
+    {
+      db.substitute("\\","/");
+      if (File::basename(db) != final_db_bn)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different databases."
+        " OpenMS officially supports only one database per search. Using " + final_db + " to (incompletely)"
+        " represent the combined run. This might or might not lead to inconsistencies downstream.";
+      }
+    }
+
     new_sp.charges = String(min_chg) + "-" + String(max_chg);
     if (prec_tol_da > 0 && prec_tol_ppm > 0)
     {
