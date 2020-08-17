@@ -65,7 +65,6 @@ public:
     static Int getFirstWindowID();
 
 private:
-    
     Int window_id_ { -1 };
     EnhancedTabBar* parent_ { nullptr }; ///< this is our parent. Which will delete us automatically when we destruct
   };

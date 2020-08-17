@@ -76,11 +76,11 @@ public:
       DataFilter(){};
       /// ctor for common case of numerical filter
       DataFilter(const FilterType type, const FilterOperation op, const double val, const String& meta_name = "")
-        : field(type), op(op), value(val), meta_name(meta_name), value_string(), value_is_numerical(true)
+        : field(type), op(op), value(val), value_string(), meta_name(meta_name), value_is_numerical(true)
       {};
       /// ctor for common case of string filter
       DataFilter(const FilterType type, const FilterOperation op, const String& val, const String& meta_name = "")
-        : field(type), op(op), value(0.0), meta_name(meta_name), value_string(val), value_is_numerical(false)
+        : field(type), op(op), value(0.0), value_string(val), meta_name(meta_name), value_is_numerical(false)
       {};
       /// Field to filter
       FilterType field{ DataFilters::INTENSITY };
