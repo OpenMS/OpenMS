@@ -47,15 +47,21 @@ namespace OpenMS
   class PeptideHit;
 
   /**
-  * @brief This class serves as the library representation @ref TOPP_DatabaseDBSuitability
+  * @brief This class holds the functionality of calculating the database suitability.
   *
-  * This class holds the functionality of calculating the database suitability.
-  * This can only be done if a combined deNovo+database identification search was performed.
+  * To calculate the suitability of a database for a specific mzML for identification search it
+  * is vital to perform a combined deNovo+database identification search. Meaning that the database
+  * should be appended with an additional entry derived from concatenated deNovo sequences from said mzML.
   * Currently only Comet search is supported.
   *
-  * Allows for multiple usage, because results are stored internally and can be returned
-  * using getResults().
+  * This class will calculate q-values by itself and will throw an error if any q-value calculation is done beforehand.
   *
+  * The algorithm parameters can be set using setParams().
+  *
+  * Allows for multiple usage of the compute function. The result of each call is stored internally in a vector.
+  * Therefore old results will not be overridden by a new call. This vector than can be returned using getResults().
+  *
+  * This class serves as the library representation @ref TOPP_DatabaseDBSuitability
   */
   class OPENMS_DLLAPI DBSuitability:
     public DefaultParamHandler
@@ -95,7 +101,7 @@ namespace OpenMS
 
     /// Constructor
     /// Settings are initialized with their default values:
-    /// no_re_rank = false, novo_fract = 1, FDR = 0.01
+    /// no_re_rank = false, cut_off_fract = 1, FDR = 0.01
     DBSuitability();
 
     /// Destructor
@@ -113,11 +119,11 @@ namespace OpenMS
     * 
     * Parameters can be set using the functionality of DefaultParamHandler.
     * Parameters are:
-    *                no_re_rank - re-ranking can be turned off with this
-    *                novo_fract - percent of deNovo peptides to capture in re-ranking
-    *                FDR        - q-value that should be filtered for
-    *                             Preliminary tests have shown that database suitability
-    *                             is rather stable across common FDR thresholds from 0 - 5 %
+    *                no_re_rank    - re-ranking can be turned off with this
+    *                cut_off_fract -  percentil that determines which cut-off will be returned
+    *                FDR           - q-value that should be filtered for
+    *                                Preliminary tests have shown that database suitability
+    *                                is rather stable across common FDR thresholds from 0 - 5 %
     *
     * Since q-values need to be calculated the identifications are taken by copy.
     *
