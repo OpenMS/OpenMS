@@ -183,7 +183,7 @@ namespace OpenMS
 
     if (data.num_top_db == 0 && data.num_top_novo == 0)
     {
-      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR is to strict." << endl;
+      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR is too strict." << endl;
       data.suitability = DBL_MAX;
       return;
     }
