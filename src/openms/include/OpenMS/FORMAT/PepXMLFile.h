@@ -46,7 +46,7 @@
 #include <vector>
 #include <map>
 #include <set>
-
+#include <boost/assign/std/vector.hpp>
 
 
 namespace OpenMS
@@ -303,6 +303,12 @@ private:
 
     static const double mod_tol_;
     static const double xtandem_artificial_mod_tol_;
+
+    /// looks up modification by @p modification_mass and aminoacid of current_sequence_[ @p modification_position ]
+    /// and adds it to the current_modifications_
+    bool lookupAddFromHeader_(double modification_mass,
+                              Size modification_position,
+                              std::vector<AminoAcidModification> const& header_mods);
   };
 
 } // namespace OpenMS

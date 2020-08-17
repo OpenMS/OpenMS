@@ -1514,42 +1514,16 @@ namespace OpenMS
 
       //TODO can we infer fixed/variable from the static/variable (diffmass) attributes in pepXML?
       // Only in some cases probably, since it is an optional attribute
-      bool found = false;
-      for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin();
-           it != fixed_modifications_.end();
-           ++it)
+      bool found = lookupAddFromHeader_(modification_mass, modification_position - 1, fixed_modifications_);
+
+      if (!found)
       {
-        if (fabs(modification_mass - it->getMass()) < tolerance_to_header)
-        {
-          if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
-          {
-            current_modifications_
-                .emplace_back(it->getRegisteredMod(), modification_position - 1); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
-          }
-        }
+        found = lookupAddFromHeader_(modification_mass, modification_position - 1, variable_modifications_);
       }
 
       if (!found)
       {
-        for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
-        {
-          if (fabs(modification_mass - it->getMass()) < tolerance_to_header)
-          {
-            if (it->getAminoAcid().hasSubstring(current_sequence_[modification_position - 1]))
-            {
-              current_modifications_
-                  .emplace_back(it->getRegisteredMod(), modification_position - 1); // position not needed for terminus
-              found = true;
-              break; // only one modification should match, so we can stop the loop here
-            }
-          }
-        }
-      }
-
-      if (!found)
-      {
+        // try by PSI mod ID if present
         String psimod_id;
         optionalAttributeAsString_(psimod_id, attributes, "id");
         if (!psimod_id.empty())
@@ -1564,6 +1538,7 @@ namespace OpenMS
 
         if (!found)
         {
+          // Lookup in our DB
           //TODO also here, maybe the static/variable attribute is better for diffmass if present?
           double diffmass = modification_mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
           vector<const ResidueModification*> mods;
@@ -1594,7 +1569,7 @@ namespace OpenMS
           }
           else
           {
-            // nothing found, register as unknown
+            // still nothing found, register as unknown as last resort
             current_modifications_.emplace_back(
                 ResidueModification::createUnknownFromMassString(
                     String(modification_mass),
@@ -1644,10 +1619,14 @@ namespace OpenMS
         aminoacid, massdiff, mass, is_variable, description, terminus, protein_terminus_entry
       };
 
-      for (const auto& e : aa_mod.getErrors())
+      const vector<String>& errs = aa_mod.getErrors();
+      if (!errs.empty())
       {
         error(LOAD, "Errors during parsing of aminoacid/terminal modification element:");
-        error(LOAD, e);
+        for (const auto& e : errs)
+        {
+          error(LOAD, e);
+        }
       }
 
       if (aa_mod.getRegisteredMod() != nullptr)
@@ -1785,6 +1764,27 @@ namespace OpenMS
     }
   }
 
+  bool PepXMLFile::lookupAddFromHeader_(double modification_mass,
+                                        Size modification_position,
+                                        vector<AminoAcidModification> const& header_mods)
+  {
+    bool found = false;
+    for (const auto& m : header_mods)
+    {
+      if (fabs(modification_mass - m.getMass()) < mod_tol_)
+      {
+        if (m.getAminoAcid().hasSubstring(current_sequence_[modification_position]))
+        {
+          current_modifications_
+              .emplace_back(m.getRegisteredMod(), modification_position); // position not needed for terminus
+          found = true;
+          break; // only one modification should match, so we can stop the loop here
+        }
+      }
+    }
+    return found;
+  }
+
   void PepXMLFile::endElement(const XMLCh* const /*uri*/,
                               const XMLCh* const /*local_name*/,
                               const XMLCh* const qname)
@@ -1826,6 +1826,10 @@ namespace OpenMS
       // the modification_info element is probably not possible since modifications may have special
       // symbols that we would need to save and lookup additionally
 
+      // Modifications explicitly annotated at the current search_hit take preference over
+      // implicit fixed mods
+      //TODO use peptide_hit_.getPeptideEvidences().back().getAAAfter()/Before() to see if Protein term is applicable at all
+      // But: Leave it out for now since I bet there is software out there, not adhering to the specification
       for (const auto& mod : current_modifications_)
       {
         if (mod.first->getTermSpecificity() == ResidueModification::N_TERM ||
@@ -1837,22 +1841,24 @@ namespace OpenMS
           }
           else
           {
-           //TODO warn
+            warning(LOAD, "Multiple N-term mods specified for search_hit with sequence " + current_sequence_
+              + " proceeding with first.");
           }
         }
         else if (mod.first->getTermSpecificity() == ResidueModification::C_TERM ||
                  mod.first->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
         {
-          if (!temp_aa_sequence.hasNTerminalModification())
+          if (!temp_aa_sequence.hasCTerminalModification())
           {
             temp_aa_sequence.setCTerminalModification(mod.first);
           }
           else
           {
-            //TODO warn
+            warning(LOAD, "Multiple C-term mods specified for search_hit with sequence " + current_sequence_
+              + " proceeding with first.");
           }
         }
-        else
+        else // internal
         {
           if (!temp_aa_sequence[mod.second].isModified())
           {
@@ -1860,15 +1866,17 @@ namespace OpenMS
           }
           else
           {
-            //TODO warn
+            warning(LOAD, "Multiple mods for position " + String(mod.second)
+              + " specified for search_hit with sequence " + current_sequence_ + " proceeding with first.");
           }
         }
       }
 
+      // Now apply implicit fixed modifications at positions where there is no modification yet.
       for (const auto& mod : fixed_modifications_)
       {
-        if (mod.getRegisteredMod()->getTermSpecificityName() == "N-term" ||
-            mod.getRegisteredMod()->getTermSpecificityName() == "Protein N-term")
+        if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::N_TERM ||
+            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
         {
           if (!temp_aa_sequence.hasNTerminalModification())
           {
@@ -1876,11 +1884,13 @@ namespace OpenMS
           }
           else
           {
-            //TODO warn
+            warning(LOAD, "Trying to add a fixed N-term modification from the search_summary to an already"
+                          " annotated and modified N-terminus of " + current_sequence_
+                          + " ... skipping.");
           }
         }
-        else if (mod.getRegisteredMod()->getTermSpecificityName() == "C-term" ||
-            mod.getRegisteredMod()->getTermSpecificityName() == "Protein C-term")
+        else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||
+            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
         {
           if (!temp_aa_sequence.hasCTerminalModification())
           {
@@ -1888,7 +1898,9 @@ namespace OpenMS
           }
           else
           {
-            //TODO warn
+            warning(LOAD, "Trying to add a fixed C-term modification from the search_summary to an already"
+                          " annotated and modified N-terminus of " + current_sequence_
+                          + " ... skipping.");
           }
         }
         else // go through the sequence and look for unmodified residues that match:
@@ -1906,6 +1918,7 @@ namespace OpenMS
                                                  ResidueDB::getInstance()->getModifiedResidue(r, mod.getRegisteredMod()->getFullId()));
               }
             }
+            //TODO else warn as well? Skip for now.
           }
         }
       }
