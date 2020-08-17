@@ -204,16 +204,12 @@ START_SECTION(static void writeParametersToMetaValues(const Param& write_this, M
   DefaultParamHandler::writeParametersToMetaValues(p, meta_values);
   ABORT_IF(!meta_values.metaValueExists("int"))
   ABORT_IF(!meta_values.metaValueExists("string"))
-  //ABORT_IF(!meta_values.metaValueExists("ignore:bli"))
+  ABORT_IF(!meta_values.metaValueExists("bli"))
   TEST_EQUAL(meta_values.getMetaValue("int"), 1)
   TEST_EQUAL(meta_values.getMetaValue("string"), "test")
-  //TEST_EQUAL(meta_values.getMetaValue("ignore:bli"), 4711)
+  TEST_EQUAL(meta_values.getMetaValue("bli"), 4711)
   vector<String> keys;
   meta_values.getKeys(keys);
-  for (auto key : keys)
-  {
-    cout << key << endl;
-  }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
