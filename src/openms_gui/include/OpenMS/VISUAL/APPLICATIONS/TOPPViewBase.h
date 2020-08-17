@@ -405,9 +405,6 @@ protected:
     /// @return true on success, otherwise false
     bool annotateMS1FromMassFingerprinting_(const FeatureMap& identifications);
      
-    /// unique list of files referenced by all layers
-    std::set<String> getFilenamesOfOpenFiles_();
-
     /**
         @brief Shows a dialog where the user can select files
     */

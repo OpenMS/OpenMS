@@ -672,29 +672,6 @@ namespace OpenMS
     }
   }
 
-  std::set<String> TOPPViewBase::getFilenamesOfOpenFiles_()
-  {
-    set<String> filename_set;
-    // iterate over all windows
-    QList<QMdiSubWindow *> wl = ws_.subWindowList();
-    for (int i = 0; i != ws_.subWindowList().count(); ++i)
-    {
-      QWidget* w = wl[i];
-      // iterate over all widgets
-      const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
-      if (sw != nullptr)
-      {
-        Size lc = sw->canvas()->getLayerCount();
-        // iterate over all layers
-        for (Size j = 0; j != lc; ++j)
-        {
-          filename_set.insert(sw->canvas()->getLayer(j).filename);
-        }
-      }
-    }
-    return filename_set;
-  }
-
   void TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     setCursor(Qt::WaitCursor);
