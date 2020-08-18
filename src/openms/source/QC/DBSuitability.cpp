@@ -33,12 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/DBSuitability.h>
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
@@ -294,5 +300,89 @@ namespace OpenMS
   {
     if (hit.getScore() > FDR) return false;
     return true;
+  }
+  const Param& DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
+  {
+    Param p;
+
+    vector<String> keys;
+    meta_values.getKeys(keys);
+    for (const String& key : keys)
+    {
+      if (key.find("CometAdapter") != 0) continue;
+      p.setValue(key, meta_values.getMetaValue(key));
+    }
+
+    if (p.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: No parameters found for CometAdapter in the given meta values." << endl;
+    }
+
+    return p;
+  }
+
+  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const
+  {
+    String search_engine = "CometAdapter";
+
+    // temporary folder for search in- und output files
+    File::TempDir tmp_dir;
+    String mzml_path = tmp_dir.getPath() + "spectra.mzML";
+    String db_path = tmp_dir.getPath() + "database.FASTA";
+    String out_path = tmp_dir.getPath() + "out.idXML";
+
+    // override the in- and output files in the parameters
+    parameters.setValue("CometAdapter:1:in", mzml_path);
+    parameters.setValue("CometAdapter:1:database", db_path);
+    parameters.setValue("CometAdapter:1:out", out_path);
+
+    // store data in temporary files
+    MzMLFile spectra_file;
+    spectra_file.store(mzml_path, exp);
+    FASTAFile database;
+    database.store(db_path, fasta_data);
+
+    String ini_path = tmp_dir.getPath() + "parameters.INI";
+    writeIniFile_(parameters, ini_path);
+
+    // run identification search
+    String proc_stdout;
+    String proc_stderr;
+    auto lam_out = [&](const String& out) { proc_stdout += out; };
+    auto lam_err = [&](const String& out) { proc_stderr += out; };
+
+    ExternalProcess ep(lam_out, lam_err);
+    const auto& rt = ep.run(search_engine.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), false);
+    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    { // error occured
+      OPENMS_LOG_ERROR << "An error occured while running CometAdapter." << endl;
+      OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
+      OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
+    }
+    // search was successful
+
+    // load result
+    vector<ProteinIdentification> prot_ids;
+    vector<PeptideIdentification> pep_ids;
+    IdXMLFile comet_out;
+    comet_out.load(out_path, prot_ids, pep_ids);
+
+    // annotate target/decoy information
+    PeptideIndexing indexer;
+    FASTAContainer<TFI_File> proteins(db_path);
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
+
+    return pep_ids;
+  }
+
+  void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
+  {
+    if (!File::writable(filename))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to create file: " + filename);
+    }
+    ParamXMLFile param_file;
+    param_file.store(filename, parameters);
   }
 }

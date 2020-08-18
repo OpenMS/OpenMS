@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <cfloat>
 #include <map>
@@ -43,6 +44,7 @@
 
 namespace OpenMS
 {
+  class ParamXMLFile;
   class PeptideIdentification;
   class PeptideHit;
 
@@ -203,6 +205,12 @@ namespace OpenMS
     * @returns              true/false
     */
     bool passesFDR_(const PeptideHit& hit, double FDR);
+
+    const Param& extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
+
+    std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const;
+
+    void writeIniFile_(const Param& parameters, const String& filename) const;
   };
 }
 
