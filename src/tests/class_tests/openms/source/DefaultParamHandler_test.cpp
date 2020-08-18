@@ -202,14 +202,19 @@ START_SECTION(static void writeParametersToMetaValues(const Param& write_this, M
   p.setValue("string", "test");
   p.setValue("ignore:bli", 4711);
   DefaultParamHandler::writeParametersToMetaValues(p, meta_values);
+  DefaultParamHandler::writeParametersToMetaValues(p, meta_values, "prefix");
   ABORT_IF(!meta_values.metaValueExists("int"))
   ABORT_IF(!meta_values.metaValueExists("string"))
   ABORT_IF(!meta_values.metaValueExists("bli"))
   TEST_EQUAL(meta_values.getMetaValue("int"), 1)
   TEST_EQUAL(meta_values.getMetaValue("string"), "test")
   TEST_EQUAL(meta_values.getMetaValue("bli"), 4711)
-  vector<String> keys;
-  meta_values.getKeys(keys);
+  ABORT_IF(!meta_values.metaValueExists("prefix:int"))
+  ABORT_IF(!meta_values.metaValueExists("prefix:string"))
+  ABORT_IF(!meta_values.metaValueExists("prefix:bli"))
+  TEST_EQUAL(meta_values.getMetaValue("prefix:int"), 1)
+  TEST_EQUAL(meta_values.getMetaValue("prefix:string"), "test")
+  TEST_EQUAL(meta_values.getMetaValue("prefix:bli"), 4711)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
