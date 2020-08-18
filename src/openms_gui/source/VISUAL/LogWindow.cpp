@@ -69,37 +69,25 @@ namespace OpenMS
 
   void LogWindow::appendText(const QString& text)
   {
-    //show log if there is output
-    qobject_cast<QWidget*>(this->parent())->show();
-
-    const auto& old_pos = this->cursor();
     moveCursor(QTextCursor::End, QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
-    const auto& old_pos_end = this->cursor();
     insertPlainText(text);
-    if (old_pos.pos() != old_pos_end.pos())
-    { // if cursor was somewhere in the middle, go back there
-      setCursor(old_pos);
-    }
+    // show log window
+    qobject_cast<QWidget*>(this->parent())->show();
   }
 
-  void LogWindow::appendTextWithHeader(const LogWindow::LogState state, const String& heading, const String& body)
+  void LogWindow::appendNewHeader(const LogWindow::LogState state, const String& heading, const String& body)
   {
-    //Compose current time string
-    DateTime d = DateTime::now();
-
     String state_string;
     switch (state)
     {
       case NOTICE: state_string = "NOTICE"; break;
-
       case WARNING: state_string = "WARNING"; break;
-
       case CRITICAL: state_string = "ERROR"; break;
     }
 
-    //update log
+    // update log
     append("==============================================================================");
-    append((d.getTime() + " " + state_string + ": " + heading).toQString());
+    append((DateTime::now().getTime() + " " + state_string + ": " + heading).toQString());
     append(body.toQString());
 
     //show log tool window
@@ -124,7 +112,7 @@ namespace OpenMS
   }
   int LogWindow::maxLength() const
   {
-    return (max_length_);
+    return max_length_;
   }
 
 

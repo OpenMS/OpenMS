@@ -68,11 +68,13 @@ namespace OpenMS
     /// Default constructor
     LogWindow(QWidget* parent);
 
-    /// appends text and shows the window
+    /// appends text without adding linebreaks and shows the log-window
     void appendText(const QString& text);
 
-    void appendTextWithHeader(const LogState state, const String& heading, const String& body);
-
+    /// appends a new block with @p heading and a @p body
+    void appendNewHeader(const LogState state, const String& heading, const String& body);
+    
+    /// appends a line break (same as append(""))
     void addNewline();
 
     /// read max_length

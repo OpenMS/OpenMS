@@ -305,7 +305,7 @@ namespace OpenMS
     r->deleteLater();
     if (r->error() != QNetworkReply::NoError)
     {
-      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
       return;
     }
 
@@ -326,7 +326,7 @@ namespace OpenMS
     // check if the user clicked cancel, to avoid saving .toppas somewhere
     if (String(filename).trim().empty())
     {
-      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
       return;
     }
 
@@ -338,7 +338,7 @@ namespace OpenMS
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
       return;
     }
 
@@ -347,7 +347,7 @@ namespace OpenMS
     file.close();
 
     this->addTOPPASFile(filename);
-    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
 */
   }
   
@@ -373,7 +373,7 @@ namespace OpenMS
       connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
       // .. end debug
 
-      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
       // webview_->close(); QT5 replace with QWebEngine
     }
     else
@@ -1302,7 +1302,7 @@ namespace OpenMS
       }
       text += " of node #" + String(tv->getTopoNr()) + " started. Processing ...";
 
-      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
     }
     updateMenu();
   }
@@ -1320,7 +1320,7 @@ namespace OpenMS
       }
       text += " finished!";
 
-      log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
     }
     updateMenu();
   }
@@ -1338,7 +1338,7 @@ namespace OpenMS
       }
       text += " crashed!";
 
-      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, text, "");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, text, "");
     }
     updateMenu();
   }
@@ -1356,7 +1356,7 @@ namespace OpenMS
       }
       text += " failed!";
 
-      log_->appendTextWithHeader(LogWindow::LogState::CRITICAL, text, "");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, text, "");
     }
     updateMenu();
   }
@@ -1364,7 +1364,7 @@ namespace OpenMS
   void TOPPASBase::outputVertexFinished(const String& file)
   {
     String text = "Output file '" + file + "' written.";
-    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, text, "");
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, text, "");
   }
 
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
@@ -1383,7 +1383,7 @@ namespace OpenMS
 
   void TOPPASBase::showPipelineFinishedLogMessage()
   {
-    log_->appendTextWithHeader(LogWindow::LogState::NOTICE, "Entire pipeline execution finished!", "");
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, "Entire pipeline execution finished!", "");
   }
 
   void TOPPASBase::insertNewVertexInCenter_(QTreeWidgetItem* item)

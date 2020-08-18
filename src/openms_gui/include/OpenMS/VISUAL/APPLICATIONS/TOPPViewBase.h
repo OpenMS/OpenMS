@@ -478,9 +478,9 @@ protected:
 
     /// @name Recent files
     //@{
-    ///adds a Filename to the recent files
+    /// adds a Filename to the recent files
     void addRecentFile_(const String& filename);
-    ///update the recent files menu
+    /// update the recent files menu
     void updateRecentMenu_();
     /// list of the recently opened files
     QStringList recent_files_;
@@ -493,7 +493,7 @@ protected:
     //@{
     /// Runs the TOPP tool according to the information in topp_
     void runTOPPTool_();
-    ///Information needed for execution of TOPP tools
+    /// Information needed for execution of TOPP tools
     struct
     {
       Param param;
