@@ -108,9 +108,9 @@ namespace OpenMS
 #endif
   }
 
-  String TOPPBase::getToolPrefix(const String& tool_name, int instance_number)
+  String TOPPBase::getToolPrefix() const
   {
-    return tool_name + ":" + String(instance_number) + ":";
+    return tool_name_ + ":" + instance_number_ + ":";
   }
 
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
@@ -196,7 +196,7 @@ namespace OpenMS
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
-    *const_cast<String*>(&ini_location_) = TOPPBase::getToolPrefix(tool_name_, instance_number_);
+    *const_cast<String*>(&ini_location_) = this->getToolPrefix();
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     // set debug level
@@ -1918,7 +1918,7 @@ namespace OpenMS
   Param TOPPBase::getDefaultParameters_() const
   {
     Param tmp;
-    String loc = TOPPBase::getToolPrefix(tool_name_, instance_number_);
+    String loc = this->getToolPrefix();
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {

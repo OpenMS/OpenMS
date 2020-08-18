@@ -192,12 +192,13 @@ public:
     static void setMaxNumberOfThreads(int num_threads);
 
     /**
-      @brief Returns the prefix used to identify a tool
+      @brief Returns the prefix used to identify the tool
     
-      @param tool_name        Tool name
-      @param instance_number  Instance number (usually 1)
+      This prefix is later found in the INI file for a TOPP tool.
+      f.e.: "FileConverter:1:"
+
     */
-    static String getToolPrefix(const String& tool_name, int instance_number = 1);
+    String getToolPrefix() const;
 
 private:
     /// Tool name.  This is assigned once and for all in the constructor.

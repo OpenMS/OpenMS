@@ -140,7 +140,8 @@ public:
     *
     * @param write_this  Params to be written
     * @param write_here  a MetaInfoInterface object into which the meta values will be written
-    * @param prefix      will be added in front of the parameter name with a ':' for the meta value key
+    * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+    *                    If the prefix isn't empty and doesn't end with a colon one will be added.
     */
     static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
 
