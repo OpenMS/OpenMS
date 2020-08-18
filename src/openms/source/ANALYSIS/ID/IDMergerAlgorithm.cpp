@@ -55,6 +55,10 @@ namespace OpenMS
                        "true",
                        "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
     defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
+    defaults_.setValue("allow_disagreeing_settings",
+                       "false",
+                       "Force merging of disagreeing runs. Use at your own risk.");
+    defaults_.setValidStrings("allow_disagreeing_settings", ListUtils::create<String>("true,false"));
     defaultsToParam_();
     prot_result_.setIdentifier(getNewIdentifier_());
   }
@@ -411,7 +415,7 @@ namespace OpenMS
       // collect warnings and throw at the end if at least one failed
       ok = ok && ref.peptideIDsMergeable(idRun, experiment_type);
     }
-    if (!ok /*&& TODO and no force flag*/)
+    if (!ok && !param_.getValue("allow_disagreeing_settings").toBool())
     {
       throw Exception::MissingInformation(__FILE__,
                                           __LINE__,

@@ -345,8 +345,18 @@ protected:
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
     set<String> var_mods_set;
+    set<EnzymaticDigestion::Specificity> specs;
+    double prec_tol_ppm = 0.;
+    double prec_tol_da = 0.;
+    double frag_tol_ppm = 0.;
+    double frag_tol_da = 0.;
+    int min_chg = 10000;
+    int max_chg = -10000;
+    Size mc = 0;
+    // we sort them to pick the same entries, no matter the order of the inputs
+    set<String, std::greater<String>> enzymes;
+    set<String, std::greater<String>> dbs;
 
-    //TODO check if settings are same/similar
     bool allsamese = true;
     // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
     // we assume that they are the same or similar
@@ -373,16 +383,132 @@ protected:
       new_sp.setMetaValue(SE+":precursor_mass_tolerance_unit",sp.precursor_mass_tolerance_ppm  ? "ppm" : "Da");
       new_sp.setMetaValue(SE+":digestion_enzyme",sp.digestion_enzyme.getName());
       new_sp.setMetaValue(SE+":enzyme_term_specificity",EnzymaticDigestion::NamesOfSpecificity[sp.enzyme_term_specificity]);
+      
+      const auto& chg_pair = sp.getChargeRange();
+      if (chg_pair.first != 0 && chg_pair.first < min_chg) min_chg = chg_pair.first;
+      if (chg_pair.second != 0 && chg_pair.second > max_chg) max_chg = chg_pair.second;
+      if (sp.missed_cleavages > mc ) mc = sp.missed_cleavages;
+      if (sp.fragment_mass_tolerance_ppm)
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_ppm) frag_tol_ppm = sp.fragment_mass_tolerance;
+      }
+      else
+      {
+        if (sp.fragment_mass_tolerance > frag_tol_da) frag_tol_da = sp.fragment_mass_tolerance;
+      }
+      if (sp.precursor_mass_tolerance_ppm)
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_ppm) prec_tol_ppm = sp.precursor_mass_tolerance;
+      }
+      else
+      {
+        if (sp.precursor_mass_tolerance > prec_tol_da) prec_tol_da = sp.precursor_mass_tolerance;
+      }
+
+      enzymes.insert(sp.digestion_enzyme.getName());
+      dbs.insert(sp.db);
+      specs.insert(sp.enzyme_term_specificity);
 
       std::copy(sp.fixed_modifications.begin(), sp.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(sp.variable_modifications.begin(), sp.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
     }
 
+    if (specs.find(EnzymaticDigestion::SPEC_NONE) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONE;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_SEMI) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_SEMI;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NONTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NONTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_NOCTERM) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_NOCTERM;
+    }
+    else if (specs.find(EnzymaticDigestion::SPEC_FULL) != specs.end())
+    {
+      new_sp.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+    }
 
     std::vector<String> fixed_mods(fixed_mods_set.begin(), fixed_mods_set.end());
     std::vector<String> var_mods(var_mods_set.begin(), var_mods_set.end());
     new_sp.fixed_modifications    = fixed_mods;
     new_sp.variable_modifications = var_mods;
+
+    String final_enz;
+    for (const auto& enz : enzymes)
+    {
+      if (enz != "unknown_enzyme")
+      {
+        // Although the set should be sorted to start with the longest
+        // versions, this extends "" to Trypsin and e.g. Trypsin to Trypsin/P
+        if (enz.hasSubstring(final_enz))
+        {
+          final_enz = enz;
+        }
+        else if (!final_enz.hasSubstring(enz))
+        {
+          OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible enzymes."
+          " OpenMS officially supports only one enzyme per search. Using " + final_enz + " to (incompletely)"
+          " represent the combined run. This might or might not lead to inconsistencies downstream.";
+        }
+      }
+    }
+    new_sp.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(final_enz);
+
+    String final_db = *dbs.begin();
+    String final_db_bn = final_db;
+    final_db_bn.substitute("\\","/");
+    final_db_bn = File::basename(final_db_bn);
+    // we need to copy to substitute anyway
+    for (auto db : dbs) // OMS_CODING_TEST_EXCLUDE
+    {
+      db.substitute("\\","/");
+      if (File::basename(db) != final_db_bn)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different databases."
+        " OpenMS officially supports only one database per search. Using " + final_db + " to (incompletely)"
+        " represent the combined run. This might or might not lead to inconsistencies downstream.";
+      }
+    }
+
+    new_sp.charges = String(min_chg) + "-" + String(max_chg);
+    if (prec_tol_da > 0 && prec_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "precursor tolerance units. Using Da for the combined run.";
+    }
+    if (prec_tol_da > 0)
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_da;
+      new_sp.precursor_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.precursor_mass_tolerance = prec_tol_ppm;
+      new_sp.precursor_mass_tolerance_ppm = true;
+    }
+    if (frag_tol_da > 0 && frag_tol_ppm > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with incompatible "
+      "fragment tolerance units. Using Da for the combined run.";
+    }
+    if (frag_tol_da > 0)
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_da;
+      new_sp.fragment_mass_tolerance_ppm = false;
+    }
+    else
+    {
+      new_sp.fragment_mass_tolerance = frag_tol_ppm;
+      new_sp.fragment_mass_tolerance_ppm = true;
+    }
+    
+    new_sp.missed_cleavages = mc;
 
     prot_id.setDateTime(DateTime::now());
     prot_id.setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
