@@ -93,11 +93,11 @@ To generate the de novo "database":
       - @ref TOPP_IDFilter can filter out unwanted ones.
       - @ref TOPP_IDFileConverter generates the de novo fasta file.
 
-For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p novor_fract option.@n
-For this to work it is important that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
+For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p reranking_cutoff_percentile.@n
+For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crutial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
 @note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
-You can still uses other search engines and disable the re-ranking via the @p force_no_re_rank flag in this tool. This will probably result in an underestimated suitability though.@n
+You can still uses other search engines and disable the re-ranking via the @p no_rerank flag in this tool. This will probably result in an underestimated suitability though.@n
 
 
 The results are written directly into the console. But you can provide an optional tsv output file where the most important results will be exported to.
@@ -132,6 +132,11 @@ public:
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    return DBSuitability().getDefaults();
+  }
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide. PeptideIndexer is needed, FDR is forbidden.");
@@ -142,13 +147,8 @@ protected:
     setValidFormats_("in_novo", { "idXML" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
-    registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentile to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
-    setMinFloat_("cut_off_fract", 0);
-    setMaxFloat_("cut_off_fract", 1);
-    registerDoubleOption_("FDR", "<double>", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)", false, true);
-    setMinFloat_("FDR", 0);
-    setMaxFloat_("FDR", 1);
-    registerFlag_("force_no_re_rank", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.", true);
+
+    registerSubsection_("algorithm", "Parameter section for the suitability calculation algorithm");
   }
 
   // the main_ function is called after all parameters are read
@@ -161,9 +161,6 @@ protected:
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
     String out = getStringOption_("out");
-    double cut_off_fract = getDoubleOption_("cut_off_fract");
-    double FDR = getDoubleOption_("FDR");
-    bool no_re_rank = getFlag_("force_no_re_rank");
 
     //-------------------------------------------------------------
     // reading input
@@ -207,10 +204,7 @@ protected:
     Ms2IdentificationRate::IdentificationRateData spectral_quality = q.getResults()[0];
 
     DBSuitability s;
-    Param p;
-    p.setValue("no_re_rank", no_re_rank ? "true" : "false");
-    p.setValue("cut_off_fract", cut_off_fract);
-    p.setValue("FDR", FDR);
+    Param p = getParam_().copy("algorithm:", true);
     s.setParameters(p);
     s.compute(pep_ids);
 

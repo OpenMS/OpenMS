@@ -101,7 +101,7 @@ namespace OpenMS
 
     /// Constructor
     /// Settings are initialized with their default values:
-    /// no_re_rank = false, cut_off_fract = 1, FDR = 0.01
+    /// no_rerank = false, reranking_cutoff_percentile = 1, FDR = 0.01
     DBSuitability();
 
     /// Destructor
@@ -119,18 +119,18 @@ namespace OpenMS
     * 
     * Parameters can be set using the functionality of DefaultParamHandler.
     * Parameters are:
-    *                no_re_rank    - re-ranking can be turned off with this
-    *                cut_off_fract - percentile that determines which cut-off will be returned
-    *                FDR           - q-value that should be filtered for
-    *                                Preliminary tests have shown that database suitability
-    *                                is rather stable across common FDR thresholds from 0 - 5 %
+    *           no_rerank                   - re-ranking can be turned off with this
+    *           reranking_cutoff_percentile - percentile that determines which cut-off will be returned
+    *           FDR                         - q-value that should be filtered for
+    *                                         Preliminary tests have shown that database suitability
+    *                                         is rather stable across common FDR thresholds from 0 - 5 %
     *
     * Since q-values need to be calculated the identifications are taken by copy.
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
-    * @param pep_ids      vector containing pepIDs coming from a deNovo+database 
-    *                     identification search without FDR (currently only Comet-support)
+    * @param pep_ids      vector containing pepIDs with target/decoy annotation coming from a deNovo+database 
+    *                     identification search (currently only Comet-support) without FDR
     * @throws             MissingInformation if no target/decoy annotation is found
     * @throws             MissingInformation if no xcorr is found
     * @throws             Precondition if a q-value is found in the input
@@ -168,18 +168,18 @@ namespace OpenMS
     /**
     * @brief Calculates a xcorr cut-off based on decoy hits
     *
-    * Decoy differences of all N pepIDs are calculated. The (1-cut_off_fract)*N highest
+    * Decoy differences of all N pepIDs are calculated. The (1-reranking_cutoff_percentile)*N highest
     * one is returned.
-    * It is asssumed that this difference accounts for novo_fract of the re-ranking cases.
+    * It is asssumed that this difference accounts for 'reranking_cutoff_percentile' of the re-ranking cases.
     *
-    * @param pep_ids        vector containing the pepIDs
-    * @param cut_off_fract  percentile that determines which cut-off will be returned
-    * @returns              xcorr cut-off
-    * @throws               IllegalArgument if novo_fract isn't in range [0,1]
-    * @throws               IllegalArgument if novo_fract is too low for a decoy cut-off to be calculated
-    * @throws               MissingInformation if no more than 20 % of the peptide IDs have two decoys in their top ten peptide hits
+    * @param pep_ids                      vector containing the pepIDs
+    * @param reranking_cutoff_percentile  percentile that determines which cut-off will be returned
+    * @returns                            xcorr cut-off
+    * @throws                             IllegalArgument if reranking_cutoff_percentile isn't in range [0,1]
+    * @throws                             IllegalArgument if reranking_cutoff_percentile is too low for a decoy cut-off to be calculated
+    * @throws                             MissingInformation if no more than 20 % of the peptide IDs have two decoys in their top ten peptide hits
     */
-    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double cut_off_fract);
+    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile);
 
     /**
     * @brief Tests if a PeptideHit is considered a deNovo hit

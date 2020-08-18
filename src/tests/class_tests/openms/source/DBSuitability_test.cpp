@@ -190,7 +190,7 @@ START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
   DBSuitability s;
   s.compute(pep_ids);
   Param p;
-  p.setValue("cut_off_fract", 2./3);
+  p.setValue("reranking_cutoff_percentile", 2./3);
   p.setValue("FDR", 0.);
   s.setParameters(p);
   s.compute(pep_ids_2);
@@ -219,7 +219,7 @@ START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
   TEST_EQUAL(data_decoy_top.suitability, DBL_MAX);
 
   TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(FDR_id), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(no_xcorr_ids), "No cross correlation score found at peptide hit. Only Comet search engine is supported right now.");
 }
 END_SECTION
