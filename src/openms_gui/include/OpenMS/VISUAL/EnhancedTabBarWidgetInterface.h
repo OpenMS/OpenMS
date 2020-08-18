@@ -38,9 +38,44 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <QObject>
+
 namespace OpenMS
 {
   class EnhancedTabBar;
+
+  /**
+    @brief provides a signal mechanism (by deriving from QObject) for classes which are not allowed to have signals themselves.
+
+    This might be useful for EnhancedTabBarWidgetInterface, since that cannot derive from QObject due to the diamond star inheritance problem via its parent classes (e.g. SpectrumWidget).
+    
+    Diamond star problem:
+      
+      SpectrumWidget
+       /       \
+    ETBWI    QWidget
+       -!      /
+        QObject
+
+     Thus, ETBWI cannot derive from QObject and needs to delegate its signaling duties to a SignalProvider.      
+
+     Wrap all signals that are required in a function call and call these functions instead of emitting the signal directly.
+     Connect the signal to a slot by using QObject::connect() externally somewhere.
+
+  */
+  class OPENMS_GUI_DLLAPI SignalProvider
+    : public QObject
+  {
+    Q_OBJECT
+  public:
+    void emitAboutToBeDestroyed(int id)
+    {
+      emit aboutToBeDestroyed(id);
+    }
+  signals:
+    void aboutToBeDestroyed(int id);
+  };
+  
   /**
     @brief Widgets that are placed into an EnhancedTabBar must implement this interface
 
@@ -48,10 +83,10 @@ namespace OpenMS
   */
   class OPENMS_GUI_DLLAPI EnhancedTabBarWidgetInterface
   {
-public:
+  public:
     /// C'tor; creates a new ID;
     EnhancedTabBarWidgetInterface();
-    /// Destructor
+    /// Destructor (emits SignalProvider::aboutToBeDestroyed)
     virtual ~EnhancedTabBarWidgetInterface();
 
     /// adds itself to this tabbar and upon destruction removes itself again.
@@ -64,9 +99,9 @@ public:
     /// the first object to be created will get this ID
     static Int getFirstWindowID();
 
-private:
+  private:
     Int window_id_ { -1 };
-    EnhancedTabBar* parent_ { nullptr }; ///< this is our parent. Which will delete us automatically when we destruct
+    SignalProvider sp_; ///< emits the signal that the EnhancedTabBarWidgetInterface is about to be destroyed
   };
 }  // namespace OpenMS
 
