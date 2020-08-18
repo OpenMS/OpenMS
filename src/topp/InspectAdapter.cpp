@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -875,6 +876,13 @@ protected:
           if (exit_code == EXECUTION_OK)
           {
             vector<ProteinIdentification> protein_identifications(1, protein_identification);
+
+            // write all (!) parameters as metavalues to the search parameters
+            if (!protein_identifications.empty())
+            {
+              DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+            }
+
             idXML_file.store(output_filename, protein_identifications, peptide_identifications);
           }
         }

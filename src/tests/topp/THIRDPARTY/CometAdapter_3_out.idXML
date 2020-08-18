@@ -5,7 +5,60 @@
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Acetyl (Protein N-term)" />
 		<VariableModification name="Carbamidomethyl (N-term)" />
-			<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
+				<UserParam type="string" name="CometAdapter:1:in" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.mzML"/>
+				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_3_out1.tmp"/>
+				<UserParam type="string" name="CometAdapter:1:database" value="/home/eugen/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_3_out2.tmp.tsv"/>
+				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
+				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="5.0"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_error_units" value="ppm"/>
+				<UserParam type="string" name="CometAdapter:1:isotope_error" value="off"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_mass_tolerance" value="0.01"/>
+				<UserParam type="string" name="CometAdapter:1:fragment_error_units" value="Da"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_bin_offset" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:instrument" value="high_res"/>
+				<UserParam type="string" name="CometAdapter:1:use_A_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_B_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_C_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_X_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_Y_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_Z_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_NL_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
+				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
+				<UserParam type="int" name="CometAdapter:1:missed_cleavages" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
+				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
+				<UserParam type="int" name="CometAdapter:1:num_hits" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_charge" value="0:0"/>
+				<UserParam type="string" name="CometAdapter:1:override_charge" value="keep known search unknown"/>
+				<UserParam type="int" name="CometAdapter:1:ms_level" value="2"/>
+				<UserParam type="string" name="CometAdapter:1:activation_method" value="ALL"/>
+				<UserParam type="string" name="CometAdapter:1:digest_mass_range" value="600:5000"/>
+				<UserParam type="int" name="CometAdapter:1:max_fragment_charge" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:max_precursor_charge" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:clip_nterm_methionine" value="false"/>
+				<UserParam type="int" name="CometAdapter:1:spectrum_batch_size" value="20000"/>
+				<UserParam type="floatList" name="CometAdapter:1:mass_offsets" value="[0.0]"/>
+				<UserParam type="int" name="CometAdapter:1:minimum_peaks" value="10"/>
+				<UserParam type="float" name="CometAdapter:1:minimum_intensity" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:remove_precursor_peak" value="no"/>
+				<UserParam type="float" name="CometAdapter:1:remove_precursor_tolerance" value="1.5"/>
+				<UserParam type="string" name="CometAdapter:1:clear_mz_range" value="0:0"/>
+				<UserParam type="stringList" name="CometAdapter:1:fixed_modifications" value="[Carbamidomethyl (C)]"/>
+				<UserParam type="stringList" name="CometAdapter:1:variable_modifications" value="[Acetyl (Protein N-term),Carbamidomethyl (N-term)]"/>
+				<UserParam type="intList" name="CometAdapter:1:binary_modifications" value="[]"/>
+				<UserParam type="int" name="CometAdapter:1:max_variable_mods_in_peptide" value="3"/>
+				<UserParam type="string" name="CometAdapter:1:require_variable_mod" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:log" value=""/>
+				<UserParam type="int" name="CometAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="CometAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:force" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2019-04-12T10:21:43" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >

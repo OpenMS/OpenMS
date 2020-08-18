@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
@@ -1049,6 +1050,13 @@ protected:
     //-------------------------------------------------------------
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+    }
+
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
 
     // some stats
