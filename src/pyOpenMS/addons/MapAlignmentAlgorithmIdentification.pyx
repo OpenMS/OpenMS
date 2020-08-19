@@ -1,17 +1,7 @@
 
 
-    # C++ signature: void align(libcpp_vector[MSExperiment] &, libcpp_vector[TransformationDescription] &, int)
-    # C++ signature: void align(libcpp_vector[FeatureMap] &, libcpp_vector[TransformationDescription] &, int)
-    # C++ signature: void align(libcpp_vector[ConsensusMap] &, libcpp_vector[TransformationDescription] &, int)
-    # 
-    # In addition to above overloaded functions adding this new one.
-    def align_4(self, list ids , list trafos, int ref_index):
-        """
-        Parameters:
-        ids (list): list of PeptideIdentification objects
-        trafos (list): list of TransformationDescription objects
-        ref_index (int)
-        """
+
+    def align(self, list ids , list trafos, int ref_index):
         assert isinstance(ids, list) and all(isinstance(li, list) and all(isinstance(li_, PeptideIdentification) for li_ in li) for li in ids), 'arg ids wrong type'
         assert isinstance(trafos, list) and all(isinstance(li, TransformationDescription) for li in trafos), 'arg trafos wrong type'
         cdef libcpp_vector[libcpp_vector[_PeptideIdentification]] * v0 = new libcpp_vector[libcpp_vector[_PeptideIdentification]]()
