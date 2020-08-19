@@ -83,7 +83,6 @@ namespace OpenMS
     {
       if (feature_name == "intensity")
       {
-        measured_feature_subordinates = measured_feature.getSubordinates(); // i.e. Lactate1
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
@@ -102,7 +101,6 @@ namespace OpenMS
       {
         if (measured_feature.metaValueExists(feature_name))
         {
-          measured_feature_subordinates = measured_feature.getSubordinates(); // i.e. Lactate1
           std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
           for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
           {
@@ -125,7 +123,6 @@ namespace OpenMS
       if (feature_name == "intensity")
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
-        measured_feature_subordinates = measured_feature.getSubordinates(); // i.e. Lactate1
         std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
@@ -143,7 +140,6 @@ namespace OpenMS
         if (measured_feature.metaValueExists(feature_name))
         {
           OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
-          measured_feature_subordinates = measured_feature.getSubordinates(); // i.e. Lactate1
           std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
           for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
           {
