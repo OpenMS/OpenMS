@@ -8,6 +8,7 @@ AssayGeneratorMetabo
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
+DBsearchDeconvMass
 DatabaseFilter
 DecoyDatabase
 DeMeanderize
