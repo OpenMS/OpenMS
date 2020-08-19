@@ -1191,6 +1191,7 @@ namespace OpenMS
         }
       }
       String protein = attributeAsString_(attributes, "protein");
+      protein.trim();
       pe.setProteinAccession(protein);
 
       ProteinHit hit;
