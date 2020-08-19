@@ -737,6 +737,8 @@ protected:
     // TODO let this be parsed by the pepXML parser if this info is present there.
     protein_identifications[0].getSearchParameters().enzyme_term_specificity =
         static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+    protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
+    protein_identifications[0].getSearchParameters().db = getStringOption_("database");
 
     // write all (!) parameters as metavalues to the search parameters
     if (!protein_identifications.empty())

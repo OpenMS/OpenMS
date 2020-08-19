@@ -259,7 +259,7 @@ jobs:
               "$PYBIN/bin/pip" install -U wheel==0.31.1
               "$PYBIN/bin/pip" install -U numpy
               "$PYBIN/bin/pip" install -U nose
-              "$PYBIN/bin/pip" install -U autowrap==0.18.1
+              "$PYBIN/bin/pip" install -U autowrap
             done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
