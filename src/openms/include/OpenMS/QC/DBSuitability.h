@@ -47,6 +47,7 @@ namespace OpenMS
   class ParamXMLFile;
   class PeptideIdentification;
   class PeptideHit;
+  class MSExperiment;
 
   /**
   * @brief This class holds the functionality of calculating the database suitability.
@@ -206,11 +207,13 @@ namespace OpenMS
     */
     bool passesFDR_(const PeptideHit& hit, double FDR);
 
-    const Param& extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
+    Param extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
+
+    void writeIniFile_(const Param& parameters, const String& filename) const;
 
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const;
 
-    void writeIniFile_(const Param& parameters, const String& filename) const;
+    Size getNumberOfIdentificationsFound_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const;
   };
 }
 

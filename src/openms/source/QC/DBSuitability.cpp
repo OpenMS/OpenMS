@@ -301,9 +301,10 @@ namespace OpenMS
     if (hit.getScore() > FDR) return false;
     return true;
   }
-  const Param& DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
+  Param DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
   {
     Param p;
+    //vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
 
     vector<String> keys;
     meta_values.getKeys(keys);
@@ -319,6 +320,16 @@ namespace OpenMS
     }
 
     return p;
+  }
+
+  void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
+  {
+    if (!File::writable(filename))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to create file: " + filename);
+    }
+    ParamXMLFile param_file;
+    param_file.store(filename, parameters);
   }
 
   vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const
@@ -352,7 +363,7 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { proc_stderr += out; };
 
     ExternalProcess ep(lam_out, lam_err);
-    const auto& rt = ep.run(search_engine.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), false);
+    const auto& rt = ep.run(search_engine.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), true);
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured
       OPENMS_LOG_ERROR << "An error occured while running CometAdapter." << endl;
@@ -368,21 +379,18 @@ namespace OpenMS
     IdXMLFile comet_out;
     comet_out.load(out_path, prot_ids, pep_ids);
 
-    // annotate target/decoy information
-    PeptideIndexing indexer;
-    FASTAContainer<TFI_File> proteins(db_path);
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
-
     return pep_ids;
   }
 
-  void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
+  Size DBSuitability::getNumberOfIdentificationsFound_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const
   {
-    if (!File::writable(filename))
+    vector<PeptideIdentification> pep_ids = runIdentificationSearch_(exp, fasta_data, parameters);
+    Size count{};
+    for (const auto& pep_id : pep_ids)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to create file: " + filename);
+      if (pep_id.empty()) continue;
+      ++count;
     }
-    ParamXMLFile param_file;
-    param_file.store(filename, parameters);
+    return count;
   }
 }

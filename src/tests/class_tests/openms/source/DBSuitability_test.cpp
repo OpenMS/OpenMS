@@ -49,6 +49,12 @@
 using namespace OpenMS;
 using namespace std;
 
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+
 START_TEST(Suitability, "$Id$")
 
 /////////////////////////////////////////////////////////////
