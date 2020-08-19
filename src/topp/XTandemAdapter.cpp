@@ -409,7 +409,7 @@ protected:
       protein_id.setSearchEngine("XTandem");
 
       // write all (!) parameters as metavalues to the search parameters
-      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_id.getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_id.getSearchParameters(), this->getToolPrefix());
 
       protein_ids.push_back(protein_id);
 

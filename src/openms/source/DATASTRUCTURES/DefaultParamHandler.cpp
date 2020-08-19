@@ -174,9 +174,17 @@ namespace OpenMS
 
   void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix)
   {
+    String prefix_(prefix);
+    if (!prefix_.empty())
+    {
+      if (prefix_.compare(prefix_.size() - 1, 1, ":") != 0) // ends with colon?
+      {
+        prefix_ += ":";
+      }
+    }
     for (auto it = write_this.begin(); it != write_this.end(); it++)
     {
-      write_here.setMetaValue(prefix + (*it).name, (*it).value);
+      write_here.setMetaValue(prefix_ + (*it).name, (*it).value);
     }
   }
 

@@ -140,7 +140,8 @@ public:
     *
     * @param write_this  Params to be written
     * @param write_here  a MetaInfoInterface object into which the meta values will be written
-    * @param prefix      will be added in front of the parameter name with a ':' for the meta value key
+    * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+    *                    If the prefix isn't empty and doesn't end with a colon one will be added.
     */
     static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix = "");
 
@@ -181,16 +182,16 @@ protected:
         @brief If this member is set to false no checking if parameters in done;
 
         The only reason to set this member to false is that the derived class has no parameters!
-However, if a grand-child has defaults and you are using a base class cast, checking will
-not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
+        However, if a grand-child has defaults and you are using a base class cast, checking will
+        not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
     */
     bool check_defaults_;
 
     /**
-              @brief If this member is set to false no warning is emitted when defaults are empty;
+        @brief If this member is set to false no warning is emitted when defaults are empty;
 
-              The only reason to set this member to false is that the derived class has no parameters!
-      @see check_defaults_
+        The only reason to set this member to false is that the derived class has no parameters!
+        @see check_defaults_
           */
     bool warn_empty_defaults_;
 

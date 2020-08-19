@@ -323,7 +323,7 @@ protected:
     prot_ids.push_back(prot_id);
 
     // write all (!) parameters as metavalues to the search parameters
-    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
     IdXMLFile().store(out, prot_ids, pep_ids);
     

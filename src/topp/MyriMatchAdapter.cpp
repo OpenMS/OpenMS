@@ -517,7 +517,7 @@ protected:
       protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
 
       // write all (!) parameters as metavalues to the search parameters
-      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), TOPPBase::getToolPrefix(this->toolName_()));
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
