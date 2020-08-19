@@ -258,6 +258,7 @@ private:
 
     /// Enzyme name associated with the current identification run
     String enzyme_;
+    String enzyme_cuttingsite_;
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;

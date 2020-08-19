@@ -6,6 +6,7 @@
 		<VariableModification name="Deamidated (N)" />
 		<VariableModification name="Deamidated (Q)" />
 		<VariableModification name="Oxidation (M)" />
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2013-06-24T09:49:04" search_engine="MASCOT" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >

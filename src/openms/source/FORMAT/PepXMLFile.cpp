@@ -1729,17 +1729,45 @@ namespace OpenMS
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
     }
+    else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
+    { // special case: search parameter that occurs *before* "search_summary"!
+      String cut_before = attributeAsString_(attributes, "cut");
+      String no_cut_after = attributeAsString_(attributes, "no_cut");
+      String sense = attributeAsString_(attributes, "sense");
+      params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
+          "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
+          cut_before, no_cut_after, sense));
+    }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
+      //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
+      // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
+        if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
+        {
+          error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
+        }
+        params_.digestion_enzyme = enzyme_to_set;
       }
 
+      // Always add the additional infos (e.g. for enzymatic_search_constraint enzyme="default" like in MSFragger)
+      //TODO maybe check for keyword names like "default"?
+      //TODO the question is, what to do with the following infos if the enzymes do not match?
+      // We always parse and set it for now, to be
+      // a) backwards-compatible
+      // b) it's the only info we have
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
       params_.missed_cleavages = mc;
+
+      int min_num_termini = attributeAsInt_(attributes, "min_number_termini");
+      if (min_num_termini >= 0 && min_num_termini <= 2)
+      {
+        params_.enzyme_term_specificity = EnzymaticDigestion::Specificity(min_num_termini);
+      }
     }
     else if (element == "search_database") // parent: "search_summary"
     {

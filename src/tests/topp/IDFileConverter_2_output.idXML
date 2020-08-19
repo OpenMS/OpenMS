@@ -7,6 +7,7 @@
 		<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		<VariableModification name="Oxidation (M)" />
 		<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<SearchParameters id="SP_1" db="/home/sorcerer/fasta/ipi.HUMAN.v3.52.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
