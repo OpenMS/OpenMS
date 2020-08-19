@@ -28,59 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTreeWidget>
-
-#include <OpenMS/VISUAL/LayerData.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Hierarchical visualization and selection of spectra.
-
-    @ingroup SpectrumWidgets
-  */
-  class SpectraViewWidget :
-    public QWidget
+  namespace Helpers
   {
-    Q_OBJECT
-public:
-    /// Constructor
-    SpectraViewWidget(QWidget * parent = nullptr);
-    /// Destructor
-    ~SpectraViewWidget() override;
-    QTreeWidget * getTreeWidget();
-    QComboBox * getComboBox();
-    void updateEntries(const LayerData & cl);
-signals:
-    void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
-    void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
-    void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int> indices);
-    void showSpectrumMetaData(int);
-private:
-    QLineEdit * spectra_search_box_;
-    QComboBox * spectra_combo_box_;
-    QTreeWidget * spectra_treewidget_;
-    /// cache to store mapping of chromatogram precursors to chromatogram indices
-    std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
-private slots:
-    void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
-    void spectrumContextMenu_(const QPoint &);
-  };
+    /// return the index of an element in a container
+    /// useful for matching 'names_of_...' arrays to their enum value
+    template <class ContainerType>
+    Size indexOf(const ContainerType& cont, const typename ContainerType::value_type& val)
+    {
+      auto it = std::find(cont.begin(), cont.end(), val);
+      if (it == cont.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, val);
+      }
+      return std::distance(cont.begin(), it);
+    }
+
+  }
 }
+
 

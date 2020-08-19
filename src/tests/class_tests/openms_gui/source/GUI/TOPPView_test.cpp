@@ -132,7 +132,7 @@ void TestTOPPView::testGui()
 
 #if 1 //def __APPLE__ // MAC OS does not support entering a filename via keyboard in the file-open menu
     tv.addDataFile(File::getOpenMSDataPath() + "/examples/peakpicker_tutorial_1.mzML", false, false);
-    QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1"));
+    QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1"));
 #else
     scheduleModalWidget_("peakpicker_tutorial_1.mzML", "Open file(s)",1000);                 // Open File dialog
     scheduleModalWidget_("", "Open data options for peakpicker_tutorial_1.mzML",1000); // layer data options dialog
@@ -148,7 +148,7 @@ void TestTOPPView::testGui()
 #endif
 
   // compare the name of the opened tab
-  QCOMPARE(tv.tab_bar_->tabText(tv.tab_bar_->currentIndex()), QString("peakpicker_tutorial_1"));
+  QCOMPARE(tv.tab_bar_.tabText(tv.tab_bar_.currentIndex()), QString("peakpicker_tutorial_1"));
 }
 
 // expands to a simple main() method that runs all the test functions

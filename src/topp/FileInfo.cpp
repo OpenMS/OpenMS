@@ -194,7 +194,7 @@ protected:
   {
     os << "Ranges:"
        << '\n'
-       << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << '\n'
+       << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << " sec (" << String::number((map.getMax()[Peak2D::RT] - map.getMin()[Peak2D::RT]) / 60, 1) << " min)\n"
        << "  mass-to-charge: " << String::number(map.getMin()[Peak2D::MZ], 2) << " .. " << String::number(map.getMax()[Peak2D::MZ], 2) << '\n'
        << "  intensity:      " << String::number(map.getMinInt(), 2) << " .. " << String::number(map.getMaxInt(), 2) << '\n'
        << '\n';
@@ -829,6 +829,10 @@ protected:
         os << it->first << " " << it->second;
       }
 
+      for (const auto& se : search_engines)
+      {
+        os_tsv << "general: search engine" << '\t' << se.first << '\t' << "(version: " << se.second << ")" << '\n';
+      }
       os_tsv << "general: num. of runs" << '\t' << runs_count << '\n';
       os_tsv << "general: num. of protein hits" << '\t' << protein_hit_count << '\n';
       os_tsv << "general: num. of non-redundant protein hits (only hits that differ in the accession)"
@@ -901,7 +905,16 @@ protected:
       // and count how many spectra per MS level there are
       map<Size, UInt> level_annotated_picked;
       map<Size, UInt> level_estimated_picked;
-      map<Precursor::ActivationMethod, Size> act_method_counts;
+      struct ChAM
+      {
+        Size mslevel;
+        Precursor::ActivationMethod am;
+        bool operator<(const ChAM& rhs) const
+        {
+          return std::tie(mslevel, am) < std::tie(rhs.mslevel, rhs.am); 
+        }
+      };
+      map<ChAM, Size> act_method_counts;
       map<Size, UInt> counts;
       for (const auto& spectrum : exp)
       {
@@ -912,7 +925,7 @@ protected:
         {
           for (auto const& am : pc.getActivationMethods())
           {
-            ++act_method_counts[am];
+            ++act_method_counts[{level, am}];
           }
         }
 
@@ -944,7 +957,7 @@ protected:
       }
 
       // write peak types (centroided / profile mode)
-      os << "Peak type metadata (estimated)\n";
+      os << "Peak type from metadata (or estimated from data)\n";
       for (const auto& l : levels)
       {
         os << "  level " << l << ": "
@@ -957,8 +970,8 @@ protected:
       os << "Activation methods\n";
       for (const auto& am : act_method_counts)
       {
-        os << "    " << Precursor::NamesOfActivationMethodShort[am.first] << " (" << Precursor::NamesOfActivationMethod[am.first] << "): " << am.second << '\n';
-        os_tsv << "activation methods" << '\t' << Precursor::NamesOfActivationMethodShort[am.first] << '\t' << am.second << '\n';
+        os << "    MS-Level " << am.first.mslevel << " & " << Precursor::NamesOfActivationMethodShort[am.first.am] << " (" << Precursor::NamesOfActivationMethod[am.first.am] << "): " << am.second << '\n';
+        os_tsv << "activation methods (mslevel, method, count)" << '\t' << am.first.mslevel << '\t' << Precursor::NamesOfActivationMethodShort[am.first.am] << '\t' << am.second << '\n';
       }
       os << '\n';
 

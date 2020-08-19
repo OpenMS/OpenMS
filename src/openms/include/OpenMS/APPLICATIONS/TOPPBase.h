@@ -191,6 +191,15 @@ public:
     */
     static void setMaxNumberOfThreads(int num_threads);
 
+    /**
+      @brief Returns the prefix used to identify the tool
+    
+      This prefix is later found in the INI file for a TOPP tool.
+      f.e.: "FileConverter:1:"
+
+    */
+    String getToolPrefix() const;
+
 private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;

@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -98,12 +99,15 @@
     producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool.
     Finally, the .tsv file is parsed and a result in idXML format is generated.
 
-    An optional MSGF+ configuration file can be added via '-conf' parameter (e.g. to support custom AA masses).
+    An optional MSGF+ configuration file can be added via '-conf' parameter.
     See https://github.com/MSGFPlus/msgfplus/blob/master/docs/examples/MSGFPlus_Params.txt for 
     an example and consult the MSGF+ documentation for further details.
     Parameters specified in the configuration file are ignored by MS-GF+ if they are also specified on the command line.
-    This adapter passes all flags which you can set on the command line, so use the configuration file only for parameters which
-    are not directly available here.
+    This adapter passes all flags which you can set on the command line, so use the configuration file <b>only</b> for parameters which
+    are not available here (this includes fixed/variable modifications, which are passed on the commandline via -mod <file>).
+    Thus, be very careful that your settings in '-conf' actually take effect (try running again without '-conf' file and test if the results change).
+
+    Hint: this adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFPlusAdapter.cli
@@ -224,7 +228,7 @@ protected:
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
-    registerInputFile_("conf", "<file>", "", "Optional MSGF+ configuration file (passed as -conf <file> to MSGF+). See documentation for examples. Parameters of the adapter take precedence. Use conf file only for settings not available here.", false, false);
+    registerInputFile_("conf", "<file>", "", "Optional MSGF+ configuration file (passed as -conf <file> to MSGF+). See documentation for examples. Parameters of the adapter take precedence. Use conf file only for settings not available here (for example, any fixed/var modifications, in the conf file will be ignored, since they are provided via -mod flag)", false, false);
 
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"is_executable"});
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
@@ -379,6 +383,10 @@ protected:
   void writeModificationsFile_(const String& out_path, const vector<String>& fixed_mods, const vector<String>& variable_mods, Size max_mods)
   {
     ofstream output(out_path.c_str());
+    if (!output)
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_path);
+    }
     output << "# MS-GF+ modifications file written by MSGFPlusAdapter (part of OpenMS)\n"
            << "NumMods=" << max_mods
            << "\n\n# Fixed modifications:\n";
@@ -775,9 +783,11 @@ protected:
         for (auto& pid : protein_ids)
         {
           pid.getSearchParameters().missed_cleavages = 1000; // use a high value (1000 was used in previous MSGF+ version)
+          pid.getSearchParameters().digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
         }
         // set the MS-GF+ spectral e-value as new peptide identification score
         for (auto& pep : peptide_ids) { switchScores_(pep); }
+
 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
       }
@@ -792,6 +802,13 @@ protected:
           psm.removeMetaValue("IsotopeError");
         }
       }
+
+      // write all (!) parameters as metavalues to the search parameters
+      if (!protein_ids.empty())
+      {
+        DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_ids[0].getSearchParameters(), this->getToolPrefix());
+      }
+
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
 

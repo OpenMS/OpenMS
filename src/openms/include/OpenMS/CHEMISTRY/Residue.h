@@ -36,7 +36,6 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,6 +45,8 @@
 
 namespace OpenMS
 {
+  class ResidueModification;
+
   /**
       @ingroup Chemistry
 
@@ -304,6 +305,9 @@ public:
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const String& name);
 
+    /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
+    void setModification(const ResidueModification* mod);
+    
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;
 
@@ -393,6 +397,10 @@ public:
     /// helper for mapping residue types to letters for Text annotations and labels
     static char residueTypeToIonLetter(const ResidueType& res_type);
 
+    /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
+    /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
+    String toString() const;
+
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
@@ -464,12 +472,9 @@ protected:
     double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
     double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
     double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
-
-    /// sets the modification (helper function)
-    void setModification_(const ResidueModification& mod);
-
   };
 
+  // write 'name threelettercode onelettercode formula'
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }

@@ -50,8 +50,6 @@
 -->
 
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
-  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
   - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
@@ -83,6 +81,7 @@
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
   - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
+  - @subpage UTILS_StaticModification - Allows to attach a set of fixed modifications to an idXML file (MS/MS search results), e.g. to add 15N (N15) labeling post-hoc.
 
   <b>Cross-linking</b>
   - @subpage UTILS_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.

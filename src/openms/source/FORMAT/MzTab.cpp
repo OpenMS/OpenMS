@@ -1491,38 +1491,48 @@ namespace OpenMS
     {
       MzTabModificationMetaData mod;
       MzTabParameter mp;
-      mp.setCVLabel("UNIMOD");
       ModificationsDB* mod_db = ModificationsDB::getInstance();
-      // MzTab standard is to just report Unimod accession.
-      const ResidueModification* m = mod_db->getModification(s);
-      String unimod_accession = m->getUniModAccession();
-      mp.setAccession(unimod_accession.toUpper());
-      mp.setName(m->getId());
-      mod.modification = mp;
+      String unimod_accession;
+      try
+      {
+        const ResidueModification* m = mod_db->getModification(s);
+        unimod_accession = m->getUniModAccession();
+        if (!unimod_accession.empty())
+        {
+          // MzTab standard is to report Unimod accession.
+          mp.setCVLabel("UNIMOD");
+          mp.setAccession(unimod_accession.toUpper());
+        }
+        mp.setName(m->getId());
+        mod.modification = mp;
 
-      if (m->getTermSpecificity() == ResidueModification::C_TERM)
-      {
-        mod.position = MzTabString("Any C-term");
+        if (m->getTermSpecificity() == ResidueModification::C_TERM)
+        {
+          mod.position = MzTabString("Any C-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::N_TERM)
+        {
+          mod.position = MzTabString("Any N-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::ANYWHERE)
+        {
+          mod.position = MzTabString("Anywhere");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+        {
+          mod.position = MzTabString("Protein C-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        {
+          mod.position = MzTabString("Protein N-term");
+        }
+        mod.site = MzTabString(String(m->getOrigin()));
+        mods_mztab[index] = mod;
       }
-      else if (m->getTermSpecificity() == ResidueModification::N_TERM)
+      catch(...)
       {
-        mod.position = MzTabString("Any N-term");
+        OPENMS_LOG_WARN << "Skipping unknown residue modification: '" + s + "'" << endl; 
       }
-      else if (m->getTermSpecificity() == ResidueModification::ANYWHERE)
-      {
-        mod.position = MzTabString("Anywhere");
-      }
-      else if (m->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-      {
-        mod.position = MzTabString("Protein C-term");
-      }
-      else if (m->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-      {
-        mod.position = MzTabString("Protein N-term");
-      }
-
-      mod.site = MzTabString(String(m->getOrigin()));
-      mods_mztab[index] = mod;
       ++index;
     }
     return mods_mztab;
@@ -2233,6 +2243,21 @@ namespace OpenMS
     }
   }
 
+  // static
+  MzTabString MzTab::getModificationIdentifier_(const ResidueModification& r)
+  {
+    String unimod = r.getUniModAccession();
+    unimod.toUpper();
+    if (!unimod.empty())
+    {
+      return MzTabString(unimod);
+    }
+    else
+    {
+      MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + String(r.getDiffMonoMass()));
+      return non_unimod_accession;
+    }
+  }
 
   MzTabProteinSectionRow MzTab::proteinSectionRowFromProteinHit_(
     const ProteinHit& hit,
@@ -2260,9 +2285,7 @@ namespace OpenMS
     for (auto const & m : leader_mods)
     {
       MzTabModification mztab_mod;
-      String unimod = m.second.getUniModAccession();
-      MzTabString unimod_accession = MzTabString(unimod.toUpper());
-      mztab_mod.setModificationIdentifier(unimod_accession);
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
       vector<std::pair<Size, MzTabParameter> > pos;
       pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
       mztab_mod.setPositionsAndParameters(pos);
@@ -2432,9 +2455,7 @@ namespace OpenMS
     for (auto const & m : leader_mods)
     {
       MzTabModification mztab_mod;
-      String unimod = m.second.getUniModAccession();
-      MzTabString unimod_accession = MzTabString(unimod.toUpper());
-      mztab_mod.setModificationIdentifier(unimod_accession);
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
       vector<std::pair<Size, MzTabParameter> > pos;
 
       // mzTab position is one-based, internal is 0-based so we need to +1
@@ -3026,11 +3047,9 @@ state0:
         bool is_fixed = std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) != fixed_mods.end();
         if (!is_fixed)
         {
-          String unimod = res_mod.getUniModAccession();
-          MzTabString unimod_accession = MzTabString(unimod.toUpper());
+          mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.emplace_back(0, MzTabParameter());
-          mod.setModificationIdentifier(unimod_accession);
           mod.setPositionsAndParameters(pos);
           mods.push_back(mod);
         }
@@ -3046,8 +3065,6 @@ state0:
           if (!is_fixed)
           {
             // MzTab standard is to just report Unimod accession.
-            String unimod = res_mod.getUniModAccession();
-            MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
             if (has_loc_mods && std::find(localization_mods.begin(), localization_mods.end(), res_mod.getFullId()) != localization_mods.end())
             { // store localization score for this mod
@@ -3058,7 +3075,7 @@ state0:
               pos.emplace_back(ai + 1, MzTabParameter());
             }
             mod.setPositionsAndParameters(pos);
-            mod.setModificationIdentifier(unimod_accession);
+            mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
             mods.push_back(mod);
           }
         }
@@ -3070,12 +3087,10 @@ state0:
         const ResidueModification& res_mod = *(aas.getCTerminalModification());
         if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
         {
-          String unimod = res_mod.getUniModAccession();
-          MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.emplace_back(aas.size() + 1, MzTabParameter());
           mod.setPositionsAndParameters(pos);
-          mod.setModificationIdentifier(unimod_accession);
+          mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
           mods.push_back(mod);
         }
       }

@@ -261,7 +261,7 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.389999999999986" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.559999999999945" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="2.3433e04" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
@@ -327,6 +327,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="16.66" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="17.77" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="15.55" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="36" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
 							<cvParam cvRef="MS" accession="MS:1000598" name="electron transfer dissociation" />
@@ -436,9 +441,9 @@
 	<index name="spectrum">
 		<offset idRef="index=0">12965</offset>
 		<offset idRef="index=1">18108</offset>
-		<offset idRef="index=2">26741</offset>
+		<offset idRef="index=2">26994</offset>
 	</index>
 </indexList>
-<indexListOffset>31581</indexListOffset>
+<indexListOffset>31834</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
