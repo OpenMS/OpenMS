@@ -8,7 +8,7 @@
     def align_4(self, list ids , list trafos, int ref_index):
         """
         Parameters:
-        ids (list): list of PeptideIdentification objects
+        ids (list): list of lists of PeptideIdentification objects
         trafos (list): list of TransformationDescription objects
         ref_index (int)
         """
