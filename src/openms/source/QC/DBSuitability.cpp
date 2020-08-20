@@ -269,7 +269,7 @@ namespace OpenMS
     
     if (index >= diffs.size())
     {
-      OPENMS_LOG_WARN << "'rerank_cutoff_percentile' is set too low to use the actual percentile. The smallest one will be used instead." << endl;
+      OPENMS_LOG_WARN << "'rerank_cutoff_percentile' is set too low to use the actual percentile. The smallest available cut-off will be used instead." << endl;
       return *min_element(diffs.begin(), diffs.end());
     }
 
