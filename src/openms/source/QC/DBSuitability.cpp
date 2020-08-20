@@ -269,7 +269,8 @@ namespace OpenMS
     
     if (index >= diffs.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'reranking_cutoff_percentile' is set too low. Please set the parameter to a higher value.");
+      OPENMS_LOG_WARN << "'rerank_cutoff_percentile' is set too low to use the actual percentile. The smallest one will be used instead." << endl;
+      return *min_element(diffs.begin(), diffs.end());
     }
 
     nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());
