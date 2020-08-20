@@ -60,15 +60,15 @@ namespace OpenMS
     }
     else
     {
-      // origin is X, this usually means that the modifcation can be at any amino acid
+      // origin is X, this usually means that the modification can be at any amino acid
 
       // residues do NOT match if the modification is user-defined and has origin
       // X (which here means an actual input AA X and it does *not* mean "match
       // all AA") while the current residue is not X. Make sure we dont match things like
       // PEPN[400] and PEPX[400] since these have very different masses.
-      bool non_matching_user_defined =  (
+      bool non_matching_user_defined = (
            curr_mod->isUserDefined() &&
-           !(residue == '?') &&
+           residue != '?' &&
            origin != residue );
 
       return !non_matching_user_defined;
@@ -257,7 +257,6 @@ namespace OpenMS
                           ResidueModification::ANYWHERE);
     }
     if (mod == nullptr) mod = searchModificationsFast(mod_name, multiple_matches, residue, term_spec);
-
     if (mod == nullptr)
     {
       String message = String("Retrieving the modification failed. It is not available for the residue '") + residue 
@@ -277,7 +276,7 @@ namespace OpenMS
   }
 
 
-  bool ModificationsDB::has(String modification) const
+  bool ModificationsDB::has(const String & modification) const
   {
     bool has_mod;
     #pragma omp critical(OpenMS_ModificationsDB)
@@ -344,6 +343,26 @@ namespace OpenMS
              (term_spec == m->getTermSpecificity())))
         {
           mods.push_back(m->getFullId());
+        }
+      }
+    }
+  }
+
+  void ModificationsDB::searchModificationsByDiffMonoMass(vector<const ResidueModification*>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  {
+    mods.clear();
+    char res = '?'; // empty
+    if (!residue.empty()) res = residue[0];
+    #pragma omp critical(OpenMS_ModificationsDB)
+    {
+      for (auto const & m : mods_)
+      {
+        if ((fabs(m->getDiffMonoMass() - mass) <= max_error) &&
+            residuesMatch_(res, m) &&
+            ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
+             (term_spec == m->getTermSpecificity())))
+        {
+          mods.push_back(m);
         }
       }
     }
@@ -478,13 +497,13 @@ namespace OpenMS
           // for mono-links from XLMOD.obo:
           if (origin.hasSubstring("ProteinN-term"))
           {
-            mod.setTermSpecificity(ResidueModification::N_TERM);
+            mod.setTermSpecificity(ResidueModification::PROTEIN_N_TERM);
             mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
-            mod.setTermSpecificity(ResidueModification::C_TERM);
+            mod.setTermSpecificity(ResidueModification::PROTEIN_C_TERM);
             mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
