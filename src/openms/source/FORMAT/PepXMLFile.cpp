@@ -49,36 +49,36 @@ namespace OpenMS
   String PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
     String desc = "";
-    if (this->massdiff >= 0)
+    if (massdiff_ >= 0)
     {
-      desc += "+" + String(this->massdiff);
+      desc += "+" + String(massdiff_);
     }
     else
     {
-      desc += String(this->massdiff);
+      desc += String(massdiff_);
     }
 
-    if (!this->aminoacid.empty() || !this->terminus.empty())
+    if (!aminoacid_.empty() || !terminus_.empty())
     {
       desc += " (";
-      if (!this->terminus.empty())
+      if (!terminus_.empty())
       {
-        if (this->protein_terminus)
+        if (is_protein_terminus_)
         {
           desc += "Protein ";
         }
         {
-          String t = this->terminus;
+          String t = terminus_;
           desc += t.toUpper() + "-term";
         }
-        if (!this->aminoacid.empty())
+        if (!aminoacid_.empty())
         {
           desc += " ";
         }
       }
-      if (!this->aminoacid.empty())
+      if (!aminoacid_.empty())
       {
-        String a = this->aminoacid;
+        String a = aminoacid_;
         desc += a.toUpper();
       }
       desc += ")";
@@ -88,63 +88,68 @@ namespace OpenMS
 
   const String& PepXMLFile::AminoAcidModification::getDescription() const
   {
-    return registered_mod->getFullId();
+    return registered_mod_->getFullId();
   }
 
   bool PepXMLFile::AminoAcidModification::isVariable() const
   {
-    return variable;
+    return is_variable_;
   }
 
   double PepXMLFile::AminoAcidModification::getMass() const
   {
-    return mass;
+    return mass_;
   }
 
   double PepXMLFile::AminoAcidModification::getMassDiff() const
   {
-    return massdiff;
+    return massdiff_;
   }
 
   const String& PepXMLFile::AminoAcidModification::getTerminus() const
   {
-    return terminus;
+    return terminus_;
   }
 
   const String& PepXMLFile::AminoAcidModification::getAminoAcid() const
   {
-    return aminoacid;
+    return aminoacid_;
   }
 
   const ResidueModification* PepXMLFile::AminoAcidModification::getRegisteredMod() const
   {
-    return registered_mod;
+    return registered_mod_;
   }
 
   const vector<String>& PepXMLFile::AminoAcidModification::getErrors() const
   {
-    return errors;
+    return errors_;
   }
 
   PepXMLFile::AminoAcidModification::AminoAcidModification(
       const String& aminoacid, const String& massdiff, const String& mass,
       String variable, const String& description, String terminus, const String& protein_terminus)
   {
-    this->aminoacid = aminoacid;
-    this->massdiff = massdiff.toDouble();
-    this->mass = mass.toDouble();
-    this->variable = variable.toLower() == "y";
-    this->description = description;
-    this->registered_mod = nullptr;
-    this->terminus = terminus.toLower();
-    this->protein_terminus = false;
-    this->term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
+    aminoacid_ = aminoacid;
+    massdiff_ = massdiff.toDouble();
+    mass_ = mass.toDouble();
+    is_variable_ = variable.toLower() == "y";
+    description_ = description;
+    registered_mod_ = nullptr;
+    terminus_ = terminus.toLower();
+    is_protein_terminus_ = false;
+    term_spec_ = ResidueModification::NUMBER_OF_TERM_SPECIFICITY;
 
-    //TODO value "nc" for any terminus is actually not supported by us, yet!
-    if (this->terminus == "nc")
+    if (terminus_ == "nc")
     {
-      errors.emplace_back("Warning: value 'nc' for aminoacid terminus not supported."
-                    "The modification will be parsed as a non-restricted modification.");
+      errors_.emplace_back("Warning: value 'nc' for aminoacid terminus not supported."
+                    "The modification will be parsed as an unrestricted modification.");
+    }
+
+    if (aminoacid_.size() > 1)
+    {
+      errors_.emplace_back("Warning: Single modification specified for multiple amino acids. This is not supported."
+                           "Please split them into one modification per amino acid. Proceeding with first AA...");
     }
 
     // BIG NOTE: According to the pepXML schema specification, protein terminus is either "c" or "n" if set.
@@ -155,44 +160,44 @@ namespace OpenMS
 
     if (protein_terminus_lower == "y")
     {
-      this->protein_terminus = true;
+      is_protein_terminus_ = true;
     }
     else if (protein_terminus_lower == "c")
     {
-      this->protein_terminus = true;
-      this->terminus = protein_terminus_lower; // protein_terminus takes precedence. I would assume they are the same
+      is_protein_terminus_ = true;
+      terminus_ = protein_terminus_lower; // protein_terminus takes precedence. I would assume they are the same
     }
     else if (protein_terminus == "n")
     {
-      this->protein_terminus = true;
-      this->terminus = protein_terminus;
+      is_protein_terminus_ = true;
+      terminus_ = protein_terminus;
     }
     else if (protein_terminus == "N")
     {
-      this->protein_terminus = false;
+      is_protein_terminus_ = false;
     }
 
     // Now set our internal enum based on the inferred values
-    if (this->terminus == "n")
+    if (terminus_ == "n")
     {
-      if (this->protein_terminus)
+      if (is_protein_terminus_)
       {
-        this->term_spec = ResidueModification::PROTEIN_N_TERM;
+        term_spec_ = ResidueModification::PROTEIN_N_TERM;
       }
       else
       {
-        this->term_spec = ResidueModification::N_TERM;
+        term_spec_ = ResidueModification::N_TERM;
       }
     }
-    else if (this->terminus == "c")
+    else if (terminus_ == "c")
     {
-      if (this->protein_terminus)
+      if (is_protein_terminus_)
       {
-        this->term_spec = ResidueModification::PROTEIN_C_TERM;
+        term_spec_ = ResidueModification::PROTEIN_C_TERM;
       }
       else
       {
-        this->term_spec = ResidueModification::C_TERM;
+        term_spec_ = ResidueModification::C_TERM;
       }
     }
 
@@ -201,26 +206,26 @@ namespace OpenMS
     {
       try
       {
-        registered_mod = ModificationsDB::getInstance()->getModification(description, aminoacid, this->term_spec);
+        registered_mod_ = ModificationsDB::getInstance()->getModification(description, aminoacid, term_spec_);
       }
       catch (Exception::BaseException&)
       {
-        errors.emplace_back("Modification '" + this->description + "' of residue '" + this->aminoacid + "' could not be matched. Trying by modification mass.");
+        errors_.emplace_back("Modification '" + description_ + "' of residue '" + aminoacid_ + "' could not be matched. Trying by modification mass.");
       }
     }
     else
     {
-      errors.emplace_back("No modification description given. Trying to define by modification mass.");
+      errors_.emplace_back("No modification description given. Trying to define by modification mass.");
     }
 
-    if (registered_mod == nullptr)
+    if (registered_mod_ == nullptr)
     {
       std::vector<const ResidueModification*> mods;
       // if terminus was not specified
-      if (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try least specific search first
+      if (term_spec_ == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) // try least specific search first
       {
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
-            mods, this->massdiff, mod_tol_, this->aminoacid, ResidueModification::ANYWHERE);
+            mods, massdiff_, mod_tol_, aminoacid_, ResidueModification::ANYWHERE);
       }
       if (mods.empty())
       {
@@ -228,11 +233,11 @@ namespace OpenMS
         // TODO we might also need to search for Protein-X-Term in case of X-Term
         //  since some tools seem to forget to annotate
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
-            mods, this->massdiff, mod_tol_, this->aminoacid, term_spec);
+            mods, massdiff_, mod_tol_, aminoacid_, term_spec_);
       }
       if (!mods.empty())
       {
-        registered_mod = mods[0];
+        registered_mod_ = mods[0];
         if (mods.size() > 1)
         {
           String mod_str = mods[0]->getFullId();
@@ -240,28 +245,28 @@ namespace OpenMS
           {
             mod_str += ", " + m->getFullId();
           }
-          errors.emplace_back("Modification '" + String(this->mass) + "' is not uniquely defined by the given data. Using '" +
-            mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
+          errors_.emplace_back("Modification '" + String(mass_) + "' is not uniquely defined by the given data. Using '" +
+                               mods[0]->getFullId() + "' to represent any of '" + mod_str + "'.");
         }
       }
       // If we could not find a registered mod in our DB, create and register it. This will be used later for lookup in the sequences.
-      else if (this->massdiff != 0)
+      else if (massdiff_ != 0)
       {
         // r will be nullptr if not found. The next line handles it.
-        const Residue* r = ResidueDB::getInstance()->getResidue(this->aminoacid[0]);
+        const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        this->registered_mod = ResidueModification::createUnknownFromMassString(String(this->massdiff),
-                                                                                this->massdiff,
-                                                                                true,
-                                                                                this->term_spec,
-                                                                                r);
+        registered_mod_ = ResidueModification::createUnknownFromMassString(String(massdiff_),
+                                                                                 massdiff_,
+                                                                                 true,
+                                                                                 term_spec_,
+                                                                                 r);
 
         //Modification unknown, but trying to continue as we want to be able to read the rest despite
         // of the modifications but warning this will fail downstream
-        errors.emplace_back(
-              "Modification '" + String(this->mass) + "/delta " + String(this->massdiff) +
-              "' is unknown. Resuming with '" + this->registered_mod->getFullId() +
-              "', which could lead to failures using the data downstream.");
+        errors_.emplace_back(
+            "Modification '" + String(mass_) + "/delta " + String(massdiff_) +
+            "' is unknown. Resuming with '" + registered_mod_->getFullId() +
+            "', which could lead to failures using the data downstream.");
       }
     }
   }

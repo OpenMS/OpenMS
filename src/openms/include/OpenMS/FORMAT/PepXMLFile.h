@@ -46,7 +46,6 @@
 #include <vector>
 #include <map>
 #include <set>
-#include <boost/assign/std/vector.hpp>
 
 
 namespace OpenMS
@@ -143,16 +142,16 @@ private:
     {
       private:
 
-      String aminoacid;
-      double massdiff;
-      double mass;
-      bool variable;
-      String description;
-      String terminus;
-      bool protein_terminus; // "true" if protein terminus, "false" if peptide terminus
-      ResidueModification::TermSpecificity term_spec;
-      std::vector<String> errors;
-      const ResidueModification* registered_mod;
+      String aminoacid_;
+      double massdiff_;
+      double mass_;
+      bool is_variable_;
+      String description_;
+      String terminus_;
+      bool is_protein_terminus_; // "true" if protein terminus, "false" if peptide terminus
+      ResidueModification::TermSpecificity term_spec_;
+      std::vector<String> errors_;
+      const ResidueModification* registered_mod_;
 
       public:
       AminoAcidModification() = delete;

@@ -668,11 +668,11 @@ protected:
 
     if (optional_output_file.empty())
     {
-      //File::remove(pepxmlfile);
+      File::remove(pepxmlfile);
     }
     else
     {
-    // rename the pepXML file to the opt_out
+      // rename the pepXML file to the opt_out
       QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
