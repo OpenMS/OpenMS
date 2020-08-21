@@ -857,7 +857,18 @@ protected:
       for (PeptideHit & ph : pid.getHits())
       {
         // TODO: keep target_decoy information for QC
-        ph.clearMetaInfo();
+        // TODO: we only have super inefficient meta value removal
+        vector<String> keys;
+        ph.getKeys(keys);
+        for (const auto& k : keys)
+        {
+          if (!(k.hasSubstring("_score") || k.hasPrefix("Luciphor_global_flr")))
+          {
+            ph.removeMetaValue(k);
+          }
+        }
+        // we only clear selected metavalues
+        //ph.clearMetaInfo();
       }
     }
 
