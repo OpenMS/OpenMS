@@ -169,6 +169,9 @@ protected:
     /// Use feature RT instead of RT from best peptide ID in the feature?
     bool use_feature_rt_;
 
+    /// Consider differently adducted IDs as different?
+    bool use_adducts_;
+
     /// Minimum score to reach for a peptide to be considered
     double min_score_;
 

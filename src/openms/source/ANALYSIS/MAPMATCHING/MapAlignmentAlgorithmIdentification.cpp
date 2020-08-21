@@ -65,6 +65,9 @@ namespace OpenMS
     defaults_.setValue("use_feature_rt", "false", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
     defaults_.setValidStrings("use_feature_rt", {"true", "false"});
 
+    defaults_.setValue("use_adducts", "true", "If IDs contain adducts, treat differently adducted variants of the same molecule as different.");
+    defaults_.setValidStrings("use_adducts", {"true", "false"});
+
     defaultsToParam_();
   }
 
@@ -96,6 +99,7 @@ namespace OpenMS
       score_type_ = param_.getValue("score_type");
     }
     min_score_ = param_.getValue("min_score");
+    use_adducts_ = param_.getValue("use_adducts").toBool();
 }
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
@@ -190,6 +194,10 @@ namespace OpenMS
       if (include)
       {
         String molecule = hit->identified_molecule_var.toString();
+        if (use_adducts_ && hit->adduct_opt)
+        {
+          molecule += "+[" + (*hit->adduct_opt)->getName() + "]";
+        }
         rt_data[molecule].push_back(hit->data_query_ref->rt);
       }
     }
