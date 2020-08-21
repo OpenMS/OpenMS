@@ -752,7 +752,7 @@ namespace OpenMS
     for (auto mm_it = begin; mm_it != end; ++mm_it)
     {
       const ID::IdentifiedMolecule& molecule = mm_it->first.first;
-      const IdentificationData::AdductOpt& adduct = mm_it->first.second;
+      const ID::AdductOpt& adduct = mm_it->first.second;
       ID::MoleculeType molecule_type = molecule.getMoleculeType();
       String molecule_id;
       double mass = 0.0;
@@ -785,7 +785,6 @@ namespace OpenMS
       EmpiricalFormula formula = molecule.getFormula();
       if (!formula.isEmpty())
       {
-        iso_dist = formula.getIsotopeDistribution(iso_gen);
         target.theoretical_mass = (mass > 0.0) ? mass : formula.getMonoWeight();
         if (adduct)
         {
@@ -795,6 +794,7 @@ namespace OpenMS
             EmpiricalFormula::hydrogen((*adduct)->getCharge());
         }
         target.molecular_formula = formula.toString();
+        iso_dist = formula.getIsotopeDistribution(iso_gen);
       }
       else // seed
       {
@@ -810,6 +810,19 @@ namespace OpenMS
         target.theoretical_mass = (query_ref->mz - Constants::PROTON_MASS_U) * match_ref->charge;
         // @TODO: add support for RNA "averagine" option
         iso_dist = iso_gen.estimateFromPeptideWeight(target.theoretical_mass);
+      }
+
+      // mass difference between molecule and isotopic distribution can occur
+      // when "anonymous" modifications are used in peptides (see comment above):
+      double mass_diff = target.theoretical_mass - iso_dist[0].getMZ();
+      double epsilon = numeric_limits<double>::epsilon() * target.theoretical_mass * 2;
+      if (mass_diff > epsilon)
+      {
+        OPENMS_LOG_DEBUG << "Mass shift for target " << molecule_id << ": " << mass_diff << endl;
+        for (Peak1D& pair : iso_dist)
+        {
+          pair.setMZ(pair.getMZ() + mass_diff);
+        }
       }
 
       if (isotope_pmin_ > 0.0)
@@ -833,10 +846,7 @@ namespace OpenMS
       {
         Int charge = charge_pair.first; // note that charge may be negative
         target.setChargeState(charge);
-        // "target.theoretical_mass" contains the uncharged mass:
-        double mz = (target.theoretical_mass + charge * Constants::PROTON_MASS_U) /
-          abs(charge);
-        OPENMS_LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
+        OPENMS_LOG_DEBUG << "Charge: " << charge << endl;
         String ion_id = molecule_id + "/" + String(charge);
 
         // we want to detect one feature per peptide and charge state - if there
@@ -861,7 +871,7 @@ namespace OpenMS
             addTargetRT_(target, region.start);
             addTargetRT_(target, region.end);
             library_.addCompound(target);
-            generateTransitions_(target.id, mz, charge, iso_dist);
+            generateTransitions_(target.id, target.theoretical_mass, charge, iso_dist);
           }
         }
         target_ion_rts_[ion_id] = make_pair(mm_it, charge);
@@ -944,10 +954,11 @@ namespace OpenMS
 
   /// generate transitions (isotopic traces) for an ion and add them to the library:
   void FeatureFinderIdentificationAlgorithm::generateTransitions_(
-    const String& target_id, double mz, Int charge, const IsotopeDistribution& iso_dist)
+    const String& target_id, double target_mass, Int charge, const IsotopeDistribution& iso_dist)
   {
     // go through different isotopes:
     Size counter = 0;
+    double precursor_mz = (target_mass + charge * Constants::PROTON_MASS_U) / abs(charge);
     for (const auto& isotope : iso_dist)
     {
       ReactionMonitoringTransition transition;
@@ -955,7 +966,7 @@ namespace OpenMS
       String transition_name = target_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
-      transition.setPrecursorMZ(mz);
+      transition.setPrecursorMZ(precursor_mz);
       // transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
       //                         float(counter) / abs(charge));
       transition.setProductMZ((isotope.getMZ() + charge * Constants::PROTON_MASS_U) / abs(charge));

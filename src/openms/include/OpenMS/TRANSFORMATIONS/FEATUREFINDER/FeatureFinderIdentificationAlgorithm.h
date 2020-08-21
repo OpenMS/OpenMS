@@ -234,8 +234,8 @@ protected:
   void updateMembers_() override;
 
   /// generate transitions (isotopic traces) for an ion and add them to the library:
-  void generateTransitions_(const String& target_id, double mz, Int charge,
-                            const IsotopeDistribution& iso_dist);
+  void generateTransitions_(const String& target_id, double target_mass,
+                            Int charge, const IsotopeDistribution& iso_dist);
 
   void addTargetRT_(TargetedExperiment::Compound& target, double rt) const;
 
