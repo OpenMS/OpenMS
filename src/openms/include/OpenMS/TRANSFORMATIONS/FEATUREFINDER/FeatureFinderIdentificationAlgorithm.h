@@ -90,12 +90,11 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // aggregate all search hits (internal and external) grouped by molecule (e.g.
-  // peptide) and charge state, ordered by RT:
-
   typedef std::pair<IdentificationData::IdentifiedMolecule,
                     boost::optional<IdentificationData::AdductRef>> AdductedID;
 
+  // aggregate all search hits (internal and external) grouped by molecule (e.g.
+  // peptide) and charge state, ordered by RT:
   /// mapping: RT (not necessarily unique) -> reference to search hit
   typedef std::multimap<double, IdentificationData::QueryMatchRef> RTMap;
   /// mapping: charge -> internal/external: (RT -> ref. to search hit)
@@ -103,60 +102,14 @@ protected:
   /// mapping: sequence (with adduct?) -> charge -> internal/external ID information
   typedef std::map<AdductedID, ChargeMap> MoleculeMap;
 
-  struct TargetInfo
-  {
-    IdentificationData::IdentifiedMolecule molecule;
-    IdentificationData::AdductOpt adduct;
-    RTMap internal_ids;
-    RTMap external_ids;
-  };
-  /// mapping: target ID -> molecule, internal/external search hits
-  typedef std::map<String, TargetInfo> TargetInfoMap;
+  /// mapping: target ion ID -> pos. in @p molecule_map_, charge
+  typedef std::map<String, std::pair<MoleculeMap::iterator, Int>> TargetIonRTs;
 
   // need to map from a MoleculeQueryMatch to the corresponding exported
   // PeptideIdentification, so generate a look-up table:
-  typedef std::tuple<double, double, String> PepIDKey; ///< (RT, m/z, molecule)
+  typedef std::tuple<double, double, String, String> PepIDKey; ///< (RT, m/z, molecule, adduct)
   typedef std::multimap<PepIDKey, const PeptideIdentification*> PepIDLookup;
   // @TODO: why does this crash when a reference is used instead of the pointer?
-
-  MoleculeMap molecule_map_;
-
-  Size n_internal_targets_; ///< number of internal target molecules
-  Size n_external_targets_; ///< number of external target molecules
-  Size n_seed_targets_; ///< number of targets derived from seeds
-
-  Size batch_size_; ///< number of target molecules to consider together during chromatogram extraction
-  double rt_window_; ///< RT window width
-  double mz_window_; ///< m/z window width
-  bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
-
-  double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
-
-  double isotope_pmin_; ///< min. isotope probability for assay
-  Size n_isotopes_; ///< number of isotopes for assay
-
-  double rt_quantile_;
-
-  double peak_width_;
-  double min_peak_width_;
-  double signal_to_noise_;
-
-  String elution_model_;
-
-  // SVM related parameters
-  double svm_min_prob_;
-  StringList svm_predictor_names_;
-  String svm_xval_out_;
-  double svm_quality_cutoff;
-  Size svm_n_parts_; ///< number of partitions for SVM cross-validation
-  Size svm_n_samples_; ///< number of samples for SVM training
-
-  // output file (before filtering)
-  String candidates_out_;
-
-  Size debug_level_;
-
-  void updateMembers_() override;
 
   /// region in RT in which a target elutes:
   struct RTRegion
@@ -220,6 +173,46 @@ protected:
     }
   } feature_compare_;
 
+  MoleculeMap molecule_map_; ///< aggregated IDs for each identified molecule
+  TargetIonRTs target_ion_rts_; ///< reference into @p molecule_map_ for each target ion ID
+  PepIDLookup pep_id_lookup_; ///< mapping to PeptideIdentifications
+
+  Size n_internal_targets_; ///< number of internal target molecules
+  Size n_external_targets_; ///< number of external target molecules
+  Size n_seed_targets_; ///< number of targets derived from seeds
+
+  Size batch_size_; ///< number of target molecules to consider together during chromatogram extraction
+  double rt_window_; ///< RT window width
+  double mz_window_; ///< m/z window width
+  bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+
+  double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
+
+  Size n_isotopes_; ///< number of isotopes for assay
+  bool max_isotopes_; ///< consider most abundant isotopes?
+  double isotope_pmin_; ///< min. isotope probability for assay
+
+  double rt_quantile_;
+
+  double peak_width_;
+  double min_peak_width_;
+  double signal_to_noise_;
+
+  String elution_model_;
+
+  // SVM related parameters
+  double svm_min_prob_;
+  StringList svm_predictor_names_;
+  String svm_xval_out_;
+  double svm_quality_cutoff;
+  Size svm_n_parts_; ///< number of partitions for SVM cross-validation
+  Size svm_n_samples_; ///< number of samples for SVM training
+
+  // output file (before filtering)
+  String candidates_out_;
+
+  Size debug_level_;
+
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
   TargetedExperiment library_; ///< accumulated assays for targets (one chunk)
@@ -238,6 +231,8 @@ protected:
 
   ProgressLogger prog_log_;
 
+  void updateMembers_() override;
+
   /// generate transitions (isotopic traces) for an ion and add them to the library:
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
@@ -247,14 +242,11 @@ protected:
   /// get regions in which target elutes (ideally only one) by clustering RT elution times
   void getRTRegions_(ChargeMap& charge_data, std::vector<RTRegion>& rt_regions) const;
 
-  void annotateFeaturesFinalizeAssay_(
-    FeatureMap& features,
-    std::map<Size, std::vector<IdentificationData::QueryMatchRef>>& feat_ids,
-    RTMap& rt_internal, const PepIDLookup& pep_id_lookup);
-
   /// annotate identified features with m/z, isotope probabilities, etc.
-  void annotateFeatures_(FeatureMap& features, TargetInfoMap& target_info_map,
-                         const PepIDLookup& pep_id_lookup);
+  void annotateFeatures_(FeatureMap& features);
+
+  void annotateFeaturesOneTarget_(FeatureMap& features, const String& target_id,
+                                  const std::vector<Size>& indexes);
 
   void ensureConvexHulls_(Feature& feature);
 
@@ -268,8 +260,7 @@ protected:
 
     @p MoleculeMap will be (partially) cleared and thus has to be mutable.
   */
-  void createAssayLibrary_(MoleculeMap::iterator begin, MoleculeMap::iterator end,
-                           TargetInfoMap& target_info_map);
+  void createAssayLibrary_(MoleculeMap::iterator begin, MoleculeMap::iterator end);
 
   void addTargetMolecule_(IdentificationData::QueryMatchRef ref, bool external = false);
 
@@ -291,8 +282,10 @@ protected:
 
   /// Look up peptide IDs based on given keys and store the results
   void lookUpPeptideIDs_(const std::set<PepIDKey> pep_id_keys,
-                         const PepIDLookup& pep_id_lookup,
                          std::vector<PeptideIdentification>& output);
+
+  std::pair<String, Int> extractTargetID_(const Feature& feature,
+                                          bool extract_charge = false);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size @p batch_size.
   /// Last batch might be smaller.
