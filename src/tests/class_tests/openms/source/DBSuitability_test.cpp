@@ -57,7 +57,35 @@ using namespace std;
 
 START_TEST(Suitability, "$Id$")
 
-/////////////////////////////////////////////////////////////
+MSExperiment exp;
+MzMLFile m;
+m.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\006-FileConverter-out\\BSA1.mzML", exp);
+
+vector<FASTAFile::FASTAEntry> fasta_data;
+FASTAFile::load("C:\\Development\\OpenMS\\share\\OpenMS\\examples\\TOPPAS\\data\\BSA_Identification\\18Protein_SoCe_Tr_detergents_trace_target_decoy.FASTA", fasta_data);
+
+vector<PeptideIdentification> pep_ids;
+vector<ProteinIdentification> prot_ids;
+IdXMLFile i;
+i.load("C:\\Development\\TOPPAS_Outputs\\Corrected_Suitability_test_files\\TOPPAS_out\\014-PeptideIndexer-out\\BSA1.idXML", prot_ids, pep_ids);
+
+vector<FASTAFile::FASTAEntry> novo_fasta;
+FASTAFile::load("C:\\Development\\TOPPAS_Outputs\\TOPPAS_out\\006-DecoyDatabase-out\\BSA1.FASTA", novo_fasta);
+
+DBSuitability s;
+Param p;
+p.setValue("FDR", 0.8);
+s.setParameters(p);
+s.compute(pep_ids, exp, fasta_data, novo_fasta, prot_ids[0].getSearchParameters());
+
+DBSuitability::SuitabilityData data = s.getResults()[0];
+cout << "top db:" << data.num_top_db << endl;
+cout << data.num_top_novo << " " << data.num_top_novo_corr << endl;
+cout << data.suitability << " " << data.suitability_corr << endl;
+cout << data.corr_factor << endl;
+
+END_TEST
+/*/////////////////////////////////////////////////////////////
 ////////////////////// CREATE DATA //////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -238,4 +266,4 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-END_TEST
+END_TEST*/
