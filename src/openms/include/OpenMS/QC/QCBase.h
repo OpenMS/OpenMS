@@ -35,9 +35,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <ostream>
 #include <map>
 
 namespace OpenMS
@@ -106,124 +106,8 @@ namespace OpenMS
       std::map<String, UInt64> nativeid_to_index_; //< nativeID to index
     };
 
-
-    /**
-     @brief Storing a status of available/needed inputs (i.e. a set of Requires) as UInt64
+    using Status = FlagSet<Requires>;
     
-     Conversion from a Requires enum is computed as `pow(2, r)`.
-     Multiple Requires attributes can be computed by bitwise 'or'.
-
-     Only allows assignment and bit operations with itself and an object
-     of type Requires, i.e. not with any numeric types.
-
-    **/
-    class Status
-    {
-    public:
-      /// stream output for Status
-      friend std::ostream& operator<<(std::ostream& os, const Status& stat);
-
-      /// Constructors
-      Status() : value_(0)
-      {}
-
-      explicit Status(const Requires& req)
-      {
-        value_ = getPow_(req);
-      }
-
-      Status(const Status& stat)
-      {
-        value_ = stat.value_;
-      }
-
-      /// Assignment
-      Status& operator=(const Requires& req)
-      {
-        value_ = getPow_(req);
-        return *this;
-      }
-
-      /// Destructor (default)
-      ~Status() = default;
-
-      // Equal
-      bool operator==(const Status& stat) const
-      {
-        return (value_ == stat.value_);
-      }
-
-      Status& operator=(const Status& stat) = default;
-      // Bitwise operators
-
-      Status operator&(const Requires& req) const
-      {
-        Status s = *this;
-        s.value_ &= getPow_(req);
-        return s;
-      }
-
-      Status operator&(const Status& stat) const
-      {
-        Status s = *this;
-        s.value_ &= stat.value_;
-        return s;
-      }
-
-      Status& operator&=(const Requires& req)
-      {
-        value_ &= getPow_(req);
-        return *this;
-      }
-
-      Status& operator&=(const Status& stat)
-      {
-        value_ &= stat.value_;
-        return *this;
-      }
-
-      Status operator|(const Requires& req) const
-      {
-        Status s = *this;
-        s.value_ |= getPow_(req);
-        return s;
-      }
-
-      Status operator|(const Status& stat) const
-      {
-        Status s = *this;
-        s.value_ |= stat.value_;
-        return s;
-      }
-
-      Status& operator|=(const Requires& req)
-      {
-        value_ |= getPow_(req);
-        return *this;
-      }
-
-      Status& operator|=(const Status& stat)
-      {
-        value_ |= stat.value_;
-        return *this;
-      }
-
-      /**
-       * @brief Check if input status fulfills requirement status.
-       */
-      bool isSuperSetOf(const Status& stat) const
-      {
-        return ((value_ & stat.value_) == stat.value_);
-      }
-
-    private:
-      /// computes pow(2, r)
-      UInt64 getPow_(const Requires& r) const
-      {
-        return UInt64(1) << UInt64 (r);
-      }
-      UInt64 value_;
-    };
 
     /**
     * @brief Returns the name of the metric
@@ -256,9 +140,4 @@ namespace OpenMS
       return false;
     }
   };
-
-  inline std::ostream& operator<<(std::ostream& os, const QCBase::Status& stat)
-  {
-    return os << stat.value_;
-  }
 }
