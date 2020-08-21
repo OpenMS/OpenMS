@@ -114,7 +114,7 @@ namespace OpenMS
     }
     else if (qp_->exitCode() != 0)
     {
-      error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + qp_->exitCode() + "). Please check the log.";
+      error_msg = "Process '" + exe + "' did not finish successfully (exit code: " + int(qp_->exitCode()) + "). Please check the log.";
       if (verbose) callbackStdErr_(error_msg + '\n');
       return RETURNSTATE::NONZERO_EXIT;
     }

@@ -2009,14 +2009,12 @@ namespace OpenMS
 //      String massTable_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("massTable_ref")));
 
       XSValue::Status status;
-      XSValue* val = XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status);
+      std::unique_ptr<XSValue> val(XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status));
       bool pass = false;
       if (status == XSValue::st_Init)
       {
         pass = val->fData.fValue.f_bool;
       }
-      delete val;
-      OPENMS_LOG_DEBUG << "'passThreshold' value " << pass;
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
@@ -2583,13 +2581,13 @@ namespace OpenMS
                       // ownership to ModDB
                       if (!mod_db->has(residue_id))
                       {
-                        ResidueModification * new_mod = new ResidueModification();
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::N_TERM);
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
 
                       aas.setNTerminalModification(residue_id);
@@ -2606,13 +2604,13 @@ namespace OpenMS
                       // ownership to ModDB
                       if (!mod_db->has(residue_name))
                       {
-                        ResidueModification * new_mod = new ResidueModification();
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
                         new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::C_TERM);
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
                       aas.setCTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
@@ -2628,7 +2626,7 @@ namespace OpenMS
                       if (!mod_db->has(residue_name))
                       {
                         // create new modification
-                        ResidueModification * new_mod = new ResidueModification();
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
                         new_mod->setFullName(modification_name); // display name
 
@@ -2645,7 +2643,7 @@ namespace OpenMS
                         new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
                         new_mod->setDiffMonoMass(mass_delta);
 
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
 
                       // now use the new modification

@@ -32,6 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
@@ -623,6 +624,10 @@ protected:
       //-------------------------------------------------------------
       vector<ProteinIdentification> protein_identifications;
       protein_identifications.push_back(protein_identification);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+
       IdXMLFile().store(outputfile_name,
                         protein_identifications,
                         identifications);

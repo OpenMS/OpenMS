@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -137,55 +138,55 @@ private:
     /// Read RT, m/z, charge information from attributes of "spectrum_query"
     void readRTMZCharge_(const xercesc::Attributes& attributes);
 
-    /**
-        @brief find modification name given a modified AA mass
-
-        Matches a mass of a modified AA to a mod in our modification db
-        For ambiguous mods, the first (arbitrary) is returned
-        If no mod is found an error is issued and the return string is empty
-        @note A duplicate of this function is also used in ProtXMLFile
-
-        @param mass Modified AA's mass
-        @param origin AA one letter code
-        @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
-    */
-    void matchModification_(const double mass, const String& origin, String& modification_description);
-
     struct AminoAcidModification
     {
-      String aminoacid;
-      String massdiff;
-      double mass;
-      bool variable;
-      String description;
-      String terminus;
-      bool protein_terminus{}; // "true" if protein terminus, "false" if peptide terminus
+      private:
 
-      AminoAcidModification() :
-        mass(0),
-        variable(false)
-      {
-      }
+      String aminoacid_;
+      double massdiff_;
+      double mass_;
+      bool is_variable_;
+      String description_;
+      String terminus_;
+      bool is_protein_terminus_; // "true" if protein terminus, "false" if peptide terminus
+      ResidueModification::TermSpecificity term_spec_;
+      std::vector<String> errors_;
+      const ResidueModification* registered_mod_;
+
+      public:
+      AminoAcidModification() = delete;
+
+      /// Creates an AminoAcidModification object from the pepXML attributes in
+      /// EITHER aminoacid_modification elements
+      /// OR terminal_modification elements
+      /// since we use them ambiguously
+      AminoAcidModification(
+          const String& aminoacid, const String& massdiff, const String& mass,
+          String variable, const String& description, String terminus, const String& protein_terminus);
 
       AminoAcidModification(const AminoAcidModification& rhs) = default;
 
       virtual ~AminoAcidModification() = default;
 
-      AminoAcidModification& operator=(const AminoAcidModification& rhs)
-      {
-        if (this != &rhs)
-        {
-          aminoacid = rhs.aminoacid;
-          massdiff = rhs.massdiff;
-          mass = rhs.mass;
-          variable = rhs.variable;
-          description = rhs.description;
-          terminus = rhs.terminus;
-          protein_terminus = rhs.protein_terminus;
-        }
-        return *this;
-      }
+      AminoAcidModification& operator=(const AminoAcidModification& rhs) = default;
 
+      String toUnimodLikeString() const;
+
+      const String& getDescription() const;
+
+      bool isVariable() const;
+
+      const ResidueModification* getRegisteredMod() const;
+
+      double getMassDiff() const;
+
+      double getMass() const;
+
+      const String& getTerminus() const;
+
+      const String& getAminoAcid() const;
+
+      const std::vector<String>& getErrors() const;
     };
 
     /// Pointer to the list of identified proteins
@@ -256,6 +257,7 @@ private:
 
     /// Enzyme name associated with the current identification run
     String enzyme_;
+    String enzyme_cuttingsite_;
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
@@ -288,7 +290,7 @@ private:
     double hydrogen_mass_{};
 
     /// The modifications of the current peptide hit (position is 1-based)
-    std::vector<std::pair<String, Size> > current_modifications_;
+    std::vector<std::pair<const ResidueModification*, Size> > current_modifications_;
 
     /// Fixed aminoacid modifications
     std::vector<AminoAcidModification> fixed_modifications_;
@@ -300,6 +302,12 @@ private:
 
     static const double mod_tol_;
     static const double xtandem_artificial_mod_tol_;
+
+    /// looks up modification by @p modification_mass and aminoacid of current_sequence_[ @p modification_position ]
+    /// and adds it to the current_modifications_
+    bool lookupAddFromHeader_(double modification_mass,
+                              Size modification_position,
+                              std::vector<AminoAcidModification> const& header_mods);
   };
 
 } // namespace OpenMS

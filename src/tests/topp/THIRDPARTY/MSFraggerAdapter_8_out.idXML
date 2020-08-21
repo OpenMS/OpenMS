@@ -1,33 +1,111 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/alka/trash/OpenMS_Tmp/20180315_174037_abinode06_15838_1/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/Users/pfeuffer/git/OpenMS-fixes-src/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-		<VariableModification name="Acetyl (N-term)" />
+		<VariableModification name="Acetyl (Protein N-term)" />
+				<UserParam type="string" name="MSFraggerAdapter:1:java_executable" value="java"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:java_heapmemory" value="2600"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:executable" value="/Users/pfeuffer/Downloads/MSFragger-3.0/MSFragger.jar"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:in" value="/Users/pfeuffer/git/OpenMS-fixes-src/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:out" value="MSFraggerAdapter_8_out_tmp.idXML"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:opt_out" value=""/>
+				<UserParam type="string" name="MSFraggerAdapter:1:database" value="/Users/pfeuffer/git/OpenMS-fixes-src/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:log" value=""/>
+				<UserParam type="int" name="MSFraggerAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:force" value="false"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:test" value="true"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:precursor_mass_tolerance" value="20.0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:precursor_mass_unit" value="ppm"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:precursor_true_tolerance" value="0.0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:precursor_true_unit" value="ppm"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:fragment_mass_tolerance" value="20.0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:fragment_mass_unit" value="ppm"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:isotope_error" value="0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:search_enzyme_name" value="Trypsin"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:search_enzyme_cutafter" value="KR"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:search_enzyme_nocutbefore" value="P"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:num_enzyme_termini" value="semi"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:allowed_missed_cleavage" value="2"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:min_length" value="7"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:max_length" value="64"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:mass_range_min" value="500.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:mass_range_max" value="5000.0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:clip_nterm_m" value="false"/>
+				<UserParam type="floatList" name="MSFraggerAdapter:1:masses" value="[]"/>
+				<UserParam type="stringList" name="MSFraggerAdapter:1:syntaxes" value="[]"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:enable_common" value="true"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:not_allow_multiple_variable_mods_on_residue" value="false"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:max_variable_mods_per_mod" value="2"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:max_variable_mods_combinations" value="5000"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:minimum_peaks" value="10"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:use_topn_peaks" value="50"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:minimum_ratio" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:clear_mz_range_min" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:clear_mz_range_max" value="0.0"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:max_fragment_charge" value="2"/>
+				<UserParam type="string" name="MSFraggerAdapter:1:override_charge" value="false"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:precursor_charge_min" value="1"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:precursor_charge_max" value="4"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:track_zero_topn" value="0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:zero_bin_accept_expect" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:zero_bin_mult_expect" value="1.0"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:add_topn_complementary" value="0"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:min_fragments_modeling" value="3"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:min_matched_fragments" value="4"/>
+				<UserParam type="int" name="MSFraggerAdapter:1:output_report_topn" value="1"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:output_max_expect" value="50.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_cterm_peptide" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_nterm_peptide" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_cterm_protein" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_nterm_protein" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_G_glycine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_A_alanine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_S_serine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_P_proline" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_V_valine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_T_threonine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_C_cysteine" value="57.021464000000002"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_L_leucine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_I_isoleucine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_N_asparagine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_D_aspartic_acid" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_Q_glutamine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_K_lysine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_E_glutamic_acid" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_M_methionine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_H_histidine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_F_phenylalanine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_R_arginine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_Y_tyrosine" value="0.0"/>
+				<UserParam type="float" name="MSFraggerAdapter:1:add_W_tryptophan" value="0.0"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="semi" />
 	</SearchParameters>
-	<IdentificationRun date="2018-03-15T17:40:39" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-08-19T23:37:42" search_engine="MSFragger" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="test2_rev ##1" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="test2_rev ##1" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="BSA2 ##2" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="BSA2 ##2" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="BSA3 ##3" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="BSA3 ##3" score="0.0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="520.2628250319" RT="2655.096" >
-			<PeptideHit score="1.491e-12" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
-				<UserParam type="float" name="MS:1001330" value="1.491e-12"/>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="520.26335836523333" RT="2655.096000000000004" >
+			<PeptideHit score="1.138e-07" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
+				<UserParam type="float" name="MS:1001330" value="1.138e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="1063.20979169857" RT="4587.669" >
-			<PeptideHit score="8.159e-13" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" protein_refs="PH_1" >
-				<UserParam type="float" name="MS:1001330" value="8.159e-13"/>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="1063.210291698566607" RT="4587.668999999999869" >
+			<PeptideHit score="5.991000000000001e-11" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" protein_refs="PH_1" >
+				<UserParam type="float" name="MS:1001330" value="5.991000000000001e-11"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="775.387191698567" RT="4923.777" >
-			<PeptideHit score="2.337e-13" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="-" aa_after="A" protein_refs="PH_2" >
-				<UserParam type="float" name="MS:1001330" value="2.337e-13"/>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="775.38779169856673" RT="4923.777000000000044" >
+			<PeptideHit score="1.645e-11" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="-" aa_after="A" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1001330" value="1.645e-11"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

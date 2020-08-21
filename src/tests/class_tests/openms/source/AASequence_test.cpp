@@ -636,6 +636,26 @@ START_SECTION(void setNTerminalModification(const String &modification))
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
   TEST_EQUAL(seq3 == seq4, true)
+
+  AASequence seq5 = AASequence::fromString("DABCDEF");
+  AASequence seq6 = seq5;
+  AASequence seq7 = seq5;
+  AASequence seq8 = seq5;
+
+  seq5.setNTerminalModification("Met-loss (Protein N-term M)");
+  TEST_EQUAL(seq5.isModified(), true)
+
+  seq6.setNTerminalModification("Acetyl (N-term)");
+  TEST_EQUAL(seq6.isModified(), true)
+
+  seq7.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq7.isModified(), true)
+
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("(T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("foobar"));
+
 END_SECTION
 
 START_SECTION(const String& getNTerminalModificationName() const)
@@ -1051,7 +1071,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   // test C-terminal modification
   {
-    AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
+    const AASequence test_seq = AASequence::fromString("IDE.[1617.2333940319]");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_STRING_SIMILAR(test_seq.toString(), "IDE.[1617.2333940319]")
     TEST_STRING_SIMILAR(test_seq.toUniModString(), "IDE.[1617.2333940319]")
@@ -1070,14 +1090,15 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     // test that we can re-read the UniModString
     test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1617.2333940319]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[1617.23339"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     TEST_STRING_SIMILAR(test_seq.toString(), test_other.toString()) // the peptides should be equal
 
     // test that we can re-read the string from BracketString
-    test_other = AASequence::fromString(test_seq.toBracketString(false, true));
+    auto bs = test_seq.toBracketString(false, true);
+    test_other = AASequence::fromString(bs);
     TEST_EQUAL(test_other.size(), 3)
-    TEST_STRING_SIMILAR(test_other.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_other.toString().hasPrefix("IDE.[+1600.2306539"), true) // TEST_STRING_SIMILAR is dangerous, because it skips over '+' etc
 
     test_other = AASequence::fromString(test_seq.toBracketString(false, false));
     TEST_EQUAL(test_other.size(), 3)
