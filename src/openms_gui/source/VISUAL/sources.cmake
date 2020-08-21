@@ -29,6 +29,7 @@ OutputDirectory.cpp
 OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
+RecentFilesMenu.cpp
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp
@@ -55,6 +56,8 @@ TOPPASTreeView.cpp
 TOPPASVertex.cpp
 TOPPASWidget.cpp
 TOPPViewIdentificationViewBehavior.cpp
+TOPPViewMenu.cpp
+#TOPPViewPreferences.cpp
 TOPPViewSpectraViewBehavior.cpp
 )
 

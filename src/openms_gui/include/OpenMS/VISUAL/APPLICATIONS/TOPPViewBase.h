@@ -44,10 +44,12 @@
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
@@ -272,6 +274,9 @@ public slots:
     /// closes the active window
     void closeFile();
 
+    /// returns the last invoked TOPP tool with the same parameters
+    void rerunTOPPTool();
+
     /// calls update*Bar and updateMenu_() to make sure the interface matches the current data
     void updateBarsAndMenus();
     /// updates the toolbar
@@ -280,14 +285,15 @@ public slots:
     void updateLayerBar();
     /// adapts view bar to the active window
     void updateViewBar();
+    /// activates/deactivates menu entries
+    void updateMenu();
+    /// adapts the filter bar to the active window
+    void updateFilterBar();
+
     /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
     void viewChanged(int);
     /// adds empty ID structure to allow manual annotations
     void viewTabwidgetDoubleClicked(int);
-    /// adapts the filter bar to the active window
-    void updateFilterBar();
-    /// enabled/disabled menu entries depending on the current state
-    void updateMenu();
 
     /**
       @brief Shows a status message in the status bar.
@@ -348,6 +354,9 @@ public slots:
 
     /// Loads a file given by the passed string
     void loadFile(QString);
+    /// list of the recently opened files
+    /// called when RecentFileMenu items is clicked
+    void openRecentFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool);
@@ -357,8 +366,6 @@ protected slots:
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     /// aborts the execution of a TOPP tool
     void abortTOPPTool();
-    /// returns the last invoked TOPP tool with the same parameters
-    void rerunTOPPTool();
     /// shows the spectrum browser and updates it
     void showSpectrumBrowser();
     /// shows the spectrum metadata
@@ -371,8 +378,6 @@ protected slots:
     void closeByTab(int id);
     /// Raises the window corresponding to the data of the tab with identifier @p id
     void enhancedWorkspaceWindowChanged(int id);
-    /// Opens a file from the recent files menu
-    void openRecentFile();
     /// Slot for drag-and-drop of layer manager to tabbar
     void copyLayer(const QMimeData* data, QWidget* source, int id = -1);
     //@}
@@ -425,8 +430,6 @@ protected:
     /// Stores whether the individual windows should zoom together (be linked) or not
     bool zoom_together_ = false;
 
-    QAction* linkZoom_action_;
-
     /// Log output window
     LogWindow* log_;
 
@@ -459,11 +462,14 @@ protected:
     QAction* dm_ident_2d_;
     //@}
 
-
     /// Main workspace
     EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
-    ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
+    /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
+    /// manages recent list of filenames and the menu that goes with it
+    RecentFilesMenu recent_files_;  // needs to be declared before 'menu_', because its needed there
+    /// manages the menu items (active/inactive) and recent files etc
+    TOPPViewMenu menu_;
 
     /** @name Status bar
     */
@@ -480,12 +486,7 @@ protected:
     //@{
     /// adds a Filename to the recent files
     void addRecentFile_(const String& filename);
-    /// update the recent files menu
-    void updateRecentMenu_();
-    /// list of the recently opened files
-    QStringList recent_files_;
-    /// list of the recently opened files actions (menu entries)
-    std::vector<QAction*> recent_actions_;
+
     //@}
 
 
@@ -506,7 +507,7 @@ protected:
       Size spectrum_id;
       QProcess* process = nullptr;
       QTime timer;
-      bool visible;
+      bool visible_area_only;
     } topp_;
     //@}
 

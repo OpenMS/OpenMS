@@ -24,6 +24,7 @@ MultiGradient.h
 MultiGradientSelector.h
 OutputDirectory.h
 ParamEditor.h
+RecentFilesMenu.h
 SpectraViewWidget.h
 SpectraIdentificationViewWidget.h
 Spectrum1DCanvas.h
@@ -49,6 +50,8 @@ TOPPASTreeView.h
 TOPPASVertex.h
 TOPPASWidget.h
 TOPPViewIdentificationViewBehavior.h
+TOPPViewMenu.h
+#TOPPViewPreferences.h
 TOPPViewSpectraViewBehavior.h
 )
 

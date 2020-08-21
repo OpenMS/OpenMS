@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -103,8 +102,6 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QInputDialog>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
 #include <QPainter>
 #include <QtWidgets/QSplashScreen>
@@ -136,6 +133,8 @@ namespace OpenMS
     DefaultParamHandler("TOPPViewBase"),
     ws_(this),
     tab_bar_(this),
+    recent_files_(),
+    menu_(this, &ws_, &recent_files_),
     identificationview_behavior_(this), // controller for spectra and identification view
     spectraview_behavior_(this)         
   {
@@ -173,85 +172,11 @@ namespace OpenMS
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&tab_bar_);
 
-    connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) { if (window != nullptr) /* 0 upon terminate */ updateBarsAndMenus(); });
+    connect(&ws_, &EnhancedWorkspace::subWindowActivated, [this](QMdiSubWindow* window) {
+      if (window != nullptr) /* 0 upon terminate */ updateBarsAndMenus(); 
+    });
     connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
     box_layout->addWidget(&ws_);
-
-    //################## MENUS #################
-    // File menu
-    QMenu* file = new QMenu("&File", this);
-    menuBar()->addMenu(file);
-    file->addAction("&Open file", this, [&]() { openFileDialog(); }, Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", [&](){ openFileDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
-    file->addAction("&Close", this, &TOPPViewBase::closeFile, Qt::CTRL + Qt::Key_W);
-    file->addSeparator();
-
-    // Meta data
-    file->addAction("&Show meta data (file)", this, &TOPPViewBase::metadataFileDialog);
-    file->addSeparator();
-
-    // Recent files
-    QMenu* recent_menu = new QMenu("&Recent files", this);
-    recent_actions_.resize(20);
-    for (Size i = 0; i < 20; ++i)
-    {
-      recent_actions_[i] = recent_menu->addAction("", this, &TOPPViewBase::openRecentFile);
-      recent_actions_[i]->setVisible(false);
-    }
-    file->addMenu(recent_menu);
-
-    file->addSeparator();
-    file->addAction("&Preferences", this, &TOPPViewBase::preferencesDialog);
-    file->addAction("&Quit", qApp, SLOT(quit()));
-
-    // Tools menu
-    QMenu* tools = new QMenu("&Tools", this);
-    menuBar()->addMenu(tools);
-    tools->addAction("&Select data range", this, &TOPPViewBase::showGoToDialog, Qt::CTRL + Qt::Key_G);
-    tools->addAction("&Edit meta data", this, &TOPPViewBase::editMetadata, Qt::CTRL + Qt::Key_M);
-    tools->addAction("&Statistics", this, &TOPPViewBase::layerStatistics);
-    tools->addSeparator();
-
-    tools->addAction("Apply TOPP tool (whole layer)", this, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::Key_T)->setData(false);
-    tools->addAction("Apply TOPP tool (visible layer data)", this, &TOPPViewBase::showTOPPDialog, Qt::CTRL + Qt::SHIFT + Qt::Key_T)->setData(true);
-    tools->addAction("Rerun TOPP tool", this, &TOPPViewBase::rerunTOPPTool, Qt::Key_F4);
-    tools->addSeparator();
-    tools->addAction("&Annotate with identification", this, &TOPPViewBase::annotateWithID, Qt::CTRL + Qt::Key_I);
-    tools->addAction("Align spectra", this, &TOPPViewBase::showSpectrumAlignmentDialog);
-    tools->addAction("Generate theoretical spectrum", this, &TOPPViewBase::showSpectrumGenerationDialog);
-
-    // Layer menu
-    QMenu* layer = new QMenu("&Layer", this);
-    menuBar()->addMenu(layer);
-    layer->addAction("Save all data", this, &TOPPViewBase::saveLayerAll, Qt::CTRL + Qt::Key_S);
-    layer->addAction("Save visible data", this, &TOPPViewBase::saveLayerVisible, Qt::CTRL + Qt::SHIFT + Qt::Key_S);
-    layer->addSeparator();
-    layer->addAction("Show/hide grid lines", this, &TOPPViewBase::toggleGridLines, Qt::CTRL + Qt::Key_R);
-    layer->addAction("Show/hide axis legends", this, &TOPPViewBase::toggleAxisLegends, Qt::CTRL + Qt::Key_L);
-    layer->addAction("Show/hide automated m/z annotations", this, &TOPPViewBase::toggleInterestingMZs);
-    layer->addSeparator();
-    layer->addAction("Preferences", this, &TOPPViewBase::showPreferences);
-
-    // Windows menu
-    QMenu* windows = new QMenu("&Windows", this);
-    menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", &ws_, &EnhancedWorkspace::cascadeSubWindows);
-    windows->addAction("&Tile automatic", &ws_, &EnhancedWorkspace::tileSubWindows);
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", &ws_, &EnhancedWorkspace::tileVertical);
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", &ws_, &EnhancedWorkspace::tileHorizontal);
-    linkZoom_action_ = windows->addAction("Link &Zoom", this, &TOPPViewBase::linkZoom);
-    windows->addSeparator();
-
-    // Help menu
-    QMenu* help = new QMenu("&Help", this);
-    menuBar()->addMenu(help);
-    help->addAction(QWhatsThis::createAction(help));
-    help->addSeparator();
-    help->addAction("OpenMS website", [&]() { GUIHelpers::openURL("http://www.OpenMS.de"); });
-    help->addAction("Tutorials and documentation", [&]() { GUIHelpers::openURL("html/index.html"); }, Qt::Key_F1);
-
-    help->addSeparator();
-    help->addAction("&About", [&]() {QApplicationTOPP::showAboutDialog(this, "TOPPView");});
 
     //################## STATUS #################
     // create status bar
@@ -466,7 +391,7 @@ namespace OpenMS
     
     connect(layers_view_, &LayerListView::layerDataChanged, this, &TOPPViewBase::updateBarsAndMenus);
     layer_dock_widget_->setWidget(layers_view_);
-    windows->addAction(layer_dock_widget_->toggleViewAction());
+    menu_.addWindowToggle(layer_dock_widget_->toggleViewAction());
 
     // Views dock widget
     views_dockwidget_ = new QDockWidget("Views", this);
@@ -503,7 +428,7 @@ namespace OpenMS
     connect(views_tabwidget_, &QTabWidget::tabBarDoubleClicked, this, &TOPPViewBase::viewTabwidgetDoubleClicked);
 
     // add hide/show option to dock widget
-    windows->addAction(views_dockwidget_->toggleViewAction());
+    menu_.addWindowToggle(views_dockwidget_->toggleViewAction());
 
     // filter dock widget
     filter_dock_widget_ = new QDockWidget("Data filters", this);
@@ -514,7 +439,7 @@ namespace OpenMS
       getActiveCanvas()->setFilters(filter);
     });
     filter_dock_widget_->setWidget(filter_list_);
-    windows->addAction(filter_dock_widget_->toggleViewAction());
+    menu_.addWindowToggle(filter_dock_widget_->toggleViewAction());
 
     // log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
@@ -522,7 +447,7 @@ namespace OpenMS
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
     log_ = new LogWindow(log_bar);
     log_bar->setWidget(log_);
-    windows->addAction(log_bar->toggleViewAction());
+    menu_.addWindowToggle(log_bar->toggleViewAction());
 
     // tabify dock widgets so they don't fill up the whole space
     QMainWindow::tabifyDockWidget(filter_dock_widget_, log_bar);
@@ -543,6 +468,8 @@ namespace OpenMS
     // update the menu
     updateMenu();
 
+    connect(&recent_files_, &RecentFilesMenu::recentFileClicked, this, &TOPPViewBase::openRecentFile);
+
     // restore window positions
     QSettings settings("OpenMS", "TOPPView");
     restoreGeometry(settings.value("geometry").toByteArray());
@@ -562,9 +489,6 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
     defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
-    defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
-    defaults_.setMinInt("preferences:number_of_recent_files", 5);
-    defaults_.setMaxInt("preferences:number_of_recent_files", 20);
     defaults_.setValue("preferences:legend", "show", "Legend visibility");
     defaults_.setValidStrings("preferences:legend", ListUtils::create<String>("show,hide"));
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
@@ -1056,56 +980,13 @@ namespace OpenMS
 
   void TOPPViewBase::addRecentFile_(const String& filename)
   {
-    //find out absolute path
-    String tmp = File::absolutePath(filename);
-
-    // remove the new file if already in the recent list and prepend it
-    recent_files_.removeAll(tmp.toQString());
-    recent_files_.prepend(tmp.toQString());
-
-    //remove those files exceeding the defined number
-    UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
-    while ((UInt)recent_files_.size() > number_of_recent_files)
-    {
-      recent_files_.removeLast();
-    }
-    updateRecentMenu_();
+    recent_files_.add(filename);
   }
 
-  void TOPPViewBase::updateRecentMenu_()
+  void TOPPViewBase::openRecentFile(const String& filename)
   {
-    // get/correct number of recent files
-    UInt number_of_recent_files = UInt(param_.getValue("preferences:number_of_recent_files"));
-    if (number_of_recent_files > 20)
-    {
-      number_of_recent_files = 20;
-      param_.setValue("preferences:number_of_recent_files", 20);
-    }
-
-    for (Size i = 0; i < 20; ++i)
-    {
-      if (i < (UInt)(recent_files_.size()))
-      {
-        recent_actions_[i]->setText(recent_files_[(int)i]);
-        recent_actions_[i]->setVisible(true);
-      }
-      else
-      {
-        recent_actions_[i]->setVisible(false);
-      }
-    }
+    addDataFile(filename, true, true);
   }
-
-  void TOPPViewBase::openRecentFile()
-  {
-    QAction* action = qobject_cast<QAction*>(sender());
-    if (action)
-    {
-      QString filename = action->text();
-      addDataFile(filename, true, true);
-    }
-  }
-
 
   void TOPPViewBase::closeByTab(int id)
   {
@@ -1531,6 +1412,26 @@ namespace OpenMS
     }
   }
 
+  void TOPPViewBase::updateMenu()
+  {
+    FS_TV fs;
+    // is there a canvas?
+    if (getActiveCanvas() != nullptr)
+    {
+      fs |= TV_STATUS::HAS_CANVAS;
+      // is there a layer?
+      if (getActiveCanvas()->getLayerCount() != 0)  fs |= TV_STATUS::HAS_LAYER;
+    }
+    // is this a 1D view
+    if (getActive1DWidget() != nullptr) fs |= TV_STATUS::IS_1D_VIEW;
+    // are we in 1D mirror mode
+    if (getActive1DWidget() && getActive1DWidget()->canvas()->mirrorModeActive()) fs |= TV_STATUS::HAS_MIRROR_MODE;
+    // is there a TOPP tool running
+    if (topp_.process == nullptr)  fs |= TV_STATUS::TOPP_IDLE;
+    
+    menu_.update(fs);
+  }
+
   void TOPPViewBase::viewChanged(int tab_index)
   {
     // set new behavior
@@ -1607,19 +1508,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::linkZoom()
-  {
-    zoom_together_ = !zoom_together_;
-    if (!zoom_together_)
-    {
-      linkZoom_action_->setText("Link &Zoom");
-    }
-    else
-    {
-      linkZoom_action_->setText("Unlink &Zoom");
-    }
-  }
-
   void TOPPViewBase::layerActivated()
   {
     updateLayerBar();
@@ -1629,7 +1517,12 @@ namespace OpenMS
     updateFilterBar();
   }
 
-  void TOPPViewBase::layerZoomChanged()
+  void TOPPViewBase::linkZoom()
+  {
+    zoom_together_ = !zoom_together_;
+  }
+
+  void TOPPViewBase::layerZoomChanged() // todo rename zoomothers
   {
     QList<QMdiSubWindow *> windows = ws_.subWindowList();
     if (!windows.count())
@@ -1669,7 +1562,7 @@ namespace OpenMS
     // check if the calling layer is a chromatogram:
     // - either its type is DT_CHROMATOGRAM
     // - or its peak data has a metavalue called "is_chromatogram" that is set to true
-    if (getActiveCanvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||
+    if (getActiveCanvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||   // TODO why so complicated??
         (getActiveCanvas()->getCurrentLayer().getPeakData()->size() > 0 &&
          getActiveCanvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
          getActiveCanvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool()
@@ -1742,7 +1635,7 @@ namespace OpenMS
         {
           continue;
         }
-        if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) ||
+        if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) || // TODO why so complicated??
             (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
              specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool()
@@ -1927,27 +1820,24 @@ namespace OpenMS
 
     //set the recent files
     Param p = param_.copy("preferences:RecentFiles");
-    if (p.size() != 0)
+    QStringList rfiles;
+    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
-      {
-        QString filename = it->value.toQString();
-        if (File::exists(filename))
-          recent_files_.append(filename);
-      }
+      QString filename = it->value.toQString();
+      if (File::exists(filename))
+        rfiles.append(filename);
     }
-
-    updateRecentMenu_();
+    recent_files_.set(rfiles);
   }
 
   void TOPPViewBase::savePreferences()
   {
     // replace recent files
     param_.removeAll("preferences:RecentFiles");
-
-    for (int i = 0; i < recent_files_.size(); ++i)
+    const QStringList& rfiles = recent_files_.get();
+    for (int i = 0; i < rfiles.size(); ++i)
     {
-      param_.setValue("preferences:RecentFiles:" + String(i), recent_files_[i]);
+      param_.setValue("preferences:RecentFiles:" + String(i), rfiles[i]);
     }
 
     // set version
@@ -2002,27 +1892,14 @@ namespace OpenMS
       addDataFile(filename, true, true);
     }
   }
-
-  void TOPPViewBase::rerunTOPPTool()
-  {
-    //warn if hidden layer => wrong layer selected...
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    if (!layer.visible)
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
-    }
-
-    //run the tool
-    runTOPPTool_();
-  }
-
+  
   void TOPPViewBase::showTOPPDialog()
   {
     QAction* action = qobject_cast<QAction*>(sender());
     showTOPPDialog_(action->data().toBool());
   }
 
-  void TOPPViewBase::showTOPPDialog_(bool visible)
+  void TOPPViewBase::showTOPPDialog_(bool visible_area_only)
   {
     //warn if hidden layer => wrong layer selected...
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
@@ -2038,7 +1915,7 @@ namespace OpenMS
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
       return;
     }
-    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, getCurrentLayer()->type);
+    ToolsDialog tools_dialog(this, topp_.file_name + "_ini", current_path_, layer.type);
 
     if (tools_dialog.exec() == QDialog::Accepted)
     {
@@ -2046,10 +1923,28 @@ namespace OpenMS
       topp_.tool = tools_dialog.getTool();
       topp_.in = tools_dialog.getInput();
       topp_.out = tools_dialog.getOutput();
-      topp_.visible = visible;
+      topp_.visible_area_only = visible_area_only;
       //run the tool
       runTOPPTool_();
     }
+  }
+
+  void TOPPViewBase::rerunTOPPTool()
+  {
+    if (topp_.tool.empty())
+    {
+      QMessageBox::warning(this, "Error", "No TOPP tool was run before. Please run a tool first.");
+      return;
+    }
+    //warn if hidden layer => wrong layer selected...
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    if (!layer.visible)
+    {
+      log_->appendNewHeader(LogWindow::LogState::NOTICE, "The current layer is not visible", "Have you selected the right layer for this action?");
+    }
+
+    //run the tool
+    runTOPPTool_();
   }
 
   void TOPPViewBase::runTOPPTool_()
@@ -2081,7 +1976,7 @@ namespace OpenMS
     {
       MzMLFile f;
       f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible)
+      if (topp_.visible_area_only)
       {
         ExperimentType exp;
         getActiveCanvas()->getVisiblePeakData(exp);
@@ -2104,7 +1999,7 @@ namespace OpenMS
       //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
 
       f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible)
+      if (topp_.visible_area_only)
       {
         ExperimentType exp;
         getActiveCanvas()->getVisiblePeakData(exp);
@@ -2117,7 +2012,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_FEATURE)
     {
-      if (topp_.visible)
+      if (topp_.visible_area_only)
       {
         FeatureMapType map;
         getActiveCanvas()->getVisibleFeatureData(map);
@@ -2130,7 +2025,7 @@ namespace OpenMS
     }
     else
     {
-      if (topp_.visible)
+      if (topp_.visible_area_only)
       {
         ConsensusMapType map;
         getActiveCanvas()->getVisibleConsensusData(map);
@@ -2269,7 +2164,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::loadFile(QString filename)
+  void TOPPViewBase::loadFile(QString filename) // todo: why no recent file
   {
     addDataFile(String(filename), true, false);
   }
@@ -2897,90 +2792,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateMenu()
-  {
-    //is there a canvas?
-    bool canvas_exists = false;
-    if (getActiveCanvas() != nullptr)
-    {
-      canvas_exists = true;
-    }
-    //is there a layer?
-    bool layer_exists = false;
-    if (canvas_exists && getActiveCanvas()->getLayerCount() != 0)
-    {
-      layer_exists = true;
-    }
-    //is there a TOPP tool running
-    bool topp_running = false;
-    if (topp_.process != nullptr)
-    {
-      topp_running = true;
-    }
-
-    bool mirror_mode = getActive1DWidget() && getActive1DWidget()->canvas()->mirrorModeActive();
-    QList<QAction*> actions = this->findChildren<QAction*>("");
-    for (int i = 0; i < actions.count(); ++i)
-    {
-      QString text = actions[i]->text();
-      if (text == "&Close" || text == "Show/hide grid lines" || text == "Show/hide axis legends")
-      {
-        actions[i]->setEnabled(false);
-        if (canvas_exists)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text.left(15) == "Apply TOPP tool")
-      {
-        actions[i]->setEnabled(false);
-        if (canvas_exists && layer_exists && !topp_running)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text == "Abort running TOPP tool")
-      {
-        actions[i]->setEnabled(false);
-        if (topp_running)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text == "Rerun TOPP tool")
-      {
-        actions[i]->setEnabled(false);
-        if (canvas_exists && layer_exists && !topp_running && topp_.tool != "")
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text == "&Select data range" || text == "&Edit meta data" || text == "&Statistics" || text == "&Annotate with identification"  || text == "Save all data"  || text == "Save visible data"  || text == "Preferences")
-      {
-        actions[i]->setEnabled(false);
-        if (canvas_exists && layer_exists)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text == "Align spectra")
-      {
-        actions[i]->setEnabled(false);
-        if (mirror_mode)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-      else if (text == "")
-      {
-        actions[i]->setEnabled(false);
-        if (canvas_exists && layer_exists)
-        {
-          actions[i]->setEnabled(true);
-        }
-      }
-    }
-  }
+  
 
   void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
@@ -3106,7 +2918,11 @@ namespace OpenMS
       ExperimentType exp;
       try
       {
-        fh.loadExperiment(*it, exp);
+        if (!fh.loadExperiment(*it, exp))
+        {
+          QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
+          return;
+        }
       }
       catch (Exception::BaseException& e)
       {
