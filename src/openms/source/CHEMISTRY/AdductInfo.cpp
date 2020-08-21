@@ -89,7 +89,7 @@ namespace OpenMS
     // correct for electron masses
     // (positive charge means there are electrons missing!)
     // (negative charge requires increasing the mass by X electrons)
-    neutral_nmer_mass_with_adduct += charge_ * -1 * Constants::ELECTRON_MASS_U;
+    neutral_nmer_mass_with_adduct -= charge_ * Constants::ELECTRON_MASS_U;
 
     return neutral_nmer_mass_with_adduct / abs(charge_);
   }
@@ -97,8 +97,9 @@ namespace OpenMS
   double AdductInfo::getMassShift(bool use_avg_mass) const
   {
     double mass = use_avg_mass ? ef_.getAverageWeight() : mass_;
-    // compensate for intrinsic charge by adding/removing hydrogens:
-    return mass - charge_ * Constants::PROTON_MASS_U;
+    // intrinsic adduct charge comes from additional/missing electrons, but for
+    // mass shift must be compensated by adding/removing hydrogens:
+    return mass - charge_ * (Constants::PROTON_MASS_U + Constants::ELECTRON_MASS_U);
   }
 
   /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
