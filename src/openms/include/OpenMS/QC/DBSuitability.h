@@ -76,6 +76,8 @@ namespace OpenMS
       /// number of times the top hit is considered to be a deNovo hit
       Size num_top_novo = 0;
 
+      double num_top_novo_corr = 0;
+
       /// number of times the top hit is considered to be a database hit
       Size num_top_db = 0;
       
@@ -100,6 +102,8 @@ namespace OpenMS
       /// of 0.15 or even 0.05.
       /// Note that these test were only performed for one mzML and your results might differ.
       double suitability = 0;
+
+      double suitability_corr = 0;
     };
 
     /// Constructor
@@ -138,7 +142,7 @@ namespace OpenMS
     * @throws             MissingInformation if no xcorr is found
     * @throws             Precondition if a q-value is found in the input
     */
-    void compute(std::vector<PeptideIdentification> pep_ids);
+    void compute(std::vector<PeptideIdentification> pep_ids, std::vector<PeptideIdentification> novo_seqs, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const MetaInfoInterface& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -207,13 +211,15 @@ namespace OpenMS
     */
     bool passesFDR_(const PeptideHit& hit, double FDR);
 
-    Param extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
+    std::pair<String, Param> extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
 
     void writeIniFile_(const Param& parameters, const String& filename) const;
 
-    std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const;
+    std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
-    Size getNumberOfIdentificationsFound_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const;
+    Size countNumberOfIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const;
+
+    double getNovoCorrectionFactor_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const std::vector<PeptideIdentification>& novo_seqs, const String& adapter_name, Param& parameters) const;
   };
 }
 

@@ -64,7 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification> pep_ids)
+  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, vector<PeptideIdentification> novo_seqs, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const MetaInfoInterface& search_params)
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
     double cut_off_fract = param_.getValue("cut_off_fract");
@@ -195,6 +195,12 @@ namespace OpenMS
     }
 
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
+
+    pair<String, Param> search_info = extractParametersFromMetaValues_(search_params);
+    double factor = getNovoCorrectionFactor_(exp, fasta_data, novo_seqs, search_info.first, search_info.second);
+
+    data.num_top_novo_corr = data.num_top_novo * factor;
+    data.suitability_corr = double(data.num_top_db) / (data.num_top_db + (factor * data.num_top_novo));
   }
 
   const std::vector<DBSuitability::SuitabilityData>& DBSuitability::getResults() const
@@ -301,25 +307,52 @@ namespace OpenMS
     if (hit.getScore() > FDR) return false;
     return true;
   }
-  Param DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
+
+  /// ---- new stuff ----- TODO: comment
+
+  pair<String, Param> DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
   {
     Param p;
-    //vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
+    vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
 
+    String adapter;
     vector<String> keys;
     meta_values.getKeys(keys);
     for (const String& key : keys)
     {
-      if (key.find("CometAdapter") != 0) continue;
-      p.setValue(key, meta_values.getMetaValue(key));
+      if (adapter.empty())
+      {
+        for (const String& a : working_adapters)
+        {
+          if (key.find(a) == 0)
+          {
+            adapter = a;
+            break;
+          }
+        }
+      }
+      else
+      {
+        if (key.find(adapter) != 0) continue;
+        p.setValue(key, meta_values.getMetaValue(key));
+      }
     }
 
     if (p.empty())
     {
-      OPENMS_LOG_WARN << "Warning: No parameters found for CometAdapter in the given meta values." << endl;
+      String message;
+      message = "No parameters found for any of the allowed adapters in the given meta values. Allowed are:\n";
+      for (const String& a : working_adapters)
+      {
+        message += a + " ";
+      }
+      message = "\n";
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
-    return p;
+    OPENMS_LOG_INFO << "Parameters for the following adapter were found: " << adapter << endl;
+
+    return make_pair(adapter, p);
   }
 
   void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
@@ -332,9 +365,12 @@ namespace OpenMS
     param_file.store(filename, parameters);
   }
 
-  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const
+  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
   {
-    String search_engine = "CometAdapter";
+    if (adapter_name.empty())
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No adapter name given. Aborting!");
+    }
 
     // temporary folder for search in- und output files
     File::TempDir tmp_dir;
@@ -343,9 +379,9 @@ namespace OpenMS
     String out_path = tmp_dir.getPath() + "out.idXML";
 
     // override the in- and output files in the parameters
-    parameters.setValue("CometAdapter:1:in", mzml_path);
-    parameters.setValue("CometAdapter:1:database", db_path);
-    parameters.setValue("CometAdapter:1:out", out_path);
+    parameters.setValue(adapter_name + ":1:in", mzml_path);
+    parameters.setValue(adapter_name + ":1:database", db_path);
+    parameters.setValue(adapter_name + ":1:out", out_path);
 
     // store data in temporary files
     MzMLFile spectra_file;
@@ -363,10 +399,11 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { proc_stderr += out; };
 
     ExternalProcess ep(lam_out, lam_err);
-    const auto& rt = ep.run(search_engine.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), true);
+    OPENMS_LOG_INFO << "Running " << adapter_name << "..." << endl << endl;
+    const auto& rt = ep.run(adapter_name.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), true);
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured
-      OPENMS_LOG_ERROR << "An error occured while running CometAdapter." << endl;
+      OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
@@ -379,18 +416,84 @@ namespace OpenMS
     IdXMLFile comet_out;
     comet_out.load(out_path, prot_ids, pep_ids);
 
+    PeptideIndexing indexer;
+    FASTAContainer<TFI_Vector> proteins(fasta_data);
+    OPENMS_LOG_INFO << "Running PeptideIndexer functionalities ..." << endl << endl;
+    OPENMS_LOG_INFO.remove(cout); // prevent indexer from writing statistik
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
+    OPENMS_LOG_INFO.insert(cout); // revert logging change
+    if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
+    {
+      OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
+    }
+
+    Param p;
+    p.setValue("use_all_hits", "true");
+    p.setValue("add_decoy_peptides", "true");
+    p.setValue("add_decoy_proteins", "true");
+
+    FalseDiscoveryRate fdr;
+    fdr.setParameters(p);
+    OPENMS_LOG_INFO << "Calculating q-values ..." << endl << endl;
+    fdr.apply(pep_ids);
+
     return pep_ids;
   }
 
-  Size DBSuitability::getNumberOfIdentificationsFound_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, Param& parameters) const
+  Size DBSuitability::countNumberOfIdentifications_(const vector<PeptideIdentification>& pep_ids) const
   {
-    vector<PeptideIdentification> pep_ids = runIdentificationSearch_(exp, fasta_data, parameters);
     Size count{};
     for (const auto& pep_id : pep_ids)
     {
-      if (pep_id.empty()) continue;
+      if (pep_id.getHits().empty()) continue;
+      
+      if (!pep_id.getHits()[0].metaValueExists("target_decoy"))
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer is run beforehand.");
+      }
+      if (pep_id.getHits()[0].getMetaValue("target_decoy") == "decoy") continue;
+
       ++count;
     }
     return count;
+  }
+
+  double DBSuitability::getNovoCorrectionFactor_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const vector<PeptideIdentification>& novo_seqs, const String& adapter_name, Param& parameters) const
+  {
+    OPENMS_LOG_INFO << "Starting identification search with original database." << endl;
+    Size num_only_db = countNumberOfIdentifications_(runIdentificationSearch_(exp, fasta_data, adapter_name, parameters));
+
+    String all_p;
+    String all_but_p;
+    for (const PeptideIdentification& novo_id : novo_seqs)
+    {
+      if (novo_id.getHits().empty()) continue;
+
+      PeptideHit hit = novo_id.getHits()[0];
+      String seq = hit.getSequence().toUnmodifiedString();
+      if (seq[0] == 'P')
+      {
+        all_p += seq;
+      }
+      else
+      {
+        all_but_p += seq;
+      }
+    }
+    vector<FASTAFile::FASTAEntry> novo_db;
+    FASTAFile::FASTAEntry entry;
+    entry.sequence = all_p + all_but_p;
+    entry.identifier = Constants::UserParam::CONCAT_PEPTIDE;
+    entry.description = "";
+    novo_db.push_back(entry);
+    entry.sequence.reverse();
+    entry.identifier = "DECOY_" + entry.identifier;
+    novo_db.push_back(entry);
+
+    OPENMS_LOG_INFO << "Starting identification search with deNovo database." << endl;
+    Size num_only_novo = countNumberOfIdentifications_(runIdentificationSearch_(exp, novo_db, adapter_name, parameters));
+
+    return double(num_only_novo) / num_only_db;
   }
 }

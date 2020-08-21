@@ -512,9 +512,9 @@ public:
           } // end readChunk
         } // OMP end parallel
         this->endProgress();
-        std::cout << "Merge took: " << s.toString() << "\n";
+        OPENMS_LOG_INFO << "Merge took: " << s.toString() << "\n";
         mu.after();
-        std::cout << mu.delta("Aho-Corasick") << "\n\n";
+        OPENMS_LOG_INFO << mu.delta("Aho-Corasick") << "\n\n";
 
         OPENMS_LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
 
