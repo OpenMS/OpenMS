@@ -322,7 +322,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "Creating assay library..." << endl;
       createAssayLibrary_(chunk.first, chunk.second);
 
-      OPENMS_LOG_DEBUG << "Extracting chromatograms..." << endl;
+      OPENMS_LOG_INFO << "Extracting chromatograms..." << endl;
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
       {
@@ -337,10 +337,10 @@ namespace OpenMS
                                       chrom_data_.getChromatograms(), false);
       }
 
-      OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
-                       << " chromatogram(s)." << endl;
+      OPENMS_LOG_INFO << "Extracted " << chrom_data_.getNrChromatograms()
+                      << " chromatogram(s)." << endl;
 
-      OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
+      OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
       // suppress status output from OpenSWATH, unless in debug mode:
       if (debug_level_ < 1) OpenMS_Log_info.remove(cout);
       feat_finder_.pickExperiment(chrom_data_, features, library_,
@@ -395,7 +395,7 @@ namespace OpenMS
     sort(features.begin(), features.end(), feature_compare_);
 
     postProcess_(features, with_external_ids);
-    statistics_(features);
+    statistics_(features, with_external_ids);
 
     features.ensureUniqueId();
   }
@@ -647,7 +647,8 @@ namespace OpenMS
   }
 */
 
-  void FeatureFinderIdentificationAlgorithm::statistics_(const FeatureMap& features) const
+  void FeatureFinderIdentificationAlgorithm::statistics_(
+    const FeatureMap& features, bool with_external_ids) const
   {
     // same peptide sequence may be quantified based on internal and external
     // IDs if charge states differ!
@@ -680,64 +681,52 @@ namespace OpenMS
     // number of "missing" external peptides can be negative!
     Int n_missing_external = Int(n_external_targets_) - n_quant_external;
 
-    bool add_comma = false;
     // @TODO: break targets down into peptides, compounds, RNA oligos?
     OPENMS_LOG_INFO << "\nSummary statistics (counting distinct targets including modifications):\n"
-                    << molecule_map_.size() << " targets identified (";
-    if (n_internal_targets_ > 0)
+                    << molecule_map_.size() << " targets identified";
+    if (with_external_ids || (n_seed_targets_ > 0))
     {
-      OPENMS_LOG_INFO << n_internal_targets_ << " internal";
-      add_comma = true;
+      OPENMS_LOG_INFO << " (" << n_internal_targets_ << " internal";
+      if (with_external_ids)
+      {
+        OPENMS_LOG_INFO << ", " << n_external_targets_ << " additional external";
+      }
+      if (n_seed_targets_ > 0)
+      {
+        OPENMS_LOG_INFO << ", " << n_seed_targets_ << " seed-based";
+      }
+      OPENMS_LOG_INFO << ")";
     }
-    if (n_seed_targets_ > 0)
+    OPENMS_LOG_INFO << "\n" << quantified_all.size() << " targets with features";
+    if (with_external_ids || (n_seed_targets_ > 0))
     {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << n_seed_targets_ << " seed-based";
-      add_comma = true;
+      OPENMS_LOG_INFO << " (" << quantified_internal.size() << " internal";
+      if (with_external_ids)
+      {
+        OPENMS_LOG_INFO << ", " << n_quant_external << " external";
+      }
+      if (n_seed_targets_ > 0)
+      {
+        OPENMS_LOG_INFO << ", " << quantified_seed.size() << " seed-based";
+      }
+      OPENMS_LOG_INFO << ")";
     }
-    if (n_external_targets_ > 0)
+    OPENMS_LOG_INFO << "\n" << molecule_map_.size() - quantified_all.size()
+                    << " targets without features";
+    if (with_external_ids || (n_seed_targets_ > 0))
     {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << n_external_targets_ << " additional external";
+      OPENMS_LOG_INFO << " (" << n_internal_targets_ - quantified_internal.size() << " internal";
+      if (with_external_ids)
+      {
+        OPENMS_LOG_INFO << ", " << n_missing_external << " external";
+      }
+      if (n_seed_targets_ > 0)
+      {
+        OPENMS_LOG_INFO << ", " << n_seed_targets_ - quantified_seed.size() << " seed-based";
+      }
+      OPENMS_LOG_INFO << ")";
     }
-    add_comma = false;
-    OPENMS_LOG_INFO << ")\n" << quantified_all.size() << " targets with features (";
-    if (!quantified_internal.empty())
-    {
-      OPENMS_LOG_INFO << quantified_internal.size() << " internal";
-      add_comma = true;
-    }
-    if (!quantified_seed.empty())
-    {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << quantified_seed.size() << " seed-based";
-      add_comma = true;
-    }
-    if (n_quant_external > 0)
-    {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << n_quant_external << " external";
-    }
-    add_comma = false;
-    OPENMS_LOG_INFO << ")\n"
-                    << molecule_map_.size() - quantified_all.size() << " targets without features (";
-    if (n_internal_targets_ > quantified_internal.size())
-    {
-      OPENMS_LOG_INFO << n_internal_targets_ - quantified_internal.size() << " internal";
-      add_comma = true;
-    }
-    if (n_seed_targets_ > quantified_seed.size())
-    {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << n_seed_targets_ - quantified_seed.size() << " seed-based";
-      add_comma = true;
-    }
-    if (n_missing_external > 0)
-    {
-      if (add_comma) OPENMS_LOG_INFO << ", ";
-      OPENMS_LOG_INFO << n_missing_external << " external";
-    }
-    OPENMS_LOG_INFO << ")\n" << endl;
+    OPENMS_LOG_INFO << "\n" << endl;
   }
 
 

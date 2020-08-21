@@ -252,8 +252,8 @@ protected:
 
   void postProcess_(FeatureMap& features, bool with_external_ids);
 
-  /// some statistics on detected features
-  void statistics_(const FeatureMap& features) const;
+  /// print some statistics on detected features
+  void statistics_(const FeatureMap& features, bool with_external_ids) const;
 
   /*!
     @brief Creates an assay library given target molecule information
