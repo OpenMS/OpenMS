@@ -189,14 +189,18 @@ END_SECTION
 START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
 {
   DBSuitability s;
-  s.compute(pep_ids);
   Param p;
-  p.setValue("reranking_cutoff_percentile", 2./3);
+  p.setValue("reranking_cutoff_percentile", 0.);
+  s.setParameters(p);
+  s.compute(pep_ids);
+
+  p.setValue("reranking_cutoff_percentile", 1./3);
   p.setValue("FDR", 0.);
   s.setParameters(p);
   s.compute(pep_ids_2);
   s.compute(top_decoy);
-  p.setValue("reranking_cutoff_percentile", 0.);
+
+  p.setValue("reranking_cutoff_percentile", 1.);
   s.setParameters(p);
   s.compute(pep_ids_3);
   vector<DBSuitability::SuitabilityData> d = s.getResults();
