@@ -34,8 +34,10 @@
 
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -64,7 +66,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, vector<PeptideIdentification> novo_seqs, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const MetaInfoInterface& search_params)
+  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
     double cut_off_fract = param_.getValue("cut_off_fract");
@@ -74,40 +76,25 @@ namespace OpenMS
     results_.push_back(d);
     SuitabilityData& data = results_.back();
 
-    if (pep_ids.empty())
-    {
-      OPENMS_LOG_WARN << "No peptide identifications given to DBSuitability! No calculations performed." << endl;
-      return;
-    }
+    pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
 
-    if (pep_ids[0].getScoreType() == "q-value")
+    // execute combined deNovo+database ID-search
+    vector<FASTAFile::FASTAEntry> combined_db(original_fasta);
+    combined_db.insert(combined_db.end(), novo_fasta.begin(), novo_fasta.end());
+    vector<PeptideIdentification> combined_ids = runIdentificationSearch_(exp, combined_db, search_info.first, search_info.second);
+
+    if (combined_ids.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-    }
-    for (const auto& id : pep_ids)
-    {
-      if (id.getHits().empty()) continue;
-      if (id.getHits()[0].metaValueExists("q-value"))
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-      }
+      OPENMS_LOG_WARN << "No peptide identifications found with given mzML and database! No calculations performed." << endl;
+      return;
     }
 
     if (!no_re_rank)
     {
-      data.cut_off = getDecoyCutOff_(pep_ids, cut_off_fract);
+      data.cut_off = getDecoyCutOff_(combined_ids, cut_off_fract);
     }
 
-    Param p;
-    p.setValue("use_all_hits", "true");
-    p.setValue("add_decoy_peptides", "true");
-    p.setValue("add_decoy_proteins", "true");
-
-    FalseDiscoveryRate fdr;
-    fdr.setParameters(p);
-    fdr.apply(pep_ids);
-
-    for (PeptideIdentification& pep_id : pep_ids)
+    for (PeptideIdentification& pep_id : combined_ids)
     {
       // sort hits by q-value
       pep_id.sort();
@@ -196,8 +183,34 @@ namespace OpenMS
 
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
 
-    pair<String, Param> search_info = extractParametersFromMetaValues_(search_params);
-    double factor = getNovoCorrectionFactor_(exp, fasta_data, novo_seqs, search_info.first, search_info.second);
+    // calculate correction of suitability
+    if (pep_ids[0].getScoreType() == "q-value")
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+    }
+    for (const auto& id : pep_ids)
+    {
+      if (id.getHits().empty()) continue;
+      if (id.getHits()[0].metaValueExists("q-value"))
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+      }
+    }
+
+    Param p;
+    p.setValue("use_all_hits", "true");
+    p.setValue("add_decoy_peptides", "true");
+    p.setValue("add_decoy_proteins", "true");
+
+    FalseDiscoveryRate fdr;
+    fdr.setParameters(p);
+    fdr.apply(pep_ids);
+    
+    Size num_ids_only_db = countNumberOfIdentifications_(pep_ids);
+    Size num_ids_only_novo = countNumberOfIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
+
+    double factor = num_ids_only_novo / double(num_ids_only_db);
+    data.corr_factor = factor;
 
     data.num_top_novo_corr = data.num_top_novo * factor;
     data.suitability_corr = double(data.num_top_db) / (data.num_top_db + (factor * data.num_top_novo));
@@ -302,43 +315,43 @@ namespace OpenMS
     return true;
   }
 
-  bool DBSuitability::passesFDR_(const PeptideHit& hit, double FDR)
+  bool DBSuitability::passesFDR_(const PeptideHit& hit, double FDR) const
   {
     if (hit.getScore() > FDR) return false;
     return true;
   }
 
-  /// ---- new stuff ----- TODO: comment
-
-  pair<String, Param> DBSuitability::extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const
+  pair<String, Param> DBSuitability::extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const
   {
     Param p;
+    // list of all allowed adapters
     vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
 
     String adapter;
     vector<String> keys;
-    meta_values.getKeys(keys);
+    search_params.getKeys(keys);
     for (const String& key : keys)
     {
-      if (adapter.empty())
+      if (adapter.empty()) // trying to find which adapter was used
       {
         for (const String& a : working_adapters)
         {
           if (key.find(a) == 0)
           {
+            // used adapter found
             adapter = a;
             break;
           }
         }
       }
-      else
+      else // found adapter name
       {
-        if (key.find(adapter) != 0) continue;
-        p.setValue(key, meta_values.getMetaValue(key));
+        if (key.find(adapter) != 0) continue; // does adapter appear in meta value key?
+        p.setValue(key, search_params.getMetaValue(key));
       }
     }
 
-    if (p.empty())
+    if (p.empty()) // non of the allowed adapter names where found in the meta values
     {
       String message;
       message = "No parameters found for any of the allowed adapters in the given meta values. Allowed are:\n";
@@ -350,14 +363,14 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
     }
 
-    OPENMS_LOG_INFO << "Parameters for the following adapter were found: " << adapter << endl;
+    OPENMS_LOG_DEBUG << "Parameters for the following adapter were found: " << adapter << endl;
 
     return make_pair(adapter, p);
   }
 
   void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
   {
-    if (!File::writable(filename))
+    if (!File::writable(filename)) // check if file exists and is writable
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to create file: " + filename);
     }
@@ -399,7 +412,7 @@ namespace OpenMS
     auto lam_err = [&](const String& out) { proc_stderr += out; };
 
     ExternalProcess ep(lam_out, lam_err);
-    OPENMS_LOG_INFO << "Running " << adapter_name << "..." << endl << endl;
+    OPENMS_LOG_DEBUG << "Running " << adapter_name << "..." << endl << endl;
     const auto& rt = ep.run(adapter_name.toQString(), QStringList() << "-ini" << ini_path.toQString(), tmp_dir.getPath().toQString(), true);
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured
@@ -416,10 +429,11 @@ namespace OpenMS
     IdXMLFile comet_out;
     comet_out.load(out_path, prot_ids, pep_ids);
 
+    // annotate target/decoy information
     PeptideIndexing indexer;
     FASTAContainer<TFI_Vector> proteins(fasta_data);
-    OPENMS_LOG_INFO << "Running PeptideIndexer functionalities ..." << endl << endl;
-    OPENMS_LOG_INFO.remove(cout); // prevent indexer from writing statistik
+    OPENMS_LOG_DEBUG << "Running PeptideIndexer functionalities ..." << endl << endl;
+    OPENMS_LOG_INFO.remove(cout); // prevent indexer from writing statistic
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
     OPENMS_LOG_INFO.insert(cout); // revert logging change
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
@@ -428,6 +442,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
     }
 
+    // calculate q-values
     Param p;
     p.setValue("use_all_hits", "true");
     p.setValue("add_decoy_peptides", "true");
@@ -435,7 +450,7 @@ namespace OpenMS
 
     FalseDiscoveryRate fdr;
     fdr.setParameters(p);
-    OPENMS_LOG_INFO << "Calculating q-values ..." << endl << endl;
+    OPENMS_LOG_DEBUG << "Calculating q-values ..." << endl << endl;
     fdr.apply(pep_ids);
 
     return pep_ids;
@@ -446,54 +461,20 @@ namespace OpenMS
     Size count{};
     for (const auto& pep_id : pep_ids)
     {
-      if (pep_id.getHits().empty()) continue;
+      if (pep_id.getHits().empty()) continue; // skip empty IDs without hits
       
-      if (!pep_id.getHits()[0].metaValueExists("target_decoy"))
+      const PeptideHit& hit = pep_id.getHits()[0];
+
+      if (!hit.metaValueExists("target_decoy"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer is run beforehand.");
       }
-      if (pep_id.getHits()[0].getMetaValue("target_decoy") == "decoy") continue;
+      if (hit.getMetaValue("target_decoy") == "decoy") continue; // skip decoy IDs
 
-      ++count;
+      if (!passesFDR_(hit, this->getParameters().getValue("FDR"))) continue;
+
+      ++count; // count the rest
     }
     return count;
-  }
-
-  double DBSuitability::getNovoCorrectionFactor_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const vector<PeptideIdentification>& novo_seqs, const String& adapter_name, Param& parameters) const
-  {
-    OPENMS_LOG_INFO << "Starting identification search with original database." << endl;
-    Size num_only_db = countNumberOfIdentifications_(runIdentificationSearch_(exp, fasta_data, adapter_name, parameters));
-
-    String all_p;
-    String all_but_p;
-    for (const PeptideIdentification& novo_id : novo_seqs)
-    {
-      if (novo_id.getHits().empty()) continue;
-
-      PeptideHit hit = novo_id.getHits()[0];
-      String seq = hit.getSequence().toUnmodifiedString();
-      if (seq[0] == 'P')
-      {
-        all_p += seq;
-      }
-      else
-      {
-        all_but_p += seq;
-      }
-    }
-    vector<FASTAFile::FASTAEntry> novo_db;
-    FASTAFile::FASTAEntry entry;
-    entry.sequence = all_p + all_but_p;
-    entry.identifier = Constants::UserParam::CONCAT_PEPTIDE;
-    entry.description = "";
-    novo_db.push_back(entry);
-    entry.sequence.reverse();
-    entry.identifier = "DECOY_" + entry.identifier;
-    novo_db.push_back(entry);
-
-    OPENMS_LOG_INFO << "Starting identification search with deNovo database." << endl;
-    Size num_only_novo = countNumberOfIdentifications_(runIdentificationSearch_(exp, novo_db, adapter_name, parameters));
-
-    return double(num_only_novo) / num_only_db;
   }
 }

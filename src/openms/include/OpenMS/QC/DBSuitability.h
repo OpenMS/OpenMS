@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <cfloat>
 #include <map>
@@ -76,6 +77,7 @@ namespace OpenMS
       /// number of times the top hit is considered to be a deNovo hit
       Size num_top_novo = 0;
 
+      /// number of top deNovo hits multiplied by the correction factor
       double num_top_novo_corr = 0;
 
       /// number of times the top hit is considered to be a database hit
@@ -92,6 +94,11 @@ namespace OpenMS
       /// this is normalized by mw
       double cut_off = DBL_MAX;
 
+      /// #IDs with only deNovo search / #IDs with only database search
+      /// worse databases will have less IDs then good databases
+      /// this should push the suitability more down for the worse ones
+      double corr_factor;
+
       /// the suitability of the database used for identification search, calculated with:
       ///               #db_hits / (#db_hits + #deNovo_hit)
       /// can reach from 0 -> the database was not at all suited to 1 -> the perfect database was used
@@ -103,6 +110,7 @@ namespace OpenMS
       /// Note that these test were only performed for one mzML and your results might differ.
       double suitability = 0;
 
+      /// suitability after correcting the top deNovo hits to impact worse databases more
       double suitability_corr = 0;
     };
 
@@ -117,7 +125,10 @@ namespace OpenMS
     /**
     * @brief Computes suitability of a database used to search a mzML
     *
-    * Counts top deNovo and top database hits. The ratio of db hits vs
+    * Executes a combined deNovo+database identification search. The search is performed
+    * with the same adapter and the same settings as the input.
+    *
+    * Then top deNovo and top database hits are counted. The ratio of db hits vs
     * all hits yields the suitability.
     * To re-rank cases, where a de novo peptide scores just higher than
     * the database peptide, a decoy cut-off is calculated. This functionality
@@ -132,17 +143,37 @@ namespace OpenMS
     *                                Preliminary tests have shown that database suitability
     *                                is rather stable across common FDR thresholds from 0 - 5 %
     *
+    * After this, a correction factor for the number of found top deNovo hits is calculated.
+    * This is done by perfoming one additional identification searche with just the deNovo sequences
+    * as the database. The number of identifications found with a normal database search is
+    * extracted from the input.
+    * The number of identifications found (post FDR) with only deNovo devided by
+    * the number of identifications found (post FDR) with only the database yields the factor
+    * with which the number of top deNovo from the combined search will be corrected.
+    * 
+    * With that it is tried to correct the suitability in a way to more punish bad database, while
+    * not impacting good databases that much.
+    * Both the original suitability as well as the corrected one are reported in the result.
+    *
     * Since q-values need to be calculated the identifications are taken by copy.
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
-    * @param pep_ids      vector containing pepIDs coming from a deNovo+database 
-    *                     identification search without FDR (currently only Comet-support)
-    * @throws             MissingInformation if no target/decoy annotation is found
-    * @throws             MissingInformation if no xcorr is found
-    * @throws             Precondition if a q-value is found in the input
+    * @param pep_ids        vector containing pepIDs coming from a standard 
+    *                       identification search without FDR (currently only Comet-support)
+    * @param exp            MSExperiment that was searched to produce the identifications
+    *                       given in @p pep_ids
+    * @param fasta_data     FASTAEntries of the database used for the ID search
+    * @param novo_fasta     FASTAEntry derived from a deNovo peptides + its decoy entry
+    * @param search_params  SearchParameters object containing information which adapter
+    *                       was used with which settings for the identification search
+    *                       that resulted in @p pep_ids
+    * @throws               MissingInformation if no target/decoy annotation is found on @p pep_ids
+    * @throws               MissingInformation if no xcorr is found,
+    *                       this happends when another adapter than CometAdapter was used
+    * @throws               Precondition if a q-value is found at @p pep_ids
     */
-    void compute(std::vector<PeptideIdentification> pep_ids, std::vector<PeptideIdentification> novo_seqs, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const MetaInfoInterface& search_params);
+    void compute(std::vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -209,17 +240,58 @@ namespace OpenMS
     * @param FDR            FDR threshold to check against
     * @returns              true/false
     */
-    bool passesFDR_(const PeptideHit& hit, double FDR);
+    bool passesFDR_(const PeptideHit& hit, double FDR) const;
 
-    std::pair<String, Param> extractParametersFromMetaValues_(const MetaInfoInterface& meta_values) const;
+    /**
+    * @brief Looks through meta values of SearchParameters to find out which search adapter was used
+    *
+    * Checks for the following adapters:
+    * CometAdapter, CruxAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    *
+    * @param meta_values   SearchParameters object, since the adapters write their parameters here
+    * @retruns             a pair containing the name of the adapter and the parameters used to run it
+    * @throws              MissingInformation if non of the adapters above is found in the meta values
+    */
+    std::pair<String, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const;
 
+    /**
+    * @brief Writes parameters into a given file
+    *
+    * @param parameters    parameters to write
+    * @param filename      name of the file where the parameters should be written to
+    * @throws              UnableToCreateFile if filename isn't writable
+    */
     void writeIniFile_(const Param& parameters, const String& filename) const;
 
+    /**
+    * @brief Executes the workflow from search adapter, followed by PeptideIndexer and finished with FDR
+    *
+    * Which adapter should run which which parameters can be controled.
+    * Indexing and FDR are always done the same way.
+    *
+    * The inputs are stored in temporary files to execute the Adapter.
+    * (MSExperiment -> .mzML, vector<FASTAEntry> -> .fasta, Param -> .INI)
+    *
+    * @param exp            MSExperiment that will be searched
+    * @param fasta_data     represents the database that should be used to search
+    * @param adapter_name   name of the adapter to search with
+    * @param parameters     parameters for the adapter
+    * @returns              peptide identifications with annotated q-values
+    * @throws               UnableToCreateFile if any error occures while running the adapter
+    * @throws               UnableToCreateFile if any error occures while running PeptideIndexer functionalities
+    */
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
+    /**
+    * @brief Counts all non-empty peptide identification where the top hit is a target hit
+    *
+    * Also only identifications with a score less or equal to the "FDR" parameter of this class are counted.
+    *
+    * @param pep_ids   identifications to count
+    * @returns         number of IDs with a top target hit
+    * @throws          MissingInformation if no target/decoy annotation is found
+    */
     Size countNumberOfIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const;
-
-    double getNovoCorrectionFactor_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const std::vector<PeptideIdentification>& novo_seqs, const String& adapter_name, Param& parameters) const;
   };
 }
 
