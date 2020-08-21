@@ -51,21 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator() :
-    IsotopePatternGenerator(),
-    max_isotope_(0),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope) :
-    IsotopePatternGenerator(),
-    max_isotope_(max_isotope),
-    round_masses_(false)
-  {
-  }
-
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses) :
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size max_isotope, const bool round_masses) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope),
     round_masses_(round_masses)
