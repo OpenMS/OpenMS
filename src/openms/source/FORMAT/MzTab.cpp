@@ -2186,6 +2186,7 @@ namespace OpenMS
 
   void MzTab::mapBetweenRunAndSearchEngines_(
     const vector<const ProteinIdentification*>& prot_ids,
+    const vector<const PeptideIdentification*>& pep_ids,
     bool skip_first_run,
     map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
     map<Size, vector<pair<String, String>>>& run_to_search_engines,
@@ -2204,7 +2205,19 @@ namespace OpenMS
 
       const String &search_engine_name = prot_ids[run_index]->getSearchEngine();
       const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
-      const String &search_engine_score_type = prot_ids[run_index]->getScoreType();
+
+      String search_engine_score_type = "unknown_score";
+
+      // this is very inefficient.. but almost the only way
+      for (const auto& pep : pep_ids)
+      {
+        if (pep->getIdentifier() == (*it)->getIdentifier())
+        {
+          search_engine_score_type = pep->getScoreType();
+          break;
+        }
+      }
+
       search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
 
       // store main search engine as first entry in run_to_search_engines
@@ -2222,8 +2235,11 @@ namespace OpenMS
           String se_name = mvkey.substr(3);
           String se_ver = sp2.getMetaValue(mvkey);
           run_to_search_engines[run_index].emplace_back(se_name, se_ver);
-          // TODO conserve score_type of underlying search engines
-          search_engine_to_runs[make_tuple(se_name, se_ver, "")].insert(run_index);
+          // TODO conserve score_type of underlying search engines (currently always "")
+          // TODO for now we only save the MAIN search engine in the SE_to_runs, to only have
+          //  those in the meta_data later. -> No discrepancy with the rows (where we also only use
+          //  the main search engine
+          //search_engine_to_runs[make_tuple(se_name, se_ver, "")].insert(run_index);
         }
       }
 
@@ -2650,7 +2666,7 @@ Not sure how to handle these:
     {
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
-      sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
+      sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + " " + get<2>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
       sesoftwaremd.software = sesoftware;
       Size cnt2(1);
       for (auto const & sesetting : search_engine_to_settings.at(get<0>(name_ver_score_to_runs.first)))
@@ -2741,6 +2757,7 @@ Not sure how to handle these:
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
+      peptide_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
@@ -3280,6 +3297,7 @@ state0:
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
+      peptide_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
@@ -3741,4 +3759,3 @@ state0:
     }
   }
 }
-

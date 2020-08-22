@@ -1175,6 +1175,7 @@ public:
 
     static void mapBetweenRunAndSearchEngines_(
       const std::vector<const ProteinIdentification*>& prot_ids,
+      const std::vector<const PeptideIdentification*>& pep_ids,
       bool skip_first_run,
       std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
