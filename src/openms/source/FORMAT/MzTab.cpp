@@ -2209,7 +2209,7 @@ namespace OpenMS
       String search_engine_score_type = "unknown_score";
 
       // this is very inefficient.. but almost the only way
-      for (const auto pep : pep_ids)
+      for (const auto& pep : pep_ids)
       {
         if (pep->getIdentifier() == (*it)->getIdentifier())
         {
@@ -3759,4 +3759,3 @@ state0:
     }
   }
 }
-
