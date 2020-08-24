@@ -1044,7 +1044,7 @@ protected:
       Int subset_max_train = getIntOption_("subset_max_train");
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick_validation")) arguments << "-x";
-      if (getStringOption_("post-processing-tdc") == "true") arguments << "-Y";
+      if (getStringOption_("post_processing_tdc") == "true") arguments << "-Y";
       if (getFlag_("train_best_positive")) arguments << "--train-best-positive";
       if (getFlag_("static")) arguments << "--static";
       Int nested_xval_bins = getIntOption_("nested_xval_bins");
