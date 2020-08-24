@@ -67,18 +67,13 @@ namespace OpenMS
 
   void IsotopeLabelingMDVs::calculateMDV(
     Feature& measured_feature,
-    Feature& normalized_featuremap,
+    Feature& normalized_feature,
     const String& mass_intensity_type,
     const String& feature_name)
   {
-    // Lactatex +
-    //          |-> Lactate_x17 : peak_apex_int = 3.61E+08
-    //          |-> Lactate_x18 : peak_apex_int = 1.20E+04
-    //          |-> Lactate_x19 : peak_apex_int = 1.02E+05
-    //          |-> Lactate_x20 : peak_apex_int = 2.59E+04
     
     std::vector<Feature> measured_feature_subordinates = measured_feature.getSubordinates();
-    
+    normalized_feature = measured_feature;
     if (mass_intensity_type == "norm_max")
     {
       if (feature_name == "intensity")
@@ -91,27 +86,28 @@ namespace OpenMS
         std::vector<OpenMS::Peak2D::IntensityType>::iterator max_it = std::max_element(intensities_vec.begin(), intensities_vec.end());
         double measured_feature_max = intensities_vec[std::distance(intensities_vec.begin(), max_it)];
       
-        for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
+        for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
         {
-          normalized_featuremap.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / measured_feature_max));
+          if(measured_feature_max != 0.0) {
+            normalized_feature.getSubordinates().at(i).setIntensity(normalized_feature.getSubordinates().at(i).getIntensity() /  measured_feature_max);
+          }
         }
       }
       
       else
       {
-        if (measured_feature.metaValueExists(feature_name))
+        std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
+        for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
-          for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
-          {
-            intensities_vec.push_back(it->getMetaValue(feature_name));
-          }
-          std::vector<OpenMS::Peak2D::IntensityType>::iterator max_it = std::max_element(intensities_vec.begin(), intensities_vec.end());
-          double measured_feature_max = intensities_vec[std::distance(intensities_vec.begin(), max_it)];
+          intensities_vec.push_back(it->getMetaValue(feature_name));
+        }
+        std::vector<OpenMS::Peak2D::IntensityType>::iterator max_it = std::max_element(intensities_vec.begin(), intensities_vec.end());
+        double measured_feature_max = intensities_vec[std::distance(intensities_vec.begin(), max_it)];
           
-          for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
-          {
-            normalized_featuremap.setMetaValue((it - measured_feature_subordinates.begin()), ((OpenMS::Peak2D::IntensityType)it->getMetaValue(feature_name) / measured_feature_max));
+        for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
+        {
+          if (measured_feature_max != 0.0) {
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / measured_feature_max);
           }
         }
       }
@@ -119,7 +115,6 @@ namespace OpenMS
     
     else if (mass_intensity_type == "norm_sum")
     {
-      
       if (feature_name == "intensity")
       {
         OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
@@ -131,29 +126,29 @@ namespace OpenMS
         
         for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          normalized_featuremap.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / feature_peak_apex_intensity_sum));
+          normalized_feature.setMetaValue((it - measured_feature_subordinates.begin()), (it->getIntensity() / feature_peak_apex_intensity_sum));
         }
       }
       
       else
       {
-        if (measured_feature.metaValueExists(feature_name))
+        OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
+        std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
+        for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
         {
-          OpenMS::Peak2D::IntensityType feature_peak_apex_intensity_sum = 0.0;
-          std::vector<OpenMS::Peak2D::IntensityType> intensities_vec;
-          for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
-          {
-            feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(feature_name);
-          }
+          feature_peak_apex_intensity_sum += (Peak2D::IntensityType)it->getMetaValue(feature_name);
+        }
           
-          for (auto it = measured_feature_subordinates.begin(); it != measured_feature_subordinates.end(); it++)
+        for (size_t i = 0; i < normalized_feature.getSubordinates().size(); ++i)
+        {
+          if (feature_peak_apex_intensity_sum != 0.0)
           {
-            normalized_featuremap.setMetaValue((it - measured_feature_subordinates.begin()), ((OpenMS::Peak2D::IntensityType)it->getMetaValue(feature_name) / feature_peak_apex_intensity_sum));
+            normalized_feature.getSubordinates().at(i).setIntensity((OpenMS::Peak2D::IntensityType)measured_feature_subordinates.at(i).getMetaValue(feature_name) / feature_peak_apex_intensity_sum);
           }
         }
       }
     }
-    
   }
-
+  
+  
 } // namespace
