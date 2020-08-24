@@ -43,6 +43,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
@@ -488,9 +489,6 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
-    defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
-    defaults_.setValue("preferences:legend", "show", "Legend visibility");
-    defaults_.setValidStrings("preferences:legend", ListUtils::create<String>("show,hide"));
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
     defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<String>("on,off"));
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
@@ -1909,7 +1907,7 @@ namespace OpenMS
     }
 
     //create and store unique file name prefix for files
-    topp_.file_name = param_.getValue("preferences:tmp_file_path").toString() + "/TOPPView_" + File::getUniqueName();
+    topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
     if (!File::writable(topp_.file_name + "_ini"))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
@@ -2099,14 +2097,11 @@ namespace OpenMS
   void TOPPViewBase::finishTOPPToolExecution(int, QProcess::ExitStatus)
   {
     log_->addNewline();
-
-    String tmp_dir = param_.getValue("preferences:tmp_file_path").toString();
-
     if (topp_.process->exitStatus() == QProcess::CrashExit)
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, QString("Execution of '%1' not successful!").arg(topp_.tool.toQString()),
                       QString("The tool crashed during execution. If you want to debug this crash, check the input files in '%1'"
-                              " or enable 'debug' mode in the TOPP ini file.").arg(tmp_dir.toQString()));
+                              " or enable 'debug' mode in the TOPP ini file.").arg(File::getTempDirectory().toQString()));
     }
     else if (topp_.out != "")
     {
@@ -2791,6 +2786,9 @@ namespace OpenMS
 
   void TOPPViewBase::loadFiles(const StringList& list, QSplashScreen* splash_screen)
   {
+    static StringList colors = { "@bw", "@bg", "@b", "@r", "@g", "@m" };
+    static StringList gradients = { "Linear|0,#ffffff;100,#000000" , "Linear|0,#dddddd;100,#000000" , "Linear|0,#000000;100,#000000",
+                                    "Linear|0,#ff0000;100,#ff0000" , "Linear|0,#00ff00;100,#00ff00" , "Linear|0,#ff00ff;100,#ff00ff" };
     bool last_was_plus = false;
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
@@ -2799,69 +2797,24 @@ namespace OpenMS
         last_was_plus = true;
         continue;
       }
-      else if (*it == "@bw")
+      else if (std::find(colors.begin(), colors.end(), *it) != colors.end())
       {
         if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
-          getActiveCanvas()->setCurrentLayerParameters(tmp);
-        }
-      }
-      else if (*it == "@bg")
-      {
-        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
-        {
-          Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
-          getActiveCanvas()->setCurrentLayerParameters(tmp);
-        }
-      }
-      else if (*it == "@b")
-      {
-        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
-        {
-          Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
-          getActiveCanvas()->setCurrentLayerParameters(tmp);
-        }
-      }
-      else if (*it == "@r")
-      {
-        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
-        {
-          Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
-          getActiveCanvas()->setCurrentLayerParameters(tmp);
-        }
-      }
-      else if (*it == "@g")
-      {
-        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
-        {
-          Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
-          getActiveCanvas()->setCurrentLayerParameters(tmp);
-        }
-      }
-      else if (*it == "@m")
-      {
-        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
-        {
-          Param tmp = getActiveCanvas()->getCurrentLayer().param;
-          tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
+          tmp.setValue("dot:gradient", gradients[Helpers::indexOf(colors, *it)]);
           getActiveCanvas()->setCurrentLayerParameters(tmp);
         }
       }
       else if (!last_was_plus || !getActiveSpectrumWidget())
-      {
+      { // create new tab
         splash_screen->showMessage((String("Loading file: ") + *it).toQString());
         splash_screen->repaint();
         QApplication::processEvents();
         addDataFile(*it, false, true); // add data file but don't show options
       }
       else
-      {
+      { // add to current tab
         splash_screen->showMessage((String("Loading file: ") + *it).toQString());
         splash_screen->repaint();
         QApplication::processEvents();
