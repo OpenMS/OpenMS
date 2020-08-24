@@ -49,7 +49,7 @@ namespace OpenMS
   {
     defaults_.setValue("no_rerank", "false", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.");
     defaults_.setValidStrings("no_rerank", { "true", "false" });
-    defaults_.setValue("reranking_cutoff_percentile", 0.01, "Swap a top-scoring deNovo hit with a lower scoring DB hit if their xcorr score difference is in the given percentile of all score differences between the first two decoy hits of a PSM.");
+    defaults_.setValue("reranking_cutoff_percentile", 0.01, "Swap a top-scoring deNovo hit with a lower scoring DB hit if their xcorr score difference is in the given percentile of all score differences between the first two decoy hits of a PSM. The lower the value the lower the decoy cut-off will be. Therefore it will be harder for a lower scoring DB hit to be re-ranked to the top.");
     defaults_.setMinFloat("reranking_cutoff_percentile", 0.);
     defaults_.setMaxFloat("reranking_cutoff_percentile", 1.);
     defaults_.setValue("FDR", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)");
@@ -269,7 +269,7 @@ namespace OpenMS
     
     if (index >= diffs.size())
     {
-      return *min_element(diffs.begin(), diffs.end());
+      return *max_element(diffs.begin(), diffs.end());
     }
 
     nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());

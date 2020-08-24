@@ -61,7 +61,7 @@ namespace OpenMS
   * Allows for multiple usage of the compute function. The result of each call is stored internally in a vector.
   * Therefore old results will not be overridden by a new call. This vector then can be returned using getResults().
   *
-  * This class serves as the library representation of @ref TOPP_DatabaseDBSuitability
+  * This class serves as the library representation of @ref TOPP_DatabaseSuitability
   */
   class OPENMS_DLLAPI DBSuitability:
     public DefaultParamHandler
@@ -131,6 +131,7 @@ namespace OpenMS
     *
     * @param pep_ids      vector containing pepIDs with target/decoy annotation coming from a deNovo+database 
     *                     identification search (currently only Comet-support) without FDR
+    *                     vector is modified internally, and is thus copied
     * @throws             MissingInformation if no target/decoy annotation is found
     * @throws             MissingInformation if no xcorr is found
     * @throws             Precondition if a q-value is found in the input

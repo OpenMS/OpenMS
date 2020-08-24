@@ -94,7 +94,7 @@ To generate the de novo "database":
       - @ref TOPP_IDFileConverter generates the de novo fasta file.
 
 For re-ranking all cases where a peptide hit only found in the de novo "database" scores above a peptide hit found in the actual database are checked. In all these cases the cross-correlation scores of those peptide hits are compared. If they are similar enough, the database hit will be re-ranked to be on top of the de novo hit. You can control how much of cases with similar scores will be re-ranked by using the @p reranking_cutoff_percentile.@n
-For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crutial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
+For this to work it is important @ref TOPP_PeptideIndexer ran before. However it is also crucial that no FDR was performed. This tool does this itself and will crash if a q-value is found. You can still control the FDR that you want to establish using the corresponding flag.
 
 @note For identification search the only supported search engine for the time being is Comet because the Comet cross-correlation score is needed for re-ranking.@n
 You can still uses other search engines and disable the re-ranking via the @p no_rerank flag in this tool. This will probably result in an underestimated suitability though.@n
