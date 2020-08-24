@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -255,27 +255,27 @@ namespace OpenMS
 
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &OpenMS_Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
-      log = &Log_debug;
+      log = &OpenMS_Log_debug;
     }
     else if (stream_name == "INFO")
     {
-      log = &Log_info;
+      log = &OpenMS_Log_info;
     }
     else if (stream_name == "WARNING")
     {
-      log = &Log_warn;
+      log = &OpenMS_Log_warn;
     }
     else if (stream_name == "ERROR")
     {
-      log = &Log_error;
+      log = &OpenMS_Log_error;
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &Log_fatal;
+      log = &OpenMS_Log_fatal;
     }
     else
     {

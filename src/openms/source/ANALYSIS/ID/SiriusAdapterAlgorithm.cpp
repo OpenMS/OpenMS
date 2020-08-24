@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#include <QtCore/QProcess>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <QDirIterator>
-
+#include <QString>
+#include <QtCore/QProcess>
 #include <fstream>
 
 namespace OpenMS
@@ -134,47 +136,53 @@ namespace OpenMS
       most_intense_ms2_ = param_.getValue("sirius:most_intense_ms2");
     }   
 
-    std::pair<String, String> SiriusAdapterAlgorithm::checkSiriusExecutablePath(String& executable)
-    { 
-      std::pair<String, String> executable_workdir;
-      // if executable was not provided
-      if (executable.empty())
-      {
-        const QProcessEnvironment env;
-        const String& qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
-        if (qsiriuspathenv.empty())
-        {
-          throw Exception::InvalidValue(__FILE__,
-                                        __LINE__, 
-                                        OPENMS_PRETTY_FUNCTION, 
-                                        "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable",
-                                         "");
-        }
-        executable = qsiriuspathenv;
-      }
-
-      // normalize file path
-      QString exe = executable.toQString();
-      QFileInfo file_info(exe);
-      exe = file_info.canonicalFilePath();
-  
-      OPENMS_LOG_WARN << "Executable is: " + String(exe) << std::endl;
-      const String path_to_executable = File::path(exe);
-      executable_workdir = std::make_pair(exe.toStdString(), path_to_executable);
-      
-      return executable_workdir;
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::SiriusTemporaryFileSystemObjects(int debug_level)
+    {
+      QString base_dir = File::getTempDirectory().toQString();
+      tmp_dir_ = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
+      tmp_ms_file_ = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+      tmp_out_dir_ = QDir(tmp_dir_.toQString()).filePath("sirius_out");
+      debug_level_ = debug_level;
     }
 
-    SiriusAdapterAlgorithm::SiriusTmpStruct SiriusAdapterAlgorithm::constructSiriusTmpStruct()
+    SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::~SiriusTemporaryFileSystemObjects()
     {
-      SiriusTmpStruct tmp_struct;
-      QString base_dir = File::getTempDirectory().toQString();
-      tmp_struct.tmp_dir = String(QDir(base_dir).filePath(File::getUniqueName().toQString()));
-      tmp_struct.tmp_ms_file = QDir(base_dir).filePath((File::getUniqueName() + ".ms").toQString());
-      tmp_struct.tmp_out_dir = QDir(tmp_struct.tmp_dir.toQString()).filePath("sirius_out");
+      constexpr int debug_threshold = 2;
 
-      return tmp_struct;
-    } 
+      // clean tmp directory if debug level < debug threshold
+      if (debug_level_ >= debug_threshold)
+      {
+        OPENMS_LOG_DEBUG << "Keeping temporary files in directory " << tmp_dir_ << " and msfile at this location "<< tmp_ms_file_ << ". Set debug level lower than " << debug_threshold << " to remove them." << std::endl;
+      }
+      else
+      {
+        if (!tmp_dir_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary directory " << tmp_dir_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::removeDir(tmp_dir_.toQString());
+        }
+        if (!tmp_ms_file_.empty())
+        {
+          OPENMS_LOG_DEBUG << "Deleting temporary msfile " << tmp_ms_file_ << ". Set debug level to " << debug_threshold << " or higher to keep it." << std::endl;
+          File::remove(tmp_ms_file_);
+        }
+      }
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpDir() const
+    {
+      return tmp_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpOutDir() const
+    {
+      return tmp_out_dir_;
+    }
+
+    const String& SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects::getTmpMsFile() const
+    {
+      return tmp_ms_file_;
+    }
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
                                                      const MSExperiment& spectra,
@@ -319,9 +327,8 @@ namespace OpenMS
   
       // the actual process
       QProcess qp;
-      std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-      QString exe = exe_wd.first.toQString();
-      QString wd = exe_wd.second.toQString(); 
+      QString exe = executable.toQString();
+      QString wd = File::path(executable).toQString();
       qp.setWorkingDirectory(wd); //since library paths are relative to sirius executable path
       qp.start(exe, process_params); // does automatic escaping etc... start
       std::stringstream ss;

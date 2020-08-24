@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         int size() nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
-        ConsensusFeature operator[](int) nogil except + #wrap-upper-limit:size()
+        ConsensusFeature & operator[](int) nogil except + #wrap-upper-limit:size()
         void push_back(ConsensusFeature spec) nogil except +
 
         ConsensusMap appendRows(ConsensusMap) nogil except +
@@ -98,6 +98,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
         libcpp_vector[ConsensusFeature].iterator begin(

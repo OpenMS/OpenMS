@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,6 +70,9 @@ namespace OpenMS
     /// Mapping from predictor name to vector of predictor values
     typedef std::map<String, std::vector<double> > PredictorMap;
 
+    /// Mapping from predictor name to predictor min and max
+    typedef std::map<String, std::pair<double, double> > ScaleMap;
+
     /// SVM prediction result
     struct Prediction
     {
@@ -123,6 +126,8 @@ namespace OpenMS
     /// Write cross-validation (parameter optimization) results to a CSV file
     void writeXvalResults(const String& path) const;
 
+    /// Get data range of predictors before scaling to [0, 1]
+    const ScaleMap& getScaling() const;
   protected:
     /// Classification performance for different param. combinations (C/gamma):
     typedef std::vector<std::vector<double> > SVMPerformance;
@@ -148,6 +153,9 @@ namespace OpenMS
     /// Parameter values to try during optimization
     std::vector<double> log2_C_, log2_gamma_;
 
+    /// Mapping from predictor name to predictor min and max
+    ScaleMap scaling_;
+
     /// Cross-validation results
     SVMPerformance performance_;
 
@@ -155,7 +163,7 @@ namespace OpenMS
     static void printNull_(const char*) {}
 
     /// Scale predictor values to range 0-1
-    void scaleData_(PredictorMap& predictors) const;
+    void scaleData_(PredictorMap& predictors);
 
     /// Convert predictors to LIBSVM format
     void convertData_(const PredictorMap& predictors);

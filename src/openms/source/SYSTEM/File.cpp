@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
@@ -48,18 +49,45 @@
 #include <QtNetwork/QHostInfo>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
-#else
+#include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #endif
 
-using namespace std;
+#ifdef OPENMS_HAS_UNISTD_H
+#include <unistd.h> // for readLink() and getpid()
+#endif
 
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
 
+using namespace std;
+
 namespace OpenMS
 {
+
+  File::TempDir::TempDir(bool keep_dir)
+    : keep_dir_(keep_dir)
+  {
+    temp_dir_ = File::getTempDirectory() + "/" + File::getUniqueName() + "/";
+    OPENMS_LOG_DEBUG << "Creating temporary directory '" << temp_dir_ << "'" << std::endl;
+    QDir d;
+    d.mkpath(temp_dir_.toQString());
+  };
+
+  File::TempDir::~TempDir()
+  {
+    if (keep_dir_) {
+      OPENMS_LOG_DEBUG << "Keeping temporary files in directory '" << temp_dir_ << std::endl;
+      return;
+    }
+
+    File::removeDirRecursively(temp_dir_);
+  };
+
+  const String& File::TempDir::getPath() const
+  {
+    return temp_dir_;
+  }
 
   String File::getExecutablePath()
   {
@@ -506,15 +534,6 @@ namespace OpenMS
     return found;
   }
 
-  String File::removeExtension(const OpenMS::String& file)
-  {
-    if (!file.has('.'))
-      return file;
-
-    SignedSize ext_length = file.suffix('.').size() + 1;
-    return file.chop(ext_length);
-  }
-
   bool File::isDirectory(const String& path)
   {
     QFileInfo fi(path.toQString());
@@ -647,7 +666,64 @@ namespace OpenMS
     return p;
   }
 
-  String File::findExecutable(const OpenMS::String& toolName)
+#ifdef OPENMS_WINDOWSPLATFORM
+  StringList File::executableExtensions_(const String& ext)
+  {
+    // check if content of env-var %PATHEXT% makes sense
+    StringList exts;
+    ext.split(';', exts);
+    // sanity check
+    if (ListUtils::contains(exts, ".exe", ListUtils::CASE::INSENSITIVE)) return exts;
+    // .. use fallback otherwise
+    else return {".exe", ".bat" };
+  }
+#endif
+
+  StringList File::getPathLocations(const String& path)
+  {
+    // split by ":" or ";", depending on platform
+    StringList paths;
+#ifdef OPENMS_WINDOWSPLATFORM
+    path.split(';', paths);
+#else
+    path.split(':', paths);
+#endif
+    // ensure it ends with '/'
+    for (String& p : paths) p.substitute('\\', '/').ensureLastChar('/');
+    return paths;
+  }
+
+  bool File::findExecutable(OpenMS::String& exe_filename)
+  {
+    if (exists(exe_filename) && !isDirectory(exe_filename)) return true;
+
+    StringList paths = getPathLocations();
+    StringList exe_filenames = { exe_filename };
+#ifdef OPENMS_WINDOWSPLATFORM
+    // try extensions like .exe on Windows
+    if (!exe_filename.has('.'))
+    {
+      StringList exts = executableExtensions_();
+      for (String& ext : exts) ext = exe_filename + ext;
+      exe_filenames = exts;
+    }
+#endif
+    // try all filenames (on Windows its potentially more than one) in each path...
+    for (const String& p : paths)
+    {
+      for (const String& fn : exe_filenames)
+      {
+        if (exists(p + fn) && !isDirectory(p + fn))
+        {
+          exe_filename = p + fn;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  String File::findSiblingTOPPExecutable(const OpenMS::String& toolName)
   {
     // we first try the executablePath
     String exec = File::getExecutablePath() + toolName;
@@ -707,6 +783,49 @@ namespace OpenMS
         std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
       }
     }
+  }
+
+  bool File::validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension, bool strict)
+  {
+    // same number of filenames?
+    if (sl1.size() != sl2.size()) return false;
+
+    set<String> sl1_set;
+    set<String> sl2_set;
+    bool different_name_at_index = false;
+    for (size_t i = 0; i != sl1.size(); ++i)
+    {
+      String sl1_name = sl1[i];
+      String sl2_name = sl2[i];
+
+      if (basename)
+      {
+        sl1_name = File::basename(sl1_name);
+        sl2_name = File::basename(sl2_name);
+      }
+
+      if (ignore_extension)
+      {
+        sl1_name = FileHandler::stripExtension(sl1_name);
+        sl2_name = FileHandler::stripExtension(sl2_name);
+      }
+
+      sl1_set.insert(sl1_name);
+      sl2_set.insert(sl2_name);
+
+      if (sl1_name != sl2_name) different_name_at_index = true;      
+    }
+
+    // Check for common mistake that order of input files have been switched.
+    // This is the case if names (or basenames) are identical but the order does not match.
+    bool same_set = (sl1_set == sl2_set);
+    if (same_set && different_name_at_index) return false;
+
+    // If we enforce a strict check then the sets of filenames must be identical.
+    // Note that this can lead to problems if a workflow engine assigns random names to intermediate results.
+    if (strict && !same_set) return false;
+
+    return true;
   }
 
   File::TemporaryFiles_ File::temporary_files_;

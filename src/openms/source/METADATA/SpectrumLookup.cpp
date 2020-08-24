@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,7 +262,7 @@ namespace OpenMS
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
     // expected number of subgroups
-    auto subgroups = {1};
+    vector<int> subgroups = {1};
     
     // "scan=NUMBER" 
     if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
@@ -315,7 +315,7 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value could not be converted to int" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
       }
@@ -335,7 +335,8 @@ namespace OpenMS
         }
         catch (Exception::ConversionError&)
         {
-          OPENMS_LOG_WARN << "Value could not be converted to int" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" 
+            << native_id << "' accession='" << native_id_type_accession << "'" << std::endl;
           return -1;
         }
       }

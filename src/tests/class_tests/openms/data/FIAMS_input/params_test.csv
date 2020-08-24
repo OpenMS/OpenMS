@@ -1,0 +1,3 @@
+filename,dir_input,dir_output,resolution,charge,time,db_mapping,db_struct,positive_adducts,negative_adducts,store_progress
+SerumTest,FIAMS_input,FIAMS_output,120000,negative,10,reducedHMDBMapping.tsv,reducedHMDB2StructMapping.tsv,FIAMS_positive_adducts.tsv,FIAMS_negative_adducts.tsv,True
+SerumTest,FIAMS_input,FIAMS_output,120000,negative,10,reducedHMDBMapping.tsv,reducedHMDB2StructMapping.tsv,FIAMS_positive_adducts.tsv,FIAMS_negative_adducts.tsv,True

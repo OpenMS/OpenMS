@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,10 +77,12 @@ private:
 
       EmpiricalFormula diff_formula_;
 
-      EmpiricalFormula neutral_loss_diff_formula_;
+      std::vector<EmpiricalFormula> neutral_loss_diff_formula_;
 
       bool was_valid_peptide_modification_;
-      std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
+      std::vector<std::vector<EmpiricalFormula>> neutral_loss_diff_formulas_;
+      std::vector<double> neutral_loss_mono_masses_;
+      std::vector<double> neutral_loss_avg_masses_;
 
       ResidueModification* modification_;
 
@@ -93,4 +95,3 @@ private:
 
   }   // namespace Internal
 } // namespace OpenMS
-

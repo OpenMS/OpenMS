@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -45,7 +45,6 @@
 
 #include <QtCore>
 #include <QtCore/QFile>
-#include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtConcurrent/QtConcurrent>
 #include <QtWidgets/QMessageBox>
@@ -54,23 +53,9 @@
 
 namespace OpenMS
 {
-  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex() :
-    TOPPASVertex(),
-    output_folder_name_()
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
     TOPPASVertex(rhs),
     output_folder_name_() // leave empty! otherwise we have conflicting output folder names
-  {
-    pen_color_ = Qt::black;
-    brush_color_ = Qt::lightGray;
-  }
-
-  TOPPASOutputFileListVertex::~TOPPASOutputFileListVertex()
   {
   }
 
@@ -82,60 +67,25 @@ namespace OpenMS
     return *this;
   }
 
-  void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
+  void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
-    QPen pen(pen_color_, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-    if (isSelected())
-    {
-      pen.setWidth(2);
-      painter->setBrush(brush_color_.darker(130));
-      pen.setColor(Qt::darkBlue);
-    }
-    else
-    {
-      painter->setBrush(brush_color_);
-    }
-    painter->setPen(pen);
+    TOPPASVertex::paint(painter, option, widget);
 
-    QPainterPath path;
-    path.addRoundRect(-70.0, -40.0, 140.0, 80.0, 20, 20);
-    painter->drawPath(path);
-
-    pen.setColor(pen_color_);
-    painter->setPen(pen);
-    QString text =  QString::number(files_written_) + "/"
+    QString text = QString::number(files_written_) + "/"
                    + QString::number(files_total_) + " output file" + (files_total_ == 1 ? "" : "s");
     QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
 
     // display file type(s)
-    Map<QString, Size> suffices;
-    foreach(QString fn, getFileNames())
-    {
-      QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
-      ++suffices[suf];
-    }
-    StringList text_l;
-    for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
-    {
-      if (suffices.size() > 1)
-        text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
-      else
-        text_l.push_back(String(".") + sit->first);
-    }
-    text = ListUtils::concatenate(text_l, " | ").toQString();
+    QStringList text_l = TOPPASVertex::TOPPASFilenames(getFileNames()).getSuffixCounts();
+    text = text_l.join(" | ");
     // might get very long, especially if node was not reached yet, so trim
     text = text.left(15) + " ...";
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
 
-    // topo sort number
-    painter->drawText(-63.0, -19.0, QString::number(topo_nr_));
-    
     // output folder name
     painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
-    
   }
 
   void TOPPASOutputFileListVertex::setOutputFolderName(const QString& name)
@@ -155,13 +105,6 @@ namespace OpenMS
   QRectF TOPPASOutputFileListVertex::boundingRect() const
   {
     return QRectF(-71, -41, 142, 82);
-  }
-
-  QPainterPath TOPPASOutputFileListVertex::shape() const
-  {
-    QPainterPath shape;
-    shape.addRoundRect(-71.0, -41.0, 142.0, 81.0, 20, 20);
-    return shape;
   }
 
   void TOPPASOutputFileListVertex::run()
@@ -243,7 +186,6 @@ namespace OpenMS
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
-                // look for <name>_type (more generic, supporting more than just 'out')
                 if (p.exists(out_type))
                 {
                   ft = FileTypes::nameToType(p.getValue(out_type));
@@ -254,11 +196,8 @@ namespace OpenMS
           }
         }
 
-        if (ft != FileTypes::UNKNOWN)
-        { // replace old suffix by new suffix
-          String new_suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
-        }
+        // replace old suffix by new suffix
+        FileHandler::swapExtension(new_file, ft);
 
         // only scheduled for writing
         output_files_[round][param_index_me].filenames.push_back(QDir::toNativeSeparators(new_file));
@@ -401,7 +340,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      files_total_ = 0;
+    files_total_ = 0;
     files_written_ = 0;
 
     TOPPASVertex::reset();
@@ -414,4 +353,8 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
+  void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  {
+    openContainingFolder();
+  }
 }

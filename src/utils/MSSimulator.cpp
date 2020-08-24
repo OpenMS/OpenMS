@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,10 +127,16 @@ class TOPPMSSimulator :
 {
 public:
   TOPPMSSimulator() :
-    TOPPBase("MSSimulator", "A highly configurable simulator for mass spectrometry experiments.", false)
+    TOPPBase("MSSimulator",
+             "A highly configurable simulator for mass spectrometry experiments.", 
+             false,
+             { Citation{"Bielow C, Aiche S, Andreotti S, Reinert K",
+                        "MSSimulator: Simulation of Mass Spectrometry Data",
+                        "J. Proteome Res. 2011; 10, 7:2922-2929",
+                        "10.1021/pr200155f"} })
   {
   }
-
+  
 protected:
 
   void registerOptionsAndFlags_() override
@@ -163,11 +169,11 @@ protected:
 
     // set parameters for the different types of random number generators
     // we support one for the technical and one for the biological variability
-    tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+    tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same)");
     tmp.setValidStrings("RandomNumberGenerators:biological", ListUtils::create<String>("reproducible,random"));
-    tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
+    tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same)");
     tmp.setValidStrings("RandomNumberGenerators:technical", ListUtils::create<String>("reproducible,random"));
-    tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times.");
+    tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times");
     return tmp;
   }
 

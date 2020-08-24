@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,15 @@
 
 #pragma once 
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-#include <QString>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class File;
+  class KDTreeFeatureMaps;
+
   class OPENMS_DLLAPI SiriusAdapterAlgorithm : public DefaultParamHandler
     {
     public:
@@ -54,29 +50,28 @@ namespace OpenMS
       SiriusAdapterAlgorithm();
 
       /// Struct for temporary folder structure
-      struct SiriusTmpStruct
+      struct OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
       {
-        String tmp_dir;
-        String tmp_ms_file;
-        String tmp_out_dir;
+      public:
+
+        /// Construct temporary folder structure for SIRIUS (SiriusTemporaryFileSystemObjects)
+        SiriusTemporaryFileSystemObjects(int debug_level);
+
+        /// Destructor of SiriusTemporaryFileSystemObjects based on debug level
+        ~SiriusTemporaryFileSystemObjects();
+
+        const String& getTmpDir() const;
+        const String& getTmpOutDir() const;
+        const String& getTmpMsFile() const;
+      
+      private:
+        int debug_level_;
+
+        String tmp_dir_;
+        String tmp_ms_file_;
+        String tmp_out_dir_;
+
       };
-
-      /**
-        @brief Construct temporary folder structure for SIRIUS (SiriusTmpStruct)
-
-        @return SiriusTmpStruct
-      */
-      static SiriusAdapterAlgorithm::SiriusTmpStruct constructSiriusTmpStruct();
-
-      /**
-      @brief Checks if executable was povided 
-
-      @return Pair "path to executable" and "path to the working directory"
-
-      @param executable Path to the executable
-      */
-      static std::pair<String, String> checkSiriusExecutablePath(String& executable);
-
 
       /**
       @brief Preprocessing needed for SIRIUS

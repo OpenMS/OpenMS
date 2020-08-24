@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -413,5 +413,63 @@ void MSChromatogram::clear(bool clear_meta_data)
     float_data_arrays_.clear();
     string_data_arrays_.clear();
     integer_data_arrays_.clear();
+  }
+}
+
+// This helper function is based on the cstd::set_union implementation. It is different in that it has a separate concept of "close enough to merge"
+// This is defined as having retention times of within 1/1000 seconds
+// Note: We assume that RTs are distint in each of the two Chromatograms but may be the same between Chromatograms.
+OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iterator first1,
+                    OpenMS::MSChromatogram::Iterator last1,
+                    OpenMS::MSChromatogram::Iterator first2,
+                    OpenMS::MSChromatogram::Iterator last2,
+                    OpenMS::MSChromatogram::Iterator result)
+{
+  while (true)
+  {
+    if (first1 == last1) return std::copy(first2,last2,result);
+    if (first2 == last2) return std::copy(first1,last1,result);
+
+    auto smaller_RT = [](OpenMS::MSChromatogram::Iterator a, OpenMS::MSChromatogram::Iterator b)->bool
+    {
+      return round(a->getRT() * 1000.0) < round(b->getRT() * 1000.0);
+    };
+
+    if (smaller_RT(first1, first2)) 
+    { 
+      *result = *first1; ++first1; 
+    }
+    else if (smaller_RT(first2, first1)) 
+    { 
+      *result = *first2; ++first2; 
+    }
+    else 
+    { // approx. equal
+      *result = *first1; 
+      result->setIntensity(result->getIntensity() + first2->getIntensity());
+      ++first1; 
+      ++first2; 
+    }
+    ++result;
+  }
+}
+
+
+void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
+{
+  vector<ChromatogramPeak> temp;
+  temp.resize(size() + other.size());
+  auto new_end = setSumSimilarUnion(begin(), end(), other.begin(), other.end(), temp.begin());
+  ContainerType::assign(temp.begin(), new_end);
+
+  if (add_meta)
+  {
+    DoubleList ls;
+    if (metaValueExists(Constants::UserParam::MERGED_CHROMATOGRAM_MZS))
+    {
+      ls = getMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS).toDoubleList();
+    }
+    ls.push_back(other.getMZ());
+    setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, ls);
   }
 }

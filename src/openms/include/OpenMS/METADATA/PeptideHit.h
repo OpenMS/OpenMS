@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -81,10 +82,10 @@ public:
    */
   struct PeakAnnotation
   {
-    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
-    int charge;
-    double mz;
-    double intensity;
+    String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    int charge = 0;
+    double mz = -1.;
+    double intensity = 0.;
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
@@ -341,4 +342,6 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS

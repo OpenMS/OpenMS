@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -208,10 +208,96 @@ namespace OpenMS
       : default_value;
   }
 
-  //TODO
-  // void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)
-  // {
-  //   // TODO: pending fix to CsvFile::fstore()
-  // }
+  void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc, const bool is_component_group)
+  {
+    if (is_component_group) {
+      // Store the ComponentGroupQCs
+      clear(); // clear the buffer_
+
+      // Make the ComponentGroupQCs headers
+      StringList headers = { "component_group_name", "retention_time_l", "retention_time_u", "intensity_l", "intensity_u", "overall_quality_l", "overall_quality_u",
+        "n_heavy_l", "n_heavy_u", "n_light_l", "n_light_u", "n_detecting_l", "n_detecting_u", "n_quantifying_l", "n_quantifying_u", "n_identifying_l", "n_identifying_u", "n_transitions_l", "n_transitions_u",
+        "ion_ratio_pair_name_1", "ion_ratio_pair_name_2", "ion_ratio_l", "ion_ratio_u", "ion_ratio_feature_name" };
+      for (const auto& meta_data : mrmfqc.component_group_qcs.at(0).meta_value_qc) {
+        headers.push_back("metaValue_" + meta_data.first + "_l");
+        headers.push_back("metaValue_" + meta_data.first + "_u");
+      }
+      addRow(headers);
+
+      // Make the ComponentGroupQCs rows
+      for (const auto& component_qc : mrmfqc.component_group_qcs)
+      {
+        StringList row(headers.size());
+        row[0] = component_qc.component_group_name;
+        row[1] = component_qc.retention_time_l;
+        row[2] = component_qc.retention_time_u;
+        row[3] = component_qc.intensity_l;
+        row[4] = component_qc.intensity_u;
+        row[5] = component_qc.overall_quality_l;
+        row[6] = component_qc.overall_quality_u;
+        row[7] = component_qc.n_heavy_l;
+        row[8] = component_qc.n_heavy_u;
+        row[9] = component_qc.n_light_l;
+        row[10] = component_qc.n_light_u;
+        row[11] = component_qc.n_detecting_l;
+        row[12] = component_qc.n_detecting_u;
+        row[13] = component_qc.n_quantifying_l;
+        row[14] = component_qc.n_quantifying_u;
+        row[15] = component_qc.n_identifying_l;
+        row[16] = component_qc.n_identifying_u;
+        row[17] = component_qc.n_transitions_l;
+        row[18] = component_qc.n_transitions_u;
+        row[19] = component_qc.ion_ratio_pair_name_1;
+        row[20] = component_qc.ion_ratio_pair_name_2;
+        row[21] = component_qc.ion_ratio_l;
+        row[22] = component_qc.ion_ratio_u;
+        row[23] = component_qc.ion_ratio_feature_name;
+        size_t meta_data_iter = 24;
+        for (const auto& meta_data : component_qc.meta_value_qc) {
+          row[meta_data_iter] = meta_data.second.first;
+          ++meta_data_iter;
+          row[meta_data_iter] = meta_data.second.second;
+          ++meta_data_iter;
+        }
+        addRow(row);
+      }
+
+      CsvFile::store(filename);
+    } else {
+      // Store the ComponentQCs
+      clear(); // clear the buffer_
+
+      // Make the ComponentQCs headers
+      StringList headers = { "component_name","retention_time_l","retention_time_u","intensity_l","intensity_u","overall_quality_l","overall_quality_u" };
+      for (const auto& meta_data : mrmfqc.component_qcs.at(0).meta_value_qc) {
+        headers.push_back("metaValue_" + meta_data.first + "_l");
+        headers.push_back("metaValue_" + meta_data.first + "_u");
+      }
+      addRow(headers);
+
+      // Make the ComponentQCs rows
+      for (const auto& component_qc : mrmfqc.component_qcs)
+      {
+        StringList row(headers.size());
+        row[0] = component_qc.component_name;
+        row[1] = component_qc.retention_time_l;
+        row[2] = component_qc.retention_time_u;
+        row[3] = component_qc.intensity_l;
+        row[4] = component_qc.intensity_u;
+        row[5] = component_qc.overall_quality_l;
+        row[6] = component_qc.overall_quality_u;
+        size_t meta_data_iter = 7;
+        for (const auto& meta_data : component_qc.meta_value_qc) {
+          row[meta_data_iter] = meta_data.second.first;
+          ++meta_data_iter;
+          row[meta_data_iter] = meta_data.second.second;
+          ++meta_data_iter;
+        }
+        addRow(row);
+      }
+      CsvFile::store(filename);
+
+    }
+  }
 
 } // namespace OpenMS

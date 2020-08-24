@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -223,8 +223,13 @@ namespace OpenMS
   }
 
 
-  void IDMapper::annotate(ConsensusMap& map, const vector<PeptideIdentification>& ids, const vector<ProteinIdentification>& protein_ids,
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  void IDMapper::annotate(
+    ConsensusMap& map,
+    const vector<PeptideIdentification>& ids,
+    const vector<ProteinIdentification>& protein_ids,
+    bool measure_from_subelements,
+    bool annotate_ids_with_subelements,
+    const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,10 +42,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 
 #include <boost/unordered_map.hpp>
+#include <boost/heap/fibonacci_heap.hpp>
 
 #include <list>
 #include <vector>
-#include <set>
+#include <unordered_set>
 #include <utility> // for pair<>
 
 namespace OpenMS
@@ -103,19 +104,23 @@ namespace OpenMS
   class OPENMS_DLLAPI QTClusterFinder :
     public BaseGroupFinder
   {
-private:
+  public:
 
     /// Distances between pairs of grid features
     typedef OpenMSBoost::unordered_map< 
               std::pair<OpenMS::GridFeature*, OpenMS::GridFeature*>,
               double> PairDistances;
 
-    /// Map to store which grid features are next to which clusters
+    /// Map to store which grid features are next to which clusters (saves the clusters ids)
     typedef OpenMSBoost::unordered_map<
-              OpenMS::GridFeature*, std::vector<QTCluster*> > ElementMapping;
+              const OpenMS::GridFeature*, std::unordered_set<Size> > ElementMapping;
+
+    /// Heap to efficiently find the best clusters
+    typedef boost::heap::fibonacci_heap<QTCluster> Heap;
 
     typedef HashGrid<OpenMS::GridFeature*> Grid;
 
+  private:
     /// Number of input maps
     Size num_maps_;
 
@@ -135,7 +140,7 @@ private:
     FeatureDistance feature_distance_;
 
     /// Set of features already used
-    std::set<OpenMS::GridFeature*> already_used_;
+    std::unordered_set<const OpenMS::GridFeature*> already_used_;
 
     /**
        @brief Calculates the distance between two grid features.
@@ -146,13 +151,83 @@ private:
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
 
-    /// Generates a consensus feature from the best cluster and updates the clustering
-    void makeConsensusFeature_(std::list<QTCluster>& clustering,
+    /**
+     * @brief Extract the best cluster from cluster_heads and turn it into a consensus feature
+     * 
+     * @param cluster_heads the heap where the clusters are stored, must not be empty
+     * @param[out] feature The resulting consensus feature which is constructed here
+     * @param element_mapping the element mapping is used to update clusters when features are removed
+     * @param grid the grid is used to find new features for clusters that have to be updated
+     * @param handles used to access clusters if we know their id from the element mapping
+     * 
+     * @return bool whether a consensus feature was made or not
+     */
+    bool makeConsensusFeature_(Heap& cluster_heads,
                                ConsensusFeature& feature,
-                               ElementMapping& element_mapping, Grid&);
+                               ElementMapping& element_mapping,
+                               const Grid& grid,
+                               const std::vector<Heap::handle_type>& handles);
 
-    /// Computes an initial QT clustering of the points in the hash grid
-    void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
+    /**
+     * @brief Computes an initial QT clustering of the points in the hash grid
+     * 
+     * @param grid the grid is used to find new features for clusters that have to be updated
+     * @param cluster_heads the heap where the QTClusters are inserted
+     * @param cluster_data vector where the BulkData objects of the clusters are stored
+     * @param handles vector where handles of the inserted clusters are stored
+     * @param element_mapping the element mapping where all the clusters get registered for their features
+     */
+    void computeClustering_(const Grid& grid,
+                            Heap& cluster_heads,
+                            std::vector<QTCluster::BulkData>& cluster_data,
+                            std::vector<Heap::handle_type>& handles,
+                            ElementMapping& element_mapping);
+
+    /** 
+     * @brief Removes id of current top cluster in the heap from element mapping
+     * 
+     * @param cluster the current top cluster in the heap which id is removed
+     * @param element_mapping the element mapping from which the ids are removed
+     */
+    void removeFromElementMapping_(const QTCluster& cluster,
+                                   ElementMapping& element_mapping);
+    
+    /** 
+     * @brief creates a consensus feature from the given elements
+     * 
+     * @param[out] feature The resulting consensus feature which is constructed here
+     * @param quality the quality of the new consensus feature
+     * @param elements the original features that from the new consensus feature
+     * 
+     * @note the features from elements are registered in the already_used_ member of this class
+     */
+    void createConsensusFeature_(ConsensusFeature& feature, const double quality, 
+                                 const QTCluster::Elements& elements);
+
+    /** 
+     * @brief update the clustering:
+     *
+     * 1. remove current best cluster from the heap
+     * 2. update all clusters accordingly by removing neighbors used by the current best
+     * 3. invalidate clusters whose center has been used by the current best
+     * 
+     * @param element_mapping the element mapping is used to update clusters and updated itself
+     * @param grid the grid is used to find new features for clusters that have to be updated
+     * @param cluster_heads the heap is updated for changing clusters and popped in the end
+     * @param elements the features that now have to be removed from other clusters than the current best
+     * @param handles used to access clusters if we know their id from the element mapping
+     * @param best_id id of the current best cluster, will be removed from the element mapping
+     * 
+     * @note The feature from elements are not deleted from the element mapping. 
+     * After this function is called we dont't have any cluster with those features left and
+     * therefore don't have to delete them.
+     */
+    void updateClustering_(ElementMapping& element_mapping,
+                           const Grid& grid, 
+                           const QTCluster::Elements& elements,
+                           Heap& cluster_heads,
+                           const std::vector<Heap::handle_type>& handles,
+                           Size best_id);
 
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
@@ -163,9 +238,13 @@ private:
     void run_internal_(const std::vector<MapType>& input_maps,
                        ConsensusMap& result_map, bool do_progress);
 
-    /// Adds elements to the cluster based on the elements hashed in the grid
-    void addClusterElements_(int x, int y, const Grid& grid, QTCluster& cluster,
-      const OpenMS::GridFeature* center_feature);
+    /**
+     * @brief Adds elements to the cluster based on the elements hashed in the grid
+     * 
+     * @param grid the grid is used to find neighboring features the cluster
+     * @param cluster cluster to which the new elements are added
+     */ 
+    void addClusterElements_(const Grid& grid, QTCluster& cluster);
 
 protected:
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -517,13 +517,13 @@ namespace OpenMS
     defaults_.setValue("mass_error_value", 5.0, "Tolerance allowed for accurate mass search.");
 
     defaults_.setValue("mass_error_unit", "ppm", "Unit of mass error (ppm or Da)");
-    defaults_.setValidStrings("mass_error_unit", ListUtils::create<String>(("ppm,Da")));
+    defaults_.setValidStrings("mass_error_unit", {"ppm", "Da"});
 
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode? If 'auto' is used, the first feature of the input map must contain the meta-value 'scan_polarity'. If its missing, the tool will exit with error.");
-    defaults_.setValidStrings("ionization_mode", ListUtils::create<String>(("positive,negative,auto")));
+    defaults_.setValidStrings("ionization_mode", {"positive", "negative", "auto"});
 
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
-    defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
+    defaults_.setValidStrings("isotopic_similarity", {"false", "true"});
 
     defaults_.setValue("db:mapping", ListUtils::create<String>("CHEMISTRY/HMDBMappingFile.tsv"), "Database input file(s), containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
@@ -533,20 +533,19 @@ namespace OpenMS
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used.", {"advanced"});
     defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used.", {"advanced"});
 
     defaults_.setValue("use_feature_adducts", "false", "Whether to filter AMS candidates mismatching available feature adduct annotation.");
-    defaults_.setValidStrings("use_feature_adducts", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("use_feature_adducts", {"false", "true"});
 
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
-    defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
+    defaults_.setValidStrings("keep_unidentified_masses", {"false", "true"});
 
-    defaults_.setValue("mzTab:exportIsotopeIntensities", 0, "[featureXML input only] Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.");
-    defaults_.setMinInt("mzTab:exportIsotopeIntensities", 0);
-
+    defaults_.setValue("mzTab:exportIsotopeIntensities", "false", "[featureXML input only] Export column with available isotope trace intensities (opt_global_MTint)");
+    defaults_.setValidStrings("mzTab:exportIsotopeIntensities", {"false", "true"});
 
     defaultsToParam_();
   }
@@ -700,7 +699,7 @@ namespace OpenMS
       queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
     }
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
@@ -709,7 +708,7 @@ namespace OpenMS
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
 
       std::vector<double> mti;
-      if (isotope_export > 0)
+      if (isotope_export)
       {
           if (feature.metaValueExists("masstrace_intensity"))
           {
@@ -970,7 +969,7 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
-    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+    bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
@@ -1191,9 +1190,8 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
-          // TODO: What is happening here?
           // mass trace intensities (use NULL if not present)
-          if (isotope_export > 0)
+          if (isotope_export)
           {
               MzTabString trace_int; // implicitly NULL
 
@@ -1209,9 +1207,8 @@ namespace OpenMS
 
               MzTabOptionalColumnEntry col_mt;
               col_mt.first = String("opt_global_MTint");
-              col_mt.second = trace_int;
+              col_mt.second = MzTabString(mt_int_str);
               optionals.push_back(col_mt);
-
           }
 
           // set neutral mass
@@ -1271,9 +1268,7 @@ namespace OpenMS
     if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
 
     pos_adducts_fname_ = (String)param_.getValue("positive_adducts");
-    if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts");
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts");
-    if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts");
 
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query

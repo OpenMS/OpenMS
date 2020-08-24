@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,14 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
 #include <set>
 
 namespace OpenMS
 {
+  class MSExperiment;
   class PeptideIdentification;
 
   /**
@@ -71,6 +73,43 @@ namespace OpenMS
 public:
     /// Hit type definition
     typedef ProteinHit HitType;
+
+    /// two way mapping from ms-run-path to protID|pepID-identifier
+    struct Mapping
+    {
+      std::map<String, StringList> identifier_to_msrunpath;
+      std::map<StringList, String> runpath_to_identifier;
+
+      Mapping() = default;
+
+      explicit Mapping(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        create(prot_ids);
+      }
+      void create(const std::vector<ProteinIdentification>& prot_ids)
+      {
+        identifier_to_msrunpath.clear();
+        runpath_to_identifier.clear();
+        StringList filenames;
+        for (const ProteinIdentification& prot_id : prot_ids)
+        {
+          prot_id.getPrimaryMSRunPath(filenames);
+          if (filenames.empty())
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No MS run path annotated in ProteinIdentification.");
+          }
+          identifier_to_msrunpath[prot_id.getIdentifier()] = filenames;
+          const auto& it = runpath_to_identifier.find(filenames);
+          if (it != runpath_to_identifier.end())
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Multiple protein identifications with the same ms-run-path in Consensus/FeatureXML. Check input!\n",
+                                          ListUtils::concatenate(filenames, ","));
+          }
+          runpath_to_identifier[filenames] = prot_id.getIdentifier();
+        }
+      }
+    };
 
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
@@ -135,7 +174,7 @@ public:
 
       /// Returns a const reference to the string meta data arrays
       const StringDataArrays& getStringDataArrays() const;
- 
+
       /// Returns a mutable reference to the string meta data arrays
       StringDataArrays& getStringDataArrays();
 
@@ -154,42 +193,42 @@ public:
       /// Returns a mutable reference to the first integer meta data array with the given name
       inline IntegerDataArray& getIntegerDataArrayByName(String name)
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a mutable reference to the first string meta data array with the given name
       inline StringDataArray& getStringDataArrayByName(String name)
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a mutable reference to the first float meta data array with the given name
       inline FloatDataArray& getFloatDataArrayByName(String name)
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first integer meta data array with the given name
       inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
       {
-        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(),
           [&name](const IntegerDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first string meta data array with the given name
       inline const StringDataArray& getStringDataArrayByName(String name) const
       {
-        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(),
           [&name](const StringDataArray& da) { return da.getName() == name; } );
       }
 
       /// Returns a const reference to the first float meta data array with the given name
       inline const FloatDataArray& getFloatDataArrayByName(String name) const
       {
-        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(),
           [&name](const FloatDataArray& da) { return da.getName() == name; } );
       }
 
@@ -211,6 +250,7 @@ public:
       AVERAGE,
       SIZE_OF_PEAKMASSTYPE
     };
+
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
@@ -231,27 +271,36 @@ public:
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
+      EnzymaticDigestion::Specificity enzyme_term_specificity; ///< The number of required cutting-rule matching termini during search (none=0, semi=1, or full=2)
 
       SearchParameters();
       /// Copy constructor
-      SearchParameters(const SearchParameters &) = default;
+      SearchParameters(const SearchParameters&) = default;
       /// Move constructor
       SearchParameters(SearchParameters&&) = default;
       /// Destructor
       ~SearchParameters() = default;
 
       /// Assignment operator
-      SearchParameters & operator=(const SearchParameters &) = default;
+      SearchParameters& operator=(const SearchParameters&) = default;
       /// Move assignment operator
-      SearchParameters& operator=(SearchParameters&&) & = default;
+      SearchParameters& operator=(SearchParameters&&)& = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
       bool operator!=(const SearchParameters& rhs) const;
 
+      /// returns the charge range from the search engine settings as a pair of ints
       std::pair<int,int> getChargeRange() const;
-      int getChargeValue_(String& charge_str) const;
 
+      /// Tests if these search engine settings are mergeable with @param sp
+      /// depending on the given @param experiment_type.
+      /// Modifications are compared as sets. Databases based on filename.
+      /// "labeled_MS1" experiments additionally allow different modifications.
+      bool mergeable(const ProteinIdentification::SearchParameters& sp, const String& experiment_type) const;
+
+      private:
+      int getChargeValue_(String& charge_str) const;
     };
 
     /** @name Constructors, destructors, assignment operator <br> */
@@ -279,13 +328,13 @@ public:
     ///@name Protein hit information (public members)
     //@{
     /// Returns the protein hits
-    const std::vector<ProteinHit> & getHits() const;
+    const std::vector<ProteinHit>& getHits() const;
     /// Returns the protein hits (mutable)
-    std::vector<ProteinHit> & getHits();
+    std::vector<ProteinHit>& getHits();
     /// Appends a protein hit
-    void insertHit(const ProteinHit & input);
+    void insertHit(const ProteinHit& input);
     /// Appends a protein hit
-    void insertHit(ProteinHit && input);
+    void insertHit(ProteinHit&& input);
 
     /**
         @brief Sets the protein hits
@@ -302,7 +351,7 @@ public:
     /// Returns the protein groups (mutable)
     std::vector<ProteinGroup>& getProteinGroups();
     /// Appends a new protein group
-    void insertProteinGroup(const ProteinGroup & group);
+    void insertProteinGroup(const ProteinGroup& group);
 
     /// Returns the indistinguishable proteins
     const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
@@ -341,13 +390,13 @@ public:
 
     /**
        @brief Compute the modifications of all ProteinHits given PeptideHits
-      
+
       For every protein accession, the pair of position and modification is returned.
       Because fixed modifications might not be of interest, a list can be provided to skip those.
     */
     void computeModifications(
-      const std::vector<PeptideIdentification>& pep_ids, 
-      const StringList & skip_modifications);
+      const std::vector<PeptideIdentification>& pep_ids,
+      const StringList& skip_modifications);
 
 
     ///@name General information
@@ -360,6 +409,8 @@ public:
     void setSearchEngine(const String& search_engine);
     /// Returns the type of search engine used
     const String& getSearchEngine() const;
+    /// Return the type of search engine that was first applied (e.g., before percolator or consensusID) or "Unknown"
+    const String getOriginalSearchEngineName() const;
     /// Sets the search engine version
     void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
@@ -379,18 +430,49 @@ public:
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
     /// Returns the search parameters (mutable)
-    SearchParameters& getSearchParameters();    
+    SearchParameters& getSearchParameters();
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String& id);
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    void setPrimaryMSRunPath(const StringList& s);
-    /// get the file path to the first MS run
-    void getPrimaryMSRunPath(StringList& toFill) const;
-    /// if this object has inference data
+    /**
+       Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+
+       @param raw Store paths to the raw files (or equivalent) rather than mzMLs
+    */
+    void setPrimaryMSRunPath(const StringList& s, bool raw = false);
+
+    /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    void addPrimaryMSRunPath(const String& s, bool raw = false);
+    void addPrimaryMSRunPath(const StringList& s, bool raw = false);
+
+    /**
+       Get the file paths to the primary MS runs
+
+       @param raw Get raw files (or equivalent) instead of mzMLs
+    */
+    void getPrimaryMSRunPath(StringList& output, bool raw = false) const;
+
+    /// get the number of primary MS runs involve in this ID run
+    Size nrPrimaryMSRunPaths(bool raw = false) const;
+
+    /// Checks if this object has inference data. Looks for "InferenceEngine" metavalue.
+    /// If not, falls back to old behaviour of reading the search engine name.
     bool hasInferenceData() const;
+
+    /// Checks if the search engine name matches an inference engine known to OpenMS.
     bool hasInferenceEngineAsSearchEngine() const;
+
+    /// Checks if the peptide IDs of this IDRun are mergeable with another @param id_run
+    /// given an @param experiment_type .
+    /// Checks search engine and search engine settings.
+    bool peptideIDsMergeable(const ProteinIdentification& id_run, const String& experiment_type) const;
+
+    /// Collects all search engine settings registered for the given search engine @param se.
+    /// If @param se is empty, the main search engine is used, otherwise it will also search the metavalues.
+    std::vector<std::pair<String,String>> getSearchEngineSettingsAsPairs(const String& se = "") const;
+
     //@}
 
 protected:

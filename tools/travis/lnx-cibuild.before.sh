@@ -34,7 +34,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython==0.25
-  pip install -U autowrap==0.18.1
+  pip install -U autowrap==0.22.0
 fi
 
 # move to automatically cloned contrib submodule
@@ -59,7 +59,7 @@ popd
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
-  git checkout 1.81
+  git checkout 1.90
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else

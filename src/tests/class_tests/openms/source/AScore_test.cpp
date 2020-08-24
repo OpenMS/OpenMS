@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -189,6 +189,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
 
   vector<ProbablePhosphoSites> sites;
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR( ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations,ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 3);
@@ -208,6 +209,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_3);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_3, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 1);
@@ -227,6 +229,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   TEST_EQUAL(sites[2].peak_depth, 1);
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_2);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, .4);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_2, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 3);
   TEST_EQUAL(sites[0].seq_1, 2);
@@ -253,6 +256,7 @@ START_SECTION(determineHighestScoringPermutationsTest_(const std::vector<std::ve
   permutations = { {3}, {6} };
 
   ranking = ptr_test->rankWeightedPermutationPeptideScoresTest_(peptide_site_scores_1);
+  TEST_REAL_SIMILAR(ranking.rbegin()->first, 94.10714285714287);
   ptr_test->determineHighestScoringPermutationsTest_(peptide_site_scores_1, sites, permutations, ranking);
   TEST_EQUAL(sites.size(), 1)
   TEST_EQUAL(sites[0].seq_1, 0)
@@ -634,7 +638,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit1 = ptr_test->compute(hit1, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 9.40409359086883);
+  TEST_REAL_SIMILAR(static_cast<double>(hit1.getMetaValue("AScore_1")), 8.65157151899052);
   TEST_EQUAL(hit1.getSequence().toString(), "QSS(Phospho)VTQSK");
   
   // ===========================================================================
@@ -644,7 +648,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit2 = ptr_test->compute(hit2, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=21.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 20.4116482719882);
+  TEST_REAL_SIMILAR(static_cast<double>(hit2.getMetaValue("AScore_1")), 18.8755623850511);
   TEST_EQUAL(hit2.getSequence().toString(), "RIRLT(Phospho)ATTR");
   
   // ===========================================================================
@@ -654,7 +658,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit3 = ptr_test->compute(hit3, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit3.getMetaValue("AScore_1")), 92.2548303427145);
+  TEST_REAL_SIMILAR(static_cast<double>(hit3.getMetaValue("AScore_1")), 88.3030731386678);
   TEST_EQUAL(hit3.getSequence().toString(), "QSSVTQVTEQS(Phospho)PK"); 
   
   // ===========================================================================
@@ -668,7 +672,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit4 = ptr_test->compute(hit4, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 20.1669211754322);
+  TEST_REAL_SIMILAR(static_cast<double>(hit4.getMetaValue("AScore_1")), 49.2714597801023);
   TEST_EQUAL(hit4.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");
   
   // ===========================================================================
@@ -684,7 +688,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit5 = ptr_test->compute(hit5, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=3.51, sequence=QSSVT*QSK
-  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 9.40409359086883);
+  TEST_REAL_SIMILAR(static_cast<double>(hit5.getMetaValue("AScore_1")), 6.53833235677545);
   TEST_EQUAL(hit5.getSequence().toString(), "QSS(Phospho)VTQSK");
   
   params.setValue("fragment_mass_tolerance", 70.0); // 0.05 Da were converted to ppm based on a small peptide
@@ -696,7 +700,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   hit6 = ptr_test->compute(hit6, real_spectrum);
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
-  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 20.1669211754322);
+  TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 40.6506162613816);
   TEST_EQUAL(hit6.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");
 
   // ===========================================================================

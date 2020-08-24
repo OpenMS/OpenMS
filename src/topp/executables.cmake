@@ -10,6 +10,7 @@ CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
 CruxAdapter
+DatabaseSuitability
 Decharger
 DTAExtractor
 EICExtractor
@@ -49,6 +50,7 @@ LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
+MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
 MapStatistics
@@ -63,6 +65,8 @@ MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
+OpenPepXL
+OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -83,6 +87,7 @@ ProteinQuantifier
 ProteinResolver
 PTModel
 PTPredict
+QualityControl
 RTModel
 RTPredict
 SeedListGenerator
@@ -99,6 +104,7 @@ SpectraFilterWindowMower
 SpectraMerger
 TextExporter
 TOFCalibration
+XFDR
 XTandemAdapter
 )
 

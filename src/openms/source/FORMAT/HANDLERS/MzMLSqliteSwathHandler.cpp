@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ namespace OpenMS
                     "WHERE MSLEVEL == 2 "\
                     ";";
 
-      conn.executePreparedStatement(&stmt, select_sql);
+      conn.prepareStatement(&stmt, select_sql);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -93,7 +93,7 @@ namespace OpenMS
                    "FROM SPECTRUM " \
                    "WHERE MSLEVEL == 1;";
 
-      conn.executePreparedStatement(&stmt, select_sql);
+      conn.prepareStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
@@ -122,7 +122,7 @@ namespace OpenMS
                           "WHERE ISOLATION_TARGET BETWEEN ";
 
       select_sql += String(center - 0.01) + " AND " + String(center + 0.01) + ";";
-      conn.executePreparedStatement(&stmt, select_sql);
+      conn.prepareStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)

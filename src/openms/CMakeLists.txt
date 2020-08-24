@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,7 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -48,6 +47,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Version should not have unescaped "_" because it is used in the Latex tutorials
 set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}" CACHE INTERNAL "OpenMS VERSION" FORCE)
 set(CF_OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS version with additional identifier" FORCE)
+set(CF_OPENMS_GIT_BRANCH "${OPENMS_GIT_SHORT_REFSPEC}" CACHE INTERNAL "OpenMS Git branch for pyopenms setup.py" FORCE)
 
 #------------------------------------------------------------------------------
 # En/disable assertions
@@ -84,7 +84,7 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# all the dependency libraries are linked into libOpenMS.so, except Qt
+# all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${LIBSVM_LIBRARIES}
                           ${XercesC_LIBRARY}
@@ -99,7 +99,7 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${Qt5Core_LIBRARIES}
                           ${Qt5Network_LIBRARIES})
 
-# xerces requires linking against CoreFoundation&CoreServices
+# xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
@@ -122,6 +122,7 @@ if (OPENMS_CONTRIB_LIBS)
   set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
 endif()
 
+## Sort include directories into contrib ones (prefered in order) and system ones.
 foreach (includedir
          ${SEQAN_INCLUDE_DIRS}
          ${SQLite_INCLUDE_DIR}
@@ -143,23 +144,24 @@ foreach (includedir
   endif()
 endforeach()
 
-#set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY} ${ISOSPEC_INCLUDE_DIRECTORY} 
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                                    ${JSON_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS} #root folder
+                                     ${EVERGREEN_INCLUDE_DIRECTORY}
                                      ${INCLUDES_FROM_CONTRIB}
                                      ${INCLUDES_FROM_SYSTEM}
+                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES} #Includes boost which could be non-contrib
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
-                                     ${JSON_INCLUDE_DIRECTORY}
-                                     LINK_LIBRARIES OpenSwathAlgo 
-                                     ${OPENMS_DEP_LIBRARIES}
+                   LINK_LIBRARIES OpenSwathAlgo
+                                  ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
                    
 #------------------------------------------------------------------------------

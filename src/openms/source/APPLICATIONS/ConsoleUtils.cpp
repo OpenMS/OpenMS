@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,10 @@ namespace OpenMS
       }
       else
       {
-        OPENMS_LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
+        {
+          OPENMS_LOG_DEBUG << "output shaping: COLUMNS env does not exist!" << std::endl;
+        }
+
 #ifdef OPENMS_WINDOWSPLATFORM
         HANDLE hOut;
         CONSOLE_SCREEN_BUFFER_INFO SBInfo;

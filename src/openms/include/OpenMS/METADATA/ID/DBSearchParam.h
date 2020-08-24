@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 
 namespace OpenMS
@@ -64,16 +65,18 @@ namespace OpenMS
 
       // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
       const DigestionEnzyme* digestion_enzyme;
+      EnzymaticDigestion::Specificity enzyme_term_specificity;
       Size missed_cleavages;
       Size min_length;
       Size max_length;
 
       DBSearchParam():
-        molecule_type(MoleculeType::PROTEIN),
-        mass_type(MassType::MONOISOTOPIC),
-        precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
-        precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(0), missed_cleavages(0), min_length(0), max_length(0)
+          molecule_type(MoleculeType::PROTEIN),
+          mass_type(MassType::MONOISOTOPIC),
+          precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
+          precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
+          digestion_enzyme(nullptr), enzyme_term_specificity(EnzymaticDigestion::SPEC_UNKNOWN),
+          missed_cleavages(0), min_length(0), max_length(0)
       {
       }
 
@@ -86,7 +89,7 @@ namespace OpenMS
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
                          precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages, min_length, max_length) <
+                         enzyme_term_specificity, missed_cleavages, min_length, max_length) <
                 std::tie(other.molecule_type, other.mass_type,
                          other.database, other.database_version, other.taxonomy,
                          other.charges, other.fixed_mods, other.variable_mods,
@@ -94,7 +97,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
+                         other.digestion_enzyme,
+                         other.enzyme_term_specificity, other.missed_cleavages,
                          other.min_length, other.max_length));
       }
 
@@ -104,7 +108,7 @@ namespace OpenMS
                          database_version, taxonomy, charges, fixed_mods,
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme,
+                         precursor_tolerance_ppm, digestion_enzyme, enzyme_term_specificity,
                          missed_cleavages, min_length, max_length) ==
                 std::tie(other.molecule_type, other.mass_type,
                          other.database, other.database_version, other.taxonomy,
@@ -113,7 +117,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
+                         other.digestion_enzyme, other.enzyme_term_specificity,
+                         other.missed_cleavages,
                          other.min_length, other.max_length));
       }
     };

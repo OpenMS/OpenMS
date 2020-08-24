@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ START_TEST(ProteaseDB, "$Id$")
 
 ProteaseDB* ptr = nullptr;
 ProteaseDB* nullPointer = nullptr;
-String RKP("(?<=R)(?!P)");
+String RKP("(?<=[RX])(?!P)");
 START_SECTION(ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)

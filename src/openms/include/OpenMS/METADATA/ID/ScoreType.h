@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,9 +44,7 @@ namespace OpenMS
     */
     struct ScoreType: public MetaInfoInterface
     {
-      CVTerm cv_term;
-
-      String name;
+      CVTerm cv_term; // @TODO: derive from CVTerm instead?
 
       bool higher_better;
 
@@ -56,13 +54,14 @@ namespace OpenMS
       }
 
       explicit ScoreType(const CVTerm& cv_term, bool higher_better):
-        cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better)
+        cv_term(cv_term), higher_better(higher_better)
       {
       }
 
       explicit ScoreType(const String& name, bool higher_better):
-        cv_term(), name(name), higher_better(higher_better)
+        cv_term(), higher_better(higher_better)
       {
+        cv_term.setName(name);
       }
 
       ScoreType(const ScoreType& other) = default;
@@ -70,15 +69,16 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name) <
-                std::tie(other.cv_term.getAccession(), other.name));
+        // @TODO: implement/use "CVTerm::operator<"?
+        return (std::tie(cv_term.getAccession(), cv_term.getName()) <
+                std::tie(other.cv_term.getAccession(),
+                         other.cv_term.getName()));
       }
 
       // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name) ==
-                std::tie(other.cv_term.getAccession(), other.name));
+        return cv_term == other.cv_term;
       }
     };
 

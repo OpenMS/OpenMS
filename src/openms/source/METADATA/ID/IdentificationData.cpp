@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -173,6 +173,12 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   IdentificationData::registerScoreType(const ScoreType& score)
   {
+    if (score.cv_term.getAccession().empty() && score.cv_term.getName().empty())
+    {
+      String msg = "score type must have an accession or a name";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
     pair<ScoreTypes::iterator, bool> result;
     result = score_types_.insert(score);
     if (!result.second && (score.higher_better != result.first->higher_better))
@@ -264,6 +270,12 @@ namespace OpenMS
     if (parent.accession.empty())
     {
       String msg = "missing accession for parent molecule";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if ((parent.coverage < 0.0) || (parent.coverage > 1.0))
+    {
+      String msg = "parent molecule coverage must be between 0 and 1";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -414,7 +426,7 @@ namespace OpenMS
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
-      if (it->name == score_name)
+      if (it->cv_term.getName() == score_name)
       {
         return make_pair(it, true);
       }

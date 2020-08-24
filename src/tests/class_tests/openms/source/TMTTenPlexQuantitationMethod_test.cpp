@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,6 +183,21 @@ END_SECTION
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
 {
+
+  double test_matrix[10][10] = {{0.9491,0,0.0037,0,0.0008,0,0,0,0,0},
+                                {0,0.9448,0,0.0065,0,0.0001,0,0,0,0},
+                                {0.0509,0,0.9412,0,0.0049,0,0,0,0,0},
+                                {0,0.0527,0,0.9508,0,0.0071,0,0.0002,0,0},
+                                {0,0,0.0536,0,0.9637,0,0.0132,0,0.0003,0},
+                                {0,0,0,0.0417,0,0.9621,0,0.0128,0,0.0008},
+                                {0,0,0.0015,0,0.0306,0,0.9606,0,0.0208,0},
+                                {0,0,0,0.001,0,0.0307,0,0.9342,0,0.0199},
+                                {0,0,0,0,0,0,0.0262,0,0.9566,0},
+                                {0,0,0,0,0,0,0,0.0275,0,0.9628}};
+
+  Matrix<double> test_Matrix;
+	test_Matrix.setMatrix<10,10>(test_matrix);
+
   TMTTenPlexQuantitationMethod quant_meth;
 
   // we only check the default matrix here which is an identity matrix
@@ -198,8 +213,8 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   {
     for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
     {
-      if (i == j) TEST_REAL_SIMILAR(m(i,j), 1.0)
-      else TEST_REAL_SIMILAR(m(i,j), 0.0)
+      if (i == j) TEST_REAL_SIMILAR(m(i,j),test_Matrix(i,j))
+      else TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
     }
   }
 }

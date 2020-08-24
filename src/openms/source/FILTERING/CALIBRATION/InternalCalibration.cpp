@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,11 +61,12 @@ namespace OpenMS
     {
       for (Size i = 0; i < pcs.size(); ++i)
       {
+        pcs[i].setMetaValue("mz_raw", pcs[i].getMZ());
         pcs[i].setMZ(trafo.predict(pcs[i].getMZ()));
       }
     }
   }
-
+  
   void InternalCalibration::applyTransformation_(PeakMap::SpectrumType& spec, const MZTrafoModel& trafo)
   {
     typedef PeakMap::SpectrumType::Iterator SpecIt;
@@ -184,22 +185,23 @@ namespace OpenMS
   Size InternalCalibration::fillCalibrants( const FeatureMap& fm, double tol_ppm )
   {
     cal_data_.clear();
-    for (FeatureMap::ConstIterator it = fm.begin(); it != fm.end(); ++it)
-    {
-      const std::vector<PeptideIdentification>& ids = it->getPeptideIdentifications();
-      if (ids.empty() || ids[0].empty()) continue;
+    CalibrantStats_ stats(tol_ppm);
+    stats.cnt_total = fm.size() + fm.getUnassignedPeptideIdentifications().size();
 
-      PeptideIdentification pid = ids[0];
-      pid.sort();
-      double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, pid.getHits()[0].getCharge());
-      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
-      cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), it->getIntensity(), mz_ref, log(it->getIntensity()));
+    for (const auto& f : fm)
+    {
+      const std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+      double mz_ref;
+      if (ids.empty()) continue;
+      if (isDecalibrated_(ids[0], f.getMZ(), tol_ppm, stats, mz_ref)) continue;
+      cal_data_.insertCalibrationPoint(f.getRT(), f.getMZ(), f.getIntensity(), mz_ref, log(f.getIntensity()));
     }
 
     // unassigned peptide IDs
-    fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm);
+    fillIDs_(fm.getUnassignedPeptideIdentifications(), tol_ppm, stats);
 
     OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants (incl. unassigned) in FeatureMap." << std::endl;
+    stats.print();
 
     // sort CalData by RT
     cal_data_.sortByRT();
@@ -207,43 +209,69 @@ namespace OpenMS
     return cal_data_.size();
   }
 
-  void InternalCalibration::fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
+  void InternalCalibration::fillID_(const PeptideIdentification& pep_id, const double tol_ppm, CalibrantStats_& stats)
   {
-    Size cnt_nomz(0);
-    Size cnt_nort(0);
-
-    for (std::vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+    if (pep_id.empty())
     {
-      if (it->empty()) continue;
-      if (!it->hasMZ())
-      {
-        ++cnt_nomz;
-        continue;
-      }
-      if (!it->hasRT())
-      {
-        ++cnt_nort;
-        continue;
-      }
-      PeptideIdentification pid = *it;
-      pid.sort();
-      int q = pid.getHits()[0].getCharge();
-      double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
-      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
-
-      const double weight = 1.0;
-      const double intensity = 1.0;
-      cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), intensity, mz_ref, weight);
+      ++stats.cnt_empty;
+      return;
     }
-    OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
-    if (cnt_nomz > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl;
-    if (cnt_nort > 0) OPENMS_LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl;
+    if (!pep_id.hasMZ())
+    {
+      ++stats.cnt_nomz;
+      return;
+    }
+    if (!pep_id.hasRT())
+    {
+      ++stats.cnt_nort;
+      return;
+    }
+    double mz_ref;
+    if (isDecalibrated_(pep_id, pep_id.getMZ(), tol_ppm, stats, mz_ref))
+    {
+      return;
+    }
+
+    cal_data_.insertCalibrationPoint(pep_id.getRT(), pep_id.getMZ(), 1.0, mz_ref, 1.0);
+  }
+
+  void InternalCalibration::fillIDs_( const std::vector<PeptideIdentification>& pep_ids, const double tol_ppm, CalibrantStats_& stats)
+  {
+    for (const auto& id : pep_ids)
+    {
+      fillID_(id, tol_ppm, stats);
+    }
+ }
+
+  bool InternalCalibration::isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref)
+  {
+    PeptideIdentification pid = pep_id;
+    pid.sort();
+    int q = pid.getHits()[0].getCharge();
+    mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+
+    // Only use ID if precursor m/z and theoretical mass don't deviate too much.
+    // as they may occur due to isotopic peak misassignments
+    double delta = Math::getPPMAbs(mz_obs, mz_ref);
+    if (tol_ppm < delta)
+    {
+      if (stats.cnt_decal < 10) OPENMS_LOG_INFO << "Peptide " << pid.getHits()[0].getSequence().toString() << " is " << delta << " (>" << tol_ppm << ") ppm away from theoretical mass and is omitted as calibration point.\n";
+      else if (stats.cnt_decal == 10) OPENMS_LOG_INFO << "More than 10 peptides are at least " << tol_ppm << " ppm away from theoretical mass and are omitted as calibration point.";
+      ++stats.cnt_decal;
+      return true;
+    }
+    return false;
   }
 
   Size InternalCalibration::fillCalibrants( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
   {
     cal_data_.clear();
-    fillIDs_(pep_ids, tol_ppm);
+    CalibrantStats_ stats(tol_ppm);
+    stats.cnt_total = pep_ids.size();
+    fillIDs_(pep_ids, tol_ppm, stats);
+    OPENMS_LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
+    stats.print();
+
     // sort CalData by RT
     cal_data_.sortByRT();
 
@@ -364,7 +392,7 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size j = 0; j < tms.size(); ++j) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
+        for (Size j = 0; j < tms.size(); ++j) if (!MZTrafoModel::isValidModel(tms[j])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(j));
       }
     }
     endProgress();
@@ -493,7 +521,7 @@ namespace OpenMS
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      OPENMS_LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
+      OPENMS_LOG_INFO << "Post calibration MAD threshold (" << post_ppm_MAD << " ppm) not reached (MAD = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 

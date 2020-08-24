@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -137,66 +138,55 @@ private:
     /// Read RT, m/z, charge information from attributes of "spectrum_query"
     void readRTMZCharge_(const xercesc::Attributes& attributes);
 
-    /**
-        @brief find modification name given a modified AA mass
-
-        Matches a mass of a modified AA to a mod in our modification db
-        For ambiguous mods, the first (arbitrary) is returned
-        If no mod is found an error is issued and the return string is empty
-        @note A duplicate of this function is also used in ProtXMLFile
-
-        @param mass Modified AA's mass
-        @param origin AA one letter code
-        @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
-    */
-    void matchModification_(const double mass, const String& origin, String& modification_description);
-
     struct AminoAcidModification
     {
-      String aminoacid;
-      String massdiff;
-      double mass;
-      bool variable;
-      String description;
-      String terminus;
-      bool protein_terminus; // "true" if protein terminus, "false" if peptide terminus
+      private:
 
-      AminoAcidModification() :
-        mass(0),
-        variable(false)
-      {
-      }
+      String aminoacid_;
+      double massdiff_;
+      double mass_;
+      bool is_variable_;
+      String description_;
+      String terminus_;
+      bool is_protein_terminus_; // "true" if protein terminus, "false" if peptide terminus
+      ResidueModification::TermSpecificity term_spec_;
+      std::vector<String> errors_;
+      const ResidueModification* registered_mod_;
 
-      AminoAcidModification(const AminoAcidModification& rhs) :
-        aminoacid(rhs.aminoacid),
-        massdiff(rhs.massdiff),
-        mass(rhs.mass),
-        variable(rhs.variable),
-        description(rhs.description),
-        terminus(rhs.terminus),
-        protein_terminus(rhs.protein_terminus)
-      {
-      }
+      public:
+      AminoAcidModification() = delete;
 
-      virtual ~AminoAcidModification()
-      {
-      }
+      /// Creates an AminoAcidModification object from the pepXML attributes in
+      /// EITHER aminoacid_modification elements
+      /// OR terminal_modification elements
+      /// since we use them ambiguously
+      AminoAcidModification(
+          const String& aminoacid, const String& massdiff, const String& mass,
+          String variable, const String& description, String terminus, const String& protein_terminus);
 
-      AminoAcidModification& operator=(const AminoAcidModification& rhs)
-      {
-        if (this != &rhs)
-        {
-          aminoacid = rhs.aminoacid;
-          massdiff = rhs.massdiff;
-          mass = rhs.mass;
-          variable = rhs.variable;
-          description = rhs.description;
-          terminus = rhs.terminus;
-          protein_terminus = rhs.protein_terminus;
-        }
-        return *this;
-      }
+      AminoAcidModification(const AminoAcidModification& rhs) = default;
 
+      virtual ~AminoAcidModification() = default;
+
+      AminoAcidModification& operator=(const AminoAcidModification& rhs) = default;
+
+      String toUnimodLikeString() const;
+
+      const String& getDescription() const;
+
+      bool isVariable() const;
+
+      const ResidueModification* getRegisteredMod() const;
+
+      double getMassDiff() const;
+
+      double getMass() const;
+
+      const String& getTerminus() const;
+
+      const String& getAminoAcid() const;
+
+      const std::vector<String>& getErrors() const;
     };
 
     /// Pointer to the list of identified proteins
@@ -221,7 +211,7 @@ private:
     String status_;
 
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
-    bool use_precursor_data_;
+    bool use_precursor_data_{};
 
     /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
     std::map<Size, Size> scan_map_;
@@ -239,16 +229,22 @@ private:
     bool search_score_summary_;
 
     /// Are we currently in an "search_summary" element (should be skipped)?
-    bool search_summary_;
+    bool search_summary_{};
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
-    bool wrong_experiment_;
+    bool wrong_experiment_{};
 
     /// Have we seen the experiment of interest at all?
-    bool seen_experiment_;
+    bool seen_experiment_{};
 
     /// Have we checked the "base_name" attribute in the "msms_run_summary" element?
-    bool checked_base_name_;
+    bool checked_base_name_{};
+
+    /// Does the file have decoys (e.g. from Comet's internal decoy search)
+    bool has_decoys_{};
+
+    /// In case it has decoys, what is the prefix?
+    String decoy_prefix_;
 
     /// current base name
     String current_base_name_;
@@ -261,6 +257,7 @@ private:
 
     /// Enzyme name associated with the current identification run
     String enzyme_;
+    String enzyme_cuttingsite_;
 
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
@@ -275,13 +272,13 @@ private:
     String current_sequence_;
 
     /// RT and m/z of current PeptideIdentification
-    double rt_, mz_;
+    double rt_{}, mz_{};
 
     /// Precursor ion charge
-    Int charge_;
+    Int charge_{};
 
     /// ID of current search result
-    UInt search_id_;
+    UInt search_id_{};
 
     /// Identifier linking PeptideIdentifications and ProteinIdentifications
     String prot_id_;
@@ -290,10 +287,10 @@ private:
     DateTime date_;
 
     /// Mass of a hydrogen atom (monoisotopic/average depending on case)
-    double hydrogen_mass_;
+    double hydrogen_mass_{};
 
     /// The modifications of the current peptide hit (position is 1-based)
-    std::vector<std::pair<String, Size> > current_modifications_;
+    std::vector<std::pair<const ResidueModification*, Size> > current_modifications_;
 
     /// Fixed aminoacid modifications
     std::vector<AminoAcidModification> fixed_modifications_;
@@ -305,6 +302,12 @@ private:
 
     static const double mod_tol_;
     static const double xtandem_artificial_mod_tol_;
+
+    /// looks up modification by @p modification_mass and aminoacid of current_sequence_[ @p modification_position ]
+    /// and adds it to the current_modifications_
+    bool lookupAddFromHeader_(double modification_mass,
+                              Size modification_position,
+                              std::vector<AminoAcidModification> const& header_mods);
   };
 
 } // namespace OpenMS

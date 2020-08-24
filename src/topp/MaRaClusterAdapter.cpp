@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,16 +31,18 @@
 // $Maintainer: Leon Bichmann $
 // $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
-#include <OpenMS/config.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <cmath>
@@ -171,6 +173,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+    registerStringOption_("output_directory", "<directory>", "", "Output directory for MaRaCluster original consensus output", false);
+
 
     //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
@@ -188,10 +192,10 @@ protected:
         #else
                        "maracluster",
         #endif
-                       "maracluster executable of the installation e.g. 'maracluster.exe'", is_required, !is_advanced_option, ListUtils::create<String>("skipexists")
+                       "The maracluster executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", is_required, !is_advanced_option, {"is_executable"}
     );
 
-    //Advanced parameters
+    // Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
     registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
     registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
@@ -283,13 +287,7 @@ protected:
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
 
-    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
-    {
-      writeLog_("No maracluster executable specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
- 
+    String maracluster_output_directory = getStringOption_("output_directory");   
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
 
@@ -312,13 +310,13 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
     String txt_designator = File::getUniqueName();
-    String input_file_list(temp_directory_body + txt_designator + ".file_list.txt");
-    String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
+    String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
@@ -340,7 +338,7 @@ protected:
     {
       arguments << "batch";
       arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << temp_directory_body.toQString();
+      arguments << "-f" << tmp_dir.getPath().toQString();
       arguments << "-a" << txt_designator.toQString();
 
       map<String,int> precursor_tolerance_units;
@@ -362,7 +360,11 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLog_("Executing maracluster ...");
-    runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -370,6 +372,21 @@ protected:
     Map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
+
+    //if specified keep original output in designated directory
+    if (!maracluster_output_directory.empty())
+    {
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
+
+      if (copy_status)
+      { 
+        OPENMS_LOG_INFO << "MaRaCluster original output was successfully copied to " << maracluster_output_directory << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_INFO << "MaRaCluster original output could not be copied to " << maracluster_output_directory << ". Please run MaRaClusterAdapter with debug >= 2." << std::endl;
+      }
+    }
 
     //output idXML containing scannumber and cluster id annotation
     if (!out.empty())
@@ -445,7 +462,7 @@ protected:
       {
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << temp_directory_body.toQString();
+        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
         arguments_consensus << "-o" << consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();

@@ -8,6 +8,7 @@ OpenPepXLLFAlgorithm.cpp
 OPXLDataStructs.cpp
 OPXLHelper.cpp
 OPXLSpectrumProcessingAlgorithms.cpp
+XFDRAlgorithm.cpp
 XQuestScores.cpp
 )
 

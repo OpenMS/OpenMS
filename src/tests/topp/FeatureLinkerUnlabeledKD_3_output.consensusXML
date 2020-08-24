@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/openmsqt5/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
 <consensusXML version="1.7" id="cm_17749660155506638460" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureLinkerUnlabeledKD" version="version_string" />
@@ -50,21 +50,25 @@
 		<PeptideHit score="0.00238" sequence="CHARLES" charge="2" aa_before="K K" aa_after="L L" start="143 143" end="153 153" protein_refs="PH_0 PH_1">
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="412.89" RT="3001.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=4429" >
 		<PeptideHit score="0.002935" sequence="DAISY" charge="3" aa_before="R" aa_after="L" start="6" end="16" protein_refs="PH_2">
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="611.327" RT="3000.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >
 		<PeptideHit score="0.00238" sequence="TWHIMALAYA" charge="2" aa_before="K K" aa_after="L L" start="143 143" end="153 153" protein_refs="PH_3 PH_4">
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="412.89" RT="3001.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=4429" >
 		<PeptideHit score="0.002935" sequence="TWRCKYMUNTAIN" charge="3" aa_before="R" aa_after="L" start="6" end="16" protein_refs="PH_5">
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="2">
 		<map id="0" name="raw_file1.mzML" unique_id="8706403922746272921" label="" size="470">

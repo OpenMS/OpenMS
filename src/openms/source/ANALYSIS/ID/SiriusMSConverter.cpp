@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-#include <cstdint>
-#include <QDir>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <QDir>
+#include <cstdint>
 
 using namespace OpenMS;
 using namespace std;
@@ -434,16 +434,16 @@ namespace OpenMS
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
 
     bool use_feature_information = false;
-    bool use_unassigend_ms2 = false;
-    bool no_feautre_information = false;
+    bool use_unassigned_ms2 = false;
+    bool no_feature_information = false;
 
     // Three different possible .ms formats
     // feature information is used (adduct, masstrace_information (FFM+MAD || FFM+AMS || FMM+MAD+AMS [AMS preferred])
     if (!assigned_ms2.empty()) use_feature_information = true;
     // feature information was provided and unassigend ms2 should be used (feature only parameter)
-    if (!unassigned_ms2.empty() && !feature_only) use_unassigend_ms2 = true;
+    if (!unassigned_ms2.empty() && !feature_only) use_unassigned_ms2 = true;
     // no feature information was provided (mzml input only)
-    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feautre_information = true;
+    if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feature_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
@@ -464,7 +464,7 @@ namespace OpenMS
 
     // create temporary input file (.ms)
     os.open(msfile.c_str());
-     if (!os)
+    if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
@@ -472,26 +472,35 @@ namespace OpenMS
 
     AccessionInfo ainfo;
 
-    // sourcefile 
-    ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
-    ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+    // sourcefile
+    if (spectra.getSourceFiles().empty())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
+    }
+    else
+    {
+      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+      ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+
+      // native_id
+      ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
+      ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+    }
  
     // extract accession by name
-    std::set<String> terms;
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.getAllChildTerms(terms, "MS:1000560");
-    for (std::set<String>::const_iterator it = terms.begin(); it != terms.end(); ++it)
+    auto lambda = [&ainfo, &cv] (const String& child)
     {
-      if (cv.getTerm(*it).name == ainfo.sf_type)
+      const ControlledVocabulary::CVTerm& c = cv.getTerm(child);
+      if (c.name == ainfo.sf_type)
       {
-          cv.getTerm(*it);
-          ainfo.sf_accession = cv.getTerm(*it).id;
+        ainfo.sf_accession = c.id;
+        return true;
       }
-    }  
-    // native_id
-    ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
-    ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+      return false;
+    };
+    cv.iterateAllChildren("MS:1000560", lambda);
 
     vector<String> adducts;
     String description;
@@ -611,7 +620,7 @@ namespace OpenMS
     }
 
     // if not mappend information available (e.g. empty featurexml or only a few features)
-    if (use_unassigend_ms2)
+    if (use_unassigned_ms2)
     {
       // no feature information was provided
       bool writecompound = true;
@@ -643,7 +652,7 @@ namespace OpenMS
                    v_cmpinfo);
     }
 
-    if (no_feautre_information)
+    if (no_feature_information)
     {
       // no feature information was provided
       bool writecompound = true;

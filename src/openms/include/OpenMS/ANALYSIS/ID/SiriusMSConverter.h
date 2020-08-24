@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
-
 #include <fstream>
 
 namespace OpenMS
@@ -81,7 +80,7 @@ public:
   };
 
   /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
+    @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
     for the conversion of a MzMlFile to an internal format.
 
     @ingroup ID

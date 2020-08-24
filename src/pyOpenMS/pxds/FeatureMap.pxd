@@ -8,6 +8,7 @@ from DataProcessing cimport *
 from MetaInfoInterface cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
+from MSExperiment cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -40,7 +41,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         bool operator!=(FeatureMap) nogil except +
 
         int size()  nogil except +
-        Feature operator[](int)      nogil except + #wrap-upper-limit:size()
+        Feature & operator[](int)      nogil except + #wrap-upper-limit:size()
         void push_back(Feature spec) nogil except +
         void push_back(MRMFeature spec) nogil except +
 
@@ -73,6 +74,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
         void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
         libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)

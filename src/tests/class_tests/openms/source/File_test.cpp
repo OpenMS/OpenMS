@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,13 +154,6 @@ START_SECTION((static String getOpenMSDataPath()))
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((static String removeExtension(const String& file)))
-  TEST_STRING_EQUAL(File::removeExtension(""),"")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
-  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
-END_SECTION
-
 START_SECTION((static bool isDirectory(const String& path)))
   TEST_EQUAL(File::isDirectory(""),false)
   TEST_EQUAL(File::isDirectory("."),true)
@@ -260,10 +253,74 @@ START_SECTION(static String findDatabase(const String &db_name))
 
 END_SECTION
 
-START_SECTION(static String findExecutable(const OpenMS::String& toolName))
+START_SECTION(static bool findExecutable(OpenMS::String& exe_filename))
 {
-  TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
-  TEST_EQUAL(File::path(File::findExecutable("File_test")) + "/", File::getExecutablePath())
+  //NOT_TESTABLE // since it depends on PATH
+
+  // this test is somewhat brittle, but should work on most platforms (revert to NOT_TESTABLE if this does not work)
+#ifdef OPENMS_WINDOWSPLATFORM
+  String find = "cmd";
+  TEST_EQUAL(File::findExecutable(find), true)
+  TEST_EQUAL(find.suffix(7).toUpper(), "CMD.EXE") // should be C:\Windows\System32\cmd.exe or similar
+#else
+  String find = "echo";
+  TEST_EQUAL(File::findExecutable(find), true)
+  TEST_EQUAL(find.hasSuffix("echo"), true) // should be /usr/bin/echo or similar
+#endif
+}
+END_SECTION
+
+START_SECTION(static StringList getPathLocations(const String& path = std::getenv("PATH")))
+{
+  // set env-variables is not portable across platforms, thus we inject the PATH values
+#ifdef OPENMS_WINDOWSPLATFORM
+  String test_paths=R"(C:\WINDOWS\CCM;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Git\cmd)";
+#else
+  String test_paths="/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games";
+#endif
+  StringList l = File::getPathLocations(test_paths);
+#ifdef OPENMS_WINDOWSPLATFORM
+  TEST_EQUAL(ListUtils::contains(l, "C:/Program Files (x86)/Git/cmd/"), true)
+#else
+  TEST_EQUAL(ListUtils::contains(l, "/usr/bin/"), true)
+#endif
+}
+END_SECTION
+
+
+START_SECTION(static String findSiblingTOPPExecutable(const OpenMS::String& toolName))
+{
+  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
+  TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
+}
+END_SECTION
+
+START_SECTION(File::TempDir(bool keep_dir = false))
+{
+  File::TempDir* dir = new File::TempDir();
+  File::TempDir* nullPointer = nullptr;
+  TEST_NOT_EQUAL(dir, nullPointer)
+  TEST_EQUAL(File::exists((*dir).getPath()),1)
+}
+END_SECTION
+
+START_SECTION(File::~TempDir())
+{
+  String path;
+  {
+    File::TempDir dir;
+    path = dir.getPath();
+    TEST_EQUAL(File::exists(path), 1)
+  }
+  TEST_EQUAL(File::exists(path), 0)
+  if (File::exists(path)) File::removeDir(path.toQString());
+  {
+    File::TempDir dir2(true);
+    path = dir2.getPath();
+    TEST_EQUAL(File::exists(path), 1)
+  }
+  TEST_EQUAL(File::exists(path), 1)
+  if (File::exists(path)) File::removeDir(path.toQString());
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

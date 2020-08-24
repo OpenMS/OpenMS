@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="PARAMETERS" type="PARAMETERSType">
+		<xs:annotation>
+			<xs:documentation>Main parameters node.</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="PARAMETERSType">
+		<xs:sequence>
+			<xs:group ref="ITEMS" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="NODE" type="NODEType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="version" type="versionString" />
+	</xs:complexType>
+	<xs:complexType name="AbstractITEMType" abstract="true">
+		<xs:attribute name="name" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="type" type="PossibleITEMType" use="required">
+			<xs:annotation>
+				<xs:documentation>The type of the specified ITEM. Either input or output.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="description" type="xs:string" default="" />
+		<xs:attribute name="short_description" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>A short description of the parameter.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tags" type="xs:string" default="false">
+			<xs:annotation>
+				<xs:documentation>Additional annotations of the parameter incl. required, advanced, thread, debug, internal, file-type-override, log</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="restrictions" type="xs:string" default="" />
+		<xs:attribute name="supported_formats" type="xs:string" default="false">
+			<xs:annotation>
+				<xs:documentation>Defines the expected file types. Only valid for input-file, output-file, input-prefix, and output-prefix parameters.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="required" type="xs:boolean" default="false">
+			<xs:annotation>
+				<xs:documentation>Deprecated, embed as tag into tags attribute. Will be removed in v2.0.0 of the schema.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="advanced" type="xs:boolean" default="false">
+			<xs:annotation>
+				<xs:documentation>Deprecated, embed as tag into tags attribute. Will be removed in v2.0.0 of the schema.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="position" type="xs:nonNegativeInteger" use="optional">
+			<xs:annotation>
+				<xs:documentation>Position of the parameter (0-based). Certain parameters are not associated to an option identifier, rather, to the position on which they appear on the command-line.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ITEMLISTType">
+		<xs:complexContent>
+			<xs:extension base="AbstractITEMType">
+				<xs:sequence>
+					<xs:element name="LISTITEM" type="LISTITEMType" minOccurs="0" maxOccurs="unbounded" />
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="LISTITEMType">
+		<xs:attribute name="value" use="required" />
+	</xs:complexType>
+	<xs:complexType name="ITEMType">
+		<xs:complexContent>
+			<xs:extension base="AbstractITEMType">
+				<xs:attribute name="value" type="xs:string" use="required">
+					<xs:annotation>
+						<xs:documentation>The actual value of the parameter.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+				<xs:attribute name="default" type="xs:string" use="optional">
+					<xs:annotation>
+						<xs:documentation>If available, the default value of the given parameter.</xs:documentation>
+					</xs:annotation>
+				</xs:attribute>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:simpleType name="PossibleITEMType">
+		<xs:annotation>
+			<xs:documentation>Defines the possible types available in the type attribute of ITEM and ITEMLIST.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int" />
+			<xs:enumeration value="double" />
+			<xs:enumeration value="float" />
+			<xs:enumeration value="string" />
+			<xs:enumeration value="int-pair" />
+			<xs:enumeration value="double-pair" />
+			<xs:enumeration value="input-prefix" />
+			<xs:enumeration value="output-prefix" />
+			<xs:enumeration value="input-file" />
+			<xs:enumeration value="output-file" />
+			<xs:enumeration value="bool" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:group name="ITEMS">
+		<xs:choice>
+			<xs:element name="ITEM" type="ITEMType" />
+			<xs:element name="ITEMLIST" type="ITEMLISTType" />
+		</xs:choice>
+	</xs:group>
+	<xs:complexType name="NODEType">
+		<xs:annotation>
+			<xs:documentation />
+		</xs:annotation>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:group ref="ITEMS" />
+			<xs:element name="NODE" type="NODEType" />
+		</xs:choice>
+		<xs:attribute name="name" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="description" type="xs:string" default="" />
+	</xs:complexType>
+	<xs:simpleType name="versionString">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\d+\.\d+(\.\d+)?" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,19 @@ namespace OpenMS
     crux_id_(""),
     msgf_id_(-1),
     omssa_id_(-1)
+  {
+  }
+
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzyme& d) :
+      DigestionEnzyme(d),
+      n_term_gain_(""),
+      c_term_gain_(""),
+      psi_id_(""),
+      xtandem_id_(""),
+      comet_id_(-1),
+      crux_id_(""),
+      msgf_id_(-1),
+      omssa_id_(-1)
   {
   }
 

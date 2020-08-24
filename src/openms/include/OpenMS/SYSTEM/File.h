@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/config.h>
+#include <cstdlib>
 
 
 namespace OpenMS
@@ -53,6 +54,36 @@ namespace OpenMS
 public:
 
     friend class TOPPBase;
+
+    /**
+      @brief Class representing a temporary directory
+    
+    */
+
+    class OPENMS_DLLAPI TempDir
+    {
+    public:
+      
+      /// Construct temporary folder
+      /// If keep_dir is set to true, the folder will not be deleted on destruction of the object.
+      TempDir(bool keep_dir = false);
+
+      /// Destroy temporary folder (can be prohibited in Constructor)
+      ~TempDir();
+
+      /// delete all means to copy or move a TempDir
+      TempDir(const TempDir&) = delete;
+      TempDir& operator=(const TempDir&) = delete;
+      TempDir(TempDir&&) = delete;
+      TempDir& operator=(TempDir&&) = delete;
+
+      /// Return path to temporary folder
+      const String& getPath() const;
+
+    private:
+      String temp_dir_;
+      bool keep_dir_;
+    };
 
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
@@ -122,15 +153,6 @@ public:
 
     /// Returns the path of the file (without the file name).
     static String path(const String& file);
-
-    /**
-      Returns the file name without the extension
-
-      The extension is the suffix of the string up to and including the last dot.
-
-      If no extension is found, the whole file name is returned
-    */
-    static String removeExtension(const String& file);
 
     /// Return true if the file exists and is readable
     static bool readable(const String& file);
@@ -216,12 +238,39 @@ public:
     static String findDatabase(const String& db_name);
 
     /**
+      @brief Extract list of directories from a concatenated string (usually $PATH).
+
+      Depending on platform, the components are split based on ":" (Linux/Mac) or ";" (Windows).
+      All paths use the '/' as separator and end in '/'.
+      E.g. for 'PATH=/usr/bin:/home/unicorn' the result is {"/usr/bin/", "/home/unicorn/"}
+            or 'PATH=c:\temp;c:\Windows' the result is {"c:/temp/", "c:/Windows/"}
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).  
+    */
+    static StringList getPathLocations(const String& path = std::getenv("PATH"));
+
+    /**
+      @brief Searches for an executable with the given name (similar to @em where (Windows) or @em which (Linux/MacOS)
+
+      This function can be used to find the full path+filename to an executable in
+      the PATH environment. Only the @em first hit (by order in PATH) is returned.
+      If the @p exe_filename has a relative or full path which points to an existing file, PATH information will not be used.
+      The function returns true if the filename was found (exists) and false otherwise.
+      Note: this does not require the file to have executable permission set (this is not tested)
+      The returned content of @p exe_filename is only valid if true is returned.
+
+      @param[in,out] exe_filename The executable to search for.
+      @return true if @p exe_filename could be resolved to a full path and it exists
+    */
+    static bool findExecutable(OpenMS::String& exe_filename);
+
+    /**
       @brief Searches for an executable with the given name.
 
       @param toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
     */
-    static String findExecutable(const String& toolName);
+    static String findSiblingTOPPExecutable(const String& toolName);
 
     /**
       @brief Obtain a temporary filename, ensuring automatic deletion upon exit
@@ -241,6 +290,27 @@ public:
     */
     static const String& getTemporaryFile(const String& alternative_file = "");
 
+    /**
+      @brief Helper function to test if filenames provided in two StringLists match.
+
+      Passing several InputFilesLists is error-prone as users may provide files in a different order.
+      To check for common mistakes this helper function checks:
+      - if both file lists have the same length (returns false otherwise)
+      - if the content is the same and provided in exactly the same order (returns false otherwise)
+
+      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
+      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
+      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+
+      @param sl1 First StringList with filenames
+      @param sl2 Second StringList with filenames
+      @param basename If set to true, only basenames are compared
+      @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
+      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
+                    If set to false, only the order is compared if both share the same filenames.
+      @return False, if both StringLists are different (respecting the parameters)
+    */
+    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.
@@ -249,6 +319,19 @@ private:
     /// Check if the given path is a valid OPENMS_DATA_PATH
     static bool isOpenMSDataPath_(const String& path);
 
+#ifdef OPENMS_WINDOWSPLATFORM
+    /**
+      @brief Get list of file suffices to try during search on PATH (usually .exe, .bat etc)
+
+      Input could be ".COM;.EXE;.BAT;.CMD;.VBS".
+      If the result does not contain at least ".exe", then we assume the environment variable is broken and return a
+      fallback, i.e. {".exe", ".bat"}.
+
+      Note: the environment variable is passed as input to enable proper testing (env vars are usually read-only).
+
+    */
+    static StringList executableExtensions_(const String& ext = std::getenv("PATHEXT"));
+#endif
 
     /**
       @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
@@ -270,8 +353,6 @@ private:
 
     /// private list of temporary filenames, which are deleted upon program exit
     static TemporaryFiles_ temporary_files_;
-
   };
-
 }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,8 +82,17 @@ public:
     /// default constructor
     ConvexHull2D();
 
+    /// Copy constructor
+    ConvexHull2D(const ConvexHull2D&) = default;
+
+    /// Move constructor
+    ConvexHull2D(ConvexHull2D&&) = default;
+
     /// assignment operator
     ConvexHull2D& operator=(const ConvexHull2D& rhs);
+
+    /// move assignment operator
+    ConvexHull2D& operator=(ConvexHull2D&&) & = default;
 
     /// equality operator
     bool operator==(const ConvexHull2D& rhs) const;

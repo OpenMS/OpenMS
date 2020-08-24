@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,7 +107,7 @@ Param ams_param;
 ams_param.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
 ams_param.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
 ams_param.setValue("keep_unidentified_masses", "true");
-ams_param.setValue("mzTab:exportIsotopeIntensities", 3);
+ams_param.setValue("mzTab:exportIsotopeIntensities", "true");
 AccurateMassSearchEngine ams;
 ams.setParameters(ams_param);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,10 +76,9 @@ namespace OpenMS
     // disable spacing constraints, since we're dealing with chromatograms
     pepi_param.setValue("spacing_difference", 0.0);
     pepi_param.setValue("spacing_difference_gap", 0.0);
-	pepi_param.setValue("report_FWHM", "true");
-	pepi_param.setValue("report_FWHM_unit", "absolute");
+    pepi_param.setValue("report_FWHM", "true");
+    pepi_param.setValue("report_FWHM_unit", "absolute");
     pp_.setParameters(pepi_param);
-
   }
 
   void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
@@ -152,15 +151,18 @@ namespace OpenMS
     }
 	
     // Store the result in the picked_chromatogram
-	OPENMS_POSTCONDITION(picked_chrom.getFloatDataArrays().size() == 1 &&
-						 picked_chrom.getFloatDataArrays()[IDX_FWHM].getName() == "FWHM", "Swath: PeakPicking did not deliver FWHM attributes.")
+    OPENMS_POSTCONDITION(picked_chrom.getFloatDataArrays().size() == 1 &&
+                         picked_chrom.getFloatDataArrays()[IDX_FWHM].getName() == "FWHM", "Swath: PeakPicking did not deliver FWHM attributes.")
 
     picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
     picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
-	// just copy FWHM from initial peak picking
+    // just copy FWHM from initial peak picking
 
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].reserve(picked_chrom.size());
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].reserve(picked_chrom.size());
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].reserve(picked_chrom.size());
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
       picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(integrated_intensities_[i]);
@@ -196,7 +198,7 @@ namespace OpenMS
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getRT() - central_peak_rt) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i - k) >= signal_to_noise_))
       {
         ++k;
       }
@@ -208,7 +210,7 @@ namespace OpenMS
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getRT() - central_peak_rt) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i + k) >= signal_to_noise_) )
       {
         ++k;
       }
@@ -229,6 +231,12 @@ namespace OpenMS
   void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+
+    // copy meta data of the input chromatogram
+    picked_chrom.clear(true);
+    picked_chrom.ChromatogramSettings::operator=(chromatogram);
+    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setName(chromatogram.getName());
 
     std::vector<double> time;
     std::vector<double> intensity;

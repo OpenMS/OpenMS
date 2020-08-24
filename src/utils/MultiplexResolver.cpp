@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,6 @@
 
 using namespace std;
 using namespace OpenMS;
-using namespace boost::math;
 
 //#define DEBUG
 
@@ -277,7 +276,7 @@ private:
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The meta value 'map_index' is missing in the input data. In the IDMapper tool, please set the advanced parameter consensus:annotate_ids_with_subelements = true.");
     }
     double detected_delta_mass_at_label_set = deltaMassFromMapIndex_(consensus->getFeatures(), consensus->getPeptideIdentifications()[0].getMetaValue("map_index"));
-    if (boost::math::isnan(detected_delta_mass_at_label_set))
+    if (std::isnan(detected_delta_mass_at_label_set))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No delta mass with this map_index could be found.", "");
     }
@@ -331,11 +330,10 @@ private:
       std::vector<MultiplexDeltaMasses::DeltaMass> pattern = it_pattern->getDeltaMasses();
       
       double shift = matchLabelSet_(pattern, label_set, index_label_set);
-      if (!boost::math::isnan(shift))
+      if (!std::isnan(shift))
       {        
-        // reset boolean vector
-        unsigned i = delta_mass_matched.size();
-        delta_mass_matched.assign(i, false);
+        // reset boolean vector to false
+        delta_mass_matched.assign(delta_mass_matched.size(), false);
         
         bool match = matchDeltaMasses_(consensus, pattern, shift, delta_mass_matched);
         if (match)
@@ -522,7 +520,7 @@ private:
   {
     // unsigned found_pattern_count = 0;
     std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
-    unsigned multiplicity = theoretical_masses[0].getDeltaMasses().size();
+    size_t multiplicity = theoretical_masses[0].getDeltaMasses().size();
     
     for (ConsensusMap::ConstIterator cit = map_in.begin(); cit != map_in.end(); ++cit)
     {
@@ -653,4 +651,4 @@ int main(int argc, const char** argv)
   return tool.main(argc, argv);
 }
 
-//@endcond
+///@endcond

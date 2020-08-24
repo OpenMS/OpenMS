@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
@@ -44,7 +45,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <map>
-#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -233,10 +233,12 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
                                            "Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
+    setValidFormats_("in", {"mzData", "mascotXML"});
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'mascot_in' Mascot generic format is written.");
-    registerFlag_("mascot_in", "if this flag is set the MascotAdapter will read in mzData and write Mascot generic format");
-    registerFlag_("mascot_out", "if this flag is set the MascotAdapter will read in a Mascot results file (.mascotXML) and write idXML");
+    setValidFormats_("out", {"idXML", "mgf"});
+    registerStringOption_("out_type", "<type>", "", "output file type (for TOPPAS)", false, false);
+    setValidStrings_("out_type", {"idXML", "mgf"});
     registerStringOption_("instrument", "<i>", "Default", "the instrument that was used to measure the spectra", false);
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
@@ -293,8 +295,6 @@ protected:
     StringList variable_mods;
     ProteinIdentification protein_identification;
     vector<PeptideIdentification> identifications;
-    IntList charges;
-    StringList parts;
     double precursor_mass_tolerance(0);
     double peak_mass_tolerance(0);
     double pep_ident(0), sigthreshold(0), pep_homol(0), prot_score(0), pep_score(0);
@@ -317,6 +317,7 @@ protected:
     date_time.now();
     date_time_string = date_time.get();
     date_time_string.substitute(':', '.');        // Windows does not allow ":" in filenames!
+    StringList parts;
     date_time_string.split(' ', parts);
 
     mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
@@ -353,11 +354,22 @@ protected:
       writeDebug_(String("Boundary: ") + boundary, 1);
     }
 
-    mascot_in = getFlag_("mascot_in");
-    mascot_out = getFlag_("mascot_out");
+    FileTypes::Type in_type = FileHandler::getType(inputfile_name);
+    FileTypes::Type out_type;
+    if (!getStringOption_("out_type").empty())
+    {
+        out_type = FileTypes::nameToType(getStringOption_("out_type"));
+    }
+    else
+    {
+        out_type = FileHandler::getType(outputfile_name);
+    }
+    
+    mascot_out = in_type == FileTypes::MASCOTXML;
+    mascot_in = out_type == FileTypes::MGF;
     if (mascot_out && mascot_in)
     {
-      writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
+      writeLog_("When the input file is a mascotXML, only idXML can be written. When the input is mzData, only MGF is written. Please change the output type accordingly.");
       return ILLEGAL_PARAMETERS;
     }
     
@@ -389,17 +401,16 @@ protected:
 
     /// charges
     parts = getStringList_("charges");
-
-    for (Size i = 0; i < parts.size(); i++)
+    IntList charges;
+    for (String& c : parts)
     {
-      temp_charge = parts[i];
-      if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
+      if (c.hasPrefix("-") || c.hasSuffix("-"))
       {
-        charges.push_back(-1 * (parts[i].remove('-').toInt()));
+        charges.push_back(-1 * (c.remove('-').toInt()));
       }
       else
       {
-        charges.push_back(parts[i].remove('+').toInt());
+        charges.push_back(c.remove('+').toInt());
       }
     }
     if (charges.empty())
@@ -613,6 +624,10 @@ protected:
       //-------------------------------------------------------------
       vector<ProteinIdentification> protein_identifications;
       protein_identifications.push_back(protein_identification);
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+
       IdXMLFile().store(outputfile_name,
                         protein_identifications,
                         identifications);

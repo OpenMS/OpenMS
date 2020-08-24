@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -274,33 +274,7 @@ namespace OpenMS
     }
     endProgress();
 
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later):
-    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
-         map_it != input_maps.end(); ++map_it)
-    {
-      // add protein identifications to result map:
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map:
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results:
-    startProgress(0, 3, String("sorting results"));
-    out.sortByQuality();
-    setProgress(1);
-    out.sortByMaps();
-    setProgress(2);
-    out.sortBySize();
-    endProgress();
-    return;
+    postprocess_(input_maps, out);
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,9 +139,11 @@ namespace OpenMS
     targetMap[FileTypes::SPLIB] = "splib";
     targetMap[FileTypes::NOVOR] = "novor";
     targetMap[FileTypes::PARAMXML] = "paramXML";
+    targetMap[FileTypes::SPECXML] = "spec.xml";
     targetMap[FileTypes::XQUESTXML] = "xquest.xml";
     targetMap[FileTypes::JSON] = "json";
     targetMap[FileTypes::RAW] = "raw";
+    targetMap[FileTypes::EXE] = "exe";
 
     return targetMap;
   }

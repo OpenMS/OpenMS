@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -108,6 +109,9 @@ namespace OpenMS
           filename,
           "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
     }
+
+    //set filename for the handler. Just in case (e.g. when fatalError function is used).
+    file_ = filename;
 
     //open stream
     std::ofstream os(filename.c_str());
@@ -182,6 +186,10 @@ namespace OpenMS
       }
 
       writeUserParam_("UserParam", os, params[i], 4);
+      if (params[i].enzyme_term_specificity != EnzymaticDigestion::SPEC_UNKNOWN)
+      {
+        os << "\t\t\t\t<UserParam name=\"EnzymeTermSpecificity\" type=\"string\" value=\"" << EnzymaticDigestion::NamesOfSpecificity[params[i].enzyme_term_specificity] << "\" />\n";
+      }
 
       os << "\t</SearchParameters>\n";
     }
@@ -263,9 +271,9 @@ namespace OpenMS
       // add ProteinGroup info to metavalues (hack)
       MetaInfoInterface meta = protein_ids[i];
       addProteinGroups_(meta, protein_ids[i].getProteinGroups(),
-                        "protein_group", accession_to_id);
+                        "protein_group", accession_to_id, STORE);
       addProteinGroups_(meta, protein_ids[i].getIndistinguishableProteins(),
-                        "indistinguishable_proteins", accession_to_id);
+                        "indistinguishable_proteins", accession_to_id, STORE);
       writeUserParam_("UserParam", os, meta, 3);
 
       os << "\t\t</ProteinIdentification>\n";
@@ -354,7 +362,21 @@ namespace OpenMS
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
             {
-              protein_accessions.push_back("PH_" + String(accession_to_id[protein_accession]));
+              const auto acc = accession_to_id.find(protein_accession);
+              if (acc != accession_to_id.end())
+              {
+                protein_accessions.emplace_back("PH_" + String(acc->second));
+              }
+              else
+              {
+                throw Exception::ElementNotFound(
+                    __FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "No accession " + protein_accession + " found in run '" + protein_ids[i].getIdentifier() +
+                    "' for PSM " + p_hit.getSequence().toString() + "_" + String(p_hit.getCharge()) +
+                    ". Please contact the maintainer of this tool e.g. on GitHub as this should not happen.");
+              }
             }
           }
 
@@ -799,7 +821,7 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
+        if (name == Constants::UserParam::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);
@@ -839,6 +861,12 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
+      if (last_meta_->metaValueExists("EnzymeTermSpecificity"))
+      {
+        String spec = last_meta_->getMetaValue("EnzymeTermSpecificity");
+        if (spec != "unknown")
+          param_.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(EnzymaticDigestion::getSpecificityByName(spec));
+      }
       last_meta_ = nullptr;
       parameters_[id_] = param_;
     }
@@ -865,10 +893,10 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      if (prot_ids_->size() == 0)
+      if (prot_ids_->empty())
       {
         // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
-        prot_ids_->push_back(prot_id_);
+        prot_ids_->emplace_back(std::move(prot_id_));
       }
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
@@ -882,9 +910,9 @@ namespace OpenMS
     //PEPTIDES
     else if (tag == "PeptideIdentification")
     {
-      pep_ids_->push_back(pep_id_);
+      pep_ids_->emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
-      last_meta_  = nullptr;
+      last_meta_ = nullptr;
     }
     else if (tag == "PeptideHit")
     {
@@ -903,14 +931,15 @@ namespace OpenMS
 
   void IdXMLFile::addProteinGroups_(
     MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>&
-    groups, const String& group_name, const std::unordered_map<string, UInt>& accession_to_id)
+    groups, const String& group_name, const std::unordered_map<string, UInt>& accession_to_id,
+    XMLHandler::ActionMode mode)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
       String name = group_name + "_" + String(g);
       if (meta.metaValueExists(name))
       {
-        warning(LOAD, String("Metavalue '") + name + "' already exists. Overwriting...");
+        warning(mode, String("Metavalue '") + name + "' already exists. Overwriting...");
       }
       String accessions;
       for (StringList::const_iterator acc_it = groups[g].accessions.begin();
@@ -925,7 +954,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(LOAD, String("Invalid protein reference '") + *acc_it + "'");
+          fatalError(mode, String("Invalid protein reference '") + *acc_it + "'");
         }
       }
       String value = String(groups[g].probability) + "," + accessions;

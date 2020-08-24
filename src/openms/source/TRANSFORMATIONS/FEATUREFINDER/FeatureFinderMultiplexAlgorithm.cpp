@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -676,7 +676,9 @@ namespace OpenMS
               feature.getConvexHulls().push_back(hull);
             }
           }
-          
+        
+          if (intensity_sum <= 0) continue;
+  
           rt /= intensity_sum;
           mz /= intensity_sum;
           

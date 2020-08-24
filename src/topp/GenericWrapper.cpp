@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,17 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QFileInfo>
 #include <QDir>
@@ -431,7 +437,7 @@ protected:
     // - we set the value of the affected parameter to the copied tmp file, such that subsequent calls target the tmp file
     for (Size i = 0; i < tde_.tr_table.pre_moves.size(); ++i)
     {
-      const Internal::FileMapping & fm = tde_.tr_table.pre_moves[i];
+      const Internal::FileMapping& fm = tde_.tr_table.pre_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;

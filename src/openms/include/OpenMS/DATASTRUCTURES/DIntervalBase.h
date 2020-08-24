@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,7 @@ public:
       }
 
       /// Move constructor
-      DIntervalBase(DIntervalBase&& rhs) noexcept = default;
+      DIntervalBase(DIntervalBase&&) noexcept = default;
 
       /// Assignment operator
       DIntervalBase& operator=(const DIntervalBase& rhs)

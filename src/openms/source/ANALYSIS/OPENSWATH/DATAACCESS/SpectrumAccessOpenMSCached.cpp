@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,7 +119,7 @@ namespace OpenMS
     // beginning of the RT domain. Then we add this spectrum and try to add
     // further spectra as long as they are below RT + deltaRT.
     std::vector<std::size_t> result;
-    MSExperimentType::ConstIterator spectrum = meta_ms_experiment_.RTBegin(RT - deltaRT);
+    auto spectrum = meta_ms_experiment_.RTBegin(RT - deltaRT);
     if (spectrum == meta_ms_experiment_.end()) return result;
 
     result.push_back(std::distance(meta_ms_experiment_.begin(), spectrum));

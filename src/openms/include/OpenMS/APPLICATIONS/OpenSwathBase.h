@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,10 +76,7 @@
 #include <cassert>
 #include <limits>
 
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-
 
 namespace OpenMS
 {
@@ -369,7 +366,7 @@ protected:
    * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
    * @param cp_irt Parameter set for the chromatogram extraction
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-   * @param mz_correction_function If correction in m/z is desired, which function should be used
+   * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    * @param sonar Whether the data is SONAR data
    * @param load_into_memory Whether to cache the current SWATH map in memory
@@ -387,7 +384,7 @@ protected:
         const Param& feature_finder_param,
         const ChromExtractParams& cp_irt,
         const Param& irt_detection_param,
-        const String & mz_correction_function,
+        const Param& calibration_param,
         Size debug_level,
         bool sonar,
         bool load_into_memory,
@@ -420,9 +417,13 @@ protected:
       // perform extraction
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
-      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-      feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, irt_mzml_out,
-      debug_level, sonar, load_into_memory);
+      TransformationDescription im_trafo;
+      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, im_trafo,
+                                               min_rsq, min_coverage,
+                                               feature_finder_param,
+                                               cp_irt, irt_detection_param,
+                                               calibration_param, irt_mzml_out, debug_level, sonar,
+                                               load_into_memory);
 
       if (!irt_trafo_out.empty())
       {

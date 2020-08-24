@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,9 @@ using namespace std;
        </tr>
      </table>
    </CENTER>
+
+   @b Reference: @n
+   Weisser & Choudhary: <a href="https://doi.org/10.1021/acs.jproteome.7b00248">Targeted Feature Detection for Data-Dependent Shotgun Proteomics</a> (J. Proteome Res., 2017, PMID: 28673088).
 
    This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra).
    It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
@@ -170,7 +173,14 @@ public:
   // TODO
   // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
-    TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.")
+    TOPPBase("FeatureFinderIdentification",
+             "Detects features in MS1 data based on peptide identifications.",
+             true,
+             { {"Weisser H, Choudhary JS",
+                "Targeted Feature Detection for Data-Dependent Shotgun Proteomics",
+                "J. Proteome Res. 2017; 16, 8:2964-2974",
+                "10.1021/acs.jproteome.7b00248"} 
+             })
   {
   }
 
@@ -194,7 +204,11 @@ protected:
     registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
     setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
-    registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
+    Param algo_with_subsection;
+    Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();
+    subsection.remove("candidates_out");
+    algo_with_subsection.insert("", subsection);
+    registerFullParam_(algo_with_subsection);
   }
 
   ExitCodes main_(int, const char**) override
@@ -211,7 +225,7 @@ protected:
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
-    ffid_algo.setParameters(getParam_());
+    ffid_algo.setParameters(getParam_().copySubset(FeatureFinderIdentificationAlgorithm().getDefaults()));
 
     if (candidates_in.empty())
     {
@@ -229,6 +243,9 @@ protected:
       mzml.setLogType(log_type_);
       mzml.getOptions().addMSLevel(1);
       mzml.load(in, ffid_algo.getMSData());
+
+      // annotate mzML file
+      features.setPrimaryMSRunPath({in}, ffid_algo.getMSData());
 
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
@@ -267,11 +284,6 @@ protected:
         MzMLFile().store(chrom_out, ffid_algo.getChromatograms());
         ffid_algo.getChromatograms().clear(true);
       }
-
-      // annotate mzML file
-      StringList feature_msfile_ref;
-      feature_msfile_ref.push_back("file://" + in);
-      features.setPrimaryMSRunPath(feature_msfile_ref);
 
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }

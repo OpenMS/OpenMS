@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -206,12 +206,12 @@ public:
       if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
       {
         // prev is closer to the apex
-        return sn_.getSignalToNoise(*prev);
+        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));
       }
       else
       {
         // iter is closer to the apex
-        return sn_.getSignalToNoise(*iter);
+        return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),iter));
       }
     }
 

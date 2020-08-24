@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ using namespace OpenMS;
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathDecoyGenerator  </td>
           </tr>
       </table>
@@ -84,8 +84,10 @@ using namespace OpenMS;
   step, the transitions will be filtered to improve sensitivity for detection
   of peptides.
 
-  Optionally, theoretical identification transitions can be generated when
-  the TraML will be used for IPF scoring in OpenSWATH.
+  Optionally, theoretical identification transitions can be generated when the
+  TraML will be used for IPF scoring in OpenSWATH, see @ref OpenMS::MRMAssay
+  "MRMAssay" for more information on the algorithm. This is recommended if
+  post-translational modifications are scored with OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
@@ -98,6 +100,7 @@ using namespace OpenMS;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
 class TOPPOpenSwathAssayGenerator :
   public TOPPBase
 {
@@ -243,7 +246,7 @@ protected:
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
-        ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+        ModificationsDB* ptr = ModificationsDB::initializeModificationsDB(unimod_file, String(""), String(""));
         OPENMS_LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else

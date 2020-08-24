@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,7 +89,7 @@ namespace OpenMS
 
   bool PeptideIdentification::hasRT() const
   {
-    return !boost::math::isnan(rt_);
+    return !std::isnan(rt_);
   }
 
   double PeptideIdentification::getMZ() const
@@ -104,7 +104,7 @@ namespace OpenMS
 
   bool PeptideIdentification::hasMZ() const
   {
-    return !boost::math::isnan(mz_);
+    return !std::isnan(mz_);
   }
 
   const std::vector<PeptideHit>& PeptideIdentification::getHits() const

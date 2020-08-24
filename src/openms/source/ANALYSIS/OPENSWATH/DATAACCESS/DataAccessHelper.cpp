@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -322,12 +322,14 @@ namespace OpenMS
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
     aa_sequence = AASequence::fromString(peptide.sequence);
-    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
-        it != peptide.modifications.end(); ++it)
+    for (const auto & it : peptide.modifications)
     {
-      TargetedExperimentHelper::setModification(it->location, 
-                                                boost::numeric_cast<int>(peptide.sequence.size()), 
-                                                "UniMod:" + String(it->unimod_id), aa_sequence);
+      if (it.unimod_id != -1)
+      {
+        TargetedExperimentHelper::setModification(it.location,
+                                                  int(peptide.sequence.size()),
+                                                  "UniMod:" + String(it.unimod_id), aa_sequence);
+      }
     }
   }
 
