@@ -40,6 +40,7 @@ import glob
 import re
 import shutil
 import time
+from setuptools import setup, Extension
 
 if OPEN_MS_GIT_BRANCH == "nightly":
     package_name = "pyopenms_nightly"
