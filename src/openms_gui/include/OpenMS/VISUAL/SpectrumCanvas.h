@@ -89,10 +89,6 @@ namespace OpenMS
       - Measure mode
         - Activated using the SHIFT key
 
-      @improvement Add log mode (Hiwi)
-
-      @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
-
       @ingroup SpectrumWidgets
   */
   class OPENMS_GUI_DLLAPI SpectrumCanvas :
@@ -929,7 +925,7 @@ protected:
     QRubberBand rubber_band_;
 
     /// External context menu extension
-    QMenu * context_add_;
+    QMenu* context_add_;
 
     /// Flag that determines if timing data is printed to the command line
     bool show_timing_;

@@ -468,7 +468,7 @@ namespace OpenMS
     // update the menu
     updateMenu();
 
-    connect(&recent_files_, &RecentFilesMenu::recentFileClicked, this, &TOPPViewBase::openRecentFile);
+    connect(&recent_files_, &RecentFilesMenu::recentFileClicked, this, &TOPPViewBase::openFile);
 
     // restore window positions
     QSettings settings("OpenMS", "TOPPView");
@@ -983,7 +983,7 @@ namespace OpenMS
     recent_files_.add(filename);
   }
 
-  void TOPPViewBase::openRecentFile(const String& filename)
+  void TOPPViewBase::openFile(const String& filename)
   {
     addDataFile(filename, true, true);
   }
@@ -2162,11 +2162,6 @@ namespace OpenMS
       }
       w->toggleProjections();
     }
-  }
-
-  void TOPPViewBase::loadFile(QString filename) // todo: why no recent file
-  {
-    addDataFile(String(filename), true, false);
   }
 
   bool TOPPViewBase::annotateMS1FromMassFingerprinting_(const FeatureMap& identifications)

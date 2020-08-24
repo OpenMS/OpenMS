@@ -352,11 +352,9 @@ public slots:
     void toggleProjections();
     //@}
 
-    /// Loads a file given by the passed string
-    void loadFile(QString);
     /// list of the recently opened files
     /// called when RecentFileMenu items is clicked
-    void openRecentFile(const String& filename);
+    void openFile(const String& filename);
 
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool);

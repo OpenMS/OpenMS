@@ -1489,7 +1489,6 @@ namespace OpenMS
     }
     //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(new_area);
-    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::verticalScrollBarChange(int value)
@@ -1511,7 +1510,6 @@ namespace OpenMS
     }
     //cout << OPENMS_PRETTY_FUNCTION << endl;
     changeVisibleArea_(new_area);
-    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::paintEvent(QPaintEvent * e)
@@ -2129,7 +2127,6 @@ namespace OpenMS
           //cout << "New area: x " << newLoX <<"-"<< newHiX << " - y "<<newLoY <<"-"<< newHiY << endl;
           //cout << OPENMS_PRETTY_FUNCTION << endl;
           changeVisibleArea_(AreaType(newLoX, newLoY, newHiX, newHiY));
-          emit layerZoomChanged(this);
           last_mouse_pos_ = pos;
         }
       }
@@ -2158,7 +2155,6 @@ namespace OpenMS
           AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
           //cout << OPENMS_PRETTY_FUNCTION << endl;
           changeVisibleArea_(area, true, true);
-          emit layerZoomChanged(this);
         }
       }
     }
@@ -2851,7 +2847,6 @@ namespace OpenMS
     }
     //change visible area
     changeVisibleArea_(newArea);
-    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
@@ -2945,7 +2940,6 @@ namespace OpenMS
       {
         AreaType area(widgetToData_(rect.topLeft()), widgetToData_(rect.bottomRight()));
         changeVisibleArea_(area, true, true);
-        emit layerZoomChanged(this);
       }
     }
     else if (action_mode_ == AM_MEASURE)

@@ -132,6 +132,7 @@ namespace OpenMS
   void Spectrum1DCanvas::changeVisibleArea_(double lo, double hi, bool repaint, bool add_to_stack)
   {
     changeVisibleArea_(AreaType(lo, visible_area_.minY(), hi, visible_area_.maxY()), repaint, add_to_stack);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum1DCanvas::dataToWidget(const PeakType& peak, QPoint& point, bool flipped, bool percentage)
@@ -476,7 +477,6 @@ namespace OpenMS
         {
           AreaType area(widgetToData(rect.topLeft()), widgetToData(rect.bottomRight()));
           changeVisibleArea_(area.minX(), area.maxX(), true, true);
-          emit layerZoomChanged(this);
         }
       }
       else if (action_mode_ == AM_MEASURE)
@@ -1341,7 +1341,6 @@ namespace OpenMS
   void Spectrum1DCanvas::horizontalScrollBarChange(int value)
   {
     changeVisibleArea_(value, value + (visible_area_.maxPosition()[0] - visible_area_.minPosition()[0]));
-    emit layerZoomChanged(this);
   }
 
   void Spectrum1DCanvas::showCurrentLayerPreferences()
@@ -1777,7 +1776,6 @@ namespace OpenMS
       ++zoom_pos_;
     }
     changeVisibleArea_(*zoom_pos_);
-    emit layerZoomChanged(this);
   }
 
   void Spectrum1DCanvas::translateLeft_(Qt::KeyboardModifiers m)
@@ -1809,7 +1807,6 @@ namespace OpenMS
     }
     // change data area
     changeVisibleArea_(newLo, newHi);
-    emit layerZoomChanged(this);
   }
 
   void Spectrum1DCanvas::translateRight_(Qt::KeyboardModifiers m)
@@ -1840,7 +1837,6 @@ namespace OpenMS
     }
     // change data area
     changeVisibleArea_(newLo, newHi);
-    emit layerZoomChanged(this);
   }
 
   /// Returns whether this widget is currently in mirror mode

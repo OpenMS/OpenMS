@@ -183,6 +183,7 @@ namespace OpenMS
       visible_area_ = new_area;
       updateScrollbars_();
       emit visibleAreaChanged(new_area);
+      emit layerZoomChanged(this);
     }
 
     if (repaint)
