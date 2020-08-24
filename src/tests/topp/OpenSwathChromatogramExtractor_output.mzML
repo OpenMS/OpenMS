@@ -100,7 +100,7 @@
 				<userParam name="parameter: rt" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: map" type="xsd:string" value="[]"/>
 				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
@@ -117,13 +117,13 @@
 				<userParam name="parameter: size" type="xsd:string" value=":"/>
 				<userParam name="parameter: q" type="xsd:string" value=":"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
@@ -154,7 +154,7 @@
 				<userParam name="parameter: rt" type="xsd:string" value="3000:3200"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: map" type="xsd:string" value="[]"/>
 				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
@@ -171,13 +171,13 @@
 				<userParam name="parameter: size" type="xsd:string" value=":"/>
 				<userParam name="parameter: q" type="xsd:string" value=":"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_5">
@@ -196,7 +196,7 @@
 				<userParam name="parameter: rt" type="xsd:string" value=":"/>
 				<userParam name="parameter: int" type="xsd:string" value=":"/>
 				<userParam name="parameter: sort" type="xsd:string" value="false"/>
-				<userParam name="parameter: sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: level" type="xsd:string" value="[1, 2, 3]"/>
 				<userParam name="parameter: map" type="xsd:string" value="[]"/>
 				<userParam name="parameter: sort_peaks" type="xsd:string" value="false"/>
@@ -213,13 +213,13 @@
 				<userParam name="parameter: size" type="xsd:string" value=":"/>
 				<userParam name="parameter: q" type="xsd:string" value=":"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 				<userParam name="performed_on_spectra" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_6">
@@ -239,6 +239,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="628.45" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
@@ -272,6 +277,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="654.38" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -305,6 +315,11 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="654.38" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -335,11 +350,11 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr3">16960</offset>
-		<offset idRef="tr1">19907</offset>
-		<offset idRef="tr2">22854</offset>
+		<offset idRef="tr3">16981</offset>
+		<offset idRef="tr1">20180</offset>
+		<offset idRef="tr2">23379</offset>
 	</index>
 </indexList>
-<indexListOffset>25835</indexListOffset>
+<indexListOffset>26612</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -79,9 +80,12 @@ using namespace std;
     This wrapper has been successfully tested with several versions of @em X!Tandem.
     The earliest version known to work is "PILEDRIVER" (2015-04-01). The latest is "ALANINE" (2017-02-01).
 
-    @note @em X!Tandem only support uncompressed mzML files (e.g. no zlib compression or other fancy things like numpress) may be used internally!
+    @note @em X!Tandem only support <b>uncompressed mzML files</b> (e.g. no zlib compression or other fancy things like numpress) may be used internally!
     This converter only forwards the mzML filename and you will get an error like 'Fatal error: unsupported CODEC used for mzML peak data (CODEC type=zlib compression)'.
     If this happens, preprocess the mzML files using OpenMS' @ref TOPP_FileConverter to write a plain mzML which @em X!Tandem understands.
+
+    @em X!Tandem has a build-in adventitious cleavage rule for Asp|Pro (Aspartate/D | Proline/P), which it allows as cutting site for all enzymes.
+    Furthermore, it treats any occurence of 'X' as stop codon (and thus as cleavage site). The resulting peptide will be non- or semi-tryptic.
 
     To speed up computations, FASTA databases can be compressed using the fasta_pro.exe tool of @em X!Tandem.
     It is contained in the "bin" folder of the @em X!Tandem installation.
@@ -97,6 +101,14 @@ using namespace std;
     under OpenMS/share/CHEMISTRY/XTandem_default_input.xml.
     If you want to use the XML configuration file and @em ignore most of the parameters set via this adapter, use the @p ignore_adapter_param flag.
     Then, the config given via @p default_config_file is used exclusively and only the values for the paramters @p in, @p out, @p database and @p xtandem_executable are taken from this adapter.
+
+    Hint: this adapter supports 15N labeling by specifying
+@code
+<note type="input" label="protein, modified residue mass file">/path/to/bioml.xml</note>
+@endcode
+    in a default config file. See https://www.thegpm.org/TANDEM/api/pmrmf.html for details. Warning: if the filename is invalid, @em X!Tandem will simply ignore the setting without feedback!
+    However, the resulting peptide sequences in the idXML file
+    will not contain any N15 labeling information. This needs to be added via calling the @ref UTILS_StaticModification tool on the idXML file.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -313,8 +325,7 @@ protected:
       infile.setDefaultParametersFilename(default_XML_config);
     }
 
-    infile.write(input_filename, getFlag_("ignore_adapter_param"),
-                 getFlag_("force"));
+    infile.write(input_filename, getFlag_("ignore_adapter_param"), getFlag_("force"));
 
     //-------------------------------------------------------------
     // calculations
@@ -396,6 +407,9 @@ protected:
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");
       protein_id.setSearchEngine("XTandem");
+
+      // write all (!) parameters as metavalues to the search parameters
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_id.getSearchParameters(), this->getToolPrefix());
 
       protein_ids.push_back(protein_id);
 

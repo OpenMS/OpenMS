@@ -272,6 +272,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.521669695431" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.521669695431" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="7804704400743266335"/>
@@ -377,6 +382,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="110.518576418592" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="110.518576418592" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="3332699010107892018"/>
@@ -408,6 +418,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.10121803348" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.10121803348" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="13440783915218733453"/>
@@ -439,6 +454,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.076169850127" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.076169850127" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="15916652588957785155"/>
@@ -470,6 +490,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.064738306483" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.064738306483" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="15157403601844400700"/>
@@ -501,6 +526,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.101239898016" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.101239898016" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="6408859317243173796"/>
@@ -532,6 +562,11 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.07621143939" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.07621143939" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="474525871221756682"/>
@@ -569,16 +604,16 @@
 		<offset idRef="17749660155506638460_0">31799</offset>
 		<offset idRef="17749660155506638460_1">35395</offset>
 		<offset idRef="7804704400743266335_0">38046</offset>
-		<offset idRef="15004869347769368353_0">48324</offset>
-		<offset idRef="15004869347769368353_1">58242</offset>
-		<offset idRef="3332699010107892018_0">60512</offset>
-		<offset idRef="13440783915218733453_0">67750</offset>
-		<offset idRef="15916652588957785155_0">69899</offset>
-		<offset idRef="15157403601844400700_0">77668</offset>
-		<offset idRef="6408859317243173796_0">79702</offset>
-		<offset idRef="474525871221756682_0">81539</offset>
+		<offset idRef="15004869347769368353_0">48586</offset>
+		<offset idRef="15004869347769368353_1">58504</offset>
+		<offset idRef="3332699010107892018_0">60774</offset>
+		<offset idRef="13440783915218733453_0">68274</offset>
+		<offset idRef="15916652588957785155_0">70684</offset>
+		<offset idRef="15157403601844400700_0">78715</offset>
+		<offset idRef="6408859317243173796_0">81011</offset>
+		<offset idRef="474525871221756682_0">83110</offset>
 	</index>
 </indexList>
-<indexListOffset>83379</indexListOffset>
+<indexListOffset>85211</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

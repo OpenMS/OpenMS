@@ -126,7 +126,7 @@ protected:
     setValidFormats_("in_raw", {"mzML"});
     registerInputFileList_("in_postFDR", "<files>", {}, "FeatureXMLs after FDR filtering", false);
     setValidFormats_("in_postFDR", {"featureXML"});
-    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", true);
+    registerOutputFile_("out", "<file>", "", "Output mzTab with QC information", false);
     setValidFormats_("out", { "mzTab" });
     registerOutputFile_("out_cm", "<file>", "", "ConsensusXML with QC information (as metavalues)", false);
     setValidFormats_("out_cm", { "consensusXML" });
@@ -411,14 +411,19 @@ protected:
       ConsensusXMLFile().store(out_cm, cmap);
     }
 
-    MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
-    MzTabMetaData meta = mztab.getMetaData();
-    qc_tic.addMetaDataMetricsToMzTab(meta);
-    qc_ms2ir.addMetaDataMetricsToMzTab(meta);
-    mztab.setMetaData(meta);
+    String out = getStringOption_("out");
+    if (!out.empty())
+    {
+      MzTab mztab = MzTab::exportConsensusMapToMzTab(cmap, in_cm, true, true, true, true, "QC export from OpenMS");
+      MzTabMetaData meta = mztab.getMetaData();
+      qc_tic.addMetaDataMetricsToMzTab(meta);
+      qc_ms2ir.addMetaDataMetricsToMzTab(meta);
+      mztab.setMetaData(meta);
 
-    MzTabFile mztab_out;
-    mztab_out.store(getStringOption_("out"), mztab);
+      MzTabFile mztab_out;
+      mztab_out.store(out, mztab);
+    }
+
     return EXECUTION_OK;
   }
 

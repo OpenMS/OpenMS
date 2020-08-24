@@ -48,10 +48,10 @@ namespace OpenMS
   /** @brief Representation of a modification
 
       This class represents a modification of a residue. A residue modification
-      has several attributes like the diff formula, a terminal specificity
+      has several attributes like the diff formula, a terminal specificity,
       a mass and maybe an origin which means a specific residue which it can
       be applied to. A residue modification can be represented by its Unimod name
-      identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
+      identifier (Id), e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
       only occurs once in an OpenMS instance stored in the ModificationsDB.
 
       Example: methionine sulfoxide formation by oxidation of methionine
@@ -70,7 +70,7 @@ namespace OpenMS
       be created which will return the initial string through "getFullId()" --
       which will either be "[999]" for internal modifications or ".[999]" for
       N/C-terminal modifications. Please use "isUserDefined" to check for
-      user-defined modifications.
+      user-defined modifications (those without 'Id' but with a 'FullId').
 
   */
   class OPENMS_DLLAPI ResidueModification
@@ -89,7 +89,7 @@ public:
             Protein C-term
             Protein N-term
 
-            This does not describe the amino acids which are valid for a
+            This does not describe which modifications are valid for a
             specific amino acid!
     */
     enum TermSpecificity
@@ -199,7 +199,7 @@ public:
     /// returns the PSI-MOD accession if available
     const String& getPSIMODAccession() const;
 
-    /// sets the full name of the modification
+    /// sets the full name of the modification; must NOT contain the origin (or . for terminals!)
     void setFullName(const String& full_name);
 
     /// returns the full name of the modification
@@ -222,7 +222,7 @@ public:
        @brief Sets the terminal specificity using a name
 
        Valid names: "C-term", "N-term", "none"
-      
+
        @throw Exception::InvalidValue if no valid specificity was given
     */
     void setTermSpecificity(const String& name);
@@ -269,31 +269,31 @@ public:
     /// returns the average mass if set
     double getAverageMass() const;
 
-    /// sets the monoisotopic mass
+    /// sets the monoisotopic mass (this must include the weight of the residue itself!)
     void setMonoMass(double mass);
 
-    /// return the monoisotopic mass, if set
+    /// return the monoisotopic mass, or 0.0 if not set
     double getMonoMass() const;
 
     /// set the difference average mass
     void setDiffAverageMass(double mass);
 
-    /// returns the difference average mass if set
+    /// returns the difference average mass, or 0.0 if not set
     double getDiffAverageMass() const;
 
     /// sets the difference monoisotopic mass
     void setDiffMonoMass(double mass);
 
-    /// returns the diff monoisotopic mass if set
+    /// returns the diff monoisotopic mass, or 0.0 if not set
     double getDiffMonoMass() const;
 
-    /// set the formula
+    /// set the formula (no masses will be changed)
     void setFormula(const String& composition);
 
     /// returns the chemical formula if set
     const String& getFormula() const;
 
-    /// sets diff formula
+    /// sets diff formula (no masses will be changed)
     void setDiffFormula(const EmpiricalFormula& diff_formula);
 
     /// returns the diff formula if one was set
@@ -309,22 +309,22 @@ public:
     const std::set<String>& getSynonyms() const;
 
     /// sets the neutral loss formula
-    void setNeutralLossDiffFormula(const EmpiricalFormula& loss);
+    void setNeutralLossDiffFormulas(const std::vector<EmpiricalFormula>& diff_formulas);
 
     /// returns the neutral loss diff formula (if available)
-    const EmpiricalFormula& getNeutralLossDiffFormula() const;
+    const std::vector<EmpiricalFormula>& getNeutralLossDiffFormulas() const;
 
     /// set the neutral loss mono weight
-    void setNeutralLossMonoMass(double mono_mass);
+    void setNeutralLossMonoMasses(std::vector<double> mono_masses);
 
     /// returns the neutral loss mono weight
-    double getNeutralLossMonoMass() const;
+    std::vector<double> getNeutralLossMonoMasses() const;
 
     /// set the neutral loss average weight
-    void setNeutralLossAverageMass(double average_mass);
+    void setNeutralLossAverageMasses(std::vector<double> average_masses);
 
     /// returns the neutral loss average weight
-    double getNeutralLossAverageMass() const;
+    std::vector<double> getNeutralLossAverageMasses() const;
     //@}
 
     /** @name Predicates
@@ -345,13 +345,64 @@ public:
     /// less operator
     bool operator<(const ResidueModification& modification) const;
 
-    /// creates a new modification from a mass and adds it to ModificationDB
-    /// if not terminal, needs a Residue to be put on.
-    static const ResidueModification* createUnknownFromMassString(const String& mod, double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue = nullptr);
     //@}
 
-protected:
+    /// Creates a new modification from a mass and adds it to ModificationDB.
+    /// If not terminal, needs a Residue to be put on.
 
+    /// @param mod The mass to put between the brackets (might contain +/- at the front)
+    /// @param mass Basically, the same as mod, just as double (since usually both representations are present when calling this function and to avoid overhead??)
+    /// @param delta_mass Is the given mass a delta mass (i.e. does @p mod contain a = or -)?
+    /// @param specificity To which site can this mod be applied?
+    /// @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    /// @return a new or existing mod; registered to ModDB in both cases, so the pointer is non-owning
+    static const ResidueModification* createUnknownFromMassString(const String& mod,
+                                                                  const double mass,
+                                                                  const bool delta_mass,
+                                                                  const TermSpecificity specificity,
+                                                                  const Residue* residue = nullptr);
+
+    /** @brief Merge a set of mods to a given modification (usually the one which is already present, but can be null)
+
+    If only one mod is combined in total, it is not changed to an unknown mod but remains a 'known' mod.
+    If base is already contained in @p addons, it is not added again.
+    
+    All mods given here must have the same term specificity and origin (which might be 'X', i.e. no restriction), otherwise a Precondition exception is thrown.
+
+    If base and addons is empty, a null_ptr is returned.
+
+    @param base An already present mod, can be a nullptr
+    @param addons A set of mods to add on top of the mod. 
+    @param allow_unknown_masses If any input (incl. base) is already an unknown mass, nothing is done
+    @param residue [only required for ANYWHERE term spec] Residue with further information (e.g. residue weights) for the new mod
+    @return A (new custom) mod, which is registered in ModificationsDB if needed.
+    @throws Exception::Precondition if term spec or origins to not match between all given mods
+    **/
+    static const ResidueModification* combineMods(const ResidueModification* base,
+                                                  const std::set<const ResidueModification*>& addons,
+                                                  bool allow_unknown_masses = false,
+                                                  const Residue* residue = nullptr);
+
+    /// Convert to string (incl. origin/terminal), in order of preference:
+    ///  + using the ID, as X(ID), e.g. 'M(Oxidation)' or '.(Acetyl)'
+    ///  + using the FullName
+    ///  + using the delta_mono_mass, e.g. 'M[+15.65]'
+    ///  + using the mono_mass, e.g. 'M[56.23]'
+    ///
+    /// The mono_mass must not be negative (undistinguishable to delta_mono_mass when parsing)
+    String toString() const;
+
+    /// converts the mass to a string with preceeding '+' or '-' sign
+    /// e.g. '-19.34' or '+1.003'
+    static String getDiffMonoMassString(const double diff_mono_mass);
+
+    /// return a string of the form '[+&gt;mass&lt;] (the '+' might be a '-', if mass is negative).
+    static String getDiffMonoMassWithBracket(const double diff_mono_mass);
+
+    /// return a string of the form '[&gt;mass&lt;]
+    static String getMonoMassWithBracket(const double mono_mass);
+
+protected:
     String id_;
 
     String full_id_;
@@ -385,11 +436,10 @@ protected:
 
     std::set<String> synonyms_;
 
-    EmpiricalFormula neutral_loss_diff_formula_;
+    std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
 
-    double neutral_loss_mono_mass_;
+    std::vector<double> neutral_loss_mono_masses_;
 
-    double neutral_loss_average_mass_;
+    std::vector<double> neutral_loss_average_masses_;
   };
 }
-

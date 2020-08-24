@@ -1,11 +1,12 @@
 from Types cimport *
 from libcpp cimport bool
 from libcpp.set cimport set as libcpp_set
+from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
 from EmpiricalFormula cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
-    
+
     cdef cppclass ResidueModification "OpenMS::ResidueModification":
         # wrap-hash:
         #   getFullId().c_str()
@@ -62,13 +63,13 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void addSynonym(const String & synonym) nogil except +
         libcpp_set[ String ] getSynonyms() nogil except +
 
-        void setNeutralLossDiffFormula(EmpiricalFormula & loss) nogil except +
-        EmpiricalFormula getNeutralLossDiffFormula() nogil except +
+        void setNeutralLossDiffFormulas(libcpp_vector[ EmpiricalFormula ] & diff_formulas) nogil except +
+        libcpp_vector[ EmpiricalFormula ] getNeutralLossDiffFormulas() nogil except +
 
-        void setNeutralLossMonoMass(double mono_mass) nogil except +
-        double getNeutralLossMonoMass() nogil except +
-        void setNeutralLossAverageMass(double average_mass) nogil except +
-        double getNeutralLossAverageMass() nogil except +
+        void setNeutralLossMonoMasses(libcpp_vector[ double ] mono_masses) nogil except +
+        libcpp_vector[ double ] getNeutralLossMonoMasses() nogil except +
+        void setNeutralLossAverageMasses(libcpp_vector[ double ] average_masses) nogil except +
+        libcpp_vector[ double ] getNeutralLossAverageMasses() nogil except +
 
         bool hasNeutralLoss() nogil except +
         bool isUserDefined() nogil except +
@@ -105,4 +106,3 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::R
         OLINKED_GLYCOSYLATION
         UNKNOWN
         NUMBER_OF_SOURCE_CLASSIFICATIONS
-

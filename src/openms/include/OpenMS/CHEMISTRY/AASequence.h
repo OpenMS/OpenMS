@@ -39,15 +39,13 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
 
 namespace OpenMS
 {
-
-  // forward declarations
-  class ResidueModification;
 
   /**
       @brief Representation of a peptide/protein sequence

@@ -70,10 +70,12 @@ END_SECTION
 
 String filename = "SerumTest";
 
+File::TempDir temp_dir;
+
 FIAMSDataProcessor fia_processor;
 Param p;
 p.setValue("filename", filename);
-p.setValue("dir_output", String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/")));
+p.setValue("dir_output", temp_dir.getPath());
 p.setValue("resolution", 120000.0);
 p.setValue("polarity", "negative");
 p.setValue("max_mz", 1500);
@@ -169,7 +171,7 @@ START_SECTION((test_run_cached))
     MzTab mztab_output_30;
     fia_processor.run(exp, 30, mztab_output_30);
     String filename_30 = "SerumTest_merged_30.mzML";
-    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_30))), true);
+    TEST_EQUAL(File::exists(temp_dir.getPath() + filename_30), true);
     bool is_cached_after = fia_processor.run(exp, 30, mztab_output_30);
     TEST_EQUAL(is_cached_after, true);
 }
@@ -181,8 +183,8 @@ START_SECTION((test_run_empty))
     String filename_0 = "SerumTest_picked_0.mzML";
     String filename_mztab = "SerumTest_0.mzTab";
     fia_processor.run(exp, 0, mztab_output_0);
-    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_0))), true);
-    TEST_EQUAL(File::exists(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_output/" + filename_mztab))), true);
+    TEST_EQUAL(File::exists(temp_dir.getPath() + filename_0), true);
+    TEST_EQUAL(File::exists(temp_dir.getPath() + filename_mztab), true);
     TEST_EQUAL(mztab_output_0.getPSMSectionRows().size(), 0);
 }
 END_SECTION

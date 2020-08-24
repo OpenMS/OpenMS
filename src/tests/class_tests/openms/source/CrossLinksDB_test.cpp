@@ -270,9 +270,9 @@ END_SECTION
 START_SECTION((bool addModification(ResidueModification* modification)))
 {
   TEST_EQUAL(ptr->has("DSS (C-term)"), false);
-  ResidueModification* modification = new ResidueModification();
+  std::unique_ptr<ResidueModification> modification(new ResidueModification());
   modification->setFullId("DSS (C-term)");
-  ptr->addModification(modification);
+  ptr->addModification(std::move(modification));
   TEST_EQUAL(ptr->has("DSS (C-term)"), true);
 }
 END_SECTION

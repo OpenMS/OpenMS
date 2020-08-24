@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="ECOlL" db_version="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="ECOlL" db_version="Ecoli_K12_TaxID_83333.proteomes.decoy.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="1-3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="SE:Mascot" value="2.2.04"/>
 				<UserParam type="string" name="Mascot:db" value="ECOlL"/>

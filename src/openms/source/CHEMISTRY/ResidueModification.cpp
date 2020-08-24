@@ -37,7 +37,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 
@@ -55,8 +55,8 @@ namespace OpenMS
     mono_mass_(0.0),
     diff_average_mass_(0.0),
     diff_mono_mass_(0.0),
-    neutral_loss_mono_mass_(0.0),
-    neutral_loss_average_mass_(0.0)
+    neutral_loss_mono_masses_(0),
+    neutral_loss_average_masses_(0)
   {
   }
 
@@ -79,9 +79,9 @@ namespace OpenMS
            formula_,
            diff_formula_,
            synonyms_,
-           neutral_loss_diff_formula_,
-           neutral_loss_mono_mass_,
-           neutral_loss_average_mass_
+           neutral_loss_diff_formulas_,
+           neutral_loss_mono_masses_,
+           neutral_loss_average_masses_
     ) < std::tie(
            rhs.id_,
            rhs.full_id_,
@@ -99,9 +99,9 @@ namespace OpenMS
            rhs.formula_,
            rhs.diff_formula_,
            rhs.synonyms_,
-           rhs.neutral_loss_diff_formula_,
-           rhs.neutral_loss_mono_mass_,
-           rhs.neutral_loss_average_mass_
+           rhs.neutral_loss_diff_formulas_,
+           rhs.neutral_loss_mono_masses_,
+           rhs.neutral_loss_average_masses_
     );
   }
 
@@ -124,9 +124,9 @@ namespace OpenMS
            formula_ == rhs.formula_ &&
            diff_formula_ == rhs.diff_formula_ &&
            synonyms_ == rhs.synonyms_ &&
-           neutral_loss_diff_formula_ == rhs.neutral_loss_diff_formula_ &&
-           neutral_loss_mono_mass_ == rhs.neutral_loss_mono_mass_ &&
-           neutral_loss_average_mass_ == rhs.neutral_loss_average_mass_;
+           neutral_loss_diff_formulas_ == rhs.neutral_loss_diff_formulas_ &&
+           neutral_loss_mono_masses_ == rhs.neutral_loss_mono_masses_ &&
+           neutral_loss_average_masses_ == rhs.neutral_loss_average_masses_;
   }
 
   bool ResidueModification::operator!=(const ResidueModification& rhs) const
@@ -531,39 +531,39 @@ namespace OpenMS
     return synonyms_;
   }
 
-  void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula& diff_formula)
+  void ResidueModification::setNeutralLossDiffFormulas(const vector<EmpiricalFormula>& diff_formulas)
   {
-    neutral_loss_diff_formula_ = diff_formula;
+    neutral_loss_diff_formulas_ = diff_formulas;
   }
 
-  const EmpiricalFormula& ResidueModification::getNeutralLossDiffFormula() const
+  const vector<EmpiricalFormula>& ResidueModification::getNeutralLossDiffFormulas() const
   {
-    return neutral_loss_diff_formula_;
+    return neutral_loss_diff_formulas_;
   }
 
-  void ResidueModification::setNeutralLossMonoMass(double mono_mass)
+  void ResidueModification::setNeutralLossMonoMasses(vector<double> mono_masses)
   {
-    neutral_loss_mono_mass_ = mono_mass;
+    neutral_loss_mono_masses_ = mono_masses;
   }
 
-  double ResidueModification::getNeutralLossMonoMass() const
+  vector<double> ResidueModification::getNeutralLossMonoMasses() const
   {
-    return neutral_loss_mono_mass_;
+    return neutral_loss_mono_masses_;
   }
 
-  void ResidueModification::setNeutralLossAverageMass(double average_mass)
+  void ResidueModification::setNeutralLossAverageMasses(vector<double> average_masses)
   {
-    neutral_loss_average_mass_ = average_mass;
+    neutral_loss_average_masses_ = average_masses;
   }
 
-  double ResidueModification::getNeutralLossAverageMass() const
+  vector<double> ResidueModification::getNeutralLossAverageMasses() const
   {
-    return neutral_loss_average_mass_;
+    return neutral_loss_average_masses_;
   }
 
   bool ResidueModification::hasNeutralLoss() const
   {
-    return !neutral_loss_diff_formula_.isEmpty() && !neutral_loss_diff_formula_.isCharged();
+    return !neutral_loss_diff_formulas_.empty() && !neutral_loss_diff_formulas_[0].isCharged();
   }
 
   bool ResidueModification::isUserDefined() const
@@ -571,7 +571,11 @@ namespace OpenMS
     return id_.empty() && !full_id_.empty();
   }
 
-  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod, double mass, bool delta_mass, TermSpecificity specificity, const Residue* residue)
+  const ResidueModification* ResidueModification::createUnknownFromMassString(const String& mod,
+                                                                              const double mass,
+                                                                              const bool delta_mass,
+                                                                              const TermSpecificity specificity,
+                                                                              const Residue* residue)
   {
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
@@ -583,19 +587,19 @@ namespace OpenMS
     // for its calculation of C/N-terminal modification mass and it uses
     // getMonoWeight(Residue::Internal) for each Residue. The Residue weight is
     // set when adding a modification using setModification_
-    if (specificity == ResidueModification::N_TERM)
+    if (specificity == ResidueModification::N_TERM || specificity == ResidueModification::PROTEIN_N_TERM)
     {
-      String residue_name = ".[" + mod + "]";
-      String residue_id = ".n[" + mod + "]";
+      String residue_name = "[" + mod + "]";
+      String residue_id = ".n" + residue_name;
 
       // Check if it already exists, if not create new modification, transfer
       // ownership to ModDB
       if (!mod_db->has(residue_id))
       {
-        auto new_mod = new ResidueModification();
+        unique_ptr<ResidueModification> new_mod(new ResidueModification);
         new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(residue_name); // display name
-        new_mod->setTermSpecificity(ResidueModification::N_TERM);
+        new_mod->setTermSpecificity(specificity);
 
         // set masses
         if (delta_mass)
@@ -610,9 +614,8 @@ namespace OpenMS
           // new_mod->setAverageMass(mass);
           new_mod->setDiffMonoMass(mass - Residue::getInternalToNTerm().getMonoWeight());
         }
-
-        mod_db->addModification(new_mod);
-        return new_mod;
+     
+        return mod_db->addModification(std::move(new_mod));
       }
       else
       {
@@ -621,19 +624,19 @@ namespace OpenMS
       }
     }
     else
-      if (specificity == ResidueModification::C_TERM)
+      if (specificity == ResidueModification::C_TERM || specificity == ResidueModification::PROTEIN_C_TERM)
       {
-        String residue_name = ".[" + mod + "]";
-        String residue_id = ".c[" + mod + "]";
+        String residue_name = "[" + mod + "]";
+        String residue_id = ".c" + residue_name;
 
         // Check if it already exists, if not create new modification, transfer
         // ownership to ModDB
         if (!mod_db->has(residue_id))
         {
-          auto new_mod = new ResidueModification();
+          unique_ptr<ResidueModification> new_mod(new ResidueModification);
           new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
           new_mod->setFullName(residue_name); // display name
-          new_mod->setTermSpecificity(ResidueModification::C_TERM);
+          new_mod->setTermSpecificity(specificity);
 
           // set masses
           if (delta_mass)
@@ -649,8 +652,7 @@ namespace OpenMS
             new_mod->setDiffMonoMass(mass - Residue::getInternalToCTerm().getMonoWeight());
           }
 
-          mod_db->addModification(new_mod);
-          return new_mod;
+          return mod_db->addModification(std::move(new_mod));
         }
         else
         {
@@ -664,14 +666,14 @@ namespace OpenMS
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create non-terminal mod without origin AA residue.", "nullptr");
         }
-        String residue_name = String(residue->getOneLetterCode()) + "[" + mod + "]"; // e.g. N[12345.6]
         String modification_name = "[" + mod + "]";
+        String residue_id = String(residue->getOneLetterCode()) + modification_name; // e.g. N[12345.6]
 
-        if (!mod_db->has(residue_name))
+        if (!mod_db->has(residue_id))
         {
           // create new modification
-          auto new_mod = new ResidueModification();
-          new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+          unique_ptr<ResidueModification> new_mod(new ResidueModification);
+          new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
           new_mod->setFullName(modification_name); // display name
 
           // We will set origin to make sure the same modification will be used
@@ -691,14 +693,136 @@ namespace OpenMS
             new_mod->setAverageMass(mass);
             new_mod->setDiffMonoMass(mass - residue->getMonoWeight());
           }
-          mod_db->addModification(new_mod);
-          return new_mod;
+
+          return mod_db->addModification(std::move(new_mod));
         }
         else
         {
-          Size mod_idx = mod_db->findModificationIndex(residue_name);
+          Size mod_idx = mod_db->findModificationIndex(residue_id);
           return mod_db->getModification(mod_idx);
         }
       }
   }
+  
+  const ResidueModification* ResidueModification::combineMods(const ResidueModification* base, 
+                                                              const std::set<const ResidueModification*>& addons, 
+                                                              bool allow_unknown_masses,
+                                                              const Residue* residue)
+  {
+    if (addons.empty() && base == nullptr)
+    {
+      return nullptr;
+    }
+    if (base != nullptr && base->isUserDefined() && !allow_unknown_masses)
+    { // do not apply anything to an already merged mod
+      OPENMS_LOG_INFO << "Note: Invalid merge operation on already merged/user-defined modification!\n";
+      return base;
+    }
+    
+    const ResidueModification* mod_merged = base;
+
+    std::set<const ResidueModification*>::const_iterator it_addon = addons.begin();
+
+    if (base == nullptr) // base is empty
+    {
+      mod_merged = *it_addon;
+      ++it_addon; // start adding at the second element
+    }
+    if (it_addon == addons.end()) return mod_merged; // only one mod in total given
+    
+    // compute combined mass ...    
+    double new_mass{ mod_merged->getDiffMonoMass() };
+    for (const auto& mod_new : addons)
+    { // build a new mod, combining the existing and the new one
+      if (mod_merged->getTermSpecificity() != mod_new->getTermSpecificity())
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modifications to be merged to not have the same term specificity: " + mod_merged->getTermSpecificityName() + " != " + mod_new->getTermSpecificityName());
+      }
+      if (mod_merged->getOrigin() != mod_new->getOrigin())
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modifications to be merged to not have the same origin: ") + mod_merged->getOrigin() + " != " + mod_new->getOrigin());
+      }
+      new_mass += mod_new->getDiffMonoMass();
+    }
+
+    // sanity check: mods and residue need same origin
+    if (mod_merged->getTermSpecificity() == ANYWHERE && residue != nullptr && residue->getOneLetterCode()[0] != mod_merged->getOrigin())
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Modification and residue do not have the same origin: ") + mod_merged->getOrigin() + " != " + residue->getOneLetterCode());
+    }
+    // create new residue from it
+    const ResidueModification* mod_sum =
+      ResidueModification::createUnknownFromMassString(getDiffMonoMassString(new_mass),
+                                                       new_mass,
+                                                       true,
+                                                       mod_merged->getTermSpecificity(),
+                                                       residue);
+
+    return mod_sum;
+  }
+
+  String ResidueModification::toString() const
+  {
+    String ret;
+
+    if (term_spec_ != ANYWHERE) ret = ".";
+    else ret = origin_;
+
+    if (!id_.empty())
+    {
+      ret.reserve(id_.size() + 3);
+      ret += "(";
+      ret += id_;
+      ret += ")";
+      return ret;
+    }
+    
+    if (!getFullName().empty())
+    { // using this is questionable ... it will not work for default mods (which do have id_ defined, so this case will never happen... but still)
+      ret += getFullName();
+      return ret;
+    }
+    
+    if (isUserDefined()) // id_ empty but full_id_ is present
+    { // user-defined modification
+      if (diff_mono_mass_ != 0.0)
+      {
+        ret += getDiffMonoMassWithBracket(diff_mono_mass_);
+      }
+      else if (mono_mass_ != 0.0)
+      {
+        ret += getMonoMassWithBracket(mono_mass_);
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue has an invalid user-defined modification. This is a bug. Please report it!", "");
+      }
+      return ret;
+    }
+
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ResidueModification is in an invalid state. This is a bug. Please report it!", "");
+  }
+  String ResidueModification::getDiffMonoMassString(const double diff_mono_mass)
+  {
+    return String(diff_mono_mass < 0.0 ? "-" : "+") += std::abs(diff_mono_mass);
+  }
+  String ResidueModification::getDiffMonoMassWithBracket(const double diff_mono_mass)
+  {
+    String ret = '[';
+    ret += getDiffMonoMassString(diff_mono_mass);
+    ret += ']';
+    return ret;
+  }
+  String ResidueModification::getMonoMassWithBracket(const double mono_mass)
+  {
+    if (mono_mass < 0.0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification has negative mono mass. Cannot distinguish between delta masses due to '-'!", String(mono_mass));
+    }
+    String ret = '[';
+    ret += mono_mass;
+    ret += ']';
+    return ret;
+  }
+  
 }

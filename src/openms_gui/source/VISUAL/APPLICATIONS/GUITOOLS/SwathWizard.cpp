@@ -37,10 +37,27 @@
 
   @brief An assistant for Swath analysis.
 
-  ...
+  The Wizard takes the user through the whole analysis pipeline for SWATH proteomics data analysis, 
+  i.e. the @ref TOPP_OpenSwath workflow, including downstream tools such
+  as <a href="https://github.com/PyProphet/pyprophet" target="_blank">pyProphet</a> and
+  the <a href="https://github.com/msproteomicstools/msproteomicstools" target="_blank">TRIC alignment</a> tool.
+  
+  Since the downstream tools require Python and the respective modules, the Wizard will check their proper
+  installation status and warn the user if a component is missing.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_SwathWizard.cli
+  Users can enter the required input data (mzML MS/MS data, configuration files) in dedicated fields, usually by drag'n'droping files from the
+  operating systems' file explorer (Explorer, Nautilus, Finder...).
+  The output of the Wizard is both the intermediate files from OpenSWATH and the tab-separated table format (.tsv) from TRIC.
+    
+  
+  A recommended test data for the Wizard is the
+  <a href="https://db.systemsbiology.net/sbeams/cgi/PeptideAtlas/PASS_View?identifier=PASS00779" target="_blank">PASS00779</a>
+  dataset.
+
+
+
+  @image html SwathWizard.png
+
 */
 
 //QT
