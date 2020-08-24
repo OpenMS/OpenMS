@@ -134,12 +134,16 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file from peptide search with combined database with added de novo peptide. PeptideIndexer is needed, FDR is forbidden.");
+    registerInputFile_("in_id", "<file>", "", "Input idXML file from a peptide identification search with the database you wish to test. PeptideIndexer is needed, FDR is forbidden.");
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides (unfiltered)");
     setValidFormats_("in_novo", { "idXML" });
+    registerInputFile_("database", "<file>", "", "Input FASTA file used for the peptide identification (with decoys)");
+    setValidFormats_("database", { "FASTA" });
+    registerInputFile_("novo_database", "<file>", "", "Input deNovo sequences derived from MzML given in 'in_spec' concatenated to one FASTA entry (with decoy)");
+    setValidFormats_("novo_database", { "FASTA" });
     registerOutputFile_("out", "<file>", "", "Optional tsv output containing database suitability information as well as spectral quality.", false);
     setValidFormats_("out", { "tsv" });
     registerDoubleOption_("cut_off_fract", "<double>", 1, "Percentile to determine which decoy cut-off to use. '1' use the highest cut-off to '0' use the lowest one.", false, true);
@@ -160,6 +164,8 @@ protected:
     String in_id = getStringOption_("in_id");
     String in_spec = getStringOption_("in_spec");
     String in_novo = getStringOption_("in_novo");
+    String db = getStringOption_("database");
+    String novo_db = getStringOption_("novo_database");
     String out = getStringOption_("out");
     double cut_off_fract = getDoubleOption_("cut_off_fract");
     double FDR = getDoubleOption_("FDR");
@@ -181,9 +187,21 @@ protected:
     vector<PeptideIdentification> pep_ids;
     x.load(in_id, prot_ids, pep_ids);
 
+    if (prot_ids.empty())
+    {
+      OPENMS_LOG_ERROR << "No ProteinIdentifications found in idXML given in 'in_id'. Aborting!" << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
     vector<ProteinIdentification> novo_prots;
     vector<PeptideIdentification> novo_peps;
     x.load(in_novo, novo_prots, novo_peps);
+
+    vector<FASTAFile::FASTAEntry> database;
+    FASTAFile::load(db, database);
+
+    vector<FASTAFile::FASTAEntry> novo_database;
+    FASTAFile::load(novo_db, novo_database);
 
     //-------------------------------------------------------------
     // calculations
@@ -212,7 +230,7 @@ protected:
     p.setValue("cut_off_fract", cut_off_fract);
     p.setValue("FDR", FDR);
     s.setParameters(p);
-    s.compute(pep_ids);
+    s.compute(pep_ids, exp, database, novo_database, prot_ids[0].getSearchParameters());
 
     DBSuitability::SuitabilityData suit = s.getResults()[0];
 
@@ -222,8 +240,10 @@ protected:
 
     OPENMS_LOG_INFO << suit.num_top_db << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were found in the database." << endl;
     OPENMS_LOG_INFO << suit.num_top_novo << " / " << (suit.num_top_db + suit.num_top_novo) << " top hits were only found in the concatenated de novo peptide." << endl;
+    OPENMS_LOG_INFO << suit.num_top_novo_corr << " top deNovo hits after correction." << endl;
     OPENMS_LOG_INFO << suit.num_interest << " times scored a de novo hit above a database hit. Of those times " << suit.num_re_ranked << " top de novo hits where re-ranked." << endl;
-    OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl << endl;
+    OPENMS_LOG_INFO << "database suitability [0, 1]: " << suit.suitability << endl;
+    OPENMS_LOG_INFO << "database suitability after correction: " << suit.suitability_corr << endl << endl;
     OPENMS_LOG_INFO << unique_novo.size() << " / " << spectral_quality.num_peptide_identification << " de novo sequences are unique" << endl;
     OPENMS_LOG_INFO << spectral_quality.num_ms2_spectra << " ms2 spectra found" << endl;
     OPENMS_LOG_INFO << "spectral quality (id rate of de novo sequences) [0, 1]: " << spectral_quality.identification_rate << endl << endl;
@@ -242,7 +262,9 @@ protected:
       os << "key\tvalue\n";
       os << "#top_db_hits\t" << suit.num_top_db << "\n";
       os << "#top_novo_hits\t" << suit.num_top_novo << "\n";
+      os << "#corrected_novo_hits\t" << suit.num_top_novo_corr << "\n";
       os << "db_suitability\t" << suit.suitability << "\n";
+      os << "corrected_suitability\t" << suit.suitability_corr << "\n";
       os << "#total_novo_seqs\t" << spectral_quality.num_peptide_identification << "\n";
       os << "#unique_novo_seqs\t" << unique_novo.size() << "\n";
       os << "#ms2_spectra\t" << spectral_quality.num_ms2_spectra << "\n";
