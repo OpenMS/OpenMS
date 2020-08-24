@@ -324,7 +324,7 @@ protected:
   {
     if (return_code != EXECUTION_OK)
     {
-      LOG_ERROR << "\n" << tde_.text_fail << "\n";
+      OPENMS_LOG_ERROR << "\n" << tde_.text_fail << "\n";
     }
     return return_code;
   }
@@ -369,7 +369,7 @@ protected:
         String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
         if (in.empty() || in == "[]") // any required parameter should have a value
         {
-          LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
+          OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
         else if ((it->tags).count("input file") > 0) // any required input file should exist
@@ -384,14 +384,14 @@ protected:
               ifs = it->value;
               break;
             default:
-              LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
+              OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
               return wrapExit(ILLEGAL_PARAMETERS);
           }
           for (StringList::const_iterator itf = ifs.begin(); itf != ifs.end(); ++itf)
           {
             if (!File::exists(*itf))
             {
-              LOG_ERROR << "Input file '" << *itf << "' does not exist! Aborting ...";
+              OPENMS_LOG_ERROR << "Input file '" << *itf << "' does not exist! Aborting ...";
               return wrapExit(INPUT_FILE_NOT_FOUND);
             }
           }
@@ -410,18 +410,18 @@ protected:
       }
     }
 
-    LOG_INFO << tde_.text_startup << "\n";
+    OPENMS_LOG_INFO << tde_.text_startup << "\n";
 
     String command_args = tde_.commandline;
     // check for double spaces and warn
     if (command_args.hasSubstring("  "))
     {
-      LOG_WARN << "Command line contains double spaces, which is not allowed. Condensing...\n";
+      OPENMS_LOG_WARN << "Command line contains double spaces, which is not allowed. Condensing...\n";
       while (command_args.hasSubstring("  "))
       {
         command_args.substitute("  ", " ");
       }
-      LOG_WARN << "result: " << command_args << std::endl;
+      OPENMS_LOG_WARN << "result: " << command_args << std::endl;
     }
 
     writeDebug_("CommandLine from ttd (unprocessed): " + command_args, 1);
@@ -447,7 +447,7 @@ protected:
       {
         if (!File::remove(tmp_location))
         {
-          LOG_ERROR << "While writing a tmp file: Cannot remove conflicting file '" + tmp_location + "'. Check permissions! Aborting ...";
+          OPENMS_LOG_ERROR << "While writing a tmp file: Cannot remove conflicting file '" + tmp_location + "'. Check permissions! Aborting ...";
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
@@ -456,7 +456,7 @@ protected:
       bool move_ok = QFile::copy(target_file.toQString(), tmp_location.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Copying the target file '" + tmp_location + "' from '" + target_file + "' failed! Aborting ...";
+        OPENMS_LOG_ERROR << "Copying the target file '" + tmp_location + "' from '" + target_file + "' failed! Aborting ...";
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
       // set the input file's value to the temp file
@@ -492,12 +492,12 @@ protected:
 
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)
     {
-      LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
-      LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
+      OPENMS_LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
+      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
       return wrapExit(EXTERNAL_PROGRAM_ERROR);
     }
 
-    LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
+    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
 
 
     // post processing (file moving via 'file_post' command)
@@ -516,7 +516,7 @@ protected:
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
       {
-        LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
+        OPENMS_LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
         continue;
       }
       // check if the target exists already (should not; if yes, delete it before overwriting it)
@@ -524,7 +524,7 @@ protected:
       {
         if (!File::remove(target_file))
         {
-          LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ..." << std::endl;
+          OPENMS_LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
@@ -532,7 +532,7 @@ protected:
       writeDebug_(String("<file_post>: moving '") + source_file + "' to '" + target_file + "'", 1);
       if (!File::exists(source_file))
       {
-        LOG_ERROR << "Moving the source file '" + source_file + "' during <file_post> failed, since it does not exist!\n"
+        OPENMS_LOG_ERROR << "Moving the source file '" + source_file + "' during <file_post> failed, since it does not exist!\n"
                   << "Make sure the external program created the file and its filename is either\n"
                   << "unique or you only run one GenericWrapper at a time to avoid overwriting of files!\n"
                   << "Ideally, (if the external program allows to specify output filenames directly) avoid <file_post>\n"
@@ -542,13 +542,13 @@ protected:
       bool move_ok = QFile::rename(source_file.toQString(), target_file.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"
+        OPENMS_LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"
                   << "This file exists, but is either currently open for writing or otherwise blocked (concurrent process?). Aborting ..." << std::endl;
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
     }
 
-    LOG_INFO << tde_.text_finish << "\n";
+    OPENMS_LOG_INFO << tde_.text_finish << "\n";
 
     return wrapExit(EXECUTION_OK);
   }

@@ -162,17 +162,18 @@ namespace OpenMS
           warning(LOAD, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
         }
         AASequence pep = actual_peptide_hit_.getSequence();
-        if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::N_TERM)
+        auto mod = *(mods_map_[actual_mod_type_.toInt()].begin());
+        if (mod->getTermSpecificity() == ResidueModification::N_TERM)
         {
-          pep.setNTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setNTerminalModification(mod->getFullId());
         }
-        else if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::C_TERM)
+        else if (mod->getTermSpecificity() == ResidueModification::C_TERM)
         {
-          pep.setCTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setCTerminalModification(mod->getFullId());
         }
         else
         {
-          pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setModification(actual_mod_site_, mod->getFullId());
         }
         actual_peptide_hit_.setSequence(pep);
       }
@@ -282,7 +283,7 @@ namespace OpenMS
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
         for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
         {
-          String origin = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+          String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
           UInt position(0);
           for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
           {
@@ -391,15 +392,15 @@ namespace OpenMS
         {
           fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
         }
-        vector<ResidueModification> mods;
+        vector<const ResidueModification*> mods;
         for (Size i = 2; i != split.size(); ++i)
         {
           String tmp(split[i].trim());
           if (!tmp.empty())
           {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(tmp);
+            const ResidueModification* mod = ModificationsDB::getInstance()->getModification(tmp);
             mods.push_back(mod);
-            mods_to_num_[mod.getFullId()] = omssa_mod_num;
+            mods_to_num_[mod->getFullId()] = omssa_mod_num;
           }
         }
         mods_map_[omssa_mod_num] = mods;

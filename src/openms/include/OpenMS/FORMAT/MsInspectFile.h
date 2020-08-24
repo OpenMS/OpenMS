@@ -146,7 +146,7 @@ public:
           column_to_convert = 16;
           f.setMetaValue("sumSquaresDist", parts[16].toDouble());
         }
-        catch (Exception::BaseException /*&e*/)
+        catch ( Exception::BaseException& )
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + String((it - input.begin()) + 1) + ")");
         }

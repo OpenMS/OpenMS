@@ -71,9 +71,9 @@ namespace OpenMS
           {
             OpenMS::String inchikey2D;
             OpenMS::String inchi;
-            unsigned int rank;
+            unsigned int rank = 0;
             OpenMS::String molecular_formula;
-            double score;
+            double score = 0.;
             OpenMS::String name;
             OpenMS::String smiles;
             std::vector<String> pubchemids;
@@ -83,8 +83,11 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
-            int scan_index;
-            int scan_number;
+            double mz = 0.;
+            double rt = 0.;
+            OpenMS::String native_id;
+            int scan_index = -1;
+            int scan_number = -1;
             OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };

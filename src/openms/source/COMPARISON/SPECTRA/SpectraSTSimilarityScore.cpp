@@ -91,13 +91,15 @@ namespace OpenMS
                                             Size min_peak_number,
                                             Size max_peak_number)
   {
-    spec.sortByIntensity(true);
-    double min_high_intensity = 0;
+    double min_high_intensity = 0.;
     if (!spec.empty())
     {
-      min_high_intensity = (1 / cut_peaks_below) * spec[0].getIntensity();
+      double max_el = std::max_element(spec.begin(),spec.end(),Peak1D::IntensityLess())->getIntensity();
+      min_high_intensity = (1.0 / cut_peaks_below) * max_el;
     }
+
     spec.sortByPosition();
+
     PeakSpectrum tmp;
     Size s = 0;
     for (PeakSpectrum::iterator k = spec.begin(); k < spec.end() && s < max_peak_number; ++k, ++s)
@@ -129,7 +131,7 @@ namespace OpenMS
   {
     double numerator = (bin1.getBins().cwiseProduct(bin2.getBins())).norm();
     
-    if (dot_product)
+    if (dot_product != 0)
     {
       return (double)numerator / dot_product;
     }

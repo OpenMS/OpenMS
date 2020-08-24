@@ -102,6 +102,7 @@ namespace OpenMS
       MRM,                ///< SpectraST MRM List
       SQMASS,             ///< SqLite format for mass and chromatograms
       PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      MS,                 ///< SIRIUS file format (.ms)
       OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
       PSMS,               ///< Percolator tab-delimited output (PSM level)
       PIN,                ///< Percolator tab-delimited input (PSM level)
@@ -110,6 +111,7 @@ namespace OpenMS
       NOVOR,              ///< Novor custom parameter file
       XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       JSON,               ///< JavaScript Object Notation file (.json)
+      RAW,                ///< Thermo Raw File (.raw)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

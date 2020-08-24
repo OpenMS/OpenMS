@@ -137,7 +137,7 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
   pl2s = fourplex_fractionated_design.getPathLabelToSampleMapping(true);
   TEST_EQUAL(pl2s.size(), 24);
-  for (auto i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
+  for (const auto& i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
 }
 END_SECTION
 
@@ -146,12 +146,12 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   // 12 quant. values from label-free, unfractionated files map to fraction 1 each
   std::map< std::pair< String, unsigned >, unsigned > pl2f = labelfree_unfractionated_design.getPathLabelToFractionMapping(true);
   TEST_EQUAL(pl2f.size(), 12);
-  for (auto i : pl2f) { TEST_EQUAL(i.second, 1); }
+  for (const auto& i : pl2f) { TEST_EQUAL(i.second, 1); }
 
   // 24 quant. values map to fractions 1..3
   pl2f = fourplex_fractionated_design.getPathLabelToFractionMapping(true);
   TEST_EQUAL(pl2f.size(), 24);
-  for (auto i : pl2f) { TEST_EQUAL((i.second >=1 && i.second <=3), true)}
+  for (const auto& i : pl2f) { TEST_EQUAL((i.second >=1 && i.second <=3), true)}
 }
 END_SECTION
 
@@ -161,11 +161,11 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   std::map< std::pair< String, unsigned >, unsigned > pl2fg = labelfree_unfractionated_design.getPathLabelToFractionGroupMapping(true);
   TEST_EQUAL(pl2fg.size(), 12);
   int count = 1;
-  for (auto i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
+  for (const auto& i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
 
   pl2fg = fourplex_fractionated_design.getPathLabelToFractionGroupMapping(true);
   TEST_EQUAL(pl2fg.size(), 24);
-  for (auto i : pl2fg) 
+  for (const auto& i : pl2fg) 
   {
     // extract fraction group from file name
     int file(1); 

@@ -102,7 +102,7 @@ namespace OpenMS
     double sum2(0);
     for (auto const & p : s2) { sum2 += pow(p.getIntensity(), 2); }
 
-    for (auto const ap : alignment)
+    for (auto const & ap : alignment)
     {
       const double mz_tolerance = is_relative_tolerance ? tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance;
       const double mz_difference(fabs(s1[ap.first].getMZ() - s2[ap.second].getMZ()));

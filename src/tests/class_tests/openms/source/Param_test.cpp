@@ -831,19 +831,19 @@ END_SECTION
 
 START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream& os, const Param& param)))
 	Param p;
-	p.setValue("key",17.4);
+	p.setValue("key", 17.5);
 	stringstream ss;
 	ss << p;
-	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\"\n")
+	TEST_EQUAL(ss.str(), "\"key\" -> \"17.5\"\n")
 
 	ss.str("");
-	p.setValue("key",17.4, "thiskey");
+	p.setValue("key", 17.5, "thiskey");
 	ss<<p;
-	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\" (thiskey)\n")
+	TEST_EQUAL(ss.str(), "\"key\" -> \"17.5\" (thiskey)\n")
 
 	ss.str("");
 	p.clear();
-	p.setValue("tree:key",17.5);
+	p.setValue("tree:key", 17.5);
 	ss<<p;
 	TEST_EQUAL(ss.str(), "\"tree|key\" -> \"17.5\"\n")
 END_SECTION
@@ -1589,7 +1589,7 @@ END_SECTION
 // keep outside the scope of a single test to avoid destruction, leaving
 // Log_warn in an undefined state
 ostringstream os;
-// checkDefaults sends its warnings to LOG_WARN so we register our own
+// checkDefaults sends its warnings to OPENMS_LOG_WARN so we register our own
 // listener here to check the output
 Log_warn.remove(cout);
 Log_warn.insert(os);

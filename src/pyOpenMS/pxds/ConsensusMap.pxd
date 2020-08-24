@@ -12,12 +12,16 @@ from DataProcessing cimport *
 from Types cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
+from MetaInfoInterface cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
 
-    cdef cppclass ColumnHeader:
+    cdef cppclass ColumnHeader(MetaInfoInterface):
+        # wrap-inherits:
+        #   MetaInfoInterface
+
         String filename
         String label
         Size size
@@ -33,12 +37,13 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2, MetaInfoInterface):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
         #   RangeManager2
+        #   MetaInfoInterface
         #
         # wrap-doc:
         #   A container for consensus elements.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -173,6 +173,7 @@ protected:
                       const bool force,
                       const bool sort_swath_maps,
                       const bool sonar,
+                      const bool prm,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
@@ -186,7 +187,7 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i
+      OPENMS_LOG_DEBUG << "Found swath map " << i
         << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper
         << " and " << swath_maps[i].sptr->getNrSpectra()
@@ -209,14 +210,16 @@ protected:
     {
       double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
       double upper_map_start = sw_windows[i].first;
-      LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
+      OPENMS_LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
+
+      if (prm) {continue;} // skip next step as expect them to overlap and have gaps...
 
       if (upper_map_start - lower_map_end > 0.01)
       {
-        LOG_WARN << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
+        OPENMS_LOG_WARN << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
         if (!force)
         {
-          LOG_ERROR << "Extraction windows have a gap. Will abort (override with -force)" << std::endl;
+          OPENMS_LOG_ERROR << "Extraction windows have a gap. Will abort (override with -force)" << std::endl;
           return false;
         }
       }
@@ -225,13 +228,13 @@ protected:
 
       if (lower_map_end - upper_map_start > 0.01)
       {
-        LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
+        OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                  << "This will lead to multiple extraction of the transitions in the overlapping region "
                  << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
                  << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
-          LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
+          OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
           return false;
         }
       }
@@ -259,7 +262,8 @@ protected:
   {
     if (!out_chrom.empty())
     {
-      if (out_chrom.hasSuffix(".sqMass"))
+      String tmp = out_chrom;
+      if (tmp.toLower().hasSuffix(".sqmass"))
       {
         bool full_meta = false; // can lead to very large files in memory
         bool lossy_compression = true;
@@ -337,7 +341,7 @@ protected:
     }
     else
     {
-      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      OPENMS_LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Need to provide valid input file.");
     }
     return transition_exp;

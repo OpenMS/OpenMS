@@ -35,7 +35,11 @@
 #pragma once
 
 #include <vector>
+#include <functional>
+#include <set>
+#include <map>
 
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -55,6 +59,29 @@ namespace OpenMS
   {
 public:
     static const double COVERAGE_UNKNOWN; // == -1
+
+    /// @name Hashes for ProteinHit
+    //@{
+    /// Hash of a ProteinHit based on its accession only!
+    class OPENMS_DLLAPI ProteinHitAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit & p)
+      {
+        return std::hash<std::string>{}(p.getAccession());
+      }
+
+    };
+    class OPENMS_DLLAPI ProteinHitPtrAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit * p)
+      {
+        return std::hash<std::string>{}(p->getAccession());
+      }
+
+    };
+    //@}
 
     /// @name Comparators ProteinHit
     //@{
@@ -110,10 +137,8 @@ public:
     ProteinHit(const ProteinHit &) = default;
 
     /// Move constructor
-    ProteinHit(ProteinHit&&) noexcept = default;
+    ProteinHit(ProteinHit&&) = default;
 
-    /// Destructor
-    virtual ~ProteinHit();
     //@}
 
     /// Assignment operator
@@ -171,6 +196,11 @@ public:
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);
 
+    /// returns the set of modified protein positions
+    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
+
+    /// sets the set of modified protein positions
+    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
     //@}
 
 protected:
@@ -179,7 +209,7 @@ protected:
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-
+    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
   };
 
 } // namespace OpenMS

@@ -139,7 +139,7 @@ namespace OpenMS
     
 #ifdef DEBUG
     // clock for monitoring run time performance
-    LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
+    OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
 #endif
 
     endProgress();

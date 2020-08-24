@@ -89,107 +89,11 @@ public:
       @param peptide_ids PeptideIdentification for the MSExperiment
       @param protein_ids ProteinIdentification for the MSExperiment
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
-      @param mapMS1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+      @param map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
-    {
-      checkHits_(peptide_ids);
-
-      if (clear_ids)
-      { // start with empty IDs
-        std::vector<PeptideIdentification> empty_ids;
-        for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
-        {
-          it->setPeptideIdentifications(empty_ids);
-        }
-        std::vector<ProteinIdentification> empty_prot_ids;
-        map.setProteinIdentifications(empty_prot_ids);
-      }
-
-      if (peptide_ids.empty()) return;
-
-      // append protein identifications
-      map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
-
-      // store mapping of scan RT to index
-      std::multimap<double, Size> experiment_precursors;
-      for (Size i = 0; i < map.size(); i++)
-      {
-        experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
-      }
-
-      // store mapping of identification RT to index (ignore empty hits)
-      std::multimap<double, Size> identifications_precursors;
-      for (Size i = 0; i < peptide_ids.size(); ++i)
-      {
-        if (!peptide_ids[i].empty())
-        {
-          identifications_precursors.insert(std::make_pair(peptide_ids[i].getRT(), i));
-        }
-      }
-      // note that mappings are sorted by key via multimap (we rely on that down below)
-
-      // remember which peptides were mapped (for stats later)
-      std::set<Size> peptides_mapped;
-
-      // calculate the actual mapping
-      std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
-      std::multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
-      // to achieve O(n) complexity we now move along the spectra
-      // and for each spectrum we look at the peptide id's with the allowed RT range
-      // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
-      // right end of the old interval to the left end of the new interval
-      while (experiment_iterator != experiment_precursors.end())
-      {
-        // maybe we hit end() of IDs during the last scan .. go back to a real value
-        if (identifications_iterator == identifications_precursors.end())
-        {
-          --identifications_iterator; // this is valid, since we have at least one peptide ID
-        }
-
-        // go to left border of RT interval
-        while (identifications_iterator != identifications_precursors.begin() &&
-               (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
-        {
-          --identifications_iterator;
-        }
-        // ... we might have stepped too far left
-        if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
-        {
-          ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
-        }
-
-        if (identifications_iterator == identifications_precursors.end())
-        { // no more ID's, so we don't have any chance of matching the next spectra
-          break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
-        }
-
-        // run through RT interval
-        while (identifications_iterator != identifications_precursors.end() &&
-               (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
-        {
-          if (mapMS1 || 
-               // testing whether the m/z fits
-               ((!map[experiment_iterator->second].getPrecursors().empty()) && 
-                isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), map[experiment_iterator->second].getPrecursors()[0].getMZ())))
-          {
-            map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
-            peptides_mapped.insert(identifications_iterator->second);
-          }
-          ++identifications_iterator;
-        }
-        // we are the right border now (or likely even beyond)
-        ++experiment_iterator;
-      }
-
-      // some statistics output
-      LOG_INFO << "Peptides assigned to a precursor: " << peptides_mapped.size() << "\n" 
-               << "             Unassigned peptides: " << peptide_ids.size() - peptides_mapped.size() << "\n"
-               << "       Unmapped (empty) peptides: " << peptide_ids.size() - identifications_precursors.size() << std::endl;
-
-    }
+    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for peak maps
@@ -204,28 +108,9 @@ public:
       @param map MSExperiment to receive the identifications
       @param fmap FeatureMap with PeptideIdentifications for the MSExperiment
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
-      @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
-
+      @param map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
     */
-    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
-    {
-      const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
-      std::vector<PeptideIdentification> peptide_ids;
-
-      for (FeatureMap::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
-      {
-        const std::vector<PeptideIdentification>& pi = it->getPeptideIdentifications();
-        for (std::vector<PeptideIdentification>::const_iterator itp = pi.begin(); itp != pi.end(); ++itp)
-        {
-          peptide_ids.push_back(*itp);
-          // if pepID has no m/z or RT, use the values of the feature
-          if (!itp->hasMZ()) peptide_ids.back().setMZ(it->getMZ());
-          if (!itp->hasRT()) peptide_ids.back().setRT(it->getRT());
-        }
-
-      }
-      annotate(map, peptide_ids, protein_ids, clear_ids, mapMS1);
-    }
+    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for feature maps
@@ -241,8 +126,7 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
       @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
-      @param spectra Whether precursors not contained in the identifications are annotated with 
-                     an empty PeptideIdentification object containing the scan index. 
+      @param spectra Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index.
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */

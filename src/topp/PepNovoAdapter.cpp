@@ -364,7 +364,7 @@ class TOPPPepNovoAdapter :
       catch(Exception::BaseException &exc)
       {
         writeLog_(exc.what());
-        LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
+        OPENMS_LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
         error = true;
       }
       

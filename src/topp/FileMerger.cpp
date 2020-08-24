@@ -122,6 +122,8 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
+    registerStringOption_("append_method", "<choice>", "append_rows", "Append consensusMaps rowise or colwise. (Please use colwise for the MSstatsConverter)", false);
+    setValidStrings_("append_method", ListUtils::create<String>("append_rows,append_cols"));
     
     registerTOPPSubsection_("rt_concat", "Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don't overlap in the merged file (traML input not supported)");
     registerDoubleOption_("rt_concat:gap", "<sec>", 0.0, "The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value > 0 is set.", false);
@@ -187,7 +189,13 @@ protected:
 
     // output file names and types
     String out_file = getStringOption_("out");
-
+   
+    // append method
+    bool append_rows = false;
+    bool append_cols = false;
+    String append_method = getStringOption_("append_method");
+    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+   
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");
     vector<String> trafo_out = getStringList_("rt_concat:trafo_out");
@@ -248,34 +256,48 @@ protected:
       // load the metadata from the first file
       fh.load(file_list[0], out);
       // but annotate the origins
-      if (annotate_file_origin)
-      {
-        for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
-        {
-          it->setMetaValue("file_origin", DataValue(file_list[0]));
-        }
-      }
 
-      // skip first file for adding
-      for (Size i = 1; i < file_list.size(); ++i)
-      {
-        ConsensusMap map;
-        fh.load(file_list[i], map);
-
-        if (annotate_file_origin)
-        {
-          for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      if (append_rows) {
+          if (annotate_file_origin)
           {
-            it->setMetaValue("file_origin", DataValue(file_list[i]));
+            for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
+            {
+              it->setMetaValue("file_origin", DataValue(file_list[0]));
+            }
           }
-        }
 
-        if (rt_gap_ > 0.0) // concatenate in RT
-        {
-          adjustRetentionTimes_(map, trafo_out[i], i == 0);
-        }
+          // skip first file for adding
+          for (Size i = 1; i < file_list.size(); ++i)
+          {
+            ConsensusMap map;
+            fh.load(file_list[i], map);
 
-        out.appendRows(map);
+            if (annotate_file_origin)
+            {
+              for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+              {
+                it->setMetaValue("file_origin", DataValue(file_list[i]));
+              }  
+            } 
+
+            if (rt_gap_ > 0.0) // concatenate in RT
+            {  
+              adjustRetentionTimes_(map, trafo_out[i], i == 0);
+            }
+
+            out.appendRows(map);
+          }
+      }
+      
+      if (append_cols)
+      { 
+          // skip first file for adding
+          for (Size i = 1; i < file_list.size(); ++i)
+          {
+            ConsensusMap map;
+            fh.load(file_list[i], map);
+            out.appendColumns(map);
+          }
       }
 
       //-------------------------------------------------------------

@@ -169,7 +169,7 @@ protected:
 
     if (ms_peakmap.size() == 0)
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -227,7 +227,7 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
+        OPENMS_LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
                  << " of total " << split_mtraces.size() 
                  << " were dropped because of too low peak width." << std::endl;
       }
@@ -319,7 +319,7 @@ protected:
       if (stats_sd.size() > 0)
       {
         std::sort(stats_sd.begin(), stats_sd.end());
-        LOG_INFO << "Mass trace m/z s.d.\n"
+        OPENMS_LOG_INFO << "Mass trace m/z s.d.\n"
                  << "    low quartile: " << stats_sd[stats_sd.size() * 1 / 4] << "\n"
                  << "          median: " << stats_sd[stats_sd.size() * 1 / 2] << "\n"
                  << "    upp quartile: " << stats_sd[stats_sd.size() * 3 / 4] << std::endl;

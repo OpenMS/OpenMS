@@ -162,4 +162,23 @@ START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2), test (0);
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto p = ProteaseDB::getInstance();
+    int tmp (0);
+    if (p->hasEnzyme("Trypsin"), true)
+    {
+      tmp++;
+    }
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
+END_SECTION
+
 END_TEST

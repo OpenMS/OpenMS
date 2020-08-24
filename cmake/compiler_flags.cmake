@@ -35,6 +35,14 @@
 #------------------------------------------------------------------------------
 # This cmake file handles all the project specific compiler flags
 
+# allow additional custom compile flags on the cmake command line by using -DMY_CXX_FLAGS="-g -D_GLIBCXX_ASSERTIONS ..."
+# useful for e.g. Release with debug symbols on gcc/clang
+if (MY_CXX_FLAGS)
+  message(STATUS "Adding custom compile flags: '${MY_CXX_FLAGS}'!")
+  add_compile_options(${MY_CXX_FLAGS})
+endif()
+
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_compile_options(-Wall -Wextra 
@@ -88,6 +96,9 @@ elseif (MSVC)
 	
 	## coinor windows.h include bug workaround
 	add_definitions(/DNOMINMAX)
+
+	## hdf5 linkage for windows (in case we want to build dynamically)
+	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")

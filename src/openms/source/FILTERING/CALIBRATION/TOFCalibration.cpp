@@ -136,9 +136,9 @@ namespace OpenMS
       b_ += coeff_quad_fit_[i + 1];
       c_ += coeff_quad_fit_[i + 2];
     }
-    a_ /= (coeff_quad_fit_.size() / 3);
-    b_ /= (coeff_quad_fit_.size() / 3);
-    c_ /= (coeff_quad_fit_.size() / 3);
+    a_ /= static_cast<Size>(coeff_quad_fit_.size() / 3);
+    b_ /= static_cast<Size>(coeff_quad_fit_.size() / 3);
+    c_ /= static_cast<Size>(coeff_quad_fit_.size() / 3);
   }
 
   void TOFCalibration::averageErrors_()
@@ -146,7 +146,7 @@ namespace OpenMS
     for (unsigned int p = 0; p < exp_masses_.size(); ++p)
     {
       // mean
-      if (errors_[exp_masses_[p]].size() > 0)
+      if (!errors_[exp_masses_[p]].empty())
       {
         double sum = 0;
         for (unsigned int i = 0; i < errors_[exp_masses_[p]].size(); ++i)

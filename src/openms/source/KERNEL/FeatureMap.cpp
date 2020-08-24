@@ -174,7 +174,7 @@ namespace OpenMS
     // reset these:
     RangeManagerType::operator=(empty_map);
 
-    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) OPENMS_LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
     DocumentIdentifier::operator=(empty_map);
 
     UniqueIdInterface::operator=(empty_map);
@@ -198,7 +198,7 @@ namespace OpenMS
     catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
     {
       Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
-      LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+      OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
     return *this;
@@ -372,7 +372,7 @@ namespace OpenMS
      
     if (toFill.empty())
     {
-      LOG_WARN << "No MS run annotated in feature map. Setting to 'UNKNOWN' " << std::endl;
+      OPENMS_LOG_WARN << "No MS run annotated in feature map. Setting to 'UNKNOWN' " << std::endl;
       toFill.push_back("UNKNOWN");
     }
   }

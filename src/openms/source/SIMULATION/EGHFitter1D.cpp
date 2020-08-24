@@ -213,11 +213,11 @@ namespace OpenMS
     tau_ = x_init[3];
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Fitter returned \n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Fitter returned \n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
 
     // build model
@@ -322,13 +322,13 @@ namespace OpenMS
     sigma_square_ = (-1 / (2 * log_alpha)) * (B * A);
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Initial parameters\n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "A:            " << A << "\n";
-    LOG_DEBUG << "B:            " << B << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Initial parameters\n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "A:            " << A << "\n";
+    OPENMS_LOG_DEBUG << "B:            " << B << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
   }
 

@@ -192,7 +192,7 @@ protected:
 
     IdXMLFile().store(out, proteins, peptides);
 
-    LOG_INFO << "Successfully switched " << counter << " "
+    OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins ? "protein" : "PSM") << " scores." << endl;
 
     return EXECUTION_OK;

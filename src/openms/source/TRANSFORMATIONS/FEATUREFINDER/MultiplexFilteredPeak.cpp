@@ -91,6 +91,19 @@ namespace OpenMS
     satellites_profile_.insert(std::make_pair(pattern_idx, satellite));
   }
   
+  bool MultiplexFilteredPeak::checkSatellite(size_t rt_idx, size_t mz_idx) const
+  {
+    for (const auto &satellite_it : satellites_)
+    {
+      if (((satellite_it.second).getRTidx() == rt_idx) && ((satellite_it.second).getMZidx() == mz_idx))
+      {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
   const std::multimap<size_t, MultiplexSatelliteCentroided >& MultiplexFilteredPeak::getSatellites() const
   {
     return satellites_;

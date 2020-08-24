@@ -208,6 +208,9 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # true if the residue is contained in the set
         bool isInResidueSet(String residue_set) nogil except +
 
+        # helper for mapping residue types to letters for Text annotations and labels
+        char residueTypeToIonLetter(ResidueType res_type) nogil except +
+
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 
     cdef enum ResidueType:
@@ -229,6 +232,5 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
       BIonMinusNH3,   # MS:1001232 b ion without ammonia
       YIonMinusNH3,   # MS:1001233 y ion without ammonia
       NonIdentified,  # MS:1001240 Non-identified ion
-      Unannotated,    # no stored annotation 
+      Unannotated,    # no stored annotation
       SizeOfResidueType
-

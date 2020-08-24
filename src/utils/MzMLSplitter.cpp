@@ -37,6 +37,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QFile>
+#include <iomanip>
 
 using namespace OpenMS;
 using namespace std;

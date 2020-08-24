@@ -345,7 +345,7 @@ namespace OpenMS
       // Some permutations might be too complex, skip if threshold is reached
       if (alternative_peptide_sequences.size() > max_num_alternative_localizations)
       {
-        LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << peptide.id << std::endl;
+        OPENMS_LOG_DEBUG << "[uis] Peptide skipped (too many permutations possible): " << peptide.id << std::endl;
         continue;
       }
 
@@ -573,14 +573,14 @@ namespace OpenMS
           trn.setNativeID(String(transition_index) + "_" + String("UIS") + "_{" + ListUtils::concatenate(isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(peptide.getRetentionTime()) + "_" + tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(isoforms, "|"));
 
-          LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "[uis] Transition " << trn.getNativeID() << std::endl;
 
           // Append transition
           transitions.push_back(trn);
         }
         transition_index++;
       }
-      LOG_DEBUG << "[uis] Peptide " << peptide.id << std::endl;
+      OPENMS_LOG_DEBUG << "[uis] Peptide " << peptide.id << std::endl;
     }
     endProgress();
   }
@@ -655,7 +655,7 @@ namespace OpenMS
               String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
-          LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
 
           // Check if decoy transition is overlapping with target transition
           std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(
@@ -663,7 +663,7 @@ namespace OpenMS
 
           if (target_isoforms_overlap.size() > 0)
           {
-            LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << std::endl;
+            OPENMS_LOG_DEBUG << "[uis] Skipping overlapping decoy transition " << trn.getNativeID() << std::endl;
             continue;
           }
           else
@@ -745,14 +745,14 @@ namespace OpenMS
         // Skip unannotated transitions from previous step
         if (targetion.first == "unannotated")
         {
-          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
+          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
             << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
             << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
         }
         else
         {
-          LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+          OPENMS_LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
         }
 
         // Set CV terms
@@ -793,7 +793,7 @@ namespace OpenMS
         // Check if transition is unannotated at primary annotation and if yes, skip
         if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
         {
-          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
+          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
             << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
             << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
@@ -805,7 +805,7 @@ namespace OpenMS
       {
         if (MRMAssay::isInSwath_(swathes, tr.getPrecursorMZ(), tr.getProductMZ()))
         {
-          LOG_DEBUG << "[swath] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+          OPENMS_LOG_DEBUG << "[swath] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
           continue;
         }
       }
@@ -813,7 +813,7 @@ namespace OpenMS
       // Check if product m/z is outside of m/z boundaries and if yes, skip
       if (tr.getProductMZ() < lower_mz_limit || tr.getProductMZ() > upper_mz_limit)
       {
-        LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
         continue;
       }
 
@@ -916,7 +916,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "[peptide] Skipping " << peptide.id << std::endl;
+        OPENMS_LOG_DEBUG << "[peptide] Skipping " << peptide.id << std::endl;
       }
     }
 
@@ -931,7 +931,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "[protein] Skipping " << protein.id << std::endl;
+        OPENMS_LOG_DEBUG << "[protein] Skipping " << protein.id << std::endl;
       }
     }
 
@@ -986,6 +986,98 @@ namespace OpenMS
     }
 
     exp.setTransitions(transitions);
+  }
+
+void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
+  {
+    CompoundVectorType compounds;
+    std::vector<String> compound_ids;
+    TransitionVectorType transitions;
+
+    Map<String, TransitionVectorType> TransitionsMap;
+
+    // Generate a map of compounds to transitions for easy access
+    for (Size i = 0; i < exp.getTransitions().size(); ++i)
+    {
+      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+
+      if (TransitionsMap.find(tr.getCompoundRef()) == TransitionsMap.end())
+      {
+        TransitionsMap[tr.getCompoundRef()];
+      }
+
+      TransitionsMap[tr.getCompoundRef()].push_back(tr);
+    }
+
+    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+         m != TransitionsMap.end(); ++m)
+    {
+      // Ensure that all precursors have the minimum number of transitions
+      if (m->second.size() >= (Size)min_transitions)
+      {
+        // LibraryIntensity stores all reference transition intensities of a precursor
+        std::vector<double> LibraryIntensity;
+        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        {
+          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+        }
+
+        // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
+        std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
+        std::reverse(LibraryIntensity.begin(), LibraryIntensity.end());
+        if ((Size)max_transitions < LibraryIntensity.size())
+        {
+          std::vector<double>::iterator start_delete = LibraryIntensity.begin();
+          std::advance(start_delete, max_transitions);
+          LibraryIntensity.erase(start_delete, LibraryIntensity.end());
+        }
+
+        // Check if transitions are among the ones with maximum intensity
+        // If several transitions have the same intensities ensure restriction max_transitions
+        Size j = 0; // transition number index
+        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        {
+          ReactionMonitoringTransition tr = *tr_it;
+
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          {
+            // Set meta value tag for detecting transition
+            tr.setDetectingTransition(true);
+            j += 1;
+          }
+          else
+          {
+            continue;
+          }
+
+          // Append transition
+          transitions.push_back(tr);
+
+          // Append transition_group_id to index
+          if (std::find(compound_ids.begin(), compound_ids.end(), tr.getCompoundRef()) == compound_ids.end())
+          {
+            compound_ids.push_back(tr.getCompoundRef());
+          }
+        }
+      }
+    }
+
+    for (Size i = 0; i < exp.getCompounds().size(); ++i)
+    {
+      TargetedExperiment::Compound compound = exp.getCompounds()[i];
+
+      // Check if compound has any transitions left
+      if (std::find(compound_ids.begin(), compound_ids.end(), compound.id) != compound_ids.end())
+      {
+        compounds.push_back(compound);
+      }
+      else
+      {
+        OPENMS_LOG_DEBUG << "[compound] Skipping " << compound.id << " - not enough transistions."<< std::endl;
+      }
+    }
+    exp.setTransitions(transitions);
+    exp.setCompounds(compounds);
   }
 
 }

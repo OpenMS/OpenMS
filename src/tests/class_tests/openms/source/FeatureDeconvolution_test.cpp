@@ -101,7 +101,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
 	p.setValue("retention_max_diff_local", 2.0, "maxi");
-  p.setValue("potential_adducts", ListUtils::create<String>("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
+  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.1,(2)H4H-4:0:0.1:-2:heavy"), "Ad");
 	fdt.setParameters(p);
   
   {
@@ -141,7 +141,7 @@ START_SECTION([EXTRA](void updateMembers_()))
 	p.setValue("charge_min", 11, "minimal possible charge");
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("q_try", "heuristic", "Try dif");
-  p.setValue("potential_adducts", ListUtils::create<String>("H+:0.9,Na++:0.1"));
+  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.9,Na:++:0.1"));
   p.setValue("retention_max_diff", 1.0, "maximum ");
 	p.setValue("retention_max_diff_local", 1.0, "maxim");
   p.setValue("intensity_filter", "true", "Enable");
@@ -214,7 +214,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
 	FeatureDeconvolution fd;
         Param p;
-        p.setValue("potential_adducts", ListUtils::create<String>("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
+        p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.1,(2)H4H-4:0:0.1:-2:heavy"), "Ad");
 	p.setValue("mass_max_diff", 0.1);
 	fd.setParameters(p);
 

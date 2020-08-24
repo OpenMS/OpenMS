@@ -143,7 +143,7 @@ public:
       @throw throws IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
-                              double& lower, double& upper);
+                              double& lower, double& upper, double& center);
 
     /**
       @brief Check the map and select transition in one function
@@ -170,8 +170,8 @@ public:
                   << std::endl;
         return false;
       }
-      double upper, lower;
-      OpenSwathHelper::checkSwathMap(exp, lower, upper);
+      double upper, lower, center;
+      OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
       if (selected_transitions.getTransitions().size() == 0)
       {

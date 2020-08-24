@@ -32,12 +32,12 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
+#include <set>
 
 namespace OpenMS
 {
@@ -341,4 +341,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H

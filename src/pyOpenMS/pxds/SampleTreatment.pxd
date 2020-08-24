@@ -9,9 +9,10 @@ cdef extern from "<OpenMS/METADATA/SampleTreatment.h>" namespace "OpenMS":
         # wrap-ignore
         # no-pxd-import
         # ABSTRACT class
-
+        #
         # wrap-inherits:
         #  MetaInfoInterface
+
         SampleTreatment(SampleTreatment) nogil except +
         SampleTreatment(const String & type_) nogil except +
 

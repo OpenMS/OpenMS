@@ -5,8 +5,8 @@ File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_9_input.mzML
 File type: mzML
 
 MS levels: 1, 2
+Total number of peaks: 40
 Number of spectra: 4
-Number of peaks: 40
 
 Number of spectra per MS level:
   level 1: 3

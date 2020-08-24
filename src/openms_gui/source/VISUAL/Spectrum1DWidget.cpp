@@ -57,13 +57,13 @@ namespace OpenMS
     //set the label mode for the axes  - side effect
     setCanvas_(new Spectrum1DCanvas(preferences, this));
 
-    x_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]");
+    x_axis_->setLegend(SpectrumWidget::MZ_AXIS_TITLE);
     x_axis_->setAllowShortNumbers(false);
-    y_axis_->setLegend("Intensity");
+    y_axis_->setLegend(SpectrumWidget::INTENSITY_AXIS_TITLE);
     y_axis_->setAllowShortNumbers(true);
     y_axis_->setMinimumWidth(50);
 
-    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, "Intensity", this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, SpectrumWidget::INTENSITY_AXIS_TITLE, this);
     flipped_y_axis_->setInverseOrientation(true);
     flipped_y_axis_->setAllowShortNumbers(true);
     flipped_y_axis_->setMinimumWidth(50);
@@ -99,28 +99,32 @@ namespace OpenMS
     mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
     switch (canvas()->getIntensityMode())
     {
-    case SpectrumCanvas::IM_NONE:
-      if (it_axis->isLogScale())
+      case SpectrumCanvas::IM_NONE:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        break;
+
+      case SpectrumCanvas::IM_PERCENTAGE:
       {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        double min_y = canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY();
+        double max_y = canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Spectrum1DCanvas::TOP_MARGIN;
+
+        it_axis->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        flipped_y_axis_->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        break;
       }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      break;
-
-    case SpectrumCanvas::IM_PERCENTAGE:
-      if (it_axis->isLogScale())
-      {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      break;
-
     case SpectrumCanvas::IM_SNAP:
       if (it_axis->isLogScale())
       {

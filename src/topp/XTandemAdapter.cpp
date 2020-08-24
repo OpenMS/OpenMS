@@ -349,7 +349,7 @@ protected:
       }
       else
       {
-        LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
+        OPENMS_LOG_ERROR << "Error: spectrum with ID '" << ref << "' not found in input data! RT and precursor m/z values could not be looked up." << endl;
       }
     }
 
@@ -399,15 +399,15 @@ protected:
 
     // some stats (note that only MS2 spectra were loaded into "exp"):
     Int percent = peptide_ids.size() * 100.0 / exp.size();
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "- identified MS2 spectra: " << peptide_ids.size() << " / "
              << exp.size() << " = " << percent << "%";
     if (output_results != "all")
     {
-      LOG_INFO << " (with E-value " << (output_results == "valid" ? "< " : "> ")
+      OPENMS_LOG_INFO << " (with E-value " << (output_results == "valid" ? "< " : "> ")
                << String(max_evalue) << ")";
     }
-    LOG_INFO << std::endl;
+    OPENMS_LOG_INFO << std::endl;
 
     return EXECUTION_OK;
   }

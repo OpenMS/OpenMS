@@ -63,18 +63,18 @@ namespace OpenMS
         headers.count("transformation_model")
       ))
       {
-        LOG_WARN << "One or more of the following columns are missing:\n";
-        LOG_WARN << "IS_name\n";
-        LOG_WARN << "component_name\n";
-        LOG_WARN << "feature_name\n";
-        LOG_WARN << "concentration_units\n";
-        LOG_WARN << "llod\n";
-        LOG_WARN << "ulod\n";
-        LOG_WARN << "lloq\n";
-        LOG_WARN << "uloq\n";
-        LOG_WARN << "correlation_coefficient\n";
-        LOG_WARN << "n_points\n";
-        LOG_WARN << "transformation_model\n" << std::endl;
+        OPENMS_LOG_WARN << "One or more of the following columns are missing:\n";
+        OPENMS_LOG_WARN << "IS_name\n";
+        OPENMS_LOG_WARN << "component_name\n";
+        OPENMS_LOG_WARN << "feature_name\n";
+        OPENMS_LOG_WARN << "concentration_units\n";
+        OPENMS_LOG_WARN << "llod\n";
+        OPENMS_LOG_WARN << "ulod\n";
+        OPENMS_LOG_WARN << "lloq\n";
+        OPENMS_LOG_WARN << "uloq\n";
+        OPENMS_LOG_WARN << "correlation_coefficient\n";
+        OPENMS_LOG_WARN << "n_points\n";
+        OPENMS_LOG_WARN << "transformation_model\n" << std::endl;
       }
     }
     for (Size i = 1; i < rowCount(); ++i)
@@ -113,7 +113,7 @@ namespace OpenMS
     );
     aqm.setTransformationModel(headers.count("transformation_model") ? tl[headers.at("transformation_model")] : "");
     Param tm_params;
-    for (const std::pair<String, Size>& h : headers)
+    for (const std::pair<const String, Size>& h : headers)
     {
       const String& header = h.first;
       const Size& i = h.second;
@@ -136,7 +136,7 @@ namespace OpenMS
     StringList split_headers;
     headers.split(',', split_headers);
     StringList tm_params_names; // transformation model params
-    if (aqm_list.size())
+    if (!aqm_list.empty())
     {
       const Param tm_params = aqm_list[0].getTransformationModelParams();
       for (const Param::ParamEntry& param : tm_params)

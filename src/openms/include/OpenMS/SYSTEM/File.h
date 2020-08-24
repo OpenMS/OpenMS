@@ -77,7 +77,7 @@ public:
        @param from Source filename
        @param to Target filename
        @param overwrite_existing Delete already existing target, before renaming
-       @param verbose Print message to LOG_ERROR if something goes wrong.
+       @param verbose Print message to OPENMS_LOG_ERROR if something goes wrong.
        @return True on success
     */
     static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);

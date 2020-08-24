@@ -73,6 +73,9 @@ public:
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
 
+    /// Name for no cleavage
+    static const std::string NoCleavage;
+
     /// Name for unspecific cleavage
     static const std::string UnspecificCleavage;
 
@@ -92,7 +95,7 @@ public:
     String getEnzymeName() const;
 
     /// Sets the enzyme for the digestion
-    void setEnzyme(const DigestionEnzyme* enzyme);
+    virtual void setEnzyme(const DigestionEnzyme* enzyme);
 
     /// Returns the specificity for the digestion
     Specificity getSpecificity() const;

@@ -177,10 +177,10 @@ protected:
         {
           vector<String> keys;
           it->getKeys(keys);
-          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
           }
         }
       }

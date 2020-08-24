@@ -68,9 +68,7 @@ END_SECTION
 
 START_SECTION((void load(const String &filename, TargetedExperiment & id)))
 {
-  TraMLFile file;
-  TargetedExperiment exp;
-  file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp);
+  NOT_TESTABLE // tested below
 }
 END_SECTION
 
@@ -86,7 +84,6 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   file.store(tmp_filename, exp_original);
-  //file.store("include.traML", TargetedExperiment());
   //load written map
   TargetedExperiment exp;
   file.load(tmp_filename, exp);

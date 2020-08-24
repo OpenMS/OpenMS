@@ -67,6 +67,14 @@ namespace OpenMS
 
   }
 
+  DataProcessing::DataProcessing(DataProcessing&& rhs) noexcept :
+    MetaInfoInterface(std::move(rhs)),
+    software_(std::move(rhs.software_)),
+    processing_actions_(std::move(rhs.processing_actions_)),
+    completion_time_(std::move(rhs.completion_time_))
+  {
+  }
+
   bool DataProcessing::operator==(const DataProcessing & rhs) const
   {
     return software_ == rhs.software_ &&

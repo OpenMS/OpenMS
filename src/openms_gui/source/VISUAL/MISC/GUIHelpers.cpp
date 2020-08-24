@@ -60,8 +60,8 @@ namespace OpenMS
     {
       // execution failed
       QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
-      LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
-      LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << "Failed to open folder '" << folder.toStdString() << "'" << std::endl;
+      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
     }
 #else
     if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
@@ -105,9 +105,9 @@ namespace OpenMS
     if (!p->waitForStarted())
     {
       // execution failed
-      LOG_ERROR << p->errorString().toStdString() << std::endl;
+      OPENMS_LOG_ERROR << p->errorString().toStdString() << std::endl;
   #if defined(Q_WS_MAC)
-      LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
+      OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
   #endif
     }
   }

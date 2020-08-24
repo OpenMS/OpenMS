@@ -303,7 +303,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
+    OPENMS_LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
     // re-index spectra to avoid naming conflicts
     Size id = 1;

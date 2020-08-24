@@ -34,8 +34,13 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
+#include <sqlite3.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
 namespace OpenMS
 {
+
+  namespace Sql = Internal::SqliteHelper;
 
   TransitionPQPFile::TransitionPQPFile() :
     TransitionTSVFile()
@@ -54,7 +59,7 @@ namespace OpenMS
       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
     printf("\n");
-    return(0);
+    return 0;
   }
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
@@ -62,7 +67,6 @@ namespace OpenMS
     sqlite3 *db;
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
-    int rc;
     std::string select_sql;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
@@ -73,17 +77,34 @@ namespace OpenMS
     }
 
     // Open database
-    rc = sqlite3_open(filename, &db);
-    if ( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
+    SqliteConnector conn(filename);
+    db = conn.getDB();
 
     // Count transitions
-    sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM TRANSITION;", -1, &cntstmt, nullptr);
+    SqliteConnector::executePreparedStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
     int num_transitions = sqlite3_column_int( cntstmt, 0 );
     sqlite3_finalize(cntstmt);
+
+    String select_drift_time = "";
+    bool drift_time_exists = SqliteConnector::columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+    if (drift_time_exists)
+    {
+      select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
+    }
+
+    String select_gene = "";
+    String select_gene_null = "";
+    String join_gene = "";
+    bool gene_exists = SqliteConnector::tableExists(db, "GENE");
+    if (gene_exists)
+    {
+      select_gene = ", GENE.GENE_NAME AS gene_name ";
+      select_gene_null = ", 'NA' AS gene_name ";
+      join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
+                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+    }
+
 
     // Get peptides
     select_sql = "SELECT " \
@@ -102,6 +123,7 @@ namespace OpenMS
                   "NULL AS CompoundName, " \
                   "NULL AS SMILES, " \
                   "NULL AS SumFormula, " \
+                  "NULL AS Adducts, " \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -114,16 +136,27 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " \
-                  "FROM PRECURSOR " \
+                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " + \
+                  select_drift_time + \
+                  select_gene + \
+                  "FROM PRECURSOR " + \
+                  join_gene + \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID " \
                   "INNER JOIN " \
-                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION FROM PROTEIN INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID GROUP BY PEPTIDE_ID) AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
+                    "(SELECT PEPTIDE_ID, GROUP_CONCAT(PROTEIN_ACCESSION,';') AS PROTEIN_ACCESSION " \
+                    "FROM PROTEIN " \
+                    "INNER JOIN PEPTIDE_PROTEIN_MAPPING ON PROTEIN.ID = PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID "\
+                    "GROUP BY PEPTIDE_ID) " \
+                    "AS PROTEIN_AGGREGATED ON PEPTIDE.ID = PROTEIN_AGGREGATED.PEPTIDE_ID " \
                   "LEFT OUTER JOIN " \
-                  "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS FROM TRANSITION_PEPTIDE_MAPPING INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID GROUP BY TRANSITION_ID) AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
+                    "(SELECT TRANSITION_ID, GROUP_CONCAT(MODIFIED_SEQUENCE,'|') AS PEPTIDOFORMS " \
+                    "FROM TRANSITION_PEPTIDE_MAPPING "\
+                    "INNER JOIN PEPTIDE ON TRANSITION_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID "\
+                    "GROUP BY TRANSITION_ID) "\
+                    "AS PEPTIDE_AGGREGATED ON TRANSITION.ID = PEPTIDE_AGGREGATED.TRANSITION_ID ";
 
     // Get compounds
     select_sql += "UNION SELECT " \
@@ -137,11 +170,12 @@ namespace OpenMS
                   "TRANSITION.DECOY AS decoy, " \
                   "NULL AS PeptideSequence, " \
                   "NULL AS ProteinName, " \
-                  "NULL AS Annotation, " \
+                  "TRANSITION.ANNOTATION AS Annotation, " \
                   "NULL AS FullPeptideName, " \
                   "COMPOUND.COMPOUND_NAME AS CompoundName, " \
                   "COMPOUND.SMILES AS SMILES, " \
                   "COMPOUND.SUM_FORMULA AS SumFormula, " \
+                  "COMPOUND.ADDUCTS AS Adducts, " \
                   "PRECURSOR.CHARGE AS precursor_charge, " \
                   "PRECURSOR.GROUP_LABEL AS peptide_group_label, " \
                   "NULL AS label_type, " \
@@ -154,15 +188,18 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "NULL AS peptidoforms " \
+                  "NULL AS peptidoforms " +
+                  select_drift_time +
+                  select_gene_null +
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
 
+
     // Execute SQL select statement
-    sqlite3_prepare_v2(db, select_sql.c_str(), -1, &stmt, nullptr);
+    SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
     sqlite3_step( stmt );
 
     Size progress = 0;
@@ -173,118 +210,43 @@ namespace OpenMS
       setProgress(progress++);
       TSVTransition mytransition;
 
-      if (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+      Sql::extractValue<double>(&mytransition.precursor, stmt, 0);
+      Sql::extractValue<double>(&mytransition.product, stmt, 1);
+      Sql::extractValue<double>(&mytransition.rt_calibrated, stmt, 2);
+      Sql::extractValue<std::string>(&mytransition.transition_name, stmt, 3);
+      Sql::extractValue<double>(&mytransition.CE, stmt, 4);
+      Sql::extractValue<double>(&mytransition.library_intensity, stmt, 5);
+      Sql::extractValue<std::string>(&mytransition.group_id, stmt, 6);
+      Sql::extractValue<int>((int*)&mytransition.decoy, stmt, 7);
+      Sql::extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
+      Sql::extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
+      Sql::extractValue<std::string>(&mytransition.Annotation, stmt, 10);
+      Sql::extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
+      Sql::extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
+      Sql::extractValue<std::string>(&mytransition.SMILES, stmt, 13);
+      Sql::extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
+      Sql::extractValue<std::string>(&mytransition.Adducts, stmt, 15);
+      Sql::extractValueIntStr(&mytransition.precursor_charge, stmt, 16);
+      Sql::extractValue<std::string>(&mytransition.peptide_group_label, stmt, 17);
+      Sql::extractValue<std::string>(&mytransition.label_type, stmt, 18);
+      Sql::extractValueIntStr(&mytransition.fragment_charge, stmt, 19);
+      Sql::extractValue<int>(&mytransition.fragment_nr, stmt, 20);
+      Sql::extractValue<double>(&mytransition.fragment_mzdelta, stmt, 21);
+      Sql::extractValue<int>(&mytransition.fragment_modification, stmt, 22);
+      Sql::extractValue<std::string>(&mytransition.fragment_type, stmt, 23);
+      Sql::extractValue<std::string>(&mytransition.uniprot_id, stmt, 24);
+      Sql::extractValue<int>((int*)&mytransition.detecting_transition, stmt, 25);
+      Sql::extractValue<int>((int*)&mytransition.identifying_transition, stmt, 26);
+      Sql::extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 27);
+      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
       {
-        mytransition.precursor = sqlite3_column_double( stmt, 0 );
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 28 ))).split('|', mytransition.peptidoforms);
       }
-      if (sqlite3_column_type( stmt, 1 ) != SQLITE_NULL)
-      {
-        mytransition.product = sqlite3_column_double( stmt, 1 );
-      }
-      if (sqlite3_column_type( stmt, 2 ) != SQLITE_NULL)
-      {
-        mytransition.rt_calibrated = sqlite3_column_double( stmt, 2 );
-      }
-      if (sqlite3_column_type( stmt, 3 ) != SQLITE_NULL)
-      {
-        mytransition.transition_name = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 3 )));
-      }
-      if (sqlite3_column_type( stmt, 4 ) != SQLITE_NULL)
-      {
-        mytransition.CE = sqlite3_column_double( stmt, 4 );
-      }
-      if (sqlite3_column_type( stmt, 5 ) != SQLITE_NULL)
-      {
-        mytransition.library_intensity = sqlite3_column_double( stmt, 5 );
-      }
-      if (sqlite3_column_type( stmt, 6 ) != SQLITE_NULL)
-      {
-        mytransition.group_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 6 )));
-      }
-      if (sqlite3_column_type( stmt, 7 ) != SQLITE_NULL)
-      {
-        mytransition.decoy = sqlite3_column_int( stmt, 7 );
-      }
-      if (sqlite3_column_type( stmt, 8 ) != SQLITE_NULL)
-      {
-        mytransition.PeptideSequence = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 8 )));
-      }
-      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
-      {
-        mytransition.ProteinName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 )));
-      }
-      if (sqlite3_column_type( stmt, 10 ) != SQLITE_NULL)
-      {
-        mytransition.Annotation = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 10 )));
-      }
-      if (sqlite3_column_type( stmt, 11 ) != SQLITE_NULL)
-      {
-        mytransition.FullPeptideName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 11 )));
-      }
-      if (sqlite3_column_type( stmt, 12 ) != SQLITE_NULL)
-      {
-        mytransition.CompoundName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 12 )));
-      }
-      if (sqlite3_column_type( stmt, 13 ) != SQLITE_NULL)
-      {
-        mytransition.SMILES = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 13 )));
-      }
-      if (sqlite3_column_type( stmt, 14 ) != SQLITE_NULL)
-      {
-        mytransition.SumFormula = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 14 )));
-      }
-      if (sqlite3_column_type( stmt, 15 ) != SQLITE_NULL)
-      {
-        mytransition.precursor_charge = sqlite3_column_int( stmt, 15 );
-      }
-      if (sqlite3_column_type( stmt, 16 ) != SQLITE_NULL)
-      {
-        mytransition.peptide_group_label = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 16 )));
-      }
-      if (sqlite3_column_type( stmt, 17 ) != SQLITE_NULL)
-      {
-        mytransition.label_type = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 17 )));
-      }
-      if (sqlite3_column_type( stmt, 18 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_charge = sqlite3_column_int( stmt, 18 );
-      }
-      if (sqlite3_column_type( stmt, 19 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_nr = sqlite3_column_int( stmt, 19 );
-      }
-      if (sqlite3_column_type( stmt, 20 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_mzdelta = sqlite3_column_double( stmt, 20 );
-      }
-      if (sqlite3_column_type( stmt, 21 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_modification = sqlite3_column_int( stmt, 21 );
-      }
-      if (sqlite3_column_type( stmt, 22 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_type = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 22 )));
-      }
-      if (sqlite3_column_type( stmt, 23 ) != SQLITE_NULL)
-      {
-        mytransition.uniprot_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 23 )));
-      }
-      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
-      {
-        mytransition.detecting_transition = sqlite3_column_int( stmt, 24 );
-      }
-      if (sqlite3_column_type( stmt, 25 ) != SQLITE_NULL)
-      {
-        mytransition.identifying_transition = sqlite3_column_int( stmt, 25 );
-      }
-      if (sqlite3_column_type( stmt, 26 ) != SQLITE_NULL)
-      {
-        mytransition.quantifying_transition = sqlite3_column_int( stmt, 26 );
-      }
-      if (sqlite3_column_type( stmt, 27 ) != SQLITE_NULL)
-      {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);;
-      }
+      // optional attributes only present in newer file versions
+      if (drift_time_exists) Sql::extractValue<double>(&mytransition.drift_time, stmt, 29);
+      if (gene_exists) Sql::extractValue<std::string>(&mytransition.GeneName, stmt, 30);
+
+      if (mytransition.GeneName == "NA") mytransition.GeneName = "";
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
@@ -292,28 +254,34 @@ namespace OpenMS
     endProgress();
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
   }
 
   void TransitionPQPFile::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
-    sqlite3 *db;
-    char *zErrMsg = nullptr;
-    int  rc;
-
     // delete file if present
     remove(filename);
 
     // Open database
-    rc = sqlite3_open(filename, &db);
-    if ( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
+    SqliteConnector conn(filename);
 
     // Create SQL structure
     const char* create_sql =
+      "CREATE TABLE VERSION(" \
+      "ID INT NOT NULL);" \
+
+      // gene table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE GENE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "GENE_NAME TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_gene_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "GENE_ID INT NOT NULL);" \
+
       // protein table
       // OpenSWATH proteomics workflows
       "CREATE TABLE PROTEIN(" \
@@ -348,6 +316,7 @@ namespace OpenMS
       "COMPOUND_NAME TEXT NOT NULL," \
       "SUM_FORMULA TEXT NOT NULL," \
       "SMILES TEXT NOT NULL," \
+      "ADDUCTS TEXT NOT NULL," \
       "DECOY INT NOT NULL);" \
 
       // precursor_compound_mapping table
@@ -365,6 +334,7 @@ namespace OpenMS
       "CHARGE INT NULL," \
       "LIBRARY_INTENSITY REAL NULL," \
       "LIBRARY_RT REAL NULL," \
+      "LIBRARY_DRIFT_TIME REAL NULL," \
       "DECOY INT NOT NULL);" \
 
       // transition_precursor_mapping table
@@ -385,6 +355,7 @@ namespace OpenMS
       "PRODUCT_MZ REAL NOT NULL," \
       "CHARGE INT NULL," \
       "TYPE CHAR(1) NULL," \
+      "ANNOTATION TEXT NULL," \
       "ORDINAL INT NULL," \
       "DETECTING INT NOT NULL," \
       "IDENTIFYING INT NOT NULL," \
@@ -393,19 +364,13 @@ namespace OpenMS
       "DECOY INT NOT NULL);";
 
     // Execute SQL create statement
-    rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
+    conn.executeStatement(create_sql);
 
     // Prepare insert statements
 
     // Index maps
     std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
-    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map;
+    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map, gene_map;
     std::map<int,double> precursor_mz_map;
     std::map<int,bool> precursor_decoy_map;
 
@@ -441,7 +406,8 @@ namespace OpenMS
       TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
       transitions.push_back(transition);
 
-      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(), std::inserter( peptide_vec, peptide_vec.end() ) );
+      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(),
+          std::inserter( peptide_vec, peptide_vec.end() ) );
 
       int group_set_index = group_map[transition.group_id];
 
@@ -487,11 +453,13 @@ namespace OpenMS
       // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
       {
-        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" << i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
+        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" <<
+          i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
       }
 
       // OpenSWATH: Associate transitions with their precursors
-      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" << i << "," << group_map[transition.group_id] << "); ";
+      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" <<
+        i << "," << group_map[transition.group_id] << "); ";
 
       std::string transition_charge = "NULL"; // workaround for compounds with missing charge
       if (transition.fragment_charge != "NA")
@@ -500,12 +468,24 @@ namespace OpenMS
       }
 
       // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" << transition.transition_name << "'," << transition.product << "," << transition_charge << ",'" << transition.fragment_type<< "'," << transition.fragment_nr << "," << transition.detecting_transition << "," << transition.identifying_transition << "," << transition.quantifying_transition << "," << transition.library_intensity << "," << transition.decoy << "); ";
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ANNOTATION, ORDINAL, " <<
+        "DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
+        transition.transition_name << "'," <<
+        transition.product << "," <<
+        transition_charge << ",'" <<
+        transition.fragment_type << "','" <<
+        transition.Annotation <<"'," <<
+        transition.fragment_nr << "," <<
+        transition.detecting_transition << "," <<
+        transition.identifying_transition << "," <<
+        transition.quantifying_transition << "," <<
+        transition.library_intensity << "," << transition.decoy << "); ";
     }
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     insert_precursor_sql.precision(11);
     std::vector<std::pair<int, int> > peptide_protein_map;
+    std::vector<std::pair<int, int> > peptide_gene_map;
 
     // OpenSWATH: Prepare peptide precursor inserts
     for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
@@ -515,14 +495,34 @@ namespace OpenMS
       int group_set_index = group_map[peptide.id];
       int peptide_set_index = peptide_map[peptide_sequence];
 
-      for (std::vector<String>::iterator it = peptide.protein_refs.begin(); it != peptide.protein_refs.end(); ++it)
+      for (const auto& it : peptide.protein_refs)
       {
-        peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_map[*it]));
+        peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << peptide.id << "','" << peptide.getPeptideGroupLabel() << "'," << precursor_mz_map[group_set_index] << "," << peptide.getChargeState() << ",NULL," << peptide.getRetentionTime() << "," << precursor_decoy_map[group_set_index] << "); ";
+      String gene_name = "NA";
+      if (peptide.metaValueExists("GeneName"))
+      {
+        gene_name = peptide.getMetaValue("GeneName");
+      }
+      
+      if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = gene_map.size();
+      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
 
-      insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" << group_set_index << "," << peptide_set_index << "); ";
+      insert_precursor_sql <<
+        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
+        group_set_index << ",'" << peptide.id << "','" <<
+        peptide.getPeptideGroupLabel() << "'," <<
+        precursor_mz_map[group_set_index] << "," <<
+        peptide.getChargeState() <<
+        ",NULL," <<
+        peptide.getDriftTime() << "," <<
+        peptide.getRetentionTime() << "," <<
+        precursor_decoy_map[group_set_index] << "); ";
+
+      insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
+        group_set_index << "," << peptide_set_index << "); ";
 
     }
 
@@ -539,167 +539,134 @@ namespace OpenMS
         compound_charge = String(compound.getChargeState());
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << compound.id << "',NULL," << precursor_mz_map[group_set_index] << "," << compound_charge << ",NULL,NULL" << "," << precursor_decoy_map[group_set_index] << "); ";
+      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
+        "LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
+        << ",'" << compound.id << "',NULL," <<
+        precursor_mz_map[group_set_index] << "," <<
+        compound_charge <<
+        ",NULL," <<
+        compound.getDriftTime() << "," <<
+        compound.getRetentionTime() << "," <<
+        precursor_decoy_map[group_set_index] << "); ";
 
-      insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" << group_set_index << "," << compound_set_index << "); ";
-
+      insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
+        group_set_index << "," << compound_set_index << "); ";
     }
 
     boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
+    boost::erase(peptide_gene_map, boost::unique<boost::return_found_end>(boost::sort(peptide_gene_map)));
+
+    // OpenSWATH: Prepare peptide-gene mapping inserts
+    std::stringstream insert_peptide_gene_mapping;
+    for (const auto& it : peptide_gene_map)
+    {
+      insert_peptide_gene_mapping << "INSERT INTO PEPTIDE_GENE_MAPPING (PEPTIDE_ID, GENE_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
+    }
+    // OpenSWATH: Prepare gene inserts
+    std::stringstream insert_gene_sql;
+    for (const auto& it : gene_map)
+    {
+      insert_gene_sql << "INSERT INTO GENE (ID, GENE_NAME, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
+    }
+
     // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
-    for (std::vector<std::pair<int, int> >::iterator it = peptide_protein_map.begin(); it != peptide_protein_map.end(); ++it)
+    for (const auto& it : peptide_protein_map)
     {
-      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" << it->first << "," << it->second << "); ";
+      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
     }
 
     // OpenSWATH: Prepare protein inserts
     std::stringstream insert_protein_sql;
-    for (std::map<std::string, int >::iterator it = protein_map.begin(); it != protein_map.end(); ++it)
+    for (const auto& it : protein_map)
     {
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" << it->second << ",'" << it->first << "'," << 0 << "); ";
+      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
-    for (std::map<std::string, int >::iterator it = peptide_map.begin(); it != peptide_map.end(); ++it)
+    for (const auto& it : peptide_map)
     {
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" << it->second << ",'" << AASequence::fromString(it->first).toUnmodifiedString() << "','" << it->first << "'," << 0 << "); ";
+      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        AASequence::fromString(it.first).toUnmodifiedString() << "','" <<
+        it.first << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
-    for (std::map<std::string, int >::iterator it = compound_map.begin(); it != compound_map.end(); ++it)
+    for (const auto& it : compound_map)
     {
-      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompoundByRef(it->first);
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" << it->second << ",'" << compound.id << "','" << compound.molecular_formula << "','" << compound.smiles_string << "'," << 0 << "); ";
+      String adducts;
+      String compound_name;
+      const auto& compound = targeted_exp.getCompoundByRef(it.first);
+      if (compound.metaValueExists("Adducts"))
+      {
+        adducts = compound.getMetaValue("Adducts");
+      }
+      if (compound.metaValueExists("CompoundName"))
+      {
+        compound_name = compound.getMetaValue("CompoundName");
+      }
+      else
+      {
+        compound_name = compound.id;
+      }
+      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, ADDUCTS, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        compound_name << "','" <<
+        compound.molecular_formula << "','" <<
+        compound.smiles_string << "','" <<
+        adducts << "'," <<
+        0 << "); ";
     }
 
     // OpenSWATH: Prepare decoy updates
     std::stringstream update_decoys_sql;
     // Peptides
-    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN (SELECT PEPTIDE.ID FROM PRECURSOR JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID =  PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
+      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
     // Compounds
-    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN (SELECT COMPOUND.ID FROM PRECURSOR JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID =  PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
+    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
+      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " << 
+      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
     // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN (SELECT PROTEIN.ID FROM PEPTIDE JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID =  PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
+    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " << 
+      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
+      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
+      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
+    // Genes
+    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " << 
+      "(SELECT GENE.ID FROM PEPTIDE " <<
+      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
+      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
 
-    sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-    // Execute SQL insert statement
-    std::string insert_protein_sql_str = insert_protein_sql.str();
-    rc = sqlite3_exec(db, insert_protein_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
+    conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
-    std::string insert_peptide_protein_mapping_str = insert_peptide_protein_mapping.str();
-    rc = sqlite3_exec(db, insert_peptide_protein_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_peptide_sql_str = insert_peptide_sql.str();
-    rc = sqlite3_exec(db, insert_peptide_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_compound_sql_str = insert_compound_sql.str();
-    rc = sqlite3_exec(db, insert_compound_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_peptide_mapping_str = insert_precursor_peptide_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_peptide_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_compound_mapping_str = insert_precursor_compound_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_compound_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_sql_str = insert_precursor_sql.str();
-    rc = sqlite3_exec(db, insert_precursor_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_sql_str = insert_transition_sql.str();
-    rc = sqlite3_exec(db, insert_transition_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_peptide_mapping_sql_str = insert_transition_peptide_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_peptide_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_precursor_mapping_sql_str = insert_transition_precursor_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_precursor_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL update statement
-    std::string update_decoys_sql_str = update_decoys_sql.str();
-    rc = sqlite3_exec(db, update_decoys_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-    sqlite3_close(db);
-
+    String insert_version = "INSERT INTO VERSION (ID) VALUES (3);";
+    conn.executeStatement(insert_version);
+    conn.executeStatement(insert_protein_sql);
+    conn.executeStatement(insert_peptide_protein_mapping);
+    conn.executeStatement(insert_gene_sql);
+    conn.executeStatement(insert_peptide_gene_mapping);
+    conn.executeStatement(insert_peptide_sql);
+    conn.executeStatement(insert_compound_sql);
+    conn.executeStatement(insert_precursor_peptide_mapping);
+    conn.executeStatement(insert_precursor_compound_mapping);
+    conn.executeStatement(insert_precursor_sql);
+    conn.executeStatement(insert_transition_sql);
+    conn.executeStatement(insert_transition_peptide_mapping_sql);
+    conn.executeStatement(insert_transition_precursor_mapping_sql);
+    conn.executeStatement(update_decoys_sql);
+    conn.executeStatement("END TRANSACTION");
   }
 
   // public methods
@@ -713,14 +680,18 @@ namespace OpenMS
     writePQPOutput_(filename, targeted_exp);
   }
 
-  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
+                                                         OpenMS::TargetedExperiment& targeted_exp,
+                                                         bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename,
+                                                         OpenSwath::LightTargetedExperiment& targeted_exp,
+                                                         bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);

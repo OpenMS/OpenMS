@@ -84,7 +84,7 @@ namespace OpenMS
       //Check if the peaks are sorted according to m/z
       if (!input_map.isSorted(true))
       {
-        LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!" << std::endl;
+        OPENMS_LOG_WARN << "Input map is not sorted by RT and m/z! This is done now, before applying the algorithm!" << std::endl;
         input_map.sortSpectra(true);
         input_map.sortChromatograms(true);
       }

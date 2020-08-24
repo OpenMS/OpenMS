@@ -66,7 +66,7 @@ public:
   ~TestQuantitationMethod() override
   {}
 
-  const String& getName() const override
+  const String& getMethodName() const override
   {
     return name;
   }

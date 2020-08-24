@@ -49,6 +49,8 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <iomanip>
+
 #include <QFileInfo>
 
 namespace OpenMS

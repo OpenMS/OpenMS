@@ -98,17 +98,17 @@ protected:
 
   PeptideMap peptide_map_;
 
-  Size n_internal_peps_; //< number of internal peptide
-  Size n_external_peps_; //< number of external peptides
+  Size n_internal_peps_; ///< number of internal peptide
+  Size n_external_peps_; ///< number of external peptides
 
-  double rt_window_; //< RT window width
-  double mz_window_; //< m/z window width
-  bool mz_window_ppm_; //< m/z window width is given in PPM (not Da)?
+  double rt_window_; ///< RT window width
+  double mz_window_; ///< m/z window width
+  bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
 
-  double mapping_tolerance_; //< RT tolerance for mapping IDs to features
+  double mapping_tolerance_; ///< RT tolerance for mapping IDs to features
 
-  double isotope_pmin_; //< min. isotope probability for peptide assay
-  Size n_isotopes_; //< number of isotopes for peptide assay
+  double isotope_pmin_; ///< min. isotope probability for peptide assay
+  Size n_isotopes_; ///< number of isotopes for peptide assay
 
   double rt_quantile_;
 
@@ -123,8 +123,8 @@ protected:
   StringList svm_predictor_names_;
   String svm_xval_out_;
   double svm_quality_cutoff;
-  Size svm_n_parts_; //< number of partitions for SVM cross-validation
-  Size svm_n_samples_; //< number of samples for SVM training
+  Size svm_n_parts_; ///< number of partitions for SVM cross-validation
+  Size svm_n_samples_; ///< number of samples for SVM training
 
   // output file (before filtering)
   String candidates_out_;
@@ -137,7 +137,7 @@ protected:
   struct RTRegion
   {
     double start, end;
-    ChargeMap ids; //< internal/external peptide IDs (per charge) in this region
+    ChargeMap ids; ///< internal/external peptide IDs (per charge) in this region
   };
 
   /// predicate for filtering features by overall quality:
@@ -195,20 +195,20 @@ protected:
     }
   } feature_compare_;
 
-  PeakMap ms_data_; //< input LC-MS data
-  PeakMap chrom_data_; //< accumulated chromatograms (XICs)
-  TargetedExperiment library_; //< accumulated assays for peptides
+  PeakMap ms_data_; ///< input LC-MS data
+  PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
+  TargetedExperiment library_; ///< accumulated assays for peptides
 
   /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
   /// SVM probabilities for "external" features (for FDR calculation):
   std::multiset<double> svm_probs_external_;
-  Size n_internal_features_; //< internal feature counter (for FDR calculation)
-  Size n_external_features_; //< external feature counter (for FDR calculation)
+  Size n_internal_features_; ///< internal feature counter (for FDR calculation)
+  Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; //< transform. to external RT scale
-  std::map<String, double> isotope_probs_; //< isotope probabilities of transitions
-  MRMFeatureFinderScoring feat_finder_; //< OpenSWATH feature finder
+  TransformationDescription trafo_external_; ///< transform. to external RT scale
+  std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
 
   ProgressLogger prog_log_;
 

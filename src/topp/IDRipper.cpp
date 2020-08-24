@@ -176,14 +176,14 @@ protected:
       QString output = output_directory.toQString();
       // create full absolute path with filename
       String out = QDir::toNativeSeparators(output.append(QString("/")).append(it->first.toQString())).toStdString();
-      LOG_INFO << "Storing file: '" << out << "'." << std::endl;
+      OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
       QDir dir(output_directory.toQString());
       if (!dir.exists())
       {
         if (!File::writable(output_directory))
         {
-          LOG_WARN << "Warning: Cannot create folder: '" << output_directory << "'." << std::endl;
+          OPENMS_LOG_WARN << "Warning: Cannot create folder: '" << output_directory << "'." << std::endl;
           return CANNOT_WRITE_OUTPUT_FILE;
         }
         dir.mkpath(".");

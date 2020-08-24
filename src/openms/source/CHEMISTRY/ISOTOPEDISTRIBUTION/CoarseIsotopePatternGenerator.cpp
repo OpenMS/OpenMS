@@ -32,6 +32,13 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <include/OpenMS/CONCEPT/Constants.h>
+
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
@@ -39,11 +46,6 @@
 #include <limits>
 #include <functional>
 #include <numeric>
-
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <include/OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 

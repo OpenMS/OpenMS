@@ -34,9 +34,8 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
@@ -46,7 +45,7 @@ namespace OpenMS
 
     if (use_total_prob_)
     {
-        IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, stop_condition_).run());
+        IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, 1.0-stop_condition_).run());
         result.sortByMass();
         return result;
     }
@@ -59,3 +58,4 @@ namespace OpenMS
   }
 
 }
+

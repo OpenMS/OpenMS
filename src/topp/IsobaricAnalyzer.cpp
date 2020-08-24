@@ -175,16 +175,16 @@ public:
     TMTSixPlexQuantitationMethod* tmt6plex = new TMTSixPlexQuantitationMethod();
     TMTTenPlexQuantitationMethod* tmt10plex = new TMTTenPlexQuantitationMethod();
     TMTElevenPlexQuantitationMethod* tmt11plex = new TMTElevenPlexQuantitationMethod();
-    quant_methods_[itraq4plex->getName()] = itraq4plex;
-    quant_methods_[itraq8plex->getName()] = itraq8plex;
-    quant_methods_[tmt6plex->getName()] = tmt6plex;
-    quant_methods_[tmt10plex->getName()] = tmt10plex;
-    quant_methods_[tmt11plex->getName()] = tmt11plex;
-    quant_method_names_[itraq4plex->getName()] = "iTRAQ 4-plex";
-    quant_method_names_[itraq8plex->getName()] = "iTRAQ 8-plex";
-    quant_method_names_[tmt6plex->getName()] = "TMT 6-plex";
-    quant_method_names_[tmt10plex->getName()] = "TMT 10-plex";
-    quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
+    quant_methods_[itraq4plex->getMethodName()] = itraq4plex;
+    quant_methods_[itraq8plex->getMethodName()] = itraq8plex;
+    quant_methods_[tmt6plex->getMethodName()] = tmt6plex;
+    quant_methods_[tmt10plex->getMethodName()] = tmt10plex;
+    quant_methods_[tmt11plex->getMethodName()] = tmt11plex;
+    quant_method_names_[itraq4plex->getMethodName()] = "iTRAQ 4-plex";
+    quant_method_names_[itraq8plex->getMethodName()] = "iTRAQ 8-plex";
+    quant_method_names_[tmt6plex->getMethodName()] = "TMT 6-plex";
+    quant_method_names_[tmt10plex->getMethodName()] = "TMT 10-plex";
+    quant_method_names_[tmt11plex->getMethodName()] = "TMT 11-plex";
   }
 
   ~TOPPIsobaricAnalyzer() override
@@ -223,7 +223,7 @@ protected:
          it != quant_methods_.end();
          ++it)
     {
-      registerSubsection_(it->second->getName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getName()]);
+      registerSubsection_(it->second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[it->second->getMethodName()]);
     }
   }
 
@@ -277,7 +277,7 @@ protected:
     IsobaricQuantitationMethod* quant_method = quant_methods_[getStringOption_("type")];
 
     // set the parameters for this method
-    quant_method->setParameters(getParam_().copy(quant_method->getName() + ":", true));
+    quant_method->setParameters(getParam_().copy(quant_method->getMethodName() + ":", true));
 
     //-------------------------------------------------------------
     // calculations

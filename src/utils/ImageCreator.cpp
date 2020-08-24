@@ -270,7 +270,7 @@ protected:
       StringListUtils::toUpper(out_formats_);
       if (!ListUtils::contains(out_formats_, format.toUpper()))
       {
-        LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
+        OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;
       }
     }

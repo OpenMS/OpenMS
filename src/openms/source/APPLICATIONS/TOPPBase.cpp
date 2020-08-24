@@ -135,8 +135,9 @@ namespace OpenMS
   {
     //delete log file if empty
     StringList log_files;
-    if (!getParam_("log").isEmpty())
-      log_files.push_back((String)(getParam_("log")));
+    DataValue topplog = getParam_("log");
+    if (!topplog.isEmpty() && !(topplog.toString().empty()))
+      log_files.push_back(topplog.toString());
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
@@ -351,9 +352,9 @@ namespace OpenMS
       // note the copy(getIniLocation_(),..) as we want the param tree without instance
       // information
       param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      if (!param_.update(finalParam, false, false, true, true, LOG_WARN))
+      if (!param_.update(finalParam, false, false, true, true, OPENMS_LOG_WARN))
       {
-        LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
+        OPENMS_LOG_ERROR << "Parameters passed to '" << this->tool_name_ << "' are invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
 
@@ -408,7 +409,7 @@ namespace OpenMS
 
     {
       DataValue const& value_log = getParam_("log");
-      if (!value_log.isEmpty())
+      if (!value_log.isEmpty() && !(value_log.toString() == ""))
       {
         writeDebug_("Log file: " + (String)value_log, 1);
         log_.close();
@@ -422,7 +423,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-    if (debug_level_ > 0) Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
+    if (debug_level_ > 0) Log_debug.insert(cout); // allows to use OPENMS_LOG_DEBUG << "something" << std::endl;
 
     //-------------------------------------------------------------
     //progress logging
@@ -445,7 +446,7 @@ namespace OpenMS
     sw.start();
     result = main_(argc, argv);
     sw.stop();
-    LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
+    OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
 
     // useful for benchmarking
     if (debug_level_ >= 1)
@@ -978,13 +979,14 @@ namespace OpenMS
     //check if formats are known
     if (force_OpenMS_format)
     {
-      for (Size i = 0; i < formats.size(); ++i)
+      for (const auto& f : formats)
       {
-        if (formats[i] != "fid")
+        if (f != "fid")
         {
-          if (FileHandler::getTypeByFileName(String(".") + formats[i]) == FileTypes::UNKNOWN)
+          auto ft = FileHandler::getTypeByFileName(String(".") + f);
+          if (ft == FileTypes::UNKNOWN)
           {
-            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + formats[i] + "' is invalid!");
+            throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file format '" + f + "' is invalid!");
           }
         }
       }
@@ -1561,7 +1563,7 @@ namespace OpenMS
 
   void TOPPBase::writeLog_(const String& text) const
   {
-    LOG_INFO << text << endl;
+    OPENMS_LOG_INFO << text << endl;
     enableLogging_();
     log_ << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << ": " << text << endl;
   }
@@ -1578,7 +1580,7 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
-      LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
+      OPENMS_LOG_DEBUG << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl
                 << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toStdString() << ' ' << getIniLocation_() << " " << text << endl
                 << param
                 << " - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - " << endl;
@@ -1641,10 +1643,14 @@ namespace OpenMS
     {
         ss << " " << it->toStdString();
     }
-    LOG_DEBUG << ss.str() << endl;
+    OPENMS_LOG_DEBUG << ss.str() << endl;
     writeLog_("Executing: " + String(executable));
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    
+    if (qp.error() == QProcess::FailedToStart)
+    {
+      OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
+      return EXTERNAL_PROGRAM_ERROR;
+    } 
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
@@ -1903,7 +1909,7 @@ namespace OpenMS
           break;
         }
       }
-      catch (UnregisteredParameter)
+      catch (UnregisteredParameter&)
       {
         writeLog_("Warning: Unknown parameter '" + location + it.getName() + "' in '" + filename + "'!");
       }
@@ -1934,17 +1940,17 @@ namespace OpenMS
     // check file
     if (!File::exists(filename))
     {
-      LOG_ERROR << message;
+      OPENMS_LOG_ERROR << message;
       throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::readable(filename))
     {
-      LOG_ERROR << message;
+      OPENMS_LOG_ERROR << message;
       throw FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     if (!File::isDirectory(filename) && File::empty(filename))
     {
-      LOG_ERROR << message;
+      OPENMS_LOG_ERROR << message;
       throw FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
@@ -1962,7 +1968,7 @@ namespace OpenMS
 
     if (!File::writable(filename))
     {
-      LOG_ERROR << message;
+      OPENMS_LOG_ERROR << message;
       throw UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
   }
@@ -2505,7 +2511,7 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
+          OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
           cmd_params.setValue(pos->second->name, value);
         }
         else // unknown argument -> append to "unknown" list

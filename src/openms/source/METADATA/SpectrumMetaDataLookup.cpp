@@ -62,7 +62,7 @@ namespace OpenMS
       meta.scan_number = extractScanNumber(meta.native_id, scan_regexp, true);
       if (meta.scan_number < 0)
       {
-        LOG_ERROR << "Error: Could not extract scan number from spectrum native ID '" + meta.native_id + "' using regular expression '" + scan_regexp.str() + "'." << endl;
+        OPENMS_LOG_ERROR << "Error: Could not extract scan number from spectrum native ID '" + meta.native_id + "' using regular expression '" + scan_regexp.str() + "'." << endl;
       }
     }
     if (!spectrum.getPrecursors().empty())
@@ -80,7 +80,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Error: Could not set precursor RT for spectrum with native ID '" + meta.native_id + "' - precursor spectrum not found." << endl;
+          OPENMS_LOG_ERROR << "Error: Could not set precursor RT for spectrum with native ID '" + meta.native_id + "' - precursor spectrum not found." << endl;
         }
       }
     } 
@@ -200,7 +200,7 @@ namespace OpenMS
         }
         catch (Exception::ElementNotFound&)
         {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          OPENMS_LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;
           if (stop_on_error) break;
         }
@@ -210,7 +210,10 @@ namespace OpenMS
   }
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
+    bool stop_on_error, 
+    bool override_spectra_data, 
+    bool override_spectra_references,
+    vector<ProteinIdentification> proteins)
   {
     bool success = true;
     PeakMap exp;
@@ -232,10 +235,15 @@ namespace OpenMS
         it->setMetaValue("spectra_data", spectra_data);
       }
     }
-    for (vector<PeptideIdentification>::iterator it =
-          peptides.begin(); it !=
-          peptides.end(); ++it)
+    for (auto it = peptides.begin(); it != peptides.end(); ++it)
     {
+      // spectrum reference already set? skip if we don't want to overwrite
+      if (!override_spectra_references 
+	&& it->metaValueExists("spectrum_reference"))
+      {
+        continue;
+      }
+
       try
       {
         Size index = lookup.findByRT(it->getRT());
@@ -245,12 +253,11 @@ namespace OpenMS
       }
       catch (Exception::ElementNotFound&)
       {
-        LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
         success = false;
         if (stop_on_error) break;
       }
     }
-
 
     return success;
   }

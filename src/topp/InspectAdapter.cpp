@@ -833,7 +833,7 @@ protected:
         {
           QString output = builder.readAll();
           // set the search engine and its version and the score type
-          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
+          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) OPENMS_LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
         }
       }
       else protein_identification.setSearchEngine("InsPecT");

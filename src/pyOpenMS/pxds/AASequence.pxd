@@ -37,8 +37,9 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String toUniModString() nogil except +
 
         String toBracketString() nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. Uses integer mass by default.
-        String toBracketString(bool integer_mass) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. 
-        String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. 
+        String toBracketString(bool integer_mass) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation.
+        String toBracketString(bool integer_mass, bool mass_delta) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation.
+        String toBracketString(bool integer_mass, bool mass_delta, libcpp_vector[String] fixed_modifications) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation.
 
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except +

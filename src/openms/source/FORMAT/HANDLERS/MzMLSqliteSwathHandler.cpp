@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
 #include <sqlite3.h>
 
 namespace OpenMS
@@ -44,10 +45,12 @@ namespace OpenMS
   namespace Internal
   {
 
+    namespace Sql = Internal::SqliteHelper;
+
     std::vector<OpenSwath::SwathMap> MzMLSqliteSwathHandler::readSwathWindows()
     {
       std::vector<OpenSwath::SwathMap> swath_maps;
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
       sqlite3_stmt * stmt;
 
       std::string select_sql;
@@ -60,24 +63,21 @@ namespace OpenMS
                     "WHERE MSLEVEL == 2 "\
                     ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         OpenSwath::SwathMap map;
-
-        if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) map.center = sqlite3_column_double(stmt, 0);
-        if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) map.lower = sqlite3_column_double(stmt, 1);
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) map.upper = sqlite3_column_double(stmt, 2);
-
+        Sql::extractValue<double>(&map.center, stmt, 0);
+        Sql::extractValue<double>(&map.lower, stmt, 1);
+        Sql::extractValue<double>(&map.upper, stmt, 2);
         swath_maps.push_back(map);
         sqlite3_step( stmt );
       }
 
-      // free memory and close connection
+      // free memory
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
       return swath_maps;
     }
@@ -85,7 +85,7 @@ namespace OpenMS
     std::vector<int> MzMLSqliteSwathHandler::readMS1Spectra()
     {
       std::vector< int > indices;
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
       sqlite3_stmt * stmt;
 
       std::string select_sql;
@@ -93,7 +93,7 @@ namespace OpenMS
                    "FROM SPECTRUM " \
                    "WHERE MSLEVEL == 1;";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
@@ -102,33 +102,27 @@ namespace OpenMS
         sqlite3_step(stmt);
       }
 
-      // free memory and close connection
+      // free memory
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
       return indices;
     }
 
-    std::vector<int> MzMLSqliteSwathHandler::readSpectraForWindow(OpenSwath::SwathMap swath_map)
+    std::vector<int> MzMLSqliteSwathHandler::readSpectraForWindow(const OpenSwath::SwathMap& swath_map)
     {
       std::vector< int > indices;
-      double center = swath_map.center;
+      const double center = swath_map.center;
 
-      sqlite3 *db = openDB();
+      SqliteConnector conn(filename_);
       sqlite3_stmt * stmt;
 
-      std::string select_sql;
-      select_sql = "SELECT " \
-                    "SPECTRUM_ID " \
-                    "FROM PRECURSOR " \
-                    "WHERE ISOLATION_TARGET BETWEEN "; 
+      String select_sql = "SELECT " \
+                          "SPECTRUM_ID " \
+                          "FROM PRECURSOR " \
+                          "WHERE ISOLATION_TARGET BETWEEN ";
 
-      select_sql += String(center - 0.01); 
-      select_sql += " AND ";
-      select_sql += String(center + 0.01); 
-      select_sql += ";";
-
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
+      select_sql += String(center - 0.01) + " AND " + String(center + 0.01) + ";";
+      conn.executePreparedStatement(&stmt, select_sql);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -137,25 +131,10 @@ namespace OpenMS
         sqlite3_step(stmt);
       }
 
-      // free memory and close connection
+      // free memory
       sqlite3_finalize(stmt);
-      sqlite3_close(db);
 
       return indices;
-    }
-
-    sqlite3* MzMLSqliteSwathHandler::openDB()
-    {
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
-      return db;
     }
 
   } // namespace Internal

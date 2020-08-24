@@ -11,13 +11,13 @@
 		<processingAction name="Baseline reduction" />
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="2008-12-14T11:12:45" search_engine="Mascot" search_engine_version="2.1">
-		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="C+57.0215" />
 			<VariableModification name="C-17.0265" />
 			<VariableModification name="E-18.0106" />
 			<VariableModification name="M+15.9949" />
 			<VariableModification name="Q-17.0265" />
-            <UserParam type="string" name="test" value="test"/>
+				<UserParam type="string" name="test" value="test"/>
 		</SearchParameters>
 		<ProteinIdentification score_type="score_type" higher_score_better="true" significance_threshold="56.7643013000488">
 			<ProteinHit id="PH_0" accession="urn:lsid:ach0du1schreck2wo3iss4er5denn" score="70.3000030517578" sequence="ABCDEFG">
@@ -30,7 +30,7 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<IdentificationRun id="PI_1" date="2008-12-14T11:12:46" search_engine="MaxKotzt" search_engine_version="2.1">
-		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<SearchParameters db="RefSeq" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 			<FixedModification name="C+1234.5678" />
 			<VariableModification name="C-1700" />
 			<VariableModification name="Q-1700" />
@@ -41,57 +41,57 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="F" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+		<PeptideHit score="4324.433" sequence="F" charge="23" aa_after="Y" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="int" name="label" value="17"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-		<PeptideHit score="4324.433" sequence="G" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
+		<PeptideHit score="4324.433" sequence="G" charge="23" aa_after="Y" protein_refs="PH_2">
 			<UserParam type="int" name="label" value="19"/>
 		</PeptideHit>
-		<PeptideHit score="4324.433" sequence="H" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
+		<PeptideHit score="4324.433" sequence="H" charge="23" aa_after="Y" protein_refs="PH_2">
 		</PeptideHit>
 		<UserParam type="int" name="label" value="18"/>
 	</UnassignedPeptideIdentification>
 	<featureList count="2">
 		<feature id="f_1000">
-			<position dim="0">25</position>
-			<position dim="1">0</position>
-			<intensity>300</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<position dim="0">25.0</position>
+			<position dim="1">0.0</position>
+			<intensity>300.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_1000_2000">
-					<position dim="0">24</position>
-					<position dim="1">0</position>
-					<intensity>320</intensity>
+					<position dim="0">24.0</position>
+					<position dim="1">0.0</position>
+					<intensity>320.0</intensity>
 					<quality dim="0">0.1</quality>
-					<quality dim="1">0</quality>
+					<quality dim="1">0.0</quality>
 					<overallquality>0.1</overallquality>
 					<charge>1</charge>
 				</feature>
 				<feature id="f_1000_2001">
-					<position dim="0">23</position>
-					<position dim="1">11</position>
-					<intensity>11320</intensity>
+					<position dim="0">23.0</position>
+					<position dim="1">11.0</position>
+					<intensity>11320.0</intensity>
 					<quality dim="0">0.1</quality>
-					<quality dim="1">0</quality>
+					<quality dim="1">0.0</quality>
 					<overallquality>0.1</overallquality>
 					<charge>2</charge>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-				<PeptideHit score="4324.433" sequence="A" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+				<PeptideHit score="4324.433" sequence="A" charge="23" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="17"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_1" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-				<PeptideHit score="4324.433" sequence="C" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
+				<PeptideHit score="4324.433" sequence="C" charge="23" aa_after="Y" protein_refs="PH_2">
 					<UserParam type="int" name="label" value="19"/>
 				</PeptideHit>
-				<PeptideHit score="4324.433" sequence="D" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_2">
+				<PeptideHit score="4324.433" sequence="D" charge="23" aa_after="Y" protein_refs="PH_2">
 				</PeptideHit>
 				<UserParam type="int" name="label" value="18"/>
 			</PeptideIdentification>
@@ -99,23 +99,23 @@
 			<UserParam type="int" name="intparametername" value="4"/>
 			<UserParam type="float" name="floatparametername" value="4.551"/>
 			<UserParam type="intList" name="myIntList" value="[1, 10, 12]"/>
-			<UserParam type="floatList" name="myDoubleList" value="[1.111, 10.999, 12.45]"/>
+			<UserParam type="floatList" name="myDoubleList" value="[1.111, 10.999000000000001, 12.449999999999999]"/>
 			<UserParam type="stringList" name="myStringList" value="[myABC1,Stuff,12]"/>
 		</feature>
 		<feature id="f_1001">
-			<position dim="0">0</position>
-			<position dim="1">35</position>
-			<intensity>500</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0</overallquality>
+			<position dim="0">0.0</position>
+			<position dim="1">35.0</position>
+			<intensity>500.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="1.5" y="1.8" />
 				<pt x="2.5" y="2.8" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="score_type" higher_score_better="false" significance_threshold="42.2999992370605" >
-				<PeptideHit score="4324.433" sequence="E" charge="23" aa_before="X" aa_after="Y" protein_refs="PH_1">
+				<PeptideHit score="4324.433" sequence="E" charge="23" aa_after="Y" protein_refs="PH_1">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="floatList" name="myDoubleList" value="[6.442]"/>

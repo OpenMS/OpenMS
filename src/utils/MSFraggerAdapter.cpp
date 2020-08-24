@@ -206,7 +206,7 @@ public:
 
 
 protected:
-  void registerOptionsAndFlags_() final override
+  void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
     const std::vector< double > emptyDoubles;
@@ -375,14 +375,14 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**) final override
+  ExitCodes main_(int, const char**) override
   {  
     try
     {
       // java executable
       this->java_exe = this->getStringOption_(TOPPMSFraggerAdapter::java_executable);
 
-      if (JavaInfo::canRun(this->java_exe, true) == false)
+      if (!JavaInfo::canRun(this->java_exe, true))
       {
         _fatalError("Java executable cannot be run!");
       }
@@ -393,8 +393,7 @@ protected:
       if (this->exe.empty())
       {
         // looks for MSFRAGGER_PATH in the environment
-        QProcessEnvironment env;
-        QString qmsfragger_path = env.systemEnvironment().value("MSFRAGGER_PATH");
+        QString qmsfragger_path = QProcessEnvironment::systemEnvironment().value("MSFRAGGER_PATH");
         if (qmsfragger_path.isEmpty())
         {
           _fatalError("No executable for MSFragger could be found!");
@@ -481,7 +480,7 @@ protected:
       ensureRange(arg_precursor_charge_min, arg_precursor_charge_max, "Maximum precursor charge is not allowed to be smaller than minimum precursor charge!");
 
       // ensures that the user is aware of overriding the precursoe charges
-      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && arg_override_charge == false)
+      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && !arg_override_charge)
       {
         _fatalError("If you want to ignore the precursor charge, please also set the -" + override_charge + " flag!");
       }
@@ -627,7 +626,7 @@ protected:
     {
       writeDebug_("COMMAND LINE CALL IS:", 1);
       String command_line = this->java_exe;
-      for (const String & process_param : process_params)
+      for (const auto& process_param : process_params)
       {
         command_line += (" " + process_param);
       }
@@ -636,9 +635,9 @@ protected:
 
     process_msfragger.start(this->java_exe.toQString(), process_params);
 
-    if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
+    if (!process_msfragger.waitForFinished(-1) || process_msfragger.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
       writeLog_(msfragger_stdout);
@@ -724,7 +723,7 @@ private:
 
   inline void _fatalError(const String & message)
   {
-    LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
     throw 1;
   }
 
@@ -747,7 +746,7 @@ private:
   {
     if (right < left)
     {
-      LOG_ERROR << "FATAL: " << message << std::endl;
+      OPENMS_LOG_ERROR << "FATAL: " << message << std::endl;
       throw 1;
     }
   }

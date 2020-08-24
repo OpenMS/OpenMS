@@ -360,7 +360,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -379,7 +379,7 @@ namespace OpenMS
           parts[i].toFloat();
         }
       }
-      catch (Exception::ConversionError)
+      catch ( Exception::ConversionError& )
       {
         conversion_error = true;
       }
@@ -502,7 +502,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -550,7 +550,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         type = getType(filename);
       }
-      catch (Exception::FileNotFound)
+      catch ( Exception::FileNotFound& )
       {
         return false;
       }
@@ -632,8 +632,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     default:
       return false;
-
-      break;
     }
 
     if (rewrite_source_file)

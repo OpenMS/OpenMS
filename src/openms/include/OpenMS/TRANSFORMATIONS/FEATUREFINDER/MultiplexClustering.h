@@ -39,7 +39,6 @@
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
@@ -68,7 +67,7 @@ namespace OpenMS
         /**
          * @brief cluster centre, cluster bounding box, grid index
          */
-        typedef GridBasedCluster::Point Point;    // DPosition<2>
+        typedef GridBasedCluster::Point Point;    ///< DPosition<2>
 
         /**
          * @brief constructor

@@ -324,7 +324,7 @@ protected:
         PeptideHit scored_hit = *hit;
         addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
         
-        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);

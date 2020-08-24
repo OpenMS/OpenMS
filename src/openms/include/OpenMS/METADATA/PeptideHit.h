@@ -224,33 +224,33 @@ public:
       }
     };
 
-    /** @name Constructors and Destructor */
+    /** @name Constructors and Assignment
+    */
     //@{
-
     /// Default constructor
     PeptideHit();
-
-    /// Values constructor
+    /// Values constructor that copies sequence
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
-
+    /// Values constructor that moves sequence R-value
+    PeptideHit(double score,
+               UInt rank,
+               Int charge,
+               AASequence&& sequence);
     /// Copy constructor
     PeptideHit(const PeptideHit& source);
-
     /// Move constructor
     PeptideHit(PeptideHit&&) noexcept;
-
     /// Destructor
     virtual ~PeptideHit();
-    //@}
 
     /// Assignment operator
     PeptideHit& operator=(const PeptideHit& source);
-
     /// Move assignment operator
     PeptideHit& operator=(PeptideHit&&) noexcept;
+    //@}
 
     /// Equality operator
     bool operator==(const PeptideHit& rhs) const;
@@ -267,6 +267,9 @@ public:
     /// sets the peptide sequence
     void setSequence(const AASequence& sequence);
 
+    /// sets the peptide sequence
+    void setSequence(AASequence&& sequence);
+
     /// returns the charge of the peptide
     Int getCharge() const;
 
@@ -278,6 +281,8 @@ public:
 
     /// set information on peptides (potentially) identified by this PSM
     void setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences);
+
+    void setPeptideEvidences(std::vector<PeptideEvidence>&& peptide_evidences);
 
     /// adds information on a peptide that is (potentially) identified by this PSM
     void addPeptideEvidence(const PeptideEvidence& peptide_evidence);

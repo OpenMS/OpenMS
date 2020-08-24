@@ -250,7 +250,7 @@ protected:
 
     if (((int)!cal_lock.empty() + (int)!cal_id.empty()) != 1)
     {
-      LOG_ERROR << "Conflicting input given. Please provide only ONE of either 'cal:id_in' or 'cal:lock_in'!" << std::endl;
+      OPENMS_LOG_ERROR << "Conflicting input given. Please provide only ONE of either 'cal:id_in' or 'cal:lock_in'!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -317,14 +317,14 @@ protected:
       // write matched lock mass peaks
       if (!file_cal_lock_out.empty())
       {
-        LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
+        OPENMS_LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_out, exp_out);
       }
       if (!file_cal_lock_fail_out.empty())
       {
-        LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
+        OPENMS_LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
         mz_file.store(file_cal_lock_fail_out, exp_out);
@@ -335,7 +335,7 @@ protected:
 
     if (ic.getCalibrationPoints().empty())
     {
-      LOG_ERROR << "No calibration points found! Check your Raw data and calibration masses. Aborting!" << std::endl;
+      OPENMS_LOG_ERROR << "No calibration points found! Check your Raw data and calibration masses. Aborting!" << std::endl;
       return UNEXPECTED_RESULT;
     }
       
@@ -359,7 +359,7 @@ protected:
                       getStringOption_("quality_control:residuals_plot"),
                       rscript_executable))
     {
-      LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
+      OPENMS_LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;
     }
  

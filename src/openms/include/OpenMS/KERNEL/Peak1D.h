@@ -87,6 +87,8 @@ public:
       intensity_(p.intensity_)
     {}
 
+    Peak1D(Peak1D&&) noexcept = default;
+
     /**
       @brief Destructor
 

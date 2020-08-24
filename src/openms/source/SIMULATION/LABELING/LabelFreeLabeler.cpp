@@ -64,7 +64,7 @@ namespace OpenMS
       return;
     else
     {
-      LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
+      OPENMS_LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
       SimTypes::FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
       features.clear();
       features.push_back(final_map);

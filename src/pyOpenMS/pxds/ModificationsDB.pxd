@@ -13,16 +13,17 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
 
         Size getNumberOfModifications() nogil except +
-        ResidueModification getModification(Size index) nogil except +
 
         void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
                                  const String& mod_name,
                                  const String& residue,
                                  TermSpecificity term_spec) nogil except +
 
-        ResidueModification getModification(const String & mod_name) nogil except +
+        const ResidueModification * getModification(Size index) nogil except +
 
-        ResidueModification getModification(const String & mod_name,
+        const ResidueModification * getModification(const String & mod_name) nogil except +
+
+        const ResidueModification * getModification(const String & mod_name,
                                             const String & residue,
                                             TermSpecificity term_spec) nogil except +
 
@@ -35,9 +36,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
                                                const String & residue, TermSpecificity term_spec) nogil except +
 
-        const ResidueModification* getBestModificationByMonoMass(double mass, double max_error,
-                                                                 const String& residue,
-                                                                 TermSpecificity term_spec) nogil except +
 
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
                                                                      const String& residue, TermSpecificity term_spec) nogil except +

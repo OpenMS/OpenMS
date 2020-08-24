@@ -269,7 +269,7 @@ public:
             boundary.center = center;
             swath_map_boundaries_.push_back(boundary);
 
-            LOG_DEBUG << "Adding Swath centered at " << center
+            OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
               << " m/z." << std::endl;
           }

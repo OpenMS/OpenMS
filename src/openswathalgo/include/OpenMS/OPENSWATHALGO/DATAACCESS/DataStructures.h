@@ -137,6 +137,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set time array
     void setTimeArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -148,6 +149,7 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
@@ -238,6 +240,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set m/z array
     void setMZArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -249,33 +252,27 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// get drift time array (may be null)
-    BinaryDataArrayPtr getDriftTimeArray() const
-    {
-      if (binaryDataArrayPtrs.size() == 3 && binaryDataArrayPtrs[2]->description == "Ion Mobility")
-      {
-        return binaryDataArrayPtrs[2];
-      }
-      else if (binaryDataArrayPtrs.size() == 2)
-      {
-        return BinaryDataArrayPtr(); // return null
-      }
-      else
-      {
-        for (auto & bd : binaryDataArrayPtrs)
-        {
-          if (bd->description == "Ion Mobility")
-          {
-            return bd;
-          }
-        }
-        return BinaryDataArrayPtr(); // return null
-      }
-    }
-
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// get drift time array (may be null)
+    BinaryDataArrayPtr getDriftTimeArray() const
+    {
+      // The array name starts with "Ion Mobility", but may carry additional
+      // information such as the actual unit in which it was measured (seconds,
+      // milliseconds, volt-second per square centimeter). We currently ignore
+      // the unit but return the correct array.
+      for (auto & bda : binaryDataArrayPtrs)
+      {
+        if (bda->description.find("Ion Mobility") == 0)
+        {
+          return bda;
+        }
+      }
+      return BinaryDataArrayPtr(); // return null
     }
 
     /// non-mutable access to the underlying data arrays

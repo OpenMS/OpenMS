@@ -84,6 +84,12 @@ namespace OpenMS
     Q_OBJECT
 
 public:
+    static const char RT_AXIS_TITLE[];
+    static const char MZ_AXIS_TITLE[];
+    static const char INTENSITY_AXIS_TITLE[];
+    static const char IM_MS_AXIS_TITLE[];
+    static const char IM_ONEKZERO_AXIS_TITLE[];
+
     /** @name Type definitions */
     //@{
 

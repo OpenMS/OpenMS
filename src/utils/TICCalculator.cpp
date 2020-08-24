@@ -327,7 +327,7 @@ protected:
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -378,7 +378,7 @@ protected:
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        OPENMS_LOG_ERROR << "Cannot deduce base path from input '" << in << 
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }

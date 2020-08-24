@@ -397,10 +397,10 @@ START_SECTION((void encodeOligoBorders(String sequence, UInt k_mer_length, const
 	
 	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
-	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
+	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
 	encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
-	TEST_EQUAL(output, "(3, 1) (3, 1) (9, 2) (11, 2) (14, 3) (22, 3) ")
+	TEST_EQUAL(output, "(3, 1.0) (3, 1.0) (9, 2.0) (11, 2.0) (14, 3.0) (22, 3.0) ")
 	sequence = "ACNNGTZTCA";
 	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
 	TEST_EQUAL(encoded_sequence.size(), 0)
@@ -422,9 +422,9 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std:
   sequences.push_back("AACNNGTACCA");
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	encoder.libSVMVectorToString(data->x[0], output);
-	TEST_EQUAL(output, "(2, 1) (2, 1) (3, 2) (3, 2) (4, 3) (6, 3) ")
+	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
 	encoder.libSVMVectorToString(data->x[1], output);
-	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
+	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (2, 2.0) (3, 2.0) (3, 3.0) (3, 3.0) ")
 END_SECTION
 
 START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, UInt k_mer_length, const String &allowed_characters, UInt border_length, std::vector< std::vector< std::pair< Int, double > > > &vectors)))

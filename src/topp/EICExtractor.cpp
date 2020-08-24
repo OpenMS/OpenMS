@@ -233,20 +233,20 @@ public:
     // number of out_debug_TIC files and input files must be identical
     /*if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
     {
-        LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
+        OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
         return ILLEGAL_PARAMETERS;
     }*/
 
     // number of header files and input files must be identical
     if (in_header.size() > 0 && in.size() != in_header.size())
     {
-      LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
     if (!getFlag_("auto_rt:enabled") && !out_TIC_debug.empty())
     {
-      LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -277,7 +277,7 @@ public:
 
       if (exp.empty())
       {
-        LOG_WARN << "The given file does not contain any conventional peak data, but might"
+        OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
@@ -317,14 +317,14 @@ public:
 
         if (tics_pp.size())
         {
-          LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
-          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
+          OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
+          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
         }
         else
         {
-          LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
+          OPENMS_LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
         }
-        LOG_INFO << std::endl;
+        OPENMS_LOG_INFO << std::endl;
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
@@ -348,7 +348,7 @@ public:
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
           mzml_file.store(out_TIC_debug, out_debug);
-          LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
+          OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 
         // add target EICs: for each m/z with no/negative RT, add all combinations of that m/z with auto-RTs
@@ -366,7 +366,7 @@ public:
             }
             else
             {
-              LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
+              OPENMS_LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
               continue;
             }
 
@@ -381,7 +381,7 @@ public:
           }
           else
           { // default feature with no auto-rt
-            LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
+            OPENMS_LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
             cm.push_back(*cit);
           }
         }
@@ -456,7 +456,7 @@ public:
             //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;
           }
 
-          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
+          if ((SignedSize)mz.size() > (low + high + 1)) OPENMS_LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
 
           if (!mz.empty())
           {
@@ -483,7 +483,7 @@ public:
                          String(max_peak.getIntensity());
       }
 
-      if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found) OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
     }
 
     //-------------------------------------------------------------

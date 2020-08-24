@@ -204,8 +204,8 @@ smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
     try
     {
-        if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
-            throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
+        // if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
+        //     throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
         for(size_t ii = 0; ii < isotopeNo; ii++)
             if(_probs[ii] <= 0.0 || _probs[ii] > 1.0)
                 throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");

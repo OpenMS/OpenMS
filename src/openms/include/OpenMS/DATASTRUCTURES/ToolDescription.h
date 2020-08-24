@@ -52,8 +52,8 @@ namespace OpenMS
     */
     struct FileMapping
     {
-      String location; // a regex/macro mix; to be expanded by tool;
-      String target; // TOPP parameter that determines the desired name
+      String location; ///< a regex/macro mix; to be expanded by tool;
+      String target; ///< TOPP parameter that determines the desired name
       // thus: move location -> target
 
       FileMapping& operator=(const FileMapping& rhs);
@@ -85,15 +85,15 @@ namespace OpenMS
       bool is_internal;
       String name;
       String category;
-      StringList types; // -types of the tool (if any, e.g. ['centroided','wavelet'])
+      StringList types; ///< -types of the tool (if any, e.g. ['centroided','wavelet'])
 
-      // default C'Tor
+      /// default C'Tor
       ToolDescriptionInternal();
 
-      // C'Tor with arguments
+      /// C'Tor with arguments
       ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
 
-      // short C'Tor
+      /// short C'Tor
       ToolDescriptionInternal(const String& p_name, const StringList& p_types);
 
       ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
@@ -122,13 +122,13 @@ namespace OpenMS
     struct OPENMS_DLLAPI ToolDescription :
       ToolDescriptionInternal
     {
-      // additional details for external tools (one entry for each 'type')
+      /// additional details for external tools (one entry for each 'type')
       std::vector<ToolExternalDetails> external_details;
 
-      // default CTor
+      /// default CTor
       ToolDescription();
 
-      // C'Tor for internal TOPP tools
+      /// C'Tor for internal TOPP tools
       ToolDescription(const String& p_name, const String& p_category, const StringList& p_types = StringList());
 
       void addExternalType(const String& type, const ToolExternalDetails& details);

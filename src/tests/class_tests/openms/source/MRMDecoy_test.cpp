@@ -545,7 +545,7 @@ START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         enable_unspecific_losses); 
   traml.store(test, targeted_decoy);
 
-  TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
+  TEST_FILE_SIMILAR(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 
 END_SECTION

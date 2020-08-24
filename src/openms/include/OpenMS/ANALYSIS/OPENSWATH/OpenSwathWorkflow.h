@@ -111,6 +111,7 @@ protected:
     OpenSwathWorkflowBase() :
       use_ms1_traces_(false),
       use_ms1_ion_mobility_(false),
+      prm_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -127,9 +128,10 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
+      prm_(prm),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -190,13 +192,16 @@ protected:
      * @note This pointer may be NULL if use_ms1_traces_ is set to false
      *
      */
-    OpenSwath::SpectrumAccessPtr ms1_map_;
+    OpenSwath::SpectrumAccessPtr ms1_map_ = nullptr;
 
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
+
+    /// Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+    bool prm_;
 
     /** @brief How many threads should be used for the outer loop
      *
@@ -238,7 +243,7 @@ protected:
     }
 
     explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, false, -1)
     {
     }
 
@@ -388,8 +393,10 @@ protected:
     /** @brief Constructor
      *
      *  @param use_ms1_traces Whether to use MS1 data
+     *  @param use_ms1_ion_mobility Whether to use ion mobility extraction on MS1 traces
      *  @param threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
+     *  @param prm Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
      *
      *  @note The total number of threads should be divisible by this number
      *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
@@ -397,8 +404,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, threads_outer_loop)
     {
     }
 
@@ -581,7 +588,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false, -1)
+      OpenSwathWorkflow(use_ms1_traces, false, false, -1)
     {
     }
 

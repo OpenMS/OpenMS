@@ -123,7 +123,7 @@ namespace OpenMS
       feature_map.push_back(f);
     }
 
-    LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
+    OPENMS_LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
   }
 
 } // namespace OpenMS

@@ -208,33 +208,41 @@ TEST_REAL_SIMILAR(map[0].getIntensity(), 23000.238)
 END_SECTION
 
 START_SECTION((void store(const String &filename, const ConsensusMap &consensus_map)))
-std::string tmp_filename;
-NEW_TMP_FILE(tmp_filename);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
 
-ConsensusMap map, map2;
-ConsensusXMLFile f;
+  ConsensusMap map;
+  ConsensusXMLFile f;
 
-f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
-f.store(tmp_filename, map);
-f.load(tmp_filename, map2);
-TEST_EQUAL(map == map2, true)
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // make protIDs non-unique
+  map.getProteinIdentifications().push_back(map.getProteinIdentifications()[0]);
+  TEST_EXCEPTION(Exception::ParseError, f.store(tmp_filename, map))
+  map.getProteinIdentifications().pop_back(); // undo
+
+  f.store(tmp_filename, map);
+  WHITELIST("?xml-stylesheet")
+  TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), tmp_filename)
+
+
 END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
-ConsensusXMLFile f;
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
+  ConsensusXMLFile f;
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
 
-//test if written empty file
-// - this is invalid, so it is not tested :)
+  //test if written empty file
+  // - this is invalid, so it is not tested :)
 
-//test if written full file is valid
-ConsensusMap m;
-String tmp_filename;
-NEW_TMP_FILE(tmp_filename);
-f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
-f.store(tmp_filename, m);
-TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
+  //test if written full file is valid
+  ConsensusMap m;
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
+  f.store(tmp_filename, m);
+  TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

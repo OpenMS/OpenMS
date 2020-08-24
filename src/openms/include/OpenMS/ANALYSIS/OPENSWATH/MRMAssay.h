@@ -78,9 +78,11 @@ public:
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > CompoundTransitionMapType;
 
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > > SequenceMapT;
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > IonMapT;
@@ -134,7 +136,17 @@ public:
 
     */
     void detectingTransitions(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
+    
+    /**
+      @brief Filters transitions by intensity, only keeping the top N transitions
 
+      @param exp the transition list which will be filtered
+      @param min_transitions the minimum number of transitions required per assay
+      @param max_transitions the maximum number of transitions required per assay
+
+    */
+    void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions);
+    
     /**
       @brief Annotate UIS / site-specific transitions
 

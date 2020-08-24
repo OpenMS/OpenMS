@@ -115,8 +115,8 @@ int main(int argc, const char** argv)
     }
     catch (Exception::BaseException& e)
     {
-      LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
-      LOG_ERROR << e << "\n";
+      OPENMS_LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
+      OPENMS_LOG_ERROR << e << "\n";
     }
 
     return 0;

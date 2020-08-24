@@ -89,6 +89,9 @@ public:
       {
       }
 
+      /// Move constructor
+      DIntervalBase(DIntervalBase&& rhs) noexcept = default;
+
       /// Assignment operator
       DIntervalBase& operator=(const DIntervalBase& rhs)
       {

@@ -46,7 +46,7 @@ namespace OpenMS
     DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
     ProgressLogger(), c1_(nullptr)
   {
-    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opining a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
+    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opening a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
     defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.).  Therefor the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
@@ -91,7 +91,7 @@ namespace OpenMS
       }
       endProgress();
     }
-    catch (Exception::OutOfRange& /*e*/)
+    catch (Exception::OutOfRange&)
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -191,7 +191,7 @@ namespace OpenMS
       double rt = tempalign[xcoordinate[i]]->getRT();
       data.push_back(std::make_pair(rt, double(ycoordinate[i])));
     }
-    transformation.push_back(TransformationDescription(data));
+    transformation.emplace_back(data);
   }
 
   void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern)
@@ -307,7 +307,7 @@ namespace OpenMS
                 else
                   traceback[i][j] = 0;
               }
-              catch (Exception::OutOfRange /*&e*/)
+              catch (Exception::OutOfRange& /*e*/)
               {
                 throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
               }
@@ -367,7 +367,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(i + xbegin - 1), float(j + ybegin - 1)));
+              debugtraceback_.emplace_back(float(i + xbegin - 1), float(j + ybegin - 1));
             }
             xvar.push_back(j + (int)ybegin - 1);
             yvar.push_back((*pattern[i + xbegin - 1]).getRT());
@@ -377,7 +377,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(j + xbegin - 1), float(i + ybegin - 1)));
+              debugtraceback_.emplace_back(float(j + xbegin - 1), float(i + ybegin - 1));
             }
             xvar.push_back(i + (int)ybegin - 1);
             yvar.push_back((*pattern[j + xbegin - 1]).getRT());
@@ -395,7 +395,7 @@ namespace OpenMS
 
     for (Size k = 0; k < xvar.size(); ++k)
     {
-      if (xcoordinate.size() > 0)
+      if (!xcoordinate.empty())
       {
         if (xvar[xvar.size() - 1 - k] != xcoordinate[xcoordinate.size() - 1])
         {
@@ -561,7 +561,7 @@ namespace OpenMS
         //modification only view as a possible data point if the score is higher than 0
         if (score >= threshold_)
         {
-          temp.push_back(std::make_pair(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score));
+          temp.emplace_back(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score);
         }
       }
       /*for(Size i=0; i < temp.size();++i)
@@ -572,7 +572,7 @@ namespace OpenMS
       */
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
-      float anchor = (temp.size() * anchorPoints_ / 100);
+      float anchor = temp.size() * anchorPoints_ / 100.0f;
       if (anchor <= 0 && !temp.empty())
       {
         anchor = 1;
@@ -831,14 +831,7 @@ namespace OpenMS
     }
 
     String tmp = (String)param_.getValue("debug");
-    if (tmp == "true")
-    {
-      debug_ = true;
-    }
-    else
-    {
-      debug_ = false;
-    }
+    debug_ = (tmp == "true");
     threshold_ = 1 - cutoffScore_;
   }
 

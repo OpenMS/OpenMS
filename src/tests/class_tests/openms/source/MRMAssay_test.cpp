@@ -421,7 +421,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
@@ -443,7 +443,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 }
 
 END_SECTION
@@ -503,7 +503,7 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double l
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -530,7 +530,34 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+
+}
+
+END_SECTION
+
+START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
+{
+  TraMLFile traml;
+  TargetedExperiment targeted_exp;
+  String in = "MRMAssay_detectingTransistionCompound_input.TraML";
+  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
+  MRMAssay mrma;
+
+  int min_transitions = 3;
+  int max_transitions = 6;
+
+  String out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
+
+  TargetedExperiment targeted_exp1 = targeted_exp;
+
+  mrma.detectingTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
+
+  String test1;
+  NEW_TMP_FILE(test1);
+  traml.store(test1, targeted_exp1);
+
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -601,7 +628,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -626,7 +653,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
 }
 
@@ -696,7 +723,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -722,7 +749,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
@@ -748,7 +775,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
 
 END_SECTION

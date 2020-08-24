@@ -65,6 +65,7 @@
 			<UserParam type="float" name="FWHM" value="6.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[36310.164094607]"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
@@ -629,6 +630,7 @@
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[2152674.81468212,199952.370346936,13890.8896083682]"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na1"/>
 		</feature>
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
@@ -2397,6 +2399,7 @@
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[986488.096925674]"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na2"/>
 		</feature>
 		<feature id="f_425533765783660679">
 			<position dim="0">258.75</position>
@@ -2460,6 +2463,7 @@
 			<UserParam type="float" name="FWHM" value="3.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="floatList" name="masstrace_intensity" value="[35837.4671685804]"/>
+			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
 		</feature>
 	</featureList>
 </featureMap>

@@ -64,10 +64,10 @@ START_SECTION(~TMTTenPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const String& getMethodName() const ))
 {
   TMTTenPlexQuantitationMethod quant_meth;
-  TEST_EQUAL(quant_meth.getName(), "tmt10plex")
+  TEST_EQUAL(quant_meth.getMethodName(), "tmt10plex")
 }
 END_SECTION
 

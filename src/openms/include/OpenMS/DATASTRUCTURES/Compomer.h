@@ -61,8 +61,8 @@ public:
     /// side of compomer (LEFT ^ subtract; RIGHT ^ add)
     enum SIDE {LEFT, RIGHT, BOTH};
 
-    typedef std::map<String, Adduct> CompomerSide; /// adducts and their abundance etc
-    typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
+    typedef std::map<String, Adduct> CompomerSide; ///< adducts and their abundance etc
+    typedef std::vector<CompomerSide> CompomerComponents; ///< container for the two sides [0]=left, [1]=right
 
     /// Default Constructor
     Compomer();

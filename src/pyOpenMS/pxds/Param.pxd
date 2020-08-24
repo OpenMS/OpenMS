@@ -1,7 +1,4 @@
-from libcpp.string cimport string as libcpp_string
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
-from libcpp cimport bool
+from Types cimport *
 from DataValue cimport *
 from String cimport *
 from StringList cimport *
@@ -43,9 +40,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          StringList getTags(String key) nogil except +
          void clearTags(String key) nogil except +
 
-         libcpp_string getDescription(String key) nogil except +
+         String getDescription(String key) nogil except +
          void setSectionDescription(String key, String desc) nogil except +
-         libcpp_string getSectionDescription(String key) nogil except +
+         String getSectionDescription(String key) nogil except +
 
          Size size() nogil except +
          bool empty() nogil except +

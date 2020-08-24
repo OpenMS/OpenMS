@@ -301,15 +301,20 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.40718216971789);
 
   // feature identification scores
-  TEST_EQUAL(feature.getMetaValue("id_target_transition_names"), "tr5;tr2");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_log_intensity"), "5.03352;7.92704");
+  TEST_EQUAL(feature.getMetaValue("id_target_transition_names").toStringList()[0], "tr5");
+  TEST_EQUAL(feature.getMetaValue("id_target_transition_names").toStringList()[1], "tr2");
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_intensity").toDoubleList()[0], 5.03352);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_intensity").toDoubleList()[1], 7.92704);
   TEST_REAL_SIMILAR(feature.getMetaValue("id_target_num_transitions"), 2);
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_coelution"), "1;1.66667");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_xcorr_shape"), "0.68631;0.690494");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_log_sn_score"), "1.16692;4.45008");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_correlation"), "");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_overlap"), "");
-  TEST_EQUAL(feature.getMetaValue("id_target_ind_massdev_score"), "");
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_coelution").toDoubleList()[0], 1);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_coelution").toDoubleList()[1], 1.66667);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_shape").toDoubleList()[0], 0.68631);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_xcorr_shape").toDoubleList()[1], 0.690494);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_sn_score").toDoubleList()[0], 1.16692);
+  TEST_REAL_SIMILAR(feature.getMetaValue("id_target_ind_log_sn_score").toDoubleList()[1], 4.45008);
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_correlation").toDoubleList().size(), 0);
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_isotope_overlap").toDoubleList().size(), 0);
+  TEST_EQUAL(feature.getMetaValue("id_target_ind_massdev_score").toDoubleList().size(), 0);
 
 }
 END_SECTION

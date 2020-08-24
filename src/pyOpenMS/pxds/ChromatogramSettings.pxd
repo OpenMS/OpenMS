@@ -7,10 +7,14 @@ from DataProcessing cimport *
 from Product cimport *
 from AcquisitionInfo cimport *
 from Precursor cimport *
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
-    cdef cppclass ChromatogramSettings:
+    cdef cppclass ChromatogramSettings(MetaInfoInterface):
+        # wrap-inherits:
+        #    MetaInfoInterface
+        #
         # wrap-doc:
         #   Description of the chromatogram settings, provides meta-information
         #   about a single chromatogram.

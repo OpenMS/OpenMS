@@ -22,9 +22,9 @@ class TestTraMLFile(unittest.TestCase):
 
         self.assertAlmostEqual(targeted.getTransitions()[0].getPrecursorMZ(), 500.0)
         self.assertAlmostEqual(targeted.getTransitions()[0].getProductMZ(), 628.45, places=4)
-        self.assertEqual(targeted.getTransitions()[0].getName(), b"tr1" )
-        self.assertEqual(targeted.getTransitions()[0].getNativeID(), b"tr1" )
-        self.assertEqual(targeted.getTransitions()[0].getPeptideRef(), b"tr_gr1")
+        self.assertEqual(targeted.getTransitions()[0].getName(), "tr1" )
+        self.assertEqual(targeted.getTransitions()[0].getNativeID(), "tr1" )
+        self.assertEqual(targeted.getTransitions()[0].getPeptideRef(), "tr_gr1")
 
     def test_TargetedExperiment(self):
         targeted = pyopenms.TargetedExperiment();

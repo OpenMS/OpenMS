@@ -143,9 +143,8 @@ private:
       */
       static void wrap_(const String& input, Size width, String & output);
 
-    int n_hits_; // Total number of hits within the result file
-
-    double min_score_; // Minimum score encountered in file
-    double max_score_; // Maximum score encountered in file
+    int n_hits_; ///< Total number of hits within the result file
+    double min_score_; ///< Minimum score encountered in file
+    double max_score_; ///< Maximum score encountered in file
   };
 } // namespace OpenMS

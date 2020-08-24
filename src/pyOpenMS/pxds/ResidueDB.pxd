@@ -17,8 +17,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
         const Residue * getModifiedResidue(Residue * residue, const String & name) nogil except +
         libcpp_set[ const Residue * ] getResidues(const String & residue_set) nogil except +
         libcpp_set[ String ] getResidueSets() nogil except +
-        void setResidues(const String & filename) nogil except +
-        void addResidue(Residue & residue) nogil except +
         bool hasResidue(const String & name) nogil except +
         # bool hasResidue(Residue * residue) nogil except + # does not really work as the ptr is different
 

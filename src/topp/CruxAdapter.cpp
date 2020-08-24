@@ -113,7 +113,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -206,7 +206,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -305,7 +305,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -355,7 +355,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }
@@ -401,7 +401,7 @@ protected:
       QStringList process_params;
       process_params << tool.toQString();
       params.split(' ', substrings);
-      for (auto s : substrings)
+      for (const auto& s : substrings)
       {
         process_params << s.toQString();
       }

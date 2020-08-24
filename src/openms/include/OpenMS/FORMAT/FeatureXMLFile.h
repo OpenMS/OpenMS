@@ -57,7 +57,7 @@ namespace OpenMS
     A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     @todo Take care that unique ids are assigned properly by TOPP tools before
-    calling FeatureXMLFile::store().  There will be a message on LOG_INFO but
+    calling FeatureXMLFile::store().  There will be a message on OPENMS_LOG_INFO but
     we will make no attempt to fix the problem in this class.  (all developers)
 
     @note This format will eventually be replaced by the HUPO-PSI AnalysisXML

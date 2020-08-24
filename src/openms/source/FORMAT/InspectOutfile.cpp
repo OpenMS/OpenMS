@@ -158,7 +158,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      LOG_WARN << "ParseError (" << p_e.getMessage() << ") caught in " << __FILE__ << "\n";
+      OPENMS_LOG_WARN << "ParseError (" << p_e.getMessage() << ") caught in " << __FILE__ << "\n";
       throw;
     }
 

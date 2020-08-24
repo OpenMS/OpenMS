@@ -94,12 +94,12 @@ namespace OpenMS
   {
     cp.component_name = line[headers.find("component_name")->second]; // save the component_name value
     cp.component_group_name = line[headers.find("component_group_name")->second]; // save the component_group_name value
-    if (cp.component_name == "" || cp.component_group_name == "") // component_name and component_group_name must not be empty
+    if (cp.component_name.empty() || cp.component_group_name.empty()) // component_name and component_group_name must not be empty
     {
       return false;
     }
     cgp.component_group_name = cp.component_group_name; // save the component_group_name also into cgp
-    for (const std::pair<String, Size>& h : headers) // parse the parameters
+    for (const std::pair<const String, Size>& h : headers) // parse the parameters
     {
       const String& header = h.first;
       const Size& i = h.second;
@@ -118,7 +118,7 @@ namespace OpenMS
 
   void MRMFeaturePickerFile::setCastValue_(const String& key, const String& value, Param& params) const
   {
-    if (value == "") // if the value is empty, don't set it
+    if (value.empty()) // if the value is empty, don't set it
     {
       return;
     }

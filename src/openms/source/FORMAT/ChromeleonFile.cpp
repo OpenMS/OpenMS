@@ -48,6 +48,7 @@ namespace OpenMS
     experiment.clear(true);
     MSChromatogram chromatogram;
     boost::cmatch m;
+    boost::regex re_channel("^Channel\t(.+)", boost::regex::no_mod_s);
     boost::regex re_injection("^Injection\t(.+)", boost::regex::no_mod_s);
     boost::regex re_processing_method("^Processing Method\t(.+)", boost::regex::no_mod_s);
     boost::regex re_instrument_method("^Instrument Method\t(.+)", boost::regex::no_mod_s);
@@ -64,6 +65,10 @@ namespace OpenMS
       if (boost::regex_search(line, m, re_injection))
       {
         experiment.setMetaValue("mzml_id", std::string(m[1]));
+      }
+      else if (boost::regex_search(line, m, re_channel))
+      {
+        experiment.setMetaValue("acq_method_name", std::string(m[1]));
       }
       else if (boost::regex_search(line, m, re_processing_method))
       {

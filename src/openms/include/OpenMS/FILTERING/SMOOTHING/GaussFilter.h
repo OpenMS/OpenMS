@@ -120,7 +120,7 @@ public:
         {
           error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
-        LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
       else
       {
@@ -170,7 +170,7 @@ public:
         {
           error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
         }
-        LOG_ERROR << error_message << std::endl;
+        OPENMS_LOG_ERROR << error_message << std::endl;
       }
       else
       {

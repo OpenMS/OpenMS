@@ -169,7 +169,7 @@ namespace OpenMS
     String unknown_mod = "[unknown]";
     if (peptide.hasSubstring(unknown_mod))
     {
-      LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
+      OPENMS_LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
                << "'" << endl;
       peptide.substitute(unknown_mod, "");
     }
@@ -239,7 +239,7 @@ namespace OpenMS
       {
         String msg = "Error: Could not extract data for spectrum reference '" +
           items[0] + "' from row " + String(row);
-        LOG_ERROR << msg << endl;
+        OPENMS_LOG_ERROR << msg << endl;
       }
 
       PeptideHit hit;
@@ -335,22 +335,22 @@ namespace OpenMS
                                   params.variable_modifications);
     proteins.setSearchParameters(params);
 
-    LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
+    OPENMS_LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
              << "Created " << peptides.size() << " peptide hits (PSMs)."
              << endl;
     if (no_charge > 0)
     {
-      LOG_WARN << no_charge << " peptide hits without charge state information."
+      OPENMS_LOG_WARN << no_charge << " peptide hits without charge state information."
                << endl;
     }
     if (no_rt > 0)
     {
-      LOG_WARN << no_rt << " peptide hits without retention time information." 
+      OPENMS_LOG_WARN << no_rt << " peptide hits without retention time information." 
                << endl;
     }
     if (no_mz > 0)
     {
-      LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
+      OPENMS_LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
                << endl;
     }
   }

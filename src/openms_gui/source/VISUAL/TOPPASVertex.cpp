@@ -205,7 +205,7 @@ namespace OpenMS
     if (inEdgesBegin() == inEdgesEnd())
     {
       error_msg = "buildRoundPackages() called on vertex with no input edges!\n";
-      LOG_ERROR << error_msg;
+      OPENMS_LOG_ERROR << error_msg;
       return false;
     }
 

@@ -171,12 +171,12 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    // LOG_DEBUG << "Starting..." << endl;
+    // OPENMS_LOG_DEBUG << "Starting..." << endl;
 
     //----------------------------------------------------------------
     // load ids
     //----------------------------------------------------------------
-    // LOG_DEBUG << "Loading idXML..." << endl;
+    // OPENMS_LOG_DEBUG << "Loading idXML..." << endl;
     String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
@@ -203,7 +203,7 @@ protected:
     //----------------------------------------------------------------
     //create mapper
     //----------------------------------------------------------------
-    // LOG_DEBUG << "Creating mapper..." << endl;
+    // OPENMS_LOG_DEBUG << "Creating mapper..." << endl;
     IDMapper mapper;
     Param p = mapper.getParameters();
     p.setValue("rt_tolerance", getDoubleOption_("rt_tolerance"));
@@ -218,7 +218,7 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      // LOG_DEBUG << "Processing consensus map..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing consensus map..." << endl;
       ConsensusXMLFile file;
       ConsensusMap map;
       file.load(in, map);
@@ -250,7 +250,7 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      // LOG_DEBUG << "Processing feature map..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing feature map..." << endl;
       FeatureMap map;
       FeatureXMLFile file;
       file.load(in, map);
@@ -278,7 +278,7 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::MZQUANTML)
     {
-      // LOG_DEBUG << "Processing mzq ..." << endl;
+      // OPENMS_LOG_DEBUG << "Processing mzq ..." << endl;
       MSQuantifications msq;
       MzQuantMLFile file;
       file.load(in, msq);
@@ -297,7 +297,7 @@ protected:
       file.store(out, msq);
     }
 
-    // LOG_DEBUG << "Done." << endl;
+    // OPENMS_LOG_DEBUG << "Done." << endl;
     return EXECUTION_OK;
   }
 

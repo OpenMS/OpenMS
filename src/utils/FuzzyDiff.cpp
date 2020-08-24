@@ -141,8 +141,7 @@ protected:
           String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
       }
 
-      std::pair<std::string, std::string> tmp_tuple(tmp[0], tmp[1]);
-      parsed_matched_whitelist.push_back(tmp_tuple);
+      parsed_matched_whitelist.emplace_back(tmp[0], tmp[1]);
     }
 
     fsc.setAcceptableRelative(acceptable_ratio);

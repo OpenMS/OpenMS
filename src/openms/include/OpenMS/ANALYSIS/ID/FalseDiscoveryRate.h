@@ -35,31 +35,27 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
+#include <boost/unordered_map.hpp>
 
 #include <vector>
 
 namespace OpenMS
 {
   /**
-    @brief Calculates an FDR from identifications
+    @brief Calculates false discovery rates (FDR) from identifications
 
-        Either two runs of forward and decoy database identification or
-        one run containing both (with marks) can be used to annotate
-        each of the peptide hits with a FDR.
+    Either two runs of forward and decoy database identification or one run containing both (with annotations) can be used to annotate each of the peptide hits with an FDR or q-value.
 
-    Also q-values can be reported instead of p-values.
     q-values are basically only adjusted p-values, also ranging from 0 to 1, with lower values being preferable.
-    When looking at the list of hits ordered by q-values, then a hit with q-value of @em x means that there is an
-    @em x*100 percent chance that all hits with a q-value <= @em x are a false positive hit.
+    When looking at the list of hits ordered by q-values, then a specific q-value of @em x means that @em x*100 percent of hits with a q-value <= @em x are expected to be false positives.
 
-        @todo implement combined searches properly (Andreas)
-        @improvement implement charge state separated fdr/q-values (Andreas)
+    @htmlinclude OpenMS_FalseDiscoveryRate.parameters
 
-        @htmlinclude OpenMS_FalseDiscoveryRate.parameters
-
-        @ingroup Analysis_ID
+    @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI FalseDiscoveryRate :
     public DefaultParamHandler
@@ -69,46 +65,63 @@ public:
     FalseDiscoveryRate();
 
     /**
-        @brief Calculates the FDR of two runs, a forward run and a decoy run on peptide level
+       @brief Calculates the FDR of two runs, a forward run and a decoy run on peptide level
 
-            @param fwd_ids forward peptide identifications
-            @param rev_ids reverse peptide identifications
+       @param fwd_ids forward peptide identifications
+       @param rev_ids reverse peptide identifications
     */
-    void apply(std::vector<PeptideIdentification> & fwd_ids, std::vector<PeptideIdentification> & rev_ids) const;
+    void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids) const;
 
     /**
-        @brief Calculates the FDR of one run from a concatenated sequence db search
+        @brief Calculates the FDR of one run from a concatenated sequence DB search
 
         @param id peptide identifications, containing target and decoy hits
     */
-    void apply(std::vector<PeptideIdentification> & id) const;
+    void apply(std::vector<PeptideIdentification>& id) const;
 
     /**
-        @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
+       @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
 
-        @param fwd_ids forward protein identifications
-        @param rev_ids reverse protein identifications
+       @param fwd_ids forward protein identifications
+       @param rev_ids reverse protein identifications
     */
-    void apply(std::vector<ProteinIdentification> & fwd_ids, std::vector<ProteinIdentification> & rev_ids) const;
+    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids) const;
 
     /**
-        @brief Calculate the FDR of one run from a concatenated sequence db search
+       @brief Calculate the FDR of one run from a concatenated sequence db search
 
-
-        @param ids protein identifications, containing target and decoy hits
+       @param ids protein identifications, containing target and decoy hits
     */
-    void apply(std::vector<ProteinIdentification> & ids) const;
+    void apply(std::vector<ProteinIdentification>& ids) const;
 
-private:
-    ///Not implemented
-    FalseDiscoveryRate(const FalseDiscoveryRate &);
+    /**
+       @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
 
-    ///Not implemented
-    FalseDiscoveryRate & operator=(const FalseDiscoveryRate &);
+       @param id_data Identification data
+       @param score_key Key of the score to use for FDR calculation
 
-    /// calculates the fdr stored into fdrs, given two vectors of scores
-    void calculateFDRs_(Map<double, double> & score_to_fdr, std::vector<double> & target_scores, std::vector<double> & decoy_scores, bool q_value, bool higher_score_better) const;
+       @return Key of the FDR score
+    */
+    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
+  private:
+    /// Not implemented
+    FalseDiscoveryRate(const FalseDiscoveryRate&);
+
+    /// Not implemented
+    FalseDiscoveryRate& operator=(const FalseDiscoveryRate&);
+
+    /// calculates the FDR, given two vectors of scores
+    void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
+
+    /// Helper function for applyToQueryMatches()
+    void handleQueryMatch_(
+        IdentificationData::QueryMatchRef match_ref,
+        IdentificationData::ScoreTypeRef score_ref,
+        std::vector<double>& target_scores,
+        std::vector<double>& decoy_scores,
+        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+        std::map<IdentificationData::QueryMatchRef, double>& match_to_score) const;
   };
 
 } // namespace OpenMS

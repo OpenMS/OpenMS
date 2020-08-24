@@ -1,0 +1,23 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	description	Result summary from accurate mass search.
+MTD	smallmolecule_search_engine_score[1]	[, , AccurateMassSearchScore, ]
+MTD	study_variable[1]-description	Accurate mass search result file.
+
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	smallmolecule_abundance_study_variable[1]	smallmolecule_abundance_stdev_study_variable[1]	smallmolecule_abundance_std_error_study_variable[1]	opt_global_mz_ppm_error	opt_global_adduct_ion	opt_global_isosim_score	opt_global_MTint	opt_global_neutral_mass	opt_global_id_group
+SML	HMDB:HMDB39534	C17H25ClO2	CCCCCCCC(Cl)C(O)CC#CC#CC(O)C=C	InChI=1S/C17H25ClO2/c1-3-5-6-7-10-13-16(18)17(20)14-11-8-9-12-15(19)4-2/h4,15-17,19-20H,2-3,5-7,10,13-14H2,1H3	Panaxydol chlorohydrin	160.07500553925999	160.0754024519957	2.0	281.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	36310.19921875	0.0	0.0	-2.47953607880854	M+H+Na;2+	-1	null	296.153513925528557	1
+SML	HMDB:HMDB01190	C10H9NO	O=CCC1=CNC2=CC=CC=C12	InChI=1S/C10H9NO/c12-6-5-8-7-11-10-4-2-1-3-9(8)10/h1-4,6-7,11H,5H2	Indoleacetaldehyde	160.075018056482008	160.07569036699573	1.0	308.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	3.02411e07	0.0	0.0	-4.199953860450771	M+H;1+	-1	null	159.067741604486287	2
+SML	HMDB:HMDB15400	C8H8N4	NNC1=NN=CC2=CC=CC=C12	InChI=1S/C8H8N4/c9-11-8-7-4-2-1-3-6(7)5-10-12-8/h1-5H,9H2,(H,11,12)	Hydralazine	160.075018056482008	160.074347696095714	1.0	308.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	3.02411e07	0.0	0.0	4.187806453331455	M;1+	-1	null	160.075566636386299	2
+SML	null	null	null	null	null	160.134470512511996	null	null	316.5	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	2.15267e06	0.0	0.0	null	null	null	null	null	3
+SML	HMDB:HMDB32394	C10H8O2	CC1=CC=C2OC(=O)C=CC2=C1	InChI=1S/C10H8O2/c1-7-2-4-9-8(6-7)3-5-10(11)12-9/h2-6H,1H3	6-Methylcoumarin	161.06023172053699	161.05970595199571	1.0	284.75	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	1.76240992e08	0.0	0.0	3.26443251694974	M+H;1+	-1	null	160.052955268541268	4
+SML	HMDB:HMDB36073	C10H8O2	CC1=COC=C2C(C=O)=CC=C12	InChI=1S/C10H8O2/c1-7-5-12-6-10-8(4-11)2-3-9(7)10/h2-6H,1H3	Viburtinal	161.06023172053699	161.05970595199571	1.0	284.75	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	1.76240992e08	0.0	0.0	3.26443251694974	M+H;1+	-1	null	160.052955268541268	4
+SML	HMDB:HMDB41009	C10H8O2	CC1=CC=CC2=C1OC(C=O)=C2	InChI=1S/C10H8O2/c1-7-3-2-4-8-5-9(6-11)12-10(7)8/h2-6H,1H3	7-Methyl-2-benzofurancarboxaldehyde	161.06023172053699	161.05970595199571	1.0	284.75	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	1.76240992e08	0.0	0.0	3.26443251694974	M+H;1+	-1	null	160.052955268541268	4
+SML	null	null	null	null	null	161.132412915304997	null	null	261.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	18965.900390625	0.0	0.0	null	null	null	null	null	5
+SML	null	null	null	null	null	163.03996512782399	null	null	284.5	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	1.94672e06	0.0	0.0	null	null	null	null	null	6
+SML	null	null	null	null	null	163.077366639892006	null	null	318.75	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	4.13215e05	0.0	0.0	null	null	null	null	null	7
+SML	null	null	null	null	null	163.077368733931991	null	null	267.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	1.81771008e08	0.0	0.0	null	null	null	null	null	8
+SML	HMDB:HMDB14564	C17H20N2S	CN(C)CCCN1C2=CC=CC=C2SC2=CC=CC=C12	InChI=1S/C17H20N2S/c1-18(2)12-7-13-19-14-8-3-5-10-16(14)20-17-11-6-4-9-15(17)19/h3-6,8-11H,7,12-13H2,1-2H3	Promazine	165.056236591301996	165.056580384995698	2.0	289.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	9.864879999999999e05	0.0	0.0	-2.082883898963334	M+2Na;2+	-1	null	284.134031780612588	9
+SML	HMDB:HMDB15202	C17H20N2S	CC(CN1C2=CC=CC=C2SC2=CC=CC=C12)N(C)C	InChI=1S/C17H20N2S/c1-13(18(2)3)12-19-14-8-4-6-10-16(14)20-17-11-7-5-9-15(17)19/h4-11,13H,12H2,1-3H3	Promethazine	165.056236591301996	165.056580384995698	2.0	289.25	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	9.864879999999999e05	0.0	0.0	-2.082883898963334	M+2Na;2+	-1	null	284.134031780612588	9
+SML	null	null	null	null	null	165.057161287125012	null	null	258.75	null	null	HMDB	3.5	null	[, , AccurateMassSearch, ]	null	null	null	35837.5	0.0	0.0	null	null	null	null	null	10
+

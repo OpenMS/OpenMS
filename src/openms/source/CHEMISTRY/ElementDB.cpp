@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg $
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -110,19 +110,11 @@ namespace OpenMS
   double ElementDB::calculateAvgWeight_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass)
   {
     double avg = 0;
-    // extract Zs
-    vector<UInt> keys;
+    // calculate weighted average
     for (Map<UInt, double>::const_iterator it = Z_to_abundance.begin(); it != Z_to_abundance.end(); ++it)
     {
-      keys.push_back(it->first);
+      avg += Z_to_mass[it->first] * Z_to_abundance[it->first];
     }
-
-    // calculate weighted average
-    for (vector<UInt>::iterator it = keys.begin(); it != keys.end(); ++it)
-    {
-      avg += Z_to_mass[*it] * Z_to_abundance[*it];
-    }
-
     return avg;
   }
 
@@ -141,6 +133,82 @@ namespace OpenMS
     return smallest_weight;
   }
 
+  void ElementDB::storeElement_(const UInt an, const String& name, const String& symbol, const Map<UInt, double>& Z_to_abundancy, const Map<UInt, double>& Z_to_mass)
+  {
+    // Parsing of previous element is finished. Now store data in Element object
+    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy, Z_to_mass);
+    double avg_weight = calculateAvgWeight_(Z_to_abundancy, Z_to_mass);
+    double mono_weight = calculateMonoWeight_(Z_to_mass);
+
+    /*
+    // print information about elements
+    cout << "Name: " << name << " AtomicNumber: " << an << " Symbol: " << symbol << " AvgWeight: " << avg_weight
+         << " MonoWeight: " << mono_weight << " NIsotopes: " << isotopes.size() << endl;
+
+    */
+    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
+    if (names_.has(name))
+    {
+      std::cerr << "Error: ElementDB encountered duplicated names for \n" << *names_[name] << "\n" << *e << "\nKeeping only the first one!\n";
+      delete e;
+      return; // next element
+    }
+    if (symbols_.has(symbol))
+    {
+      std::cerr << "Error: ElementDB encountered duplicated symbol for \n" << *symbols_[symbol] << "\n" << *e << "\nKeeping only the first one!\n";
+      delete e;
+      return; // next element
+    }
+    if (atomic_numbers_.has(an))
+    {
+      std::cerr << "Error: ElementDB encountered duplicated atomic number for \n" << *atomic_numbers_[an] << "\n" << *e << "\nKeeping only the first one!\n";
+      delete e;
+      return; // next element
+    }
+    // only add if all Maps accept it
+    names_[name] = e;
+    symbols_[symbol] = e;
+    atomic_numbers_[an] = e;
+
+
+    // add all the individual isotopes as separate elements
+    for (const auto& isotope : isotopes)
+    {
+      double atomic_mass = isotope.getMZ();
+      UInt mass_number = round(atomic_mass);
+      String iso_name = "(" + String(mass_number) + ")" + name;
+      String iso_symbol = "(" + String(mass_number) + ")" + symbol;
+
+      // set avg and mono to same value for isotopes (old hack...)
+      double iso_avg_weight = Z_to_mass[mass_number];
+      double iso_mono_weight = iso_avg_weight;
+      IsotopeDistribution iso_isotopes;
+      IsotopeDistribution::ContainerType iso_container;
+      iso_container.push_back(Peak1D(atomic_mass, 1.0));
+      iso_isotopes.set(iso_container);
+
+      /*
+      // print name, symbol and atomic mass of the current isotope
+      cout << "Isotope Name: " << iso_name << " Symbol: " << iso_symbol << " AtomicMass: " << iso_mono_weight << endl;
+      */
+      Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+      if (names_.has(iso_name))
+      {
+        std::cerr << "Error: ElementDB encountered duplicated name for \n" << *names_[iso_name] << "\n" << *iso_e << "\nKeeping only the first one!\n";
+        delete iso_e;
+        return;
+      }
+      if (symbols_.has(iso_symbol))
+      {
+        std::cerr << "Error: ElementDB encountered duplicated symbol for \n" << *symbols_[iso_symbol] << "\n" << *iso_e << "\nKeeping only the first one!\n";
+        delete iso_e;
+        return;
+      }
+      names_[iso_name] = iso_e;
+      symbols_[iso_symbol] = iso_e;
+    }
+  }
+
   void ElementDB::readFromFile_(const String& file_name)
   {
     String file = File::find(file_name);
@@ -152,7 +220,9 @@ namespace OpenMS
 
     UInt an(0);
     String name, symbol;
-
+    Map<UInt, double> Z_to_abundancy;
+    Map<UInt, double> Z_to_mass;
+    
     // determine prefix
     vector<String> split;
     param.begin().getName().split(':', split);
@@ -163,72 +233,30 @@ namespace OpenMS
     }
     //cout << "first element prefix=" << prefix << endl;
 
-    Map<UInt, double> Z_to_abundancy;
-    Map<UInt, double> Z_to_mass;
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
+      it.getName().split(':', split);
+      
       // new element started?
       if (!it.getName().hasPrefix(prefix))
       {
         // update prefix
-        it.getName().split(':', split);
         prefix = "";
         for (Size i = 0; i < split.size() - 1; ++i)
         {
           prefix += split[i] + ":";
         }
         // cout << "new element prefix=" << prefix << endl;
-
-        // Parsing of previous element is finished. Now store data in Element object
-        IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy, Z_to_mass);
-        double avg_weight = calculateAvgWeight_(Z_to_abundancy, Z_to_mass);
-        double mono_weight = calculateMonoWeight_(Z_to_mass);
-
-        /*
-        // print information about elements
-        cout << "Name: " << name << " AtomicNumber: " << an << " Symbol: " << symbol << " AvgWeight: " << avg_weight
-             << " MonoWeight: " << mono_weight << " NIsotopes: " << isotopes.size() << endl;
-
-        */
-        Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
-        names_[name] = e;
-        symbols_[symbol] = e;
-        atomic_numbers_[an] = e;
-
-        // add all the individual isotopes as separate elements
-        for (const auto& isotope : isotopes)
-        {
-          double atomic_mass = isotope.getMZ();
-          UInt mass_number = round(atomic_mass);
-          String iso_name = "(" + String(mass_number) + ")" + name;
-          String iso_symbol = "(" + String(mass_number) + ")" + symbol;
-
-          // set avg and mono to same value for isotopes (old hack...)
-          double iso_avg_weight = Z_to_mass[mass_number];
-          double iso_mono_weight = iso_avg_weight;
-          IsotopeDistribution iso_isotopes;
-          IsotopeDistribution::ContainerType iso_container;
-          iso_container.push_back(Peak1D(atomic_mass, 1.0));
-          iso_isotopes.set(iso_container);
-
-          /*
-          // print name, symbol and atomic mass of the current isotope
-          cout << "Isotope Name: " << iso_name << " Symbol: " << iso_symbol << " AtomicMass: " << iso_mono_weight << endl;
-          */
-
-          Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
-          names_[iso_name] = iso_e;
-          names_[iso_symbol] = iso_e;
-        }
+        
+        storeElement_(an, name, symbol, Z_to_abundancy, Z_to_mass);
 
         Z_to_abundancy.clear();
         Z_to_mass.clear();
-      }
+      } // new element started
 
       // top level: read the contents of the element section
-      it.getName().split(':', split);
-      String key = split[2];
+      const String& key = split[2];
       String value = it->value;
       value.trim();
 
@@ -279,12 +307,8 @@ namespace OpenMS
     }
 
     // build last element
-    double avg_weight(0), mono_weight(0);
-    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy,Z_to_mass);
-    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
-    names_[name] = e;
-    symbols_[symbol] = e;
-    atomic_numbers_[an] = e;
+    storeElement_(an, name, symbol, Z_to_abundancy, Z_to_mass);
+
   }
 
   IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass)
@@ -312,6 +336,7 @@ namespace OpenMS
 
   void ElementDB::clear_()
   {
+    // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
     Map<String, const Element*>::Iterator it = names_.begin();
     for (; it != names_.end(); ++it)
     {

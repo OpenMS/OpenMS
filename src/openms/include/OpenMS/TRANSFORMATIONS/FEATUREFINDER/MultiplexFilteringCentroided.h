@@ -43,7 +43,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 #include <vector>
 #include <algorithm>

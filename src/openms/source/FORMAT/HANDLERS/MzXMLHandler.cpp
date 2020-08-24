@@ -694,7 +694,7 @@ namespace OpenMS
             (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
         { // MaxQuant's internal parameter defaults require either "Thermo Scientific" (MaxQuant 1.2 - 1.5), or "Thermo Finnigan" (MaxQuant 1.3 - 1.5)
           manufacturer = "Thermo Scientific";
-          LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
+          OPENMS_LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
         }
         os << "\t\t<msInstrument>\n"
           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
@@ -1079,7 +1079,7 @@ namespace OpenMS
       { // create scan index (does not take a lot of space and is required for MaxQuant)
         if (!options_.getWriteIndex())
         {
-          LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
+          OPENMS_LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
         }
         std::ostream::streampos index_offset = os.tellp();
         os << "<index name = \"scan\" >\n";
