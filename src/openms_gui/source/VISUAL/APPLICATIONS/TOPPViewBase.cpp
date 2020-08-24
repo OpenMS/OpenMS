@@ -1381,14 +1381,6 @@ namespace OpenMS
         spectra_identification_view_widget_->setLayer(nullptr);
         // remove all entries
         QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
-        for (int i = w->rowCount() - 1; i >= 0; --i)
-        {
-          w->removeRow(i);
-        }
-        for (int i = w->columnCount() - 1; i >= 0; --i)
-        {
-          w->removeColumn(i);
-        }
         w->clear();
         views_tabwidget_->setTabEnabled(1, false);
         views_tabwidget_->setTabEnabled(0, true);
@@ -1436,15 +1428,11 @@ namespace OpenMS
     if (views_tabwidget_->tabText(tab_index) == spectra_view_widget_->objectName())
     {
       identificationview_behavior_.deactivateBehavior(); // finalize old behavior
-      layer_dock_widget_->show();
-      filter_dock_widget_->show();
       spectraview_behavior_.activateBehavior(); // initialize new behavior
     }
     else if (views_tabwidget_->tabText(tab_index) == spectra_identification_view_widget_->objectName())
     {
       spectraview_behavior_.deactivateBehavior();
-      layer_dock_widget_->show();
-      filter_dock_widget_->show();
       if (getActive2DWidget()) // currently 2D window is open
       {
         showSpectrumAs1D(0);
@@ -1456,7 +1444,8 @@ namespace OpenMS
       cerr << "Error: tab_index " << tab_index << endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-
+    layer_dock_widget_->show();
+    filter_dock_widget_->show();
     updateViewBar();
   }
 
@@ -1522,134 +1511,31 @@ namespace OpenMS
 
   void TOPPViewBase::layerZoomChanged() // todo rename zoomothers
   {
-    QList<QMdiSubWindow *> windows = ws_.subWindowList();
-    if (!windows.count())
-      return;
+    if (!zoom_together_) return;
 
-    if (!zoom_together_)
-      return;
+    QList<QMdiSubWindow *> windows = ws_.subWindowList();
+    if (!windows.count()) return;
 
     SpectrumWidget* w = getActiveSpectrumWidget();
+    DRange<2> new_visible_area = w->canvas()->getVisibleArea();
+    // only zoom if other window is also (not) a chromatogram
+    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||
+                           w->canvas()->getCurrentLayer().chromatogram_flag_set();
 
-    // figure out which dimension the active widget has: 2D (MSExperiment) or 1D (Iontrace)
-    // and get the corresponding RT values.
-    Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(w);
-    Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(w);
-    Spectrum3DWidget* sw3 = qobject_cast<Spectrum3DWidget*>(w);
-    int widget_dimension = -1;
-    if (sw1 != nullptr)
+    // go through all windows, adjust the visible area where necessary
+    for (int i = 0; i < int(windows.count()); ++i)
     {
-      widget_dimension = 1;
+      SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(windows.at(i)->widget());
+      if (!specwidg) continue;
+
+      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||
+                      specwidg->canvas()->getCurrentLayer().chromatogram_flag_set();
+      if (is_chrom != sender_is_chrom) continue;
+      // not the same dimensionality (e.g. Spectrum1DCanvas vs. 2DCanvas)
+      if (w->canvas()->getName() != specwidg->canvas()->getName()) continue;
+
+      specwidg->canvas()->setVisibleArea(new_visible_area);
     }
-    else if (sw2 != nullptr)
-    {
-      widget_dimension = 2;
-    }
-    else if (sw3 != nullptr)
-    {
-      // dont link 3D
-      widget_dimension = 3;
-      return;
-    }
-    else
-    {
-      // Could not cast into any widget.
-      return;
-    }
-
-    // check if the calling layer is a chromatogram:
-    // - either its type is DT_CHROMATOGRAM
-    // - or its peak data has a metavalue called "is_chromatogram" that is set to true
-    if (getActiveCanvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM ||   // TODO why so complicated??
-        (getActiveCanvas()->getCurrentLayer().getPeakData()->size() > 0 &&
-         getActiveCanvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
-         getActiveCanvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool()
-        ))
-    {
-      double minRT = -1, maxRT = -1;
-
-      // Get the corresponding RT values depending on whether it is 2D (MSExperiment) or 1D (Iontrace).
-      if (widget_dimension == 1)
-      {
-        minRT = sw1->canvas()->getVisibleArea().minX();
-        maxRT = sw1->canvas()->getVisibleArea().maxX();
-      }
-      else if (widget_dimension == 2)
-      {
-        minRT = sw2->canvas()->getVisibleArea().minY();
-        maxRT = sw2->canvas()->getVisibleArea().maxY();
-      }
-
-      // go through all windows, adjust the visible area where necessary
-      for (int i = 0; i < int(windows.count()); ++i)
-      {
-        DRange<2> visible_area;
-
-        QMdiSubWindow* window = windows.at(i);
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
-
-        // Skip if its not a SpectrumWidget, if it is not a chromatogram or if the dimensions don't match.
-        if (!specwidg)
-        {
-          continue;
-        }
-        if (!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) &&
-            !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
-              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
-              specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool()
-              ))
-        {
-          continue;
-        }
-        if (!(widget_dimension == 1 && qobject_cast<Spectrum1DWidget*>(specwidg)) &&
-            !(widget_dimension == 2 && qobject_cast<Spectrum2DWidget*>(specwidg)))
-        {
-          continue;
-        }
-
-        visible_area = specwidg->canvas()->getVisibleArea();
-
-        // if we found a min/max RT, change all windows of 1 dimension
-        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window->widget()))
-        {
-          visible_area.setMinX(minRT);
-          visible_area.setMaxX(maxRT);
-        }
-        specwidg->canvas()->setVisibleArea(visible_area);
-      }
-    }
-    else
-    {
-      DRange<2> new_visible_area = w->canvas()->getVisibleArea();
-      // go through all windows, adjust the visible area where necessary
-      for (int i = 0; i < int(windows.count()); ++i)
-      {
-
-        QMdiSubWindow* window = windows.at(i);
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
-
-        // Skip if its not a SpectrumWidget, if it is a chromatogram or if the dimensions don't match.
-        if (!specwidg)
-        {
-          continue;
-        }
-        if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) || // TODO why so complicated??
-            (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
-             specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
-             specwidg->canvas()->getCurrentLayer().getPeakData()->getMetaValue("is_chromatogram").toBool()
-            ))
-        {
-          continue;
-        }
-        if (!(widget_dimension == 1 && qobject_cast<Spectrum1DWidget*>(specwidg)) &&
-            !(widget_dimension == 2 && qobject_cast<Spectrum2DWidget*>(specwidg)))
-        {
-          continue;
-        }
-        specwidg->canvas()->setVisibleArea(new_visible_area);
-      }
-    }
-
   }
 
   void TOPPViewBase::layerDeactivated()
@@ -2170,12 +2056,9 @@ namespace OpenMS
       im.setParameters(p);
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
       im.annotate((*layer.getPeakDataMuteable()), identifications, true, true);
+      return true;
     }
-    else
-    {
-      return false;
-    }
-    return true;
+    return false;
   }
 
   void TOPPViewBase::annotateWithID()
@@ -2221,19 +2104,19 @@ namespace OpenMS
         return;
       }
     }
-    else if (type == FileTypes::IDXML)
+    else if (type == FileTypes::IDXML || type == FileTypes::MZIDENTML)
     {
       vector<PeptideIdentification> identifications;
       vector<ProteinIdentification> protein_identifications;
-
       try
       {
         String document_id;
-        IdXMLFile().load(fname, protein_identifications, identifications, document_id);
+        if (type == FileTypes::MZIDENTML) MzIdentMLFile().load(fname, protein_identifications, identifications);
+        else IdXMLFile().load(fname, protein_identifications, identifications, document_id);
       }
       catch (Exception::BaseException& e)
       {
-        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
+        QMessageBox::warning(this, "Error", QString("Loading of idXML/mzIdentML file failed! (") + e.what() + ")");
         return;
       }
 
@@ -2248,41 +2131,6 @@ namespace OpenMS
         mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
         views_tabwidget_->setTabEnabled(1, true); // enable identification view
         views_tabwidget_->setCurrentIndex(1); // switch to identification view
-      }
-      else if (layer.type == LayerData::DT_FEATURE)
-      {
-        mapper.annotate(*layer.getFeatureMap(), identifications, protein_identifications);
-      }
-      else
-      {
-        mapper.annotate(*layer.getConsensusMap(), identifications, protein_identifications);
-      }
-    }
-    else if (type == FileTypes::MZIDENTML)
-    {
-      vector<PeptideIdentification> identifications;
-      vector<ProteinIdentification> protein_identifications;
-
-      try
-      {
-        MzIdentMLFile().load(fname, protein_identifications, identifications);
-      }
-      catch (Exception::BaseException& e)
-      {
-        QMessageBox::warning(this, "Error", QString("Loading of idXML file failed! (") + e.what() + ")");
-        return;
-      }
-
-      IDMapper mapper;
-      if (layer.type == LayerData::DT_PEAK)
-      {
-        Param p = mapper.getDefaults();
-        p.setValue("rt_tolerance", 0.1, "RT tolerance (in seconds) for the matching");
-        p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
-        p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
-        mapper.setParameters(p);
-        mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
-        views_tabwidget_->setTabEnabled(1, true); // enable identification view
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {
@@ -2998,28 +2846,20 @@ namespace OpenMS
       return;
     }
 
-    QList<QMdiSubWindow *> wl = ws_.subWindowList();
-
     // iterate over all windows and determine which need an update
     std::vector<std::pair<const SpectrumWidget*, Size> > needs_update;
-    for (int i = 0; i != ws_.subWindowList().count(); ++i)
+    for (auto mdi_window : ws_.subWindowList())
     {
-      //std::cout << "Number of windows: " << ws_.subWindowList().count() << std::endl;
-      QWidget* w = wl[i];
-      const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
-      if (sw != nullptr)
-      {
-        Size lc = sw->canvas()->getLayerCount();
+      const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(mdi_window);
+      if (sw == nullptr) return;
 
-        // determine if widget stores one or more layers for the given filename (->needs update)
-        for (Size j = 0; j != lc; ++j)
+      Size lc = sw->canvas()->getLayerCount();
+      // determine if widget stores one or more layers for the given filename (->needs update)
+      for (Size j = 0; j != lc; ++j)
+      {
+        if (sw->canvas()->getLayer(j).filename == filename)
         {
-          //std::cout << "Layer filename: " << sw->canvas()->getLayer(j).filename << std::endl;
-          const LayerData& ld = sw->canvas()->getLayer(j);
-          if (ld.filename == filename)
-          {
-            needs_update.push_back(std::pair<const SpectrumWidget*, Size>(sw, j));
-          }
+          needs_update.push_back(std::pair<const SpectrumWidget*, Size>(sw, j));
         }
       }
     }
@@ -3029,114 +2869,105 @@ namespace OpenMS
       watcher_->removeFile(filename); // remove watcher
       return;
     }
-    else if (!needs_update.empty()) // at least one layer references data of filename
+    
+    //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
+    pair<const SpectrumWidget*, Size>& slp = needs_update[0];
+    const SpectrumWidget* sw = slp.first;
+    Size layer_index = slp.second;
+
+    bool user_wants_update = false;
+    if ((String)(param_.getValue("preferences:on_file_change")) == "update automatically") //automatically update
     {
-      //std::cout << "Number of Layers that need update: " << needs_update.size() << std::endl;
-      pair<const SpectrumWidget*, Size>& slp = needs_update[0];
-      const SpectrumWidget* sw = slp.first;
-      Size layer_index = slp.second;
-
-      bool user_wants_update = false;
-      if ((String)(param_.getValue("preferences:on_file_change")) == "update automatically") //automatically update
-      {
-        user_wants_update = true;
-      }
-      else if ((String)(param_.getValue("preferences:on_file_change")) == "ask") //ask the user if the layer should be updated
-      {
-        if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
-        {
-          return;
-        }
-        // track that we will show the msgbox and we do not need to show it again if file changes once more and the dialog is still open
-        watcher_msgbox_ = true;
-        QMessageBox msg_box;
-        QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
-        msg_box.addButton(QMessageBox::Cancel);
-        msg_box.setWindowTitle("Layer data changed");
-        msg_box.setText((String("The data of file '") + filename + "' has changed.<BR>Update layers?").toQString());
-        msg_box.exec();
-        watcher_msgbox_ = false;
-        if (msg_box.clickedButton() == ok)
-        {
-          user_wants_update = true;
-        }
-      }
-
-      if (user_wants_update == false)
+      user_wants_update = true;
+    }
+    else if ((String)(param_.getValue("preferences:on_file_change")) == "ask") //ask the user if the layer should be updated
+    {
+      if (watcher_msgbox_ == true) // we already have a dialog for that opened... do not ask again
       {
         return;
       }
-      else //if (user_wants_update == true)
+      // track that we will show the msgbox and we do not need to show it again if file changes once more and the dialog is still open
+      watcher_msgbox_ = true;
+      QMessageBox msg_box;
+      QAbstractButton* ok = msg_box.addButton(QMessageBox::Ok);
+      msg_box.addButton(QMessageBox::Cancel);
+      msg_box.setWindowTitle("Layer data changed");
+      msg_box.setText((String("The data of file '") + filename + "' has changed.<BR>Update layers?").toQString());
+      msg_box.exec();
+      watcher_msgbox_ = false;
+      if (msg_box.clickedButton() == ok)
       {
-        LayerData& layer = const_cast<LayerData&>(sw->canvas()->getLayer(layer_index));
-        // reload data
-        if (layer.type == LayerData::DT_PEAK) //peak data
-        {
-          try
-          {
-            FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getPeakDataMuteable()->clear(true);
-          }
-          layer.getPeakDataMuteable()->sortSpectra(true);
-          layer.getPeakDataMuteable()->updateRanges(1);
-        }
-        else if (layer.type == LayerData::DT_FEATURE) //feature data
-        {
-          try
-          {
-            FileHandler().loadFeatures(layer.filename, *layer.getFeatureMap());
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getFeatureMap()->clear(true);
-          }
-          layer.getFeatureMap()->updateRanges();
-        }
-        else if (layer.type == LayerData::DT_CONSENSUS) //consensus feature data
-        {
-          try
-          {
-            ConsensusXMLFile().load(layer.filename, *layer.getConsensusMap());
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getConsensusMap()->clear(true);
-          }
-          layer.getConsensusMap()->updateRanges();
-        }
-        else if (layer.type == LayerData::DT_CHROMATOGRAM) //chromatogram
-        {
-          //TODO CHROM
-          try
-          {
-            FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getPeakDataMuteable()->clear(true);
-          }
-          layer.getPeakDataMuteable()->sortChromatograms(true);
-          layer.getPeakDataMuteable()->updateRanges(1);
-        }
-      }
-
-      // update all layers that need an update
-      for (Size i = 0; i != needs_update.size(); ++i)
-      {
-        pair<const SpectrumWidget*, Size>& slp = needs_update[i];
-        const SpectrumWidget* sw = slp.first;
-        Size layer_index = slp.second;
-        sw->canvas()->updateLayer(layer_index);
+        user_wants_update = true;
       }
     }
-    
+
+    if (user_wants_update == false)
+    {
+      return;
+    }
+    LayerData& layer = const_cast<LayerData&>(sw->canvas()->getLayer(layer_index));
+    // reload data
+    if (layer.type == LayerData::DT_PEAK) //peak data
+    {
+      try
+      {
+        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        layer.getPeakDataMuteable()->clear(true);
+      }
+      layer.getPeakDataMuteable()->sortSpectra(true);
+      layer.getPeakDataMuteable()->updateRanges(1);
+    }
+    else if (layer.type == LayerData::DT_FEATURE) //feature data
+    {
+      try
+      {
+        FileHandler().loadFeatures(layer.filename, *layer.getFeatureMap());
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        layer.getFeatureMap()->clear(true);
+      }
+      layer.getFeatureMap()->updateRanges();
+    }
+    else if (layer.type == LayerData::DT_CONSENSUS) //consensus feature data
+    {
+      try
+      {
+        ConsensusXMLFile().load(layer.filename, *layer.getConsensusMap());
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        layer.getConsensusMap()->clear(true);
+      }
+      layer.getConsensusMap()->updateRanges();
+    }
+    else if (layer.type == LayerData::DT_CHROMATOGRAM) //chromatogram
+    {
+      //TODO CHROM
+      try
+      {
+        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+      }
+      catch (Exception::BaseException& e)
+      {
+        QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
+        layer.getPeakDataMuteable()->clear(true);
+      }
+      layer.getPeakDataMuteable()->sortChromatograms(true);
+      layer.getPeakDataMuteable()->updateRanges(1);
+    }
+
+    // update all layers that need an update
+    for (Size i = 0; i != needs_update.size(); ++i)
+    {
+      sw->canvas()->updateLayer(needs_update[i].second);
+    }
     layerActivated();
 
     // temporarily remove and read filename from watcher_ as a workaround for bug #233
