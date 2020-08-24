@@ -517,6 +517,10 @@ namespace OpenMS
         String native_id = sub_feature.getMetaValue("native_id");
         sub_feature.setMetaValue("isotope_probability", isotope_probs_[native_id]);
       }
+      // add label:
+      String target_id = extractTargetID_(feature).first;
+      target_id = target_id.substr(target_id.find(':') + 1); // remove type prefix
+      feature.setMetaValue("label", target_id);
 
       if (feature.getPeptideIdentifications().empty())
       {
