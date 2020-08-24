@@ -90,20 +90,21 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  typedef std::pair<IdentificationData::IdentifiedMolecule,
-                    boost::optional<IdentificationData::AdductRef>> AdductedID;
-
   // aggregate all search hits (internal and external) grouped by molecule (e.g.
   // peptide) and charge state, ordered by RT:
   /// mapping: RT (not necessarily unique) -> reference to search hit
   typedef std::multimap<double, IdentificationData::QueryMatchRef> RTMap;
   /// mapping: charge -> internal/external: (RT -> ref. to search hit)
   typedef std::map<Int, std::pair<RTMap, RTMap>> ChargeMap;
-  /// mapping: sequence (with adduct?) -> charge -> internal/external ID information
-  typedef std::map<AdductedID, ChargeMap> MoleculeMap;
 
-  /// mapping: target ion ID -> pos. in @p molecule_map_, charge
-  typedef std::map<String, std::pair<MoleculeMap::iterator, Int>> TargetIonRTs;
+  struct TargetData
+  {
+    IdentificationData::IdentifiedMolecule molecule;
+    IdentificationData::AdductOpt adduct;
+    ChargeMap hits_by_charge;
+  };
+  /// mapping: target ion ID -> associated data
+  typedef std::map<String, TargetData> TargetMap;
 
   // need to map from a MoleculeQueryMatch to the corresponding exported
   // PeptideIdentification, so generate a look-up table:
@@ -173,8 +174,7 @@ protected:
     }
   } feature_compare_;
 
-  MoleculeMap molecule_map_; ///< aggregated IDs for each identified molecule
-  TargetIonRTs target_ion_rts_; ///< reference into @p molecule_map_ for each target ion ID
+  TargetMap target_map_; ///< aggregated IDs for each identified molecule
   PepIDLookup pep_id_lookup_; ///< mapping to PeptideIdentifications
 
   Size n_internal_targets_; ///< number of internal target molecules
@@ -240,13 +240,13 @@ protected:
   void addTargetRT_(TargetedExperiment::Compound& target, double rt) const;
 
   /// get regions in which target elutes (ideally only one) by clustering RT elution times
-  void getRTRegions_(ChargeMap& charge_data, std::vector<RTRegion>& rt_regions) const;
+  void makeRTRegions_(const ChargeMap& charge_data, std::vector<RTRegion>& rt_regions) const;
 
   /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features);
 
   void annotateFeaturesOneTarget_(FeatureMap& features, const String& target_id,
-                                  const std::vector<Size>& indexes);
+                                  Int charge, const std::vector<Size>& indexes);
 
   void ensureConvexHulls_(Feature& feature);
 
@@ -260,13 +260,13 @@ protected:
 
     @p MoleculeMap will be (partially) cleared and thus has to be mutable.
   */
-  void createAssayLibrary_(MoleculeMap::iterator begin, MoleculeMap::iterator end);
+  void createAssayLibrary_(TargetMap::iterator begin, TargetMap::iterator end);
 
-  void addTargetMolecule_(IdentificationData::QueryMatchRef ref, bool external = false);
+  void addHitToTargetMap_(IdentificationData::QueryMatchRef ref, bool external = false);
 
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
-  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
+  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool>>& valid_obs,
                           std::map<Size, Int>& training_labels);
 
   void getRandomSample_(std::map<Size, Int>& training_labels);
