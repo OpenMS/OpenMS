@@ -532,7 +532,8 @@ ELSE()
 ENDIF()
 
 add_custom_target(pyopenms_footest
-    COMMAND ${PYTHON_EXECUTABLE} -c "from setuptools import msvc; print(msvc._msvc14_find_vc2017()); print(msvc._msvc14_find_vcvarsall('amd64')); print(msvc.msvc14_get_vc_env('amd64')); print(msvc.msvc9_query_vcvarsall(14.0, 'x64'))"
+    COMMAND ${PYTHON_EXECUTABLE} -c \"from setuptools import msvc; print(msvc._msvc14_find_vc2017()); print(msvc._msvc14_find_vcvarsall('amd64')); print(msvc.msvc14_get_vc_env('amd64')); print(msvc.msvc9_query_vcvarsall(14.0, 'x64'))\"
+    VERBATIM
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_dependencies(pyopenms_build pyopenms_footest)
