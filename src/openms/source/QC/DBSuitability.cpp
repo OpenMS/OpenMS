@@ -272,7 +272,7 @@ namespace OpenMS
       return *max_element(diffs.begin(), diffs.end());
     }
 
-    nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());
+    nth_element(diffs.begin(), diffs.begin() + index, diffs.end());
 
     return diffs[index];
   }
