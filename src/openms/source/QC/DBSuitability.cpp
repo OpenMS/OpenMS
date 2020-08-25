@@ -471,7 +471,7 @@ namespace OpenMS
       }
       if (hit.getMetaValue("target_decoy") == "decoy") continue; // skip decoy IDs
 
-      if (!passesFDR_(hit, this->getParameters().getValue("FDR"))) continue;
+      //if (!passesFDR_(hit, this->getParameters().getValue("FDR"))) continue;
 
       ++count; // count the rest
     }
