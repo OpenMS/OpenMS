@@ -1159,6 +1159,9 @@ protected:
         }
         else
         {
+          //TODO we should make a difference between peptide-level q-values and psm-level q-values!
+          // I am just not changing it right now, because a lot of tools currently depend on
+          // the score being exactly "q-value"
           it->setScoreType(scoreType);
         }
         it->setHigherScoreBetter(scoreType == "svm");

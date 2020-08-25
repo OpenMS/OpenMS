@@ -1895,9 +1895,7 @@ namespace OpenMS
       }
 
       // get msrun indices for each ID and insert best search_engine_score for this run
-      // for the first run we also annotate the spectra_ref (since it is not designed to be a list)
-      // TODO choose best run instead?
-      bool first = true;
+      // for the best run we also annotate the spectra_ref (since it is not designed to be a list)
       double best_score = best_ph.getScore();
       for (const auto& pep : curr_pep_ids)
       {
@@ -1947,16 +1945,11 @@ namespace OpenMS
         || (!pep.isHigherScoreBetter() && curr_score < best_score))
         {
           best_score = curr_score;
-        }
-
-        if (first)
-        {
           if (pep.metaValueExists("spectrum_reference"))
           {
             row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
             row.spectra_ref.setMSFile(msfile_index);
           }
-          first = false;
         }
       }
       row.best_search_engine_score[1] = MzTabDouble(best_score);
@@ -2644,7 +2637,20 @@ Not sure how to handle these:
     for (const auto& mztpar : protein_scoretypes)
     {
       MzTabParameter p{};
-      p.fromCellString(mztpar);
+      //TODO actually we should make a distinction between protein and protein group-level FDRs
+      if (mztpar.hasSubstring("q-value"))
+      {
+        p.fromCellString("[MS,MS:1003117,OpenMS:Target-decoy protein q-value, ]");
+      }
+      else if (mztpar.hasSubstring("Epifany"))
+      {
+        p.fromCellString("[MS,MS:1003119,EPIFANY:Protein posterior probability,]");
+      }
+      else
+      {
+        p.fromCellString(mztpar);
+      }
+
       meta_data.protein_search_engine_score[cnt] = p;
       cnt++;
     }
@@ -2653,7 +2659,18 @@ Not sure how to handle these:
     {
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
-      sesoftware.fromCellString("[,," + eng_ver_settings.first.first + "," + eng_ver_settings.first.second + "]");
+      if (eng_ver_settings.first.first == "Epifany")
+      {
+        sesoftware.fromCellString("[MS,MS:1003118,EPIFANY," + eng_ver_settings.first.second + "]");
+      }
+      else if (eng_ver_settings.first.first == "TOPPProteinInference")
+      {
+        sesoftware.fromCellString("[MS,MS:1002203,TOPP ProteinInference," + eng_ver_settings.first.second + "]");
+      }
+      else
+      {
+        sesoftware.fromCellString("[,," + eng_ver_settings.first.first + "," + eng_ver_settings.first.second + "]");
+      }
       sesoftwaremd.software = sesoftware;
       meta_data.software[meta_data.software.size() + 1] = sesoftwaremd;
     }
@@ -2686,11 +2703,54 @@ Not sure how to handle these:
     Size psm_search_engine_index(1);
     for (auto const & se : search_engine_to_runs) // loop over (unique) search engine names
     {
+      //Huge TODO: we need to somehow correctly support peptide-level scores
       MzTabParameter psm_score_type;
+      MzTabParameter pep_score_type;
       const tuple<String, String, String>& name_version_score = se.first;
-      psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
+
+      //TODO we also have to consider the different q-value calculation methods of Percolator....
+      if (get<2>(name_version_score) == "peptide-level q-value")
+      {
+        if (get<0>(name_version_score) == "Percolator")
+        {
+          pep_score_type.fromCellString("[MS,MS:XXXXXXX,Percolator peptide-level q-value," + get<1>(name_version_score) + "]");
+          psm_score_type = pep_score_type; // since we have no way to have two types
+        }
+        else
+        {
+          pep_score_type.fromCellString("[MS,MS:1003116,OpenMS:Target-decoy peptide q-value," + get<1>(name_version_score) + "]");
+          psm_score_type = pep_score_type; // since we have no way to have two types
+        }
+      }
+      else if (get<2>(name_version_score).hasSubstring("q-value"))
+      {
+        if (get<0>(name_version_score) == "Percolator")
+        {
+          psm_score_type.fromCellString("[MS,MS:XXXXXXX,Percolator PSM-level q-value," + get<1>(name_version_score) + "]");
+          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+        }
+        else
+        {
+          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value," + get<1>(name_version_score) + "]");
+          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+        }
+      }
+      else if (get<0>(name_version_score).hasSubstring("ConsensusID"))
+      {
+        {
+          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value," + get<1>(name_version_score) + "]");
+          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+        }
+      }
+      //TODO all the other dozens of search engines
+      else
+      {
+        psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
+        pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+      }
+
       meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
-      meta_data.peptide_search_engine_score[psm_search_engine_index] = psm_score_type; // same score type for peptides
+      meta_data.peptide_search_engine_score[psm_search_engine_index] = pep_score_type; // same score type for peptides
       psm_search_engine_index++;
     }
   }
@@ -3737,24 +3797,13 @@ state0:
     const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits().size() > 1)
+      if (pep.getHits()[0].getSequence() != refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__
             , __LINE__
             , __FUNCTION__
             , "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
-      }
-      else
-      {
-        if (pep.getHits()[0].getSequence() != refseq)
-        {
-          throw OpenMS::Exception::IllegalArgument(
-              __FILE__
-              , __LINE__
-              , __FUNCTION__
-              , "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
-        }
       }
     }
   }
