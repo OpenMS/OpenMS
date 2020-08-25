@@ -368,6 +368,7 @@ namespace OpenMS
   IdentificationData::AdductRef
   IdentificationData::registerAdduct(const AdductInfo& adduct)
   {
+    // @TODO: require non-empty name? (auto-generate from formula?)
     auto result = adducts_.insert(adduct);
     if (!result.second && (result.first->getName() != adduct.getName()))
     {
