@@ -709,12 +709,17 @@ namespace OpenMS
       if (with_external_ids)
       {
         OPENMS_LOG_INFO << ", " << n_missing_external << " external";
+        if (n_missing_external < 0) OPENMS_LOG_INFO << "*";
       }
       if (n_seed_targets_ > 0)
       {
         OPENMS_LOG_INFO << ", " << n_seed_targets_ - quantified_seed.size() << " seed-based";
       }
       OPENMS_LOG_INFO << ")";
+    }
+    if (n_missing_external < 0)
+    {
+      OPENMS_LOG_INFO << "\n*: At least " << -n_missing_external << " targets without valid features based on internal IDs were quantified based on external IDs (in a different charge state) instead.";
     }
     OPENMS_LOG_INFO << "\n" << endl;
   }
