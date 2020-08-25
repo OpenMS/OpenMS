@@ -100,6 +100,7 @@ jobs:
 
             echo $CURRENT_PYTHON_EXECUTABLE
 
+            patch -u /c/Users/runneradmin/miniconda3/envs/pyoms-bld-$py/lib/site-packages/setuptools/msvc.py -i ../OpenMS/.github/workflows/msvc.py.patch
             ## test what setuptools thinks about our VS environment
             ${CURRENT_PYTHON_EXECUTABLE} --version
             ${CURRENT_PYTHON_EXECUTABLE} -c "from setuptools import msvc; print(msvc._msvc14_find_vc2017())"
