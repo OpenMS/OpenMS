@@ -1,8 +1,10 @@
 --- msvc.py	2020-08-24 17:38:24.000000000 +0200
-+++ msvc.py	2020-08-25 11:28:25.000000000 +0200
-@@ -276,7 +276,7 @@
++++ msvc.py	2020-08-25 13:04:26.000000000 +0200
+@@ -275,8 +275,9 @@
+             stderr=subprocess.STDOUT,
          ).decode('utf-16le', errors='replace')
      except subprocess.CalledProcessError as exc:
++        print("Error executing {}. Error was {}".format(exc.cmd, exc.output))
          raise distutils.errors.DistutilsPlatformError(
 -            "Error executing {}".format(exc.cmd)
 +            "Error executing {}. Error was {}".format(exc.cmd, exc.output)
