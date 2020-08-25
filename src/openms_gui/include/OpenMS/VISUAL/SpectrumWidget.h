@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,6 +84,12 @@ namespace OpenMS
     Q_OBJECT
 
 public:
+    static const char RT_AXIS_TITLE[];
+    static const char MZ_AXIS_TITLE[];
+    static const char INTENSITY_AXIS_TITLE[];
+    static const char IM_MS_AXIS_TITLE[];
+    static const char IM_ONEKZERO_AXIS_TITLE[];
+
     /** @name Type definitions */
     //@{
 

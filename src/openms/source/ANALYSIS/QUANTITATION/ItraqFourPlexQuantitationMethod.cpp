@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,8 @@ namespace OpenMS
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 114;
   }
 
-  ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod(const ItraqFourPlexQuantitationMethod& other)
+  ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod(const ItraqFourPlexQuantitationMethod& other):
+  IsobaricQuantitationMethod(other)
   {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -115,7 +116,7 @@ namespace OpenMS
     return *this;
   }
 
-  const String& ItraqFourPlexQuantitationMethod::getName() const
+  const String& ItraqFourPlexQuantitationMethod::getMethodName() const
   {
     return ItraqFourPlexQuantitationMethod::name_;
   }

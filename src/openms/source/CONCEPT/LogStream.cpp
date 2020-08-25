@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,9 +49,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
-#ifdef _OPENMP
-#endif
-
 #define BUFFER_LENGTH 32768
 
 using namespace std;
@@ -80,10 +77,8 @@ namespace OpenMS
 
     LogStreamBuf::~LogStreamBuf()
     {
-      sync();
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+      // Prevent issue on OSX with OpenMP: destructors of global objects seem to be called after tearing down the OpenMP context, we therefore cannot use any locks here.
+      syncLF_();
       {
         clearCache();
         if (incomplete_line_.size() > 0)
@@ -126,7 +121,7 @@ namespace OpenMS
       }
 
       // set the new level
-      rdbuf()->level_ = level;
+      rdbuf()->level_ = std::move(level);
     }
 
     std::string LogStream::getLevel()
@@ -173,7 +168,6 @@ namespace OpenMS
     std::string LogStreamBuf::addToCache_(std::string const & line)
     {
       std::string extra_message = "";
-
       if (log_cache_.size() > 1) // check if we need to remove one of the entries
       {
         // get smallest key
@@ -220,91 +214,6 @@ namespace OpenMS
       log_time_cache_.clear();
     }
 
-    int LogStreamBuf::sync()
-    {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-      {
-        // sync our streambuffer...
-        if (pptr() != pbase())
-        {
-          // check if we have attached streams, so we don't waste time to
-          // prepare the output
-          if (!stream_list_.empty())
-          {
-            char * line_start = pbase();
-            char * line_end = pbase();
-
-            static char buf[BUFFER_LENGTH];
-
-            while (line_end < pptr())
-            {
-              // search for the first end of line
-              for (; line_end < pptr() && *line_end != '\n'; line_end++)
-              {
-              }
-
-              if (line_end >= pptr())
-              {
-                // Copy the incomplete line to the incomplete_line_ buffer
-                size_t length = line_end - line_start;
-                length = std::min(length, (size_t)(BUFFER_LENGTH - 1));
-                strncpy(&(buf[0]), line_start, length);
-
-                // if length was too large, we copied one byte less than BUFFER_LENGTH to have
-                // room for the final \0
-                buf[length] = '\0';
-
-                incomplete_line_ += &(buf[0]);
-
-                // mark everything as read
-                line_end = pptr() + 1;
-              }
-              else
-              {
-                // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
-                memcpy(&(buf[0]), line_start, line_end - line_start + 1);
-                buf[line_end - line_start] = '\0';
-
-                // assemble the string to be written
-                // (consider leftovers of the last buffer from incomplete_line_)
-                std::string outstring;
-                std::swap(outstring, incomplete_line_); // init outstring, while resetting incomplete_line_ 
-                outstring += &(buf[0]);
-
-                // avoid adding empty lines to the cache
-                if (outstring.empty())
-                {
-                  distribute_(outstring);
-                }
-                // check if we have already seen this log message
-                else if (!isInCache_(outstring))
-                {
-                  // add line to the log cache
-                  std::string extra_message = addToCache_(outstring);
-
-                  // send outline (and extra_message) to attached streams
-                  if (!extra_message.empty())
-                    distribute_(extra_message);
-
-                  distribute_(outstring);
-                }
-
-                // update the line pointers (increment both)
-                line_start = ++line_end;
-              }
-            }
-          }
-          // remove all processed lines from the buffer
-          pbump((int)(pbase() - pptr()));
-        }
-
-      } // ! OMP
-
-      return 0;
-    }
-
     void LogStreamBuf::distribute_(std::string outstring)
     {
       // if there are any streams in our list, we
@@ -322,14 +231,101 @@ namespace OpenMS
       }
     }
 
+    int LogStreamBuf::syncLF_()
+    {
+      // sync our streambuffer...
+      if (pptr() != pbase())
+      {
+        // check if we have attached streams, so we don't waste time to
+        // prepare the output
+        if (!stream_list_.empty())
+        {
+          char *line_start = pbase();
+          char *line_end = pbase();
+
+          static char buf[BUFFER_LENGTH];
+
+          while (line_end < pptr())
+          {
+            // search for the first end of line
+            for (; line_end < pptr() && *line_end != '\n'; line_end++)
+            {
+            }
+
+            if (line_end >= pptr())
+            {
+              // Copy the incomplete line to the incomplete_line_ buffer
+              size_t length = line_end - line_start;
+              length = std::min(length, (size_t) (BUFFER_LENGTH - 1));
+              strncpy(&(buf[0]), line_start, length);
+
+              // if length was too large, we copied one byte less than BUFFER_LENGTH to have
+              // room for the final \0
+              buf[length] = '\0';
+
+              incomplete_line_ += &(buf[0]);
+
+              // mark everything as read
+              line_end = pptr() + 1;
+            }
+            else
+            {
+              // note: pptr() - pbase() should be bounded by BUFFER_LENGTH, so this should always work
+              memcpy(&(buf[0]), line_start, line_end - line_start + 1);
+              buf[line_end - line_start] = '\0';
+
+              // assemble the string to be written
+              // (consider leftovers of the last buffer from incomplete_line_)
+              std::string outstring;
+              std::swap(outstring, incomplete_line_); // init outstring, while resetting incomplete_line_
+              outstring += &(buf[0]);
+
+              // avoid adding empty lines to the cache
+              if (outstring.empty())
+              {
+                distribute_(outstring);
+              }
+                // check if we have already seen this log message
+              else if (!isInCache_(outstring))
+              {
+                // add line to the log cache
+                std::string extra_message = addToCache_(outstring);
+
+                // send outline (and extra_message) to attached streams
+                if (!extra_message.empty())
+                  distribute_(extra_message);
+
+                distribute_(outstring);
+              }
+
+              // update the line pointers (increment both)
+              line_start = ++line_end;
+            }
+          }
+        }
+        // remove all processed lines from the buffer
+        pbump((int) (pbase() - pptr()));
+      }
+      return 0;
+    }
+
+    int LogStreamBuf::sync()
+    {
+      int ret = 0;
+
+        ret = syncLF_();
+      
+      return ret;
+    }
+
     string LogStreamBuf::expandPrefix_
       (const std::string & prefix, time_t time) const
     {
       string::size_type   index = 0;
       Size copied_index = 0;
-      string result("");
+      string result;
 
-      while ((index = prefix.find("%", index)) != String::npos)
+      while ((index = prefix.find('%', index)) != String::npos)
       {
         // append any constant parts of the string to the result
         if (copied_index < index)
@@ -415,6 +411,7 @@ namespace OpenMS
 
     void LogStreamNotifier::unregister()
     {
+
       if (registered_at_ == nullptr)
         return;
 
@@ -425,7 +422,6 @@ namespace OpenMS
     void LogStreamNotifier::registerAt(LogStream & log)
     {
       unregister();
-
       registered_at_ = &log;
       log.insertNotification(stream_, *this);
     }
@@ -459,7 +455,6 @@ namespace OpenMS
       {
         return;
       }
-
       // we didn't find it - create a new entry in the list
       LogStreamBuf::StreamStruct s_struct;
       s_struct.stream = &stream;
@@ -537,11 +532,6 @@ namespace OpenMS
       }
     }
 
-    void LogStream::flush()
-    {
-      std::ostream::flush();
-    }
-
     bool LogStream::bound_() const
     {
       LogStream * non_const_this = const_cast<LogStream *>(this);
@@ -549,17 +539,23 @@ namespace OpenMS
       return non_const_this->rdbuf() != nullptr;
     }
 
+    void LogStream::flush()
+    {
+      std::ostream::flush();
+    }
+
   }   // namespace Logger
+
 
   // global StreamHandler
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
   // global default logstream
-  OPENMS_DLLAPI Logger::LogStream Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
-  // LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-  OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+  // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

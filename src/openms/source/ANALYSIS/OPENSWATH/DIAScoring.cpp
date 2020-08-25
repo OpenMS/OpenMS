@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h> // getPPM
 
 #include <numeric>
 #include <algorithm>
@@ -57,20 +58,6 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
-
-  void adjustExtractionWindow(double& right, double& left, const double& dia_extract_window_, const bool& dia_extraction_ppm_)
-  {
-    if (dia_extraction_ppm_)
-    {
-      left -= left * dia_extract_window_ / 2e6;
-      right += right * dia_extract_window_ / 2e6;
-    }
-    else
-    {
-      left -= dia_extract_window_ / 2.0;
-      right += dia_extract_window_ / 2.0;
-    }
-  }
 
   DIAScoring::DIAScoring() :
     DefaultParamHandler("DIAScoring")
@@ -147,20 +134,24 @@ namespace OpenMS
     diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
   }
 
-  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
+  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions,
+                                      SpectrumPtrType spectrum,
                                       const std::vector<double>& normalized_library_intensity,
-                                      double& ppm_score, double& ppm_score_weighted)
+                                      double& ppm_score,
+	                                    double& ppm_score_weighted,
+                                      std::vector<double>& diff_ppm)
   {
     ppm_score = 0;
     ppm_score_weighted = 0;
-    double mz, intensity;
+    diff_ppm.clear();
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
-      const TransitionType* transition = &transitions[k];
+      const TransitionType& transition = transitions[k];
       // Calculate the difference of the theoretical mass and the actually measured mass
-      double left(transition->getProductMZ()), right(transition->getProductMZ());
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double left(transition.getProductMZ()), right(transition.getProductMZ());
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      double mz, intensity;
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.
@@ -169,13 +160,18 @@ namespace OpenMS
         continue;
       }
 
-      double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
-      ppm_score += diff_ppm;
-      ppm_score_weighted += diff_ppm * normalized_library_intensity[k];
+      double ppm = Math::getPPM(mz, transition.getProductMZ());
+      diff_ppm.push_back(transition.getProductMZ());
+      diff_ppm.push_back(ppm);
+      ppm_score += std::fabs(ppm);
+      ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING
       std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << diff_ppm << " thus append " << diff_ppm * diff_ppm << " or weighted " << diff_ppm * normalized_library_intensity[k] << std::endl;
 #endif
     }
+
+    // FEATURE we should not punish so much when one transition is missing!
+    ppm_score /= transitions.size();
   }
 
   bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
@@ -186,8 +182,8 @@ namespace OpenMS
     {
       // Calculate the difference of the theoretical mass and the actually measured mass
       double left(precursor_mz), right(precursor_mz);
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
       // value. Otherwise calculate the difference in ppm.
@@ -198,7 +194,7 @@ namespace OpenMS
       }
       else
       {
-        ppm_score = std::fabs(mz - precursor_mz) * 1000000 / precursor_mz;
+        ppm_score = Math::getPPMAbs(mz, precursor_mz);
         return true;
       }
     }
@@ -216,9 +212,9 @@ namespace OpenMS
     {
       double left  = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
       double right = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       double mz, intensity;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       isotopes_int.push_back(intensity);
     }
 
@@ -244,10 +240,10 @@ namespace OpenMS
     {
       left = bseries[it];
       right = bseries[it];
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
-      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, bseries[it]);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         bseries_score++;
@@ -257,10 +253,10 @@ namespace OpenMS
     {
       left = yseries[it];
       right = yseries[it];
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
 
-      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, yseries[it]);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
@@ -319,9 +315,9 @@ namespace OpenMS
                         iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
         double right = transitions[k].getProductMZ() +
                         iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
-        adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+        DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity;
-        integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+        DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
       }
 
@@ -344,8 +340,8 @@ namespace OpenMS
     {
       double left = mono_mz  - C13C12_MASSDIFF_U / (double) ch;
       double right = mono_mz - C13C12_MASSDIFF_U / (double) ch;
-      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
       // about the mass difference if no signal is present.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,8 +104,8 @@ namespace OpenMS
     std::vector<std::size_t> result;
     OpenSwath::SpectrumMeta s;
     s.RT = RT - deltaRT;
-    std::vector< OpenSwath::SpectrumMeta >::const_iterator spectrum = std::upper_bound(
-        spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
+    auto spectrum = std::lower_bound(spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
+    if (spectrum == spectra_meta_.end()) return result;
 
     result.push_back(std::distance(spectra_meta_.begin(), spectrum));
     ++spectrum;

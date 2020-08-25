@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,11 +165,11 @@ namespace OpenMS
   void MSSim::simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& channels)
   {
     /*todo: move to a global config file or into INI file */
-    Log_fatal.setPrefix("%S: ");
-    Log_error.setPrefix("%S: ");
-    Log_warn.setPrefix("%S: ");
-    Log_info.setPrefix("%S: ");
-    Log_debug.setPrefix("%S: ");
+    OpenMS_Log_fatal.setPrefix("%S: ");
+    OpenMS_Log_error.setPrefix("%S: ");
+    OpenMS_Log_warn.setPrefix("%S: ");
+    OpenMS_Log_info.setPrefix("%S: ");
+    OpenMS_Log_debug.setPrefix("%S: ");
 
     /*
       General progress should be
@@ -303,7 +303,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
+    OPENMS_LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
 
     // re-index spectra to avoid naming conflicts
     Size id = 1;

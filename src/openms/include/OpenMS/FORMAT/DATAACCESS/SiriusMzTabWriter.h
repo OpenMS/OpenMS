@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/MzTabFile.h>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI SiriusMzTabWriter
@@ -41,9 +43,28 @@ namespace OpenMS
   public:
 
     /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
+    @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
+
+    SiriusAdapterHit:
+    formula (String) - Sumformula
+    adduct (String) - Assigned adduct
+    rank (int)  - Rank of the possible sumformula for a compound (spectrum) calculated by Sirius
+    score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
+    treescore (double) - Fragmentation pattern score
+    isoscore (double) - Isotope pattern score
+    explainedpeaks (int) - Number of explained peaks
+    explainedintensity (double) - Relative amount of explained intensity
+
+    SiriusAdapterIdentification:
+    scan_index (int) - Index of the spectrum used
+    scan_number (int) - NativeId of the spectrum used
+    feature_id (String) - FeatureId (if spectrum was assigned to a feature)
+    hits (vector<SiriusAdapterHit>)
+
+    SiriusAdapterRun:
+    identifications (vector<SiriusAdapterIdentification>)
 
     Store a specific @param number of lines from sirius output
     @return mzTab
@@ -53,18 +74,22 @@ namespace OpenMS
     {
       OpenMS::String formula;
       OpenMS::String adduct;
-      int rank;
-      double score;
-      double treescore;
-      double isoscore;
-      int explainedpeaks;
-      double explainedintensity;
+      int rank = 0;
+      double score = 0.;
+      double treescore = 0.;
+      double isoscore = 0.;
+      int explainedpeaks = 0;
+      double explainedintensity = 0.;
     };
 
     struct SiriusAdapterIdentification
     {
-      OpenMS::String scan_index;
-      OpenMS::String scan_number;
+      double mz = 0.;
+      double rt = 0.;
+      OpenMS::String native_id;
+      int scan_index = -1;
+      int scan_number = -1;
+      OpenMS::String feature_id;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -76,7 +101,7 @@ namespace OpenMS
     /**
     @brief Extract scan_index from filepath
     */
-    static String extract_scan_index(const String & path);
+    static int extract_scan_index(const String& path);
  
     /**
     @brief Conversion of sirius output to mzTab
@@ -88,7 +113,10 @@ namespace OpenMS
     
     @return: Result written to mzTab
     */
-    static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
+    static void read(const std::vector<String>& sirius_output_paths,
+                     const String& original_input_mzml,
+                     const Size& top_n_hits,
+                     MzTab& result);
 
   };
 

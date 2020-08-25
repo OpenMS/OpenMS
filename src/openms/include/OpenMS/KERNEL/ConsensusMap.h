@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,14 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <map>
@@ -50,6 +53,8 @@
 
 namespace OpenMS
 {
+  class PeptideIdentification;
+  class PeptideHit;
   class ProteinIdentification;
   class DataProcessing;
   namespace Logger
@@ -78,7 +83,8 @@ namespace OpenMS
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<ConsensusMap>
+    public UniqueIdIndexer<ConsensusMap>,
+    public MapUtilities<ConsensusMap>
   {
 
 public:
@@ -103,11 +109,19 @@ public:
     using privvec::empty;
     using privvec::reserve;
     using privvec::operator[];
-    using privvec::at; // UniqueIdIndexer
-    using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
-
+    using privvec::at;
+    using privvec::back;
     using privvec::push_back;
+    using privvec::emplace_back;
+    using privvec::erase;
 
+    enum class SplitMeta
+    {
+      DISCARD,                 ///< do not copy any meta values
+      COPY_ALL,               ///< copy all meta values to all feature maps
+      COPY_FIRST              ///< copy all meta values to first feature map
+    };
+    
     /// Description of the columns in a consensus map
     struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
@@ -127,6 +141,24 @@ public:
       Size size;
       /// Unique id of the file
       UInt64 unique_id;
+
+      unsigned getLabelAsUInt(const String& experiment_type) const
+      {
+        if (metaValueExists("channel_id"))
+        {
+          return static_cast<unsigned int>(getMetaValue("channel_id")) + 1;
+        }
+        else
+        {
+          if (experiment_type != "label-free")
+          {
+            // TODO There seem to be files in our test data from the Multiplex toolset that do not annotate
+            //  a channel id but only add the "label" attribute with the SILAC modification. Add a fall-back here?
+            OPENMS_LOG_WARN << "No channel id annotated in labelled consensusXML. Assuming only a single channel was used." << std::endl;
+          }
+          return 1;
+        }
+      }
     };
 
     ///@name Type definitions
@@ -249,6 +281,9 @@ public:
     /// sets the protein identifications
     OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
+    /// sets the protein identifications by moving
+    OPENMS_DLLAPI void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
+
     /// non-mutable access to the unassigned peptide identifications
     OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
@@ -269,6 +304,10 @@ public:
 
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e. 
+    /// If it doesn't exist, fallback to @param s.
+    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
@@ -329,7 +368,22 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+    OPENMS_DLLAPI bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+
+    /**
+     @brief splits ConsensusMap into its original FeatureMaps
+
+     If the ConsensusMap originated from some number of FeatureMaps, those are reconstructed with the information
+     provided by the map index.
+     If the ConsensusMap originated from the IsobaricAnalyzer, only Features are seperated. All PeptideIdentifications
+     (assigned and unassigned) are added to the first FeatureMap.
+
+     MetaValues of ConsensusFeatures can be copied to all FeatureMaps, just to the first or they can be ignored.
+
+     @param mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
+     @return FeatureMaps
+    */
+    OPENMS_DLLAPI std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
 protected:
 
@@ -342,15 +396,18 @@ protected:
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;
 
-    /// protein identifications
+    /// unassigned peptide identifications (without feature)
     std::vector<PeptideIdentification> unassigned_peptide_identifications_;
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
+
   };
 
   ///Print the contents of a ConsensusMap to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
+
+
 
 } // namespace OpenMS
 

@@ -1,0 +1,20 @@
+# Create imported target IsoSpec
+# adapted from http://www.cmake.org/Wiki/CMake/Tutorials/How_to_create_a_ProjectConfig.cmake_file#The_FooBar.2FFooBarBuildTreeSettings.cmake.in_file
+
+# Compute paths
+get_filename_component(ISOSPEC_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+if(EXISTS "${ISOSPEC_CMAKE_DIR}/CMakeCache.txt")
+   # In build tree
+   set(ISOSPEC_INCLUDE_DIRS
+     "@PROJECT_SOURCE_DIR@/")
+else()
+  set(ISOSPEC_INCLUDE_DIRS "${ISOSPEC_CMAKE_DIR}/@CONF_REL_INCLUDE_DIR@")
+endif()
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+include("${ISOSPEC_CMAKE_DIR}/IsoSpecLibrary.cmake")
+
+# These are IMPORTED targets created by IsoSpecLibrary.cmake
+set(ISOSPEC_LIBRARIES IsoSpec)
+
+

@@ -18,18 +18,22 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
         bool operator==(ChromatogramPeak) nogil except +
         bool operator!=(ChromatogramPeak) nogil except +
 
-        IntensityType getIntensity() nogil except +
-        void setIntensity(IntensityType) nogil except +
+        # We will not catch C++ exceptions for get/set methods for performance
+        # reasons (no memory allocation is involved).
 
-        DPosition1 getPosition() nogil except +
-        void setPosition(DPosition1) nogil except +
+        IntensityType getIntensity() nogil 
+        void setIntensity(IntensityType) nogil 
 
-        CoordinateType getRT() nogil except +
-        void setRT(CoordinateType) nogil except +
+        DPosition1 getPosition() nogil 
+        void setPosition(DPosition1) nogil 
 
-        CoordinateType getPos() nogil except +
-        void setPos(CoordinateType) nogil except +
+        CoordinateType getRT() nogil 
+        void setRT(CoordinateType) nogil 
+
+        CoordinateType getPos() nogil 
+        void setPos(CoordinateType) nogil 
 
         # alias for getRT 
-        CoordinateType getMZ() nogil except +
-        void setMZ(CoordinateType) nogil except +
+        CoordinateType getMZ() nogil 
+        void setMZ(CoordinateType) nogil 
+

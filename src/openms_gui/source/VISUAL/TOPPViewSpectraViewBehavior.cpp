@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,6 +72,10 @@ namespace OpenMS
       spectrum.push_back(peak1d);
     }
 
+    spectrum.getFloatDataArrays() = current_chrom.getFloatDataArrays();
+    spectrum.getIntegerDataArrays() = current_chrom.getIntegerDataArrays();
+    spectrum.getStringDataArrays() = current_chrom.getStringDataArrays();
+
     // Add at least one data point to the chromatogram, otherwise
     // "addLayer" will fail and a segfault occurs later
     if (current_chrom.empty()) 
@@ -114,7 +118,7 @@ namespace OpenMS
 
       // fix legend and set layer name
       caption = layer.name + "[" + index + "]";
-      w->xAxis()->setLegend("Time [sec]");
+      w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
       // add chromatogram data as peak spectrum
       if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
@@ -183,7 +187,7 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::showSpectrumAs1D(const std::vector<int>& indices)
   {
 
     // basic behavior 1
@@ -202,9 +206,9 @@ namespace OpenMS
     //open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
     // fix legend if its a chromatogram
-    w->xAxis()->setLegend("Time [sec]");
+    w->xAxis()->setLegend(SpectrumWidget::RT_AXIS_TITLE);
 
-    for (auto index : indices)
+    for (const auto& index : indices)
     {
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
@@ -248,10 +252,7 @@ namespace OpenMS
     // basic behavior 2
 
     tv_->showSpectrumWidgetInWindow(w, caption);
-    tv_->updateLayerBar();
-    tv_->updateViewBar();
-    tv_->updateFilterBar();
-    tv_->updateMenu();
+    tv_->updateBarsAndMenus();
   }
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
@@ -307,14 +308,11 @@ namespace OpenMS
       widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "false");
       widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
 
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      tv_->updateBarsAndMenus();
     }
   }
 
-  void TOPPViewSpectraViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
+  void TOPPViewSpectraViewBehavior::activate1DSpectrum(const std::vector<int>& indices)
   {
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
@@ -340,7 +338,7 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      for (auto index : indices)
+      for (const auto& index : indices)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
@@ -369,10 +367,7 @@ namespace OpenMS
         widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
       }
 
-      tv_->updateLayerBar();
-      tv_->updateViewBar();
-      tv_->updateFilterBar();
-      tv_->updateMenu();
+      tv_->updateBarsAndMenus();
     }
   }
 

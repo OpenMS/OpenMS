@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,12 +95,12 @@ END_SECTION
 
 START_SECTION((ModificationDefinition(const ResidueModification& mod, bool fixed = true, UInt max_occur = 0)))
 {
-  const ResidueModification res_mod1 = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
+  const ResidueModification res_mod1 = *ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
   ModificationDefinition mod1(res_mod1);
   TEST_EQUAL(mod1.getModificationName(), "Acetyl (N-term)");
   TEST_EQUAL(mod1.isFixedModification(), true);
   TEST_EQUAL(mod1.getMaxOccurrences(), 0);
-  const ResidueModification res_mod2 = ModificationsDB::getInstance()->getModification("Oxidation (M)");
+  const ResidueModification res_mod2 = *ModificationsDB::getInstance()->getModification("Oxidation (M)");
   ModificationDefinition mod2(res_mod2, false, 2);
   TEST_EQUAL(mod2.isFixedModification(), false);
   TEST_EQUAL(mod2.getMaxOccurrences(), 2);
@@ -151,10 +151,10 @@ END_SECTION
 
 START_SECTION((String getModification() const))
 {
-  const ResidueModification& rm = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
+  const ResidueModification* rm = ModificationsDB::getInstance()->getModification("Acetyl (N-term)");
   ModificationDefinition mod1;
-  mod1.setModification(rm.getFullId());
-  TEST_EQUAL(&rm, &(mod1.getModification()));
+  mod1.setModification(rm->getFullId());
+  TEST_EQUAL(rm, &(mod1.getModification()));
 }
 END_SECTION
 

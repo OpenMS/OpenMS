@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY)
 set(sources_list
 AASequence.cpp
 CrossLinksDB.cpp
+DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
@@ -17,6 +18,9 @@ DigestionEnzymeDB.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
+ModifiedNASequenceGenerator.cpp
+NASequence.cpp
+NucleicAcidSpectrumGenerator.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp
@@ -24,12 +28,16 @@ ResidueDB.cpp
 ResidueModification.cpp
 RNaseDB.cpp
 RNaseDigestion.cpp
-TheoreticalSpectrumGenerator.cpp
+Ribonucleotide.cpp
+RibonucleotideDB.cpp
 SpectrumAnnotator.cpp
-TheoreticalSpectrumGeneratorXLMS.cpp
+SimpleTSGXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
+Tagger.cpp
+TheoreticalSpectrumGenerator.cpp
+TheoreticalSpectrumGeneratorXLMS.cpp
 WeightWrapper.cpp
 )
 

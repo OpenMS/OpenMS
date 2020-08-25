@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,6 +82,7 @@ namespace OpenMS
   PeakPickerHiRes::~PeakPickerHiRes()
   {
   }
+
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output) const
   {
     std::vector<PeakBoundary> boundaries;
@@ -104,6 +105,23 @@ namespace OpenMS
     output.setMSLevel(input.getMSLevel());
     output.setName(input.getName());
     output.setType(SpectrumSettings::CENTROID);
+    pick_(input, output, boundaries, check_spacings);
+  }
+
+  void PeakPickerHiRes::pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
+  {
+    // copy meta data of the input chromatogram
+    output.clear(true);
+    output.ChromatogramSettings::operator=(input);
+    output.MetaInfoInterface::operator=(input);
+    output.setName(input.getName());
+
+    pick_(input, output, boundaries, check_spacings);
+  }
+
+  template <typename ContainerType>
+  void PeakPickerHiRes::pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
+  {
     if (report_FWHM_)
     {
       output.getFloatDataArrays().resize(1);
@@ -121,7 +139,7 @@ namespace OpenMS
     }
 
     // signal-to-noise estimation
-    SignalToNoiseEstimatorMedian<MSSpectrum > snt;
+    SignalToNoiseEstimatorMedian< ContainerType > snt;
     snt.setParameters(param_.copy("SignalToNoise:", true));
 
     if (signal_to_noise_ > 0.0)
@@ -152,9 +170,9 @@ namespace OpenMS
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
       if (signal_to_noise_ > 0.0)
       {
-        act_snt = snt.getSignalToNoise(input[i]);
-        act_snt_l1 = snt.getSignalToNoise(input[i - 1]);
-        act_snt_r1 = snt.getSignalToNoise(input[i + 1]);
+        act_snt = snt.getSignalToNoise(i);
+        act_snt_l1 = snt.getSignalToNoise(i - 1);
+        act_snt_r1 = snt.getSignalToNoise(i + 1);
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
@@ -175,8 +193,8 @@ namespace OpenMS
 
         if (signal_to_noise_ > 0.0)
         {
-          act_snt_l2 = snt.getSignalToNoise(input[i - 2]);
-          act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
+          act_snt_l2 = snt.getSignalToNoise(i - 2);
+          act_snt_r2 = snt.getSignalToNoise(i + 2);
         }
 
         // checking signal-to-noise?
@@ -220,7 +238,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_lk = snt.getSignalToNoise(input[i - k]);
+            act_snt_lk = snt.getSignalToNoise(i - k);
           }
 
           if ((act_snt_lk >= signal_to_noise_) && 
@@ -261,7 +279,7 @@ namespace OpenMS
 
           if (signal_to_noise_ > 0.0)
           {
-            act_snt_rk = snt.getSignalToNoise(input[i + k]);
+            act_snt_rk = snt.getSignalToNoise(i + k);
           }
 
           if ((act_snt_rk >= signal_to_noise_) && 
@@ -340,7 +358,7 @@ namespace OpenMS
           {
             do 
             {
-              mz_mid = mz_right / 2 + mz_center / 2;
+              mz_mid = (mz_right + mz_center) / 2;
               int_mid = peak_spline.eval(mz_mid);
               if (int_mid < fwhm_int)
               {
@@ -358,8 +376,8 @@ namespace OpenMS
           output.getFloatDataArrays()[0].push_back( report_FWHM_as_ppm_ ? fwhm_absolute / max_peak_mz  * 1e6 : fwhm_absolute);
         } // FWHM
 
-          // save picked peak into output spectrum
-        Peak1D peak;
+        // save picked peak into output spectrum
+        typename ContainerType::PeakType peak;
         PeakBoundary peak_boundary;
         peak.setMZ(max_peak_mz);
         peak.setIntensity(max_peak_int);
@@ -370,59 +388,13 @@ namespace OpenMS
         boundaries.push_back(peak_boundary);
 
         // jump over profile data points that have been considered already
-        i = i + k - 1;
+        i += k - 1;
       }
     }
 
     return;
   }
 
-  void PeakPickerHiRes::pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries) const
-  {
-    // copy meta data of the input chromatogram
-    output.clear(true);
-    output.ChromatogramSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setName(input.getName());
-
-    MSSpectrum input_spectrum;
-    MSSpectrum output_spectrum;
-    for (MSChromatogram::const_iterator it = input.begin(); it != input.end(); ++it)
-    {
-      Peak1D p;
-      p.setMZ(it->getRT());
-      p.setIntensity(it->getIntensity());
-      input_spectrum.push_back(p);
-    }
-
-    pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
-
-    for (MSSpectrum::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
-    {
-      ChromatogramPeak p;
-      p.setRT(it->getMZ());
-      p.setIntensity(it->getIntensity());
-      output.push_back(p);
-    }
-
-    // copy float data arrays (for FWHM)
-    output.getFloatDataArrays().resize(output_spectrum.getFloatDataArrays().size());
-    for (Size i = 0; i < output_spectrum.getFloatDataArrays().size(); ++i)
-    {
-      output.getFloatDataArrays()[i].insert(output.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].end());
-      output.getFloatDataArrays()[i].setName(output_spectrum.getFloatDataArrays()[i].getName());
-    }
-  }
-
-  /**
-  * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-  * method picks peaks for each scan in the map consecutively. The resulting
-  * picked peaks are written to the output map.
-  *
-  * @param input  input map in profile mode
-  * @param output  output map with picked peaks
-  * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
-  */
   void PeakPickerHiRes::pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type) const
   {
     std::vector<std::vector<PeakBoundary> > boundaries_spec;
@@ -430,18 +402,14 @@ namespace OpenMS
     pickExperiment(input, output, boundaries_spec, boundaries_chrom, check_spectrum_type);
   }
 
-  /**
-  * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-  * method picks peaks for each scan in the map consecutively. The resulting
-  * picked peaks are written to the output map.
-  *
-  * @param input  input map in profile mode
-  * @param output  output map with picked peaks
-  * @param boundaries_spec  boundaries of the picked peaks in spectra
-  * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
-  * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
-  */
-  void PeakPickerHiRes::pickExperiment(const PeakMap& input, PeakMap& output, 
+  struct SpectraPickInfo
+  {
+    uint32_t picked{0}; ///< number of picked spectra
+    uint32_t total{0};  ///< overall number of spectra
+  };
+
+  void PeakPickerHiRes::pickExperiment(const PeakMap& input,
+                                       PeakMap& output, 
                                        std::vector<std::vector<PeakBoundary> >& boundaries_spec, 
                                        std::vector<std::vector<PeakBoundary> >& boundaries_chrom,
                                        const bool check_spectrum_type) const
@@ -458,13 +426,18 @@ namespace OpenMS
     Size progress = 0;
     startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
 
+    // MSLevel -> stats
+    map<int, SpectraPickInfo> pick_info;
+
     if (input.getNrSpectra() > 0)
     {
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms_levels_.empty()) // auto mode
+        bool was_picked{false};
+        // auto mode
+        if (ms_levels_.empty()) 
         {
-          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
           if (spectrum_type == SpectrumSettings::CENTROID)
           {
             output[scan_idx] = input[scan_idx];
@@ -472,30 +445,31 @@ namespace OpenMS
           else
           {
             std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
-
             pick(input[scan_idx], output[scan_idx], boundaries_s);
-            boundaries_spec.push_back(boundaries_s);
+            was_picked = true;
+            boundaries_spec.push_back(std::move(boundaries_s));
           }
         }
-        else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
+        // manual mode
+        else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) 
         {
           output[scan_idx] = input[scan_idx];
         }
         else
         {
           std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
-
-                                                  // determine type of spectral data (profile or centroided)
-          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
-
+          SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType(true); // uses meta-info and inspects data if needed
           if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
           {
             throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
           }
 
           pick(input[scan_idx], output[scan_idx], boundaries_s);
-          boundaries_spec.push_back(boundaries_s);
+          was_picked = true;
+          boundaries_spec.push_back(std::move(boundaries_s));
         }
+        pick_info[input[scan_idx].getMSLevel()].picked += was_picked;
+        ++pick_info[input[scan_idx].getMSLevel()].total;
         setProgress(++progress);
       }
     }
@@ -512,16 +486,15 @@ namespace OpenMS
     }
     endProgress();
 
+    OPENMS_LOG_INFO << "Picked spectra by MS-level:\n";
+    for (const auto& info : pick_info)
+    {
+      OPENMS_LOG_INFO << "  MS-level " << info.first << ": " << info.second.picked << " / " << info.second.total << "\n";
+    }
+
     return;
   }
 
-  /**
-  @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-  method picks peaks for each scan in the map consecutively. The resulting
-  picked peaks are written to the output map.
-
-  Currently we have to give up const-correctness but we know that everything on disc is constant
-  */
   void PeakPickerHiRes::pickExperiment(/* const */ OnDiscMSExperiment& input, PeakMap& output, const bool check_spectrum_type) const
   {
     // make sure that output is clear

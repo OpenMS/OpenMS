@@ -3,13 +3,28 @@
 
   @section deb_package_linux Install Debian package
   If you are using a Debian-based Linux we suggest to use the deb-package provided by us in our <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest">archive</a>.
-  It is most easily installed with
+  It is most easily installed with "gdebi" which automatically resolves the dependencies if they are available in your repositories.
   \code
-  sudo apt install /PATH/TO/OpenMS.deb
+  sudo apt-get install gdebi
+  sudo gdebi /PATH/TO/OpenMS.deb
   \endcode
+  If you encounter errors with unavailable packages, you can try the following steps:<br>
+  When Qt5 (or one of its packages, e.g. qt5xbase) is missing, usually your Debian is too old to have a recent enough version in its official repositories.
+  We suggest to use the same packages that we use for building (make sure to adapt the Qt version and your Debian/Ubuntu version, here Xenial):
+  \code
+  sudo add-apt-repository ppa:beineri/opt-qt59-xenial
+  sudo apt-get update
+  \endcode
+  and try the installation again.
+  If <b>after the successful Qt installation above</b>, ICU with its libicu is missing in a certain version, we suggest to find the missing version on https://pkgs.org/ and 
+  install it with gdebi, too. You can safely have multiple versions of ICU installed.<br>
   To ensure the tool functionality please add the OPENMS_DATA_PATH variable to your environment as follows (you will get an error advising you this when executing a tool): 
   \code
   export OPENMS_DATA_PATH=/usr/share/OpenMS 
+  \endcode
+  If you used a thirdparty repository to install Qt5 (through the workaround above), do not forget to source the provided environment file like this (mind the version number again)
+  \code
+  source /opt/qt59/bin/qt59-env.sh
   \endcode
   
   Executables for THIRDPARTY applications can be found in:

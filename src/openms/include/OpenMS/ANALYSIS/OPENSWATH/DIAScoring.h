@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,9 @@ public:
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
                             SpectrumPtrType spectrum,
                             const std::vector<double>& normalized_library_intensity,
-                            double& ppm_score, double& ppm_score_weighted);
+                            double& ppm_score,
+                            double& ppm_score_weighted,
+                            std::vector<double>& diff_ppm);
 
     /**
       Precursor massdifference score
@@ -205,16 +207,15 @@ private:
 
     // Parameters
     double dia_extract_window_;
-    double dia_centroided_;
     double dia_byseries_intensity_min_;
     double dia_byseries_ppm_diff_;
     double dia_nr_isotopes_;
     double dia_nr_charges_;
     double peak_before_mono_max_ppm_diff_;
     bool dia_extraction_ppm_;
+    bool dia_centroided_;
 
     TheoreticalSpectrumGenerator * generator;
   };
 }
-
 

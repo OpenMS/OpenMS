@@ -3,36 +3,41 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list_h
-  PeakPickerMRM.h
   ChromatogramExtractor.h
   ChromatogramExtractorAlgorithm.h
   ConfidenceScoring.h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
-  MRMFeaturePicker.h
-  MRMIonSeries.h
+  IonMobilityScoring.h
+  MasstraceCorrelator.h
   MRMAssay.h
   MRMDecoy.h
+  MRMFeatureFilter.h
   MRMFeatureFinderScoring.h
+  MRMFeaturePicker.h
+  MRMFeatureQC.h
+  MRMBatchFeatureSelector.h
+  MRMFeatureSelector.h
+  MRMIonSeries.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h
-  MasstraceCorrelator.h
   OpenSwathHelper.h
+  OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   PeakIntegrator.h
+  PeakPickerMRM.h
   SONARScoring.h
-  SpectrumAddition.h
-  TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
+  SwathQC.h
+  SpectrumAddition.h
+  TargetedSpectraExtractor.h
   TransitionTSVFile.h
   TransitionPQPFile.h
-  MRMFeatureQC.h
-  MRMFeatureFilter.h
 )
 
 ### add path to the filenames

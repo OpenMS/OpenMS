@@ -20,8 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
         double getLLOQ() nogil except +
         double getULOQ() nogil except +
 
-        void checkLOD(double value) nogil except +
-        void checkLOQ(double value) nogil except +
+        bool checkLOD(double value) nogil except +
+        bool checkLOQ(double value) nogil except +
         
         void setComponentName(const String& component_name) nogil except +
         void setISName(const String& IS_name) nogil except +

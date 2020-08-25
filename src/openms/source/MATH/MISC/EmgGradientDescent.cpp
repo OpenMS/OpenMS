@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -285,7 +285,7 @@ namespace OpenMS
     return result;
   }
 
-  void EmgGradientDescent::emg_vector(
+  void EmgGradientDescent::applyEstimatedParameters(
     const std::vector<double>& xs,
     const double h,
     const double mu,
@@ -496,7 +496,7 @@ namespace OpenMS
     std::vector<double> derivatives(xs.size() + 1); // One more element to account for derivatives from right to left
     derivatives.front() = 1.0;
     derivatives.back() = -1.0;
-    for (Size k = i - 1; k < xs.size() && k <= j + 1; ++k)
+    for (Size k = i - 1; k < xs.size() && k <= j + 1 && i > 1; ++k)
     {
       derivatives[k] = (ys[k] - ys[k - 1]) / (xs[k] - xs[k - 1]);
     }
@@ -564,7 +564,7 @@ namespace OpenMS
     return (max_pos - min_pos) * 0.35;
   }
 
-  UInt EmgGradientDescent::emg_gradient_descent(
+  UInt EmgGradientDescent::estimateEmgParameters(
     const std::vector<double>& xs,
     const std::vector<double>& ys,
     double& best_h,
@@ -761,12 +761,12 @@ namespace OpenMS
 
     // EMG parameter estimation with gradient descent
     double h, mu, sigma, tau;
-    emg_gradient_descent(xs, ys, h, mu, sigma, tau);
+    estimateEmgParameters(xs, ys, h, mu, sigma, tau);
 
     // Estimate the intensities for each point
     std::vector<double> out_xs;
     std::vector<double> out_ys;
-    emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys);
+    applyEstimatedParameters(xs, h, mu, sigma, tau, out_xs, out_ys);
 
     // Prepare the output peak
     output_peak = input_peak;

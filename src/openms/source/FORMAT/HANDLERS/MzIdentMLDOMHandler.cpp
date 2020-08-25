@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Eugen Netz $
+// $Authors: Mathias Walzer, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
@@ -38,7 +38,10 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
+#include <boost/lexical_cast.hpp>
 
 #include <sys/stat.h>
 #include <cerrno>
@@ -73,7 +76,7 @@ namespace OpenMS
       catch (XMLException& e)
       {
         char* message = XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit initialization error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit initialization error: " << message << endl;
         XMLString::release(&message);
         // throw exception here to return ERROR_XERCES_INIT
       }
@@ -107,7 +110,7 @@ namespace OpenMS
       catch (XMLException& e)
       {
         char* message = XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit initialization error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit initialization error: " << message << endl;
         XMLString::release(&message);
       }
 
@@ -135,7 +138,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_ERROR << "Unknown exception encountered in 'TagNames' destructor" << endl;
+        OPENMS_LOG_ERROR << "Unknown exception encountered in 'TagNames' destructor" << endl;
       }
 
       // Terminate Xerces
@@ -146,7 +149,7 @@ namespace OpenMS
       catch (xercesc::XMLException& e)
       {
         char* message = xercesc::XMLString::transcode(e.getMessage());
-        LOG_ERROR << "XML toolkit teardown error: " << message << endl;
+        OPENMS_LOG_ERROR << "XML toolkit teardown error: " << message << endl;
         XMLString::release(&message);
       }
     }
@@ -213,7 +216,7 @@ namespace OpenMS
 
         if (xl_ms_search_)
         {
-          LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
+          OPENMS_LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
         }
 
         // 0. AnalysisSoftwareList {0,1}
@@ -279,8 +282,17 @@ namespace OpenMS
         char* message = xercesc::XMLString::transcode(e.getMessage());
 //          ostringstream errBuf;
 //          errBuf << "Error parsing file: " << message << flush;
-        LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
+        OPENMS_LOG_ERROR << "XERCES error parsing file: " << message << flush << endl;
         XMLString::release(&message);
+      }
+      if (xl_ms_search_)
+      {
+        OPXLHelper::addProteinPositionMetaValues(*this->pep_id_);
+        OPXLHelper::addBetaAccessions(*this->pep_id_);
+        OPXLHelper::addXLTargetDecoyMV(*this->pep_id_);
+        OPXLHelper::removeBetaPeptideHits(*this->pep_id_);
+        OPXLHelper::computeDeltaScores(*this->pep_id_);
+        OPXLHelper::addPercolatorFeatureList((*this->pro_id_)[0]);
       }
     }
 
@@ -349,7 +361,7 @@ namespace OpenMS
                 String pepevref = String("OpenMS") + String(UniqueIdGenerator::getUniqueId());
                 pv_db_map_.insert(make_pair(pepevref, pev->getProteinAccession()));
                 pepevs.push_back(pepevref);
-                bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
+                bool idec = (String(ph->getMetaValue(Constants::UserParam::TARGET_DECOY))).hasSubstring("decoy");
                 PeptideEvidence temp_struct = {pev->getStart(), pev->getEnd(), pev->getAABefore(), pev->getAAAfter(), idec}; //TODO @ mths : completely switch to PeptideEvidence
                 pe_ev_map_.insert(make_pair(pepevref, temp_struct)); // TODO @ mths : double check start & end & chars for before & after
               }
@@ -418,20 +430,20 @@ namespace OpenMS
           catch (const XMLException& toCatch)
           {
             char* message = XMLString::transcode(toCatch.getMessage());
-            LOG_ERROR << "Serialisation exception: \n"
+            OPENMS_LOG_ERROR << "Serialisation exception: \n"
                       << message << "\n";
             XMLString::release(&message);
           }
           catch (const DOMException& toCatch)
           {
             char* message = XMLString::transcode(toCatch.msg);
-            LOG_ERROR << "Serialisation exception: \n"
+            OPENMS_LOG_ERROR << "Serialisation exception: \n"
                       << message << "\n";
             XMLString::release(&message);
           }
           catch (...)
           {
-            LOG_ERROR << "Unexpected exception building the document tree." << endl;
+            OPENMS_LOG_ERROR << "Unexpected exception building the document tree." << endl;
           }
 
           dom_output->release();
@@ -441,21 +453,21 @@ namespace OpenMS
         }
         catch (const OutOfMemoryException&)
         {
-          LOG_ERROR << "Xerces OutOfMemoryException" << endl;
+          OPENMS_LOG_ERROR << "Xerces OutOfMemoryException" << endl;
         }
         catch (const DOMException& e)
         {
-          LOG_ERROR << "DOMException code is: " << e.code << endl;
+          OPENMS_LOG_ERROR << "DOMException code is: " << e.code << endl;
         }
         catch (const exception& e)
         {
-          LOG_ERROR << "An error occurred creating the document: " << e.what() << endl;
+          OPENMS_LOG_ERROR << "An error occurred creating the document: " << e.what() << endl;
         }
 
       } // (inpl != NULL)
       else
       {
-        LOG_ERROR << "Requested DOM implementation is not supported" << endl;
+        OPENMS_LOG_ERROR << "Requested DOM implementation is not supported" << endl;
       }
     }
 
@@ -487,7 +499,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
+            OPENMS_LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
           }
         }
       }
@@ -514,7 +526,7 @@ namespace OpenMS
           u = CVTerm::Unit(unitAcc, unitName, unitCvRef);
           if (unitCvRef.empty())
           {
-            LOG_WARN << "This mzid file uses a cv term with units, but without "
+            OPENMS_LOG_WARN << "This mzid file uses a cv term with units, but without "
                      << "unit cv reference (required)! Please notify the mzid "
                      << "producer of this file. \"" << name << "\" will be read as \""
                      << unitName << "\" but further actions on this unit may fail."
@@ -538,8 +550,9 @@ namespace OpenMS
         String unitName = XMLString::transcode(param->getAttribute(XMLString::transcode("unitName")));
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
+
         DataValue dv;
-        dv.setUnit(unitAcc + ":" + unitName);
+
         if (type == "xsd:float" || type == "xsd:double")
         {
           try
@@ -548,7 +561,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "Found float parameter not convertible to float type." << endl;
+            OPENMS_LOG_ERROR << "Found float parameter not convertible to float type." << endl;
           }
         }
         else if (type == "xsd:int" || type == "xsd:unsignedInt")
@@ -559,18 +572,38 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
+            OPENMS_LOG_ERROR << "Found integer parameter not convertible to integer type." << endl;
           }
         }
         else
         {
           dv = value;
         }
+
+        // Add unit *after* creating the term
+        if (unitAcc != "")
+        {
+          if (unitAcc.hasPrefix("UO:"))
+          {
+            dv.setUnit(unitAcc.suffix(unitAcc.size() - 3).toInt());
+            dv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+          }
+          else if (unitAcc.hasPrefix("MS:"))
+          {
+            dv.setUnit(unitAcc.suffix(unitAcc.size() - 3).toInt());
+            dv.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+          }
+          else
+          {
+            OPENMS_LOG_WARN << String("Unhandled unit '") + unitAcc + "' in tag '" + name + "'." << endl;
+          }
+        }
+
         return make_pair(name, dv);
       }
       else
       {
-        LOG_ERROR << "No parameters found at given position." << endl;
+        OPENMS_LOG_ERROR << "No parameters found at given position." << endl;
         throw invalid_argument("no user param here");
       }
     }
@@ -635,7 +668,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_ERROR << "No name/version found for 'AnalysisSoftware':" << id << "." << endl;
+            OPENMS_LOG_ERROR << "No name/version found for 'AnalysisSoftware':" << id << "." << endl;
           }
         }
       }
@@ -702,7 +735,7 @@ namespace OpenMS
             {
               aas = parsePeptideSiblings_(element_pep);
             }
-            catch (Exception::MissingInformation)
+            catch (Exception::MissingInformation&)
             {
               // We found an unknown modification, we could try to rescue this
               // situation. The "name" attribute, if present, may be parsable:
@@ -714,7 +747,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_ERROR << "No amino acid sequence readable from 'Peptide'" << endl;
+            OPENMS_LOG_ERROR << "No amino acid sequence readable from 'Peptide'" << endl;
           }
 
           pep_map_.insert(make_pair(id, aas));
@@ -749,7 +782,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' without reference to the position in the originating sequence found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' without reference to the position in the originating sequence found." << endl;
           }
           char pre = '-';
           char post = '-';
@@ -766,7 +799,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' without reference to the bordering amino acids in the originating sequence found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' without reference to the bordering amino acids in the originating sequence found." << endl;
           }
           bool idec = false;
           try
@@ -777,7 +810,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            LOG_WARN << "'PeptideEvidence' with unreadable 'isDecoy' status found." << endl;
+            OPENMS_LOG_WARN << "'PeptideEvidence' with unreadable 'isDecoy' status found." << endl;
           }
           PeptideEvidence temp_struct = {start, end, pre, post, idec};
           pe_ev_map_.insert(make_pair(id, temp_struct));
@@ -909,7 +942,7 @@ namespace OpenMS
 //                }
 //                catch (...)
 //                {
-//                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
+//                    OPENMS_LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
 //                }
 
                 String mname;
@@ -922,7 +955,7 @@ namespace OpenMS
                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
                    if (mname == "unknown modification")
                    {
-                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>                     
+                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
                      mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("value")));
                    }
                   }
@@ -933,7 +966,7 @@ namespace OpenMS
                   }
                   else
                   {
-                    LOG_ERROR << "Misplaced information in 'ModificationParams' ignored." << endl;
+                    OPENMS_LOG_ERROR << "Misplaced information in 'ModificationParams' ignored." << endl;
                   }
                   sub = sub->getNextElementSibling();
                 }
@@ -949,34 +982,34 @@ namespace OpenMS
                     {
                       if (spci->second.front().getAccession() == "MS:1001189")  // nterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
                       {
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002057")  // pro nterm
                       {
                         // TODO: add support for protein N-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::N_TERM);
+                        mod = m->getFullId();
                       }
                       else if (spci->second.front().getAccession() == "MS:1002058")  // pro cterm
                       {
                         // TODO: add support for protein C-terminal modifications in unimod
-                        // ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
-                        ResidueModification m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
-                        mod = m.getFullId();
+                        // ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
+                        const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::C_TERM);
+                        mod = m->getFullId();
                       }
                     }
                   }
                   else  // anywhere
                   {
-                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname, r);
-                    mod = m.getFullId();
+                    const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r);
+                    mod = m->getFullId();
                   }
 
                   if (fixedMod)
@@ -1005,7 +1038,12 @@ namespace OpenMS
                 }
                 catch (exception& e)
                 {
-                  LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
+                  OPENMS_LOG_WARN << "Search engine enzyme settings for 'missedCleavages' unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << endl;
+                }
+                if (missedCleavages < 0)
+                {
+                  OPENMS_LOG_WARN << "missedCleavages has a negative value. Assuming unlimited and setting it to 1000." << endl;
+                  missedCleavages = 1000;
                 }
                 sp.missed_cleavages = missedCleavages;
 
@@ -1019,7 +1057,7 @@ namespace OpenMS
 //                }
 //                catch (...)
 //                {
-//                    LOG_WARN << "Search engine settings for 'minDistance' unreadable." << endl;
+//                    OPENMS_LOG_WARN << "Search engine settings for 'minDistance' unreadable." << endl;
 //                }
                 enzymename = "UNKNOWN";
                 DOMElement* sub = enzyme->getFirstElementChild();
@@ -1039,7 +1077,7 @@ namespace OpenMS
                       }
                       else
                       {
-                        LOG_WARN << "Additional parameters for enzyme settings not readable." << endl;
+                        OPENMS_LOG_WARN << "Additional parameters for enzyme settings not readable." << endl;
                       }
                     }
                   }
@@ -1200,7 +1238,7 @@ namespace OpenMS
             }
             if (dbname.empty())
             {
-              LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
+              OPENMS_LOG_WARN << "No DatabaseName element found, use read in results at own risk." << endl;
               dbname = "unknown";
             }
             DatabaseInput temp_struct = {dbname, location, version, releaseDate};
@@ -1262,6 +1300,13 @@ namespace OpenMS
                   ++index_counter;
                 }
 
+                // fix for label-free mono-links
+                // those only have one SII and no "cross-link spectrum identification item" value
+                if (xl_val_set.empty())
+                {
+                  xl_val_set.insert("0");
+                  xl_val_map.insert(make_pair("0", 0));
+                }
                 for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
@@ -1330,7 +1375,7 @@ namespace OpenMS
               }
               if (pep_id_->back().getRT() != pep_id_->back().getRT())
               {
-                LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
+                OPENMS_LOG_WARN << "No retention time found for 'SpectrumIdentificationResult'" << endl;
               }
             }
             element_res = element_res->getNextElementSibling();
@@ -1415,6 +1460,10 @@ namespace OpenMS
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002686")) // OpenXQuest: wTIC
           {
             wTIC = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
+          }
+          else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1003024")) // OpenPepXL:score
+          {
+            score = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
           {
@@ -1656,7 +1705,7 @@ namespace OpenMS
       vector<String> spectrumIDs;
       spectrumID.split(",", spectrumIDs);
 
-      if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the mase number of SIIs in the mzid
+      if (alpha.size() == beta.size()) // if a beta exists at all, it must be cross-link. But they should also each have the same number of SIIs in the mzid
       {
         xl_type = "cross-link";
       }
@@ -1680,8 +1729,8 @@ namespace OpenMS
       PeptideIdentification current_pep_id;
       current_pep_id.setRT(RT_light);
       current_pep_id.setMZ(MZ_light);
-      current_pep_id.setMetaValue("spectrum_reference", spectrumID);
-      current_pep_id.setScoreType("OpenXQuest:combined score");
+      current_pep_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumID);
+      current_pep_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
       current_pep_id.setHigherScoreBetter(true);
 
       vector<PeptideHit> phs;
@@ -1690,24 +1739,24 @@ namespace OpenMS
       ph_alpha.setCharge(charge);
       ph_alpha.setScore(score);
       ph_alpha.setRank(rank);
-      ph_alpha.setMetaValue("spectrum_reference", spectrumIDs[0]);
+      ph_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
 
       if (labeled)
       {
-        ph_alpha.setMetaValue("spec_heavy_RT", RT_heavy);
-        ph_alpha.setMetaValue("spec_heavy_MZ", MZ_heavy);
-        ph_alpha.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_RT, RT_heavy);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_MZ, MZ_heavy);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_HEAVY_SPEC_REF, spectrumIDs[1]);
       }
 
-      ph_alpha.setMetaValue("xl_type", xl_type);
-      ph_alpha.setMetaValue("xl_rank", rank);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE, xl_type);
+      ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_RANK, rank);
 
-      ph_alpha.setMetaValue("OpenXQuest:xcorr xlink",xcorrx);
-      ph_alpha.setMetaValue("OpenXQuest:xcorr common", xcorrc);
-      ph_alpha.setMetaValue("OpenXQuest:match-odds", matchodds);
-      ph_alpha.setMetaValue("OpenXQuest:intsum", intsum);
-      ph_alpha.setMetaValue("OpenXQuest:wTIC", wTIC);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr xlink",xcorrx);
+      ph_alpha.setMetaValue("OpenPepXL:xcorr common", xcorrc);
+      ph_alpha.setMetaValue("OpenPepXL:match-odds", matchodds);
+      ph_alpha.setMetaValue("OpenPepXL:intsum", intsum);
+      ph_alpha.setMetaValue("OpenPepXL:wTIC", wTIC);
 
       vector<String> userParamNames_alpha = userParamNameLists[alpha[0]];
       vector<String> userParamValues_alpha = userParamValueLists[alpha[0]];
@@ -1718,6 +1767,10 @@ namespace OpenMS
         if (userParamUnits_alpha[i] == "xsd:double")
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
+        }
+        else if (userParamUnits_alpha[i] == "xsd:integer")
+        {
+          ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toInt());
         }
         else
         {
@@ -1730,98 +1783,74 @@ namespace OpenMS
       if (xl_type == "loop-link")
       {
         Size pos2 = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[alpha[0]]));
-        ph_alpha.setMetaValue("xl_pos2", pos2);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, pos2);
       }
 
       if (xl_type != "mono-link")
       {
-        ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
-        ph_alpha.setMetaValue("xl_mass",DataValue(xl_mass_map_.at(peptides[alpha[0]])));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MASS,DataValue(xl_mass_map_.at(peptides[alpha[0]])));
       }
       else if ( xl_mod_map_.find(peptides[alpha[0]]) != xl_mod_map_.end() )
       {
-        ph_alpha.setMetaValue("xl_mod", xl_mod_map_.at(peptides[alpha[0]]));
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_MOD, xl_mod_map_.at(peptides[alpha[0]]));
       }
 
       // correction for terminal modifications
       if (alpha_pos == -1)
       {
-        ph_alpha.setMetaValue("xl_pos", ++alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "N_TERM");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, ++alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "N_TERM");
       }
       else if (alpha_pos == static_cast<SignedSize>(ph_alpha.getSequence().size()))
       {
-        ph_alpha.setMetaValue("xl_pos", --alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "C_TERM");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, --alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "C_TERM");
       }
       else
       {
-        ph_alpha.setMetaValue("xl_pos", alpha_pos);
-        ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1, alpha_pos);
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_ALPHA, "ANYWHERE");
       }
-
-      phs.push_back(ph_alpha);
 
       if (xl_type == "cross-link")
       {
         PeptideHit ph_beta;
         SignedSize beta_pos = xl_acceptor_pos_map_.at(xl_id_acceptor_map_.at(peptides[beta[0]]));
 
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, (*pep_map_.find(peptides[beta[0]])).second.toString());
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
         ph_beta.setRank(rank);
-        ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
+        ph_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-
-
-        if (labeled)
-        {
-          ph_beta.setMetaValue("spec_heavy_RT", RT_heavy);
-          ph_beta.setMetaValue("spec_heavy_MZ", MZ_heavy);
-          ph_beta.setMetaValue("spectrum_reference_heavy", spectrumIDs[1]);
-        }
-
-        ph_beta.setMetaValue("OpenXQuest:xcorr xlink", xcorrx);
-        ph_beta.setMetaValue("OpenXQuest:xcorr common", xcorrc);
-        ph_beta.setMetaValue("OpenXQuest:match-odds", matchodds);
-        ph_beta.setMetaValue("OpenXQuest:intsum", intsum);
-        ph_beta.setMetaValue("OpenXQuest:wTIC", wTIC);
-
-        vector<String> userParamNames_beta = userParamNameLists[beta[0]];
-        vector<String> userParamValues_beta = userParamValueLists[beta[0]];
-        vector<String> userParamUnits_beta = userParamUnitLists[beta[0]];
-
-        for (Size i = 0; i < userParamNames_beta.size(); ++i)
-        {
-          if (userParamUnits_beta[i] == "xsd:double")
-          {
-            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i].toDouble());
-          }
-          else
-          {
-            ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
-          }
-        }
 
         // correction for terminal modifications
         if (beta_pos == -1)
         {
-          ph_beta.setMetaValue("xl_pos", ++beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "N_TERM");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, ++beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "N_TERM");
         }
         else if (beta_pos == static_cast<SignedSize>(ph_beta.getSequence().size()))
         {
-          ph_beta.setMetaValue("xl_pos", --beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "C_TERM");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, --beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "C_TERM");
         }
         else
         {
-          ph_beta.setMetaValue("xl_pos", beta_pos);
-          ph_beta.setMetaValue("xl_term_spec", "ANYWHERE");
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, beta_pos);
+          ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "ANYWHERE");
         }
-
+        phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
+      }
+      else
+      {
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_TERM_SPEC_BETA, "ANYWHERE");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2, "-");
+        ph_alpha.setMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE, "-");
+        phs.push_back(ph_alpha);
       }
 
       std::vector<String> unique_peptides;
@@ -1875,8 +1904,6 @@ namespace OpenMS
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
-//              phs[pep].setMetaValue("start", pv.start);
-//              phs[pep].setMetaValue("end", pv.stop);
               pev.setStart(pv.start);
               pev.setEnd(pv.stop);
             }
@@ -1884,38 +1911,38 @@ namespace OpenMS
             idec = pv.idec;
             if (idec)
             {
-              if (phs[pep].metaValueExists("target_decoy"))
+              if (phs[pep].metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (phs[pep].getMetaValue("target_decoy") != "decoy")
+                if (phs[pep].getMetaValue(Constants::UserParam::TARGET_DECOY) != "decoy")
                 {
-                  phs[pep].setMetaValue("target_decoy", "target+decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  phs[pep].setMetaValue("target_decoy", "decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
                 }
               }
               else
               {
-                phs[pep].setMetaValue("target_decoy", "decoy");
+                phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
               }
             }
             else
             {
-              if (phs[pep].metaValueExists("target_decoy"))
+              if (phs[pep].metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (phs[pep].getMetaValue("target_decoy") != "target")
+                if (phs[pep].getMetaValue(Constants::UserParam::TARGET_DECOY) != "target")
                 {
-                  phs[pep].setMetaValue("target_decoy", "target+decoy");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  phs[pep].setMetaValue("target_decoy", "target");
+                  phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
                 }
               }
               else
               {
-                phs[pep].setMetaValue("target_decoy", "target");
+                phs[pep].setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
               }
             }
           }
@@ -1964,7 +1991,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_WARN << "Found unreadable 'chargeState'." << endl;
+        OPENMS_LOG_WARN << "Found unreadable 'chargeState'." << endl;
       }
       long double experimentalMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
       int rank = 0;
@@ -1974,7 +2001,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        LOG_WARN << "Found unreadable PSM rank." << endl;
+        OPENMS_LOG_WARN << "Found unreadable PSM rank." << endl;
       }
 
       String peptide_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("peptide_ref")));
@@ -1982,14 +2009,12 @@ namespace OpenMS
 //      String massTable_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("massTable_ref")));
 
       XSValue::Status status;
-      XSValue* val = XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status);
+      std::unique_ptr<XSValue> val(XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status));
       bool pass = false;
       if (status == XSValue::st_Init)
       {
         pass = val->fData.fValue.f_bool;
       }
-      delete val;
-      LOG_DEBUG << "'passThreshold' value " << pass;
       // TODO @all: where to store passThreshold value? set after score type eval in pass_threshold
 
       long double score = 0;
@@ -2016,7 +2041,7 @@ namespace OpenMS
             break;
           }
         }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
+        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
@@ -2029,6 +2054,14 @@ namespace OpenMS
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
+          scoretype = true;
+          break;
+        }
+        else if (scoreit->first == "MS:1001143")
+        {
+          spectrum_identification.setScoreType("PSM-level search engine specific statistic");
+          // TODO this is just an assumption for unknown scores
+          spectrum_identification.setHigherScoreBetter(true);
           scoretype = true;
         }
       }
@@ -2044,11 +2077,15 @@ namespace OpenMS
             {
               hit.setMetaValue(cvs->first, cv->getValue().toString());
             }
+            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            {
+              continue;
+            }
             else
             {
-            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            }
           }
-        }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
         {
@@ -2082,38 +2119,38 @@ namespace OpenMS
             idec = pv.idec;
             if (idec)
             {
-              if (hit.metaValueExists("target_decoy"))
+              if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (hit.getMetaValue("target_decoy") != "decoy")
+                if (hit.getMetaValue(Constants::UserParam::TARGET_DECOY) != "decoy")
                 {
-                  hit.setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  hit.setMetaValue("target_decoy", "decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
                 }
               }
               else
               {
-                hit.setMetaValue("target_decoy", "decoy");
+                hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
               }
             }
             else
             {
-              if (hit.metaValueExists("target_decoy"))
+              if (hit.metaValueExists(Constants::UserParam::TARGET_DECOY))
               {
-                if (hit.getMetaValue("target_decoy") != "target")
+                if (hit.getMetaValue(Constants::UserParam::TARGET_DECOY) != "target")
                 {
-                  hit.setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target+decoy");
                 }
                 else
                 {
-                  hit.setMetaValue("target_decoy", "target");
+                  hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
                 }
               }
               else
               {
-                hit.setMetaValue("target_decoy", "target");
+                hit.setMetaValue(Constants::UserParam::TARGET_DECOY, "target");
               }
             }
           }
@@ -2315,7 +2352,7 @@ namespace OpenMS
             }
             catch (...)
             {
-              LOG_WARN << "Found unreadable modification location." << endl;
+              OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
             }
 
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
@@ -2398,55 +2435,71 @@ namespace OpenMS
                     }
                     else if (index == static_cast<SignedSize>(aas.size() + 1))
                     {
-                      try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      // TODO: does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setCTerminalModification(cvvalue);
-                          }
+                          aas.setCTerminalModification(cvvalue);
                         }
                         else
+                        {
+                          OPENMS_LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      else
+                      {
+                        if (ModificationsDB::getInstance()->has(cvname))
                         {
                           aas.setCTerminalModification(cvname);
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
+                        else
+                        {
+                          OPENMS_LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
                       }
-                      catch (...)
-                      {
-                        // TODO Residue and AASequence should use CrossLinksDB as well
-                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
                     }
                     else
                     {
-                      try
+                      if (cvname == "unknown modification")
                       {
-                        if (cvname == "unknown modification")
+                        const String & cvvalue = cv.getValue();
+                        if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                         {
-                          const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
-                          {
-                            aas.setModification(index - 1, cvvalue); //TODO @mths,Timo : do this via UNIMOD accessions
-                          }
+                          aas.setModification(index - 1, cvvalue);
                         }
                         else
                         {
-                          aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                          OPENMS_LOG_WARN << "Modification: " << cvvalue << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
                         }
-                        cvp = cvp->getNextElementSibling();
-                        continue;
                       }
-                      catch (Exception::BaseException& e)
+                      else
                       {
+                        if (ModificationsDB::getInstance()->has(cvname))
+                        {
+                          aas.setModification(index - 1, cvname);
+                        }
+                        else
+                        {
+                          OPENMS_LOG_WARN << "Modification: " << cvname << " not found in ModificationsDB." << endl;
+                          // TODO? @enetz look it up in XLDB?
+                        }
+                      }
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+/* TODO enetz: look up in XLDB and remvoe this ha
                         // this is a bad hack to avoid a long list of warnings in the case of XL-MS data
                         if ( !(String(e.getMessage()).hasSubstring("'DSG'") || String(e.getMessage()).hasSubstring("'DSS'") || String(e.getMessage()).hasSubstring("'EDC'")) || String(e.getMessage()).hasSubstring("'BS3'") || String(e.getMessage()).hasSubstring("'BS2G'") )
                         {
-                          LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
+                          OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << endl;
                         }
-                      }
+*/
                     }
                   }
                 }
@@ -2458,24 +2511,24 @@ namespace OpenMS
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
               }
             }
-            else // general case: no XL-MS result 
+            else // general case: no XL-MS result
             {
               DOMElement* cvp = element_sib->getFirstElementChild();
               while (cvp)
               {
                 CVTerm cv = parseCvParam_(cvp);
                 if (cv.getAccession() == "MS:1001460") // unknown modification
-                {                  
+                {
                   const String & cvvalue = cv.getValue();
                   if (cv.hasValue() && ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())  // why do we need to check for empty?
-                  { 
-                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)     
+                  {
+                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)
                     //  <Modification location="0" monoisotopicMassDelta="17.031558">
                     //  <cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification" value="Methyl:2H(2)13C"/>
                     const String & mname = cvvalue;
                     if (index == 0)
                     {
-                      aas.setNTerminalModification(mname);  
+                      aas.setNTerminalModification(mname);
                     }
                     else if (index == (int)aas.size() + 1)
                     {
@@ -2505,7 +2558,7 @@ namespace OpenMS
                     }
                     catch (...)
                     {
-                      LOG_WARN << "Found unreadable modification location." << endl;
+                      OPENMS_LOG_WARN << "Found unreadable modification location." << endl;
                       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
                     }
                     if (!has_mass_delta)
@@ -2522,18 +2575,22 @@ namespace OpenMS
                     {
                       // n-terminal
                       String residue_name = ".[+" + mod + "]";
+                      String residue_id = ".n[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
-                      if (!mod_db->has(residue_name))
+                      if (!mod_db->has(residue_id))
                       {
-                        ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToNTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::N_TERM);
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
-                      aas.setNTerminalModification(residue_name);
+
+                      aas.setNTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2541,18 +2598,21 @@ namespace OpenMS
                     {
                       // c-terminal
                       String residue_name = ".[" + mod + "]";
+                      String residue_id = ".c[" + mod + "]";
 
                       // Check if it already exists, if not create new modification, transfer
                       // ownership to ModDB
                       if (!mod_db->has(residue_name))
                       {
-                        ResidueModification * new_mod = new ResidueModification();
-                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
+                        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(residue_name); // display name
                         new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setMonoMass(mass_delta + Residue::getInternalToCTerm().getMonoWeight());
                         new_mod->setTermSpecificity(ResidueModification::C_TERM);
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
-                      aas.setCTerminalModification(residue_name);
+                      aas.setCTerminalModification(residue_id);
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2560,14 +2620,19 @@ namespace OpenMS
                     {
                       // internal modification
                       const Residue& residue = aas[index-1];
-                      // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
-                      String residue_name = "[" + mod + "]";
+                      String residue_name = residue.getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
+                      String modification_name = "[" + mod + "]";
 
                       if (!mod_db->has(residue_name))
                       {
                         // create new modification
-                        ResidueModification * new_mod = new ResidueModification();
+                        unique_ptr<ResidueModification> new_mod(new ResidueModification);
                         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setFullName(modification_name); // display name
+
+                        // We will set origin to make sure the same modifcation will be used
+                        // for the same AA
+                        new_mod->setOrigin(residue.getOneLetterCode()[0]);
 
                         // We cannot set origin if we want to use the same modification name
                         // also at other AA (and since we have no information here, it is safer
@@ -2578,12 +2643,12 @@ namespace OpenMS
                         new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
                         new_mod->setDiffMonoMass(mass_delta);
 
-                        mod_db->addModification(new_mod);
+                        mod_db->addModification(std::move(new_mod));
                       }
 
                       // now use the new modification
                       Size mod_idx = mod_db->findModificationIndex(residue_name);
-                      const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+                      const ResidueModification* res_mod = mod_db->getModification(mod_idx);
 
                       // Set a modification on the given AA
                       // Note: this calls setModification_ on a new Residue which changes its
@@ -2601,7 +2666,7 @@ namespace OpenMS
                   cvp = cvp->getNextElementSibling();
                   continue;
                 }
-                
+
                 if (index == 0)
                 {
                   if (cv.getName() == "unknown modification")
@@ -2633,10 +2698,10 @@ namespace OpenMS
                   }
                   catch (Exception::BaseException& e)
                   {
-                    LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
+                    OPENMS_LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                   }
                 }
-                
+
                 cvp = cvp->getNextElementSibling();
               }
             }
@@ -2718,34 +2783,34 @@ namespace OpenMS
         current_pep->appendChild(current_seq);
         if (peps->second.hasNTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getNTerminalModification());
+          const ResidueModification* mod = peps->second.getNTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
         }
         if (peps->second.hasCTerminalModification())
         {
-          const ResidueModification& mod = *(peps->second.getCTerminalModification());
+          const ResidueModification* mod = peps->second.getCTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
           current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size() + 1).c_str()));
-          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
-          String origin = mod.getOrigin();
+          current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod->getDiffMonoMass()).c_str()));
+          String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
           current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(origin.c_str()));
-          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+          current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod->getName().c_str()));
           current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
-          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+          current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod->getUniModAccession().c_str()));
 
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
@@ -2937,6 +3002,8 @@ namespace OpenMS
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
+      int minCharge = 0;
+      int maxCharge = 0;
       for (map<String, DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
         if (upit->first == "taxonomy")
@@ -2947,10 +3014,26 @@ namespace OpenMS
         {
           sp.charges = upit->second.toString();
         }
+        else if (upit->first == "MinCharge")
+        {
+          minCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "MaxCharge")
+        {
+          maxCharge = upit->second.toString().toInt();
+        }
+        else if (upit->first == "NumTolerableTermini")
+        {
+          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+        }
         else
         {
           sp.setMetaValue(upit->first, upit->second);
         }
+      }
+      if (minCharge != 0 || maxCharge != 0) // this means "MinCharge" and "MaxCharge" get preference over "charges"
+      {
+        sp.charges = String(minCharge) + "-" + String(maxCharge);
       }
       return sp;
     }

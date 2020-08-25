@@ -6,6 +6,7 @@ set(sources_list_h
 AAIndex.h
 AASequence.h
 CrossLinksDB.h
+DecoyGenerator.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h
@@ -17,7 +18,10 @@ DigestionEnzymeRNA.h
 DigestionEnzymeDB.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
+ModifiedNASequenceGenerator.h
 ModificationsDB.h
+NASequence.h
+NucleicAcidSpectrumGenerator.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h
@@ -25,12 +29,16 @@ ResidueDB.h
 ResidueModification.h
 RNaseDB.h
 RNaseDigestion.h
-TheoreticalSpectrumGenerator.h
+Ribonucleotide.h
+RibonucleotideDB.h
+SimpleTSGXLMS.h
 SpectrumAnnotator.h
-TheoreticalSpectrumGeneratorXLMS.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
+Tagger.h
+TheoreticalSpectrumGenerator.h
+TheoreticalSpectrumGeneratorXLMS.h
 WeightWrapper.h
 )
 

@@ -1,0 +1,11 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	description	Result summary from accurate mass search.
+MTD	smallmolecule_search_engine_score[1]	[, , AccurateMassSearchScore, ]
+MTD	study_variable[1]-description	Accurate mass search result file.
+
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	smallmolecule_abundance_study_variable[1]	smallmolecule_abundance_stdev_study_variable[1]	smallmolecule_abundance_std_error_study_variable[1]	opt_global_mz_ppm_error	opt_global_adduct_ion	opt_global_isosim_score	opt_global_MTint	opt_global_neutral_mass	opt_global_id_group
+SML	b6db36a2-5130-11e9-8f91-784f43534648	C13H18N2O2	C1CCC(CC1)n2c(=O)c3c([nH]c2=O)CCC3	"InChI=1S/C13H18N2O2/c16-12-10-7-4-8-11(10)14-13(17)15(12)9-5-2-1-3-6-9/h9H,1-8H2,(H,14,17)"	Lenacil	235.144546436815318	235.144076451995716	1	355.507999999979973	null	null	Custom	0.0	null	[, , AccurateMassSearch, ]	null	null	null	12743.556640625	0.0	0.0	1.998710010875114	M+H;1+	-1	12743.557102	234.137269984819596	1
+SML	99675-03-3	C14H22NO4PS	CC(C)NP(=S)(OC)Oc1ccccc1C(=O)OC(C)C	"InChI=1S/C14H22NO4PS/c1-10(2)15-20(21,17-5)19-13-9-7-6-8-12(13)14(16)18-11(3)4/h6-11H,1-5H3,(H,15,21)"	Isofenphos-methyl	332.108359495389948	332.107976451995683	1	518.841000000000008	null	null	Custom	0.0	null	[, , AccurateMassSearch, ]	null	null	null	77075.7109375	0.0	0.0	1.153370052587946	M+H;1+	-1	77075.707501,13072.681000	331.101083043394283	2
+

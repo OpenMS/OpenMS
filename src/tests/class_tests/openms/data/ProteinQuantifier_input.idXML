@@ -39,6 +39,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_15" accession="IPI00028030" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///file1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605" RT="0.5927" >
 			<PeptideHit score="8" sequence="(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R" aa_after="E" protein_refs="PH_0 PH_1 PH_2" >
@@ -95,6 +96,7 @@
 			</ProteinHit>
 			<ProteinHit id="PH_27" accession="IPI00027377" score="0" sequence="" >
 			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///file2.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0" MZ="1143.5905250319" RT="3.1" >
 			<PeptideHit score="5.136" sequence="EISPDTTLLDLQNNDISELR" charge="2" aa_before="K" aa_after="K" protein_refs="PH_20" >

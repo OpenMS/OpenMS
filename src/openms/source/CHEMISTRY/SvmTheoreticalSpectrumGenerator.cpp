@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -586,7 +586,7 @@ namespace OpenMS
       sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
@@ -596,7 +596,7 @@ namespace OpenMS
       sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
     }
@@ -818,7 +818,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Requested unsupported ion type" << std::endl;
+          OPENMS_LOG_ERROR << "Requested unsupported ion type" << std::endl;
         }
 
         DescriptorSet descriptor;

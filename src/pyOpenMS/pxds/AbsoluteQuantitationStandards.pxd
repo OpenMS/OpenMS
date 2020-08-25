@@ -17,6 +17,10 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
             libcpp_vector[AQS_featureConcentration]& feature_concentrations
         ) nogil except +
 
+        # void mapComponentsToConcentrations(libcpp_vector[ AQS_runConcentration ] run_concentrations,
+        #                                    libcpp_vector[ FeatureMap ] feature_maps,
+        #                                    libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_to_concentrations) nogil except +
+
 cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "OpenMS::AbsoluteQuantitationStandards":
 
     cdef cppclass AQS_runConcentration "OpenMS::AbsoluteQuantitationStandards::runConcentration":
@@ -43,3 +47,4 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
         double IS_actual_concentration
         String concentration_units
         double dilution_factor
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -810,7 +810,7 @@ namespace OpenMS
               const std::vector<ProteinHit>& prot_hits = prot_ids[prot_id].getHits();
               for (UInt prot_hit = 0; prot_hit < prot_hits.size(); ++prot_hit)
               {
-                if (find(accs.begin(), accs.end(), prot_hits[prot_hit].getAccession()) != accs.end())
+                if (accs.find(prot_hits[prot_hit].getAccession()) != accs.end())
                 {
                   //std::cout << "found "<<prot_hits[prot_hit].getAccession() << std::endl;
                   // check if protein is already in all_prot_ids

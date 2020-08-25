@@ -34,5 +34,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         bool checkValidWeight(const String& weight, libcpp_vector[String]& valid_weights) nogil except +
         double weightDatum(double& datum, const String& weight) nogil except +
         double unWeightDatum(double& datum, const String& weight) nogil except +
-        # String getValidXWeights() nogil except +
-        # String getValidYWeights() nogil except +
+        libcpp_vector[ String ] getValidXWeights() nogil except +
+        libcpp_vector[ String ] getValidYWeights() nogil except +
+
+        void unWeightData(libcpp_vector[TM_DataPoint] & data) nogil except +
+        double checkDatumRange(const double & datum, const double & datum_min, const double & datum_max) nogil except +
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,8 +92,6 @@ namespace OpenMS
       @improvement Add log mode (Hiwi)
 
       @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
-
-      @htmlinclude OpenMS_SpectrumCanvas.parameters
 
       @ingroup SpectrumWidgets
   */
@@ -670,15 +668,19 @@ protected:
     /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;
 
+    /// remove already added layer which did not pass final checks in finishAdding_()
+    /// @param error_message Optional error message to show as messagebox
+    void popIncompleteLayer_(const QString& error_message = "");
+
     /// Returns the layer with index @p index
-    inline LayerData & getLayer_(Size index)
+    inline LayerData& getLayer_(Size index)
     {
       OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
       return layers_[index];
     }
 
     /// Returns the currently active layer
-    inline LayerData & getCurrentLayer_()
+    inline LayerData& getCurrentLayer_()
     {
       return getLayer_(current_layer_);
     }

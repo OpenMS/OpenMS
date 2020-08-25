@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,29 +57,29 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_EICExtractor EICExtractor
+@page TOPP_EICExtractor EICExtractor
 
-    @brief Extracts EICs from an MS experiment, in order to quantify analytes at a given position
+@brief Extracts EICs from an MS experiment, in order to quantify analytes at a given position
 
 <CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> statistical tools, e.g., Excel, R, ... </td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter</td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> statistical tools, e.g., Excel, R, ... </td>
+    </tr>
+</table>
 </CENTER>
 
-  Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
-    or if you want to quantify non-peptides.
+Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
+or if you want to quantify non-peptides.
 
-    The input EDTA file specifies where to search for signal in RT and m/z.
-    Retention time is in seconds [s]. A third intensity column is ignored but needs to be present.
+The input EDTA file specifies where to search for signal in RT and m/z.
+Retention time is in seconds [s]. A third intensity column is ignored but needs to be present.
 
 Example (replace space separator with &lt;TAB&gt;):<br>
 @code
@@ -90,25 +90,25 @@ RT m/z int
 59.2 431.85 0
 @endcode
 
-  RT positions can also be automatically generated using the 'auto-RT' functionality, which can be enabled by the flag 'auto_rt:enabled'.
-  All EDTA input lines with negative RT and some m/z values are replaced by 'n' other lines, where the m/z value is identical
-  and the RT column is replaced by of the 'n' RT estimates as discovered by the auto-RT functionality.
-  This allows you to specify only the expected m/z positions and let the auto-RT function handle the RT positions.
-  Info: auto-RT positions are only generated once from the FIRST mzML input file. All other mzML input files are expected to
-        have similar RT positions!
-  To debug auto-RT, you can specify an mzML output file (see 'auto_rt:out_debug_TIC' option) which will contain four single spectra which represent:
-    1. the TIC (of the first mzML input file)
-    2. the smoothed version of #1
-    3. the signal/noise (S/N) ratio of #2
-    4. the centroided version of #2 (not #3!)
-  Since you can specify the smoothing aggressiveness using 'auto_rt:FHWM' and
-  the minimum S/N theshold for centroided using 'auto_rt:SNThreshold', this should give you all information needed to set the best parameters which fit your data.
-  Sensible default thresholds have been chosen though, such that adaption should only be required in extreme cases.
+RT positions can also be automatically generated using the 'auto-RT' functionality, which can be enabled by the flag 'auto_rt:enabled'.
+All EDTA input lines with negative RT and some m/z values are replaced by 'n' other lines, where the m/z value is identical
+and the RT column is replaced by of the 'n' RT estimates as discovered by the auto-RT functionality.
+This allows you to specify only the expected m/z positions and let the auto-RT function handle the RT positions.
+Info: auto-RT positions are only generated once from the FIRST mzML input file. All other mzML input files are expected to
+      have similar RT positions!
+To debug auto-RT, you can specify an mzML output file (see 'auto_rt:out_debug_TIC' option) which will contain four single spectra which represent:
+  1. the TIC (of the first mzML input file)
+  2. the smoothed version of #1
+  3. the signal/noise (S/N) ratio of #2
+  4. the centroided version of #2 (not #3!)
+Since you can specify the smoothing aggressiveness using 'auto_rt:FHWM' and
+the minimum S/N theshold for centroided using 'auto_rt:SNThreshold', this should give you all information needed to set the best parameters which fit your data.
+Sensible default thresholds have been chosen though, such that adaption should only be required in extreme cases.
 
-    The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
+The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
 
-  As output, one file in text format is given. It contains the actual RT and m/z positions of the data,
-  as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
+As output, one file in text format is given. It contains the actual RT and m/z positions of the data,
+as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
 
 <pre>
   RT	  - expected RT position (in [s])
@@ -233,20 +233,20 @@ public:
     // number of out_debug_TIC files and input files must be identical
     /*if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
     {
-        LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
+        OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
         return ILLEGAL_PARAMETERS;
     }*/
 
     // number of header files and input files must be identical
     if (in_header.size() > 0 && in.size() != in_header.size())
     {
-      LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
     if (!getFlag_("auto_rt:enabled") && !out_TIC_debug.empty())
     {
-      LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
       return ILLEGAL_PARAMETERS;
     }
 
@@ -277,7 +277,7 @@ public:
 
       if (exp.empty())
       {
-        LOG_WARN << "The given file does not contain any conventional peak data, but might"
+        OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                     " contain chromatograms. This tool currently cannot handle them, sorry." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
@@ -317,14 +317,14 @@ public:
 
         if (tics_pp.size())
         {
-          LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
-          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
+          OPENMS_LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
+          for (Size ipp = 0; ipp != tics_pp.size(); ++ipp) OPENMS_LOG_INFO << " " << tics_pp[ipp].getMZ();
         }
         else
         {
-          LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
+          OPENMS_LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
         }
-        LOG_INFO << std::endl;
+        OPENMS_LOG_INFO << std::endl;
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
@@ -338,7 +338,7 @@ public:
           {
             Peak1D peak;
             peak.setMZ(tic[is].getMZ());
-            peak.setIntensity(snt.getSignalToNoise(tics[is]));
+            peak.setIntensity(snt.getSignalToNoise(is));
             tics_sn.push_back(peak);
           }
           out_debug.addChromatogram(toChromatogram(tics_sn));
@@ -348,7 +348,7 @@ public:
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
           mzml_file.store(out_TIC_debug, out_debug);
-          LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
+          OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 
         // add target EICs: for each m/z with no/negative RT, add all combinations of that m/z with auto-RTs
@@ -366,7 +366,7 @@ public:
             }
             else
             {
-              LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
+              OPENMS_LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
               continue;
             }
 
@@ -381,7 +381,7 @@ public:
           }
           else
           { // default feature with no auto-rt
-            LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
+            OPENMS_LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
             cm.push_back(*cit);
           }
         }
@@ -413,7 +413,6 @@ public:
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
       tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
-
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
@@ -456,7 +455,7 @@ public:
             //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;
           }
 
-          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
+          if ((SignedSize)mz.size() > (low + high + 1)) OPENMS_LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
 
           if (!mz.empty())
           {
@@ -483,7 +482,7 @@ public:
                          String(max_peak.getIntensity());
       }
 
-      if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found) OPENMS_LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
     }
 
     //-------------------------------------------------------------

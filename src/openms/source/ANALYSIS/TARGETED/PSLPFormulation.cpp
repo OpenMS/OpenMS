@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1498,7 +1498,7 @@ namespace OpenMS
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
-        if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
+        if (accs.find(protein_accs[pa]) == accs.end())
           continue;
 
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());

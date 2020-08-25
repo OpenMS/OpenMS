@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,11 +62,11 @@ public:
     void updateEntries(const LayerData & cl);
 signals:
     void spectrumSelected(int);
-    void spectrumSelected(std::vector<int, std::allocator<int> > indices);
+    void spectrumSelected(std::vector<int> indices);
     void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int, std::allocator<int> > indices);
+    void spectrumDoubleClicked(std::vector<int> indices);
     void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int> indices);
     void showSpectrumMetaData(int);
 private:
     QLineEdit * spectra_search_box_;

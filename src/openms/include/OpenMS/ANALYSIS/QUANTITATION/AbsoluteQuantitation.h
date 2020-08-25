@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,7 +113,7 @@ public:
       @brief This function calculates the ratio between features.
 
       @param component_1 component of the numerator
-      @param component_2 component of the denomenator
+      @param component_2 component of the denominator
       @param feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 

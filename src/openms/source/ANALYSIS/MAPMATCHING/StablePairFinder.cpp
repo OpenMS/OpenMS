@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -201,14 +201,7 @@ namespace OpenMS
           ConsensusFeature& f = result_map.back();
 
           f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[0][fi0].getPeptideIdentifications().begin(),
-                                               input_maps[0][fi0].getPeptideIdentifications().end());
-
           f.insert(input_maps[1][fi1]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[1][fi1].getPeptideIdentifications().begin(),
-                                               input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
           double quality = 1.0 - nn_distance_0[fi0].first;

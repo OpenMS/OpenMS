@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
@@ -92,10 +91,10 @@ namespace OpenMS
     // determine RT scaling
     std::vector<double> mz;
     MSExperiment::ConstIterator it_rt;
-    for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
+    for (it_rt = exp_picked.begin(); it_rt != exp_picked.end(); ++it_rt)
     {
       MSSpectrum::ConstIterator it_mz;
-      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
       }
@@ -151,10 +150,10 @@ namespace OpenMS
     // determine RT scaling
     std::vector<double> mz;
     MSExperiment::ConstIterator it_rt;
-    for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
+    for (it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
     {
       MSSpectrum::ConstIterator it_mz;
-      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
       }

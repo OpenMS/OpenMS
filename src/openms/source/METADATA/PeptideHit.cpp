@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <ostream>
 
 using namespace std;
 
@@ -53,6 +54,19 @@ namespace OpenMS
 
   // values constructor
   PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence& sequence) :
+      MetaInfoInterface(),
+      sequence_(sequence),
+      score_(score),
+      analysis_results_(nullptr),
+      rank_(rank),
+      charge_(charge),
+      peptide_evidences_(),
+      fragment_annotations_()
+  {
+  }
+
+  // values constructor
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, AASequence&& sequence) :
     MetaInfoInterface(),
     sequence_(sequence),
     score_(score),
@@ -81,14 +95,25 @@ namespace OpenMS
     }
   }
 
+  /// Move constructor
+  PeptideHit::PeptideHit(PeptideHit&& source) noexcept :
+    MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
+    sequence_(std::move(source.sequence_)),
+    score_(source.score_),
+    analysis_results_(std::move(source.analysis_results_)),
+    rank_(source.rank_),
+    charge_(source.charge_),
+    peptide_evidences_(std::move(source.peptide_evidences_)),
+    fragment_annotations_(std::move(source.fragment_annotations_))
+  {
+    // see http://thbecker.net/articles/rvalue_references/section_05.html
+    source.analysis_results_ = nullptr;
+  }
+
   // destructor
   PeptideHit::~PeptideHit()
   {
-    if (analysis_results_ != nullptr)
-    {
-      // free memory again
-      delete analysis_results_;
-    }
+    delete analysis_results_;
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -104,17 +129,39 @@ namespace OpenMS
     analysis_results_ = nullptr;
     if (source.analysis_results_ != nullptr)
     {
-      if (analysis_results_ != nullptr)
-      {
-        // free memory first
-        delete analysis_results_;
-      }
+      // free memory first
+      delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
+    rank_ = source.rank_;
     charge_ = source.charge_;
-    rank_  = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
+    return *this;
+  }
+
+  PeptideHit& PeptideHit::operator=(PeptideHit&& source) noexcept
+  {
+    if (&source == this)
+    {
+      return *this;
+    }
+
+    MetaInfoInterface::operator=(std::move(source));
+    //clang-tidy overly strict, should be fine to move the rest here
+    sequence_ = source.sequence_;
+    score_ = source.score_;
+
+    // free memory and assign rhs memory
+    delete analysis_results_;
+    analysis_results_ = source.analysis_results_;
+    source.analysis_results_ = nullptr;
+
+    rank_ = source.rank_;
+    charge_ = source.charge_;
+    peptide_evidences_ = source.peptide_evidences_;
+    fragment_annotations_ = source.fragment_annotations_;
+
     return *this;
   }
 
@@ -166,6 +213,11 @@ namespace OpenMS
     sequence_ = sequence;
   }
 
+  void PeptideHit::setSequence(AASequence&& sequence)
+  {
+    sequence_ = std::move(sequence);
+  }
+
   Int PeptideHit::getCharge() const
   {
     return charge_;
@@ -184,6 +236,11 @@ namespace OpenMS
   void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences)
   {
     peptide_evidences_ = peptide_evidences;
+  }
+
+  void PeptideHit::setPeptideEvidences(std::vector<PeptideEvidence>&& peptide_evidences)
+  {
+    peptide_evidences_ = std::move(peptide_evidences);
   }
 
   void PeptideHit::addPeptideEvidence(const PeptideEvidence& peptide_evidence)
@@ -232,12 +289,12 @@ namespace OpenMS
   std::set<String> PeptideHit::extractProteinAccessionsSet() const
   {
     set<String> accessions;
-    for (vector<PeptideEvidence>::const_iterator it = peptide_evidences_.begin(); it != peptide_evidences_.end(); ++it)
+    for (const auto& ev : peptide_evidences_)
     {
       // don't return empty accessions
-      if (!it->getProteinAccession().empty())
+      if (!ev.getProteinAccession().empty())
       {
-        accessions.insert(it->getProteinAccession());
+        accessions.insert(ev.getProteinAccession());
       }
     }
     return accessions;
@@ -250,7 +307,14 @@ namespace OpenMS
 
   void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
-    fragment_annotations_ = frag_annotations;
+    fragment_annotations_ = std::move(frag_annotations);
+  }
+
+  std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
+  {
+    return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
+           "', charge " + String(hit.getCharge()) + ", score " +
+           String(hit.getScore());
   }
 
 } // namespace OpenMS

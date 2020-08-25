@@ -13,4 +13,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>" namespace "Op
         libcpp_string extraction_function
         double rt_extraction_window
         double extra_rt_extract
+        double im_extraction_window
 

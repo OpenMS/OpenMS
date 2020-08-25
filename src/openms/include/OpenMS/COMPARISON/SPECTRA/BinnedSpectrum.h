@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,16 +93,16 @@ public:
       */ 
  
     // default bin width for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_WIDTH_LOWRES = 1.0005;
+    static constexpr const float DEFAULT_BIN_WIDTH_LOWRES = 1.0005f;
 
     // default bin width for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02;
+    static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02f;
 
     /// default bin offset for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0;
+    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0f;
 
     /// default bin offset for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4;
+    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4f;
 
     /// typedef for the underlying sparse vector
     using SparseVectorType = Eigen::SparseVector<float>;

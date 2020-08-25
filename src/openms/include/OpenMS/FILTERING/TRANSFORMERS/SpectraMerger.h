@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -57,9 +56,9 @@ namespace OpenMS
 
   Parameter's are accessible via the DefaultParamHandler.
 
-      @htmlinclude OpenMS_SpectraMerger.parameters
+  @htmlinclude OpenMS_SpectraMerger.parameters
 
-*/
+  */
   class OPENMS_DLLAPI SpectraMerger :
     public DefaultParamHandler, public ProgressLogger
   {
@@ -82,15 +81,13 @@ public:
       {
         defaults_.setValue("rt_tolerance", 10.0, "Maximal RT distance (in [s]) for two spectra's precursors.");
         defaults_.setValue("mz_tolerance", 1.0, "Maximal m/z distance (in Da) for two spectra's precursors.");
-        defaultsToParam_();
+        defaultsToParam_(); // calls updateMembers_
       }
 
       void updateMembers_() override
       {
         rt_max_ = (double) param_.getValue("rt_tolerance");
         mz_max_ = (double) param_.getValue("mz_tolerance");
-
-        return;
       }
 
       double getSimilarity(const double d_rt, const double d_mz) const
@@ -200,8 +197,6 @@ public:
       }
 
       exp.sortSpectra();
-
-      return;
     }
 
     /// merges spectra with similar precursors (must have MS2 level)
@@ -237,7 +232,7 @@ public:
           }
           if (pcs.size() > 1)
           {
-            LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+            OPENMS_LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           }
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
@@ -300,18 +295,16 @@ public:
       mergeSpectra_(exp, spectra_to_merge, 2);
 
       exp.sortSpectra();
-
-      return;
     }
 
     /**
      * @brief average over neighbouring spectra
      *
-     * @param exp   experimental data to be averaged
-     * @param average_type    averaging type to be used ("gaussian" or "tophat")
+     * @param exp experimental data to be averaged
+     * @param average_type averaging type to be used ("gaussian" or "tophat")
      */
     template <typename MapType>
-    void average(MapType& exp, String average_type)
+    void average(MapType& exp, const String& average_type)
     {
       // MS level to be averaged
       int ms_level = param_.getValue("average_gaussian:ms_level");
@@ -336,7 +329,7 @@ public:
       bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range")); // range of spectra to be averaged over
       double range_seconds = range / 2; // max. +/- <range_seconds> seconds from master spectrum
-      int range_scans = range;
+      int range_scans = static_cast<int>(range); // in case of unit scans, the param is used as integer
       if ((range_scans % 2) == 0)
       {
         ++range_scans;
@@ -454,11 +447,7 @@ public:
       if (spectrum_type == "automatic")
       {
         Size idx = spectra_to_average_over.begin()->first; // index of first spectrum to be averaged
-        type = exp[idx].getType();
-        if (type == SpectrumSettings::UNKNOWN)
-        {
-          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
-        }
+        type = exp[idx].getType(true);
       }
       else if (spectrum_type == "profile")
       {
@@ -467,6 +456,10 @@ public:
       else if (spectrum_type == "centroid")
       {
         type = SpectrumSettings::CENTROID;
+      }
+      else
+      {
+        throw Exception::InvalidParameter(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION, "Spectrum type has to be one of automatic, profile or centroid.");
       }
 
       // generate new spectra
@@ -480,8 +473,6 @@ public:
       }
 
       exp.sortSpectra();
-
-      return;
     }
 
     // @}
@@ -613,7 +604,7 @@ protected:
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
           {
-            LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
+            OPENMS_LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
           }
         }
         rt_average /= it->second.size() + 1;
@@ -626,7 +617,7 @@ protected:
             precursor_mz_average /= precursor_count;
           }
           std::vector<Precursor> pcs = consensus_spec.getPrecursors();
-          //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
+          //if (pcs.size()>1) OPENMS_LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
           pcs.resize(1);
           pcs[0].setMZ(precursor_mz_average);
           consensus_spec.setPrecursors(pcs);
@@ -642,16 +633,16 @@ protected:
         }
       }
 
-      LOG_INFO << "Cluster sizes:\n";
+      OPENMS_LOG_INFO << "Cluster sizes:\n";
       for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
       {
-        LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+        OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
       }
 
       char buffer[200];
       sprintf(buffer, "%d/%d (%.2f %%) of blocked spectra", (int)count_peaks_aligned,
               (int)count_peaks_overall, float(count_peaks_aligned) / float(count_peaks_overall) * 100.);
-      LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
+      OPENMS_LOG_INFO << "Number of merged peaks: " << String(buffer) << "\n";
 
       // remove all spectra that were within a cluster
       typename MapType::SpectrumType empty_spec;
@@ -750,13 +741,13 @@ protected:
         // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          SplineSpectrum spline(exp[it2->first]);
-          SplineSpectrum::Navigator nav = spline.getNavigator();
+          SplineInterpolatedPeaks spline(exp[it2->first]);
+          SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
           for (Size i = 0; i < mz_positions.size(); ++i)
           {
-            if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
+            if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
               intensities[i] += nav.eval(mz_positions[i]) * (it2->second); // spline-interpolated intensity * weight
             }

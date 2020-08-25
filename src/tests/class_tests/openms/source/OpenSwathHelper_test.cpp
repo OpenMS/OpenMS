@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 
 ///////////////////////////
 
@@ -65,6 +64,20 @@ END_SECTION
 START_SECTION(~OpenSwathHelper())
 {
   delete ptr;
+}
+END_SECTION
+
+START_SECTION(static String computePrecursorId(const String& transition_group_id, int isotope))
+{
+  TEST_EQUAL(OpenSwathHelper::computePrecursorId("tr_gr2", 0), "tr_gr2_Precursor_i0")
+  TEST_EQUAL(OpenSwathHelper::computePrecursorId("tr_gr2__test", 0), "tr_gr2__test_Precursor_i0")
+}
+END_SECTION
+
+START_SECTION(static String computeTransitionGroupId(const String& precursor_id))
+{
+  TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId("tr_gr2_Precursor_i0"), "tr_gr2")
+  TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId("tr_gr2__test_Precursor_i0"), "tr_gr2__test")
 }
 END_SECTION
 
@@ -140,11 +153,12 @@ START_SECTION(static void checkSwathMap(const OpenMS::PeakMap &swath_map, double
   spectrum.setPrecursors(precursors);
   swath_map.addSpectrum(spectrum);
 
-  double lower, upper;
-  OpenSwathHelper::checkSwathMap(swath_map, lower, upper);
+  double lower, upper, center;
+  OpenSwathHelper::checkSwathMap(swath_map, lower, upper, center);
 
   TEST_REAL_SIMILAR(lower, 200);
   TEST_REAL_SIMILAR(upper, 300);
+  TEST_REAL_SIMILAR(center, 250);
 }
 END_SECTION
 

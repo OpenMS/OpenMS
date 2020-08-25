@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -527,7 +527,7 @@ namespace OpenMS
                 *ft_it + " ion series for peptide sequence \"" + sequence.toString() +
                 "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
-
+          
           ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
 
           for (Size j = 0; j < ion.size(); ++j)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -58,19 +59,24 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathAssayGenerator </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenSwathWorkflow </td>
           </tr>
       </table>
   </CENTER>
 
   This module generates "decoy" transitions from a set of real or "target"
   transitions. The idea is to use the decoy transitions in a statistical scoring
-  process to estimate the false hits in an SRM / SWATH experiment.
+  process to estimate the false hits in an SRM / SWATH experiment.  The tool
+  operates on @ref OpenMS::TraMLFile "TraML" files, which can come from @ref
+  UTILS_TargetedFileConverter or any other tool.
 
   There are multiple methods to create the decoy transitions, the simplest ones
   are reverse and pseudo-reverse which reverse the sequence either completely or
@@ -93,6 +99,7 @@ using namespace OpenMS;
 
 
 */
+
 // TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
 
 // We do not want this class to show up in the docu:
@@ -123,7 +130,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
+    registerStringOption_("method", "<type>", "shuffle", "Decoy generation method", false);
     setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
@@ -142,7 +149,7 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false, true);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
-    registerStringOption_("switchKR", "<true/false>", "false", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
+    registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
     setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
@@ -220,7 +227,7 @@ protected:
     TargetedExperiment targeted_decoy;
 
     // Load data
-    LOG_INFO << "Loading targets from file: " << in << std::endl;
+    OPENMS_LOG_INFO << "Loading targets from file: " << in << std::endl;
     if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
@@ -250,7 +257,7 @@ protected:
     MRMDecoy decoys = MRMDecoy();
     decoys.setLogType(ProgressLogger::CMD);
 
-    LOG_INFO << "Generate decoys" << std::endl;
+    OPENMS_LOG_INFO << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method,
                           aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
                           identity_threshold, precursor_mz_shift,
@@ -260,10 +267,10 @@ protected:
                           enable_detection_unspecific_losses);
 
     // Check if we have enough peptides left
-    LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
-    LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
-    LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy peptides: " << targeted_decoy.getPeptides().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
+    OPENMS_LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
 
     if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
     {
@@ -273,12 +280,12 @@ protected:
     TargetedExperiment targeted_merged;
     if (separate)
     {
-      LOG_INFO << "Writing only decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing only decoys to file: " << out << std::endl;
       targeted_merged = targeted_decoy;
     }
     else
     {
-      LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
+      OPENMS_LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
       targeted_merged = targeted_exp + targeted_decoy;
     }
 

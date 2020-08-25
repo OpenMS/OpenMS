@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@
 namespace OpenMS
 {
   class Peak1D;
+
   /**
     @brief The representation of a 1D spectrum.
 
@@ -74,6 +75,30 @@ public:
     struct OPENMS_DLLAPI RTLess : public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+
+    /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
+    struct Chunk {
+      Size start; ///< inclusive
+      Size end; ///< not inclusive
+      bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
+      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+    };
+
+    struct Chunks {
+      public:
+        Chunks(const MSSpectrum& s) : spec_(s) {}
+        void add(bool is_sorted)
+        {
+          chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), is_sorted);
+        }
+        std::vector<Chunk>& getChunks()
+        {
+          return chunks_;
+        }
+      private:
+        std::vector<Chunk> chunks_;
+        const MSSpectrum& spec_;
     };
 
     ///@name Base type definitions
@@ -135,6 +160,8 @@ public:
     using typename ContainerType::const_reference;
     using typename ContainerType::pointer;
     using typename ContainerType::difference_type;
+
+    typedef Precursor::DriftTimeUnit DriftTimeUnit;
     //@}
 
 
@@ -144,12 +171,18 @@ public:
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
+    /// Move constructor
+    MSSpectrum(MSSpectrum&&) = default;
+
     /// Destructor
     ~MSSpectrum() override
     {}
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
+
+    /// Move assignment operator
+    MSSpectrum& operator=(MSSpectrum&&) & = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const SpectrumSettings & source);
@@ -175,7 +208,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+      @brief Returns the ion mobility drift time (-1 means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -185,9 +218,19 @@ public:
     double getDriftTime() const;
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds
+      @brief Sets the ion mobility drift time
     */
     void setDriftTime(double dt);
+
+    /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
 
     /**
       @brief Returns the MS level.
@@ -267,6 +310,12 @@ public:
     */
     void sortByPosition();
 
+    /**
+      @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
+      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+    */
+    void sortByPositionPresorted(const std::vector<Chunk>& chunks);
+
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
 
@@ -313,6 +362,19 @@ public:
       @note Search for the left border is done using a binary search followed by a linear scan
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
+
+    /**
+      @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied to both sides of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+      @note Peaks exactly on borders are considered in tolerance window.
+    */
+    Int findHighestInWindow(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
 
     /**
       @brief Binary search for peak range begin
@@ -442,6 +504,9 @@ public:
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
+    /// do the names of internal metadata arrays contain any hint of ion mobility data, e.g. 'Ion Mobility' 
+    bool containsIMData() const;
+
     //@}
 
 
@@ -461,13 +526,40 @@ public:
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
-protected:
 
+    /**
+      @brief Determine if spectrum is profile or centroided using up to three layers of information.
+
+      First, the SpectrumSettings are inquired and the type is returned unless it is unknown.
+      Second, all data processing entries are searched for a centroiding step.
+      If that is unsuccessful as well and @p query_data is true, the data is fed into PeakTypeEstimator().
+
+      @param [query_data] If SpectrumSettings and DataProcessing information are not sufficient, should the data be queried? (potentially expensive)
+      @return The spectrum type (centroided, profile or unknown)
+    */
+    SpectrumSettings::SpectrumType getType(const bool query_data) const;
+    using SpectrumSettings::getType; // expose base class function
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    ConstIterator getBasePeak() const;
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    Iterator getBasePeak();
+
+    /// compute the total ion count (sum of all peak intensities)
+    PeakType::IntensityType getTIC() const;
+
+protected:
     /// Retention time
     double retention_time_;
 
     /// Drift time
     double drift_time_;
+
+    /// Drift time unit
+    DriftTimeUnit drift_time_unit_;
 
     /// MS level
     UInt ms_level_;
@@ -503,4 +595,3 @@ protected:
   }
 
 } // namespace OpenMS
-

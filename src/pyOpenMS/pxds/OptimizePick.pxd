@@ -30,7 +30,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
         OptimizePick_Data(OptimizePick_Data) nogil except + #wrap-ignore
         libcpp_vector[ double ] positions
         libcpp_vector[ double ] signal
+
         # TODO STL attribute
+        # OptimizationFunctions_PenaltyFactors penalties
         # libcpp_vector[ PeakShape ] peaks
-        # NAMESPACE # OptimizationFunctions::PenaltyFactors penalties
 

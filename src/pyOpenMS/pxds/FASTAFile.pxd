@@ -18,6 +18,14 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         void load(const String& filename, libcpp_vector[FASTAEntry] & data) nogil except +
         void store(const String& filename, libcpp_vector[FASTAEntry] & data) nogil except +
 
+        void readStart(const String & filename) nogil except +
+        bool readNext(FASTAEntry & protein) nogil except +
+        # NAMESPACE # std::streampos position() nogil except +
+        bool atEnd() nogil except +
+        # NAMESPACE # bool setPosition(const std::streampos & pos) nogil except +
+        void writeStart(const String & filename) nogil except +
+        void writeNext(const FASTAEntry & protein) nogil except +
+        void writeEnd() nogil except +
 
 cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":
 
@@ -29,3 +37,5 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":
         String description
         String sequence
 
+        bool headerMatches(const FASTAEntry & rhs) nogil except +
+        bool sequenceMatches(const FASTAEntry & rhs) nogil except +

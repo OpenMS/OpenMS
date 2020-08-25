@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtCore/QString>
@@ -54,19 +56,6 @@ namespace OpenMS
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
-  {
-  }
-
-  Param::ParamEntry::ParamEntry(const ParamEntry& other) :
-    name(other.name),
-    description(other.description),
-    value(other.value),
-    tags(other.tags),
-    min_float(other.min_float),
-    max_float(other.max_float),
-    min_int(other.min_int),
-    max_int(other.max_int),
-    valid_strings(other.valid_strings)
   {
   }
 
@@ -451,19 +440,8 @@ namespace OpenMS
   {
   }
 
-  Param::Param(const Param& rhs) :
-    root_(rhs.root_)
-  {
-  }
-
   Param::~Param()
   {
-  }
-
-  Param& Param::operator=(const Param& rhs)
-  {
-    root_ = rhs.root_;
-    return *this;
   }
 
   Param::Param(const ParamNode& node) :
@@ -748,6 +726,38 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  Param Param::copySubset(const Param& subset) const
+  {
+    ParamNode out("ROOT", "");
+
+    for (const auto& entry : subset.root_.entries)
+    {
+      const auto& n = root_.findEntry(entry.name);
+      if (n == root_.entries.end())
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter entry " << entry.name << std::endl;
+      }
+      else
+      {
+        out.insert(*n);
+      }
+    }
+
+    for (const auto& node : subset.root_.nodes)
+    {
+      const auto& n = root_.findNode(node.name);
+      if (n == root_.nodes.end())
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to copy non-existent parameter node " << node.name << std::endl;
+      }
+      else
+      {
+        out.insert(*n);
+      }
+    }
+    return Param(out);
   }
 
   Param Param::copy(const String& prefix, bool remove_prefix) const
@@ -1038,10 +1048,10 @@ namespace OpenMS
       //unknown parameter
       if (!defaults.exists(it.getName()))
       {
-        LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
+        OPENMS_LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
-          LOG_WARN << " in '" << prefix2 << "'";
-        LOG_WARN << "!" << std::endl;
+          OPENMS_LOG_WARN << " in '" << prefix2 << "'";
+        OPENMS_LOG_WARN << "!" << std::endl;
       }
 
       //different types
@@ -1122,7 +1132,7 @@ namespace OpenMS
 
   bool Param::update(const Param& p_outdated, const bool add_unknown)
   {
-    return update(p_outdated, add_unknown, LOG_WARN);
+    return update(p_outdated, add_unknown, OpenMS_Log_warn);
   }
 
   bool Param::update(const Param& p_outdated, const bool add_unknown, Logger::LogStream& stream)
@@ -1149,6 +1159,7 @@ namespace OpenMS
         {
           if (this->getValue(it.getName()) != it->value)
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Warning: for ':version' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
           }
           continue;
@@ -1159,6 +1170,7 @@ namespace OpenMS
         {
           if (this->getValue(it.getName()) != it->value)
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Warning: for ':type' entry, augmented and Default Ini-File differ in value. Default value will not be altered!\n";
           }
           continue;
@@ -1183,6 +1195,7 @@ namespace OpenMS
           // make sure the same leaf name does not exist at any other position
           if (this->findNext(l1_entry.name, it_match) == this->end())
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
             target_name = it_match.getName();
@@ -1193,11 +1206,13 @@ namespace OpenMS
         {
           if (fail_on_unknown_parameters)
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file!" << std::endl;
             is_update_success = false;
           }
           else if (add_unknown)
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Adding to current set." << std::endl;
             Param::ParamEntry local_entry = p_outdated.getEntry(it.getName());
             String prefix = "";
@@ -1207,8 +1222,9 @@ namespace OpenMS
             }
             this->root_.insert(local_entry, prefix); //->setValue(it.getName(), local_entry.value, local_entry.description, local_entry.tags);
           }
-          else
+          else if (verbose)
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in outdated parameter file! Ignoring parameter. " << std::endl;
           }
           continue;
@@ -1227,19 +1243,26 @@ namespace OpenMS
           if (new_entry.isValid(validation_result))
           {
             // overwrite default value
-            if (verbose) stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
+            if (verbose) 
+            {
+OPENMS_THREAD_CRITICAL(oms_log)
+                stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
+            }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
           {
+OPENMS_THREAD_CRITICAL(oms_log)
             stream << validation_result;
             if (fail_on_invalid_values)
             {
+OPENMS_THREAD_CRITICAL(oms_log)
               stream << " Updating failed!" << std::endl;
               is_update_success = false;
             }
             else
             {
+OPENMS_THREAD_CRITICAL(oms_log)
               stream << " Ignoring invalid value (using new default '" << default_value << "')!" << std::endl;
               new_entry.value = default_value;
             }
@@ -1252,14 +1275,17 @@ namespace OpenMS
       }
       else
       {
+OPENMS_THREAD_CRITICAL(oms_log)
         stream << "Parameter '" << it.getName() << "' has changed value type!\n";
         if (fail_on_invalid_values)
         {
+OPENMS_THREAD_CRITICAL(oms_log)
           stream << " Updating failed!" << std::endl;
           is_update_success = false;
         } 
         else
         {
+OPENMS_THREAD_CRITICAL(oms_log)
           stream << " Ignoring invalid value (using new default)!" << std::endl;
         }
       }
@@ -1285,7 +1311,7 @@ namespace OpenMS
       if (!this->exists(it.getName()))
       {
         Param::ParamEntry entry = *it;
-        LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
+        OPENMS_LOG_DEBUG << "[Param::merge] merging " << it.getName() << std::endl;
         this->root_.insert(entry, prefix);
       }
 
@@ -1295,12 +1321,12 @@ namespace OpenMS
       {
         if (traceIt->opened)
         {
-          LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] extending param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
           pathname += traceIt->name + ":";
         }
         else
         {
-          LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
+          OPENMS_LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
           if (pathname.hasSuffix(traceIt->name + ":"))
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
         }
@@ -1465,8 +1491,6 @@ namespace OpenMS
         }
       }
     }
-
-    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const

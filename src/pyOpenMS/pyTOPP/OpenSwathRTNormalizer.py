@@ -5,7 +5,7 @@ import pyopenms
 """
 python pyTOPP/OpenSwathRTNormalizer.py --in ../source/TEST/TOPP/OpenSwathRTNormalizer_1_input.mzML \
         --tr ../source/TEST/TOPP/OpenSwathRTNormalizer_1_input.TraML --out OpenSwathRTNormalizer.tmp.out \
-        && diff OpenSwathRTNormalizer.tmp.out ../source/TEST/TOPP/OpenSwathRTNormalizer_1_output.trafoXML 
+        && diff OpenSwathRTNormalizer.tmp.out ../source/TEST/TOPP/OpenSwathRTNormalizer_1_output.trafoXML
 
 """
 
@@ -15,10 +15,10 @@ def simple_find_best_feature(output, pairs, targeted):
     key = f.getMetaValue("PeptideRef")
     if f_map.has_key(key):
       f_map[key].append(f)
-    else: 
+    else:
       f_map[key] = [f]
-  
-  
+
+
   for v in f_map.values():
     bestscore = -10000
     for feature in v:
@@ -26,7 +26,7 @@ def simple_find_best_feature(output, pairs, targeted):
       if score > bestscore:
         best = feature
         bestscore = score
-    
+
     pep = targeted.getPeptideByRef( feature.getMetaValue("PeptideRef")  )
     pairs.append( [best.getRT(), pep.getRetentionTime() ] )
 
@@ -47,8 +47,8 @@ def algorithm(chromatograms, targeted):
     # get the pairs
     pairs=[]
     simple_find_best_feature(output, pairs, targeted)
-    pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6) 
-    pairs_corrected = [ list(p) for p in pairs_corrected] 
+    pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6)
+    pairs_corrected = [ list(p) for p in pairs_corrected]
 
     # // store transformation, using a linear model as default
     trafo_out = pyopenms.TransformationDescription()
@@ -78,7 +78,7 @@ def main(options):
 def handle_args():
     import argparse
 
-    usage = "" 
+    usage = ""
     usage += "\nMRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)"
 
     parser = argparse.ArgumentParser(description = usage )

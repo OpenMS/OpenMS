@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,9 +60,9 @@ public:
   */
     struct OPENMS_DLLAPI SqMassConfig 
     {
-      bool write_full_meta; /// write full meta data
-      bool use_lossy_numpress; /// use lossy numpress compression
-      double linear_fp_mass_acc; /// desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+      bool write_full_meta; ///< write full meta data
+      bool use_lossy_numpress; ///< use lossy numpress compression
+      double linear_fp_mass_acc; ///< desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       SqMassConfig () :
         write_full_meta(true),

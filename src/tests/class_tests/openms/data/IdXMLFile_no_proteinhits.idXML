@@ -1,48 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <SearchParameters id="SP_0" db="uniprot_sprot.fasta.pro" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="unknown_enzyme" missed_cleavages="2" precursor_peak_tolerance="3" peak_mass_tolerance="0.3" >
-  </SearchParameters>
-  <IdentificationRun date="2009-10-12T12:00:00" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="579.74" RT="1" >
-	  <PeptideHit score="27.1" sequence="VTAFIPPWVK" charge="2" aa_before="K" aa_after="D" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="650.777" RT="2" >
-	  <PeptideHit score="29.3" sequence="YIPLHLYLNR" charge="2" aa_before="R" aa_after="A" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="623.746" RT="3" >
-	  <PeptideHit score="42.4" sequence="TPEVDDEALEK" charge="2" aa_before="R" aa_after="F" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="573.228" RT="4" >
-	  <PeptideHit score="24.2" sequence="FEPCAQLPLK" charge="2" aa_before="R" aa_after="R" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="759.895" RT="5" >
-	  <PeptideHit score="27" sequence="DKNASLQLLQKEK" charge="2" aa_before="R" aa_after="E" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="708.457" RT="6" >
-	  <PeptideHit score="24.7" sequence="WPPVHLLPGCDK" charge="2" aa_before="K" aa_after="S" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="631.228" RT="7" >
-	  <PeptideHit score="22.6" sequence="LFVRLAWSDR" charge="2" aa_before="R" aa_after="T" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="635.672" RT="8" >
-	  <PeptideHit score="39.4" sequence="GDFGADAQGAMTK" charge="2" aa_before="P" aa_after="A" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="934.053" RT="9" >
-	  <PeptideHit score="28.9" sequence="QVDGQKIHSSTMNNRR" charge="2" aa_before="R" aa_after="A" >
-	  </PeptideHit>
-	</PeptideIdentification>
-	<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="707.895" RT="10" >
-	  <PeptideHit score="24.6" sequence="AQSCDKLEPDRR" charge="2" aa_before="R" aa_after="R" >
-	  </PeptideHit>
-	</PeptideIdentification>
-  </IdentificationRun>
+	<SearchParameters id="SP_0" db="uniprot_sprot.fasta.pro" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="unknown_enzyme" missed_cleavages="2" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2009-10-12T12:00:00" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		</ProteinIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="579.0" RT="1.0" >
+			<PeptideHit score="27.5" sequence="VTAFIPPWVK" charge="2" aa_before="K" aa_after="D" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="650.0" RT="2.0" >
+			<PeptideHit score="29.5" sequence="YIPLHLYLNR" charge="2" aa_before="R" aa_after="A" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="623.0" RT="3.0" >
+			<PeptideHit score="42.5" sequence="TPEVDDEALEK" charge="2" aa_before="R" aa_after="F" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="573.0" RT="4.0" >
+			<PeptideHit score="24.5" sequence="FEPCAQLPLK" charge="2" aa_before="R" aa_after="R" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="759.0" RT="5.0" >
+			<PeptideHit score="27.0" sequence="DKNASLQLLQKEK" charge="2" aa_before="R" aa_after="E" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="708.0" RT="6.0" >
+			<PeptideHit score="24.5" sequence="WPPVHLLPGCDK" charge="2" aa_before="K" aa_after="S" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="631.5" RT="7.0" >
+			<PeptideHit score="22.5" sequence="LFVRLAWSDR" charge="2" aa_before="R" aa_after="T" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="635.5" RT="8.0" >
+			<PeptideHit score="39.5" sequence="GDFGADAQGAMTK" charge="2" aa_before="P" aa_after="A" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="934.0" RT="9.0" >
+			<PeptideHit score="28.5" sequence="QVDGQKIHSSTMNNRR" charge="2" aa_before="R" aa_after="A" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="707.5" RT="10.0" >
+			<PeptideHit score="24.5" sequence="AQSCDKLEPDRR" charge="2" aa_before="R" aa_after="R" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
 </IdXML>

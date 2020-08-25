@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_doc")
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper macro
@@ -213,7 +213,6 @@ if(ENABLE_DOCS)
       COMMAND ${CMAKE_COMMAND} -E remove_directory html
       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -262,7 +261,6 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -282,7 +280,6 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -308,7 +305,6 @@ if(ENABLE_DOCS)
                         COMMAND ${CMAKE_COMMAND} -E remove_directory html-dot
                         COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_dot
                         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                         COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -323,7 +319,20 @@ if(ENABLE_DOCS)
 
     #------------------------------------------------------------------------------
     # Install documentation
-    install_directory(${PROJECT_BINARY_DIR}/html ${INSTALL_DOC_DIR} doc)
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/html
+      DESTINATION ${INSTALL_DOC_DIR}
+      COMPONENT doc
+      FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                            GROUP_READ
+                            WORLD_READ
+      DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                            GROUP_EXECUTE GROUP_READ
+                            WORLD_EXECUTE WORLD_READ
+      REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+      REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+      REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
+      REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
+    )
     install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 
     #------------------------------------------------------------------------------

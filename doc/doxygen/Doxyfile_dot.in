@@ -52,11 +52,11 @@ EXCLUDE                = @CF_OPENMS_SRC_PATH@/source/TEST/
 
 EXCLUDE_SYMLINKS       = NO
 
-EXCLUDE_PATTERNS       = */.svn/* \
+EXCLUDE_PATTERNS       = */.git/* \
                          *_moc* \
                          */UIC/* \
-												 */contrib/* \
-											   */backup/*
+						 */contrib/* \
+					     */backup/*
 
 SOURCE_BROWSER         = YES
 

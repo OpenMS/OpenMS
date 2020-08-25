@@ -25,6 +25,7 @@ FileHandler.cpp
 FileTypes.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
+HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndexedMzMLFileLoader.cpp
@@ -38,6 +39,7 @@ MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
+MSstatsFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
@@ -66,6 +68,7 @@ QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
+SqliteConnector.cpp
 SqMassFile.cpp
 SwathFile.cpp
 SVOutStream.cpp

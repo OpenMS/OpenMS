@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
@@ -53,6 +54,21 @@ START_TEST(ElementDB, "$Id$")
 const ElementDB* e_ptr = nullptr;
 const ElementDB* e_nullPointer = nullptr;
 const Element * elem_nullPointer = nullptr;
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  int nr_iterations (100);
+  int test = 0;
+#pragma omp parallel for reduction(+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto edb = ElementDB::getInstance();
+    const Element * e1 = edb->getElement("Carbon");
+    test += e1->getAtomicNumber();
+  }
+  TEST_EQUAL(test, 6 * 100)
+}
+END_SECTION
 
 START_SECTION(static const ElementDB* getInstance())
 	e_ptr = ElementDB::getInstance();

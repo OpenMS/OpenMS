@@ -1,3 +1,26 @@
+#!/usr/bin/python
+# -*- encoding: utf8 -*-
+"""Python bindings to the OpenMS C++ library.
+
+The pyOpenMS package contains Python bindings for a large part of the OpenMS
+library (http://www.open-ms.de) for mass spectrometry based proteomics. It thus
+provides providing facile access to a feature-rich, open-source algorithm
+library for mass-spectrometry based proteomics analysis. These Python bindings
+allow raw access to the data-structures and algorithms implemented in OpenMS,
+specifically those for file access (mzXML, mzML, TraML, mzIdentML among
+others), basic signal processing (smoothing, filtering, de-isotoping and
+peak-picking) and complex data analysis (including label-free, SILAC, iTRAQ and
+SWATH analysis tools).
+
+For further documentation, please see https://pyopenms.readthedocs.io
+
+Please cite:
+
+    Röst HL, Schmitt U, Aebersold R, Malmström L.
+    pyOpenMS: a Python-based interface to the OpenMS mass-spectrometry algorithm library.
+    Proteomics. 2014 Jan;14(1):74-7. doi: 10.1002/pmic.201300246.
+
+"""
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -22,14 +45,21 @@ try:
     from .all_modules import *
     from .python_extras import *
 except Exception as e:
-    print("\n")
+    print("")
     print("="*70)
-    print("\n")
-    print("maybe you miss some libraries. please run ldd (on linux) or")
-    print("dependency walker (on windows) on ")
-    print("\n")
+    print("Error when loading pyOpenMS libraries!")
+    print("Libraries could not be found / could not be loaded.")
+    print("")
+    print("Note: when using the Spyder IDE, this error may be triggered when")
+    print("the 'Automatic' backend is used. Please change this in Tools ->")
+    print("Preferences -> IPython -> Graphics to 'Inline'.")
+    print("")
+    print("To debug this error, please run ldd (on linux) or dependency walker (on windows) on ")
+    print("")
     print(os.path.join(here, "pyopenms.so"))
-    print("\n")
+    print("")
+    print("="*70)
+
     try:
         import PyQt4.QtCore
     except:

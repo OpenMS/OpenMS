@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -79,7 +80,7 @@ using namespace std;
   is usually called peak picking or centroiding. The choice of the algorithm
   should mainly depend on the resolution of the data.
   As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution (orbitrap or FTICR) data.
+  algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
@@ -134,7 +135,7 @@ protected:
   public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
-      MSDataWritingConsumer(filename),
+      MSDataWritingConsumer(std::move(filename)),
       ms_levels_(pp.getParameters().getValue("ms_levels").toIntList())
     {
       pp_ = pp;
@@ -142,18 +143,25 @@ protected:
 
     void processSpectrum_(MapType::SpectrumType& s) override
     {
-      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
+      if (ms_levels_.empty()) //auto mode
+      {
+        if (s.getType() == SpectrumSettings::CENTROID) return;
+      }
+      else if (!ListUtils::contains(ms_levels_, s.getMSLevel()))
+      {
+        return;
+      }
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;  // todo: swap? (requires implementation)
+      s = std::move(sout);
     }
 
     void processChromatogram_(MapType::ChromatogramType & c) override
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
-      c = c_out;
+      c = std::move(c_out);
     }
 
   private:
@@ -230,7 +238,7 @@ protected:
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }

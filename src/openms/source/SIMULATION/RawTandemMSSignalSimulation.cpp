@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -385,24 +385,24 @@ namespace OpenMS
 
   void RawTandemMSSignalSimulation::generateRawTandemSignals(const SimTypes::FeatureMapSim& features, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct)
   {
-    LOG_INFO << "Tandem MS Simulation ... ";
+    OPENMS_LOG_INFO << "Tandem MS Simulation ... ";
 
     // will hold the MS2 scans
     SimTypes::MSSimExperiment ms2;
 
     if (param_.getValue("status") == "disabled")
     {
-      LOG_INFO << "disabled" << std::endl;
+      OPENMS_LOG_INFO << "disabled" << std::endl;
       return;
     }
     else if (param_.getValue("status") == "precursor")
     {
-      LOG_INFO << "precursor" << std::endl;
+      OPENMS_LOG_INFO << "precursor" << std::endl;
       generatePrecursorSpectra_(features, experiment, ms2);
     }
     else // MS^E
     {
-      LOG_INFO << "MS^E" << std::endl;
+      OPENMS_LOG_INFO << "MS^E" << std::endl;
       generateMSESpectra_(features, experiment, ms2);
     }
 

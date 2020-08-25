@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,7 +163,7 @@ protected:
     }
     else if (reference_index == 0) // no reference given
     {
-      LOG_INFO << "Picking a reference (by size) ..." << std::flush;
+      OPENMS_LOG_INFO << "Picking a reference (by size) ..." << std::flush;
       // use map with highest number of features as reference:
       Size max_count(0);
       FeatureXMLFile f;
@@ -187,7 +187,7 @@ protected:
           reference_index = i;
         }
       }
-      LOG_INFO << " done" << std::endl;
+      OPENMS_LOG_INFO << " done" << std::endl;
       file = in_files[reference_index];
     }
 

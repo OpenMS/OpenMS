@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -352,7 +352,7 @@ namespace OpenMS
 
     if (MS2_RT_time < elution_bounds[1] || elution_bounds[3] < MS2_RT_time)
     {
-      LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" << elution_bounds[1] << "," << elution_bounds[3] << "]\n";
+      OPENMS_LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" << elution_bounds[1] << "," << elution_bounds[3] << "]\n";
       return 0;
     }
 

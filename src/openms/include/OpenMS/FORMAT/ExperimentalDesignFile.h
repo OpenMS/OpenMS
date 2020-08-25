@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 namespace OpenMS
 {
   class ExperimentalDesign;
- 
+  class TextFile; 
   /**
   @brief Provides means to load an ExperimentalDesign from a TSV file.
 
@@ -114,7 +114,9 @@ namespace OpenMS
     static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files);
 
     private:
-
+    static bool isOneTableFile_(const TextFile& text_file);
+    static ExperimentalDesign parseOneTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file);
+    static ExperimentalDesign parseTwoTableFile_(const TextFile& text_file, const String& tsv_file, bool require_spectra_file);
     /// Reads header line of File and Sample section, checks for the existence of required headers
     /// and maps the column name to its position
     static void parseHeader_(

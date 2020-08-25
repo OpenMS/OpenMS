@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,7 +107,7 @@ Param ams_param;
 ams_param.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
 ams_param.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
 ams_param.setValue("keep_unidentified_masses", "true");
-ams_param.setValue("mzTab:exportIsotopeIntensities", 3);
+ams_param.setValue("mzTab:exportIsotopeIntensities", "true");
 AccurateMassSearchEngine ams;
 ams.setParameters(ams_param);
 
@@ -194,9 +194,12 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   test_feat.setMetaValue("num_of_masstraces", 3);
   test_feat.setCharge(1.0);
 
-  test_feat.setMetaValue("masstrace_intensity_0", 100.0);
-  test_feat.setMetaValue("masstrace_intensity_1", 26.1);
-  test_feat.setMetaValue("masstrace_intensity_2", 4.0);
+  vector<double> masstrace_intenstiy = {100.0, 26.1, 4.0};
+  test_feat.setMetaValue("masstrace_intensity", masstrace_intenstiy);
+
+  //test_feat.setMetaValue("masstrace_intensity_0", 100.0);
+  //test_feat.setMetaValue("masstrace_intensity_1", 26.1);
+  //test_feat.setMetaValue("masstrace_intensity_2", 4.0);
 
   std::vector<AccurateMassSearchResult> results;
   
@@ -322,6 +325,24 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     NEW_TMP_FILE(tmp_mztab_file);
     MzTabFile().store(tmp_mztab_file, test_mztab);
     TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
+    
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+      
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTab test_mztab2;
+    ams_feat_test2.run(exp_fm2, test_mztab2);
+
+    String tmp_mztab_file2;
+    NEW_TMP_FILE(tmp_mztab_file2);
+    MzTabFile().store(tmp_mztab_file2, test_mztab2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_featureXML.mzTab")), true);
   }
 }
 END_SECTION

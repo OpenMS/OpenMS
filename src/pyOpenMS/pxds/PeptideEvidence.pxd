@@ -27,6 +27,8 @@ cdef extern from "<OpenMS/METADATA/PeptideEvidence.h>" namespace "OpenMS":
         void setProteinAccession(String s) nogil except +
         String getProteinAccession() nogil except +
 
+        bool hasValidLimits() nogil except +
+
         bool operator==(PeptideEvidence & rhs) nogil except +
         bool operator!=(PeptideEvidence & rhs) nogil except +
 

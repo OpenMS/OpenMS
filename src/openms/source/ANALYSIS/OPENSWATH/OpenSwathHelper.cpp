@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,20 +54,21 @@ namespace OpenMS
   }
 
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
-                                      double& lower, double& upper)
+                                      double& lower, double& upper, double& center)
   {
-    if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+    if (swath_map.empty() || swath_map[0].getPrecursors().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
-    const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
+    const std::vector<Precursor>& first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
     upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
+    center = first_prec[0].getMZ();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)
     {
-      const std::vector<Precursor> prec = swath_map[index].getPrecursors();
+      const std::vector<Precursor>& prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");

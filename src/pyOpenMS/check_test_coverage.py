@@ -47,7 +47,6 @@ def parse_doc(item, collection):
                 collection.add(fullname)
                 oldclzz = clz
 
-
 def collectRecursed(obj, collection):
     if hasattr(obj, "__dict__"):
         for name, item in obj.__dict__.items():

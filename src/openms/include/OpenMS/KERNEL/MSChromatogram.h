@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,26 +127,13 @@ public:
     //@}
 
     /// Constructor
-    MSChromatogram() :
-      ContainerType(),
-      RangeManager<1>(),
-      ChromatogramSettings(),
-      name_(),
-      float_data_arrays_(),
-      string_data_arrays_(),
-      integer_data_arrays_()
-    {}
+    MSChromatogram() = default;
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram& source) :
-      ContainerType(source),
-      RangeManager<1>(source),
-      ChromatogramSettings(source),
-      name_(source.name_),
-      float_data_arrays_(source.float_data_arrays_),
-      string_data_arrays_(source.string_data_arrays_),
-      integer_data_arrays_(source.integer_data_arrays_)
-    {}
+    MSChromatogram(const MSChromatogram&) = default;
+
+    /// Move constructor
+    MSChromatogram(MSChromatogram&&) = default;
 
     /// Destructor
     ~MSChromatogram() override
@@ -154,6 +141,9 @@ public:
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);
+
+    /// Move assignment operator
+    MSChromatogram& operator=(MSChromatogram&&) & = default;
 
     /// Equality operator
     bool operator==(const MSChromatogram& rhs) const;
@@ -426,6 +416,20 @@ public:
 
     ///@}
 
+    /**
+      @brief Adds all the ChromatogramPeaks from another MSChromatogram and updates the metadata to indicate a merge
+
+      @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
+      undefined.
+
+      @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
+
+      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+
+      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+    */
+    void mergePeaks(MSChromatogram& other, bool add_meta=false);
+
 protected:
 
     /// Name
@@ -442,7 +446,7 @@ protected:
   };
 
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
 
 } // namespace OpenMS
 

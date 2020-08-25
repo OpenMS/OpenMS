@@ -6,9 +6,8 @@
 #    $ otool -L pyopenms.so
 #
 # here we look at all of them and fix them using install_name_tool as seen below
-#
 
-for TOFIX in $(find . -name pyopenms*.so); do
+for TOFIX in $(find . -name "pyopenms*.so"); do
     echo
     echo "fix $TOFIX now:"
     echo

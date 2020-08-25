@@ -2,6 +2,50 @@
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_2017_11.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="MascotAdapterOnline:1:in" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:out" value="MascotAdapterOnline_1_out1.tmp"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:keep_protein_links" value="true"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:log" value=""/>
+				<UserParam type="int" name="MascotAdapterOnline:1:debug" value="0"/>
+				<UserParam type="int" name="MascotAdapterOnline:1:threads" value="1"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:no_progress" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:force" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:test" value="true"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:database" value="SwissProt"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:search_type" value="MIS"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:instrument" value="Default"/>
+				<UserParam type="int" name="MascotAdapterOnline:1:missed_cleavages" value="1"/>
+				<UserParam type="float" name="MascotAdapterOnline:1:precursor_mass_tolerance" value="3.0"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:precursor_error_units" value="Da"/>
+				<UserParam type="float" name="MascotAdapterOnline:1:fragment_mass_tolerance" value="0.3"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:fragment_error_units" value="Da"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:charges" value="1,2,3"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:taxonomy" value="All entries"/>
+				<UserParam type="stringList" name="MascotAdapterOnline:1:fixed_modifications" value="[]"/>
+				<UserParam type="stringList" name="MascotAdapterOnline:1:variable_modifications" value="[]"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:special_modifications" value="Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:mass_type" value="monoisotopic"/>
+				<UserParam type="int" name="MascotAdapterOnline:1:number_of_hits" value="0"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:skip_spectrum_charges" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:search_title" value="OpenMS_search"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:username" value=""/>
+				<UserParam type="string" name="MascotAdapterOnline:1:email" value="openmsjenkins@gmail.com"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:hostname" value="www.matrixscience.com"/>
+				<UserParam type="int" name="MascotAdapterOnline:1:host_port" value="80"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:server_path" value=""/>
+				<UserParam type="int" name="MascotAdapterOnline:1:timeout" value="1500"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:boundary" value="GZWgAaYKjHFeUaLOLEIOMq"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:use_proxy" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:proxy_host" value=""/>
+				<UserParam type="int" name="MascotAdapterOnline:1:proxy_port" value="0"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:proxy_username" value=""/>
+				<UserParam type="string" name="MascotAdapterOnline:1:proxy_password" value=""/>
+				<UserParam type="string" name="MascotAdapterOnline:1:login" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:password" value=""/>
+				<UserParam type="string" name="MascotAdapterOnline:1:use_ssl" value="false"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:export_params" value="_ignoreionsscorebelow=0&amp;_sigthreshold=0.99&amp;_showsubsets=1&amp;show_same_sets=1&amp;report=0&amp;percolate=0&amp;query_master=0"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:skip_export" value="false"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-12-20T22:34:20" search_engine="Mascot" search_engine_version="2.6.0.242" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
@@ -18,6 +62,7 @@
 			<ProteinHit id="PH_5" accession="ARO1_YEAST" score="78" sequence="" >
 			</ProteinHit>
 			<UserParam type="string" name="SearchNumber" value="TmAmbHOE"/>
+			<UserParam type="stringList" name="spectra_data" value="[C:/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="520.2628" RT="2655.096" >
 			<PeptideHit score="78.3" sequence="DFASSGGYVLHLHR" charge="3" aa_before="K K K K K" aa_after="D D D D D" protein_refs="PH_1 PH_2 PH_3 PH_4 PH_5" >

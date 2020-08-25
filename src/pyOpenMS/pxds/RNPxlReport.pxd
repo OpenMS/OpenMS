@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRow "OpenMS::RNPxlReportRow":
         RNPxlReportRow(RNPxlReportRow) nogil except + #wrap-ignore
+
         bool no_id
         double rt
         double original_mz
@@ -41,11 +42,12 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
         double xl_weight
         double abs_prec_error
         double rel_prec_error
-        # RNPxlMarkerIonExtractor::MarkerIonsType marker_ions
-        libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] marker_ions
+        libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] marker_ions # RNPxlMarkerIonExtractor::MarkerIonsType marker_ions
         double m_H
         double m_2H
         double m_3H
         double m_4H
+        int rank
+
         String getString(const String & separator) nogil except +
 

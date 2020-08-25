@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <ui_LayerStatisticsDialog.h>
 
 #include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 
 using namespace std;
 
@@ -107,7 +108,7 @@ namespace OpenMS
     {
       computeConsensusStats_();
 
-      // add thres rows for charge, quality and elements
+      // add three rows: charge, quality and elements
       ui_->table_->setRowCount(ui_->table_->rowCount() + 3);
       QTableWidgetItem * item = new QTableWidgetItem();
       item->setText(QString("Charge"));

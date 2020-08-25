@@ -1,6 +1,8 @@
 Help us to make OpenMS better and become part of the OpenMS open-source community.
 
 This document is displayed because you either opened an issue or you want to provide your code as a pull request for inclusion into OpenMS. Please take a look at the appropriate section below to find some details on how we handle this process.
+When interacting with other developers, users or anyone else from our community, please adhere to
+[our CODE OF CONDUCT](https://github.com/OpenMS/OpenMS/blob/develop/CODE_OF_CONDUCT.md)
 
 # Reporting an Issue:
 
@@ -23,20 +25,15 @@ If you are an official OpenMS team meber:
 
 # Opening a Pull Request
 
-You probably came here to open a pull request that:
-  - implements new features and tools or
-  - because you fixed a nasty bug. 
-  
-We are happy to review your contributions and point out potential ways on how to improve them.
-
 Before getting started we recommend taking a look at our GitHub-Wiki: https://github.com/OpenMS/OpenMS/wiki#-for-developers
 
-There you will find information on:
- - coding conventions
- - testing
- - additional documentation for developers 
+Before you open the pull request, make sure you
+ - adhere to [our coding conventions](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions)
+ - have [unit tests and functional tests](https://github.com/OpenMS/OpenMS/wiki/Write-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
+ - Have [proper documentation](https://github.com/OpenMS/OpenMS/wiki/Coding-conventions#doxygen) - see also [this examle](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h) 
+ - have [Python bindings](https://pyopenms.readthedocs.io/en/latest/wrap_classes.html) - see also [these instructions](https://github.com/OpenMS/OpenMS/wiki/pyOpenMS#wrap) and [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/pyOpenMS/pxds/MSNumpressCoder.pxd)
  
-The section on "Development model" will give details on how to incorporate your contributions into the OpenMS code base. A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
+A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms.
 

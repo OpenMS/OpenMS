@@ -17,6 +17,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDB.h>" namespace "OpenMS":
         void getAllXTandemNames(libcpp_vector[ String ]& all_names) nogil except +
         void getAllOMSSANames(libcpp_vector[ String ]& all_names) nogil except +
         void getAllCometNames(libcpp_vector[ String ]& all_names) nogil except +
+        void getAllCruxNames(libcpp_vector[ String ] & all_names) nogil except +
+        void getAllMSGFNames(libcpp_vector[ String ] & all_names) nogil except +
         bool hasEnzyme(const String& name) nogil except +
         bool hasRegEx(const String& cleavage_regex) nogil except +
         # bool hasEnzyme(DigestionEnzymeProtein* enzyme) nogil except + # does not make sense as the ptr wont match

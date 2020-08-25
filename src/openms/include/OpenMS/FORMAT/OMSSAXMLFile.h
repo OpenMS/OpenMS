@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,7 +146,7 @@ private:
     bool load_empty_hits_;
 
     /// modifications mapping file from OMSSA mod num to UniMod accession
-    Map<UInt, std::vector<ResidueModification> > mods_map_;
+    Map<UInt, std::vector<const ResidueModification*> > mods_map_;
 
     /// modification mapping reverse, from the modification to the mod_num
     Map<String, UInt> mods_to_num_;

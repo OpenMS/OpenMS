@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -687,7 +687,7 @@ public:
       {
         if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowUpperOffset() == 0)
         {
-          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
+          OPENMS_LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
             "Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
         }
         const double lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -989,7 +990,7 @@ namespace OpenMS
   }
 
 //  void SequestOutfile::getPValuesFromOutFiles(vector< pair < String, vector< double > > >& out_filenames_and_pvalues)
-//  throw (Exception::FileNotFound, Exception::ParseError)
+//  throw (Exception::FileNotFound&, Exception::ParseError)
 //  {
 //      DateTime datetime;
 //      double

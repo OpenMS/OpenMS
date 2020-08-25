@@ -10,17 +10,23 @@ ColorSelector.cpp
 EnhancedTabBar.cpp
 EnhancedTabBarWidgetInterface.cpp
 EnhancedWorkspace.cpp
+FilterList.cpp
+FilterList.ui
 GUIProgressLoggerImpl.cpp
 HistogramWidget.cpp
+InputFile.cpp
+InputFile.ui
+InputFileList.cpp
+InputFileList.ui
 LayerData.cpp
 ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
-
+OutputDirectory.cpp
+OutputDirectory.ui
 ParamEditor.cpp
 ParamEditor.ui
-
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp
@@ -32,6 +38,8 @@ Spectrum3DOpenGLCanvas.cpp
 Spectrum3DWidget.cpp
 SpectrumCanvas.cpp
 SpectrumWidget.cpp
+SwathLibraryStats.cpp
+SwathLibraryStats.ui
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASLogWindow.cpp
@@ -68,3 +76,4 @@ source_group("Source Files\\VISUAL" FILES ${sources})
 # remove: after removing an icon, you have to rerun 'cmake' to fix the dependencies
 QT5_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${qt_resource_file})
+set_property(SOURCE ${qt_resource_file} PROPERTY SKIP_AUTOGEN ON)

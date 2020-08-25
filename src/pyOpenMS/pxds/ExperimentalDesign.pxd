@@ -87,6 +87,10 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           ExperimentalDesign_SampleSection() nogil except +
           ExperimentalDesign_SampleSection(ExperimentalDesign_SampleSection) nogil except +
 
+          # ExperimentalDesign_SampleSection(const libcpp_vector[ libcpp_vector[ String ] ] & content,
+          #                                  libcpp_map[ unsigned, size_t ] sample_to_rowindex, 
+          #                                  libcpp_map[ String, size_t ] columnname_to_columnindex) nogil except +
+
           # Get set of all samples that are present in the sample section
           libcpp_set[ unsigned int ] getSamples() nogil except +
 
@@ -102,3 +106,4 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           # Returns value of factor for given sample and factor name
           String getFactorValue(unsigned int sample, String &factor) nogil except +
                    
+
