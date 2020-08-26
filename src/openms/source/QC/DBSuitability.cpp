@@ -66,124 +66,10 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
+  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
-    bool no_re_rank = param_.getValue("no_re_rank").toBool();
-    double cut_off_fract = param_.getValue("cut_off_fract");
-    double FDR = param_.getValue("FDR");
-
-    SuitabilityData d;
-    results_.push_back(d);
-    SuitabilityData& data = results_.back();
-
     pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
 
-    // execute combined deNovo+database ID-search
-    vector<FASTAFile::FASTAEntry> combined_db(original_fasta);
-    combined_db.insert(combined_db.end(), novo_fasta.begin(), novo_fasta.end());
-    vector<PeptideIdentification> combined_ids = runIdentificationSearch_(exp, combined_db, search_info.first, search_info.second);
-
-    if (combined_ids.empty())
-    {
-      OPENMS_LOG_WARN << "No peptide identifications found with given mzML and database! No calculations performed." << endl;
-      return;
-    }
-
-    if (!no_re_rank)
-    {
-      data.cut_off = getDecoyCutOff_(combined_ids, cut_off_fract);
-    }
-
-    for (PeptideIdentification& pep_id : combined_ids)
-    {
-      // sort hits by q-value
-      pep_id.sort();
-
-      vector<PeptideHit>& hits = pep_id.getHits();
-
-      if (hits.empty()) continue;
-
-      const PeptideHit& top_hit = hits[0];
-
-      // skip if the top hit is a decoy hit
-      if (!top_hit.metaValueExists("target_decoy"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
-      }
-      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
-
-      // skip if top hit is out ouf FDR
-      if (!passesFDR_(top_hit, FDR)) continue;
-
-      // check if top hit is found in de novo protein
-      if (!isNovoHit_(top_hit)) // top hit is db hit
-      {
-        ++data.num_top_db;
-        continue;
-      }
-
-      // find the second target hit, skip all decoy or novo hits inbetween
-      const PeptideHit* second_hit = nullptr;
-      for (UInt i = 1; i < hits.size(); ++i)
-      {
-        // check for FDR
-        if (!passesFDR_(hits[i], FDR)) break;
-
-        // check if target, also check for "target+decoy" value
-        String td_info(hits[i].getMetaValue("target_decoy"));
-        if (td_info.find("target") != 0) continue;
-
-        // check if hit is novo hit
-        if (isNovoHit_(hits[i])) continue;
-
-        second_hit = &hits[i];
-        break;
-      }
-      if (second_hit == nullptr) // no second target hit with given FDR found
-      {
-        ++data.num_top_novo;
-        continue;
-      }
-
-      // second hit is db hit
-      ++data.num_interest;
-
-      // check for re-ranking
-      if (no_re_rank)
-      {
-        ++data.num_top_novo;
-        continue;
-      }
-
-      // check for xcorr score
-      if (!top_hit.metaValueExists("MS:1002252") || !second_hit->metaValueExists("MS:1002252"))
-      {
-        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
-      }
-
-      double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
-      double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
-      if (top_xscore_mw - second_xscore_mw <= data.cut_off)
-      {
-        ++data.num_top_db;
-        ++data.num_re_ranked;
-      }
-      else
-      {
-        ++data.num_top_novo;
-      }
-    }
-
-    if (data.num_top_db == 0 && data.num_top_novo == 0)
-    {
-      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR threshold is too strict." << endl;
-      data.suitability = DBL_MAX;
-      return;
-    }
-
-    data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
-
-    // calculate correction of suitability
     if (pep_ids[0].getScoreType() == "q-value")
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
@@ -205,11 +91,33 @@ namespace OpenMS
     FalseDiscoveryRate fdr;
     fdr.setParameters(p);
     fdr.apply(pep_ids);
-    
-    Size num_ids_only_db = countNumberOfIdentifications_(pep_ids);
-    Size num_ids_only_novo = countNumberOfIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
 
-    double factor = num_ids_only_novo / double(num_ids_only_db);
+    // calculate suitability
+    SuitabilityData d;
+    results_.push_back(d);
+    SuitabilityData& data = results_.back();
+    calculateSuitability_(pep_ids, data);
+
+    // calculate correction of suitability
+    
+    //maybe multiple runs? could be controlled with a parameter
+    double ratio = 0.5;
+    vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, ratio);
+    sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
+    vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
+
+    SuitabilityData sampled_data;
+    calculateSuitability_(subsampled_ids, sampled_data);
+
+    double deNovo_slope = (sampled_data.num_top_novo - data.num_top_novo) / ratio;
+    Size deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
+    double db_slope = (sampled_data.num_top_db - data.num_top_db) / ratio;
+    Size db_intercept = 0;
+
+    double target_ratio = -(deNovo_intercept) / deNovo_slope;
+    double db_hits_at_ratio = db_slope * target_ratio;
+
+    double factor = db_hits_at_ratio / deNovo_intercept;
     data.corr_factor = factor;
 
     data.num_top_novo_corr = data.num_top_novo * factor;
@@ -456,25 +364,154 @@ namespace OpenMS
     return pep_ids;
   }
 
-  Size DBSuitability::countNumberOfIdentifications_(const vector<PeptideIdentification>& pep_ids) const
+  Size DBSuitability::countIdentifications_(std::vector<PeptideIdentification> pep_ids)
   {
     Size count{};
     for (const auto& pep_id : pep_ids)
     {
-      if (pep_id.getHits().empty()) continue; // skip empty IDs without hits
-      
-      const PeptideHit& hit = pep_id.getHits()[0];
-
-      if (!hit.metaValueExists("target_decoy"))
+      vector<PeptideHit> hits = pep_id.getHits();
+      if (hits.empty) continue;
+      if (!hits[0].metaValueExists("target_decoy"))
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer is run beforehand.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer ran beforehand.");
       }
-      if (hit.getMetaValue("target_decoy") == "decoy") continue; // skip decoy IDs
+      if (hits[0].getMetaValue("target_decoy") == "decoy") continue;
+      if (!passesFDR_(hits[0],this->getParameters().getValue("FDR"))) continue;
 
-      //if (!passesFDR_(hit, this->getParameters().getValue("FDR"))) continue;
-
-      ++count; // count the rest
+      ++count;
     }
     return count;
+  }
+
+  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio)
+  {
+    if (ratio < 0 || ratio > 1)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Ratio has to be between 0 and 1. Aborting!");
+    }
+    Size num_AS{};
+    for (const auto& entry : fasta_data)
+    {
+      num_AS += entry.sequence.size();
+    }
+    double num_AS_written = num_AS * ratio;
+
+    random_shuffle(fasta_data.begin(), fasta_data.end());
+
+    Size curr_AS{};
+    vector<FASTAFile::FASTAEntry> sampled_fasta;
+    for (const auto& entry : fasta_data)
+    {
+      if (curr_AS >= num_AS_written) break;
+      sampled_fasta.push_back(entry);
+      curr_AS += entry.sequence.size();
+    }
+    return sampled_fasta;
+  }
+  void DBSuitability::calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data)
+  {
+    bool no_re_rank = param_.getValue("no_re_rank").toBool();
+    double cut_off_fract = param_.getValue("cut_off_fract");
+    double FDR = param_.getValue("FDR");
+
+    if (pep_ids.empty())
+    {
+      OPENMS_LOG_WARN << "No peptide identifications found in given idXML! No calculations performed." << endl;
+      return;
+    }
+
+    if (!no_re_rank)
+    {
+      data.cut_off = getDecoyCutOff_(pep_ids, cut_off_fract);
+    }
+
+    for (PeptideIdentification& pep_id : pep_ids)
+    {
+      // sort hits by q-value
+      pep_id.sort();
+
+      vector<PeptideHit>& hits = pep_id.getHits();
+
+      if (hits.empty()) continue;
+
+      const PeptideHit& top_hit = hits[0];
+
+      // skip if the top hit is a decoy hit
+      if (!top_hit.metaValueExists("target_decoy"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
+      }
+      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
+
+      // skip if top hit is out ouf FDR
+      if (!passesFDR_(top_hit, FDR)) continue;
+
+      // check if top hit is found in de novo protein
+      if (!isNovoHit_(top_hit)) // top hit is db hit
+      {
+        ++data.num_top_db;
+        continue;
+      }
+
+      // find the second target hit, skip all decoy or novo hits inbetween
+      const PeptideHit* second_hit = nullptr;
+      for (UInt i = 1; i < hits.size(); ++i)
+      {
+        // check for FDR
+        if (!passesFDR_(hits[i], FDR)) break;
+
+        // check if target, also check for "target+decoy" value
+        String td_info(hits[i].getMetaValue("target_decoy"));
+        if (td_info.find("target") != 0) continue;
+
+        // check if hit is novo hit
+        if (isNovoHit_(hits[i])) continue;
+
+        second_hit = &hits[i];
+        break;
+      }
+      if (second_hit == nullptr) // no second target hit with given FDR found
+      {
+        ++data.num_top_novo;
+        continue;
+      }
+
+      // second hit is db hit
+      ++data.num_interest;
+
+      // check for re-ranking
+      if (no_re_rank)
+      {
+        ++data.num_top_novo;
+        continue;
+      }
+
+      // check for xcorr score
+      if (!top_hit.metaValueExists("MS:1002252") || !second_hit->metaValueExists("MS:1002252"))
+      {
+        throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No cross correlation score found at peptide hit. Only Comet search engine is supported right now."));
+      }
+
+      double top_xscore_mw = double(top_hit.getMetaValue("MS:1002252")) / top_hit.getSequence().getMonoWeight();
+      double second_xscore_mw = double(second_hit->getMetaValue("MS:1002252")) / second_hit->getSequence().getMonoWeight();
+      if (top_xscore_mw - second_xscore_mw <= data.cut_off)
+      {
+        ++data.num_top_db;
+        ++data.num_re_ranked;
+      }
+      else
+      {
+        ++data.num_top_novo;
+      }
+    }
+
+    if (data.num_top_db == 0 && data.num_top_novo == 0)
+    {
+      OPENMS_LOG_WARN << "Identifications could not be assigned to either the database or the deNovo protein. Probably your FDR threshold is too strict." << endl;
+      data.suitability = DBL_MAX;
+      return;
+    }
+
+    data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
 }

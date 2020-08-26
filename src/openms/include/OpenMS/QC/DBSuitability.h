@@ -282,16 +282,11 @@ namespace OpenMS
     */
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
-    /**
-    * @brief Counts all non-empty peptide identification where the top hit is a target hit
-    *
-    * Also only identifications with a score less or equal to the "FDR" parameter of this class are counted.
-    *
-    * @param pep_ids   identifications to count
-    * @returns         number of IDs with a top target hit
-    * @throws          MissingInformation if no target/decoy annotation is found
-    */
-    Size countNumberOfIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const;
+    Size countIdentifications_(std::vector<PeptideIdentification> pep_ids);
+
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio);
+
+    void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data);
   };
 }
 
