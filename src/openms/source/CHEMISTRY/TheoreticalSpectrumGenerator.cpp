@@ -64,6 +64,9 @@ namespace OpenMS
     defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     defaults_.setValidStrings("add_losses", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("add_term_losses", "false", "Adds common N- and C-term losses (only if add_losses=true and isotope_model=none), only water and ammonia loss is considered.");
+    defaults_.setValidStrings("add_term_losses", ListUtils::create<String>("true,false"));
+
     defaults_.setValue("sort_by_position", "true", "Sort output by position");
     defaults_.setValidStrings("sort_by_position", ListUtils::create<String>("true,false"));
 
@@ -521,6 +524,25 @@ namespace OpenMS
           }
         }
       }
+      if (add_term_losses_)
+      {
+        {
+          auto formula = EmpiricalFormula("H2O");
+          String& loss_name = formula_str_cache[formula];
+          if (loss_name.empty())
+          {
+            loss_name = formula.toString();
+          }
+        }
+        {
+          auto formula = EmpiricalFormula("NH3");
+          String& loss_name = formula_str_cache[formula];
+          if (loss_name.empty())
+          {
+            loss_name = formula.toString();
+          }
+        }
+      }
     }
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
@@ -576,6 +598,11 @@ namespace OpenMS
         mono_weight = initial_mono_weight;
         if (add_losses_)
         {
+          if (add_term_losses_)
+          {
+            fx_losses.insert(EmpiricalFormula("H2O")); // HCD water loss at N-term
+          }
+
           for (i = Size(!add_first_prefix_ion_); i < peptide.size() - 1; ++i)
           {
             mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications: c
@@ -592,6 +619,7 @@ namespace OpenMS
             {
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
+
             addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
                               i + 1, ion_names, charges, formula_str_cache, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
@@ -665,6 +693,12 @@ namespace OpenMS
 
         if (add_losses_)
         {
+          if (add_term_losses_)
+          {
+            fx_losses.insert(EmpiricalFormula("H2O")); // HCD water and ammonia loss at C-term
+            fx_losses.insert(EmpiricalFormula("NH3"));
+          }
+
           mono_weight = initial_mono_weight;
           for (Size i = peptide.size() - 1; i > 0; --i)
           {
@@ -682,6 +716,7 @@ namespace OpenMS
             {
               for (const auto& formula : peptide[i].getLossFormulas()) fx_losses.insert(formula);
             }
+
             addLossesFaster_(spectrum, mono_weight + ion_offset, fx_losses,
                               peptide.size() - i, ion_names, charges, formula_str_cache, intensity * rel_loss_intensity_,
                               res_type, add_metainfo_, charge);
@@ -896,6 +931,7 @@ namespace OpenMS
     add_z_ions_ = param_.getValue("add_z_ions").toBool();
     add_first_prefix_ion_ = param_.getValue("add_first_prefix_ion").toBool();
     add_losses_ = param_.getValue("add_losses").toBool();
+    add_term_losses_ = param_.getValue("add_term_losses").toBool();
     add_metainfo_ = param_.getValue("add_metainfo").toBool();
     add_isotopes_ = param_.getValue("isotope_model") != "none";
     if (param_.getValue("isotope_model") == "coarse") isotope_model_ = 1;

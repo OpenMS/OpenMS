@@ -127,6 +127,7 @@ namespace OpenMS
     bool add_z_ions_;
     bool add_first_prefix_ion_;
     bool add_losses_;
+    bool add_term_losses_;
     bool add_metainfo_;
     bool add_isotopes_;
     int isotope_model_;

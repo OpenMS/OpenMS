@@ -134,10 +134,54 @@ using namespace boost::accumulators;
 //#define CALCULATE_NUCLEOTIDE_TAGS 1
 #define DONT_ACCUMULATE_PARTIAL_ION_SCORES 1
 
+#define CONSIDER_AA_LOSSES 1
+
 #define ANNOTATED_QUANTILES 1
 
 #ifdef ANNOTATED_QUANTILES
 typedef accumulator_set<double, stats<tag::p_square_quantile> > quantile_accu_t;
+
+#include <boost/accumulators/statistics/extended_p_square_quantile.hpp>
+
+typedef accumulator_set<double, stats<tag::extended_p_square_quantile(quadratic)> > accumulator_t_quadratic;
+
+struct SpectrumLevelScoreQuantiles
+{
+  SpectrumLevelScoreQuantiles():
+    acc_(extended_p_square_probabilities = std::vector<double>{ 0.0, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1.00 })
+  {   
+  }
+  void insert(double v) { acc_(v); }
+  
+  double quantileOfValue(double v)
+  {
+    double l = 0.0;
+    double h = 1.0;
+    double mid = l + (h - l) / 2.0; // we start with the median (0.5)
+    double p_value = quantile(acc_, quantile_probability = mid); // value of quantile p
+
+    size_t iter(0);
+    while (fabs(p_value - v) > 0.01 && iter < 100)
+    {
+      mid = l + (h - l) / 2.0;
+      p_value = quantile(acc_, quantile_probability = mid); // value of quantile p (e.g., 1234.56)
+      if (p_value > v) // if the current quantile value (e.g., of the median) has a value larger than our value of interest
+      {
+        h = mid;  // then we need to search in the lower quantile range
+      }
+      else 
+      {
+        l = mid;
+      }
+      ++iter;
+    }
+    return l;
+  }
+  private:
+    accumulator_t_quadratic acc_;
+};
+
+
 #endif
 
 using namespace OpenMS;
@@ -374,7 +418,7 @@ class AnnotatedHit
   size_t tag_shifted = 0;
   size_t tag_XLed = 0;  // tag that contains the transition from unshifted to shifted
 
-  double rank_product = 0;
+  double explained_peak_fraction = 0;
   double wTop50 = 0;
 
   static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
@@ -812,6 +856,57 @@ protected:
       }
     }
 
+#ifdef CONSIDER_AA_LOSSES
+    // block peaks matching to AA related neutral losses so they don't get matched to NA shifts
+    // b-H2O
+    for (double diff2b : { -18.010565 } ) 
+    { 
+      for (Size z = 1; z <= max_z; ++z)
+      {
+        for (Size i = 0; i < total_loss_template_z1_b_ions.size(); ++i)
+        {
+          const double theo_mz = (total_loss_template_z1_b_ions[i] + diff2b 
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+          Size index = exp_spectrum.findNearest(theo_mz);
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+          if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
+          {
+            if (!peak_matched[index])
+            {
+              peak_matched[index] = true;
+            }
+          }
+        }
+      }
+    }
+
+    // y-H2O and y-NH3
+    for (double diff2b : { -18.010565, -17.026549 } ) 
+    { 
+      for (Size z = 1; z <= max_z; ++z)
+      {
+        for (Size i = 0; i < total_loss_template_z1_y_ions.size(); ++i)
+        {
+          const double theo_mz = (total_loss_template_z1_y_ions[i] + diff2b
+             + (z-1) * Constants::PROTON_MASS_U) / z;
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+          Size index = exp_spectrum.findNearest(theo_mz);
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+          if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
+          {
+            if (!peak_matched[index])
+            {
+              peak_matched[index] = true;
+            }
+          }
+        }
+      }
+    }
+#endif
+
     // determine b+a and y-ion count 
     UInt y_ion_count(0), b_ion_count(0);
     double b_sum(0.0);
@@ -1136,6 +1231,72 @@ protected:
         }
       }  
     }
+
+
+#ifdef CONSIDER_AA_LOSSES
+    // block peaks matching to AA related neutral losses so they don't get matched to NA shifts
+    // b-H2O
+    for (double diff2b : { -18.010565 } ) 
+    { 
+      for (Size z = 1; z <= max_z; ++z)
+      {
+        for (const RNPxlFragmentAdductDefinition & fa : partial_loss_modification)
+        {
+          for (Size i = 0; i < partial_loss_template_z1_b_ions.size(); ++i)
+          {
+            const double theo_mz = (partial_loss_template_z1_b_ions[i] + fa.mass + diff2b 
+              + (z-1) * Constants::PROTON_MASS_U) / z;
+
+            const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+            Size index = exp_spectrum.findNearest(theo_mz);
+            const double exp_mz = exp_spectrum[index].getMZ();
+            const Size exp_z = exp_charges[index];
+            if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
+            {
+              if (!peak_matched[index])
+              {
+                peak_matched[index] = true;
+              }
+            }
+          }
+        } 
+      }
+    } 
+
+  // match y-ions
+  // y-H2O and y-NH3
+  for (double diff2b : { -18.010565, -17.026549 } ) 
+    for (Size z = 1; z <= max_z; ++z)
+    {
+      for (const RNPxlFragmentAdductDefinition  & fa : partial_loss_modification)
+      {
+        for (Size i = 1; i < partial_loss_template_z1_y_ions.size(); ++i)  // Note that we start at (i=1 -> y2) as trypsin would otherwise not cut at cross-linking site
+        {
+          const double theo_mz = (partial_loss_template_z1_y_ions[i] + fa.mass + diff2b
+            + (z-1) * Constants::PROTON_MASS_U) / z;
+
+          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+          Size index = exp_spectrum.findNearest(theo_mz);
+          const double exp_mz = exp_spectrum[index].getMZ();
+          const Size exp_z = exp_charges[index];
+
+          if (exp_z == z && std::abs(theo_mz - exp_mz) < max_dist_dalton)
+          {
+            if (!peak_matched[index])
+            {
+              peak_matched[index] = true;
+            }
+          }
+        }
+      }  
+    }
+#endif
+
+
+
+
+
+
 
     UInt y_ion_count(0), b_ion_count(0);
     double b_sum(0.0);
@@ -1743,7 +1904,7 @@ static void scoreXLIons_(
 
   struct RankScores
   {
-    double rp = 0; // normalized intensity rank product
+    double explained_peak_fraction = 0;
     double wTop50 = 0;
   };
 
@@ -1776,7 +1937,8 @@ static void scoreXLIons_(
   RankScores rankScores_(const MSSpectrum& spectrum, vector<bool> peak_matched)
   {
     RankScores r;
-    double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
+    if (spectrum.empty()) return r;
+    const double matched = std::accumulate(peak_matched.begin(), peak_matched.end(), 0);
     vector<double> matched_ranks;
     for (size_t i = 0; i != peak_matched.size(); ++i)
     {
@@ -1794,6 +1956,7 @@ static void scoreXLIons_(
     }
 
     r.wTop50 = log10(1.0 + sum_rank_diff);
+    r.explained_peak_fraction = matched / (double)spectrum.size();
     return r;
   }
 /*
@@ -2565,16 +2728,17 @@ static void scoreXLIons_(
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
         // (these have previously not been used in the scoring of the total loss spectrum)
         PeakSpectrum total_loss_spectrum;
-
-        TheoreticalSpectrumGenerator tmp_generator;
-        Param new_param(partial_loss_spectrum_generator.getParameters());
-        new_param.setValue("add_all_precursor_charges", "true");
-        new_param.setValue("add_abundant_immonium_ions", "true");
-        new_param.setValue("add_losses", "true");
-        new_param.setValue("add_a_ions", "true");
-
-        tmp_generator.setParameters(new_param);
-        tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+        {
+          TheoreticalSpectrumGenerator tmp_generator;
+          Param new_param(partial_loss_spectrum_generator.getParameters());
+          new_param.setValue("add_all_precursor_charges", "true");
+          new_param.setValue("add_abundant_immonium_ions", "true");
+          new_param.setValue("add_losses", "true");
+          new_param.setValue("add_term_losses", "true");
+          new_param.setValue("add_a_ions", "true");
+          tmp_generator.setParameters(new_param);
+          tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+        }
 
         // add special immonium ions
         RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
@@ -3316,7 +3480,7 @@ static void scoreXLIons_(
       const double id2maxtag = maxtag == 0 ? 0 : (ah.ladder_score * s.size()) / (double)maxtag; 
       ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", id2maxtag);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
-      ph.setMetaValue("NuXL:rank_product", ah.rank_product);
+      ph.setMetaValue("NuXL:explained_peak_fraction", ah.explained_peak_fraction);
       ph.setMetaValue("NuXL:wTop50", ah.wTop50);
 
       ph.setPeakAnnotations(ah.fragment_annotations);
@@ -3355,8 +3519,8 @@ static void scoreXLIons_(
     const map<String, PrecursorPurity::PurityScores>& purities,
     const vector<size_t>& nr_candidates)
   {
-   assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
-   SignedSize hit_count = static_cast<SignedSize>(annotated_XL_hits.size());
+    assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
+    SignedSize hit_count = static_cast<SignedSize>(annotated_XL_hits.size());
 
     for (SignedSize scan_index = 0; scan_index < hit_count; ++scan_index)
     {
@@ -3477,7 +3641,7 @@ static void scoreXLIons_(
        << "NuXL:aminoacid_max_tag"
        << "NuXL:aminoacid_id_to_max_tag_ratio"
        << "nr_candidates"
-       << "NuXL:rank_product"
+       << "NuXL:explained_peak_fraction"
        << "NuXL:wTop50";
 
     feature_set
@@ -4897,7 +5061,7 @@ static void scoreXLIons_(
                   }
 
                   RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
-                  ah.rank_product = rankscores.rp;
+                  ah.explained_peak_fraction = rankscores.explained_peak_fraction;
                   ah.wTop50 = rankscores.wTop50;
 
                   // do we have at least one ladder peak
@@ -5141,7 +5305,7 @@ static void scoreXLIons_(
                     }
 
                     RankScores rankscores = rankScores_(exp_spectrum, peak_matched);
-                    ah.rank_product = rankscores.rp;
+                    ah.explained_peak_fraction = rankscores.explained_peak_fraction;
                     ah.wTop50 = rankscores.wTop50;
 
 
@@ -5674,7 +5838,7 @@ static void scoreXLIons_(
           << "NuXL:tag_XLed"
           << "NuXL:tag_unshifted"
           << "NuXL:tag_shifted"
-          << "NuXL:rank_product"
+          << "NuXL:explained_peak_fraction"
           << "NuXL:isXL" 
           << "NuXL:wTop50";
 
