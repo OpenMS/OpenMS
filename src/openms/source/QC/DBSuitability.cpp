@@ -370,7 +370,7 @@ namespace OpenMS
     for (const auto& pep_id : pep_ids)
     {
       vector<PeptideHit> hits = pep_id.getHits();
-      if (hits.empty) continue;
+      if (hits.empty()) continue;
       if (!hits[0].metaValueExists("target_decoy"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer ran beforehand.");
