@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusXMLFile::~ConsensusXMLFile()
-  {
-  }
+  ConsensusXMLFile::~ConsensusXMLFile() = default;
 
   PeakFileOptions&
   ConsensusXMLFile::getOptions()
@@ -88,7 +86,11 @@ namespace OpenMS
     }
     else if (tag == "IdentificationRun")
     {
-      consensus_map_->getProteinIdentifications().push_back(prot_id_);
+      // post processing of ProteinGroups (hack)
+      getProteinGroups_(prot_id_.getProteinGroups(), "protein_group");
+      getProteinGroups_(prot_id_.getIndistinguishableProteins(),
+                        "indistinguishable_proteins");
+      consensus_map_->getProteinIdentifications().emplace_back(std::move(prot_id_));
       prot_id_ = ProteinIdentification();
       last_meta_ = nullptr;
     }
@@ -112,13 +114,13 @@ namespace OpenMS
     }
     else if (tag == "PeptideIdentification")
     {
-      act_cons_element_.getPeptideIdentifications().push_back(pep_id_);
+      act_cons_element_.getPeptideIdentifications().emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = &act_cons_element_;
     }
     else if (tag == "UnassignedPeptideIdentification")
     {
-      consensus_map_->getUnassignedPeptideIdentifications().push_back(pep_id_);
+      consensus_map_->getUnassignedPeptideIdentifications().emplace_back(std::move(pep_id_));
       pep_id_ = PeptideIdentification();
       last_meta_ = consensus_map_;
     }
@@ -812,7 +814,13 @@ namespace OpenMS
         os << "\t\t\t</ProteinHit>\n";
       }
 
-      writeUserParam_("UserParam", os, current_prot_id, 3);
+      // add ProteinGroup info to metavalues (hack)
+      MetaInfoInterface meta = current_prot_id;
+      addProteinGroups_(meta, current_prot_id.getProteinGroups(),
+                        "protein_group", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+      addProteinGroups_(meta, current_prot_id.getIndistinguishableProteins(),
+                        "indistinguishable_proteins", accession_to_id_, current_prot_id.getIdentifier(), STORE);
+      writeUserParam_("UserParam", os, meta, 3);
       os << "\t\t</ProteinIdentification>\n";
       os << "\t</IdentificationRun>\n";
     }
@@ -1018,6 +1026,66 @@ namespace OpenMS
     tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
+  }
+
+  void ConsensusXMLFile::addProteinGroups_(
+      MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups,
+      const String& group_name, const std::unordered_map<string, UInt>& accession_to_id, const String& runid,
+      XMLHandler::ActionMode mode)
+  {
+    for (Size g = 0; g < groups.size(); ++g)
+    {
+      String name = group_name + "_" + String(g);
+      if (meta.metaValueExists(name))
+      {
+        warning(mode, String("Metavalue '") + name + "' already exists. Overwriting...");
+      }
+      String accessions;
+      for (StringList::const_iterator acc_it = groups[g].accessions.begin();
+           acc_it != groups[g].accessions.end(); ++acc_it)
+      {
+        if (acc_it != groups[g].accessions.begin())
+          accessions += ",";
+        const auto pos = accession_to_id.find(runid + "_" + *acc_it);
+        if (pos != accession_to_id.end())
+        {
+          accessions += "PH_" + String(pos->second);
+        }
+        else
+        {
+          fatalError(mode, String("Invalid protein reference '") + *acc_it + "'");
+        }
+      }
+      String value = String(groups[g].probability) + "," + accessions;
+      meta.setMetaValue(name, value);
+    }
+  }
+
+  void ConsensusXMLFile::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>&
+  groups, const String& group_name)
+  {
+    groups.clear();
+    Size g_id = 0;
+    String current_meta = group_name + "_" + String(g_id);
+    StringList values;
+    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
+    {
+      // convert to proper ProteinGroup
+      ProteinIdentification::ProteinGroup g;
+      String(last_meta_->getMetaValue(current_meta)).split(',', values);
+      if (values.size() < 2)
+      {
+        fatalError(LOAD, String("Invalid UserParam for ProteinGroups (not enough values)'"));
+      }
+      g.probability = values[0].toDouble();
+      for (Size i_ind = 1; i_ind < values.size(); ++i_ind)
+      {
+        g.accessions.push_back(proteinid_to_accession_[values[i_ind]]);
+      }
+      groups.push_back(std::move(g));
+      last_meta_->removeMetaValue(current_meta);
+      current_meta = group_name + "_" + String(++g_id);
+    }
   }
 
 } // namespace OpenMS

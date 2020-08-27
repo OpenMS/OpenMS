@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,35 +34,34 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/SYSTEM/UpdateCheck.h>
+#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
+#include <OpenMS/APPLICATIONS/ParameterInformation.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/APPLICATIONS/ConsoleUtils.h>
-#include <OpenMS/APPLICATIONS/ParameterInformation.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
-
+#include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <QDir>
 #include <QFile>
-#include <QProcess>
 #include <QStringList>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -85,7 +84,7 @@
 #include <cmath>
 
 using namespace std;
-  
+
 namespace OpenMS
 {
 
@@ -109,11 +108,15 @@ namespace OpenMS
 #endif
   }
 
+  String TOPPBase::getToolPrefix() const
+  {
+    return tool_name_ + ":" + instance_number_ + ":";
+  }
+
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    working_dir_keep_debug_lvl_(-1),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -144,11 +147,6 @@ namespace OpenMS
     {
       File::remove(topplog);
     }
-
-    if (!working_dir_.empty())
-    {
-      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
-    }
   }
 
   TOPPBase::ExitCodes TOPPBase::main(int argc, const char** argv)
@@ -173,7 +171,7 @@ namespace OpenMS
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
-    registerFlag_("force", "Overwrite tool specific checks.", true);
+    registerFlag_("force", "Overrides tool-specific checks", true);
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
@@ -198,7 +196,7 @@ namespace OpenMS
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
-    *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
+    *const_cast<String*>(&ini_location_) = this->getToolPrefix();
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     // set debug level
@@ -306,7 +304,7 @@ namespace OpenMS
           writeDebug_("Parameters from common section with tool name:", param_common_tool_, 2);
           param_common_ = param_inifile_.copy("common:", true);
           writeDebug_("Parameters from common section without tool name:", param_common_, 2);
-        
+
           // set type on command line if given in .ini file
           if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
             param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
@@ -381,8 +379,8 @@ namespace OpenMS
   #ifdef ENABLE_UPDATE_CHECK
       // disable collection of usage statistics if environment variable is present
       char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
- 
-      // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
+
+      // only perform check if variable is not set or explicitly enabled by setting it to "OFF"
       if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
       {
         UpdateCheck::run(tool_name_, version_, debug_level_);
@@ -416,14 +414,14 @@ namespace OpenMS
       sw.start();
       result = main_(argc, argv);
       sw.stop();
-      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
-
-      // useful for benchmarking
-      if (debug_level_ >= 1)
+      // useful for benchmarking and for execution on clusters with schedulers
+      String mem_usage;
       {
         size_t mem_virtual(0);
-        writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+        SysInfo::getProcessPeakMemoryConsumption(mem_virtual);
+        if (mem_virtual != 0) mem_usage = String("; Peak Memory Usage: ") + (mem_virtual / 1024) + " MB";
       }
+      OPENMS_LOG_INFO << this->tool_name_ << " took " << sw.toString() << mem_usage << "." << std::endl;
     } // end try{}
     //----------------------------------------------------------
     //error handling
@@ -1269,6 +1267,35 @@ namespace OpenMS
     return tmp;
   }
 
+  void TOPPBase::fileParamValidityCheck_(const StringList& param_value, const String& param_name, const ParameterInformation& p) const
+  {
+    // check if all input files are readable
+    if (p.type == ParameterInformation::INPUT_FILE_LIST)
+    {
+      for (String t : param_value)
+      {
+        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
+
+        // check restrictions
+        if (p.valid_strings.empty()) continue;
+
+        // determine file type as string
+        FileTypes::Type f_type = FileHandler::getType(t);
+        // unknown ending is 'ok'
+        if (f_type == FileTypes::UNKNOWN)
+        {
+          writeLog_("Warning: Could not determine format of input file '" + t + "'!");
+        }
+        else if (!ListUtils::contains(p.valid_strings, FileTypes::typeToName(f_type).toUpper(), ListUtils::CASE::INSENSITIVE))
+        {
+          throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Input file '" + t + "' has invalid format '") + FileTypes::typeToName(f_type) +
+            "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") + "'.");
+        }
+      }
+    }
+  }
+
   void TOPPBase::fileParamValidityCheck_(String& param_value, const String& param_name, const ParameterInformation& p) const
   {
     // check if files are readable/writable
@@ -1283,7 +1310,7 @@ namespace OpenMS
         else
         {
           writeLog_("Input file '" + param_value + "' could not be found (by searching on PATH). "
-                    "Either provide a full filepath or fix your PATH environment!" + 
+                    "Either provide a full filepath or fix your PATH environment!" +
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
                     "argument to prevent it's usage (this might limit the usability of the tool)."));
           throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
@@ -1305,7 +1332,7 @@ namespace OpenMS
         if (!ListUtils::contains(p.valid_strings, param_value))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" + 
+            String("Invalid value '") + param_value + "' for string parameter '" + param_name + "' given. Valid strings are: '" +
             ListUtils::concatenate(p.valid_strings, "', '") + "'.");
         }
         break;
@@ -1330,7 +1357,6 @@ namespace OpenMS
 
       case ParameterInformation::OUTPUT_FILE:
       {
-        outputFileWritable_(param_value, param_name);
         // determine file type as string
         FileTypes::Type f_type = FileHandler::getTypeByFileName(param_value);
         // Wrong ending, unknown is is ok.
@@ -1367,13 +1393,14 @@ namespace OpenMS
     for (String& tmp : tmp_list)
     {
       writeDebug_(String("Value of string option '") + name + "': " + tmp, 1);
-
-      // if required or set by user, do some validity checks
-      if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
-      {
-        fileParamValidityCheck_(tmp, name, p);
-      }
     }
+
+    // if required or set by user, do some validity checks
+    if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
+    {
+      fileParamValidityCheck_(tmp_list, name, p);
+    }
+
     return tmp_list;
   }
 
@@ -1489,100 +1516,33 @@ namespace OpenMS
     }
   }
 
-  String TOPPBase::makeTempDirectory_() const
-  {
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
-    return temp_dir;
-  }
-
-  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
-  {
-    if (working_dir_.empty())
-    {
-      working_dir_ = makeTempDirectory_();
-      working_dir_keep_debug_lvl_ = keep_debug;
-    }
-    return working_dir_;
-  }
-
-  void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if ((keep_debug > 0) && (debug_level_ >= keep_debug))
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or lower to remove them.", keep_debug);
-    }
-    else
-    {
-      if ((keep_debug > 0) && (debug_level_ > 0) && (debug_level_ < keep_debug))
-      {
-        writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to " + String(keep_debug) + " or higher to keep it.", debug_level_);
-      }
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
-    QProcess qp;
-    if (!workdir.isEmpty())
-    {
-      qp.setWorkingDirectory(workdir);
+    String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
+    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir);
+  }
+
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir) const
+  {
+    proc_stdout.clear();
+    proc_stderr.clear();
+
+    // callbacks: invoked whenever output is available.
+    auto lam_out = [&](const String& out) { proc_stdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    ExternalProcess ep(lam_out, lam_err);
+
+    const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
+    if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    { // error occured: if not written already in callback, do it now
+      writeLog_("Standard output: " + proc_stdout);
+      writeLog_("Standard error: " + proc_stderr);
     }
-    qp.start(executable, arguments); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << String(executable);
-    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     {
-        ss << " " << it->toStdString();
-    }
-    OPENMS_LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    if (qp.error() == QProcess::FailedToStart)
-    {
-      OPENMS_LOG_ERROR << "Process '" << String(executable) << "' failed to start. Does it exist? Is it executable?" << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
-    } 
-
-    bool any_failure = (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0);
-    if (debug_level_ >= 4 || any_failure)
-    {
-      if (any_failure)
-      {
-        writeLog_("FATAL ERROR: External invocation of " + String(executable) + " failed. Standard output and error were:");
-      }
-      else
-      {
-        writeLog_("DEBUG: External invocation of " + String(executable) + " returned the following standard output/error and exit code:");
-      }
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeLog_("Standard output: " + external_sout);
-      writeLog_("Standard error: " + external_serr);
-      writeLog_("Exit code: " + String(qp.exitCode()));
-      if (any_failure)
-      {
-        qp.close();
-        return EXTERNAL_PROGRAM_ERROR;
-      }
     }
 
-    if (debug_level_ >= 10)
-    {
-      const QString external_sout(qp.readAllStandardOutput());
-      const QString external_serr(qp.readAllStandardError());
-      writeDebug_("DEBUG: Printing standard output and error of " + String(executable), 10);
-      writeDebug_(external_sout, 10);
-      writeDebug_(external_serr, 10);
-    }
-
-    qp.close();
-    writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }
 
@@ -1958,7 +1918,7 @@ namespace OpenMS
   Param TOPPBase::getDefaultParameters_() const
   {
     Param tmp;
-    String loc = tool_name_ + ":" + String(instance_number_) + ":";
+    String loc = this->getToolPrefix();
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
@@ -2207,7 +2167,7 @@ namespace OpenMS
       }
     }
   }
-  
+
   void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
   {
     map.getDataProcessing().push_back(dp);
@@ -2294,7 +2254,7 @@ namespace OpenMS
       lines.insert(4, QString("<citations>"));
       lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
-      for (const Citation& c : citations_) 
+      for (const Citation& c : citations_)
       {
         lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
       }

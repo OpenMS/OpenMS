@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,11 +112,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));    
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML"));
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
@@ -175,6 +175,19 @@ protected:
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
+
+      //check and warn if merged from multiple runs
+      if (protein_ids.size() > 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " all original single-run idXML inputs as list to this tool.",
+            "# runs: " + String(protein_ids.size()));
+      }
 
       // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
       if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())

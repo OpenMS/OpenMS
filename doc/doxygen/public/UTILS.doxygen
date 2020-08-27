@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,6 @@
 -->
 
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
-  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
   - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
 
   <b>File Handling</b>
@@ -77,25 +75,23 @@
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
-  - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
+  - @subpage UTILS_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage UTILS_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
   - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
   - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
+  - @subpage UTILS_StaticModification - Allows to attach a set of fixed modifications to an idXML file (MS/MS search results), e.g. to add 15N (N15) labeling post-hoc.
 
   <b>Cross-linking</b>
-  - @subpage UTILS_OpenPepXL - Search for peptide pairs linked with a labeled cross-linker.
-  - @subpage UTILS_OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra.
   - @subpage UTILS_RNPxlSearch - Annotates RNA-to-peptide cross-links in MS/MS spectra.
   - @subpage UTILS_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNA-to-peptide cross-linking experiments.
-  - @subpage UTILS_XFDR - Calculates false discovery rate estimates on cross-link identifications.
 
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
   - @subpage UTILS_FeatureFinderSuperHirn - Finds features using the SuperHirn algorithm (can handle centroided or profile data, see .ini file).
-  - @subpage UTILS_ProteomicLFQ - A standard Proteomics LFQ pipeline.
+  - @subpage UTILS_ProteomicsLFQ - A standard Proteomics LFQ pipeline.
   - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.
   - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
 
@@ -105,7 +101,7 @@
   - @subpage UTILS_SiriusAdapter - De novo metabolite identification.
 
   <b>Targeted Experiments and OpenSWATH</b>
-  - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps. <!-- ClusterMassTracesByPrecursor -->
+  - @subpage UTILS_ClusterMassTracesByPrecursor - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage UTILS_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
   - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
   - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
@@ -127,7 +123,7 @@
   - @subpage UTILS_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
   <b>Misc</b>
-  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
+  - @subpage UTILS_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
   - @subpage UTILS_ImageCreator - Creates images from MS1 data (with MS2 data points indicated as dots).
   - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.

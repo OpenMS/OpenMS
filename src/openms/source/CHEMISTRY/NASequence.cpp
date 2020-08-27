@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -374,7 +374,7 @@ namespace OpenMS
           ConstRibonucleotidePtr r = rdb->getRibonucleotide(string(1, *str_it));
           nas.seq_.push_back(r);
         }
-        catch (Exception::ElementNotFound)
+        catch (Exception::ElementNotFound&)
         {
           String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
           throw Exception::ParseError(__FILE__, __LINE__,

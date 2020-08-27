@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -461,12 +461,11 @@ namespace OpenMS
   void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
     //cerr << "Parent: " << parent << "\n";
-    const set<String>& children = getTerm(parent).children;
-    for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
+    for (const auto& child : getTerm(parent).children)
     {
-      terms.insert(*it);
-      //TODO This is not save for cyclic graphs. Are they allowed in CVs?
-      getAllChildTerms(terms, *it);
+      terms.insert(child);
+      //TODO: This is not safe for cyclic graphs. Are they allowed in CVs?
+      getAllChildTerms(terms, child);
     }
   }
 
@@ -498,6 +497,13 @@ namespace OpenMS
     return terms_.has(id);
   }
 
+  const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
+  {
+    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    if (it == namesToIds_.end()) return nullptr;
+    return &terms_[it->second];
+  }
+
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
     Map<String, String>::const_iterator it = namesToIds_.find(name);
@@ -506,20 +512,20 @@ namespace OpenMS
 
   bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
   {
-    //cout << "CHECK child:" << child << " parent: " << parent << "\n";
+    // cout << "CHECK child:" << child << " parent: " << parent << "\n";
     const CVTerm& ch = getTerm(child);
 
-    for (set<String>::const_iterator it = ch.parents.begin(); it != ch.parents.end(); ++it)
+    for (const auto & it : ch.parents)
     {
-      //cout << "Parent: " << ch.parents[i] << "\n";
+      // cout << "Parent: " << it << "\n";
 
-      //check if it is a direct parent
-      if (*it == parent)
+      // check if it is a direct parent
+      if (it == parent)
       {
         return true;
       }
-      //check if it is an indirect parent
-      else if (isChildOf(*it, parent))
+      // check if it is an indirect parent
+      else if (isChildOf(it, parent))
       {
         return true;
       }
@@ -530,14 +536,14 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv)
   {
-    for (Map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it != cv.terms_.end(); ++it)
+    for (const auto & it : cv.terms_)
     {
       os << "[Term]\n";
-      os << "id: '" << it->second.id << "'\n";
-      os << "name: '" << it->second.name <<  "'\n";
-      for (set<String>::const_iterator it2 = it->second.parents.begin(); it2 != it->second.parents.end(); ++it2)
+      os << "id: '" << it.second.id << "'\n";
+      os << "name: '" << it.second.name <<  "'\n";
+      for (const auto & parent_term : it.second.parents)
       {
-        cout << "is_a: '" << *it2 <<  "'\n";
+        cout << "is_a: '" << parent_term <<  "'\n";
       }
     }
     return os;

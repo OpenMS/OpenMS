@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -310,13 +310,13 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
     double pcut = getDoubleOption_("pcut");
 
     String txt_designator = File::getUniqueName();
-    String input_file_list(temp_directory_body + txt_designator + ".file_list.txt");
-    String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
+    String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
@@ -338,7 +338,7 @@ protected:
     {
       arguments << "batch";
       arguments << "-b" << input_file_list.toQString();
-      arguments << "-f" << temp_directory_body.toQString();
+      arguments << "-f" << tmp_dir.getPath().toQString();
       arguments << "-a" << txt_designator.toQString();
 
       map<String,int> precursor_tolerance_units;
@@ -360,7 +360,11 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLog_("Executing maracluster ...");
-    runExternalProcess_(maracluster_executable.toQString(), arguments);
+    auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -372,7 +376,7 @@ protected:
     //if specified keep original output in designated directory
     if (!maracluster_output_directory.empty())
     {
-      bool copy_status = File::copyDirRecursively(temp_directory_body.toQString(), maracluster_output_directory.toQString());
+      bool copy_status = File::copyDirRecursively(tmp_dir.getPath().toQString(), maracluster_output_directory.toQString());
 
       if (copy_status)
       { 
@@ -458,7 +462,7 @@ protected:
       {
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
-        arguments_consensus << "-f" << temp_directory_body.toQString();
+        arguments_consensus << "-f" << tmp_dir.getPath().toQString();
         arguments_consensus << "-o" << consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();

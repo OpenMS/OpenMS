@@ -53,7 +53,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS::Pro
     cdef enum Specificity:
         # wrap-attach:
         #    ProteaseDigestion
-        SPEC_FULL,    # fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
-        SPEC_SEMI,    # semi specific, i.e., one of the two cleavage sites must fulfill requirements
-        SPEC_NONE,    # no requirements on start / end
-        SIZE_OF_SPECIFICITY
+        SPEC_NONE = 0, # no requirements on start / end
+        SPEC_SEMI = 1, # semi specific, i.e., one of the two cleavage sites must fulfill requirements
+        SPEC_FULL = 2, # fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+        SPEC_UNKNOWN = 3
+        SPEC_NOCTERM = 8, # no requirements on CTerm (currently not supported in the class)
+        SPEC_NONTERM = 9, # no requirements on NTerm (currently not supported in the class)
+        SIZE_OF_SPECIFICITY = 10

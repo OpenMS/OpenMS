@@ -107,6 +107,8 @@
     <td><B>Ubuntu/Debian <br/>(16.04)</B></td>
     <td><pre>
     # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
@@ -119,6 +121,8 @@
       <td><B>Ubuntu/Debian <br/>(>= 17.04)</B></td>
       <td><pre>
     # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
     sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
@@ -127,6 +131,20 @@
       # this should eliminate the need for building contrib libraries.
       </pre></td>
   </tr>
+  <tr>
+      <td><B>Ubuntu/Debian <br/>(= 19.10)</B></td>
+      <td><pre>
+    # include the ubuntu universe repository and update
+    sudo add-apt-repository universe
+    sudo apt update    
+    sudo apt-get install build-essential cmake autoconf patch libtool git automake
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+    sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.67-dev \
+      libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev \
+      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev libhdf5-dev
+      # this should eliminate the need for building contrib libraries.
+      </pre></td>
+  </tr>  
   </table>
 
   @section build_linux_contrib Building remaining dependencies
@@ -169,7 +187,7 @@
       \code
           cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
           cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
-          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
+          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib       
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,

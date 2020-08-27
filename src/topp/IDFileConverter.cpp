@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -65,9 +66,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDFileConverter IDFileConverter
+@page TOPP_IDFileConverter IDFileConverter
 
-    @brief Converts peptide/protein identification engine file formats.
+@brief Converts peptide/protein identification engine file formats.
 
 <CENTER>
     <table>
@@ -111,13 +112,13 @@ of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will
 
 <B>Details on additional parameters:</B>
 
-@p mz_file:@n
+@p mz_file: @n
 Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers or spectrum IDs. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
-@p mz_name:@n
+@p mz_name: @n
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
-@p scan_regex:@n
+@p scan_regex: @n
 This advanced parameter defines a spectrum reference format via a Perl-style regular expression. The reference format connects search hits to the MS2 spectra that were searched, and may be needed to look up e.g. retention times in the raw data (@p mz_file). See the documentation of class @ref OpenMS::SpectrumLookup "SpectrumLookup" for details on how to specify spectrum reference formats. Note that it is not necessary to look up any information in the raw data if that information can be extracted directly from the spectrum reference, in which case @p mz_file is not needed.@n
 For Mascot results exported to (Mascot) XML, scan numbers that can be used to look up retention times (via @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. Some default formats are defined in the Mascot XML reader, but if those fail to extract the scan numbers, @p scan_regex can be used to overwrite the defaults.@n
 For pepXML, supplying @p scan_regex may be necessary for files exported from Mascot, but only if the default reference formats (same as for Mascot XML) do not match. The spectrum references to which @p scan_regex is applied are read from the "spectrum" attribute of the "spectrum_query" elements.@n
@@ -239,6 +240,9 @@ protected:
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
     registerFlag_("no_spectra_references_override", "[+mz_file only] Setting this flag will avoid overriding 'spectrum_reference' in PeptideIdentifications if mz_file is given and a 'spectrum_reference' is already present.", true);
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+
+    registerFlag_("concatenate_peptides", "[FASTA output only] Will concatenate the top peptide hits to one peptide sequence, rather than write a new peptide for each hit.", true);
+    registerIntOption_("number_of_hits", "<integer>", 1, "[FASTA output only] Controls how many peptide hits will be exported. A value of 0 or less exports all hits.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -615,28 +619,62 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
-      ofstream fasta(out.c_str(), ios::out);
-      for (Size i = 0; i < peptide_identifications.size(); ++i)
+      Int max_hits = getIntOption_("number_of_hits");
+      if (max_hits < 1)
       {
-        for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
+        max_hits = INT_MAX;
+      }
+
+      bool concat = getFlag_("concatenate_peptides");
+      //Because by concatenation of peptides [KR]|P sites will probably be created, peptides starting with 'P' are
+      //saved separately and later moved to the beginning of the concatenated sequence.
+      //This is done to avoid losing information about the preceding peptides if a peptides starts with 'P'.
+      String all_p; //peptides beginning with 'P'
+      String all_but_p; //all the others
+
+      FASTAFile f;
+      f.writeStart(out);
+      FASTAFile::FASTAEntry entry;
+      for (const PeptideIdentification& pep_id : peptide_identifications)
+      {
+        Int curr_hit = 1;
+        for (const PeptideHit& hit : pep_id.getHits())
         {
-          const PeptideHit& hit = peptide_identifications[i].getHits()[l];
+          if (curr_hit > max_hits) break;
+          ++curr_hit;
+
           String seq = hit.getSequence().toUnmodifiedString();
-          std::set<String> prot = hit.extractProteinAccessionsSet();
-          fasta << ">" << seq
-                << " " << ++count
-                << " " << hit.getSequence().toString()
-                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
-                << "\n";
-          // FASTA files should have at most 60 characters of sequence info per line
-          for (Size j = 0; j < seq.size(); j += 60)
+          if (concat)
           {
-            Size k = min(j + 60, seq.size());
-            fasta << seq.substr(j, k - j) << "\n";
+            if (seq[0] == 'P')
+            {
+              all_p += seq;
+            }
+            else
+            {
+              all_but_p += seq;
+            }
+          }
+          else
+          {
+            std::set<String> prot = hit.extractProteinAccessionsSet();
+            entry.sequence = seq;
+            entry.identifier = seq;
+            entry.description = String(count) + " " + hit.getSequence().toString() + " " + ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";");
+
+            f.writeNext(entry);
+            ++count;
           }
         }
       }
-      fasta.close();
+      if (concat)
+      {
+        entry.sequence = all_p + all_but_p;
+        entry.identifier = protein_identifications[0].getSearchEngine() + "_" + Constants::UserParam::CONCAT_PEPTIDE;
+        entry.description = "";
+        
+        f.writeNext(entry);
+      }
     }
 
     else

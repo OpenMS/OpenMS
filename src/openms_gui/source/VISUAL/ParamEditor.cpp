@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,12 +85,12 @@ namespace OpenMS
       emit lostFocus();
     }
 
-    ParamEditorDelegate::ParamEditorDelegate(QObject * parent) :
+    ParamEditorDelegate::ParamEditorDelegate(QObject* parent) :
       QItemDelegate(parent)
     {
     }
 
-    QWidget * ParamEditorDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const
+    QWidget * ParamEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
       Int type = index.sibling(index.row(), 0).data(Qt::UserRole).toInt();
 
@@ -456,12 +456,10 @@ namespace OpenMS
   {
     ui_->setupUi(this);
     tree_ = new Internal::ParamTree(this);
-    tree_->setMinimumSize(450, 200);
+    //tree_->setMinimumSize(450, 200);
     tree_->setAllColumnsShowFocus(true);
     tree_->setColumnCount(4);
-    QStringList list;
-    list << "parameter" << "value" << "type" << "restrictions";
-    tree_->setHeaderLabels(list);
+    tree_->setHeaderLabels(QStringList() << "parameter" << "value" << "type" << "restrictions");
     dynamic_cast<QVBoxLayout *>(layout())->insertWidget(0, tree_, 1);
     tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));       // the delegate from above is set
     connect(tree_->itemDelegate(), SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
@@ -488,6 +486,8 @@ namespace OpenMS
 
     QTreeWidgetItem * parent = tree_->invisibleRootItem();
     QTreeWidgetItem * item = nullptr;
+
+    bool has_advanced_item = false; // will be true if @p param has any advanced items; if still false, we disable the 'show advanced checkbox'
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
@@ -546,6 +546,7 @@ namespace OpenMS
       if (it->tags.count("advanced"))
       {
         item->setData(0, Qt::UserRole, ADVANCED_ITEM);
+        has_advanced_item = true;
       }
       else       //advanced parameter
       {
@@ -731,6 +732,11 @@ namespace OpenMS
       {
         item->setFlags(Qt::ItemIsEnabled);
       }
+    }
+
+    if (!has_advanced_item)
+    {
+      ui_->advanced_->setVisible(false);
     }
 
     tree_->expandAll();

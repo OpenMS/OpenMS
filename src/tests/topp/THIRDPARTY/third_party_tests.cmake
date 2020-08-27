@@ -104,40 +104,42 @@ OPENMS_FINDBINARY(LUCIPHOR_BINARY "luciphor2.jar" "LuciPHOr2")
 #------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
-  if (NOT APPLE OR (CMAKE_SYSTEM_VERSION VERSION_LESS 10.15)) ## macOS Catalina does not support 32-bit apps anymore.
-    add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
-    add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
-    set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
+  add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
+  add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"OMSSAAdapter:1:in\" value=" "UserParam type=\"string\" name=\"OMSSAAdapter:1:database\" value="  "UserParam type=\"string\" name=\"OMSSAAdapter:1:omssa_executable\" value=")
+  set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
 
-    # test charge check
-    add_test("TOPP_OMSSAAdapter_2" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
-    set_tests_properties("TOPP_OMSSAAdapter_2" PROPERTIES WILL_FAIL 1) # has invalid charge range
-  endif()
+  # test charge check
+  add_test("TOPP_OMSSAAdapter_2" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
+  set_tests_properties("TOPP_OMSSAAdapter_2" PROPERTIES WILL_FAIL 1) # has invalid charge range
 endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND") AND xtandem_valid)
   add_test("TOPP_XTandemAdapter_1" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out XTandemAdapter_1_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
-  add_test("TOPP_XTandemAdapter_1_out" ${DIFF} -in1 XTandemAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_XTandemAdapter_1_out" ${DIFF} -in1 XTandemAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:in\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:database\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:xtandem_executable\" value=")
   set_tests_properties("TOPP_XTandemAdapter_1_out" PROPERTIES DEPENDS "TOPP_XTandemAdapter_1")
 
   # test output result option (set it to 'valid')
   add_test("TOPP_XTandemAdapter_2" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out XTandemAdapter_2_out.tmp -output_results valid -xtandem_executable "${XTANDEM_BINARY}" -max_valid_expect 1e-14)
-  add_test("TOPP_XTandemAdapter_2_out" ${DIFF} -in1 XTandemAdapter_2_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_XTandemAdapter_2_out" ${DIFF} -in1 XTandemAdapter_2_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:in\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:database\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:xtandem_executable\" value=")
   set_tests_properties("TOPP_XTandemAdapter_2_out" PROPERTIES DEPENDS "TOPP_XTandemAdapter_2")
+
+  add_test("TOPP_XTandemAdapter_3" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out XTandemAdapter_3_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
+  add_test("TOPP_XTandemAdapter_3_out" ${DIFF} -in1 XTandemAdapter_3_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_3_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:in\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:database\" value=" "UserParam type=\"string\" name=\"XTandemAdapter:1:xtandem_executable\" value=")
+  set_tests_properties("TOPP_XTandemAdapter_3_out" PROPERTIES DEPENDS "TOPP_XTandemAdapter_3")
 endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   add_test("TOPP_MyriMatchAdapter_1" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
-  add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:database\" value=" "UserParam type=\"string\" name=\"MyriMatchAdapter:1:myrimatch_executable\" value=")
   set_tests_properties("TOPP_MyriMatchAdapter_1_out" PROPERTIES DEPENDS "TOPP_MyriMatchAdapter_1")
 endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   add_test("TOPP_MSGFPlusAdapter_1" ${TOPP_BIN_PATH}/MSGFPlusAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out MSGFPlusAdapter_1_out1.tmp -mzid_out MSGFPlusAdapter_1_out2.tmp.mzid -executable "${MSGFPLUS_BINARY}")
-  add_test("TOPP_MSGFPlusAdapter_1_out1" ${DIFF} -in1 MSGFPlusAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_MSGFPlusAdapter_1_out1" ${DIFF} -in1 MSGFPlusAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:in\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:executable\" value=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:database\" value=")
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
   add_test("TOPP_MSGFPlusAdapter_1_out2" ${DIFF} -in1 MSGFPlusAdapter_1_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
@@ -146,8 +148,8 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${CRUX_BINARY} STREQUAL "CRUX_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
-  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -crux_executable "${CRUX_BINARY}" -run_percolator false -decoy-format peptide-reverse)
-  add_test("TOPP_CruxAdapter_1_out1" ${DIFF} -in1 CruxAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -crux_executable "${CRUX_BINARY}" -run_percolator false -decoy_format peptide-reverse)
+  add_test("TOPP_CruxAdapter_1_out1" ${DIFF} -in1 CruxAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CruxAdapter:1:crux_executable\" value=")
   set_tests_properties("TOPP_CruxAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CruxAdapter_1")
 endif()
 
@@ -155,18 +157,22 @@ endif()
 if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
   ### NOT needs to be added after the binarys have been included
   add_test("TOPP_CometAdapter_1" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CometAdapter_1_out1.tmp -pin_out CometAdapter_1_out2.tmp.tsv -comet_executable "${COMET_BINARY}")
-  add_test("TOPP_CometAdapter_1_out1" ${DIFF} -in1 CometAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_CometAdapter_1_out1" ${DIFF} -in1 CometAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:comet_executable\" value=")
   set_tests_properties("TOPP_CometAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_1")
   ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the tsv style pin file, whitelisting the first id column
   add_test("TOPP_CometAdapter_2_prepare" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.mzML -out CometAdapter_2_prepared.mzML -force_TPP_compatibility)
-  add_test("TOPP_CometAdapter_2" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.fasta -in CometAdapter_2_prepared.mzML -out CometAdapter_2_out1.tmp -pin_out CometAdapter_2_out2.tmp.tsv -comet_executable "${COMET_BINARY}" -precursor_mass_tolerance 3 -precursor_error_units Da -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini)
-  add_test("TOPP_CometAdapter_2_out1" ${DIFF} -in1 CometAdapter_2_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_CometAdapter_2" ${TOPP_BIN_PATH}/CometAdapter -force -test -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_in.fasta -in CometAdapter_2_prepared.mzML -out CometAdapter_2_out1.tmp -pin_out CometAdapter_2_out2.tmp.tsv -comet_executable "${COMET_BINARY}" -precursor_mass_tolerance 3 -precursor_error_units Da -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini)
+  add_test("TOPP_CometAdapter_2_out1" ${DIFF} -in1 CometAdapter_2_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_2_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:comet_executable\" value=")
   set_tests_properties("TOPP_CometAdapter_2" PROPERTIES DEPENDS "TOPP_CometAdapter_2_prepare")
   set_tests_properties("TOPP_CometAdapter_2_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_2")
   ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the tsv style pin file, whitelisting the first id column
   add_test("TOPP_CometAdapter_3" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.mzML -out CometAdapter_3_out1.tmp -pin_out CometAdapter_3_out2.tmp.tsv -comet_executable "${COMET_BINARY}")
-  add_test("TOPP_CometAdapter_3_out1" ${DIFF} -in1 CometAdapter_3_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  add_test("TOPP_CometAdapter_3_out1" ${DIFF} -in1 CometAdapter_3_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3_out.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:in\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:comet_executable\" value=")
   set_tests_properties("TOPP_CometAdapter_3_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_3")
+  ### Testing protein terminal modifications
+  add_test("TOPP_CometAdapter_4" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -digest_mass_range "600:1200" -variable_modifications "Met-loss (Protein N-term M)" -database ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -out CometAdapter_4_out1.tmp -comet_executable "${COMET_BINARY}")
+  add_test("TOPP_CometAdapter_4_out1" ${DIFF} -in1 CometAdapter_4_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_4_out.idXML -ratio 1.02 -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:")
+  set_tests_properties("TOPP_CometAdapter_4_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_4")
 endif()
 
 #------------------------------------------------------------------------------
@@ -201,7 +207,7 @@ endif()
 option(WITH_MASCOT_TEST "Runs the Mascot Online test (do not turn this on unless you know what you are doing)" OFF)
 if (WITH_MASCOT_TEST)
   add_test("TOPP_MascotAdapterOnline_1" ${TOPP_BIN_PATH}/MascotAdapterOnline -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1.ini -Mascot_parameters:database SwissProt -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out MascotAdapterOnline_1_out1.tmp)
-  add_test("TOPP_MascotAdapterOnline_1_out1" ${DIFF} -in1 MascotAdapterOnline_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=" "db=\"SwissProt\" db_version=")
+  add_test("TOPP_MascotAdapterOnline_1_out1" ${DIFF} -in1 MascotAdapterOnline_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=" "db=\"SwissProt\" db_version=" "UserParam type=\"string\" name=\"MascotAdapterOnline:1:in\" value=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_MascotAdapterOnline_1_out1" PROPERTIES DEPENDS "TOPP_MascotAdapterOnline_1")
 endif()
 
@@ -230,7 +236,7 @@ endif()
 
 if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
   add_test("TOPP_FidoAdapter_6" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_6_output.tmp -fido_executable "${FIDO_BINARY}" -prob:protein 0.9 -prob:peptide 0.01 -prob:spurious 0.0)
-  add_test("TOPP_FidoAdapter_6_out" ${DIFF} -in1 FidoAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML -whitelist "IdentificationRun date")
+  add_test("TOPP_FidoAdapter_6_out" ${DIFF} -in1 FidoAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_6_output.idXML -whitelist "IdentificationRun date")
   set_tests_properties("TOPP_FidoAdapter_6_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_6")
 endif()
 
@@ -239,14 +245,14 @@ endif()
 option(WITH_MSFRAGGER_TEST "Runs the MSFragger test (which needs at least 2.6GB free RAM during testing)" ON)
 if (WITH_MSFRAGGER_TEST)
   if (NOT (${MSFRAGGER_BINARY} STREQUAL "MSFRAGGER_BINARY-NOTFOUND"))
-    add_test("TOPP_MSFraggerAdapter_7" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -java_heapmemory 2600  -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_7_out_tmp.idXML -opt_out MSFraggerAdapter_7_opt_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
-    add_test("TOPP_MSFraggerAdapter_7_out" ${DIFF} -in1 MSFraggerAdapter_7_out_tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_out.idXML -whitelist "date" "search_database" "db") # Because MSFragger links the search database in a temporary directory
+    add_test("TOPP_MSFraggerAdapter_7" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -java_heapmemory 2600 -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_7_out_tmp.idXML -opt_out MSFraggerAdapter_7_opt_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+    add_test("TOPP_MSFraggerAdapter_7_out" ${DIFF} -in1 MSFraggerAdapter_7_out_tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_out.idXML -whitelist "date" "search_database" "db" "name=\"MSFraggerAdapter:") # Because MSFragger links the search database in a temporary directory
     add_test("TOPP_MSFraggerAdapter_7_opt_out" ${DIFF} -in1 MSFraggerAdapter_7_opt_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_opt_out.pepXML -whitelist "date" "search_database" "db")
     set_tests_properties("TOPP_MSFraggerAdapter_7_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_7")
     set_tests_properties("TOPP_MSFraggerAdapter_7_opt_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_7")
 
     add_test("TOPP_MSFraggerAdapter_8" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -java_heapmemory 2600 -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_8_out_tmp.idXML -varmod:enable_common -digest:num_enzyme_termini semi)
-    add_test("TOPP_MSFraggerAdapter_8_out" ${DIFF} -in1 MSFraggerAdapter_8_out_tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_8_out.idXML -whitelist "date" "search_database" "db") # Because MSFragger links the search database in a temporary directory
+    add_test("TOPP_MSFraggerAdapter_8_out" ${DIFF} -in1 MSFraggerAdapter_8_out_tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_8_out.idXML -whitelist "date" "search_database" "db" "name=\"MSFraggerAdapter:") # Because MSFragger links the search database in a temporary directory
     set_tests_properties("TOPP_MSFraggerAdapter_8_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_8")
   endif()
 endif()
@@ -330,6 +336,13 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   add_test("UTILS_AssayGeneratorMetabo_9_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_intsort_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_intsort_output.tsv)
   set_tests_properties("UTILS_AssayGeneratorMetabo_9" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_8")
   set_tests_properties("UTILS_AssayGeneratorMetabo_9_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
+
+  # use AccurateMassSearch data + fragment mass restriction
+  add_test("UTILS_AssayGeneratorMetabo_10" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv  -fragment_annotation sirius -use_exact_mass -transition_threshold 3.0 -min_transitions 2 -max_transitions 3 -min_fragment_mz 100 -max_fragment_mz 900 -preprocessing:filter_by_num_masstraces 1 -preprocessing:precursor_mz_tolerance 10 -preprocessing:precursor_mz_tolerance_unit ppm -preprocessing:feature_only -sirius:profile qtof -sirius:compound_timeout 100)
+  add_test("UTILS_AssayGeneratorMetabo_10_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_sirius_restrict_output.tmp.tsv -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_sirius_restrict_output.tsv)
+  set_tests_properties("UTILS_AssayGeneratorMetabo_10" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_9")
+  set_tests_properties("UTILS_AssayGeneratorMetabo_10_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_10")
+
   endif()
 
   # Note that with FingerID, output for compound 79 without feature only
@@ -353,8 +366,8 @@ endif()
 #------------------------------------------------------------------------------
 if (NOT (${SPECTRAST_BINARY} STREQUAL "SPECTRAST_BINARY-NOTFOUND") AND FALSE)
   add_test("TOPP_SpectrastSearchAdapter_0_prepare" ${TOPP_BIN_PATH}/FileConverter -test -force_TPP_compatibility -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_spectrast.mzXML -out SpectrastAdapter_1_hack.mzML)
-  add_test("TOPP_SpectrastSearchAdapter_1" ${TOPP_BIN_PATH}/SpectraSTSearchAdapter -test -library_file ${DATA_DIR_TOPP}/THIRDPARTY/testLib.splib -spectra_files SpectrastAdapter_1_hack.mzML -output_files SpectrastAdapter_1_out1.tmp.pep.xml -executable "${SPECTRAST_BINARY}")
-  add_test("TOPP_SpectrastSearchAdapter_1_out" ${DIFF} -in1 SpectrastAdapter_1_out1.tmp.pep.xml -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pep.xml -whitelist "msms_pipeline_analysis date" "?xml-stylesheet" "summary base_name")
+  add_test("TOPP_SpectrastSearchAdapter_1" ${TOPP_BIN_PATH}/SpectraSTSearchAdapter -test -library_file ${DATA_DIR_TOPP}/THIRDPARTY/testLib.splib -spectra_files SpectrastAdapter_1_hack.mzML -output_files SpectrastAdapter_1_out1.tmp.pepXML -executable "${SPECTRAST_BINARY}")
+  add_test("TOPP_SpectrastSearchAdapter_1_out" ${DIFF} -in1 SpectrastAdapter_1_out1.tmp.pep.xml -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pepXML -whitelist "msms_pipeline_analysis date" "?xml-stylesheet" "summary base_name")
   set_tests_properties("TOPP_SpectrastSearchAdapter_1" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_0_prepare")
   set_tests_properties("TOPP_SpectrastSearchAdapter_1_out" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_1")
   add_test("TOPP_SpectrastSearchAdapter_2" ${TOPP_BIN_PATH}/SpectraSTSearchAdapter -test -library_file ${DATA_DIR_TOPP}/THIRDPARTY/testLib.splib -spectra_files SpectrastAdapter_1_hack.mzML -output_files SpectrastAdapter_1_out1.tmp.pep.tsv -executable "${SPECTRAST_BINARY}")

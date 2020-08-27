@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1127,12 +1127,7 @@ namespace OpenMS
     // Abort if no data points are contained (note that all data could be on disk)
     if (getCurrentLayer().getCurrentSpectrum().empty())
     {
-      layers_.resize(getLayerCount() - 1);
-      if (current_layer_ != 0)
-      {
-        current_layer_ = current_layer_ - 1;
-      }
-      QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
+      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
 
@@ -1472,13 +1467,13 @@ namespace OpenMS
       context_menu->addMenu(settings_menu);
 
       // only add to context menu if there is a MS1 map
-      if (TOPPViewBase::containsMS1Scans(*getCurrentLayer().getPeakData()))
+      if (getCurrentLayer().getPeakData()->containsScanOfLevel(1))
       {
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
       }
 
-      if (TOPPViewBase::containsIMData(getCurrentLayer().getCurrentSpectrum()))
+      if (getCurrentLayer().getCurrentSpectrum().containsIMData())
       {
         context_menu->addAction("Switch to ion mobility view");
       }

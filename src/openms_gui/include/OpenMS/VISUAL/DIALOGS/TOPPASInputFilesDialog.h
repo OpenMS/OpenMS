@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,11 @@ namespace Ui
 
 namespace OpenMS
 {
+  namespace Internal
+  {
+    class InputFileList;
+  }
+
   /**
       @brief Dialog which allows to specify a list of input files
 
@@ -59,43 +64,23 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd);
+    TOPPASInputFilesDialog(QWidget* parent)
+     : TOPPASInputFilesDialog(QStringList(), "", parent) {}
+    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent = 0);
     ~TOPPASInputFilesDialog();
 
-    /// support drag'n'drop of files from OS window manager
-    void dragEnterEvent(QDragEnterEvent *e) override;
-    /// support drag'n'drop of files from OS window manager
-    void dropEvent(QDropEvent *e) override;
-
-
-    /// Stores the list of all filenames in the list widget in @p files
     void getFilenames(QStringList& files) const;
 
-    /// get the CWD (according to most recently added file)
     const QString& getCWD() const;
 
-    /// support Ctrl+C to copy currently selected items to clipboard
-    void keyPressEvent(QKeyEvent *e) override;
-
-public slots:
-
-    /// Lets the user select files via a file dialog
-    void showFileDialog();
-    /// Removes all currently selected files from the list
-    void removeSelected();
-    /// Removes all files from the list
-    void removeAll();
-    /// Shows a TOPPASInputFileDialog which edits the current item
-    void editCurrentItem();
-    /// Moves the current item up/downwards
-    void moveCurrentItem();
-
-protected:
-    /// current working dir, i.e. the last position a file was added from
-    QString cwd_;
 
 private:
     Ui::TOPPASInputFilesDialogTemplate* ui_;
+    Internal::InputFileList* ifl_;
   };
-
+  
 }
+
+// this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
+using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
+

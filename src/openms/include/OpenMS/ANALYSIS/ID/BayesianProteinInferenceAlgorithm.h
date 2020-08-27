@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,6 +114,7 @@ namespace OpenMS
     /// Loops over all runs in the ConsensusMaps' protein IDs. (experimental)
     void inferPosteriorProbabilities(
         ConsensusMap& cmap,
+        bool greedy_group_resolution,
         boost::optional<const ExperimentalDesign> exp_des = boost::optional<const ExperimentalDesign>());
 
   private:
@@ -131,6 +132,13 @@ namespace OpenMS
 
     /// set score type and settings for every ProteinID run processed
     void setScoreTypeAndSettings_(ProteinIdentification& proteinIDs);
+
+    /// reset all protein scores to 0.0, save old ones as Prior MetaValue if requested
+    // TODO double-check if -1 is maybe the better option
+    //  to distinguish between "untouched/unused/unreferenced" (e.g. if somehow
+    //  not removed/filtered) and an inferred probability of 0.0. But it might give
+    //  problems in FDR algorithms if not ignored/removed correctly
+    void resetProteinScores_(ProteinIdentification& protein_id, bool keep_old_as_prior);
 
     /// function initialized based on the algorithm parameters that is used to filter PeptideHits
     /// @todo extend to allow filtering only for the current run

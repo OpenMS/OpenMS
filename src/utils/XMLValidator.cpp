@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,TraML,xml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,traML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
     setValidFormats_("schema", ListUtils::create<String>("xsd"));
   }

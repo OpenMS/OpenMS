@@ -56,11 +56,11 @@
 				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
-		<consensusElement id="e_3332699010107892018" quality="0.73605">
-			<centroid rt="410.0" mz="500.010999999999967" it="600.0"/>
+		<consensusElement id="e_3332699010107892018" quality="0.736175">
+			<centroid rt="410.033333333333303" mz="500.010999999999967" it="600.0"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="400.0" mz="500.000999999999976" it="500.0"/>
-				<element map="1" id="0" rt="310.0" mz="500.009999999999991" it="600.0"/>
+				<element map="1" id="0" rt="310.100000000000023" mz="500.009999999999991" it="600.0"/>
 				<element map="2" id="0" rt="520.0" mz="500.021999999999991" it="700.0"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >

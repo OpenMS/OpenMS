@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,7 +79,7 @@ namespace OpenMS
   Some helpful target/decoy statistics will be reported when done.
 
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
-  You can force it to return successfully in this case by using the flag @p allow_unmatched.
+  You can force it to return successfully in this case by setting @p '-unmatched_action' to accept or even remove those hits.
 
   Search engines (such as Mascot) will replace ambiguous amino acids ('B', 'J', 'Z' and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
   This will cause such peptides to not be found by exactly matching their sequences to the protein database.
@@ -102,17 +102,19 @@ namespace OpenMS
 
   Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
-  By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
-  So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
+  By default, the enzyme and the specificity used during search is derived from metadata in the idXML files ('auto' setting).
   
-  We make two exceptions to the specificity constraints:
+  We make two exceptions to any specificity constraints:
   1) for peptides starting at the second or third position of a protein are still considered N-terminally specific,
   since the residues can be cleaved off in vivo; X!Tandem reports these peptides. For example, the two peptides ABAR and LABAR would both match a protein starting with MLABAR.
   2) adventitious cleavage at Asp|Pro (Aspartate/D | Proline/P) is allowed for all enzymes (as supported by X!Tandem), i.e. counts as a proper cleavage site (see http://www.thegpm.org/tandem/release.html).
   
   You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
   or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
-  unless the search engine was instructed to search peptides in the same way.
+  unless the search engine was instructed to search peptides in the same way (but then the default 'auto' setting will do the correct thing).
+
+  X!Tandem treats any occurence of 'X' as stop codon (and thus as cleavage site). The resulting peptide will be non- or semi-tryptic.
+  Those hits will not be matched and need to be removed using @p '-unmatched_action' (do not use termini specificity to cheat around it! It adds more false hits!).
   
   The FASTA file should not contain duplicate protein accessions (since accessions are not validated) if a correct unique-matching annotation is important (target/decoy annotation is still correct).
 
@@ -126,6 +128,9 @@ namespace OpenMS
   {
 public:
 
+  /// name of enzyme/specificity which signals that the enzyme/specificity should be taken from meta information
+  static char const* const AUTO_MODE; /* = 'auto' */ 
+
     /// Exit codes
     enum ExitCodes
     {
@@ -135,6 +140,25 @@ public:
       ILLEGAL_PARAMETERS,
       UNEXPECTED_RESULT
     };
+
+    /// Action to take when peptide hits could not be matched
+    enum class Unmatched
+    {
+      IS_ERROR,  ///< throws an error (and returns no results)
+      WARN,      ///< skips annotation with target/decoy but returns with 'success'
+      REMOVE,    ///< removes unmatched hits entirely and returns with 'success'
+      SIZE_OF_UNMATCHED
+    };
+    static const std::array<std::string, (Size)Unmatched::SIZE_OF_UNMATCHED> names_of_unmatched;
+    
+    enum class MissingDecoy
+    {
+      IS_ERROR,
+      WARN,
+      SILENT,
+      SIZE_OF_MISSING_DECOY
+    };
+    static const std::array<std::string, (Size)MissingDecoy::SIZE_OF_MISSING_DECOY> names_of_missing_decoy;
 
     /// Default constructor
     PeptideIndexing();
@@ -210,8 +234,20 @@ public:
       // parsing parameters, correcting xtandem and MSGFPlus parameters
       //---------------------------------------------------------------
       ProteaseDigestion enzyme;
-      enzyme.setEnzyme(enzyme_name_);
-      enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
+      if (!enzyme_name_.empty() && (enzyme_name_.compare(AUTO_MODE) != 0))
+      { // use param (not empty, not 'auto')
+        enzyme.setEnzyme(enzyme_name_);
+      }
+      else if (!prot_ids.empty() && prot_ids[0].getSearchParameters().digestion_enzyme.getName() != "unknown_enzyme")
+      { // take from meta (this assumes all runs used the same enzyme)
+        OPENMS_LOG_INFO << "Info: using '" << prot_ids[0].getSearchParameters().digestion_enzyme.getName() << "' as enzyme (obtained from idXML) for digestion." << std::endl;
+        enzyme.setEnzyme(&prot_ids[0].getSearchParameters().digestion_enzyme);
+      }
+      else
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: Enzyme name neither given nor deduceable from input. Defaulting to Trypsin!" << std::endl;
+        enzyme.setEnzyme("Trypsin");
+      } 
 
       bool xtandem_fix_parameters = true;
       bool msgfplus_fix_parameters = true;
@@ -219,8 +255,9 @@ public:
       // determine if search engine is solely xtandem or MSGFPlus
       for (const auto& prot_id : prot_ids)
       {
-        String search_engine = prot_id.getSearchEngine();
+        String search_engine = prot_id.getOriginalSearchEngineName();
         StringUtils::toUpper(search_engine);
+        OPENMS_LOG_INFO << "Peptide identification engine: " << search_engine << std::endl;
         if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
         if (!(search_engine == "MSGFPLUS" || search_engine == "MS-GF+")) { msgfplus_fix_parameters = false; }
       }
@@ -230,6 +267,23 @@ public:
       {
         OPENMS_LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
+      }
+
+      OPENMS_LOG_INFO << "Enzyme: " << enzyme.getEnzymeName() << std::endl;
+
+      if (!enzyme_specificity_.empty() && (enzyme_specificity_.compare(AUTO_MODE) != 0))
+      { // use param (not empty and not 'auto')
+        enzyme.setSpecificity(ProteaseDigestion::getSpecificityByName(enzyme_specificity_));
+      }
+      else if (!prot_ids.empty() && prot_ids[0].getSearchParameters().enzyme_term_specificity != ProteaseDigestion::SPEC_UNKNOWN)
+      { // deduce from data ('auto')
+        enzyme.setSpecificity(prot_ids[0].getSearchParameters().enzyme_term_specificity);
+        OPENMS_LOG_INFO << "Info: using '" << EnzymaticDigestion::NamesOfSpecificity[prot_ids[0].getSearchParameters().enzyme_term_specificity] << "' as enzyme specificity (obtained from idXML) for digestion." << std::endl;
+      }
+      else
+      { // fallback
+        OPENMS_LOG_WARN << "Warning: Enzyme specificity neither given nor present in the input file. Defaulting to 'full'!" << std::endl;
+        enzyme.setSpecificity(ProteaseDigestion::SPEC_FULL);
       }
 
       //-------------------------------------------------------------
@@ -506,10 +560,10 @@ public:
 
         std::vector<PeptideHit>& hits = it1->getHits();
 
-        for (std::vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
+        for (std::vector<PeptideHit>::iterator it_hit = hits.begin(); it_hit != hits.end(); /* no increase here! we might need to skip it; see below */)
         {
           // clear protein accessions
-          it2->setPeptideEvidences(std::vector<PeptideEvidence>());
+          it_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
           
           //
           // is this a decoy hit?
@@ -524,8 +578,8 @@ public:
           {
             prot_indices.insert(it_i->protein_index);
             const String& accession = protein_accessions[it_i->protein_index];
-            PeptideEvidence pe(accession, it_i->position, it_i->position + (int)it2->getSequence().size() - 1, it_i->AABefore, it_i->AAAfter);
-            it2->addPeptideEvidence(pe);
+            PeptideEvidence pe(accession, it_i->position, it_i->position + (int)it_hit->getSequence().size() - 1, it_i->AABefore, it_i->AAAfter);
+            it_hit->addPeptideEvidence(pe);
 
             runidx_to_protidx[run_idx].insert(it_i->protein_index); // fill protein hits
 
@@ -538,46 +592,55 @@ public:
               matches_target = true;
             }
           }
+          ++pep_idx; // next hit
 
           if (matches_decoy && matches_target)
           {
-            it2->setMetaValue("target_decoy", "target+decoy");
+            it_hit->setMetaValue("target_decoy", "target+decoy");
             ++stats_count_m_td;
           }
           else if (matches_target)
           {
-            it2->setMetaValue("target_decoy", "target");
+            it_hit->setMetaValue("target_decoy", "target");
             ++stats_count_m_t;
           }
           else if (matches_decoy)
           {
-            it2->setMetaValue("target_decoy", "decoy");
+            it_hit->setMetaValue("target_decoy", "decoy");
             ++stats_count_m_d;
           } // else: could match to no protein (i.e. both are false)
           //else ... // not required (handled below; see stats_unmatched);
 
           if (prot_indices.size() == 1)
           {
-            it2->setMetaValue("protein_references", "unique");
+            it_hit->setMetaValue("protein_references", "unique");
             ++stats_matched_unique;
           }
           else if (prot_indices.size() > 1)
           {
-            it2->setMetaValue("protein_references", "non-unique");
+            it_hit->setMetaValue("protein_references", "non-unique");
             ++stats_matched_multi;
           }
           else
           {
-            it2->setMetaValue("protein_references", "unmatched");
             ++stats_unmatched;
-            if (stats_unmatched < 15) OPENMS_LOG_INFO << "Unmatched peptide: " << it2->getSequence() << "\n";
+            if (stats_unmatched < 15) OPENMS_LOG_INFO << "Unmatched peptide: " << it_hit->getSequence() << "\n";
             else if (stats_unmatched == 15) OPENMS_LOG_INFO << "Unmatched peptide: ...\n";
+            if (unmatched_action_ == Unmatched::REMOVE)
+            {
+              it_hit = hits.erase(it_hit);
+              continue; // already points to the next hit
+            }
+            else
+            {
+              it_hit->setMetaValue("protein_references", "unmatched");
+            }
           }
 
-          ++pep_idx; // next hit
-        }
+          ++it_hit; // next hit
+        } // all hits
 
-      }
+      } // next PepID
 
       Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td + stats_unmatched;
       OPENMS_LOG_INFO << "-----------------------------------\n";
@@ -687,12 +750,12 @@ public:
       if ((stats_count_m_d + stats_count_m_td) == 0)
       {
         String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
-        if (missing_decoy_action_ == "error")
+        if (missing_decoy_action_ == MissingDecoy::IS_ERROR)
         {
           OPENMS_LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
           has_error = true;
         }
-        else if (missing_decoy_action_ == "warn")
+        else if (missing_decoy_action_ == MissingDecoy::WARN)
         {
           OPENMS_LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
         }
@@ -701,19 +764,38 @@ public:
         }
       }
 
-      if ((!allow_unmatched_) && (stats_unmatched > 0))
+      if (stats_unmatched > 0)
       {
-        OPENMS_LOG_ERROR << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
-                  << "Potential solutions:\n"
-                  << "   - check your FASTA database for completeness\n"
-                  << "   - set 'enzyme:specificity' to match the identification parameters of the search engine\n"
-                  << "   - some engines (e.g. X! Tandem) employ loose cutting rules generating non-tryptic peptides;\n"
-                  << "     if you trust them, disable enzyme specificity\n"
-                  << "   - increase 'aaa_max' to allow more ambiguous amino acids\n"
-                  << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
-                  << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
-        has_error = true;
+        OPENMS_LOG_ERROR << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n";
+        if (unmatched_action_ == Unmatched::IS_ERROR)
+        {
+          OPENMS_LOG_ERROR
+            << "Potential solutions:\n"
+            << "   - check your FASTA database is identical to the search DB (or use 'auto')\n"
+            << "   - set 'enzyme:specificity' and 'enzyme:name' to 'auto' to match the parameters of the search engine\n"
+            << "   - increase 'aaa_max' to allow more ambiguous amino acids\n"
+            << "   - as a last resort: use the 'unmatched_action' option to accept or even remove unmatched peptides\n"
+            << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
+          has_error = true;
+        }
+        else if (unmatched_action_ == Unmatched::WARN)
+        {
+          OPENMS_LOG_ERROR << "  Warning: " << stats_unmatched << " unmatched hits have been found, but were not removed!\n"
+            << "These are not annotated with target/decoy information and might lead to issues with downstream tools (such as FDR).\n"
+            << "Switch to '" << names_of_unmatched[(Size)Unmatched::REMOVE] << "' if you want to avoid these problems.\n";
+        }
+        else if (unmatched_action_ == Unmatched::REMOVE)
+        {
+          OPENMS_LOG_ERROR << "  Warning: " << stats_unmatched <<" unmatched hits have been removed!\n"
+                           << "Make sure that these hits are actually a violation of the cutting rules by inspecting the database!\n";
+          if (xtandem_fix_parameters) OPENMS_LOG_ERROR << "Since the results are from X!Tandem, this is probably ok (check anyways).\n";
+        }
+        else
+        {
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
       }
+      
 
       if (has_error)
       {
@@ -795,13 +877,18 @@ public:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
+        //TODO we could read and double-check missed cleavages as well
         if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_))
         {
-          PeptideProteinMatchInformation match;
-          match.protein_index = idx_prot;
-          match.position = position;
-          match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
-          match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
+          PeptideProteinMatchInformation match
+          {
+            idx_prot,
+            position,
+            (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1],
+            (position + len_pep >= seq_prot.size()) ?
+                            PeptideEvidence::C_TERMINAL_AA :
+                            seq_prot[position + len_pep]
+          };
           pep_to_prot[idx_pep].insert(match);
           ++filter_passed;
         }
@@ -827,20 +914,20 @@ public:
 
     void updateMembers_() override;
 
-    String decoy_string_;
-    bool prefix_;
-    String missing_decoy_action_;
-    String enzyme_name_;
-    String enzyme_specificity_;
+    String decoy_string_{};
+    bool prefix_{ false };
+    MissingDecoy missing_decoy_action_ = MissingDecoy::IS_ERROR;
+    String enzyme_name_{};
+    String enzyme_specificity_{};
 
-    bool write_protein_sequence_;
-    bool write_protein_description_;
-    bool keep_unreferenced_proteins_;
-    bool allow_unmatched_;
-    bool IL_equivalent_;
+    bool write_protein_sequence_{ false };
+    bool write_protein_description_{ false };
+    bool keep_unreferenced_proteins_{ false };
+    Unmatched unmatched_action_ = Unmatched::IS_ERROR;
+    bool IL_equivalent_{ false };
 
-    Int aaa_max_;
-    Int mm_max_;
+    Int aaa_max_{0};
+    Int mm_max_{0};
  };
 }
 

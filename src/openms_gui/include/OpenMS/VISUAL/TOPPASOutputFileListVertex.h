@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,8 @@ public:
     QRectF boundingRect() const override;
     // documented in base class
     void reset(bool reset_all_files = false) override;
+    /// opens the folder containing the output data
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
     /// Called when the parent node has finished execution
     void run() override;
     /// Returns the full directory (including preceding output path as selected by user)

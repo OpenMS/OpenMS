@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,10 @@ namespace OpenMS
                        "true",
                        "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
     defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
+    defaults_.setValue("allow_disagreeing_settings",
+                       "false",
+                       "Force merging of disagreeing runs. Use at your own risk.");
+    defaults_.setValidStrings("allow_disagreeing_settings", ListUtils::create<String>("true,false"));
     defaultsToParam_();
     prot_result_.setIdentifier(getNewIdentifier_());
   }
@@ -204,14 +208,14 @@ namespace OpenMS
         */
       }
 
-      bool annotated = pid.metaValueExists("map_index");
+      bool annotated = pid.metaValueExists("id_merge_index");
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("map_index");
+          oldFileIdx = pid.getMetaValue("id_merge_index");
         }
         else if (origins.size() > 1)
         {
@@ -221,9 +225,9 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
-              "no old map_index present");
+              "no old id_merge_index present");
         }
 
         if (oldFileIdx >= origins.size())
@@ -232,11 +236,11 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("map_index", file_origin_to_idx_[origins[oldFileIdx]]);
+        pid.setMetaValue("id_merge_index", file_origin_to_idx_[origins[oldFileIdx]]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector
@@ -348,13 +352,13 @@ namespace OpenMS
 
       }
 
-      bool annotated = pid.metaValueExists("map_index");
+      bool annotated = pid.metaValueExists("id_merge_index");
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("map_index");
+          oldFileIdx = pid.getMetaValue("id_merge_index");
         }
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
@@ -364,11 +368,11 @@ namespace OpenMS
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Trying to annotate new map_index for PeptideIdentification "
+              "Trying to annotate new id_merge_index for PeptideIdentification "
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
-              "no old map_index present");
+              "no old id_merge_index present");
         }
-        pid.setMetaValue("map_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
+        pid.setMetaValue("id_merge_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       for (auto &phit : pid.getHits())
@@ -411,7 +415,7 @@ namespace OpenMS
       // collect warnings and throw at the end if at least one failed
       ok = ok && ref.peptideIDsMergeable(idRun, experiment_type);
     }
-    if (!ok /*&& TODO and no force flag*/)
+    if (!ok && !param_.getValue("allow_disagreeing_settings").toBool())
     {
       throw Exception::MissingInformation(__FILE__,
                                           __LINE__,

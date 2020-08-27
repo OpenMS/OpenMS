@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1142,7 +1142,7 @@ namespace OpenMS
     PeakIterator it_pick_begin = raw_peak_array.begin();
     PeakIterator it_pick_end   = raw_peak_array.end();
 
-    sne.init(it_pick_begin, it_pick_end);
+    sne.init(raw_peak_array);
 
     // Upper peak width bound
     double fwhm_upper_bound = (double)param_.getValue("fwhm_upper_bound_factor") * scale_;
@@ -1179,7 +1179,7 @@ namespace OpenMS
       {
         // if the signal to noise ratio at the max position is too small
         // the peak isn't considered
-        if ((area.max != it_pick_end) && (sne.getSignalToNoise(area.max) < signal_to_noise_))
+        if ((area.max != it_pick_end) && (sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max)) < signal_to_noise_))
         {
           it_pick_begin = area.max;
           distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
@@ -1222,7 +1222,7 @@ namespace OpenMS
              && (shape.getFWHM() >= fwhm_bound_)
              && (shape.getFWHM() <= fwhm_upper_bound))
           {
-            shape.signal_to_noise = sne.getSignalToNoise(area.max);
+            shape.signal_to_noise = sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max));
             peak_shapes.push_back(shape);
             ++number_of_peaks;
           }

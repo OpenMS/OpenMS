@@ -1722,8 +1722,8 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
     scores = [float(i) for i in range(10)]
-    model.fit(scores)
-    model.fit(scores, scores)
+    model.fit(scores, "none")
+    model.fit(scores, scores, "none")
 
     model.fillLogDensities(scores, scores, scores)
 
@@ -5198,7 +5198,7 @@ def testRibonucleotideDB():
     """
     r = pyopenms.RibonucleotideDB()
 
-    uridine = r.getRibonucleotide("U")
+    uridine = r.getRibonucleotide(b"U")
 
     assert uridine.getName() == u'uridine'
     assert uridine.getCode() == u'U'
@@ -5217,10 +5217,10 @@ def testRibonucleotide():
     r.setHTMLCode("test")
     assert r.getHTMLCode() == "test"
 
-    r.setOrigin("A")
+    r.setOrigin(b"A")
     assert r.getOrigin() == "A"
 
-    r.setNewCode("A")
+    r.setNewCode(b"A")
     assert r.getNewCode() == "A"
 
 

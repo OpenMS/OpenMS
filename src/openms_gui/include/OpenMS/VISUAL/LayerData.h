@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -447,7 +447,23 @@ public:
     int peptide_id_index;
     int peptide_hit_index;
 
+    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+    String getDecoratedName() const
+    {
+      String n = name;
+      if (flipped)
+      {
+        n += " [flipped]";
+      }
+      if (modified)
+      {
+        n += '*';
+      }
+      return n;
+    }
+
 private:
+
 
     /// Update current cached spectrum for easy retrieval
     void updateCache_();

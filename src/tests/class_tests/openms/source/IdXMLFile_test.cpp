@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"1, 2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
@@ -172,7 +172,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-  TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
+  TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"1, 2, 3")
   TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)

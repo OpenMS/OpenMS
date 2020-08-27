@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -312,13 +313,24 @@ END_SECTION
 START_SECTION(void setModification(const String& name))
 	e_ptr->setOneLetterCode("M"); // we need M for this mod
 	TEST_EQUAL(e_ptr->getModificationName(), "")
-	TEST_EQUAL(e_ptr->getModification(), 0)
+	TEST_EQUAL(e_ptr->getModification() == nullptr, true)
 	e_ptr->setModification("Oxidation");
 	TEST_EQUAL(e_ptr->getModificationName(), "Oxidation")
 	TEST_EQUAL(e_ptr->getModification()->getFullId(), "Oxidation (M)")
 	e_ptr->setOneLetterCode("B");
 END_SECTION
 
+START_SECTION(String Residue::toString() const)
+	auto rr(*db->getResidue("MET"));
+	TEST_EQUAL(rr.toString(), "M");
+	TEST_EQUAL(rr.getModification() == nullptr, true)
+	rr.setModification("Oxidation");
+	TEST_EQUAL(rr.getModificationName(), "Oxidation")
+	TEST_EQUAL(rr.toString(), "M(Oxidation)");
+	const ResidueModification* mod = ResidueModification::createUnknownFromMassString("123", 123.0, false, ResidueModification::ANYWHERE, &rr);
+	rr.setModification(mod);
+  TEST_EQUAL(rr.toString(), "M[123]");
+END_SECTION
 
 START_SECTION(const String& getModificationName() const)
   NOT_TESTABLE // tested above

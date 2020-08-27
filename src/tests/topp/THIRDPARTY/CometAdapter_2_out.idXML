@@ -1,105 +1,159 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/hr/openmsall/source/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="CometAdapter:1:in" value="CometAdapter_2_prepared.mzML"/>
+				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_2_out1.tmp"/>
+				<UserParam type="string" name="CometAdapter:1:database" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_2_in.fasta"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_2_out2.tmp.tsv"/>
+				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
+				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="3.0"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_error_units" value="Da"/>
+				<UserParam type="string" name="CometAdapter:1:isotope_error" value="off"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_mass_tolerance" value="0.50025"/>
+				<UserParam type="string" name="CometAdapter:1:fragment_error_units" value="Da"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_bin_offset" value="0.25"/>
+				<UserParam type="string" name="CometAdapter:1:instrument" value="high_res"/>
+				<UserParam type="string" name="CometAdapter:1:use_A_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_B_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_C_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_X_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_Y_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_Z_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_NL_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:enzyme" value="Trypsin"/>
+				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
+				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
+				<UserParam type="int" name="CometAdapter:1:missed_cleavages" value="1"/>
+				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
+				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
+				<UserParam type="int" name="CometAdapter:1:num_hits" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_charge" value="0:0"/>
+				<UserParam type="string" name="CometAdapter:1:override_charge" value="keep any known"/>
+				<UserParam type="int" name="CometAdapter:1:ms_level" value="2"/>
+				<UserParam type="string" name="CometAdapter:1:activation_method" value="ALL"/>
+				<UserParam type="string" name="CometAdapter:1:digest_mass_range" value="600:5000"/>
+				<UserParam type="int" name="CometAdapter:1:max_fragment_charge" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:max_precursor_charge" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:clip_nterm_methionine" value="false"/>
+				<UserParam type="int" name="CometAdapter:1:spectrum_batch_size" value="1000"/>
+				<UserParam type="floatList" name="CometAdapter:1:mass_offsets" value="[0.0]"/>
+				<UserParam type="int" name="CometAdapter:1:minimum_peaks" value="10"/>
+				<UserParam type="float" name="CometAdapter:1:minimum_intensity" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:remove_precursor_peak" value="no"/>
+				<UserParam type="float" name="CometAdapter:1:remove_precursor_tolerance" value="1.5"/>
+				<UserParam type="string" name="CometAdapter:1:clear_mz_range" value="0:0"/>
+				<UserParam type="stringList" name="CometAdapter:1:fixed_modifications" value="[]"/>
+				<UserParam type="stringList" name="CometAdapter:1:variable_modifications" value="[]"/>
+				<UserParam type="intList" name="CometAdapter:1:binary_modifications" value="[]"/>
+				<UserParam type="int" name="CometAdapter:1:max_variable_mods_in_peptide" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:require_variable_mod" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:log" value=""/>
+				<UserParam type="int" name="CometAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="CometAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:force" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2017-12-07T16:39:44" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2020-03-27T19:10:22" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="prot1" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="prot1" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="prot3" score="0" sequence="" >
+			<ProteinHit id="PH_1" accession="prot3" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="prot2" score="0" sequence="" >
+			<ProteinHit id="PH_2" accession="prot2" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="prot4" score="0" sequence="" >
+			<ProteinHit id="PH_3" accession="prot4" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="prot5" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="prot5" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="prot6" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="prot6" score="0.0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="prot10" score="0" sequence="" >
+			<ProteinHit id="PH_6" accession="prot10" score="0.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/Users/builder/jenkins/ws/openms_pr_ci/c797036f/source/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[CometAdapter_2_prepared.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="360.1612405319" RT="1202.7" spectrum_reference="scan=1569" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="360.161240531899978" RT="1202.700000000000046" spectrum_reference="scan=1569" >
 			<PeptideHit score="1.26" sequence="YMGGYK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_0" >
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="10"/>
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="1.145"/>
 				<UserParam type="float" name="MS:1002253" value="0.466"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="541.5"/>
-				<UserParam type="float" name="MS:1002256" value="1"/>
+				<UserParam type="float" name="MS:1002256" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="1.26"/>
 			</PeptideHit>
-			<PeptideHit score="48.2" sequence="MNNTIK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_1" >
+			<PeptideHit score="48.200000000000003" sequence="MNNTIK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_1" >
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="10"/>
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.612"/>
-				<UserParam type="float" name="MS:1002253" value="0.482"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
-				<UserParam type="float" name="MS:1002255" value="109.7"/>
-				<UserParam type="float" name="MS:1002256" value="3"/>
-				<UserParam type="float" name="MS:1002257" value="48.2"/>
+				<UserParam type="float" name="MS:1002253" value="0.031"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
+				<UserParam type="float" name="MS:1002255" value="109.700000000000003"/>
+				<UserParam type="float" name="MS:1002256" value="3.0"/>
+				<UserParam type="float" name="MS:1002257" value="48.200000000000003"/>
 			</PeptideHit>
-			<PeptideHit score="54.9" sequence="MVENTK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_2" >
+			<PeptideHit score="54.899999999999999" sequence="MVENTK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_2" >
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="10"/>
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.592"/>
-				<UserParam type="float" name="MS:1002253" value="0.521"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
-				<UserParam type="float" name="MS:1002255" value="159.8"/>
-				<UserParam type="float" name="MS:1002256" value="2"/>
-				<UserParam type="float" name="MS:1002257" value="54.9"/>
+				<UserParam type="float" name="MS:1002253" value="0.074"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
+				<UserParam type="float" name="MS:1002255" value="159.800000000000011"/>
+				<UserParam type="float" name="MS:1002256" value="2.0"/>
+				<UserParam type="float" name="MS:1002257" value="54.899999999999999"/>
 			</PeptideHit>
-			<PeptideHit score="74.2" sequence="YPRGVK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_3" >
+			<PeptideHit score="74.200000000000003" sequence="YPRGVK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_3" >
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="10"/>
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.548"/>
-				<UserParam type="float" name="MS:1002253" value="0.641"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
-				<UserParam type="float" name="MS:1002255" value="79.2"/>
-				<UserParam type="float" name="MS:1002256" value="4"/>
-				<UserParam type="float" name="MS:1002257" value="74.2"/>
+				<UserParam type="float" name="MS:1002253" value="0.251"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
+				<UserParam type="float" name="MS:1002255" value="79.200000000000003"/>
+				<UserParam type="float" name="MS:1002256" value="4.0"/>
+				<UserParam type="float" name="MS:1002257" value="74.200000000000003"/>
 			</PeptideHit>
-			<PeptideHit score="190" sequence="KTSASVK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_4" >
+			<PeptideHit score="190.0" sequence="KTSASVK" charge="2" aa_before="-" aa_after="-" protein_refs="PH_4" >
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="12"/>
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.411"/>
-				<UserParam type="float" name="MS:1002253" value="1"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
+				<UserParam type="float" name="MS:1002253" value="1.0"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
 				<UserParam type="float" name="MS:1002255" value="32.5"/>
-				<UserParam type="float" name="MS:1002256" value="5"/>
-				<UserParam type="float" name="MS:1002257" value="190"/>
+				<UserParam type="float" name="MS:1002256" value="5.0"/>
+				<UserParam type="float" name="MS:1002257" value="190.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="360.161240365233" RT="1202.7" spectrum_reference="scan=1569" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="360.161240365233368" RT="1202.700000000000046" spectrum_reference="scan=1569" >
 			<PeptideHit score="2.64" sequence="VFNPPVDYK" charge="3" aa_before="-" aa_after="-" protein_refs="PH_5" >
 				<UserParam type="string" name="MS:1002258" value="9"/>
 				<UserParam type="string" name="MS:1002259" value="32"/>
 				<UserParam type="string" name="num_matched_peptides" value="2"/>
 				<UserParam type="float" name="MS:1002252" value="1.326"/>
 				<UserParam type="float" name="MS:1002253" value="0.226"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
-				<UserParam type="float" name="MS:1002255" value="183.3"/>
-				<UserParam type="float" name="MS:1002256" value="2"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
+				<UserParam type="float" name="MS:1002255" value="183.300000000000011"/>
+				<UserParam type="float" name="MS:1002256" value="2.0"/>
 				<UserParam type="float" name="MS:1002257" value="2.64"/>
 			</PeptideHit>
-			<PeptideHit score="13" sequence="ARMEDITIK" charge="3" aa_before="-" aa_after="-" protein_refs="PH_6" >
+			<PeptideHit score="13.0" sequence="ARMEDITIK" charge="3" aa_before="-" aa_after="-" protein_refs="PH_6" >
 				<UserParam type="string" name="MS:1002258" value="11"/>
 				<UserParam type="string" name="MS:1002259" value="32"/>
 				<UserParam type="string" name="num_matched_peptides" value="2"/>
 				<UserParam type="float" name="MS:1002252" value="1.026"/>
-				<UserParam type="float" name="MS:1002253" value="1"/>
-				<UserParam type="float" name="MS:1002254" value="0"/>
-				<UserParam type="float" name="MS:1002255" value="266.1"/>
-				<UserParam type="float" name="MS:1002256" value="1"/>
-				<UserParam type="float" name="MS:1002257" value="13"/>
+				<UserParam type="float" name="MS:1002253" value="1.0"/>
+				<UserParam type="float" name="MS:1002254" value="0.0"/>
+				<UserParam type="float" name="MS:1002255" value="266.100000000000023"/>
+				<UserParam type="float" name="MS:1002256" value="1.0"/>
+				<UserParam type="float" name="MS:1002257" value="13.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

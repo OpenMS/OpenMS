@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ using namespace std;
 /**
         @page UTILS_MetaboliteSpectralMatcher MetaboliteSpectralMatcher
 
-        @brief MetaboliteSpectralMatcher identify small molecules from tandem MS spectra.
+        @brief MetaboliteSpectralMatcher identifies small molecules from tandem MS spectra using a spectral library.
 
         <CENTER>
         <table>
@@ -71,12 +71,6 @@ using namespace std;
         </tr>
         </table>
         </CENTER>
-
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_MetaboliteSpectralMatcher.cli
-
-
-        MetaboliteSpectralMatcher matches spectra from a spectral library with tandem MS spectra.
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_MetaboliteSpectralMatcher.cli

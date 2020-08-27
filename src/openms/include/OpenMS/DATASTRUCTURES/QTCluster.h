@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,6 @@
 #include <vector> // for vector<>
 #include <set> // for set<>
 #include <utility> // for pair<>
-
 
 namespace OpenMS
 {
@@ -110,124 +109,134 @@ namespace OpenMS
 */
   class OPENMS_DLLAPI QTCluster
   {
-private:
-
-    // need to store more than one
-    typedef std::multimap<double, GridFeature*> NeighborListType;
-    typedef OpenMSBoost::unordered_map<Size, NeighborListType> NeighborMapMulti;
-
-    typedef std::pair<double, GridFeature*> NeighborPairType;
-    typedef OpenMSBoost::unordered_map<Size, NeighborPairType> NeighborMap;
-
-    /// Pointer to the cluster center
-    GridFeature* center_point_;
-
-    /**
-     * @brief Map that keeps track of the best current feature for each map
-     *
-     */
-    NeighborMap neighbors_;
-
-    /**
-     * @brief Temporary map tracking *all* neighbors
-     *
-     * For each input run, a multimap which contains pointers to all
-     * neighboring elements and the respective distance.
-     *
-     */
-    NeighborMapMulti* tmp_neighbors_;
-
-    /// Maximum distance of a point that can still belong to the cluster
-    double max_distance_;
-
-    /// Number of input maps
-    Size num_maps_;
-
-    /// Quality of the cluster
-    double quality_;
-
-    /// Has the cluster changed (if yes, quality needs to be recomputed)?
-    bool changed_;
-
-    /// Keep track of peptide IDs and use them for matching?
-    bool use_IDs_;
-
-    /// Whether current cluster is valid
-    bool valid_;
-
-    /** 
-     * @brief Whether initial collection of all neighbors is needed
-     *
-     * This variable stores whether we need to collect all annotations first
-     * before we can decide upon the best set of cluster points. This is
-     * usually only necessary if the center point does not have an annotation
-     * but we want to use ids.
-     *
-    */
-    bool collect_annotations_;
-
-    /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
-    bool finalized_;
-
-    /// x coordinate in the grid cell
-    Int x_coord_;
-
-    /// y coordinate in the grid cell
-    Int y_coord_;
-
-    /**
-     * @brief Set of annotations of the cluster
-     *
-     * The set of peptide sequences that is compatible to the cluster center
-     * and results in the best cluster quality.
-     */
-    std::set<AASequence> annotations_;
-
-    /// Base constructor (not accessible)
-    QTCluster();
-
-    /// Computes the quality of the cluster
-    void computeQuality_();
-
-    /**
-     * @brief Finds the optimal annotation (peptide sequences) for the cluster
-     *
-     * The optimal annotation is the one that results in the best quality. It
-     * is stored in @p annotations_;
-     *
-     * This function is only needed when peptide ids are used and the current
-     * center point does not have any peptide id associated with it. In this
-     * case, it is not clear which peptide id the current cluster should use.
-     * The function thus iterates through all possible peptide ids and selects
-     * the one producing the best cluster.
-     *
-     * This function needs access to all possible neighbors for this cluster
-     * and thus can only be run when tmp_neighbors_ is filled (which is during
-     * the filling of a cluster). The function thus cannot be called after
-     * finalizing the cluster.
-     *
-     * @returns The total distance between cluster elements and the center.
-     */
-    double optimizeAnnotations_();
-
 public:
 
+    // need to store more than one
+    typedef std::multimap<double, const GridFeature*> NeighborList;
+    typedef OpenMSBoost::unordered_map<Size, NeighborList> NeighborMapMulti;
+
+    struct Neighbor
+    {
+      double distance;
+      const GridFeature* feature;
+    };
+
+    typedef OpenMSBoost::unordered_map<Size, Neighbor> NeighborMap;
+
+    struct Element
+    {
+      Size map_index;
+      const GridFeature* feature;
+    };
+
+    typedef std::vector<Element> Elements;
+
+    /** 
+     * @brief Class to store the bulk internal data (neighbors, annotations, etc.)
+     * 
+     * Has no functionality without a QTCluster pointing to it.
+     * Create object of this class before calling constructor of QTCluster
+     */
+    class OPENMS_DLLAPI BulkData
+    {
+      friend class QTCluster;
+
+      public:
+
+        /**
+         * @brief Detailed constructor of the cluster body
+         * @param center_point Pointer to the center point
+         * @param num_maps Number of input maps
+         * @param max_distance Maximum allowed distance of two points
+         * @param id Unique ID of this cluster
+         */
+        BulkData(const OpenMS::GridFeature* const center_point, 
+                Size num_maps, double max_distance,
+                Int x_coord, Int y_coord, Size id);
+      
+      private:
+
+        /// Pointer to the cluster center
+        const GridFeature* const center_point_;
+
+        /// unique id of this cluster
+        Size id_;
+
+        /**
+         * @brief Map that keeps track of the best current feature for each map
+         *
+         */
+        NeighborMap neighbors_;
+
+        /**
+         * @brief Temporary map tracking *all* neighbors
+         *
+         * For each input run, a multimap which contains pointers to all
+         * neighboring elements and the respective distance.
+         *
+         */
+        NeighborMapMulti tmp_neighbors_;
+
+        /// Maximum distance of a point that can still belong to the cluster
+        double max_distance_;
+
+        /// Number of input maps
+        Size num_maps_;
+
+        /// x coordinate in the grid cell
+        Int x_coord_;
+
+        /// y coordinate in the grid cell
+        Int y_coord_;
+
+        /**
+         * @brief Set of annotations of the cluster
+         *
+         * The set of peptide sequences that is compatible to the cluster center
+         * and results in the best cluster quality.
+         */
+        std::set<AASequence> annotations_;
+    };
+
     /**
-     * @brief Detailed constructor
-     * @param center_point Pointer to the center point
-     * @param num_maps Number of input maps
-     * @param max_distance Maximum allowed distance of two points
+     * @brief Detailed constructor of the cluster head
+     * @param data Pointer to internal data
      * @param use_IDs Use peptide annotations?
      */
-    QTCluster(GridFeature* center_point, Size num_maps,
-              double max_distance, bool use_IDs, 
-              Int x_coord, Int y_coord);
 
-    /// Destructor
-    virtual ~QTCluster();
+    QTCluster(BulkData* const data, bool use_IDs);
+
+    /** 
+     * @brief Default constructor not accessible
+     * Objects of this class should only exist with a valid BulkData* given.
+     * Otherwise most of the member functions are undefined behavior or produce segfaults
+     */
+    QTCluster() = delete;
+
+    /** 
+     * @brief Cheap copy ctor because most of the data lies outside of this class (BulkData*)
+     * Be very careful with this copy constructor. The copy will point to the same
+     * BulkData object as the given QTCluster. The latter one shouldn't be used anymore.
+     * This operation is only allowed because the boost::heap interface needs it.
+     */
+    QTCluster(const QTCluster& rhs) = default;
+
+    /// Cheap copy assignment, see copy ctor for details
+    QTCluster& operator=(const QTCluster& rhs) = default;
+
+    /// cheap move ctor because most of the data lies outside of this class (BulkData*)
+    QTCluster(QTCluster&& rhs) = default;
+
+    /// cheap move assignment because most of the data lies outside of this class (BulkData*)
+    QTCluster& operator=(QTCluster&& rhs) = default;
+
+    ~QTCluster() = default;
 
     /// Returns the cluster center
-    GridFeature* getCenterPoint();
+    const GridFeature* getCenterPoint() const;
+
+    /// returns the clusters id
+    Size getId() const;
 
     /// Returns the RT value of the cluster
     double getCenterRT() const;
@@ -245,7 +254,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(QTCluster& cluster);
+    bool operator<(const QTCluster& cluster);
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -253,10 +262,10 @@ public:
      * @param element The element to be added
      * @param distance Distance of the element to the center point
      */
-    void add(GridFeature* element, double distance);
+    void add(const GridFeature* const element, double distance);
 
-    /// Gets the clustered elements
-    void getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements);
+    /// Gets the clustered elements meaning neighbors + cluster center
+    Elements getElements() const;
 
     /**
      * @brief Updates the cluster after the indicated data points are removed
@@ -265,10 +274,13 @@ public:
      *
      * @return Whether the cluster composition has changed due to the update
      */
-    bool update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed);
+    bool update(const Elements& removed);
 
-    /// Returns the cluster quality
+    /// Returns the cluster quality and recomputes if necessary
     double getQuality();
+
+    /// Returns the cluster quality without recomputing
+    double getCurrentQuality() const;
 
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence>& getAnnotations();
@@ -295,7 +307,69 @@ public:
     void finalizeCluster();
 
     /// Get all current neighbors
-    OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > getAllNeighbors();
-  };
-} // namespace OpenMS
+    Elements getAllNeighbors() const;
 
+    private:
+      /// Computes the quality of the cluster
+      void computeQuality_();
+
+      /**
+       * @brief Finds the optimal annotation (peptide sequences) for the cluster
+       *
+       * The optimal annotation is the one that results in the best quality. It
+       * is stored in @p annotations_;
+       *
+       * This function is only needed when peptide ids are used and the current
+       * center point does not have any peptide id associated with it. In this
+       * case, it is not clear which peptide id the current cluster should use.
+       * The function thus iterates through all possible peptide ids and selects
+       * the one producing the best cluster.
+       *
+       * This function needs access to all possible neighbors for this cluster
+       * and thus can only be run when tmp_neighbors_ is filled (which is during
+       * the filling of a cluster). The function thus cannot be called after
+       * finalizing the cluster.
+       *
+       * @returns The total distance between cluster elements and the center.
+       */
+      double optimizeAnnotations_();
+
+      /// compute seq table, mapping: peptides -> best distance per input map
+      void makeSeqTable_(std::map<std::set<AASequence>, std::vector<double>>& seq_table) const;
+      
+      /// report elements that are compatible with the optimal annotation
+      void recomputeNeighbors_();
+
+      /// Quality of the cluster
+      double quality_;
+
+      /// Pointer to data members
+      BulkData* data_;
+
+      /// Whether current cluster is valid
+      bool valid_;
+
+      /// Has the cluster changed (if yes, quality needs to be recomputed)?
+      bool changed_;
+
+      /// Keep track of peptide IDs and use them for matching?
+      bool use_IDs_;
+
+      /** 
+       * @brief Whether initial collection of all neighbors is needed
+       *
+       * This variable stores whether we need to collect all annotations first
+       * before we can decide upon the best set of cluster points. This is
+       * usually only necessary if the center point does not have an annotation
+       * but we want to use ids.
+       *
+      */
+      bool collect_annotations_;
+
+      /// Whether current cluster is accepting new elements or not (if true, no more new elements allowed)
+      bool finalized_;
+  };
+
+  // needed for the heap
+  bool operator<(const QTCluster& q1, const QTCluster& q2);
+} // namespace OpenMS

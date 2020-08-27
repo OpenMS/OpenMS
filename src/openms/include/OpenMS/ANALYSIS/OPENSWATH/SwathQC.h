@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,9 +101,9 @@ namespace OpenSwath
       determine the charge states of all isotopic envelopes and return their total counts
       using getSpectraProcessingFunc().
 
-      @param [IN] swath_maps Swath maps of mixed ms-level
-      @param [IN] nr_samples Number of spectra to sample per Swath map. To sample all spectra, set to -1
-      @param [IN] mz_tol     Error tolerance in Th in which an isotopic peak is expected (assuming C12-C13 distance)
+      @param[in] swath_maps Swath maps of mixed ms-level
+      @param[in] nr_samples Number of spectra to sample per Swath map. To sample all spectra, set to -1
+      @param[in] mz_tol     Error tolerance in Th in which an isotopic peak is expected (assuming C12-C13 distance)
       @return Distribution of charge (key = charge, value = counts)
 
       @throw Exception::Postcondition if Deisotoper did not return charge data
@@ -143,9 +143,9 @@ namespace OpenSwath
 
       If the total number of spectra is unknown, pass 0 as first argument, which will return true for every query, i.e. sample everything.
 
-      @param [IN] total_spec_count Total number of spectra expected
-      @param [IN] subsample_count Number of spectra which should be sampled from @p total_spec_count
-      @param [IN] idx Index of the spectrum under question
+      @param[in] total_spec_count Total number of spectra expected
+      @param[in] subsample_count Number of spectra which should be sampled from @p total_spec_count
+      @param[in] idx Index of the spectrum under question
 
     */
     static bool isSubsampledSpectrum_(const size_t total_spec_count, const size_t subsample_count, const size_t idx);

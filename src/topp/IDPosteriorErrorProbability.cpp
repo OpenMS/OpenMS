@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -159,6 +159,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
+    String outlier_handling = fit_algorithm.getValue("outlier_handling");
 
     //-------------------------------------------------------------
     // reading input
@@ -221,7 +222,10 @@ protected:
       }
 
       // fit to score vector
-      bool return_value = PEP_model.fit(score.second[0]);
+      //TODO choose outlier handling based on search engine? If not set by user?
+      //XTandem is prone to accumulation at min values/censoring
+      //OMSSA is prone to outliers
+      bool return_value = PEP_model.fit(score.second[0], outlier_handling);
 
       if (!return_value) 
       {
@@ -261,6 +265,22 @@ protected:
         {
           writeLog_(String("Data might not be well fitted for search engine: ") + engine);
         }
+      }
+    }
+    // Unfortunately this cannot go into the algorithm since
+    // you would overwrite some score types before they are extracted when you
+    // do split_charge
+    for (auto& pep : peptide_ids)
+    {
+      if (prob_correct)
+      {
+        pep.setScoreType("Posterior Probability");
+        pep.setHigherScoreBetter(true);
+      }
+      else
+      {
+        pep.setScoreType("Posterior Error Probability");
+        pep.setHigherScoreBetter(false);
       }
     }
     //-------------------------------------------------------------

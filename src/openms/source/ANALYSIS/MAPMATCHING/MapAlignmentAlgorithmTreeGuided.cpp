@@ -63,9 +63,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MapAlignmentAlgorithmTreeGuided::~MapAlignmentAlgorithmTreeGuided()
-  {
-  }
+  MapAlignmentAlgorithmTreeGuided::~MapAlignmentAlgorithmTreeGuided() = default;
 
   void MapAlignmentAlgorithmTreeGuided::updateMembers_()
   {
@@ -177,7 +175,7 @@ namespace OpenMS
 
   // Align feature maps tree guided using align() of MapAlignmentAlgorithmIdentification and use TreeNode with larger 10/90 percentile range as reference.
   void MapAlignmentAlgorithmTreeGuided::treeGuidedAlignment(const std::vector<BinaryTreeNode>& tree,
-                                                            std::vector<FeatureMap> feature_maps_transformed,
+                                                            std::vector<FeatureMap>& feature_maps_transformed,
                                                             std::vector<std::vector<double>>& maps_ranges,
                                                             FeatureMap& map_transformed,
                                                             std::vector<Size>& trafo_order)
@@ -195,6 +193,14 @@ namespace OpenMS
 
     Size ref;
     Size to_transform;
+
+    // check RT ranges of IDs
+    for (size_t i = 0; i < maps_ranges.size(); ++i)
+    {
+      StringList p;
+      feature_maps_transformed[i].getPrimaryMSRunPath(p);
+      if (maps_ranges[i].empty()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureMap originating from '" + ListUtils::concatenate(p, "', '") + "' contains no Peptide Identifications. Cannot align!");
+    }
 
     for (const auto& node : tree)
     {
@@ -219,7 +225,6 @@ namespace OpenMS
       vector<double> tmp;
       std::merge(maps_ranges[node.right_child].begin(), maps_ranges[node.right_child].end(), maps_ranges[node.left_child].begin(), maps_ranges[node.left_child].end(), std::back_inserter(tmp));
 
-      last_trafo = to_transform;
       to_align.push_back(feature_maps_transformed[to_transform]);
       to_align.push_back(feature_maps_transformed[ref]);
 
@@ -233,10 +238,21 @@ namespace OpenMS
       MapAlignmentTransformer::transformRetentionTimes(feature_maps_transformed[to_transform],
               transformations_align[0], true);
 
-      // combine aligned maps, store in both, because tree always calls smaller number
+      // combine aligned maps, store at smaller index, because tree always calls smaller number
+      // clear feature map at larger index to save memory
       feature_maps_transformed[ref] += feature_maps_transformed[to_transform];
       feature_maps_transformed[ref].updateRanges();
-      feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+      if (ref < to_transform)
+      {
+        feature_maps_transformed[to_transform].clear(true);
+        last_trafo = ref;
+      }
+      else
+      {
+        feature_maps_transformed[to_transform] = feature_maps_transformed[ref];
+        feature_maps_transformed[ref].clear(true);
+        last_trafo = to_transform;
+      }
 
       // update order of alignment for both aligned maps
       map_sets[ref].insert(map_sets[ref].end(), map_sets[to_transform].begin(), map_sets[to_transform].end());

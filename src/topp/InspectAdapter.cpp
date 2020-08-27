@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -152,11 +153,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
-                                           "Note: In mode 'inspect_out' an Inspect results file is read.");
-    setValidFormats_("in", ListUtils::create<String>("mzXML,mzData"));
+                                           "Note: In mode 'inspect_out' an Inspect results (txt) file is read.");
+    setValidFormats_("in", ListUtils::create<String>("mzXML,mzData,txt"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
-                                             "Note: In mode 'inspect_in' an Inspect input file is written.");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+                                             "Note: In mode 'inspect_in' an Inspect input file is written as txt.");
+    setValidFormats_("out", ListUtils::create<String>("idXML,txt"));
     registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
                                 "write an Inspect input file and generate a trie database");
     registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
@@ -182,8 +183,10 @@ protected:
     registerFlag_("use_monoisotopic_mod_mass", "use monoisotopic masses for the modifications");
     registerStringOption_("modifications_xml_file", "<file>", "", "name of an XML file with the modifications", false);
     registerStringOption_("cleavage", "<enz>", "Trypsin", "the enzyme used for digestion", false);
-    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
-    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false); // TODO: Which file format?
+    registerOutputFile_("inspect_output", "<file>", "", "name for the output file of Inspect (may only be used in a full run)", false);
+    setValidFormats_("inspect_output", ListUtils::create<String>("txt"));
+    registerInputFile_("inspect_input", "<file>", "", "name for the input file of Inspect (may only be used in a full run)", false);
+    setValidFormats_("inspect_input", ListUtils::create<String>("txt"));
     registerFlag_("multicharge", "attempt to guess the precursor charge and mass,\n"
                                  "and consider multiple charge states if feasible");
     registerIntOption_("max_modifications_pp", "<num>", -1, "number of PTMs permitted in a single peptide.", false);
@@ -873,6 +876,13 @@ protected:
           if (exit_code == EXECUTION_OK)
           {
             vector<ProteinIdentification> protein_identifications(1, protein_identification);
+
+            // write all (!) parameters as metavalues to the search parameters
+            if (!protein_identifications.empty())
+            {
+              DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+            }
+
             idXML_file.store(output_filename, protein_identifications, peptide_identifications);
           }
         }

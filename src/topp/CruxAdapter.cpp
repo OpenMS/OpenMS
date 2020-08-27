@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -143,7 +144,7 @@ protected:
     setValidStrings_("precursor_mass_units", ListUtils::create<String>("mass,mz,ppm"));
     registerDoubleOption_("fragment_bin_offset", "<offset>", 0.0, "In the discretization of the m/z axes of the observed and theoretical spectra, this parameter specifies the location of the left edge of the first bin, relative to mass = 0 (i.e., mz-bin-offset = 0.xx means the left edge of the first bin will be located at +0.xx Da).", false, false);
     registerDoubleOption_("fragment_bin_width", "<width>", 0.02, "Before calculation of the XCorr score, the m/z axes of the observed and theoretical spectra are discretized. This parameter specifies the size of each bin. The exact formula for computing the discretized m/z value is floor((x/mz-bin-width) + 1.0 - mz-bin-offset), where x is the observed m/z value. For low resolution ion trap ms/ms data 1.0005079 and for high resolution ms/ms 0.02 is recommended.", false, false);
-    registerStringOption_("isotope_error", "<choice>", "", "List of positive, non-zero integers.", false, false);
+    registerStringOption_(Constants::UserParam::ISOTOPE_ERROR, "<choice>", "", "List of positive, non-zero integers.", false, false);
 
     registerStringOption_("run_percolator", "<true/false>", "true", "Whether to run percolator after tide-search", false, false);
     setValidStrings_("run_percolator", ListUtils::create<String>("true,false"));
@@ -159,10 +160,10 @@ protected:
     registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, true);
     registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, true);
 
-    registerStringOption_("decoy-format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
-    setValidStrings_("decoy-format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
-    registerStringOption_("keep-terminal-aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
-    setValidStrings_("keep-terminal-aminos", ListUtils::create<String>("N,C,NC,none"));
+    registerStringOption_("decoy_format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
+    setValidStrings_("decoy_format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
+    registerStringOption_("keep_terminal_aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
+    setValidStrings_("keep_terminal_aminos", ListUtils::create<String>("N,C,NC,none"));
 
     //Modifications
     registerStringOption_("cterm_modifications", "<mods>", "", "Specifies C-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of C-terminal modification sequences of the form: X+21.9819 Default = <empty>.", false, false);
@@ -186,24 +187,6 @@ protected:
       arg = arg.substr(1, arg.size());
     }
     return arg;
-  }
-
-  void removeTempDir_(const String& tmp_dir)
-  {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) 
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      }
-      File::removeDirRecursively(tmp_dir);
-    }
   }
 
   ExitCodes main_(int, const char**) override
@@ -255,14 +238,14 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = makeAutoRemoveTempDirectory_();
+    File::TempDir tmp_dir(debug_level_ >= 2);
 
-    String output_dir = tmp_dir + "crux-output";
+    String output_dir = tmp_dir.getPath() + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
     String concat = " --concat T"; // concat target and decoy
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
-    String tmp_mzml = tmp_dir + "input.mzML";
+    String tmp_mzml = tmp_dir.getPath() + "input.mzML";
 
     // Low memory conversion
     {
@@ -279,7 +262,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
     String crux_executable = getStringOption_("crux_executable");
-    String idx_name = tmp_dir + "tmp_idx";
+    String idx_name = tmp_dir.getPath() + "tmp_idx";
 
     // create index
     {
@@ -287,8 +270,8 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
-      params += " --decoy-format " + getStringOption_("decoy-format");
-      params += " --keep-terminal-aminos " + getStringOption_("keep-terminal-aminos");
+      params += " --decoy-format " + getStringOption_("decoy_format");
+      params += " --keep-terminal-aminos " + getStringOption_("keep_terminal_aminos");
       if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
       if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
       if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
@@ -343,7 +326,7 @@ protected:
       params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
       params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
       if (deisotope) params += " --deisotope ";
-      if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
+      if (!getStringOption_(Constants::UserParam::ISOTOPE_ERROR).empty()) params += " --isotope-error " + getStringOption_(Constants::UserParam::ISOTOPE_ERROR);
 
       // add extra arguments passed on the command-line (pass through args)
       if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
@@ -480,6 +463,12 @@ protected:
         protID.setSearchEngine("tide-search");
         protID.setSearchParameters(sp);
       }
+    }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);

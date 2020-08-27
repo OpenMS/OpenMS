@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="InferenceEngine" value="TOPPProteinInference"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-fix-MzTabSearchEngines-2020-08-20"/>
+				<UserParam type="string" name="TOPPProteinInference:aggregation_method" value="maximum"/>
+				<UserParam type="int" name="TOPPProteinInference:use_shared_peptides" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_charge_variants_separately" value="1"/>
+				<UserParam type="int" name="TOPPProteinInference:treat_modification_variants_separately" value="1"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="tr|A9GID7|A9GID7_SORC5" score="0.25" coverage="4.40528634361233" sequence="MFELLRGAPAPALAALRVLRHRLDQRRAGEPLAVAVVSPGRAEGKTALAVRLAMTLAEAERARVLLVDGHLACPRVAATLGLRLPAHASFSEQLRRRMAGETRPLGVIAVSQSLSVLAEPSLEASYPAALHSVHFEAAMRTLRRYHDYVVIDGPPILGSGDANVIEDASDGVVLVARASLTRASSLTSAAEQLGDRRILGVVLNDVAPRPVARKRVCIDGAPAGQSA">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce3093 PE=4 SV=1"/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="1.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="P00761|TRYP_PIG" score="0.25" coverage="7.79220779220779" sequence="FPTDDDDKIVGGYTCAANSIPYQVSLNSGSHFCGGSLINSQWVVSAAHCYKSRIQVRLGEHNIDVLEGNEQFINAAKIITHPNFNGNTLDNDIMLIKLSSPATLNSRVATVSLPRSCAAAGTECLISGWGNTKSSGSSYPSLLQCLKAPVLSDSSCKSSYPGQITGNMICVGFLEGGKDSCQGDSGGPVVCNGQLQGIVSWGYGCAQKNKPGVYTKVCNYVNWIQQTIAAN">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Trypsin - Sus scrofa (Pig)."/>
+				<UserParam type="int" name="nr_found_peptides" value="2"/>
+				<UserParam type="float" name="Posterior Probability_score" value="1.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="P02769|ALBU_BOVIN" score="0.25" coverage="40.1976935749588" sequence="MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Serum albumin - Bos taurus (Bovine)."/>
+				<UserParam type="int" name="nr_found_peptides" value="36"/>
+				<UserParam type="float" name="Posterior Probability_score" value="1.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML,share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML,share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML,share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML,share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML,share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.25,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.25,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.25,PH_0"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="tr|A9GID7|A9GID7_SORC5" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_5" accession="P00761|TRYP_PIG" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="tr|A9GID7|A9GID7_SORC5" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_3" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_8" accession="P00761|TRYP_PIG" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="tr|A9GID7|A9GID7_SORC5" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_4" date="2009-11-17T11:11:11" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_11" accession="P00761|TRYP_PIG" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_5" date="2009-11-17T11:11:29" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_13" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_6" date="2009-11-17T11:11:44" search_engine="OMSSA" search_engine_version="2.1.4">
+		<SearchParameters db="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.05" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="FDR" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_14" accession="P02769|ALBU_BOVIN" score="0" sequence="">
+				<UserParam type="float" name="OMSSA_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML]"/>
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="358.174682617188" RT="1554.4921875" spectrum_reference="spectrum=2458" >
+		<PeptideHit score="0" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" aa_before="K" aa_after="D" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="6.24514018064888e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.832153320312" RT="1607.2958984375" spectrum_reference="spectrum=2475" >
+		<PeptideHit score="0.0454545454545455" sequence="LAMTLAEAER" charge="3" aa_before="R" aa_after="A" protein_refs="PH_4">
+			<UserParam type="float" name="OMSSA_score" value="0.134752265696133"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.832061767578" RT="1697.94360351562" spectrum_reference="spectrum=2518" >
+		<PeptideHit score="0.0344827586206897" sequence="LAMTLAEAER" charge="3" aa_before="R" aa_after="A" protein_refs="PH_4">
+			<UserParam type="float" name="OMSSA_score" value="0.032571399388864"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.325378417969" RT="1736.66821289062" spectrum_reference="spectrum=2547" >
+		<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.017342932170054"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="443.711242675781" RT="1738.03344726562" spectrum_reference="spectrum=2548" >
+		<PeptideHit score="0.0344827586206897" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="3.95109914742618e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="569.752807617188" RT="1750.91589355469" spectrum_reference="spectrum=2566" >
+		<PeptideHit score="0.0344827586206897" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="2.35357253308681e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="646.304504394531" RT="1759.0947265625" spectrum_reference="spectrum=2573" >
+		<PeptideHit score="0.0454545454545455" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.161429888187637"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="449.744232177734" RT="1776.05004882812" spectrum_reference="spectrum=2588" >
+		<PeptideHit score="0.0344827586206897" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.022766301777998"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="569.752258300781" RT="1793.82604980469" spectrum_reference="spectrum=2609" >
+		<PeptideHit score="0.0344827586206897" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.010817208055789"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="431.205261230469" RT="1797.83959960938" spectrum_reference="spectrum=2615" >
+		<PeptideHit score="0.0344827586206897" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.042177146646692"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="300.165954589844" RT="1800.23291015625" spectrum_reference="spectrum=2619" >
+		<PeptideHit score="0" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="3.43916960401279e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.32470703125" RT="1804.15795898438" spectrum_reference="spectrum=2624" >
+		<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="3.85390695500564e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="646.3037109375" RT="1804.53405761719" spectrum_reference="spectrum=2625" >
+		<PeptideHit score="0.0344827586206897" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="2" aa_before="K" aa_after="S" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.042362239661322"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="325.491180419922" RT="1840.79333496094" spectrum_reference="spectrum=2663" >
+		<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.060212042200669"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732299804688" RT="1875.54736328125" spectrum_reference="spectrum=2716" >
+		<PeptideHit score="0.0344827586206897" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.043574798053993"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732391357422" RT="1906.96594238281" spectrum_reference="spectrum=2769" >
+		<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.091766851594829"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.327209472656" RT="1918.60864257812" spectrum_reference="spectrum=2791" >
+		<PeptideHit score="0.0344827586206897" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.032659959040807"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="395.239349365234" RT="1933.40515136719" spectrum_reference="spectrum=2811" >
+		<PeptideHit score="0" sequence="LVTDLTK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="1.08437147303181e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732177734375" RT="1942.3701171875" spectrum_reference="spectrum=2828" >
+		<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.091851492066464"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="300.165802001953" RT="1949.05554199219" spectrum_reference="spectrum=2841" >
+		<PeptideHit score="0.0454545454545455" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.188627296280199"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="300.166046142578" RT="1970.11474609375" spectrum_reference="spectrum=2880" >
+		<PeptideHit score="0.0454545454545455" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_3">
+			<UserParam type="float" name="OMSSA_score" value="0.070787251463468"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="552.744079589844" RT="1520.14294433594" spectrum_reference="spectrum=2314" >
+		<PeptideHit score="0" sequence="LAMTLAEAER" charge="2" aa_before="R" aa_after="A" protein_refs="PH_7">
+			<UserParam type="float" name="OMSSA_score" value="0.038471099932679"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="508.245635986328" RT="1520.49755859375" spectrum_reference="spectrum=2315" >
+		<PeptideHit score="0" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.037770447058217"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="300.165985107422" RT="1666.36279296875" spectrum_reference="spectrum=2391" >
+		<PeptideHit score="0.0476190476190476" sequence="LC(Carbamidomethyl)VLHEK" charge="3" aa_before="R" aa_after="T" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="1.01892240818698"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="449.744079589844" RT="1668.20104980469" spectrum_reference="spectrum=2393" >
+		<PeptideHit score="0" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="5.80345524445421e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="508.246765136719" RT="1672.48266601562" spectrum_reference="spectrum=2402" >
+		<PeptideHit score="0" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.021689900203972"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="569.752807617188" RT="1683.76110839844" spectrum_reference="spectrum=2419" >
+		<PeptideHit score="0" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="4.902165713837331e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="443.71142578125" RT="1697.93835449219" spectrum_reference="spectrum=2440" >
+		<PeptideHit score="0" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="1.93445540304764e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="558.594543457031" RT="1725.173828125" spectrum_reference="spectrum=2476" >
+		<PeptideHit score="0" sequence="QEPERNEC(Carbamidomethyl)FLSHK" charge="3" aa_before="K" aa_after="D" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.061156970596234"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1728.01306152344" spectrum_reference="spectrum=2481" >
+		<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="3.95473142553261e-07"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.73193359375" RT="1764.072265625" spectrum_reference="spectrum=2530" >
+		<PeptideHit score="0" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.095928319902701"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="325.491271972656" RT="1766.46264648438" spectrum_reference="spectrum=2534" >
+		<PeptideHit score="0" sequence="DLGEEHFK" charge="3" aa_before="K" aa_after="G" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.026443408891425"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="739.765686035156" RT="1790.20324707031" spectrum_reference="spectrum=2570" >
+		<PeptideHit score="0" sequence="ETYGDMADC(Carbamidomethyl)C(Carbamidomethyl)EK" charge="2" aa_before="R" aa_after="Q" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="2.25760111594976e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="674.286315917969" RT="1832.42224121094" spectrum_reference="spectrum=2625" >
+		<PeptideHit score="0.024390243902439" sequence="VASLRETYGDM(Oxidation)ADC(Carbamidomethyl)C(Carbamidomethyl)EK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.710129382201274"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="693.814819335938" RT="1846.52856445312" spectrum_reference="spectrum=2643" >
+		<PeptideHit score="0" sequence="YICDNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.067273252765758"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="751.809936523438" RT="1915.91174316406" spectrum_reference="spectrum=2748" >
+		<PeptideHit score="0" sequence="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="6.443823306861031e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747375488281" RT="1948.32080078125" spectrum_reference="spectrum=2794" >
+		<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.083592630142519"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="351.204498291016" RT="1983.37719726562" spectrum_reference="spectrum=2840" >
+		<PeptideHit score="0" sequence="GACLLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_6">
+			<UserParam type="float" name="OMSSA_score" value="0.137114172564097"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="421.758544921875" RT="1995.35205078125" spectrum_reference="spectrum=2856" >
+		<PeptideHit score="0" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_5">
+			<UserParam type="float" name="OMSSA_score" value="0.200433779317932"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="358.174530029297" RT="1533.16589355469" spectrum_reference="spectrum=2376" >
+		<PeptideHit score="0" sequence="SHC(Carbamidomethyl)IAEVEK" charge="3" aa_before="K" aa_after="D" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="6.76118991622199e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="368.832061767578" RT="1589.48608398438" spectrum_reference="spectrum=2387" >
+		<PeptideHit score="0" sequence="LAMTLAEAER" charge="3" aa_before="R" aa_after="A" protein_refs="PH_10">
+			<UserParam type="float" name="OMSSA_score" value="0.122028107978418"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="431.205749511719" RT="1705.23486328125" spectrum_reference="spectrum=2427" >
+		<PeptideHit score="0" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.13170405716256"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="449.744201660156" RT="1707.72644042969" spectrum_reference="spectrum=2431" >
+		<PeptideHit score="0" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.013380082223923"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="569.753356933594" RT="1710.49194335938" spectrum_reference="spectrum=2436" >
+		<PeptideHit score="0" sequence="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.12182263846671e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="443.711639404297" RT="1727.41552734375" spectrum_reference="spectrum=2458" >
+		<PeptideHit score="0" sequence="DDSPDLPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="7.06618639765107e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="541.241516113281" RT="1751.08020019531" spectrum_reference="spectrum=2475" >
+		<PeptideHit score="0" sequence="CC(Carbamidomethyl)TESLVNR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.027406318458874"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.324951171875" RT="1754.4775390625" spectrum_reference="spectrum=2477" >
+		<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="7.116147996047729e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.324890136719" RT="1774.8974609375" spectrum_reference="spectrum=2500" >
+		<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.067206203568415"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="523.284973144531" RT="1781.71240234375" spectrum_reference="spectrum=2510" >
+		<PeptideHit score="0" sequence="LSSPATLNSR" charge="2" aa_before="K" aa_after="V" protein_refs="PH_8">
+			<UserParam type="float" name="OMSSA_score" value="0.237775923688299"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732513427734" RT="1788.2138671875" spectrum_reference="spectrum=2515" >
+		<PeptideHit score="0" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.018619230664851"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="508.248138427734" RT="1813.642578125" spectrum_reference="spectrum=2545" >
+		<PeptideHit score="0" sequence="SHCIAEVEK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.162925684160918"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="693.815307617188" RT="1880.10424804688" spectrum_reference="spectrum=2614" >
+		<PeptideHit score="0" sequence="YICDNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="0.014015137899773"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="1887.15539550781" spectrum_reference="spectrum=2624" >
+		<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="8.696044183457621e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="722.323974609375" RT="1897.23059082031" spectrum_reference="spectrum=2638" >
+		<PeptideHit score="0" sequence="YIC(Carbamidomethyl)DNQDTISSK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.27195931639723e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747711181641" RT="1946.79406738281" spectrum_reference="spectrum=2696" >
+		<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="2.2536185127512e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="751.810546875" RT="1947.00720214844" spectrum_reference="spectrum=2697" >
+		<PeptideHit score="0" sequence="EYEATLEEC(Carbamidomethyl)C(Carbamidomethyl)AK" charge="2" aa_before="K" aa_after="D" protein_refs="PH_9">
+			<UserParam type="float" name="OMSSA_score" value="6.18893768168827e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.71484375" RT="2010.87902832031" spectrum_reference="spectrum=2941" >
+		<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="1.67901373867858e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="487.732208251953" RT="2013.36364746094" spectrum_reference="spectrum=2946" >
+		<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="0.212602001856198"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.747497558594" RT="2015.59265136719" spectrum_reference="spectrum=2950" >
+		<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="2.96258184030238e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715118408203" RT="2032.04125976562" spectrum_reference="spectrum=2981" >
+		<PeptideHit score="0" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="1.15485160103966e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="461.74755859375" RT="2038.95886230469" spectrum_reference="spectrum=2993" >
+		<PeptideHit score="0" sequence="AEFVEVTK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="1.2753925040404e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="554.260375976562" RT="2058.83471679688" spectrum_reference="spectrum=3029" >
+		<PeptideHit score="0.0454545454545455" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="0.054859533530342"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="379.715393066406" RT="2069.04321289062" spectrum_reference="spectrum=3047" >
+		<PeptideHit score="0.0344827586206897" sequence="GAC(Carbamidomethyl)LLPK" charge="2" aa_before="K" aa_after="I" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="9.374879623785739e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="421.758056640625" RT="2091.08642578125" spectrum_reference="spectrum=3087" >
+		<PeptideHit score="0.0344827586206897" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_11">
+			<UserParam type="float" name="OMSSA_score" value="3.02546175573277e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="554.260559082031" RT="2098.17504882812" spectrum_reference="spectrum=3097" >
+		<PeptideHit score="0" sequence="EAC(Carbamidomethyl)FAVEGPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="4.91092752369064e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.909851074219" RT="2295.90209960938" spectrum_reference="spectrum=3307" >
+		<PeptideHit score="0.0344827586206897" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="0.013745856995003"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250213623047" RT="2321.49926757812" spectrum_reference="spectrum=3328" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="5.28980302830806e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250030517578" RT="2357.07421875" spectrum_reference="spectrum=3375" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="9.1724848717909e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250335693359" RT="2398.77709960938" spectrum_reference="spectrum=3445" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="4.18055390056644e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="501.794891357422" RT="2431.52172851562" spectrum_reference="spectrum=3482" >
+		<PeptideHit score="0.0454545454545455" sequence="LVVSTQTALA" charge="2" aa_before="K" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="0.128894553541144"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.910125732422" RT="2488.0380859375" spectrum_reference="spectrum=3542" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="3.09620313351901e-07"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.361755371094" RT="2490.31689453125" spectrum_reference="spectrum=3546" >
+		<PeptideHit score="0.0344827586206897" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="0.01175757198192"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="526.261108398438" RT="2495.662109375" spectrum_reference="spectrum=3554" >
+		<PeptideHit score="0" sequence="LKPDPNTLC(Carbamidomethyl)DEFK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_12">
+			<UserParam type="float" name="OMSSA_score" value="2.6056879779557e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.36181640625" RT="2211.3291015625" spectrum_reference="spectrum=3125" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="0.012661264887097"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.910797119141" RT="2211.69580078125" spectrum_reference="spectrum=3126" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="2.55714795835858e-07"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.361877441406" RT="2236.6865234375" spectrum_reference="spectrum=3167" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="3.69772364772338e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.910278320312" RT="2239.33520507812" spectrum_reference="spectrum=3172" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="1.10396016339594e-07"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="499.880798339844" RT="2240.0859375" spectrum_reference="spectrum=3174" >
+		<PeptideHit score="0.024390243902439" sequence="DDPHACYSTVFDK" charge="3" aa_before="K" aa_after="L" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="0.670964311055543"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250061035156" RT="2250.060546875" spectrum_reference="spectrum=3191" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="1.18336398159532e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="547.317077636719" RT="2281.44189453125" spectrum_reference="spectrum=3243" >
+		<PeptideHit score="0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="1.60478309243352e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="547.317260742188" RT="2320.04614257812" spectrum_reference="spectrum=3278" >
+		<PeptideHit score="0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="3.53616565959601e-12"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="501.794799804688" RT="2341.02001953125" spectrum_reference="spectrum=3304" >
+		<PeptideHit score="0" sequence="LVVSTQTALA" charge="2" aa_before="K" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="0.018136079089243"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="480.608703613281" RT="2412.92065429688" spectrum_reference="spectrum=3369" >
+		<PeptideHit score="0" sequence="RHPEYAVSVLLR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="9.077820128403891e-06"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="480.6083984375" RT="2448.30102539062" spectrum_reference="spectrum=3410" >
+		<PeptideHit score="0" sequence="RHPEYAVSVLLR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="1.59734773381327e-12"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="627.646362304688" RT="2476.88061523438" spectrum_reference="spectrum=3440" >
+		<PeptideHit score="0" sequence="RPC(Carbamidomethyl)FSALTPDETYVPK" charge="3" aa_before="R" aa_after="A" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="5.78187927541962e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="480.608581542969" RT="2487.84423828125" spectrum_reference="spectrum=3450" >
+		<PeptideHit score="0" sequence="RHPEYAVSVLLR" charge="3" aa_before="R" aa_after="L" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="6.99722411410769e-13"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="571.860717773438" RT="2492.93994140625" spectrum_reference="spectrum=3459" >
+		<PeptideHit score="0" sequence="KQTALVELLK" charge="2" aa_before="K" aa_after="H" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="2.62096624298549e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="381.576354980469" RT="2494.88159179688" spectrum_reference="spectrum=3462" >
+		<PeptideHit score="0" sequence="KQTALVELLK" charge="3" aa_before="K" aa_after="H" protein_refs="PH_13">
+			<UserParam type="float" name="OMSSA_score" value="2.89327520051305e-10"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="518.888854980469" RT="2194.63940429688" spectrum_reference="spectrum=2949" >
+		<PeptideHit score="0" sequence="DDPHAC(Carbamidomethyl)YSTVFDK" charge="3" aa_before="K" aa_after="L" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="0.050579170843896"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250274658203" RT="2235.77685546875" spectrum_reference="spectrum=2981" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="1.27135965878674e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="464.250244140625" RT="2250.23828125" spectrum_reference="spectrum=3003" >
+		<PeptideHit score="0" sequence="YLYEIAR" charge="2" aa_before="K" aa_after="R" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="9.77560215927779e-05"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.36181640625" RT="2250.44848632812" spectrum_reference="spectrum=3004" >
+		<PeptideHit score="0.0344827586206897" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="0.365782306094652"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="435.910461425781" RT="2251.568359375" spectrum_reference="spectrum=3007" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="3" aa_before="K" aa_after="Q" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="1.05306087801224e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="653.360290527344" RT="2272.67431640625" spectrum_reference="spectrum=3040" >
+		<PeptideHit score="0" sequence="HLVDEPQNLIK" charge="2" aa_before="K" aa_after="Q" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="0.01323390528043"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="547.31689453125" RT="2309.00219726562" spectrum_reference="spectrum=3075" >
+		<PeptideHit score="0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="6.02991436330375e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="547.316955566406" RT="2334.67919921875" spectrum_reference="spectrum=3106" >
+		<PeptideHit score="0" sequence="KVPQVSTPTLVEVSR" charge="3" aa_before="R" aa_after="S" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="7.4170075278921e-04"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="525.748657226562" RT="2409.91455078125" spectrum_reference="spectrum=3161" >
+		<PeptideHit score="0.0344827586206897" sequence="EACFAVEGPK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="0.747598320157949"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="504.618865966797" RT="2421.07788085938" spectrum_reference="spectrum=3168" >
+		<PeptideHit score="0" sequence="VPQVSTPTLVEVSR" charge="3" aa_before="K" aa_after="S" protein_refs="PH_14">
+			<UserParam type="float" name="OMSSA_score" value="2.36587294621807e-03"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<mapList count="6">
+		<map id="0" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML" unique_id="1" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</map>
+		<map id="1" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML" unique_id="2" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="2"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</map>
+		<map id="2" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML" unique_id="3" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="3"/>
+			<UserParam type="int" name="fraction" value="1"/>
+		</map>
+		<map id="3" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML" unique_id="4" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="1"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</map>
+		<map id="4" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML" unique_id="5" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="2"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</map>
+		<map id="5" name="/Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML" unique_id="6" label="label-free" size="0">
+			<UserParam type="int" name="fraction_group" value="3"/>
+			<UserParam type="int" name="fraction" value="2"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+	</consensusElementList>
+</consensusXML>
