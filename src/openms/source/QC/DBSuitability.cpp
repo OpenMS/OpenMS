@@ -104,17 +104,20 @@ namespace OpenMS
     double ratio = 0.5;
     vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, ratio);
     sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
+    calculateDecoys_(sampled_db);
     vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
 
     SuitabilityData sampled_data;
     calculateSuitability_(subsampled_ids, sampled_data);
 
-    double deNovo_slope = (sampled_data.num_top_novo - data.num_top_novo) / ratio;
-    Size deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
-    double db_slope = (sampled_data.num_top_db - data.num_top_db) / ratio;
-    Size db_intercept = 0;
+    double db_slope = (int(sampled_data.num_top_db) - int(data.num_top_db)) / (-ratio);
+    double deNovo_slope = (int(sampled_data.num_top_novo) - int(data.num_top_novo)) / (-ratio);
+    vector<FASTAFile::FASTAEntry> novo_with_decoy(novo_fasta);
+    calculateDecoys_(novo_with_decoy);
+    Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_with_decoy, search_info.first, search_info.second));
+    // db_intercept is estimated to be 0
 
-    double target_ratio = -(deNovo_intercept) / deNovo_slope;
+    double target_ratio = (-deNovo_intercept) / deNovo_slope;
     double db_hits_at_ratio = db_slope * target_ratio;
 
     double factor = db_hits_at_ratio / deNovo_intercept;
@@ -514,4 +517,29 @@ namespace OpenMS
 
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
-}
+
+  void DBSuitability::calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta)
+  {
+    vector<FASTAFile::FASTAEntry> decoys;
+    for (auto& entry : fasta)
+    {
+      ProteaseDigestion digestion;
+      digestion.setEnzyme("Trypsin");
+      std::vector<AASequence> peptides;
+      digestion.digest(AASequence::fromString(entry.sequence), peptides);
+      String new_sequence = "";
+      for (auto const& peptide : peptides)
+      {
+        OpenMS::TargetedExperiment::Peptide p;
+        p.sequence = peptide.toString();
+        OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, true, true, "");
+        new_sequence += decoy_p.sequence;
+      }
+      FASTAFile::FASTAEntry decoy_entry;
+      decoy_entry.sequence = new_sequence;
+      decoy_entry.identifier = "DECOY_" + entry.identifier;
+      decoys.push_back(decoy_entry);
+    }
+    fasta.insert(fasta.end(), decoys.begin(), decoys.end());
+  }
+}// namespace OpenMS

@@ -163,8 +163,8 @@ namespace OpenMS
     *                       identification search without FDR (currently only Comet-support)
     * @param exp            MSExperiment that was searched to produce the identifications
     *                       given in @p pep_ids
-    * @param fasta_data     FASTAEntries of the database used for the ID search
-    * @param novo_fasta     FASTAEntry derived from a deNovo peptides + its decoy entry
+    * @param fasta_data     FASTAEntries of the database used for the ID search (without decoys)
+    * @param novo_fasta     FASTAEntry derived from a deNovo peptides
     * @param search_params  SearchParameters object containing information which adapter
     *                       was used with which settings for the identification search
     *                       that resulted in @p pep_ids
@@ -287,6 +287,8 @@ namespace OpenMS
     std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio);
 
     void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data);
+
+    void calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta);
   };
 }
 

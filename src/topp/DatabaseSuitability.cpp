@@ -134,13 +134,13 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_id", "<file>", "", "Input idXML file from a peptide identification search with the database you wish to test. PeptideIndexer is needed, FDR is forbidden.");
+    registerInputFile_("in_id", "<file>", "", "Input idXML file from a peptide identification search with a combined database. PeptideIndexer is needed, FDR is forbidden.");
     setValidFormats_("in_id", { "idXML" });
     registerInputFile_("in_spec", "<file>", "", "Input MzML file used for the peptide identification");
     setValidFormats_("in_spec", { "mzML" });
     registerInputFile_("in_novo", "<file>", "", "Input idXML file containing de novo peptides (unfiltered)");
     setValidFormats_("in_novo", { "idXML" });
-    registerInputFile_("database", "<file>", "", "Input FASTA file used for the peptide identification (with decoys)");
+    registerInputFile_("database", "<file>", "", "Input FASTA file of the database in question (with decoys)");
     setValidFormats_("database", { "FASTA" });
     registerInputFile_("novo_database", "<file>", "", "Input deNovo sequences derived from MzML given in 'in_spec' concatenated to one FASTA entry (with decoy)");
     setValidFormats_("novo_database", { "FASTA" });
