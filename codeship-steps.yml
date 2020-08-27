@@ -1,4 +1,0 @@
-- name: openms_lib
-  tag: codeship
-  service: codeship_oms_test
-  command: echo "Done here!"
