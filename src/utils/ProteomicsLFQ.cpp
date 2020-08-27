@@ -1099,7 +1099,7 @@ protected:
       }
 
       IDConflictResolverAlgorithm::resolve(tmp,
-          getStringOption_("keep_feature_top_psm_only") == "true"); // keep only best peptide per feature per file
+          getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
       feature_maps.push_back(tmp);
       

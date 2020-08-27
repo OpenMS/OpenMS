@@ -2726,7 +2726,7 @@ Not sure how to handle these:
       {
         if (get<0>(name_version_score) == "Percolator")
         {
-          psm_score_type.fromCellString("[MS,MS:XXXXXXX,Percolator PSM-level q-value," + get<1>(name_version_score) + "]");
+          psm_score_type.fromCellString("[MS,MS:1001491,percolator:Q value," + get<1>(name_version_score) + "]");
           pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
         }
         else
@@ -2735,12 +2735,11 @@ Not sure how to handle these:
           pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
         }
       }
-      else if (get<0>(name_version_score).hasSubstring("ConsensusID"))
+      else if (get<0>(name_version_score).hasSubstring("ConsensusID") &&
+              (get<2>(name_version_score) == "Posterior Error Probability" || get<2>(name_version_score) == "pep"))
       {
-        {
-          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value," + get<1>(name_version_score) + "]");
+          psm_score_type.fromCellString("[MS,MS:10031153,OpenMS:ConsensusID PEP," + get<1>(name_version_score) + "]");
           pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
-        }
       }
       //TODO all the other dozens of search engines
       else
