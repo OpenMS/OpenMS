@@ -235,6 +235,8 @@ protected:
 public:
     MzTabParameter();
 
+    explicit MzTabParameter(const CVTerm& cv);
+
     bool isNull() const;
 
     void setNull(bool b);

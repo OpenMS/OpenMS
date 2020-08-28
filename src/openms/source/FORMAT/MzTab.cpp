@@ -767,7 +767,14 @@ namespace OpenMS
     name_(""),
     value_("")
   {
+  }
 
+  MzTabParameter::MzTabParameter(const CVTerm& cv)
+    : CV_label_(cv.getCVIdentifierRef()),
+    accession_(cv.getAccession()),
+    name_(cv.getName()),
+    value_(cv.getValue().toString())    
+  {
   }
 
   bool MzTabParameter::isNull() const
@@ -3410,6 +3417,12 @@ state0:
 
     MzTabParameter quantification_method;
     const String & experiment_type = consensus_map.getExperimentType();
+    const CVTerm & prot_quant_cv = consensus_map.getProteinLevelQuantification();
+    const CVTerm & pep_quant_cv = consensus_map.getPeptideLevelQuantification();
+
+    MzTabParameter protein_quantification_unit(prot_quant_cv);
+    MzTabParameter peptide_quantification_unit(pep_quant_cv);
+
     if (experiment_type == "label-free")
     {
       quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");
@@ -3422,13 +3435,8 @@ state0:
     {
       quantification_method.fromCellString("[PRIDE,PRIDE_0000317,MS2 based isotope labeling,]");
     }
-
     meta_data_.quantification_method = quantification_method;
-    MzTabParameter protein_quantification_unit;
-    protein_quantification_unit.fromCellString("[,,Abundance,]"); // TODO: add better term to obo
     meta_data_.protein_quantification_unit = protein_quantification_unit;
-    MzTabParameter peptide_quantification_unit;
-    peptide_quantification_unit.fromCellString("[,,Abundance,]");
     meta_data_.peptide_quantification_unit = peptide_quantification_unit;
 
     consensus_map.getPrimaryMSRunPath(ms_runs_);
