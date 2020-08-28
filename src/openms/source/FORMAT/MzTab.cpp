@@ -1879,7 +1879,7 @@ namespace OpenMS
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
-        const String key = ph_keys[k];
+        String key = ph_keys[k];
 
         // find matching entry in opt_ (TODO: speed this up)
         for (Size i = 0; i != row.opt_.size(); ++i)
