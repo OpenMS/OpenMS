@@ -125,7 +125,7 @@ using namespace boost::accumulators;
 //#define OPENNUXL_SEPARATE_FEATURES 1
 //#define DANGEROUS_FEAUTURES increases FDR on entrappment dataset
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
-//#define FILTER_AMBIGIOUS_PEAKS 
+//#define FILTER_AMBIGIOUS_PEAKS  so far only worse results
 //#define FILTER_NO_ARBITRARY_TAG_PRESENT
 #define CALCULATE_LONGEST_TAG
 //#define MODDS_ON_ABY_IONS_ONLY
@@ -148,7 +148,7 @@ typedef accumulator_set<double, stats<tag::extended_p_square_quantile(quadratic)
 struct SpectrumLevelScoreQuantiles
 {
   SpectrumLevelScoreQuantiles():
-    acc_(extended_p_square_probabilities = std::vector<double>{ 0.0, 0.25, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1.00 })
+    acc_(extended_p_square_probabilities = std::vector<double>{ 0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.999, 0.9999, 0.99999, 1.00 })
   {   
   }
   void insert(double v) { acc_(v); }
@@ -180,7 +180,6 @@ struct SpectrumLevelScoreQuantiles
   private:
     accumulator_t_quadratic acc_;
 };
-
 
 #endif
 
@@ -857,7 +856,7 @@ protected:
     }
 
 #ifdef CONSIDER_AA_LOSSES
-    // block peaks matching to AA related neutral losses so they don't get matched to NA shifts
+    // block peaks matching to AA related neutral losses so they get counted for explained peak fraction calculation
     // b-H2O
     for (double diff2b : { -18.010565 } ) 
     { 
@@ -2657,6 +2656,7 @@ static void scoreXLIons_(
     param.setValue("add_x_ions", "false");
     param.setValue("add_y_ions", "true");
     param.setValue("add_z_ions", "false");
+    param.setValue("add_internal_fragments", "true"); 
     partial_loss_spectrum_generator.setParameters(param);
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -2736,6 +2736,7 @@ static void scoreXLIons_(
           new_param.setValue("add_losses", "true");
           new_param.setValue("add_term_losses", "true");
           new_param.setValue("add_a_ions", "true");
+          new_param.setValue("add_internal_fragments", "true");
           tmp_generator.setParameters(new_param);
           tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
         }
@@ -2930,6 +2931,16 @@ static void scoreXLIons_(
             annotated_immonium_ions.push_back(fa);
             peak_is_annotated.insert(aligned.second);
           }
+          else if (isupper(ion_name[0])) // internal ions
+          {
+            PeptideHit::PeakAnnotation fa;
+            fa.mz = fragment_mz;
+            fa.intensity = fragment_intensity;
+            fa.charge = charge;
+            fa.annotation = ion_name;
+            annotated_immonium_ions.push_back(fa);  //TODO: add to annotated_internal_fragment_ions or rename vector
+            peak_is_annotated.insert(aligned.second);
+          }
         }
 
         // generate fragment annotation strings for unshifted ions
@@ -3079,8 +3090,19 @@ static void scoreXLIons_(
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
             fa.charge = charge;
-            fa.annotation = ion_name;
+            fa.annotation = ion_name;  
             annotated_precursor_ions.push_back(fa);
+          }
+          else if (isupper(ion_name[0])) // shifted internal ions
+          {
+            PeptideHit::PeakAnnotation fa;
+            fa.mz = fragment_mz;
+            fa.intensity = fragment_intensity;
+            fa.charge = charge;
+            String with_plus = ion_name;
+            with_plus.substitute(' ', '+');
+            fa.annotation = with_plus; // turn "PEPT U-H2O" into "PEPT+U-H20"
+            shifted_immonium_ions.push_back(fa);  //TODO: add to shfited_internal_fragment_ions or rename vector
           }
         }
 
@@ -3642,6 +3664,8 @@ static void scoreXLIons_(
        << "NuXL:aminoacid_id_to_max_tag_ratio"
        << "nr_candidates"
        << "NuXL:explained_peak_fraction"
+       << "NuXL:QQ_TIC"
+       << "NuXL:QQ_EXPLAINED_FRACTION"
        << "NuXL:wTop50";
 
     feature_set
@@ -4790,6 +4814,9 @@ static void scoreXLIons_(
 #ifdef ANNOTATED_QUANTILES
     vector<quantile_accu_t> annotated_peptides_quantiles_peptides(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
     vector<quantile_accu_t> annotated_peptides_quantiles_XLs(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
+
+    vector<SpectrumLevelScoreQuantiles> QQ_TIC(spectra.size(), SpectrumLevelScoreQuantiles() );
+    vector<SpectrumLevelScoreQuantiles> QQ_EXPLAINED_FRACTION(spectra.size(), SpectrumLevelScoreQuantiles() );
 #endif
 
     // load fasta file
@@ -5090,6 +5117,9 @@ static void scoreXLIons_(
                   {
 #ifdef ANNOTATED_QUANTILES
                     annotated_peptides_quantiles_peptides[scan_index](ah.total_loss_score);
+
+                    QQ_TIC[scan_index].insert(ah.total_MIC);
+                    QQ_EXPLAINED_FRACTION[scan_index].insert(ah.explained_peak_fraction);
 #endif
                     annotated_peptides[scan_index].emplace_back(move(ah));
 
@@ -5334,6 +5364,9 @@ static void scoreXLIons_(
                     {
 #ifdef ANNOTATED_QUANTILES
                       annotated_peptides_quantiles_XLs[scan_index](ah.total_loss_score + ah.partial_loss_score);
+
+                      QQ_TIC[scan_index].insert(ah.total_MIC);
+                      QQ_EXPLAINED_FRACTION[scan_index].insert(ah.explained_peak_fraction);
 #endif
                       annotated_XLs[scan_index].emplace_back(move(ah));
 
@@ -5535,6 +5568,16 @@ static void scoreXLIons_(
             ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / (1.0 + p_square_quantile(annotated_peptides_quantiles_peptides[scan_index])));
           }
         }
+
+        for (auto & ph : pi.getHits())
+        {
+          ph.setMetaValue("NuXL:QQ_TIC", QQ_TIC[scan_index].quantileOfValue(ph.getMetaValue("NuXL:total_MIC")));
+          ph.setMetaValue("NuXL:QQ_EXPLAINED_FRACTION", QQ_EXPLAINED_FRACTION[scan_index].quantileOfValue(ph.getMetaValue("NuXL:explained_peak_fraction")));
+        }
+
+
+
+
       }
 #endif
 
