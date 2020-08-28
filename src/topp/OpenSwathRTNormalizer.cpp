@@ -82,11 +82,9 @@ using namespace OpenMS;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathRTNormalizer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathRTNormalizer.html
- 
- */
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

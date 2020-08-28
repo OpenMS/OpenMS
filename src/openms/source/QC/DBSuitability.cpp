@@ -55,12 +55,12 @@ namespace OpenMS
   DBSuitability::DBSuitability()
     : DefaultParamHandler("DBSuitability"), results_{}
   {
-    defaults_.setValue("no_re_rank", "false", "Enable/Disable re-ranking");
-    defaults_.setValidStrings("no_re_rank", { "true", "false" });
-    defaults_.setValue("cut_off_fract", 1., "Percentile to determine which decoy cut-off to use.");
-    defaults_.setMinFloat("cut_off_fract", 0.);
-    defaults_.setMaxFloat("cut_off_fract", 1.);
-    defaults_.setValue("FDR", 0.01, "Filtering peptide hits based on this q-value");
+    defaults_.setValue("no_rerank", "false", "Use this flag if you want to disable re-ranking. Cases, where a de novo peptide scores just higher than the database peptide, are overlooked and counted as a de novo hit. This might underestimate the database quality.");
+    defaults_.setValidStrings("no_rerank", { "true", "false" });
+    defaults_.setValue("reranking_cutoff_percentile", 0.01, "Swap a top-scoring deNovo hit with a lower scoring DB hit if their xcorr score difference is in the given percentile of all score differences between the first two decoy hits of a PSM. The lower the value the lower the decoy cut-off will be. Therefore it will be harder for a lower scoring DB hit to be re-ranked to the top.");
+    defaults_.setMinFloat("reranking_cutoff_percentile", 0.);
+    defaults_.setMaxFloat("reranking_cutoff_percentile", 1.);
+    defaults_.setValue("FDR", 0.01, "Filter peptide hits based on this q-value. (e.g., 0.05 = 5 % FDR)");
     defaults_.setMinFloat("FDR", 0.);
     defaults_.setMaxFloat("FDR", 1.);
     defaultsToParam_();
@@ -82,7 +82,6 @@ namespace OpenMS
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
       }
     }
-
     Param p;
     p.setValue("use_all_hits", "true");
     p.setValue("add_decoy_peptides", "true");
@@ -177,11 +176,11 @@ namespace OpenMS
     return diff;
   }
 
-  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double cut_off_fract)
+  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile)
   {
-    if (cut_off_fract < 0 || cut_off_fract > 1)
+    if (reranking_cutoff_percentile < 0 || reranking_cutoff_percentile > 1)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'cut_off_fract' is not within its allowed range [0,1]. Please select a valid value.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'reranking_cutoff_percentile' is not within its allowed range [0,1]. Please select a valid value.");
     }
 
     // get all decoy diffs of peptide ids with at least two decoy hits
@@ -197,18 +196,18 @@ namespace OpenMS
 
     if (double(diffs.size()) / pep_ids.size() < 0.2)
     {
-      throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score."));
+      throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score."));
     }
 
-    // sort the diffs decreasing and get the (1-novo_fract)*N one
-    UInt index = round((1 - cut_off_fract) * diffs.size());
+    // sort the diffs decreasing and get the percentile one
+    UInt index = round(reranking_cutoff_percentile * diffs.size());
     
     if (index >= diffs.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'cut_off_fract' is set too low. Please set the parameter to a higher value.");
+      return *max_element(diffs.begin(), diffs.end());
     }
 
-    nth_element(diffs.begin(), diffs.begin() + index, diffs.end(), greater<double>());
+    nth_element(diffs.begin(), diffs.begin() + index, diffs.end());
 
     return diffs[index];
   }

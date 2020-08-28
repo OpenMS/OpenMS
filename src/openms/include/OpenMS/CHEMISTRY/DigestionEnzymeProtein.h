@@ -57,6 +57,9 @@ namespace OpenMS
     /// Default constructor
     DigestionEnzymeProtein();
 
+    /// Constructor from base class (adding defaults for the missing stuff)
+    explicit DigestionEnzymeProtein(const DigestionEnzyme& d);
+
     /// Copy constructor
     DigestionEnzymeProtein(const DigestionEnzymeProtein&) = default;
 

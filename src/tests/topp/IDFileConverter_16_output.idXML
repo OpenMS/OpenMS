@@ -8,6 +8,7 @@
 		<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
 		<VariableModification name="Acetyl (Protein N-term)" />
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2014-10-27T15:00:44" search_engine="OMSSA" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -32,7 +33,7 @@
 				<UserParam type="float" name="_ar_0_score" value="0.9208"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.434"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
-				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.005"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-5.0e-03"/>
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
@@ -68,7 +69,7 @@
 				<UserParam type="float" name="_ar_0_score" value="0.217"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="0.801"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
-				<UserParam type="float" name="_ar_0_subscore_massd" value="0.006"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="6.0e-03"/>
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
@@ -99,12 +100,12 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="608.957491373046651" RT="0.0" >
-			<PeptideHit score="0.999999" sequence="SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
+			<PeptideHit score="0.999999" sequence=".(Acetyl)SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="1.0"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
-				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.006"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-6.0e-03"/>
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
@@ -117,7 +118,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="681.293347492839985" RT="0.0" >
-			<PeptideHit score="2.01282e-05" sequence=".(Pyro-carbamidomethyl)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
+			<PeptideHit score="2.01282e-05" sequence=".(Ammonia-loss)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="7.0e-04"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>

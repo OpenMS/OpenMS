@@ -636,6 +636,26 @@ START_SECTION(void setNTerminalModification(const String &modification))
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
   TEST_EQUAL(seq3 == seq4, true)
+
+  AASequence seq5 = AASequence::fromString("DABCDEF");
+  AASequence seq6 = seq5;
+  AASequence seq7 = seq5;
+  AASequence seq8 = seq5;
+
+  seq5.setNTerminalModification("Met-loss (Protein N-term M)");
+  TEST_EQUAL(seq5.isModified(), true)
+
+  seq6.setNTerminalModification("Acetyl (N-term)");
+  TEST_EQUAL(seq6.isModified(), true)
+
+  seq7.setCTerminalModification("Amidated (C-term)");
+  TEST_EQUAL(seq7.isModified(), true)
+
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("(T)"));
+  TEST_EXCEPTION(OpenMS::Exception::InvalidValue, seq8.setCTerminalModification("foobar"));
+
 END_SECTION
 
 START_SECTION(const String& getNTerminalModificationName() const)

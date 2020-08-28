@@ -194,6 +194,7 @@ pep_id.setHits({ no_xcorr_hit });
 no_xcorr_ids.push_back(pep_id);
 
 vector<PeptideIdentification> pep_ids_2(pep_ids);
+vector<PeptideIdentification> pep_ids_3(pep_ids);
 
 vector<PeptideIdentification> FDR_id;
 pep_id.setScoreType("q-value");
@@ -222,38 +223,52 @@ END_SECTION
 START_SECTION(void compute(vector<PeptideIdentification>& pep_ids))
 {
   DBSuitability s;
-  s.compute(pep_ids);
   Param p;
-  p.setValue("cut_off_fract", 2./3);
+  p.setValue("reranking_cutoff_percentile", 1.);
+  s.setParameters(p);
+  s.compute(pep_ids);
+
+  p.setValue("reranking_cutoff_percentile", 1./3);
   p.setValue("FDR", 0.);
   s.setParameters(p);
   s.compute(pep_ids_2);
   s.compute(top_decoy);
+
+  p.setValue("reranking_cutoff_percentile", 0.);
+  s.setParameters(p);
+  s.compute(pep_ids_3);
   vector<DBSuitability::SuitabilityData> d = s.getResults();
   DBSuitability::SuitabilityData data_fract_1 = d[0];
   DBSuitability::SuitabilityData data_fract_05 = d[1];
   DBSuitability::SuitabilityData data_decoy_top = d[2];
+  DBSuitability::SuitabilityData data_small_percentile = d[3];
   TEST_REAL_SIMILAR(data_fract_1.cut_off, 0.00044);
   TEST_REAL_SIMILAR(data_fract_05.cut_off, 0.00029);
   TEST_REAL_SIMILAR(data_decoy_top.cut_off, 0.00029);
+  TEST_REAL_SIMILAR(data_small_percentile.cut_off, 0.00014);
   TEST_EQUAL(data_fract_1.num_interest, 2);
   TEST_EQUAL(data_fract_05.num_interest, 2);
   TEST_EQUAL(data_decoy_top.num_interest, 0);
+  TEST_EQUAL(data_small_percentile.num_interest, 2);
   TEST_EQUAL(data_fract_1.num_re_ranked, 2);
   TEST_EQUAL(data_fract_05.num_re_ranked, 1);
   TEST_EQUAL(data_decoy_top.num_re_ranked, 0);
+  TEST_EQUAL(data_small_percentile.num_re_ranked, 0);
   TEST_EQUAL(data_fract_1.num_top_db, 4);
   TEST_EQUAL(data_fract_05.num_top_db, 3);
   TEST_EQUAL(data_decoy_top.num_top_db, 0);
+  TEST_EQUAL(data_small_percentile.num_top_db, 2);
   TEST_EQUAL(data_fract_1.num_top_novo, 1);
   TEST_EQUAL(data_fract_05.num_top_novo, 2);
   TEST_EQUAL(data_decoy_top.num_top_novo, 0);
+  TEST_EQUAL(data_small_percentile.num_top_novo, 3);
   TEST_REAL_SIMILAR(data_fract_1.suitability, 4./5);
   TEST_REAL_SIMILAR(data_fract_05.suitability, 3./5);
+  TEST_REAL_SIMILAR(data_small_percentile.suitability, 2./5);
   TEST_EQUAL(data_decoy_top.suitability, DBL_MAX);
 
   TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, s.compute(FDR_id), "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'force_no_re_rank' flag to still compute a suitability score.");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(few_decoys), "Under 20 % of peptide identifications have two decoy hits. This is not enough for re-ranking. Use the 'no_rerank' flag to still compute a suitability score.");
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, s.compute(no_xcorr_ids), "No cross correlation score found at peptide hit. Only Comet search engine is supported right now.");
 }
 END_SECTION
