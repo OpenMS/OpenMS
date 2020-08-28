@@ -1876,17 +1876,17 @@ namespace OpenMS
       // fill opt_ column of psm
       vector<String> ph_keys;
       best_ph.getKeys(ph_keys);
-      replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
-        const String& key = ph_keys[k];
+        const String key = ph_keys[k];
 
         // find matching entry in opt_ (TODO: speed this up)
         for (Size i = 0; i != row.opt_.size(); ++i)
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
+          std::replace(key.begin(), key.end(),' ', '_');
           if (opt_entry.first == String("opt_global_") + key)
           {
             opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
@@ -1994,7 +1994,6 @@ namespace OpenMS
     // meta data on peptide identifications
     vector<String> pid_keys;
     pid.getKeys(pid_keys);
-    replaceWhiteSpaces_(pid_keys.begin(), pid_keys.end());
 
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
@@ -2082,7 +2081,6 @@ namespace OpenMS
     // meta data on PSMs
     vector<String> ph_keys;
     best_ph.getKeys(ph_keys);
-    replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
     set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
     addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
