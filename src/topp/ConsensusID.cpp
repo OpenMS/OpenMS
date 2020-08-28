@@ -697,11 +697,12 @@ protected:
             String original_file = original_files[0];
             auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
             const auto se_ver_settings = getOriginalSearchEngineSettings_(prot);
-            tuple<String, String, vector<pair<String,String>>> rescore_ver_settings = {"","",vector<pair<String,String>>()};
+            tuple<String, String, vector<pair<String,String>>> rescore_ver_settings{"","",vector<pair<String,String>>()};
             //TODO find a way to get/check IDPEP params.
             if (prot.getSearchEngine() == "Percolator")
             {
-              rescore_ver_settings = {prot.getSearchEngine(), prot.getSearchEngineVersion(), vector<pair<String,String>>()};
+              get<0>(rescore_ver_settings) = prot.getSearchEngine();
+              get<1>(rescore_ver_settings) = prot.getSearchEngineVersion();
               const auto& sp = prot.getSearchParameters();
               vector<String> mvkeys;
               sp.getKeys(mvkeys);
