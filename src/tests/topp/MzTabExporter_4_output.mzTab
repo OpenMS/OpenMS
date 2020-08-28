@@ -3,12 +3,12 @@ MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
 MTD	title	ConsensusMap export from OpenMS
 MTD	description	OpenMS export from consensusXML
-MTD	protein_search_engine_score[1]	[, , Epifany Posterior Probability, 2.6.0-pre-feature-IDFilterCXML-2020-06-26]
-MTD	peptide_search_engine_score[1]	[, , XTandem Posterior Probability, ]
+MTD	protein_search_engine_score[1]	[MS, MS:1003119, EPIFANY:Protein posterior probability, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[, , XTandem Posterior Probability, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-feature-IDFilterCXML-2020-06-26]
-MTD	software[2]	[, , Epifany, 2.6.0-pre-feature-IDFilterCXML-2020-06-26]
-MTD	software[3]	[, , XTandem, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.6.0-pre-fix-keepSamePeps-2020-08-27]
+MTD	software[2]	[MS, MS:1003118, EPIFANY, 2.6.0-pre-feature-IDFilterCXML-2020-06-26]
+MTD	software[3]	[MS, MS:1001476, X!Tandem, ]
 MTD	software[3]-setting[1]	db:/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta
 MTD	software[3]-setting[2]	db_version:null
 MTD	software[3]-setting[3]	fragment_mass_tolerance:0.1
@@ -130,7 +130,7 @@ PSM	DNDLGVNITTAK	0	A,B	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants
 PSM	SKGNVVYPEMLVER	1	C,D	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3951.368755534139837	3	540.951416015625	540.951988287537688	ms_run[1]:controllerType=0 controllerNumber=1 scan=7170	K,K	F,F	312,313	325,326	1.6e-08	null	55.700000000000003	10	12.4	1	-1.7e-03	55.700000000000003	1620.841400000000022	16.800000000000001	non-unique	0	12	14.300000000000001
 PSM	GGIEAVPAGQMEASR	2	I	1	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3293.445204041010129	2	736.860900878906023	736.861743942721091	ms_run[3]:controllerType=0 controllerNumber=1 scan=5236	R	S	618	632	7.8e-13	null	69.900000000000006	11	14.699999999999999	1	-1.7e-03	69.900000000000006	1472.716200000000072	14.6	unique	0	9	16.899999999999999
 PSM	VTIDDLAR	3	G,H	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	0.968085013462512	null	3477.410865107000063	2	451.750671386718977	451.750727035420994	ms_run[2]:controllerType=0 controllerNumber=1 scan=5831	R,R	A,A	609,609	616,616	0.14	null	32.899999999999999	4	12.6	1	-1.0e-04	32.899999999999999	902.494199999999978	18.899999999999999	non-unique	0	6	15.6
-PSM	LYQNSADVIAK	4	B,C	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3002.38033267983019	2	611.327697753906023	611.327330870371043	ms_run[1]:controllerType=0 controllerNumber=1 scan=4428	K,K	L,L	144,144	154,154	3.0e-08	null	59.600000000000001	8	16.399999999999999	1	7.0e-04	59.600000000000001	1221.647400000000062	24.399999999999999	non-unique	0	9	18.5
+PSM	LYQNSADVIAK	4	B,C	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3002.38033267983019	2	611.327697753906023	611.327330870370929	ms_run[1]:controllerType=0 controllerNumber=1 scan=4428	K,K	L,L	144,144	154,154	3.0e-08	null	59.600000000000001	8	16.399999999999999	1	7.0e-04	59.600000000000001	1221.647400000000062	24.399999999999999	non-unique	0	9	18.5
 PSM	IRTDFDTVAAK	5	A,E	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3002.644125121969864	3	412.890899658203011	412.890945746471005	ms_run[2]:controllerType=0 controllerNumber=1 scan=4429	R,R	L,L	7,7	17,17	6.100000000000001e-03	null	41.200000000000003	10	15.4	1	-1.0e-04	41.200000000000003	1236.658300000000054	24.0	non-unique	0	7	13.800000000000001
 PSM	GYDVLTDDRNER	6	A,B	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3002.918670509539879	3	484.895294189453011	484.895307789004392	ms_run[3]:controllerType=0 controllerNumber=1 scan=4430	K,K	V,V	550,550	561,561	7.9e-04	null	36.899999999999999	8	14.6	1	0.0	36.899999999999999	1452.671399999999949	14.199999999999999	non-unique	0	7	14.300000000000001
 PSM	QAAEMGVAIK	7	A,E	0	s_pyo_sf370_potato_human_target_decoy_with_contaminants	null	[, , XTandem, ]	1.0	null	3003.24540221046982	2	509.273559570313012	509.273512043970982	ms_run[4]:controllerType=0 controllerNumber=1 scan=4431	K,K	V,V	189,189	198,198	1.9e-04	null	45.5	5	9.699999999999999	1	1.0e-04	45.5	1017.539700000000039	18.5	non-unique	0	9	14.9

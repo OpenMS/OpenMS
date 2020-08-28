@@ -1140,7 +1140,7 @@ public:
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
-      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::vector<const PeptideIdentification*>& peptide_ids_,
       std::set<String>& protein_hit_user_value_keys,
       std::set<String>& peptide_id_user_value_keys,
       std::set<String>& peptide_hit_user_value_keys);
@@ -1222,7 +1222,7 @@ public:
     }
 
     static void getSearchModifications_(
-      const std::vector<const ProteinIdentification*> prot_ids, 
+      const std::vector<const ProteinIdentification*>& prot_ids,
       StringList& var_mods, 
       StringList& fixed_mods);
 

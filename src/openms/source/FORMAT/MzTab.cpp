@@ -1941,8 +1941,8 @@ namespace OpenMS
         sit->second = MzTabDouble(curr_score);
 
         //TODO assumes same scores & score types
-        if ((pep.isHigherScoreBetter() && curr_score > best_score)
-        || (!pep.isHigherScoreBetter() && curr_score < best_score))
+        if ((pep.isHigherScoreBetter() && curr_score >= best_score)
+        || (!pep.isHigherScoreBetter() && curr_score <= best_score))
         {
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))
@@ -2129,7 +2129,7 @@ namespace OpenMS
     if (has_inference_data)
     {
       protein_score_type.fromCellString("[,," + prot_id.getInferenceEngine() + " " + prot_id.getScoreType() 
-         + "," + prot_id.getInferenceEngineVersion() + "]"); // TODO: check if we need one for every run (should not be redundant!)
+         + ",]"); // TODO: check if we need one for every run (should not be redundant!)
     }
     else
     {
@@ -2683,8 +2683,29 @@ Not sure how to handle these:
     {
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
-      sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + " " + get<2>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
+      //TODO decide if we should use the original search engine ontology entries or the TOPPAdapter entries
+      if (get<0>(name_ver_score_to_runs.first) == "Comet")
+      {
+        sesoftware.fromCellString("[MS,MS:1002251,Comet," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "Percolator")
+      {
+        sesoftware.fromCellString("[MS,MS:1001490,Percolator," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "MS-GF+" || get<0>(name_ver_score_to_runs.first) == "MSGFPlus")
+      {
+        sesoftware.fromCellString("[MS,MS:1002048,MS-GF+," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "XTandem")
+      {
+        sesoftware.fromCellString("[MS,MS:1001476,X!Tandem," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else
+      {
+        sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
       sesoftwaremd.software = sesoftware;
+
       Size cnt2(1);
       for (auto const & sesetting : search_engine_to_settings.at(get<0>(name_ver_score_to_runs.first)))
       {
@@ -2708,17 +2729,20 @@ Not sure how to handle these:
       MzTabParameter pep_score_type;
       const tuple<String, String, String>& name_version_score = se.first;
 
-      //TODO we also have to consider the different q-value calculation methods of Percolator....
+      psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + ",]");
+      pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+
+      //TODO we also should consider the different q-value calculation methods of Percolator....
       if (get<2>(name_version_score) == "peptide-level q-value")
       {
         if (get<0>(name_version_score) == "Percolator")
         {
-          pep_score_type.fromCellString("[MS,MS:XXXXXXX,Percolator peptide-level q-value," + get<1>(name_version_score) + "]");
+          pep_score_type.fromCellString("[MS,MS:1002360,distinct peptide-level FDRScore,Percolator]");
           psm_score_type = pep_score_type; // since we have no way to have two types
         }
         else
         {
-          pep_score_type.fromCellString("[MS,MS:1003116,OpenMS:Target-decoy peptide q-value," + get<1>(name_version_score) + "]");
+          pep_score_type.fromCellString("[MS,MS:1003116,OpenMS:Target-decoy peptide q-value,]");
           psm_score_type = pep_score_type; // since we have no way to have two types
         }
       }
@@ -2726,27 +2750,43 @@ Not sure how to handle these:
       {
         if (get<0>(name_version_score) == "Percolator")
         {
-          psm_score_type.fromCellString("[MS,MS:1001491,percolator:Q value," + get<1>(name_version_score) + "]");
-          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+          psm_score_type.fromCellString("[MS,MS:1001491,percolator:Q value,]");
         }
         else
         {
-          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value," + get<1>(name_version_score) + "]");
-          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value,]");
         }
       }
-      else if (get<0>(name_version_score).hasSubstring("ConsensusID") &&
-              (get<2>(name_version_score) == "Posterior Error Probability" || get<2>(name_version_score) == "pep"))
+      else if (get<2>(name_version_score) == "Posterior Error Probability" || get<2>(name_version_score) == "pep")
       {
-          psm_score_type.fromCellString("[MS,MS:10031153,OpenMS:ConsensusID PEP," + get<1>(name_version_score) + "]");
-          pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+        if (get<0>(name_version_score).hasSubstring("ConsensusID"))
+        {
+          const String& name = get<0>(name_version_score);
+          String algo = name.suffix('_');
+          psm_score_type.fromCellString("[MS,MS:1003113,OpenMS:ConsensusID PEP," + algo + "]");
+        }
+        else if (get<0>(name_version_score).hasSubstring("Percolator"))
+        {
+          psm_score_type.fromCellString("[MS,MS:1001493,percolator:PEP,]");
+        }
+      }
+      else if (get<0>(name_version_score) == "Comet")
+      {
+        if (get<2>(name_version_score) == "expect")
+        {
+          psm_score_type.fromCellString("[MS,MS:1002257,Comet:expectation value,]");
+        }
+        //TODO other Comet scores
+      }
+      else if (get<0>(name_version_score) == "MSGFPlus" || get<0>(name_version_score) == "MS-GF+")
+      {
+        if (get<2>(name_version_score) == "SpecEValue")
+        {
+          psm_score_type.fromCellString("[MS,MS:1002052,MS-GF:SpecEValue,]");
+        }
+        //TODO other MSGF scores
       }
       //TODO all the other dozens of search engines
-      else
-      {
-        psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
-        pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
-      }
 
       meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
       meta_data.peptide_search_engine_score[psm_search_engine_index] = pep_score_type; // same score type for peptides
@@ -3231,7 +3271,7 @@ state0:
 
   void MzTab::getIdentificationMetaValues_(
     const std::vector<const ProteinIdentification*>& prot_ids, 
-    std::vector<const PeptideIdentification*> peptide_ids_,
+    std::vector<const PeptideIdentification*>& peptide_ids_,
     std::set<String>& protein_hit_user_value_keys,
     std::set<String>& peptide_id_user_value_keys,
     std::set<String>& peptide_hit_user_value_keys)
@@ -3264,7 +3304,7 @@ state0:
     }
   }
 
-  void MzTab::getSearchModifications_(const vector<const ProteinIdentification*> prot_ids, StringList& var_mods, StringList& fixed_mods)
+  void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)
   {
     for (auto const & pid : prot_ids)
     {
