@@ -71,10 +71,9 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     solver_ = SOLVER_COINOR;
     model_ = new CoinModel;
-#else
+#endif
     solver_ = SOLVER_GLPK;
     lp_problem_ = glp_create_prob();
-#endif
   }
 
   LPWrapper::~LPWrapper()
