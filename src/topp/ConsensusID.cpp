@@ -340,7 +340,9 @@ protected:
     }
   }
 
-  void setProteinIdentificationSettings_(ProteinIdentification& prot_id, vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings)
+  void setProteinIdentificationSettings_(ProteinIdentification& prot_id,
+      vector<tuple<String, String, ProteinIdentification::SearchParameters>>& se_ver_settings,
+      vector<tuple<String, String, vector<pair<String, String>>>>& rescore_ver_settings)
   {
     // modification params are necessary for further analysis tools (e.g. LuciPHOr2)
     set<String> fixed_mods_set;
@@ -357,10 +359,35 @@ protected:
     set<String, std::greater<String>> enzymes;
     set<String, std::greater<String>> dbs;
 
-    bool allsamese = true;
     // use the first settings as basis (i.e. copy over db and enzyme and tolerance)
     // we assume that they are the same or similar
     ProteinIdentification::SearchParameters new_sp = get<2>(se_ver_settings[0]);
+
+    // first check the rescoring procedure. Should at least be the same tool.
+    // "" = IDPosteriorProbability. If parts were not rescored at all, they wont have a PEP annotated,
+    // and the tool will fail in the next step (beginning of algorithm)
+    // TODO maybe also consolidate/merge those settings. But they are currently only used for reporting.
+    const auto& final_rescore_ver_setting = rescore_ver_settings[0];
+    const String& final_rescore_algo = get<0>(final_rescore_ver_setting);
+    const String& final_rescore_algo_version = get<1>(final_rescore_ver_setting);
+
+    for (const auto& rescore_ver_setting : rescore_ver_settings)
+    {
+      if (get<0>(rescore_ver_setting) != final_rescore_algo
+          || get<1>(rescore_ver_setting) != final_rescore_algo_version)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to use ConsensusID on searches with different rescoring algorithms. " +
+                           get<0>(rescore_ver_setting) + " vs " + final_rescore_algo;
+      }
+    }
+    if (!final_rescore_algo.empty()) new_sp.setMetaValue(final_rescore_algo, final_rescore_algo_version);
+    for (const auto& s : get<2>(final_rescore_ver_setting))
+    {
+      // the metavalue names in s.first already contain the algorithm name. No need to prepend
+      new_sp.setMetaValue(s.first, s.second);
+    }
+
+    bool allsamese = true;
     for (const auto& se_ver_setting : se_ver_settings)
     {
       allsamese = allsamese &&
@@ -636,6 +663,7 @@ protected:
         // the values (new_run_idx) in mzml_to_new_run_idx correspond to the indices in mzml_to_sesettings
         map<String, Size> mzml_to_new_run_idx;
         vector<vector<tuple<String, String, ProteinIdentification::SearchParameters>>> mzml_to_sesettings;
+        vector<vector<tuple<String, String, vector<pair<String,String>>>>> mzml_to_rescoresettings;
 
         for (const auto& infile : in)
         {
@@ -669,17 +697,40 @@ protected:
             String original_file = original_files[0];
             auto iter_inserted = seen_proteins_per_file.emplace(original_file, unordered_set<String>{});
             const auto se_ver_settings = getOriginalSearchEngineSettings_(prot);
+            tuple<String, String, vector<pair<String,String>>> rescore_ver_settings{"","",vector<pair<String,String>>()};
+            //TODO find a way to get/check IDPEP params.
+            if (prot.getSearchEngine() == "Percolator")
+            {
+              get<0>(rescore_ver_settings) = prot.getSearchEngine();
+              get<1>(rescore_ver_settings) = prot.getSearchEngineVersion();
+              const auto& sp = prot.getSearchParameters();
+              vector<String> mvkeys;
+              sp.getKeys(mvkeys);
+              for (const String & mvkey : mvkeys)
+              {
+                if (mvkey.hasPrefix("Percolator:"))
+                {
+                  // we do not cut the tool (here Percolator) prefix since we will use it as is
+                  // in the new params
+                  get<2>(rescore_ver_settings).emplace_back(mvkey, sp.getMetaValue(mvkey));
+                }
+              }
+            }
+
             if (iter_inserted.second)
             {
               mzml_to_new_run_idx[original_file] = prot_ids.size();
               mzml_to_sesettings.emplace_back(vector<tuple<String, String, ProteinIdentification::SearchParameters>>{});
               mzml_to_sesettings.back().emplace_back(se_ver_settings);
+              mzml_to_rescoresettings.emplace_back(vector<tuple<String, String, vector<pair<String,String>>>>{});
+              mzml_to_rescoresettings.back().emplace_back(rescore_ver_settings);
               prot_ids.emplace_back(ProteinIdentification());
               prot_ids.back().setIdentifier("ConsensusID for " + original_file);
             }
             else
             {
               mzml_to_sesettings[mzml_to_new_run_idx[original_file]].emplace_back(se_ver_settings);
+              mzml_to_rescoresettings[mzml_to_new_run_idx[original_file]].emplace_back(rescore_ver_settings);
             }
             for (auto& hit : prot.getHits())
             {
@@ -718,7 +769,7 @@ protected:
           // Note: we assume that at least one of the inputs had mzML as an extension
           // we could keep track of it but IMHO we should not allow raw there at all (just complicates things)
           to_put.setPrimaryMSRunPath({file_ref_peps.first + ".mzML"});
-          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id]);
+          setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id], mzml_to_rescoresettings[new_run_id]);
           for (const auto& ref_peps : file_ref_peps.second)
           {
             vector<PeptideIdentification> peps = ref_peps.second;
