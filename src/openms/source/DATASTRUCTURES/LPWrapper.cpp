@@ -73,16 +73,27 @@ namespace OpenMS
     model_ = new CoinModel;
 #else
     solver_ = SOLVER_GLPK;
-#endif
     lp_problem_ = glp_create_prob();
+#endif
   }
 
   LPWrapper::~LPWrapper()
   {
 #if COINOR_SOLVER == 1
-    delete model_;
+    try {
+      delete model_;
+    }
+    catch (const std::exception& e){
+      OPENMS_LOG_ERROR << e.what() << "\n";
+    }
+#else 
+    try {
+      glp_delete_prob(lp_problem_);
+    }
+    catch (const std::exception& e) {
+      OPENMS_LOG_ERROR << e.what() << "\n";
+    }
 #endif
-    glp_delete_prob(lp_problem_);
   }
 
   Int LPWrapper::addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name) // return index
@@ -742,21 +753,26 @@ namespace OpenMS
 
       // set maximum allowed CPU time before forced stop (dangerous!)
       //model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
+      
+      try {
+        // Do initial solve to continuous
+        model.initialSolve();
 
-      // Do initial solve to continuous
-      model.initialSolve();
 
-
-      // solve
-      model.branchAndBound();
-      // if (verbose_level > 0) OPENMS_LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
-      //                                        << model.getNodeCount()<<" nodes with objective "
-      //                                        << model.getObjValue()
-      //                                        << (!model.status() ? " Finished" : " Not finished")
-      //                                        << std::endl;
-      for (Int i = 0; i < model_->numberColumns(); ++i)
-      {
-        solution_.push_back(model.solver()->getColSolution()[i]);
+        // solve
+        model.branchAndBound();
+        // if (verbose_level > 0) OPENMS_LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
+        //                                        << model.getNodeCount()<<" nodes with objective "
+        //                                        << model.getObjValue()
+        //                                        << (!model.status() ? " Finished" : " Not finished")
+        //                                        << std::endl;
+        for (Int i = 0; i < model_->numberColumns(); ++i)
+        {
+          solution_.push_back(model.solver()->getColSolution()[i]);
+        }
+      }
+      catch (const std::exception& e) {
+        OPENMS_LOG_ERROR << e.what() << "\n";
       }
       OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
       return model.status();
@@ -805,9 +821,14 @@ namespace OpenMS
     {
       double const * const obj = model_->objectiveArray();
       double obj_val = 0.;
-      for (Int i = 0; i < model_->numberColumns(); ++i)
-      {
-        obj_val += obj[i] * getColumnValue(i);
+      try {
+        for (Int i = 0; i < model_->numberColumns(); ++i)
+        {
+          obj_val += obj[i] * getColumnValue(i);
+        }
+      }
+      catch (const std::exception& e) {
+        OPENMS_LOG_ERROR << e.what() << "\n";
       }
       return obj_val;
     }
