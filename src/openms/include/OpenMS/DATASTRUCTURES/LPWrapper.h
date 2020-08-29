@@ -143,7 +143,7 @@ public:
       NO_FEASIBLE_SOL = 4
     };
 
-    LPWrapper();
+    LPWrapper(SOLVER solver = SOLVER::SOLVER_COINOR);
     virtual ~LPWrapper();
 
     // problem creation/manipulation

@@ -66,33 +66,27 @@ namespace OpenMS
 {
 
 
-  LPWrapper::LPWrapper()
+  LPWrapper::LPWrapper(SOLVER solver)
   {
+    if (solver == SOLVER::SOLVER_GLPK) {
+      solver_ = SOLVER_GLPK;
+      lp_problem_ = glp_create_prob();
+    }
 #if COINOR_SOLVER == 1
-    solver_ = SOLVER_COINOR;
-    model_ = new CoinModel;
-#else
-    solver_ = SOLVER_GLPK;
+    else if (solver == SOLVER::SOLVER_COINOR) {
+      solver_ = SOLVER_COINOR;
+      model_ = new CoinModel;
+    }
 #endif
-    lp_problem_ = glp_create_prob();
   }
 
   LPWrapper::~LPWrapper()
   {
-#if COINOR_SOLVER == 1
-    try {
-      delete model_;
-    }
-    catch (const std::exception& e){
-      OPENMS_LOG_ERROR << e.what() << "\n";
-    }
-#else 
-    try {
+    if (solver_ == SOLVER::SOLVER_GLPK)
       glp_delete_prob(lp_problem_);
-    }
-    catch (const std::exception& e) {
-      OPENMS_LOG_ERROR << e.what() << "\n";
-    }
+#if COINOR_SOLVER == 1
+    else if (solver_ == SOLVER::SOLVER_COINOR)
+      delete model_;
 #endif
   }
 
@@ -120,7 +114,7 @@ namespace OpenMS
       return index - 1;
     }
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       model_->addRow(row_indices.size(), row_indices.data(), row_values.data(), -COIN_DBL_MAX, COIN_DBL_MAX, name.c_str());
       return model_->numberRows() - 1;
@@ -194,7 +188,7 @@ namespace OpenMS
       glp_set_row_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
 
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       switch (type)
       {
@@ -228,7 +222,7 @@ namespace OpenMS
       glp_set_col_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
 
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       switch (type)
       {
@@ -308,7 +302,7 @@ namespace OpenMS
       }
     }
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
       model_->setElement(row_index, column_index, value);
 #endif
   }
@@ -349,7 +343,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_col_name(lp_problem_, index + 1, name.c_str());
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
       model_->setColumnName(index, name.c_str());
 #endif
   }
@@ -359,7 +353,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_row_name(lp_problem_, index + 1, name.c_str());
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
       model_->setRowName(index, name.c_str());
 #endif
   }
@@ -370,7 +364,7 @@ namespace OpenMS
       glp_set_col_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
 
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       switch (type)
       {
@@ -400,7 +394,7 @@ namespace OpenMS
       glp_set_row_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
 
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       switch (type)
       {
@@ -430,7 +424,7 @@ namespace OpenMS
       glp_set_col_kind(lp_problem_, index + 1, (int) type);
 
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       if (type == 1)
         model_->setContinuous(index);
@@ -470,7 +464,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_obj_coef(lp_problem_, index + 1, obj_value);
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
       model_->setObjective(index, obj_value);
 #endif
   }
@@ -480,7 +474,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_obj_dir(lp_problem_, (int) sense);
 #if COINOR_SOLVER == 1
-    if (solver_ == SOLVER_COINOR)
+    else if (solver_ == SOLVER_COINOR)
     {
       if (sense == LPWrapper::MIN)
         model_->setOptimizationDirection(1);
@@ -585,6 +579,9 @@ namespace OpenMS
   void LPWrapper::setSolver(const SOLVER s)
   {
     solver_ = s;
+    if (s == SOLVER::SOLVER_GLPK) {
+      lp_problem_ = glp_create_prob();
+    }
   }
 
   LPWrapper::SOLVER LPWrapper::getSolver() const
