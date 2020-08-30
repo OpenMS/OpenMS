@@ -143,7 +143,7 @@ public:
       NO_FEASIBLE_SOL = 4
     };
 
-    LPWrapper(SOLVER solver = SOLVER::SOLVER_COINOR);
+    LPWrapper();
     virtual ~LPWrapper();
 
     // problem creation/manipulation
@@ -303,10 +303,6 @@ public:
 
     Int getNumberOfNonZeroEntriesInRow(Int idx);
     void getMatrixRow(Int idx, std::vector<Int>& indexes);
-
-    /// choose solver; by default, only GLPK is available
-    /// set this only at the very beginning of building your model, as otherwise your model is incomplete
-    void setSolver(const SOLVER s);
 
     /// get currently active solver
     SOLVER getSolver() const;

@@ -147,7 +147,6 @@ namespace OpenMS
     result.clear();
     std::set<String> variables;
     LPWrapper problem;
-    // problem.setSolver(LPWrapper::SOLVER_GLPK); // glpk
     problem.setObjectiveSense(LPWrapper::MIN);
     Size n_constraints = 0;
     Size n_variables = 0;

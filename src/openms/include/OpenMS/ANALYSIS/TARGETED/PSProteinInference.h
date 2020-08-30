@@ -70,11 +70,6 @@ public:
     Int getNumberOfProtIds(double protein_id_threshold);
     Int getNumberOfProtIdsPeptideRule(Int min_peptides, std::map<String, std::set<String> > & prot_id_counter);
 
-    void setSolver(LPWrapper::SOLVER solver)
-    {
-      solver_ = solver;
-    }
-
     LPWrapper::SOLVER getSolver()
     {
       return solver_;
