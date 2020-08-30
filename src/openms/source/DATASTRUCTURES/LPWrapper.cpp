@@ -751,25 +751,20 @@ namespace OpenMS
       // set maximum allowed CPU time before forced stop (dangerous!)
       //model.setDblParam(CbcModel::CbcMaximumSeconds,60.0*1);
       
-      try {
-        // Do initial solve to continuous
-        model.initialSolve();
+      // Do initial solve to continuous
+      model.initialSolve();
 
 
-        // solve
-        model.branchAndBound();
-        // if (verbose_level > 0) OPENMS_LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
-        //                                        << model.getNodeCount()<<" nodes with objective "
-        //                                        << model.getObjValue()
-        //                                        << (!model.status() ? " Finished" : " Not finished")
-        //                                        << std::endl;
-        for (Int i = 0; i < model_->numberColumns(); ++i)
-        {
-          solution_.push_back(model.solver()->getColSolution()[i]);
-        }
-      }
-      catch (const std::exception& e) {
-        OPENMS_LOG_ERROR << e.what() << "\n";
+      // solve
+      model.branchAndBound();
+      // if (verbose_level > 0) OPENMS_LOG_INFO << " Branch and cut took " << CoinCpuTime()-time1 << " seconds, "
+      //                                        << model.getNodeCount()<<" nodes with objective "
+      //                                        << model.getObjValue()
+      //                                        << (!model.status() ? " Finished" : " Not finished")
+      //                                        << std::endl;
+      for (Int i = 0; i < model_->numberColumns(); ++i)
+      {
+        solution_.push_back(model.solver()->getColSolution()[i]);
       }
       OPENMS_LOG_INFO << (model.isProvenOptimal() ? "Optimal solution found!" : "No solution found!") << "\n";
       return model.status();
@@ -818,14 +813,9 @@ namespace OpenMS
     {
       double const * const obj = model_->objectiveArray();
       double obj_val = 0.;
-      try {
-        for (Int i = 0; i < model_->numberColumns(); ++i)
-        {
-          obj_val += obj[i] * getColumnValue(i);
-        }
-      }
-      catch (const std::exception& e) {
-        OPENMS_LOG_ERROR << e.what() << "\n";
+      for (Int i = 0; i < model_->numberColumns(); ++i)
+      {
+        obj_val += obj[i] * getColumnValue(i);
       }
       return obj_val;
     }
