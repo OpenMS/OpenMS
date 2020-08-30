@@ -1879,17 +1879,17 @@ namespace OpenMS
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
-        String key = ph_keys[k];
+        String mztabstyle_key = ph_keys[k];
+        std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
 
         // find matching entry in opt_ (TODO: speed this up)
         for (Size i = 0; i != row.opt_.size(); ++i)
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          std::replace(key.begin(), key.end(),' ', '_');
-          if (opt_entry.first == String("opt_global_") + key)
+          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
           {
-            opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
+            opt_entry.second = MzTabString(best_ph.getMetaValue(ph_keys[k]).toString());
           }
         }
       }
