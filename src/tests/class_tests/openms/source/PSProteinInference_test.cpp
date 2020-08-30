@@ -124,7 +124,7 @@ END_SECTION
 START_SECTION((LPWrapper::SOLVER getSolver()))
 {
 #if COINOR_SOLVER == 1
-  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_COINOR)
+  TEST_EQUAL(ptr->getSolver(),LPWrapper::SOLVER_GLPK)
 #else
   TEST_EQUAL(ptr->getSolver(), LPWrapper::SOLVER_GLPK)
 #endif

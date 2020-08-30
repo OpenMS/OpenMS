@@ -456,7 +456,12 @@ END_SECTION
 
 START_SECTION((SOLVER getSolver() const ))
 {
-  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_GLPK)
+
+#if COINOR_SOLVER==1
+  TEST_EQUAL(lp4.getSolver(),LPWrapper::SOLVER_COINOR)
+#else
+  TEST_EQUAL(lp4.getSolver(), LPWrapper::SOLVER_GLPK)
+#endif
 }
 END_SECTION
 
