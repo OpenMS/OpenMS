@@ -80,7 +80,7 @@ namespace OpenMS
   class OPENMS_DLLAPI IsotopeLabelingMDVs 
   {
 
-public:    
+  public:
     //@{
     /// Constructor
     IsotopeLabelingMDVs();
@@ -96,7 +96,7 @@ public:
       @param[in]  normalized_featuremap FeatureMap with normalized values for each component and unlabeled chemical formula for each component group
       @param[out] corrected_featuremap FeatureMap with corrected values for each component
     */
-    void isotopicCorrection(FeatureMap& normalized_featuremap, FeatureMap& corrected_featuremap);
+    void isotopicCorrection(Feature& normalized_featuremap, Feature& corrected_featuremap, std::vector<std::vector<double>> correction_matrix);
 
    /**
      @brief This function calculates the isotopic purity of the MDV (see Long et al 2019 for the formula)
@@ -106,7 +106,6 @@ public:
    */
     void calculateIsotopicPurity(FeatureMap& normalized_featuremap, FeatureMap& featuremap_with_isotopic_purity);
 
-  // 4
   /**
     @brief calculate the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
    
@@ -128,6 +127,17 @@ public:
     void calculateMDV(
       Feature& measured_feature, Feature& normalized_feature,
       const String& mass_intensity_type, const String& feature_name);
+    
+    
+  protected:
+    /**
+    @brief This function performs an efficient matrix inversion
+    
+    @param[in]   correction_matrix       correction matrix
+    @param[out]  correction_matrix_inversed  correction matrix inversed
+    */
+    template<typename T>
+    void inverseMatrix_(std::vector<std::vector<T>>& correction_matrix, std::vector<std::vector<T>>& correction_matrix_inversed);
      
   };
 

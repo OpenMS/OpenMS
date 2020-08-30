@@ -35,14 +35,27 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>
+#include <assert.h>
 
 using namespace OpenMS;
 
 
+class IsotopeLabelingMDVs_test : public IsotopeLabelingMDVs
+{
+  public :
+  
+  void inverseMatrix_(std::vector<std::vector<double>>& correction_matrix,
+                      std::vector<std::vector<double>>& correction_matrix_inversed)
+    {
+      IsotopeLabelingMDVs::inverseMatrix_(correction_matrix, correction_matrix_inversed);
+    }
+};
+
+
 START_TEST(IsotopeLabelingMDVs, "$Id$")
 
-IsotopeLabelingMDVs* ptr = nullptr;
-IsotopeLabelingMDVs* nullPointer = nullptr;
+IsotopeLabelingMDVs* ptr          = nullptr;
+IsotopeLabelingMDVs* nullPointer  = nullptr;
 
 
 START_SECTION((IsotopeLabelingMDVs()))
@@ -167,6 +180,82 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateMDV(
 
 END_SECTION
 
+
+START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
+                                              Feature& normalized_feature,
+                                              Feature& corrected_feature,
+                                              std::vector<std::vector<double>> correction_matrix) ))
+
+  // case 1: validating matrix inverse (separately tested)
+  // case 2: validating corrected results (corrected peak_apex_int)
+
+  IsotopeLabelingMDVs                               isotopelabelingmdvs;
+  OpenMS::Feature                                   lactate_1_normalized;
+  OpenMS::Feature                                   lactate_1_corrected;
+  std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4,0));
+  std::vector<std::vector<double>>                  correction_matrix_tBDMS {
+
+    {0.8213, 0.1053, 0.0734, 0.0000},
+    {0.8420, 0.0963, 0.0617, 0.0000},
+    {0.8466, 0.0957, 0.0343, 0.0233},
+    {0.8484, 0.0954, 0.0337, 0.0225}
+  };
+
+  std::vector<double>                               L1_norm_max       {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>                               L1_corrected      {-12.7699, 140.7289, -45.3788, -47.2081};
+  std::vector<Peak2D::IntensityType>                L1_peak_apex_int  {3.61e+08, 1.20e+04, 1.02e+05, 2.59e+04};
+  std::vector<OpenMS::Feature>                      L1_subordinates_normmax;
+
+  
+  lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
+  for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
+  {
+    OpenMS::Feature sub;
+    sub.setMetaValue("native_id", "Lactate1_"+std::to_string(117+i));
+    sub.setMetaValue("peak_apex_int", L1_norm_max[i]);
+    L1_subordinates_normmax.push_back(sub);
+  }
+  lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
+
+  isotopelabelingmdvs.isotopicCorrection(lactate_1_normalized, lactate_1_corrected, correction_matrix_tBDMS);
+
+  for(size_t i = 0; i < lactate_1_corrected.getSubordinates().size(); ++i)
+  {
+    TEST_REAL_SIMILAR(lactate_1_corrected.getSubordinates().at(i).getIntensity(), L1_corrected[i]);
+  }
+
+END_SECTION
+
+START_SECTION(( void inverseMatrix_(
+                          std::vector<std::vector<double>>& correction_matrix,
+                          std::vector<std::vector<double>>& correction_matrix_inversed) ))
+
+  IsotopeLabelingMDVs_test                          isotopelabelingmdvs;
+  std::vector<std::vector<double>>                  correction_matrix_inversed(4, std::vector<double>(4, 0));
+  std::vector<std::vector<double>>                  correction_matrix_tBDMS {
+
+    {0.8213, 0.1053, 0.0734, 0.0000},
+    {0.8420, 0.0963, 0.0617, 0.0000},
+    {0.8466, 0.0957, 0.0343, 0.0233},
+    {0.8484, 0.0954, 0.0337, 0.0225}
+  };
+
+  isotopelabelingmdvs.inverseMatrix_(correction_matrix_tBDMS, correction_matrix_inversed);
+  double corrected_value;
+
+  for (size_t i = 0; i < correction_matrix_tBDMS.size(); ++i) {
+    for (size_t j = 0; j < correction_matrix_tBDMS[0].size(); ++j) {
+      corrected_value = 0.0;
+      if (i == j) {
+        for (size_t k = 0; k < correction_matrix_tBDMS.size(); ++k) {
+          corrected_value += correction_matrix_tBDMS[i][k] * correction_matrix_inversed[k][j];
+        }
+        TEST_REAL_SIMILAR(corrected_value, 1.0);
+      }
+    }
+  }
+
+END_SECTION
 
 
 END_TEST

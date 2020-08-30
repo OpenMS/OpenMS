@@ -47,9 +47,37 @@ namespace OpenMS
   }
 
   
-  void IsotopeLabelingMDVs::isotopicCorrection(FeatureMap& normalized_featuremap, FeatureMap& corrected_featuremap)
+  void IsotopeLabelingMDVs::isotopicCorrection(
+    Feature& normalized_feature,
+    Feature& corrected_feature,
+    std::vector<std::vector<double>> correction_matrix)
   {
-    // MARK: TODO isotopicCorrection
+    // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
+    
+    uint8_t correction_matrix_n = correction_matrix.size();
+    std::vector<std::vector<double>> correction_matrix_inversed(correction_matrix_n, std::vector<double>(correction_matrix_n,0));
+    
+    // 1- correction matrix inversion
+    inverseMatrix_(correction_matrix, correction_matrix_inversed);
+    
+    // 2- element-wise expansion with MDV_observed
+    std::vector<Feature> normalized_feature_subordinates = normalized_feature.getSubordinates();
+    std::vector<double> MDV_observed;
+    for (auto it = normalized_feature_subordinates.begin(); it != normalized_feature_subordinates.end(); it++)
+    {
+      MDV_observed.push_back(it->getMetaValue("peak_apex_int"));
+    }
+    
+    double corrected_value;
+    corrected_feature = normalized_feature;
+    for (size_t i = 0; i < correction_matrix_inversed.size(); ++i) {
+      corrected_value = 0.0;
+      for (size_t j = 0; j < correction_matrix_inversed[0].size(); ++j) {
+        corrected_value += correction_matrix_inversed[i][j] * MDV_observed[j];
+      }
+      corrected_feature.getSubordinates().at(i).setIntensity(corrected_value);
+    }
+    
   }
 
 
@@ -148,6 +176,80 @@ namespace OpenMS
         }
       }
     }
+    
+  }
+
+  template<typename T>
+  void IsotopeLabelingMDVs::inverseMatrix_(
+    std::vector<std::vector<T>>& correction_matrix,
+    std::vector<std::vector<T>>& correction_matrix_inversed)
+  {
+    
+    uint16_t correction_matrix_n = correction_matrix.size() == correction_matrix[0].size() ? correction_matrix.size() : 0;
+
+    // 1- get the inverse
+    double **CM_temp, **CM_inv;
+    double temp;
+    int i, j, k;
+
+    CM_temp = (double **)malloc(correction_matrix_n * sizeof(double *));
+    for(i = 0; i<correction_matrix_n; ++i)
+    {
+      CM_temp[i] = (double *)malloc(correction_matrix_n * sizeof(double));
+    }
+
+    CM_inv=(double **)malloc(correction_matrix_n * sizeof(double *));
+    for(i = 0; i<correction_matrix_n; ++i)
+    {
+      CM_inv[i] = (double *)malloc(correction_matrix_n * sizeof(double));
+    }
+
+    for(i = 0; i < correction_matrix_n; ++i) {
+      for(j = 0; j < correction_matrix_n; ++j) {
+        CM_temp[i][j] = correction_matrix[i][j];
+      }
+    }
+
+    // initialize as identity matrix
+    for(i = 0; i < correction_matrix_n; ++i) {
+      for(j = 0; j < correction_matrix_n; ++j) {
+        if(i == j)
+          CM_inv[i][j]=1;
+        else
+          CM_inv[i][j]=0;
+      }
+    }
+    
+    // inversion routine
+    for(k = 0; k < correction_matrix_n; ++k)
+    {
+      temp = CM_temp[k][k];
+     
+      for(j = 0; j < correction_matrix_n; ++j)
+      {
+        CM_temp[k][j] /= temp;
+        CM_inv[k][j]  /= temp;
+      }
+      for(i = 0; i < correction_matrix_n; ++i)
+      {
+        temp = CM_temp[i][k];
+        for(j = 0; j < correction_matrix_n; ++j)
+        {
+          if(i == k)
+            break;
+          CM_temp[i][j] -= CM_temp[k][j] * temp;
+          CM_inv[i][j]  -= CM_inv[k][j] * temp;
+        }
+      }
+    }
+    
+    for(i = 0; i < correction_matrix_n; ++i)
+    {
+      for(j = 0; j < correction_matrix_n; ++j){
+        correction_matrix_inversed[i][j] = CM_inv[i][j];
+      }
+    }
+  
   }
   
   
