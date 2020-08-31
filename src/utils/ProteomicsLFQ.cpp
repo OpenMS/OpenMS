@@ -1874,13 +1874,13 @@ protected:
 
     if (getStringOption_("quantification_method") == "feature_intensity")
     {
-      consensus.setProteinLevelQuantification(CVTerm("MS:1002021", "label-free protein level quantitation", "PSI-MS"));
-      consensus.setPeptideLevelQuantification(CVTerm("MS:1002020", "label-free peptide level quantitation", "PSI-MS"));
+      consensus.setProteinLevelQuantificationUnit(CVTerm("MS:1002021", "label-free protein level quantitation", "PSI-MS"));
+      consensus.setPeptideLevelQuantificationUnit(CVTerm("MS:1002020", "label-free peptide level quantitation", "PSI-MS"));
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
     {
-      consensus.setProteinLevelQuantification(CVTerm("MS:1002016", "spectral count protein level quantitation", "PSI-MS"));
-      consensus.setPeptideLevelQuantification(CVTerm("MS:1002015", "spectral count peptide level quantitation", "PSI-MS"));
+      consensus.setProteinLevelQuantificationUnit(CVTerm("MS:1002016", "spectral count protein level quantitation", "PSI-MS"));
+      consensus.setPeptideLevelQuantificationUnit(CVTerm("MS:1002015", "spectral count peptide level quantitation", "PSI-MS"));
     }
 
     MzTab m = MzTab::exportConsensusMapToMzTab(

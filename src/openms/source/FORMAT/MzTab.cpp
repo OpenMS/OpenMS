@@ -3417,11 +3417,11 @@ state0:
 
     MzTabParameter quantification_method;
     const String & experiment_type = consensus_map.getExperimentType();
-    const CVTerm & prot_quant_cv = consensus_map.getProteinLevelQuantification();
-    const CVTerm & pep_quant_cv = consensus_map.getPeptideLevelQuantification();
+    const CVTerm & prot_quant_cv = consensus_map.getProteinLevelQuantificationUnit();
+    const CVTerm & pep_quant_cv = consensus_map.getPeptideLevelQuantificationUnit();
 
-    MzTabParameter protein_quantification_unit(prot_quant_cv);
-    MzTabParameter peptide_quantification_unit(pep_quant_cv);
+    MzTabParameter protein_quantification_method(prot_quant_cv);
+    MzTabParameter peptide_quantification_method(pep_quant_cv);
 
     if (experiment_type == "label-free")
     {
@@ -3436,8 +3436,8 @@ state0:
       quantification_method.fromCellString("[PRIDE,PRIDE_0000317,MS2 based isotope labeling,]");
     }
     meta_data_.quantification_method = quantification_method;
-    meta_data_.protein_quantification_unit = protein_quantification_unit;
-    meta_data_.peptide_quantification_unit = peptide_quantification_unit;
+    meta_data_.protein_quantification_unit = protein_quantification_method;
+    meta_data_.peptide_quantification_unit = peptide_quantification_method;
 
     consensus_map.getPrimaryMSRunPath(ms_runs_);
 
