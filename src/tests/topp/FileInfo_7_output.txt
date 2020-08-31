@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: /media/sachsenb/BACKUP/OpenMS/src/tests/topp/FileInfo_7_input.consensusXML
+File name: C:/dev/openms_test/src/tests/topp/FileInfo_7_input.consensusXML
 File type: consensusXML
 
 Number of consensus features:
@@ -9,7 +9,7 @@ Number of consensus features:
   total consensus features:    5  with at least one ID: 0
   total features:              10  with at least one ID:  0
 Ranges:
-  retention time: 10.00 .. 15.00
+  retention time: 10.00 .. 15.00 sec (0.1 min)
   mass-to-charge: 530.00 .. 566.00
   intensity:      9.00 .. 1111.00
 

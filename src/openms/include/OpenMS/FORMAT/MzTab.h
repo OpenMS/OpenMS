@@ -1140,7 +1140,7 @@ public:
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 
-      std::vector<const PeptideIdentification*> peptide_ids_,
+      std::vector<const PeptideIdentification*>& peptide_ids_,
       std::set<String>& protein_hit_user_value_keys,
       std::set<String>& peptide_id_user_value_keys,
       std::set<String>& peptide_hit_user_value_keys);
@@ -1175,6 +1175,7 @@ public:
 
     static void mapBetweenRunAndSearchEngines_(
       const std::vector<const ProteinIdentification*>& prot_ids,
+      const std::vector<const PeptideIdentification*>& pep_ids,
       bool skip_first_run,
       std::map<std::tuple<String, String, String>, std::set<Size>>& search_engine_to_runs,
       std::map<Size, std::vector<std::pair<String, String>>>& run_to_search_engines,
@@ -1221,9 +1222,14 @@ public:
     }
 
     static void getSearchModifications_(
-      const std::vector<const ProteinIdentification*> prot_ids, 
+      const std::vector<const ProteinIdentification*>& prot_ids,
       StringList& var_mods, 
       StringList& fixed_mods);
+
+    // create MzTab compatible modification identifier from ResidueModification
+    // If the Modification has a unimod identifier it will be prefixed as UNIMOD
+    // otherwise as CHEMMOD (see MzTab specification for details)
+    static MzTabString getModificationIdentifier_(const ResidueModification& r);
 
     static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
 

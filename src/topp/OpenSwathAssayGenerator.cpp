@@ -91,8 +91,7 @@ using namespace OpenMS;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
-
-  <B>The algorithm parameters for the Analyzer filter are:</B>
+  <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_OpenSwathAssayGenerator.html
 
 

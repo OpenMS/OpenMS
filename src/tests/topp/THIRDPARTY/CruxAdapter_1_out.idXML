@@ -2,6 +2,39 @@
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="CruxAdapter:1:in" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
+				<UserParam type="string" name="CruxAdapter:1:out" value="CruxAdapter_1_out1.tmp"/>
+				<UserParam type="string" name="CruxAdapter:1:database" value="C:/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="string" name="CruxAdapter:1:crux_executable" value="crux.exe"/>
+				<UserParam type="string" name="CruxAdapter:1:extra_index_args" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:extra_search_args" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:extra_percolator_args" value=""/>
+				<UserParam type="float" name="CruxAdapter:1:precursor_mass_tolerance" value="10.0"/>
+				<UserParam type="string" name="CruxAdapter:1:precursor_mass_units" value="ppm"/>
+				<UserParam type="float" name="CruxAdapter:1:fragment_bin_offset" value="0.0"/>
+				<UserParam type="float" name="CruxAdapter:1:fragment_bin_width" value="0.02"/>
+				<UserParam type="string" name="CruxAdapter:1:isotope_error" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:run_percolator" value="false"/>
+				<UserParam type="string" name="CruxAdapter:1:enzyme" value="trypsin"/>
+				<UserParam type="string" name="CruxAdapter:1:digestion" value="full-digest"/>
+				<UserParam type="int" name="CruxAdapter:1:allowed_missed_cleavages" value="0"/>
+				<UserParam type="string" name="CruxAdapter:1:custom_enzyme" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:decoy_prefix" value="decoy_"/>
+				<UserParam type="string" name="CruxAdapter:1:decoy_format" value="peptide-reverse"/>
+				<UserParam type="string" name="CruxAdapter:1:keep_terminal_aminos" value="NC"/>
+				<UserParam type="string" name="CruxAdapter:1:cterm_modifications" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:nterm_modifications" value=""/>
+				<UserParam type="string" name="CruxAdapter:1:modifications" value=""/>
+				<UserParam type="float" name="CruxAdapter:1:test_fdr" value="0.01"/>
+				<UserParam type="float" name="CruxAdapter:1:train_fdr" value="0.01"/>
+				<UserParam type="string" name="CruxAdapter:1:deisotope" value="false"/>
+				<UserParam type="string" name="CruxAdapter:1:report_decoys" value="false"/>
+				<UserParam type="string" name="CruxAdapter:1:log" value=""/>
+				<UserParam type="int" name="CruxAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="CruxAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="CruxAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="CruxAdapter:1:force" value="false"/>
+				<UserParam type="string" name="CruxAdapter:1:test" value="true"/>
 	</SearchParameters>
 	<IdentificationRun date="2018-02-06T18:26:26" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >

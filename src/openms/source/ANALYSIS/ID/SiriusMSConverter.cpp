@@ -472,9 +472,20 @@ namespace OpenMS
 
     AccessionInfo ainfo;
 
-    // sourcefile 
-    ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
-    ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+    // sourcefile
+    if (spectra.getSourceFiles().empty())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: The SourceFile was annotated correctly in the provided mzML. Please run the OpenMS::FileConverter convert the files again from mzML to mzML.");
+    }
+    else
+    {
+      ainfo.sf_path = spectra.getSourceFiles()[0].getPathToFile();
+      ainfo.sf_type = spectra.getSourceFiles()[0].getFileType();
+
+      // native_id
+      ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
+      ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
+    }
  
     // extract accession by name
     ControlledVocabulary cv;
@@ -490,10 +501,6 @@ namespace OpenMS
       return false;
     };
     cv.iterateAllChildren("MS:1000560", lambda);
-
-    // native_id
-    ainfo.native_id_accession = spectra.getSourceFiles()[0].getNativeIDTypeAccession();
-    ainfo.native_id_type = spectra.getSourceFiles()[0].getNativeIDType();
 
     vector<String> adducts;
     String description;

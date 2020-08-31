@@ -1491,38 +1491,48 @@ namespace OpenMS
     {
       MzTabModificationMetaData mod;
       MzTabParameter mp;
-      mp.setCVLabel("UNIMOD");
       ModificationsDB* mod_db = ModificationsDB::getInstance();
-      // MzTab standard is to just report Unimod accession.
-      const ResidueModification* m = mod_db->getModification(s);
-      String unimod_accession = m->getUniModAccession();
-      mp.setAccession(unimod_accession.toUpper());
-      mp.setName(m->getId());
-      mod.modification = mp;
+      String unimod_accession;
+      try
+      {
+        const ResidueModification* m = mod_db->getModification(s);
+        unimod_accession = m->getUniModAccession();
+        if (!unimod_accession.empty())
+        {
+          // MzTab standard is to report Unimod accession.
+          mp.setCVLabel("UNIMOD");
+          mp.setAccession(unimod_accession.toUpper());
+        }
+        mp.setName(m->getId());
+        mod.modification = mp;
 
-      if (m->getTermSpecificity() == ResidueModification::C_TERM)
-      {
-        mod.position = MzTabString("Any C-term");
+        if (m->getTermSpecificity() == ResidueModification::C_TERM)
+        {
+          mod.position = MzTabString("Any C-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::N_TERM)
+        {
+          mod.position = MzTabString("Any N-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::ANYWHERE)
+        {
+          mod.position = MzTabString("Anywhere");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+        {
+          mod.position = MzTabString("Protein C-term");
+        }
+        else if (m->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        {
+          mod.position = MzTabString("Protein N-term");
+        }
+        mod.site = MzTabString(String(m->getOrigin()));
+        mods_mztab[index] = mod;
       }
-      else if (m->getTermSpecificity() == ResidueModification::N_TERM)
+      catch(...)
       {
-        mod.position = MzTabString("Any N-term");
+        OPENMS_LOG_WARN << "Skipping unknown residue modification: '" + s + "'" << endl; 
       }
-      else if (m->getTermSpecificity() == ResidueModification::ANYWHERE)
-      {
-        mod.position = MzTabString("Anywhere");
-      }
-      else if (m->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-      {
-        mod.position = MzTabString("Protein C-term");
-      }
-      else if (m->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-      {
-        mod.position = MzTabString("Protein N-term");
-      }
-
-      mod.site = MzTabString(String(m->getOrigin()));
-      mods_mztab[index] = mod;
       ++index;
     }
     return mods_mztab;
@@ -1866,28 +1876,26 @@ namespace OpenMS
       // fill opt_ column of psm
       vector<String> ph_keys;
       best_ph.getKeys(ph_keys);
-      replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
       for (Size k = 0; k != ph_keys.size(); ++k)
       {
-        const String& key = ph_keys[k];
+        String mztabstyle_key = ph_keys[k];
+        std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
 
         // find matching entry in opt_ (TODO: speed this up)
         for (Size i = 0; i != row.opt_.size(); ++i)
         {
           MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
 
-          if (opt_entry.first == String("opt_global_") + key)
+          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
           {
-            opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
+            opt_entry.second = MzTabString(best_ph.getMetaValue(ph_keys[k]).toString());
           }
         }
       }
 
       // get msrun indices for each ID and insert best search_engine_score for this run
-      // for the first run we also annotate the spectra_ref (since it is not designed to be a list)
-      // TODO choose best run instead?
-      bool first = true;
+      // for the best run we also annotate the spectra_ref (since it is not designed to be a list)
       double best_score = best_ph.getScore();
       for (const auto& pep : curr_pep_ids)
       {
@@ -1933,20 +1941,15 @@ namespace OpenMS
         sit->second = MzTabDouble(curr_score);
 
         //TODO assumes same scores & score types
-        if ((pep.isHigherScoreBetter() && curr_score > best_score)
-        || (!pep.isHigherScoreBetter() && curr_score < best_score))
+        if ((pep.isHigherScoreBetter() && curr_score >= best_score)
+        || (!pep.isHigherScoreBetter() && curr_score <= best_score))
         {
           best_score = curr_score;
-        }
-
-        if (first)
-        {
           if (pep.metaValueExists("spectrum_reference"))
           {
             row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
             row.spectra_ref.setMSFile(msfile_index);
           }
-          first = false;
         }
       }
       row.best_search_engine_score[1] = MzTabDouble(best_score);
@@ -1991,7 +1994,6 @@ namespace OpenMS
     // meta data on peptide identifications
     vector<String> pid_keys;
     pid.getKeys(pid_keys);
-    replaceWhiteSpaces_(pid_keys.begin(), pid_keys.end());
 
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
@@ -2079,7 +2081,6 @@ namespace OpenMS
     // meta data on PSMs
     vector<String> ph_keys;
     best_ph.getKeys(ph_keys);
-    replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
 
     set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
     addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
@@ -2126,7 +2127,7 @@ namespace OpenMS
     if (has_inference_data)
     {
       protein_score_type.fromCellString("[,," + prot_id.getInferenceEngine() + " " + prot_id.getScoreType() 
-         + "," + prot_id.getInferenceEngineVersion() + "]"); // TODO: check if we need one for every run (should not be redundant!)
+         + ",]"); // TODO: check if we need one for every run (should not be redundant!)
     }
     else
     {
@@ -2176,6 +2177,7 @@ namespace OpenMS
 
   void MzTab::mapBetweenRunAndSearchEngines_(
     const vector<const ProteinIdentification*>& prot_ids,
+    const vector<const PeptideIdentification*>& pep_ids,
     bool skip_first_run,
     map<tuple<String, String, String>, set<Size>>& search_engine_to_runs,
     map<Size, vector<pair<String, String>>>& run_to_search_engines,
@@ -2194,7 +2196,19 @@ namespace OpenMS
 
       const String &search_engine_name = prot_ids[run_index]->getSearchEngine();
       const String &search_engine_version = prot_ids[run_index]->getSearchEngineVersion();
-      const String &search_engine_score_type = prot_ids[run_index]->getScoreType();
+
+      String search_engine_score_type = "unknown_score";
+
+      // this is very inefficient.. but almost the only way
+      for (const auto& pep : pep_ids)
+      {
+        if (pep->getIdentifier() == (*it)->getIdentifier())
+        {
+          search_engine_score_type = pep->getScoreType();
+          break;
+        }
+      }
+
       search_engine_to_runs[make_tuple(search_engine_name, search_engine_version, search_engine_score_type)].insert(run_index);
 
       // store main search engine as first entry in run_to_search_engines
@@ -2212,8 +2226,11 @@ namespace OpenMS
           String se_name = mvkey.substr(3);
           String se_ver = sp2.getMetaValue(mvkey);
           run_to_search_engines[run_index].emplace_back(se_name, se_ver);
-          // TODO conserve score_type of underlying search engines
-          search_engine_to_runs[make_tuple(se_name, se_ver, "")].insert(run_index);
+          // TODO conserve score_type of underlying search engines (currently always "")
+          // TODO for now we only save the MAIN search engine in the SE_to_runs, to only have
+          //  those in the meta_data later. -> No discrepancy with the rows (where we also only use
+          //  the main search engine
+          //search_engine_to_runs[make_tuple(se_name, se_ver, "")].insert(run_index);
         }
       }
 
@@ -2233,6 +2250,21 @@ namespace OpenMS
     }
   }
 
+  // static
+  MzTabString MzTab::getModificationIdentifier_(const ResidueModification& r)
+  {
+    String unimod = r.getUniModAccession();
+    unimod.toUpper();
+    if (!unimod.empty())
+    {
+      return MzTabString(unimod);
+    }
+    else
+    {
+      MzTabString non_unimod_accession = MzTabString("CHEMMOD:" + String(r.getDiffMonoMass()));
+      return non_unimod_accession;
+    }
+  }
 
   MzTabProteinSectionRow MzTab::proteinSectionRowFromProteinHit_(
     const ProteinHit& hit,
@@ -2260,9 +2292,7 @@ namespace OpenMS
     for (auto const & m : leader_mods)
     {
       MzTabModification mztab_mod;
-      String unimod = m.second.getUniModAccession();
-      MzTabString unimod_accession = MzTabString(unimod.toUpper());
-      mztab_mod.setModificationIdentifier(unimod_accession);
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
       vector<std::pair<Size, MzTabParameter> > pos;
       pos.emplace_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
       mztab_mod.setPositionsAndParameters(pos);
@@ -2432,9 +2462,7 @@ namespace OpenMS
     for (auto const & m : leader_mods)
     {
       MzTabModification mztab_mod;
-      String unimod = m.second.getUniModAccession();
-      MzTabString unimod_accession = MzTabString(unimod.toUpper());
-      mztab_mod.setModificationIdentifier(unimod_accession);
+      mztab_mod.setModificationIdentifier(MzTab::getModificationIdentifier_(m.second));
       vector<std::pair<Size, MzTabParameter> > pos;
 
       // mzTab position is one-based, internal is 0-based so we need to +1
@@ -2607,7 +2635,20 @@ Not sure how to handle these:
     for (const auto& mztpar : protein_scoretypes)
     {
       MzTabParameter p{};
-      p.fromCellString(mztpar);
+      //TODO actually we should make a distinction between protein and protein group-level FDRs
+      if (mztpar.hasSubstring("q-value"))
+      {
+        p.fromCellString("[MS,MS:1003117,OpenMS:Target-decoy protein q-value, ]");
+      }
+      else if (mztpar.hasSubstring("Epifany"))
+      {
+        p.fromCellString("[MS,MS:1003119,EPIFANY:Protein posterior probability,]");
+      }
+      else
+      {
+        p.fromCellString(mztpar);
+      }
+
       meta_data.protein_search_engine_score[cnt] = p;
       cnt++;
     }
@@ -2616,7 +2657,18 @@ Not sure how to handle these:
     {
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
-      sesoftware.fromCellString("[,," + eng_ver_settings.first.first + "," + eng_ver_settings.first.second + "]");
+      if (eng_ver_settings.first.first == "Epifany")
+      {
+        sesoftware.fromCellString("[MS,MS:1003118,EPIFANY," + eng_ver_settings.first.second + "]");
+      }
+      else if (eng_ver_settings.first.first == "TOPPProteinInference")
+      {
+        sesoftware.fromCellString("[MS,MS:1002203,TOPP ProteinInference," + eng_ver_settings.first.second + "]");
+      }
+      else
+      {
+        sesoftware.fromCellString("[,," + eng_ver_settings.first.first + "," + eng_ver_settings.first.second + "]");
+      }
       sesoftwaremd.software = sesoftware;
       meta_data.software[meta_data.software.size() + 1] = sesoftwaremd;
     }
@@ -2629,8 +2681,33 @@ Not sure how to handle these:
     {
       MzTabSoftwareMetaData sesoftwaremd;
       MzTabParameter sesoftware;
-      sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
+      //TODO decide if we should use the original search engine ontology entries or the TOPPAdapter entries
+      if (get<0>(name_ver_score_to_runs.first) == "Comet")
+      {
+        sesoftware.fromCellString("[MS,MS:1002251,Comet," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "Percolator")
+      {
+        sesoftware.fromCellString("[MS,MS:1001490,Percolator," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "MS-GF+" || get<0>(name_ver_score_to_runs.first) == "MSGFPlus")
+      {
+        sesoftware.fromCellString("[MS,MS:1002048,MS-GF+," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first) == "XTandem")
+      {
+        sesoftware.fromCellString("[MS,MS:1001476,X!Tandem," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else if (get<0>(name_ver_score_to_runs.first).hasSubstring("ConsensusID"))
+      {
+        sesoftware.fromCellString("[MS,MS:1002188,TOPP ConsensusID," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
+      else
+      {
+        sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
       sesoftwaremd.software = sesoftware;
+
       Size cnt2(1);
       for (auto const & sesetting : search_engine_to_settings.at(get<0>(name_ver_score_to_runs.first)))
       {
@@ -2649,11 +2726,72 @@ Not sure how to handle these:
     Size psm_search_engine_index(1);
     for (auto const & se : search_engine_to_runs) // loop over (unique) search engine names
     {
+      //Huge TODO: we need to somehow correctly support peptide-level scores
       MzTabParameter psm_score_type;
+      MzTabParameter pep_score_type;
       const tuple<String, String, String>& name_version_score = se.first;
-      psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + "," + get<1>(name_version_score) + "]");
+
+      psm_score_type.fromCellString("[,," + get<0>(name_version_score) + " " + get<2>(name_version_score) + ",]");
+      pep_score_type.fromCellString("[MS,MS:1003114,OpenMS:Best PSM Score,]");
+
+      //TODO we also should consider the different q-value calculation methods of Percolator....
+      if (get<2>(name_version_score) == "peptide-level q-value")
+      {
+        if (get<0>(name_version_score) == "Percolator")
+        {
+          pep_score_type.fromCellString("[MS,MS:1002360,distinct peptide-level FDRScore,Percolator]");
+          psm_score_type = pep_score_type; // since we have no way to have two types
+        }
+        else
+        {
+          pep_score_type.fromCellString("[MS,MS:1003116,OpenMS:Target-decoy peptide q-value,]");
+          psm_score_type = pep_score_type; // since we have no way to have two types
+        }
+      }
+      else if (get<2>(name_version_score).hasSubstring("q-value"))
+      {
+        if (get<0>(name_version_score) == "Percolator")
+        {
+          psm_score_type.fromCellString("[MS,MS:1001491,percolator:Q value,]");
+        }
+        else
+        {
+          psm_score_type.fromCellString("[MS,MS:1003115,OpenMS:Target-decoy PSM q-value,]");
+        }
+      }
+      else if (get<2>(name_version_score) == "Posterior Error Probability" || get<2>(name_version_score) == "pep")
+      {
+        if (get<0>(name_version_score).hasSubstring("ConsensusID"))
+        {
+          const String& name = get<0>(name_version_score);
+          String algo = name.suffix('_');
+          psm_score_type.fromCellString("[MS,MS:1003113,OpenMS:ConsensusID PEP," + algo + "]");
+        }
+        else if (get<0>(name_version_score).hasSubstring("Percolator"))
+        {
+          psm_score_type.fromCellString("[MS,MS:1001493,percolator:PEP,]");
+        }
+      }
+      else if (get<0>(name_version_score) == "Comet")
+      {
+        if (get<2>(name_version_score) == "expect")
+        {
+          psm_score_type.fromCellString("[MS,MS:1002257,Comet:expectation value,]");
+        }
+        //TODO other Comet scores
+      }
+      else if (get<0>(name_version_score) == "MSGFPlus" || get<0>(name_version_score) == "MS-GF+")
+      {
+        if (get<2>(name_version_score) == "SpecEValue")
+        {
+          psm_score_type.fromCellString("[MS,MS:1002052,MS-GF:SpecEValue,]");
+        }
+        //TODO other MSGF scores
+      }
+      //TODO all the other dozens of search engines
+
       meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
-      meta_data.peptide_search_engine_score[psm_search_engine_index] = psm_score_type; // same score type for peptides
+      meta_data.peptide_search_engine_score[psm_search_engine_index] = pep_score_type; // same score type for peptides
       psm_search_engine_index++;
     }
   }
@@ -2720,6 +2858,7 @@ Not sure how to handle these:
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
+      peptide_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
@@ -3026,11 +3165,9 @@ state0:
         bool is_fixed = std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) != fixed_mods.end();
         if (!is_fixed)
         {
-          String unimod = res_mod.getUniModAccession();
-          MzTabString unimod_accession = MzTabString(unimod.toUpper());
+          mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.emplace_back(0, MzTabParameter());
-          mod.setModificationIdentifier(unimod_accession);
           mod.setPositionsAndParameters(pos);
           mods.push_back(mod);
         }
@@ -3046,8 +3183,6 @@ state0:
           if (!is_fixed)
           {
             // MzTab standard is to just report Unimod accession.
-            String unimod = res_mod.getUniModAccession();
-            MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
             if (has_loc_mods && std::find(localization_mods.begin(), localization_mods.end(), res_mod.getFullId()) != localization_mods.end())
             { // store localization score for this mod
@@ -3058,7 +3193,7 @@ state0:
               pos.emplace_back(ai + 1, MzTabParameter());
             }
             mod.setPositionsAndParameters(pos);
-            mod.setModificationIdentifier(unimod_accession);
+            mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
             mods.push_back(mod);
           }
         }
@@ -3070,12 +3205,10 @@ state0:
         const ResidueModification& res_mod = *(aas.getCTerminalModification());
         if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
         {
-          String unimod = res_mod.getUniModAccession();
-          MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.emplace_back(aas.size() + 1, MzTabParameter());
           mod.setPositionsAndParameters(pos);
-          mod.setModificationIdentifier(unimod_accession);
+          mod.setModificationIdentifier(MzTab::getModificationIdentifier_(res_mod));
           mods.push_back(mod);
         }
       }
@@ -3140,7 +3273,7 @@ state0:
 
   void MzTab::getIdentificationMetaValues_(
     const std::vector<const ProteinIdentification*>& prot_ids, 
-    std::vector<const PeptideIdentification*> peptide_ids_,
+    std::vector<const PeptideIdentification*>& peptide_ids_,
     std::set<String>& protein_hit_user_value_keys,
     std::set<String>& peptide_id_user_value_keys,
     std::set<String>& peptide_hit_user_value_keys)
@@ -3173,7 +3306,7 @@ state0:
     }
   }
 
-  void MzTab::getSearchModifications_(const vector<const ProteinIdentification*> prot_ids, StringList& var_mods, StringList& fixed_mods)
+  void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)
   {
     for (auto const & pid : prot_ids)
     {
@@ -3265,6 +3398,7 @@ state0:
     // search engine and version <-> MS runs index
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
+      peptide_ids_,
       first_run_inference_,
       search_engine_to_runs,
       run_to_search_engines_,
@@ -3704,7 +3838,7 @@ state0:
     const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits().size() > 1)
+      if (pep.getHits()[0].getSequence() != refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__
@@ -3712,18 +3846,6 @@ state0:
             , __FUNCTION__
             , "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
       }
-      else
-      {
-        if (pep.getHits()[0].getSequence() != refseq)
-        {
-          throw OpenMS::Exception::IllegalArgument(
-              __FILE__
-              , __LINE__
-              , __FUNCTION__
-              , "Consensus features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
-        }
-      }
     }
   }
 }
-

@@ -108,6 +108,11 @@ namespace OpenMS
 #endif
   }
 
+  String TOPPBase::getToolPrefix() const
+  {
+    return tool_name_ + ":" + instance_number_ + ":";
+  }
+
   TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
@@ -191,7 +196,7 @@ namespace OpenMS
     writeDebug_(String("Instance: ") + String(instance_number_), 1);
 
     // assign ini location
-    *const_cast<String*>(&ini_location_) = tool_name_ + ':' + String(instance_number_) + ':';
+    *const_cast<String*>(&ini_location_) = this->getToolPrefix();
     writeDebug_(String("Ini_location: ") + getIniLocation_(), 1);
 
     // set debug level
@@ -1513,17 +1518,25 @@ namespace OpenMS
 
   TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
-    String sstdout, sstderr; // collect all output (might be useful if program crashes, see below)
+    String proc_stdout, proc_stderr; // collect all output (might be useful if program crashes, see below)
+    return runExternalProcess_(executable, arguments, proc_stdout, proc_stderr, workdir);
+  }
+
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, String& proc_stdout, String& proc_stderr, const QString& workdir) const
+  {
+    proc_stdout.clear();
+    proc_stderr.clear();
+
     // callbacks: invoked whenever output is available.
-    auto lam_out = [&](const String& out) { sstdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
-    auto lam_err = [&](const String& out) { sstderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_out = [&](const String& out) { proc_stdout += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
+    auto lam_err = [&](const String& out) { proc_stderr += out; if (debug_level_ >= 4) OPENMS_LOG_INFO << out; };
     ExternalProcess ep(lam_out, lam_err);
 
     const auto& rt = ep.run(executable, arguments, workdir, true); // does automatic escaping etc... start
     if (debug_level_ < 4 && rt != ExternalProcess::RETURNSTATE::SUCCESS)
     { // error occured: if not written already in callback, do it now
-      writeLog_("Standard output: " + sstdout);
-      writeLog_("Standard error: " + sstderr);
+      writeLog_("Standard output: " + proc_stdout);
+      writeLog_("Standard error: " + proc_stderr);
     }
     if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
     {
@@ -1905,7 +1918,7 @@ namespace OpenMS
   Param TOPPBase::getDefaultParameters_() const
   {
     Param tmp;
-    String loc = tool_name_ + ":" + String(instance_number_) + ":";
+    String loc = this->getToolPrefix();
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {

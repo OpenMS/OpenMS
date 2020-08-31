@@ -228,6 +228,10 @@ protected:
     registerStringOption_("mass_recalibration", "<option>", "false", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("keep_feature_top_psm_only", "<option>", "true", "If false, also keeps lower ranked PSMs that have the top-scoring"
+                                                                     " sequence as a candidate per feature in the same file.", false, true);
+    setValidStrings_("keep_feature_top_psm_only", ListUtils::create<String>("true,false"));
+
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -857,7 +861,18 @@ protected:
       for (PeptideHit & ph : pid.getHits())
       {
         // TODO: keep target_decoy information for QC
-        ph.clearMetaInfo();
+        // TODO: we only have super inefficient meta value removal
+        vector<String> keys;
+        ph.getKeys(keys);
+        for (const auto& k : keys)
+        {
+          if (!(k.hasSubstring("_score") || k.hasSubstring("q-value") || k.hasPrefix("Luciphor_global_flr")))
+          {
+            ph.removeMetaValue(k);
+          }
+        }
+        // we only clear selected metavalues
+        //ph.clearMetaInfo();
       }
     }
 
@@ -1083,7 +1098,8 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp, false); // keep only best peptide per feature
+      IDConflictResolverAlgorithm::resolve(tmp,
+          getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
       feature_maps.push_back(tmp);
       
