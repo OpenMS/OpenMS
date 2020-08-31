@@ -97,7 +97,6 @@ namespace OpenMS
 
 
     LPWrapper problem;
-    problem.setSolver(solver_);
     set<String> all_accs;
     problem.setObjectiveSense(LPWrapper::MIN);
     minimal_protein_list_accessions_.clear();

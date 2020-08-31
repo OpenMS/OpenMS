@@ -441,7 +441,6 @@ namespace OpenMS
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
     double min_rt = param_.getValue("rt:min_rt");
@@ -1034,7 +1033,6 @@ namespace OpenMS
     std::cout << "k2: " << k2 << std::endl;
 #endif
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     Int counter = 0;
 
 #ifdef DEBUG_OPS
