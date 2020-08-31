@@ -2698,6 +2698,10 @@ Not sure how to handle these:
       {
         sesoftware.fromCellString("[MS,MS:1001476,X!Tandem," + get<1>(name_ver_score_to_runs.first) + "]");
       }
+      else if (get<0>(name_ver_score_to_runs.first).hasSubstring("ConsensusID"))
+      {
+        sesoftware.fromCellString("[MS,MS:1002188,TOPP ConsensusID," + get<1>(name_ver_score_to_runs.first) + "]");
+      }
       else
       {
         sesoftware.fromCellString("[,," + get<0>(name_ver_score_to_runs.first) + "," + get<1>(name_ver_score_to_runs.first) + "]");
