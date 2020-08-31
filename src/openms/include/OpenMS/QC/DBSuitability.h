@@ -141,17 +141,22 @@ namespace OpenMS
     *                                         is rather stable across common FDR thresholds from 0 - 5 %
     *
     * After this, a correction factor for the number of found top deNovo hits is calculated.
-    * This is done by perfoming two additional identification searches one with just the deNovo sequences
-    * as the database and with only the database in question.
-    * The number of identifications found (post FDR) with only deNovo devided by
-    * the number of identifications found (post FDR) with only the database yields the factor
-    * with which the number of top deNovo from the combined search will be corrected.
+    * This is done by perfoming an additional combined identification search with a smaller sample of the database.
+    * It was observed that the number of top deNovo and db hits behave linear according the sampling of the
+    * database. This can be used to extrapolate the number of database hits that would be needed to get a suitability
+    * of 1. This number in combination with the maximum number of deNovo hits (found with an identification search
+    * where only deNovo is used as a database) can be used to calculate a correction factor like this:
+    *                     #database hits for suitability of 1 / #maximum deNovo hits
     * 
-    * With that it is tried to correct the suitability in a way to more punish bad database, while
-    * not impacting good databases that much.
+    * Correcting the number of found top deNovo hits with this factor results in them being more comparable to the top
+    * database hits. This in return results in a more linear behaviour of the suitability according to the sampling ratio.
+    * The corrected suitability reflects what sampling ratio your database represents regarding to the theoretical 'perfect'
+    * database. Or in other words: Your database needs to be (1 - corrected suitability) bigger to get a suitability of 1.
+    *
     * Both the original suitability as well as the corrected one are reported in the result.
     *
     * Since q-values need to be calculated the identifications are taken by copy.
+    * Since decoys need to be calculated for the fasta input those are taken by copy as well.
     *
     * Result is appended to the result member. This allows for multiple usage.
     *
@@ -172,7 +177,7 @@ namespace OpenMS
     * @throws               MissingInformation if no xcorr is found
     * @throws               Precondition if a q-value is found in @p pep_ids
     */
-    void compute(std::vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
+    void compute(std::vector<PeptideIdentification> pep_ids, const MSExperiment& exp, std::vector<FASTAFile::FASTAEntry> original_fasta, std::vector<FASTAFile::FASTAEntry> novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -200,7 +205,7 @@ namespace OpenMS
     * @throws           MissingInformation if no target/decoy annotation is found
     * @throws           MissingInformation if no xcorr is found
     */
-    double getDecoyDiff_(const PeptideIdentification& pep_id);
+    double getDecoyDiff_(const PeptideIdentification& pep_id) const;
 
     /**
     * @brief Calculates a xcorr cut-off based on decoy hits
@@ -216,7 +221,7 @@ namespace OpenMS
     * @throws                             IllegalArgument if reranking_cutoff_percentile is too low for a decoy cut-off to be calculated
     * @throws                             MissingInformation if no more than 20 % of the peptide IDs have two decoys in their top ten peptide hits
     */
-    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile);
+    double getDecoyCutOff_(const std::vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile) const;
 
     /**
     * @brief Tests if a PeptideHit is considered a deNovo hit
@@ -228,7 +233,7 @@ namespace OpenMS
     * @param hit      PepHit in question
     * @returns        true/false
     */
-    bool isNovoHit_(const PeptideHit& hit);
+    bool isNovoHit_(const PeptideHit& hit) const;
 
     /**
     * @brief Tests if a PeptideHit has a lower q-value than the given FDR threshold, i.e. passes FDR
@@ -281,13 +286,13 @@ namespace OpenMS
     */
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
-    Size countIdentifications_(std::vector<PeptideIdentification> pep_ids);
+    Size countIdentifications_(std::vector<PeptideIdentification> pep_ids) const;
 
-    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio);
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double ratio) const;
 
-    void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data);
+    void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const;
 
-    void calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta);
+    void calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
   };
 }
 

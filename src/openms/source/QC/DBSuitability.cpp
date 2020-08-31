@@ -66,7 +66,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
+  void DBSuitability::compute(vector<PeptideIdentification> pep_ids, const MSExperiment& exp, vector<FASTAFile::FASTAEntry> original_fasta, std::vector<FASTAFile::FASTAEntry> novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
     pair<String, Param> search_info = extractSearchAdapterInfoFromMetaValues_(search_params);
 
@@ -97,9 +97,10 @@ namespace OpenMS
     SuitabilityData& data = results_.back();
     calculateSuitability_(pep_ids, data);
 
-    // calculate correction of suitability
+    // calculate correction of suitability with extrapolation
     
-    //maybe multiple runs? could be controlled with a parameter
+    // sampled run
+    // maybe multiple runs? could be controlled with a parameter
     double ratio = 0.5;
     vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, ratio);
     sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
@@ -109,17 +110,20 @@ namespace OpenMS
     SuitabilityData sampled_data;
     calculateSuitability_(subsampled_ids, sampled_data);
 
+    // slopes of db and deNovo hits
     double db_slope = (int(sampled_data.num_top_db) - int(data.num_top_db)) / (-ratio);
     double deNovo_slope = (int(sampled_data.num_top_novo) - int(data.num_top_novo)) / (-ratio);
-    vector<FASTAFile::FASTAEntry> novo_with_decoy(novo_fasta);
-    calculateDecoys_(novo_with_decoy);
-    Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_with_decoy, search_info.first, search_info.second));
+
+    // calculate deNovo intercept (maximum deNovo ids)
+    calculateDecoys_(novo_fasta);
+    Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
     // db_intercept is estimated to be 0
 
-    double target_ratio = (-deNovo_intercept) / deNovo_slope;
-    double db_hits_at_ratio = db_slope * target_ratio;
-
+    // calculate correction factor
+    double target_ratio = (-deNovo_intercept) / deNovo_slope; // ratio that corresponds to suitability of 1
+    double db_hits_at_ratio = db_slope * target_ratio; // db hits for suitability 1
     double factor = db_hits_at_ratio / deNovo_intercept;
+
     data.corr_factor = factor;
 
     data.num_top_novo_corr = data.num_top_novo * factor;
@@ -131,7 +135,7 @@ namespace OpenMS
     return results_;
   }
 
-  double DBSuitability::getDecoyDiff_(const PeptideIdentification& pep_id)
+  double DBSuitability::getDecoyDiff_(const PeptideIdentification& pep_id) const
   {
     double diff = DBL_MAX;
 
@@ -176,7 +180,7 @@ namespace OpenMS
     return diff;
   }
 
-  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile)
+  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile) const
   {
     if (reranking_cutoff_percentile < 0 || reranking_cutoff_percentile > 1)
     {
@@ -212,7 +216,7 @@ namespace OpenMS
     return diffs[index];
   }
 
-  bool DBSuitability::isNovoHit_(const PeptideHit& hit)
+  bool DBSuitability::isNovoHit_(const PeptideHit& hit) const
   {
     const set<String>& accessions = hit.extractProteinAccessionsSet();
     for (const String& acc : accessions)
@@ -366,7 +370,7 @@ namespace OpenMS
     return pep_ids;
   }
 
-  Size DBSuitability::countIdentifications_(std::vector<PeptideIdentification> pep_ids)
+  Size DBSuitability::countIdentifications_(std::vector<PeptideIdentification> pep_ids) const
   {
     Size count{};
     for (const auto& pep_id : pep_ids)
@@ -385,7 +389,7 @@ namespace OpenMS
     return count;
   }
 
-  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio)
+  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double ratio) const
   {
     if (ratio < 0 || ratio > 1)
     {
@@ -410,7 +414,7 @@ namespace OpenMS
     }
     return sampled_fasta;
   }
-  void DBSuitability::calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data)
+  void DBSuitability::calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const
   {
     bool no_re_rank = param_.getValue("no_re_rank").toBool();
     double cut_off_fract = param_.getValue("cut_off_fract");
@@ -517,7 +521,7 @@ namespace OpenMS
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
 
-  void DBSuitability::calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta)
+  void DBSuitability::calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const
   {
     vector<FASTAFile::FASTAEntry> decoys;
     for (auto& entry : fasta)
