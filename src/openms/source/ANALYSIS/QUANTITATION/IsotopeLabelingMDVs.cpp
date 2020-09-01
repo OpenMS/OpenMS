@@ -81,9 +81,30 @@ namespace OpenMS
   }
 
 
-  void IsotopeLabelingMDVs::calculateIsotopicPurity(FeatureMap& normalized_featuremap, FeatureMap& featuremap_with_isotopic_purity)
+  void IsotopeLabelingMDVs::calculateIsotopicPurity(
+    Feature& normalized_featuremap,
+    Feature& featuremap_with_isotopic_purity,
+    std::vector<double>& experiment_data,
+    std::string& isotopic_purity_name)
   {
-    // MARK: TODO calculateIsotopicPurity
+    
+    normalized_featuremap = featuremap_with_isotopic_purity;
+    
+    double experiment_data_peak = 0.0;
+    if ( !experiment_data.empty() )
+    {
+      std::vector<double>::iterator max_it  = std::max_element(experiment_data.begin(), experiment_data.end());
+      uint64_t experiment_data_peak_idx     = std::distance(experiment_data.begin(), max_it);
+      experiment_data_peak                  = experiment_data[experiment_data_peak_idx];
+      
+      if ( experiment_data_peak_idx >= 1 && experiment_data_peak != 0.0)
+      {
+        double previous_experiment_data_peak  = experiment_data[experiment_data_peak_idx - 1];
+        double isotopic_purity                = experiment_data_peak_idx / (experiment_data_peak_idx + ( previous_experiment_data_peak / experiment_data_peak));
+        featuremap_with_isotopic_purity.setMetaValue(isotopic_purity_name, isotopic_purity);
+      }
+    }
+
   }
 
   

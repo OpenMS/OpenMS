@@ -226,6 +226,7 @@ START_SECTION(( void IsotopeLabelingMDVs::isotopicCorrection(
 
 END_SECTION
 
+
 START_SECTION(( void inverseMatrix_(
                           std::vector<std::vector<double>>& correction_matrix,
                           std::vector<std::vector<double>>& correction_matrix_inversed) ))
@@ -257,5 +258,46 @@ START_SECTION(( void inverseMatrix_(
 
 END_SECTION
 
+
+START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
+                                              Feature& normalized_featuremap,
+                                              Feature& featuremap_with_isotopic_purity,
+                                              std::vector<double>& experiment_data,
+                                              std::string& isotopic_purity_name) ))
+
+  // case 1: calculating isotopic purity on 1_2_13C, U_13C sample experiment data
+
+  IsotopeLabelingMDVs             isotopelabelingmdvs;
+  OpenMS::Feature                 lactate_1_normalized;
+  OpenMS::Feature                 lactate_1_with_isotopic_purity;
+
+  std::vector<double>             L1_norm_max                   {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>             L1_1_2_13C_glucose_experiment {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
+  std::vector<double>             L1_U_13C_glucose_experiment   {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
+  std::vector<double>             L1_isotopic_purity_results    {99.6469, 99.2517};  // [1_2_13C, U_13C]
+
+  std::string                     L1_1_2_13C_glucose          = "1_2-13C_glucose_experiment";
+  std::string                     L1_U_13C_glucose            = "U-13C_glucose_experiment";
+
+  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+
+  
+  lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
+  for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
+  {
+    OpenMS::Feature sub;
+    sub.setMetaValue("native_id", "Lactate1_"+std::to_string(117+i));
+    sub.setMetaValue("peak_apex_int", L1_norm_max[i]);
+    L1_subordinates_normmax.push_back(sub);
+  }
+  lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
+
+  isotopelabelingmdvs.calculateIsotopicPurity(lactate_1_normalized, lactate_1_with_isotopic_purity, L1_1_2_13C_glucose_experiment, L1_1_2_13C_glucose);
+  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_1_2_13C_glucose)) * 100, L1_isotopic_purity_results[0]);
+
+  isotopelabelingmdvs.calculateIsotopicPurity(lactate_1_normalized, lactate_1_with_isotopic_purity, L1_U_13C_glucose_experiment, L1_U_13C_glucose);
+  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_U_13C_glucose)) * 100, L1_isotopic_purity_results[1]);
+
+END_SECTION
 
 END_TEST

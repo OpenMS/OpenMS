@@ -99,12 +99,16 @@ namespace OpenMS
     void isotopicCorrection(Feature& normalized_featuremap, Feature& corrected_featuremap, std::vector<std::vector<double>> correction_matrix);
 
    /**
-     @brief This function calculates the isotopic purity of the MDV (see Long et al 2019 for the formula)
+     @brief This function calculates the isotopic purity of the MDV using the following formula:
+     isotopic purity of tracer (atom % 13C) = n / [n + (M + n-1)/(M + n)],
+     where n in M+n is represented as the index of the result
 
      @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the number of heavy labeled e.g., carbons
+     @param[in]  experiment_data experiment data in percent
+     @param[in]  isotopic_purity_name name of the isotopic purity tracer to be saved as a meta value
      @param[out] featuremap_with_isotopic_purity  FeatureMap with the calculated isotopic purity for the component group
    */
-    void calculateIsotopicPurity(FeatureMap& normalized_featuremap, FeatureMap& featuremap_with_isotopic_purity);
+    void calculateIsotopicPurity(Feature& normalized_feature, Feature& feature_with_isotopic_purity, std::vector<double>& experiment_data, std::string& isotopic_purity_name);
 
   /**
     @brief calculate the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
