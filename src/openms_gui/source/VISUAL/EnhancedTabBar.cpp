@@ -143,7 +143,7 @@ namespace OpenMS
    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
   }
 
-  void EnhancedTabBar::setCurrentId(int id)
+  void EnhancedTabBar::show(int id)
   {
     for (int i = 0; i < this->count(); ++i)
     {
@@ -155,9 +155,9 @@ namespace OpenMS
     }
   }
 
-  void EnhancedTabBar::currentChanged_(int id)
+  void EnhancedTabBar::currentChanged_(int index)
   {
-    emit currentIdChanged(tabData(id).toInt());
+    emit currentIdChanged(tabData(index).toInt());
   }
 
   int EnhancedTabBar::tabAt_(const QPoint & pos)

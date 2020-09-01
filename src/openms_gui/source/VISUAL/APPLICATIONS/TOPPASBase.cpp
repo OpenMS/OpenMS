@@ -161,7 +161,7 @@ namespace OpenMS
     file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
     file->addAction("E&xport as image", this, SLOT(exportAsImage()));
     file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL + Qt::SHIFT + Qt::Key_P);
-    file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
+    file->addAction("&Close pipeline", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
     file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
     file->addAction("Sa&ve TOPPAS resource file", this, SLOT(savePipelineResourceFile()));
@@ -989,7 +989,7 @@ namespace OpenMS
       if (tw)
       {
         Int window_id = tw->getWindowId();
-        tab_bar_->setCurrentId(window_id);
+        tab_bar_->show(window_id);
       }
     }
   }
