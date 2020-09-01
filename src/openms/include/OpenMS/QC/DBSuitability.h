@@ -288,7 +288,7 @@ namespace OpenMS
 
     Size countIdentifications_(std::vector<PeptideIdentification> pep_ids) const;
 
-    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_data, double ratio) const;
+    std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio) const;
 
     void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const;
 
