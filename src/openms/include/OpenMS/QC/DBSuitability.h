@@ -112,6 +112,8 @@ namespace OpenMS
 
       /// suitability after correcting the top deNovo hits to impact worse databases more
       double suitability_corr = 0;
+
+      void setCorrectionFactor(double factor);
     };
 
     /// Constructor
@@ -286,13 +288,13 @@ namespace OpenMS
     */
     std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
-    Size countIdentifications_(std::vector<PeptideIdentification> pep_ids) const;
+    Size countIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const;
 
     std::vector<FASTAFile::FASTAEntry> getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio) const;
 
     void calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const;
 
-    void calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
+    void appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const;
   };
 }
 

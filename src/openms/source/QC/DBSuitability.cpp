@@ -48,6 +48,8 @@
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <random>
+
 using namespace std;
 
 namespace OpenMS
@@ -92,34 +94,33 @@ namespace OpenMS
     fdr.apply(pep_ids);
 
     // calculate suitability
-    SuitabilityData d;
-    results_.push_back(d);
-    SuitabilityData& data = results_.back();
-    calculateSuitability_(pep_ids, data);
+    results_.push_back(SuitabilityData());
+    SuitabilityData& suitability_data_full = results_.back();
+    calculateSuitability_(pep_ids, suitability_data_full);
 
     // calculate correction of suitability with extrapolation
     String debug_out = "\n";
-    debug_out += "original suitability data:\ntop db: " + String(data.num_top_db) + "\ntop novo: " + String(data.num_top_novo) + "\n\n";
+    debug_out += "original suitability data:\ntop db: " + String(suitability_data_full.num_top_db) + "\ntop novo: " + String(suitability_data_full.num_top_novo) + "\n\n";
     // sampled run
     // maybe multiple runs? could be controlled with a parameter
-    double ratio = 0.5;
-    vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, ratio);
+    double subsampling_rate = 0.5;
+    vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
     sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
     debug_out += "fasta: " + String(original_fasta.size()) + ", subsampled: " + String(sampled_db.size());
-    calculateDecoys_(sampled_db);
+    appendDecoys_(sampled_db);
     debug_out += ", subsampled with decoys: " + String(sampled_db.size()) + "\n\n";
     vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
 
-    SuitabilityData sampled_data;
-    calculateSuitability_(subsampled_ids, sampled_data);
-    debug_out += "subsampled suitability data:\ntop db: " + String(sampled_data.num_top_db) + "\ntop novo: " + String(sampled_data.num_top_novo) + "\n\n";
+    SuitabilityData suitability_data_sampled;
+    calculateSuitability_(subsampled_ids, suitability_data_sampled);
+    debug_out += "subsampled suitability data:\ntop db: " + String(suitability_data_sampled.num_top_db) + "\ntop novo: " + String(suitability_data_sampled.num_top_novo) + "\n\n";
 
     // slopes of db and deNovo hits
-    double db_slope = (int(sampled_data.num_top_db) - int(data.num_top_db)) / (-ratio);
-    double deNovo_slope = (int(sampled_data.num_top_novo) - int(data.num_top_novo)) / (-ratio);
+    double db_slope = (int(suitability_data_sampled.num_top_db) - int(suitability_data_full.num_top_db)) / (1 - subsampling_rate);
+    double deNovo_slope = (int(suitability_data_sampled.num_top_novo) - int(suitability_data_full.num_top_novo)) / (1 - subsampling_rate);
 
     // calculate deNovo intercept (maximum deNovo ids)
-    calculateDecoys_(novo_fasta);
+    appendDecoys_(novo_fasta);
     Int deNovo_intercept = countIdentifications_(runIdentificationSearch_(exp, novo_fasta, search_info.first, search_info.second));
     // db_intercept is estimated to be 0
 
@@ -133,10 +134,7 @@ namespace OpenMS
 
     OPENMS_LOG_DEBUG << debug_out << endl;
 
-    data.corr_factor = factor;
-
-    data.num_top_novo_corr = data.num_top_novo * factor;
-    data.suitability_corr = double(data.num_top_db) / (data.num_top_db + (factor * data.num_top_novo));
+    suitability_data_full.setCorrectionFactor(factor);
   }
 
   const std::vector<DBSuitability::SuitabilityData>& DBSuitability::getResults() const
@@ -250,40 +248,42 @@ namespace OpenMS
     // list of all allowed adapters
     vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
 
-    String adapter;
     vector<String> keys;
     search_params.getKeys(keys);
+
+    // find adapter name
+    String adapter;
     for (const String& key : keys)
     {
-      if (adapter.empty()) // trying to find which adapter was used
+      for (const String& a : working_adapters)
       {
-        for (const String& a : working_adapters)
+        if (key.compare(0, a.size(), a) == 0)
         {
-          if (key.find(a) == 0)
-          {
-            // used adapter found
-            adapter = a;
-            break;
-          }
+          // used adapter found
+          adapter = a;
+          break;
         }
       }
-      else // found adapter name
+      if (!adapter.empty())
       {
-        if (key.find(adapter) != 0) continue; // does adapter appear in meta value key?
-        p.setValue(key, search_params.getMetaValue(key));
+        break;
       }
     }
 
-    if (p.empty()) // non of the allowed adapter names where found in the meta values
+    if (adapter.empty()) // non of the allowed adapter names where found in the meta values
     {
       String message;
       message = "No parameters found for any of the allowed adapters in the given meta values. Allowed are:\n";
-      for (const String& a : working_adapters)
-      {
-        message += a + " ";
-      }
+      message += ListUtils::concatenate(working_adapters, ", ");
       message = "\n";
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+    }
+
+    // extract parameters
+    for (const String& key : keys)
+    {
+      if (key.compare(0, adapter.size(), adapter) != 0) continue; // does adapter appear in meta value key?
+      p.setValue(key, search_params.getMetaValue(key));
     }
 
     OPENMS_LOG_DEBUG << "Parameters for the following adapter were found: " << adapter << endl;
@@ -293,10 +293,6 @@ namespace OpenMS
 
   void DBSuitability::writeIniFile_(const Param& parameters, const String& filename) const
   {
-    if (!File::writable(filename)) // check if file exists and is writable
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unable to create file: " + filename);
-    }
     ParamXMLFile param_file;
     param_file.store(filename, parameters);
   }
@@ -315,6 +311,10 @@ namespace OpenMS
     String out_path = tmp_dir.getPath() + "out.idXML";
 
     // override the in- and output files in the parameters
+    if (!parameters.exists(adapter_name + ":1:in") || !parameters.exists(adapter_name + ":1:database") || !parameters.exists(adapter_name + ":1:out"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'in', 'out' or 'database' parameter not found! The search adapter is probably not supported anymore.");
+    }
     parameters.setValue(adapter_name + ":1:in", mzml_path);
     parameters.setValue(adapter_name + ":1:database", db_path);
     parameters.setValue(adapter_name + ":1:out", out_path);
@@ -342,7 +342,7 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
     }
     // search was successful
 
@@ -362,16 +362,20 @@ namespace OpenMS
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
       OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
     }
 
     // calculate q-values
-    Param p;
+    FalseDiscoveryRate fdr;
+    Param p(fdr.getParameters());
+    if (!p.exists("use_all_hits") || !p.exists("add_decoy_peptides") || !p.exists("add_decoy_proteins"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FDR parameters probably changed. 'use_all_hits', 'add_decoy_peptides' or 'add_decoy_proteins' not found.");
+    }
     p.setValue("use_all_hits", "true");
     p.setValue("add_decoy_peptides", "true");
     p.setValue("add_decoy_proteins", "true");
 
-    FalseDiscoveryRate fdr;
     fdr.setParameters(p);
     OPENMS_LOG_DEBUG << "Calculating q-values ..." << endl << endl;
     fdr.apply(pep_ids);
@@ -379,39 +383,42 @@ namespace OpenMS
     return pep_ids;
   }
 
-  Size DBSuitability::countIdentifications_(std::vector<PeptideIdentification> pep_ids) const
+  Size DBSuitability::countIdentifications_(const std::vector<PeptideIdentification>& pep_ids) const
   {
     Size count{};
+    double FDR = this->getParameters().getValue("FDR");
     for (const auto& pep_id : pep_ids)
     {
-      vector<PeptideHit> hits = pep_id.getHits();
+      const vector<PeptideHit>& hits = pep_id.getHits();
       if (hits.empty()) continue;
       if (!hits[0].metaValueExists("target_decoy"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. Make sure PeptideIndexer ran beforehand.");
       }
       if (hits[0].getMetaValue("target_decoy") == "decoy") continue;
-      if (!passesFDR_(hits[0],this->getParameters().getValue("FDR"))) continue;
+      if (!passesFDR_(hits[0], FDR)) continue;
 
       ++count;
     }
     return count;
   }
 
-  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double ratio) const
+  std::vector<FASTAFile::FASTAEntry> DBSuitability::getSubsampledFasta_(std::vector<FASTAFile::FASTAEntry> fasta_data, double subsampling_rate) const
   {
-    if (ratio < 0 || ratio > 1)
+    if (subsampling_rate < 0 || subsampling_rate > 1)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Ratio has to be between 0 and 1. Aborting!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Subsampling rate has to be between 0 and 1. Aborting!");
     }
     Size num_AS{};
     for (const auto& entry : fasta_data)
     {
       num_AS += entry.sequence.size();
     }
-    double num_AS_written = num_AS * ratio;
+    double num_AS_written = num_AS * subsampling_rate;
 
-    random_shuffle(fasta_data.begin(), fasta_data.end());
+    random_device rd;
+    mt19937 g(rd());
+    shuffle(fasta_data.begin(), fasta_data.end(), g);
 
     Size curr_AS{};
     vector<FASTAFile::FASTAEntry> sampled_fasta;
@@ -423,6 +430,7 @@ namespace OpenMS
     }
     return sampled_fasta;
   }
+
   void DBSuitability::calculateSuitability_(std::vector<PeptideIdentification> pep_ids, SuitabilityData& data) const
   {
     bool no_re_rank = param_.getValue("no_rerank").toBool();
@@ -530,9 +538,10 @@ namespace OpenMS
     data.suitability = double(data.num_top_db) / (data.num_top_db + data.num_top_novo);
   }
 
-  void DBSuitability::calculateDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const
+  void DBSuitability::appendDecoys_(std::vector<FASTAFile::FASTAEntry>& fasta) const
   {
-    vector<FASTAFile::FASTAEntry> decoys;
+    fasta.reserve(fasta.size() * 2);
+
     for (auto& entry : fasta)
     {
       ProteaseDigestion digestion;
@@ -550,8 +559,15 @@ namespace OpenMS
       FASTAFile::FASTAEntry decoy_entry;
       decoy_entry.sequence = new_sequence;
       decoy_entry.identifier = "DECOY_" + entry.identifier;
-      decoys.push_back(decoy_entry);
+      fasta.push_back(decoy_entry);
     }
-    fasta.insert(fasta.end(), decoys.begin(), decoys.end());
   }
+
+  void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)
+  {
+    corr_factor = factor;
+    num_top_novo_corr = num_top_novo * factor;
+    suitability_corr = num_top_db / (num_top_db + num_top_novo_corr);
+  }
+
 }// namespace OpenMS
