@@ -97,7 +97,7 @@ protected:
       matlabOut << "s" << it.getMSLevel() << "n" << cntr++ << "=[";
       for (auto &p : it)
       {
-        matlabOut << p.getMZ() << " " << p.getIntensity() << ";";
+        matlabOut << std::to_string(p.getMZ()) << " " << std::to_string(p.getIntensity()) << ";";
       }
       matlabOut << "];\n";
     }

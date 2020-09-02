@@ -56,9 +56,10 @@ namespace OpenMS
     }
 
     FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(double m,
-	                                                                         double M,
-	                                                                         double delta,
-	                                                                         CoarseIsotopePatternGenerator *generator)
+                                                                             double M,
+                                                                             double delta,
+                                                                             CoarseIsotopePatternGenerator *generator,
+                                                                             bool useRNAavg)
       :
       massInterval(delta), minMass(m)
   {
@@ -75,7 +76,7 @@ namespace OpenMS
       {
         break;
       }
-      auto iso = generator->estimateFromPeptideWeight(a);
+      auto iso = useRNAavg ? generator->estimateFromRNAWeight(a) : generator->estimateFromPeptideWeight(a);
       //iso.trimIntensities()
 
       //std::cout<< a << " "<<iso[10].getMZ() - iso[9].getMZ()<<std::endl;
@@ -246,12 +247,15 @@ namespace OpenMS
 
   FLASHDeconvHelperStructs::PrecalculatedAveragine FLASHDeconvHelperStructs::calculateAveragines(FLASHDeconvHelperStructs::Parameter& param)
   {
-      auto generator = new CoarseIsotopePatternGenerator();
-      auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-      maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
-      param.maxIsotopeCount = (int)maxIso.size() - 1;
-      generator->setMaxIsotope((Size)param.maxIsotopeCount);
-      return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator);
+    auto generator = new CoarseIsotopePatternGenerator();
+    //generator->estimateFromRNAWeight(param.maxMass)
+    auto maxIso = param.useRNAavg ?
+                  generator->estimateFromRNAWeight(param.maxMass) :
+                  generator->estimateFromPeptideWeight(param.maxMass);
+    maxIso.trimRight(0.01 * maxIso.getMostAbundant().getIntensity());
+    param.maxIsotopeCount = (int) maxIso.size() - 1;
+    generator->setMaxIsotope((Size) param.maxIsotopeCount);
+    return FLASHDeconvHelperStructs::PrecalculatedAveragine(50, param.maxMass, 20, generator, param.useRNAavg);
   }
 
 

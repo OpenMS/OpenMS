@@ -168,6 +168,8 @@ protected:
                        true);
 
     registerIntOption_("max_MS_level", "", 2, "maximum MS level (inclusive) for deconvolution", false, true);
+
+    registerIntOption_("use_RNA_averagine", "", 0, "if set to 1, RNA averagine model is used", false, true);
   }
 
   Parameter setParameter()
@@ -222,6 +224,8 @@ protected:
     param.promexOut = getIntOption_("promex_out");
     param.topfdOut = getIntOption_("topfd_out");
     param.mzmlOut = getIntOption_("mzml_out");
+    param.useRNAavg = getIntOption_("use_RNA_averagine") > 0;
+
     return param;
   }
 

@@ -89,6 +89,7 @@ namespace OpenMS
       bool promexOut = false;
       bool topfdOut = false;
       bool mzmlOut = false;
+      bool useRNAavg = false;
       void print();
       double chargeMass = Constants::PROTON_MASS_U;
       //int jitter = 0;
@@ -106,7 +107,13 @@ namespace OpenMS
       double minMass;
 
       PrecalculatedAveragine();
-      PrecalculatedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator);
+
+      PrecalculatedAveragine(double m,
+                             double M,
+                             double delta,
+                             CoarseIsotopePatternGenerator *generator,
+                             bool useRNAavg);
+
       IsotopeDistribution get(double mass);
       double getNorm(double mass);
       Size getLeftIndex(double mass);
