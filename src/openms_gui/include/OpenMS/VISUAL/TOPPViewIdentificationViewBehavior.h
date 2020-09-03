@@ -34,13 +34,14 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
 
 namespace OpenMS
 {
+  class NASequence;
+  class SpectraIdentificationViewWidget;
   class TOPPViewBase;
 
   /**
@@ -72,7 +73,7 @@ namespace OpenMS
 
   public:
     /// Construct the behaviour with its parent
-    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent);
+    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent, SpectraIdentificationViewWidget* spec_id_view_);
 
   public slots:
     /// Behavior for showSpectrumAs1D
@@ -141,6 +142,7 @@ namespace OpenMS
 
   private:
     TOPPViewBase* tv_;
+    SpectraIdentificationViewWidget* spec_id_view_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer
     std::vector<Annotation1DItem*> temporary_annotations_;

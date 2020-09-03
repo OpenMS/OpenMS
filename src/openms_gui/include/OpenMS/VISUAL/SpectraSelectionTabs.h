@@ -28,69 +28,84 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTreeWidget>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/LayerData.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <QTabWidget>
 
 namespace OpenMS
 {
+  class SpectraViewWidget;
+  class SpectraIdentificationViewWidget;
+  class TOPPViewIdentificationViewBehavior;
+  class TOPPViewSpectraViewBehavior;
+  class TOPPViewBase;
   /**
-    @brief Hierarchical visualization and selection of spectra.
+    @brief A tabbed view, to browse lists of spectra or identifications
 
-    @ingroup SpectrumWidgets
+
   */
-  class SpectraViewWidget :
-    public QWidget
+  class SpectraSelectionTabs
+    : public QTabWidget
   {
     Q_OBJECT
-public:
-    /// Constructor
-    SpectraViewWidget(QWidget * parent = nullptr);
-    /// Destructor
-    ~SpectraViewWidget() override;
-    QTreeWidget * getTreeWidget();
-    QComboBox * getComboBox();
-    void updateEntries(const LayerData & cl);
-    /// remove all visible data
-    void clear();
-    /// do we have data to show?
-    bool hasData() const
-    {
-      return has_data_;
-    }
-signals:
-    void spectrumSelected(int);
-    void spectrumSelected(std::vector<int> indices);
-    void spectrumDoubleClicked(int);
-    void spectrumDoubleClicked(std::vector<int> indices);
-    void showSpectrumAs1D(int);
-    void showSpectrumAs1D(std::vector<int> indices);
-    void showSpectrumMetaData(int);
-private:
-    QLineEdit * spectra_search_box_;
-    QComboBox * spectra_combo_box_;
-    QTreeWidget * spectra_treewidget_;
-    /// cache to store mapping of chromatogram precursors to chromatogram indices
-    std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
 
-    /// do we currently show data? 
-    bool has_data_ = false;
-private slots:
-    void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
-    void spectrumBrowserHeaderContextMenu_(const QPoint &);
-    void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); ///< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
-    void spectrumContextMenu_(const QPoint &);
+  public:
+
+    enum TAB_INDEX
+    {
+      SPECTRA_IDX = 0,  ///< first tab
+      IDENT_IDX = 1,    ///< second tab
+      AUTO_IDX          ///< automatically decide which tab to show (i.e. prefer IDENT_IDX if it has data)
+    };
+
+    /// Default constructor
+    SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv);
+
+    /// update items in the two tabs according to the currently selected layer
+    void update();
+
+    /// invoked when user changes the active tab to @p tab_index
+    void currentTabChanged(int tab_index);
+    
+    void showSpectrumAs1D(int index);
+
+    void showSpectrumAs1D(std::vector<int> indices);
+
+    void setTabEnabled(int index, bool b);
+
+    /// double-click on disabled identification view
+    /// --> enables it and creates an empty identification structure
+    void tabBarDoubleClicked(int tab_index);
+
+    /// enable and show the @p which tab
+    void show(TAB_INDEX which);
+
+    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
+  signals:
+
+  private:
+    ///@name Spectrum selection widgets
+    //@{
+    SpectraViewWidget* spectra_view_widget_;
+    SpectraIdentificationViewWidget* id_view_widget_;
+    //@}
+
+    /// TOPPView behavior for the spectra view
+    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    /// TOPPView behavior for the identification view
+    TOPPViewIdentificationViewBehavior* idview_behaviour_;
+    /// pointer to base class to access some members (going signal/slot would be cleaner)
+    TOPPViewBase* tv_;
   };
-}
+
+} //namespace
 

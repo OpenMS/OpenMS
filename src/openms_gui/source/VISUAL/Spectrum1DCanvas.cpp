@@ -940,8 +940,14 @@ namespace OpenMS
     if (peak.isValid())
     {
       QPoint begin;
-
-      const ExperimentType::PeakType& sel = getLayer_(layer_index).getCurrentSpectrum()[peak.peak];
+      const auto& spec = getLayer_(layer_index).getCurrentSpectrum();
+      if (peak.peak >= spec.size())
+      {
+        // somehow the peak is invalid. This happens from time to time and should be tracked down elsewhere
+        // but its hard to reproduce (changing spectra in 1D view using arrow keys while hovering over the spectrum with the mouse?).
+        return;
+      }
+      const ExperimentType::PeakType& sel = spec[peak.peak];
 
       painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
 
@@ -1009,7 +1015,7 @@ namespace OpenMS
     // 0: default pen; 1: selected pen
     QPen pen[2] = { col, col.lighter() };
 
-    for (auto& c : layer.getCurrentAnnotations())
+    for (const auto& c : layer.getCurrentAnnotations())
     {
       painter.setPen(pen[c->isSelected()]);
       c->draw(this, painter, layer.flipped);

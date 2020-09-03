@@ -72,6 +72,7 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
+#include <OpenMS/VISUAL/SpectraSelectionTabs.h>
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
@@ -135,9 +136,7 @@ namespace OpenMS
     ws_(this),
     tab_bar_(this),
     recent_files_(),
-    menu_(this, &ws_, &recent_files_),
-    identificationview_behavior_(this), // controller for spectra and identification view
-    spectraview_behavior_(this)         
+    menu_(this, &ws_, &recent_files_)
   {
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
@@ -167,7 +166,7 @@ namespace OpenMS
     tab_bar_.addTab("dummy", 4710);
     tab_bar_.setMinimumSize(tab_bar_.sizeHint());
     tab_bar_.removeId(4710);
-    connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::enhancedWorkspaceWindowChanged);
+    connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::showWindow);
     connect(&tab_bar_, &EnhancedTabBar::closeRequested, this, &TOPPViewBase::closeByTab);
     connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ copyLayer(data, source); });
     connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
@@ -398,35 +397,10 @@ namespace OpenMS
     views_dockwidget_ = new QDockWidget("Views", this);
     views_dockwidget_->setObjectName("views_dock_widget");
     addDockWidget(Qt::BottomDockWidgetArea, views_dockwidget_);
-    views_tabwidget_ = new QTabWidget(views_dockwidget_);
-    views_dockwidget_->setWidget(views_tabwidget_);
+    selection_view_ = new SpectraSelectionTabs(views_dockwidget_, this);
+    views_dockwidget_->setWidget(selection_view_);
 
-    // Hook-up controller and views for spectra inspection
-    spectra_view_widget_ = new SpectraViewWidget();
-    connect(spectra_view_widget_, &SpectraViewWidget::showSpectrumMetaData, this, &TOPPViewBase::showSpectrumMetaData);
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (int)),              this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, showSpectrumAs1D, (std::vector<int>)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (std::vector<int>)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (int)),              &spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumSelected, (std::vector<int>)), &spectraview_behavior_, CONNECTCAST(TOPPViewSpectraViewBehavior, activate1DSpectrum, (const std::vector<int>&)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (int)),              this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
-    connect(spectra_view_widget_, CONNECTCAST(SpectraViewWidget, spectrumDoubleClicked, (std::vector<int>)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (std::vector<int>)));
-
-    // Hook-up controller and views for identification inspection
-    spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
-    connect(spectra_identification_view_widget_, &SpectraIdentificationViewWidget::spectrumDeselected, &identificationview_behavior_, &TOPPViewIdentificationViewBehavior::deactivate1DSpectrum);
-    connect(spectra_identification_view_widget_, &SpectraIdentificationViewWidget::showSpectrumAs1D, this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
-    connect(spectra_identification_view_widget_, &SpectraIdentificationViewWidget::spectrumSelected, 
-            &identificationview_behavior_, CONNECTCAST(TOPPViewIdentificationViewBehavior, activate1DSpectrum, (int,int,int)));
-    connect(spectra_identification_view_widget_, &SpectraIdentificationViewWidget::requestVisibleArea1D, &identificationview_behavior_, &TOPPViewIdentificationViewBehavior::setVisibleArea1D);
-
-    views_tabwidget_->addTab(spectra_view_widget_, spectra_view_widget_->objectName());
-    views_tabwidget_->addTab(spectra_identification_view_widget_, spectra_identification_view_widget_->objectName());
-    views_tabwidget_->setTabEnabled(0, false);
-    views_tabwidget_->setTabEnabled(1, false);
-
-    // switch between different view tabs
-    connect(views_tabwidget_, &QTabWidget::currentChanged, this, &TOPPViewBase::viewChanged);
-    connect(views_tabwidget_, &QTabWidget::tabBarDoubleClicked, this, &TOPPViewBase::viewTabwidgetDoubleClicked);
+    
 
     // add hide/show option to dock widget
     menu_.addWindowToggle(views_dockwidget_->toggleViewAction());
@@ -972,8 +946,8 @@ namespace OpenMS
       showSpectrumWidgetInWindow(target_window, caption);
     }
 
-    // enable spectra view tab
-    views_tabwidget_->setTabEnabled(0, true);
+    // enable spectra view tab (not required anymore since selection_view_.update() will decide automatically)
+    //selection_view_->show(SpectraSelectionTabs::SPECTRA_IDX);
   }
 
   void TOPPViewBase::addRecentFile_(const String& filename)
@@ -992,49 +966,20 @@ namespace OpenMS
     if (w)
     {
       QMdiSubWindow* parent = qobject_cast<QMdiSubWindow*>(w->parentWidget());
-      if (parent->close()) updateMenu();
+      if (parent->close()) updateBarsAndMenus();
     }
   }
 
-  void TOPPViewBase::enhancedWorkspaceWindowChanged(int id) // todo: move
+  void TOPPViewBase::showWindow(int id)
   {
-    QWidget* w = dynamic_cast<QWidget*>(ws_.getWidget(id));
-    if (!w) return;
-
-    w->setFocus();
-    SpectrumWidget* sw = dynamic_cast<SpectrumWidget*>(w);
-    if (!sw) return // SpectrumWidget
-
-    views_tabwidget_->setTabEnabled(0, true);
-    // check if there is a layer before requesting data from it
-    if (sw->canvas()->getLayerCount() == 0) return;
-
-    const ExperimentType& map = *sw->canvas()->getCurrentLayer().getPeakData();
-    if (map.hasPeptideIdentifications())
-    {
-      views_tabwidget_->setTabEnabled(1, true);
-      if (dynamic_cast<Spectrum2DWidget*>(w))
-      {
-        views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
-      }
-      // cppcheck produces a false positive warning here -> ignore
-      // cppcheck-suppress multiCondition
-      else if (dynamic_cast<Spectrum1DWidget*>(w))
-      {
-        views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget
-      }
-    }
-    else
-    {
-      views_tabwidget_->setTabEnabled(1, false);
-      views_tabwidget_->setCurrentIndex(0); // stay on scan view tab
-    }
+    auto* sw = dynamic_cast<SpectrumWidget*>(ws_.getWidget(id));
+    if (!sw) return;
+    sw->setFocus(); // triggers layerActivated...
   }
 
-  void TOPPViewBase::closeFile()
+  void TOPPViewBase::closeTab()
   {
     ws_.activeSubWindow()->close();
-    updateMenu();
   }
 
   void TOPPViewBase::editMetadata()
@@ -1249,19 +1194,6 @@ namespace OpenMS
     //Update filter bar, spectrum bar and layer bar
     layerActivated();
     updateMenu();
-
-
-    // Update tab bar and window title
-    if (getActiveCanvas()->getLayerCount() != 0)
-    {
-      tab_bar_.setTabText(getActiveCanvas()->getLayer(0).name.toQString());
-      getActiveSpectrumWidget()->setWindowTitle(getActiveCanvas()->getLayer(0).name.toQString());
-    }
-    else
-    {
-      tab_bar_.setTabText("empty");
-      getActiveSpectrumWidget()->setWindowTitle("empty");
-    }
   }
 
   void TOPPViewBase::updateToolBar()
@@ -1363,43 +1295,9 @@ namespace OpenMS
     layers_view_->update(getActiveSpectrumWidget());
   }
 
-  void TOPPViewBase::updateViewBar()  // todo move to member
+  void TOPPViewBase::updateViewBar()
   {
-    SpectrumCanvas* cc = getActiveCanvas();
-    int layer_row = layers_view_->currentRow();
-
-    if (layer_row == -1 || cc == nullptr)
-    {
-      if (spectra_view_widget_)
-      {
-        spectra_view_widget_->getTreeWidget()->clear();
-        spectra_view_widget_->getComboBox()->clear();
-      }
-
-      if (spectra_identification_view_widget_)
-      {
-        spectra_identification_view_widget_->setLayer(nullptr);
-        // remove all entries
-        QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
-        w->clear();
-        views_tabwidget_->setTabEnabled(1, false);
-        views_tabwidget_->setTabEnabled(0, true);
-      }
-      return;
-    }
-
-    if (spectra_view_widget_->isVisible())
-    {
-      spectra_view_widget_->updateEntries(cc->getCurrentLayer());
-    }
-
-    if (spectra_identification_view_widget_->isVisible())
-    {
-      if (&cc->getCurrentLayer() != spectra_identification_view_widget_->getLayer())
-      {
-        spectra_identification_view_widget_->setLayer(&cc->getCurrentLayer());
-      }
-    }
+    selection_view_->update();
   }
 
   void TOPPViewBase::updateMenu()
@@ -1421,59 +1319,6 @@ namespace OpenMS
     
     menu_.update(fs);
   }
-
-  void TOPPViewBase::viewChanged(int tab_index)
-  {
-    // set new behavior
-    if (views_tabwidget_->tabText(tab_index) == spectra_view_widget_->objectName())
-    {
-      identificationview_behavior_.deactivateBehavior(); // finalize old behavior
-      spectraview_behavior_.activateBehavior(); // initialize new behavior
-    }
-    else if (views_tabwidget_->tabText(tab_index) == spectra_identification_view_widget_->objectName())
-    {
-      spectraview_behavior_.deactivateBehavior();
-      if (getActive2DWidget()) // currently 2D window is open
-      {
-        showSpectrumAs1D(0);
-      }
-      identificationview_behavior_.activateBehavior();
-    }
-    else
-    {
-      cerr << "Error: tab_index " << tab_index << endl;
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    layer_dock_widget_->show();
-    filter_dock_widget_->show();
-    updateViewBar();
-  }
-
-  void TOPPViewBase::viewTabwidgetDoubleClicked(int tab_index)
-  {
-    if (!getActiveSpectrumWidget()) return;
-
-    // double click on disabled identification view
-    // enables it and creates an empty identification structure
-    if (views_tabwidget_->tabText(tab_index) == "Identification view"
-      && !views_tabwidget_-> isTabEnabled(tab_index))
-    {
-      views_tabwidget_->setTabEnabled(1, true); // enable identification view
-      views_tabwidget_->setCurrentIndex(1); // switch to identification view
-
-      spectraview_behavior_.deactivateBehavior();
-      layer_dock_widget_->show();
-      filter_dock_widget_->show();
-      if (getActive2DWidget()) // currently 2D window is open
-      {
-        showSpectrumAs1D(0);
-      }
-      identificationview_behavior_.activateBehavior();
-    }
-
-    updateViewBar();
-  }
-
 
   void TOPPViewBase::updateFilterBar()
   {
@@ -1570,7 +1415,7 @@ namespace OpenMS
     {
       connect(sw2->getHorizontalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2->getVerticalProjection(), &Spectrum2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
-      connect(sw2, CONNECTCAST(Spectrum2DWidget, showSpectrumAs1D, (int)), this, CONNECTCAST(TOPPViewBase, showSpectrumAs1D, (int)));
+      connect(sw2, CONNECTCAST(Spectrum2DWidget, showSpectrumAs1D, (int)), selection_view_, CONNECTCAST(SpectraSelectionTabs, showSpectrumAs1D, (int)));
       connect(sw2, &Spectrum2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
     }
 
@@ -1593,7 +1438,7 @@ namespace OpenMS
     {
       sw->show();
     }
-    enhancedWorkspaceWindowChanged(sw->getWindowId());
+    showWindow(sw->getWindowId());
   }
 
   void TOPPViewBase::showGoToDialog()
@@ -1601,7 +1446,7 @@ namespace OpenMS
     SpectrumWidget* w = getActiveSpectrumWidget();
     if (w)
     {
-      getActiveSpectrumWidget()->showGoToDialog();
+      w->showGoToDialog();
     }
   }
 
@@ -2094,7 +1939,7 @@ namespace OpenMS
         if (engine == "AccurateMassSearch")
         {
           annotateMS1FromMassFingerprinting_(fm);
-          views_tabwidget_->setTabEnabled(1, true); // enable identification view
+          selection_view_->setTabEnabled(SpectraSelectionTabs::IDENT_IDX, true);
           ams_ok = true;
         }
       }
@@ -2129,8 +1974,7 @@ namespace OpenMS
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
         mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
-        views_tabwidget_->setTabEnabled(1, true); // enable identification view
-        views_tabwidget_->setCurrentIndex(1); // switch to identification view
+        selection_view_->show(SpectraSelectionTabs::IDENT_IDX);
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {
@@ -2148,7 +1992,7 @@ namespace OpenMS
     }
 
     log_->appendNewHeader(LogWindow::LogState::NOTICE, "Done", "Annotation of spectra finished. Open identification view to see results!");
-    updateViewBar();
+    updateViewBar(); // todo: may not be needed...
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2282,59 +2126,7 @@ namespace OpenMS
       QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
     }
   }
-
-  void TOPPViewBase::showSpectrumAs1D(int index)
-  {
-    Spectrum1DWidget* widget_1d = getActive1DWidget();
-    Spectrum2DWidget* widget_2d = getActive2DWidget();
-
-    if (widget_1d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_.showSpectrumAs1D(index);
-      }
-
-      if (spectra_identification_view_widget_->isVisible())
-      {
-        identificationview_behavior_.showSpectrumAs1D(index);
-      }
-    }
-    else if (widget_2d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_.showSpectrumAs1D(index);
-      }
-
-      if (spectra_identification_view_widget_->isVisible())
-      {
-        identificationview_behavior_.showSpectrumAs1D(index);
-      }
-    }
-  }
-
-  void TOPPViewBase::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
-  {
-    Spectrum1DWidget* widget_1d = getActive1DWidget();
-    Spectrum2DWidget* widget_2d = getActive2DWidget();
-
-    if (widget_1d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_.showSpectrumAs1D(indices);
-      }
-    }
-    else if (widget_2d)
-    {
-      if (spectra_view_widget_->isVisible())
-      {
-        spectraview_behavior_.showSpectrumAs1D(indices);
-      }
-    }
-  }
-
+  
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
     LayerData& layer = getActiveCanvas()->getCurrentLayer();
@@ -2731,10 +2523,6 @@ namespace OpenMS
     }
   }
 
-  SpectraIdentificationViewWidget* TOPPViewBase::getSpectraIdentificationViewWidget()
-  {
-    return spectra_identification_view_widget_;
-  }
 
   void TOPPViewBase::showSpectrumMetaData(int spectrum_index)
   {
@@ -2743,7 +2531,7 @@ namespace OpenMS
 
   void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
   {
-    QTreeWidget* spectra_view_treewidget = spectra_view_widget_->getTreeWidget();
+    SpectraViewWidget* spec_view = (source ? qobject_cast<SpectraViewWidget*>(source->parentWidget()) : nullptr);
     try
     {
       //NOT USED RIGHT NOW, BUT KEEP THIS CODE (it was hard to find out how this is done)
@@ -2775,17 +2563,16 @@ namespace OpenMS
         // add the data
         addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
       }
-      else if (source == spectra_view_treewidget)
+      else if (spec_view != nullptr)
       {
-        const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-        QTreeWidgetItem* item = spectra_view_treewidget->currentItem();
+        QTreeWidgetItem* item = spec_view->getTreeWidget()->currentItem();
         if (item != nullptr)
         {
+          const LayerData& layer = getActiveCanvas()->getCurrentLayer();
           Size index = (Size)(item->text(3).toInt());
           const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
-          ExperimentType new_exp;
-          new_exp.addSpectrum(spectrum);
-          ExperimentSharedPtrType new_exp_sptr(new ExperimentType(new_exp));
+          ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
+          new_exp_sptr->addSpectrum(spectrum);
           ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());

@@ -32,6 +32,7 @@ ParamEditor.ui
 RecentFilesMenu.cpp
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
+SpectraSelectionTabs.cpp
 Spectrum1DCanvas.cpp
 Spectrum1DWidget.cpp
 Spectrum2DCanvas.cpp

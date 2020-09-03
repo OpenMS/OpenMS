@@ -45,13 +45,9 @@
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
-#include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
-#include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
-#include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
 //STL
 #include <map>
@@ -84,6 +80,7 @@ namespace OpenMS
   class LogWindow;
   class LayerListView;
   class MultiGradientSelector;
+  class SpectraSelectionTabs;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
@@ -111,7 +108,7 @@ namespace OpenMS
 
     The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
     holds the two different views on the data (spectra and identification view)
-    which are implemented using identificationview_behavior_ and
+    which are implemented using idview_behaviour_ and
     spectraview_behavior_.
 
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
@@ -244,9 +241,6 @@ public:
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
     SpectrumCanvas* getActiveCanvas() const;
 
-    /// returns a pointer to the SpectraIdentificationViewWidget
-    SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
-
     /// Opens the provided spectrum widget in a new window
     void showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption);
 
@@ -272,7 +266,7 @@ public slots:
     /// gets called if a layer got deactivated
     void layerDeactivated();
     /// closes the active window
-    void closeFile();
+    void closeTab();
 
     /// returns the last invoked TOPP tool with the same parameters
     void rerunTOPPTool();
@@ -289,12 +283,6 @@ public slots:
     void updateMenu();
     /// adapts the filter bar to the active window
     void updateFilterBar();
-
-    /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
-    void viewChanged(int);
-    /// adds empty ID structure to allow manual annotations
-    void viewTabwidgetDoubleClicked(int);
-
     /**
       @brief Shows a status message in the status bar.
 
@@ -314,9 +302,6 @@ public slots:
     void showSpectrumGenerationDialog();
     /// Shows the spectrum alignment dialog
     void showSpectrumAlignmentDialog();
-    /// Shows the spectrum with index @p index of the active layer in 1D
-    void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
@@ -359,6 +344,9 @@ public slots:
     /// Enables/disables the data filters for the current layer
     void layerFilterVisibilityChange(bool);
 
+    /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
+    void showSpectrumMetaData(int spectrum_index);
+
 protected slots:
     /// slot for the finished signal of the TOPP tools execution
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
@@ -366,8 +354,6 @@ protected slots:
     void abortTOPPTool();
     /// shows the spectrum browser and updates it
     void showSpectrumBrowser();
-    /// shows the spectrum metadata
-    void showSpectrumMetaData(int spectrum_index);
 
     /** @name Tabbar slots
     */
@@ -375,7 +361,7 @@ protected slots:
     /// Closes the window corresponding to the data of the tab with identifier @p id
     void closeByTab(int id);
     /// Raises the window corresponding to the data of the tab with identifier @p id
-    void enhancedWorkspaceWindowChanged(int id);
+    void showWindow(int id);
     /// Slot for drag-and-drop of layer manager to tabbar
     void copyLayer(const QMimeData* data, QWidget* source, int id = -1);
     //@}
@@ -405,14 +391,10 @@ protected:
     QDockWidget* filter_dock_widget_;
     //@}
 
-    ///@name Spectrum selection widgets
-    //@{
-    SpectraViewWidget* spectra_view_widget_;
-    SpectraIdentificationViewWidget* spectra_identification_view_widget_;
-    //@}
-
     /// Layer management widget
     LayerListView* layers_view_;
+
+    SpectraSelectionTabs* selection_view_;
 
     ///@name Filter widget
     //@{
@@ -525,14 +507,6 @@ protected:
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
-
-    /// Tabwidget that hold the different views on the loaded data
-    QTabWidget* views_tabwidget_;
-
-    /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior identificationview_behavior_;
-    /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior spectraview_behavior_;
 
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D

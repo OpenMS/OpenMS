@@ -33,12 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <QtWidgets/QVBoxLayout>
+
+#include <OpenMS/CONCEPT/RAIICleanup.h>
+
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QMenu>
+
 
 namespace OpenMS
 {
@@ -104,12 +106,12 @@ namespace OpenMS
     spectra_widget_layout->addLayout(tmp_hbox_layout);
   }
 
-  QTreeWidget * SpectraViewWidget::getTreeWidget()
+  QTreeWidget* SpectraViewWidget::getTreeWidget()
   {
     return spectra_treewidget_;
   }
 
-  QComboBox * SpectraViewWidget::getComboBox()
+  QComboBox* SpectraViewWidget::getComboBox()
   {
     return spectra_combo_box_;
   }
@@ -148,7 +150,7 @@ namespace OpenMS
     }
   }
 
-  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem * current, QTreeWidgetItem * previous)
+  void SpectraViewWidget::spectrumSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* previous)
   {
     /*	test for previous == 0 is important - without it,
         the wrong spectrum will be selected after finishing
@@ -211,23 +213,18 @@ namespace OpenMS
 
   }
 
-  void SpectraViewWidget::spectrumContextMenu_(const QPoint & pos)
+  void SpectraViewWidget::spectrumContextMenu_(const QPoint& pos)
   {
     QTreeWidgetItem * item = spectra_treewidget_->itemAt(pos);
     if (item)
     {
       //create menu
       int spectrum_index = item->text(1).toInt();
-      QMenu * context_menu = new QMenu(spectra_treewidget_);
-      context_menu->addAction("Show in 1D view");
-      context_menu->addAction("Meta data");
-      context_menu->addAction("Center here");
-
-      QAction * selected = context_menu->exec(spectra_treewidget_->mapToGlobal(pos));
-      if (selected != nullptr && selected->text() == "Show in 1D view")
+      QMenu context_menu(spectra_treewidget_);
+      context_menu.addAction("Show in 1D view", [&]()
       {
         std::vector<int> chrom_indices;
-        const QList<QVariant> & res = item->data(0, 0).toList();
+        const QList<QVariant>& res = item->data(0, 0).toList();
         if (res.size() == 0)
         {
           emit showSpectrumAs1D(spectrum_index);
@@ -241,22 +238,18 @@ namespace OpenMS
           }
           emit showSpectrumAs1D(chrom_indices);
         }
-      }
-      else if (selected != nullptr && selected->text() == "Meta data")
+      });
+      context_menu.addAction("Meta data", [&]() 
       {
         emit showSpectrumMetaData(spectrum_index);
-      }
-      /** TODO
-      else if (selected!=0 && selected->text()=="Center here")
-      {
-        emit centerHere(spectrum_index);
-      }
-      **/
-      delete (context_menu);
+      });
+      // todo: context_menu->addAction("Center here", [&]() {emit centerHere(spectrum_index); });
+
+      context_menu.exec(spectra_treewidget_->mapToGlobal(pos));
     }
   }
 
-  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint & pos)
+  void SpectraViewWidget::spectrumBrowserHeaderContextMenu_(const QPoint& pos)
   {
     //create menu
     QMenu * context_menu = new QMenu(spectra_treewidget_->header());
@@ -293,7 +286,7 @@ namespace OpenMS
     delete (context_menu);
   }
 
-  void SpectraViewWidget::updateEntries(const LayerData & cl)
+  void SpectraViewWidget::updateEntries(const LayerData& cl)
   {
     if (!spectra_treewidget_->isVisible() || spectra_treewidget_->signalsBlocked())
     {
@@ -301,12 +294,15 @@ namespace OpenMS
     }
 
     spectra_treewidget_->blockSignals(true);
+    RAIICleanup([&](){ spectra_treewidget_->blockSignals(false); });
     spectra_treewidget_->clear();
 
-    QTreeWidgetItem * item = nullptr;
-    QTreeWidgetItem * selected_item = nullptr;
-    QList<QTreeWidgetItem *> toplevel_items;
+    QTreeWidgetItem* item = nullptr;
+    QTreeWidgetItem* selected_item = nullptr;
+    QList<QTreeWidgetItem*> toplevel_items;
     bool more_than_one_spectrum = true;
+
+    has_data_ = true; // for now ...
 
     // Branch if the current layer is a spectrum
     if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
@@ -766,14 +762,20 @@ namespace OpenMS
       item->setText(3, QString::number(0));
       item->setFlags(nullptr);
       spectra_treewidget_->addTopLevelItem(item);
+      has_data_ = false;
     }
 
     if (more_than_one_spectrum && item != nullptr)
     {
       item->setFlags(nullptr);
     }
+  }
 
-    spectra_treewidget_->blockSignals(false);
+  void SpectraViewWidget::clear()
+  {
+    getTreeWidget()->clear();
+    getComboBox()->clear();
+    has_data_ = false;
   }
 
   SpectraViewWidget::~SpectraViewWidget()
