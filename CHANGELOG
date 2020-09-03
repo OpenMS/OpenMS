@@ -13,7 +13,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 ----                                OpenMS 2.6                                        ----
 ------------------------------------------------------------------------------------------
 
-We now create nightly pyopenms wheels
+We now create nightly pyopenms wheels (https://pypi.org/project/pyopenms-nightly/) and conda packages (https://anaconda.org/OpenMS/)
 
 Adapters/Third-party support:
 - LuciphorAdapter now stores which modifications were used for localization (#4771) and localization scores are reported in mzTab #4772 
@@ -24,7 +24,8 @@ Adapters/Third-party support:
 
 What's new:
 - Introduced a Wizard for Swath data (#4647 #4706 #4758 #4769 #4773 #4837), which also reports summary statistics about Swath TargetedExperiments #4788 #4790
-- Added a new Database Suitability TOPP Tool (#4791 #4781) and FDR filtering support for it #4814 
+- UTIL StaticModification: Applies a set of modifications to all PeptideIDs in an idXML file (UTIL)
+- TOPP DatabaseSuitability: Computes a suitability score for a database which was used for a peptide identification search. Also reports the quality of LC-MS spectra. #4791 #4781 #4814
 - Added support for QC of labeled experiments (iTRAQ/TMT)
 - Added automated QC computations for MRM (#4637)
 - Adapted consensusXML and mzTab to support protein groups (#4630)
@@ -33,10 +34,11 @@ What's new:
 - FeatureFinderCentroided/FeatureFinderAlgorithmPicked: Improved runtime performance #4652 #4701 
 - FeatureFinderIdentification: Improved SLIM-labeling experiment support
 - FileConverter: Improved runtime performance when producing mzML output #4750
-- FLQT: Introduced Fibonacci heaps for large runtime optimization (#4721) and fixed related preconditions/segfaults #4756 #4760 #4778 
+- FeatureLinkerQT: Introduced Fibonacci heaps for large runtime optimization (#4721) and fixed related preconditions/segfaults #4756 #4760 #4778 
 - IDFilter: added support for consensusXMLs #4798 #4799
 - MapAlignerIdentification: New option to use an "identity" transformation when data is too sparse to determine alignment model #4628
 - MzTabExporter: changed to only export one main score, and to derive nativeIDs from data (#4767). Now ensures that all output rows contain the same number of columns #4801 
+- MzTabExporter on LFQ consensusXMLs produces 100% PRIDE validated mzTabs now
 - ProteomicsLFQ: Added spectral counting as quantification method (#4726). Introduced performance improvements for AASequence and string parsing, especially for modified sequences. Various further improvements (e.g. #4669)
 - SimpleSearchEngine (multithreaded), TheoreticalSpectrumGenerator, MSSpectrum: Runtime optimization #4709
 - Further introduction of more file streaming to address possible memory consumption issues #4682 #4694
@@ -63,6 +65,7 @@ Various:
 - RTEvaluation: fixed output formats #4533 
 - Some further clarifications, standardization/consolidation of outputs formats/consistency
 - Continued fixes/improvement of documentation
+- Removed deprecated version of PeakPickerHiRes (LowMemPeakPickerHiResRandomAccess and LowMemPeakPickerHiRes). Their functionality can be accessed through options of PeakPickerHiRes
 
 
 ------------------------------------------------------------------------------------------
