@@ -49,7 +49,7 @@ namespace OpenMS
 
 
   */
-  class LayerListView
+  class OPENMS_GUI_DLLAPI LayerListView
     : public QListWidget
   {
     Q_OBJECT

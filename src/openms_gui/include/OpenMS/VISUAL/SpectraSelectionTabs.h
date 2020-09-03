@@ -53,7 +53,7 @@ namespace OpenMS
 
 
   */
-  class SpectraSelectionTabs
+  class OPENMS_GUI_DLLAPI SpectraSelectionTabs
     : public QTabWidget
   {
     Q_OBJECT

@@ -82,7 +82,7 @@ namespace OpenMS
 
   @ingroup SpectrumWidgets
   */
-  class LayerData
+  class OPENMS_GUI_DLLAPI LayerData
   {
 public:
     /** @name Type definitions */
