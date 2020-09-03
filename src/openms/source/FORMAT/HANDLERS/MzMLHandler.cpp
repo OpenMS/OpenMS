@@ -1644,6 +1644,11 @@ namespace OpenMS
           //No member => meta data
           spec_.setMetaValue("peak list raw scans", termValue);
         }
+        else if (accession == "MS:1001581") //FAIMS compensation voltage
+        {
+          //No member => meta data
+          spec_.setMetaValue("FAIMS compensation voltage", termValue);
+        }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
         {
