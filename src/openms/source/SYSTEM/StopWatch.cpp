@@ -57,23 +57,11 @@
 
 namespace OpenMS
 {
-
-
 #ifdef OPENMS_WINDOWSPLATFORM
-  long long StopWatch::SecondsTo100Nano_ = 10000000LL;
+  const long long StopWatch::SecondsTo100Nano_ = 10000000LL;
 #else
-  PointerSizeInt StopWatch::cpu_speed_ = 0L;
+  const PointerSizeInt StopWatch::cpu_speed_ = sysconf(_SC_CLK_TCK);
 #endif
-
-  StopWatch::StopWatch()
-  {
-#ifdef OPENMS_HAS_SYSCONF
-    if (cpu_speed_ == 0L)
-    {
-      cpu_speed_ = sysconf(_SC_CLK_TCK);
-    }
-#endif
-  }
 
   void StopWatch::clear()
   { // stopped when running

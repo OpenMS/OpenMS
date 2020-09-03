@@ -65,34 +65,6 @@ namespace OpenMS
   class OPENMS_DLLAPI StopWatch
   {
 public:
-
-    /**	@name	Constructors and Destructors
-    */
-    //@{
-
-    /**	Default constructor.
-            Create a new stop watch. The stop watch is stopped.
-    */
-    StopWatch();
-
-    /**	Copy constructor.
-            Create a new stop watch from an existing stop watch.
-    */
-    StopWatch(const StopWatch& stop_watch) = default;
-    
-    /**	Assignment operator.
-        Assigns a stop watch from another. The two stop watch will then run
-        synchronously.
-        @return StopWatch <tt>*this</tt>
-    */
-    StopWatch& operator=(const StopWatch& stop_watch) = default;
-
-    /**	Destructor.
-            Destructs a stop watch object.
-    */
-    ~StopWatch() = default;
-
-    //@}
     /**	Starting, Stopping and Resetting the stop watch
     */
     //@{
@@ -241,11 +213,11 @@ public:
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM
-    static long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
     typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
+    static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
   #else
     typedef clock_t TimeType;
-    PointerSizeInt cpu_speed_ = 0L; ///< POSIX API returns clock ticks, so we need to divide by CPU speed
+    static const PointerSizeInt cpu_speed_; ///< POSIX API returns clock ticks, so we need to divide by CPU speed
   #endif
 
     struct TimeDiff_
@@ -323,7 +295,7 @@ private:
 #ifdef OPENMS_WINDOWSPLATFORM
           return in / double(StopWatch::SecondsTo100Nano_);
 #else
-          return in / double(cpu_speed_); // technically, this is inaccurate since CPU speed may not be constant (turbo-boost)... but finding a better solution is hard...
+          return in / double(StopWatch::cpu_speed_); // technically, this is inaccurate since CPU speed may not be constant (turbo-boost)... but finding a better solution is hard...
 #endif
         }
     };
