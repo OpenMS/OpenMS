@@ -241,11 +241,11 @@ public:
 
 private:
   #ifdef OPENMS_WINDOWSPLATFORM
-    static long long StopWatch::SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
+    static long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
     typedef OPENMS_UINT64_TYPE TimeType; ///< do not use clock_t on Windows, since its not big enough for larger time intervals
   #else
     typedef clock_t TimeType;
-    PointerSizeInt StopWatch::cpu_speed_ = 0L; ///< POSIX API returns clock ticks, so we need to divide by CPU speed
+    PointerSizeInt cpu_speed_ = 0L; ///< POSIX API returns clock ticks, so we need to divide by CPU speed
   #endif
 
     struct TimeDiff_
@@ -331,8 +331,6 @@ private:
 
     /// get the absolute times for current system, user and kernel times
     TimeDiff_ snapShot_() const;
-
-    static PointerSizeInt cpu_speed_;
 
     /// currently accumulated times between start to stop intervals (initially 0),
     /// not counting the currently running interval which started at last_start_
