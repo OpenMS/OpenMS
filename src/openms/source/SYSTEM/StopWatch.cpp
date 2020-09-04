@@ -39,14 +39,8 @@
 #ifdef OPENMS_HAS_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef OPENMS_HAS_TIME_H
-#endif
-#ifdef OPENMS_HAS_SYS_TYPES_H
-#endif
 #ifdef OPENMS_HAS_SYS_TIMES_H
 #include <sys/times.h>
-#endif
-#ifdef OPENMS_HAS_SYS_TIME_H
 #endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -311,6 +305,78 @@ namespace OpenMS
   bool StopWatch::operator>(const StopWatch & stop_watch) const
   {
     return stop_watch < *this;
+  }
+
+  inline double StopWatch::TimeDiff_::userTime() const
+  {
+    return ticksToSeconds_(user_ticks);
+  }
+
+  inline double StopWatch::TimeDiff_::kernelTime() const
+  {
+    return ticksToSeconds_(kernel_ticks);
+  }
+
+  inline double StopWatch::TimeDiff_::getCPUTime() const
+  {
+    return userTime() + kernelTime();
+  }
+
+  inline double StopWatch::TimeDiff_::clockTime() const
+  {
+    return (double)start_time + (double)start_time_usec / 1e6;
+  }
+
+  inline double StopWatch::TimeDiff_::ticksToSeconds_(TimeType in) const
+  {
+#ifdef OPENMS_WINDOWSPLATFORM
+    return in / double(StopWatch::SecondsTo100Nano_);
+#else
+    return in / double(StopWatch::cpu_speed_); // technically, this is inaccurate since CPU speed may not be constant (turbo-boost)... but finding a better solution is hard...
+#endif
+  }
+
+  StopWatch::TimeDiff_ StopWatch::TimeDiff_::operator-(const StopWatch::TimeDiff_& earlier) const
+  {
+    TimeDiff_ diff(*this);
+    diff.kernel_ticks -= earlier.kernel_ticks;
+    diff.user_ticks -= earlier.user_ticks;
+    diff.start_time -= earlier.start_time;
+    diff.start_time_usec -= earlier.start_time_usec;
+
+    /* Adjust for the fact that the usec may be negative.     */
+    /* If they are, take away 1 second and add 1 million      */
+    /* microseconds until they are positive.                  */
+    while (diff.start_time_usec < 0L)
+    {
+      --diff.start_time;
+      diff.start_time_usec += 1000000L;
+    }
+    return diff;
+  }
+
+  StopWatch::TimeDiff_& StopWatch::TimeDiff_::operator+=(const StopWatch::TimeDiff_& other)
+  {
+    user_ticks += other.user_ticks;
+    kernel_ticks += other.kernel_ticks;
+    start_time += other.start_time;
+    start_time_usec += other.start_time_usec;
+
+    while (start_time_usec > 1000000L)
+    {
+      ++start_time;
+      start_time_usec -= 1000000L;
+    }
+
+    return *this;
+  }
+
+  bool StopWatch::TimeDiff_::operator==(const TimeDiff_& rhs) const
+  {
+    return user_ticks == rhs.user_ticks &&
+      kernel_ticks == rhs.kernel_ticks &&
+      start_time == rhs.start_time &&
+      start_time_usec == rhs.start_time_usec;
   }
 
 } // namespace OpenMS

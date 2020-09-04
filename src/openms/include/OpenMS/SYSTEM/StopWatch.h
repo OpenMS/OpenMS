@@ -217,7 +217,7 @@ private:
     static const long long SecondsTo100Nano_;  ///< 10 million; convert from 100 nanosecond ticks to seconds (factor of 1 billion/100 = 10 million)
   #else
     typedef clock_t TimeType;
-    static const PointerSizeInt cpu_speed_; ///< POSIX API returns clock ticks, so we need to divide by CPU speed
+    static const PointerSizeInt cpu_speed_; ///< POSIX API returns CPU ticks, so we need to divide by CPU speed
   #endif
 
     struct TimeDiff_
@@ -227,77 +227,17 @@ private:
       PointerSizeInt start_time{ 0 }; ///< time in seconds (relative or absolute, depending on usage)
       PointerSizeInt start_time_usec{ 0 }; ///< time in microseconds (relative or absolute, depending on usage)
 
-      double userTime() const
-      {
-        return ticksToSeconds_(user_ticks);
-      }
-      double kernelTime() const
-      {
-        return ticksToSeconds_(kernel_ticks);
-      }
+      double userTime() const;
+      double kernelTime() const;
+      double getCPUTime() const;
+      double clockTime() const;
 
-      double getCPUTime() const
-      {
-        return userTime() + kernelTime();
-      }
-
-      double clockTime() const
-      {
-        return (double)start_time + (double)start_time_usec / 1e6;
-      }
-
-      TimeDiff_ operator-(const TimeDiff_ earlier) const
-      {
-        TimeDiff_ diff(*this);
-        diff.kernel_ticks -= earlier.kernel_ticks;
-        diff.user_ticks -= earlier.user_ticks;
-        diff.start_time -= earlier.start_time;
-        diff.start_time_usec -= earlier.start_time_usec;
-
-        /* Adjust for the fact that the usec may be negative.     */
-        /* If they are, take away 1 second and add 1 million      */
-        /* microseconds until they are positive.                  */
-        while (diff.start_time_usec < 0L)
-        {
-          --diff.start_time;
-          diff.start_time_usec += 1000000L;
-        }
-        return diff;
-      }
-
-      TimeDiff_& operator+=(TimeDiff_ other)
-      {
-        user_ticks += other.user_ticks;
-        kernel_ticks += other.kernel_ticks;
-        start_time += other.start_time;
-        start_time_usec += other.start_time_usec;
-
-        while (start_time_usec > 1000000L)
-        {
-          ++start_time;
-          start_time_usec -= 1000000L;
-        }
-
-        return *this;
-      }
-
-      bool operator==(const TimeDiff_ rhs) const
-      {
-        return user_ticks == rhs.user_ticks &&
-               kernel_ticks == rhs.kernel_ticks &&
-               start_time == rhs.start_time &&
-               start_time_usec == rhs.start_time_usec;
-      }
+      TimeDiff_ operator-(const TimeDiff_& earlier) const;
+      TimeDiff_& operator+=(const TimeDiff_& other);
+      bool operator==(const TimeDiff_& rhs) const;
 
       private:
-        double ticksToSeconds_(TimeType in) const
-        {
-#ifdef OPENMS_WINDOWSPLATFORM
-          return in / double(StopWatch::SecondsTo100Nano_);
-#else
-          return in / double(StopWatch::cpu_speed_); // technically, this is inaccurate since CPU speed may not be constant (turbo-boost)... but finding a better solution is hard...
-#endif
-        }
+        double ticksToSeconds_(TimeType in) const;
     };
 
 
