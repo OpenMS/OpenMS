@@ -32,8 +32,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#pragma once
-
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/SpectraSelectionTabs.h>
 
@@ -84,9 +82,9 @@ namespace OpenMS
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
-    OPENMS_PRECONDITION(index == SPECTRA_IDX, "Tab index is expected to be 0");
+    assert(index == SPECTRA_IDX); // "Tab index is expected to be 0"
     index = addTab(id_view_widget_, id_view_widget_->objectName());
-    OPENMS_PRECONDITION(index == IDENT_IDX, "Tab index is expected to be 1");
+    assert(index == IDENT_IDX); // "Tab index is expected to be 1"
     setTabEnabled(SPECTRA_IDX, false);
     setTabEnabled(IDENT_IDX, false);
 
@@ -151,7 +149,7 @@ namespace OpenMS
       idview_behaviour_->activateBehavior();
       break;
     default:
-      std::cerr << "Error: tab_index " << tab_index << endl;
+      std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     update();

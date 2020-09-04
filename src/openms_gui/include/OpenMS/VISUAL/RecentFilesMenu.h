@@ -72,7 +72,7 @@ namespace OpenMS
     void set(const QStringList& initial);
 
     /// get a menu-pointer to an internal member which always contains the up-to-date recent items
-    QMenu* const getMenu();
+    QMenu* getMenu();
     
     /// current list of recent files (most recent first)
     const QStringList& get() const;

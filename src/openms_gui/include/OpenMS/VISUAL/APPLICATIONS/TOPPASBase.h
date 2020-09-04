@@ -39,15 +39,15 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/EnhancedWorkSpace.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //QT
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QSplashScreen>
 #include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QSplashScreen>
 
 class QToolBar;
 class QListWidget;

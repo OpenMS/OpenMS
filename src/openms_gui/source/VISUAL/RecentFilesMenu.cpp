@@ -79,7 +79,7 @@ namespace OpenMS
   }
 
 
-  QMenu* const RecentFilesMenu::getMenu()
+  QMenu* RecentFilesMenu::getMenu()
   {
     return &recent_menu_;
   }

@@ -2635,7 +2635,7 @@ namespace OpenMS
 
     // iterate over all windows and determine which need an update
     std::vector<std::pair<const SpectrumWidget*, Size> > needs_update;
-    for (auto mdi_window : ws_.subWindowList())
+    for (const auto& mdi_window : ws_.subWindowList())
     {
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(mdi_window);
       if (sw == nullptr) return;
