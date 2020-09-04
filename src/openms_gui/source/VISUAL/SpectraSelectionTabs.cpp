@@ -82,9 +82,9 @@ namespace OpenMS
 
     int index;
     index = addTab(spectra_view_widget_, spectra_view_widget_->objectName());
-    assert(index == SPECTRA_IDX); // "Tab index is expected to be 0"
+    if (index != SPECTRA_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
     index = addTab(id_view_widget_, id_view_widget_->objectName());
-    assert(index == IDENT_IDX); // "Tab index is expected to be 1"
+    if (index != IDENT_IDX) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Tab index is expected to be 0");
     setTabEnabled(SPECTRA_IDX, false);
     setTabEnabled(IDENT_IDX, false);
 
