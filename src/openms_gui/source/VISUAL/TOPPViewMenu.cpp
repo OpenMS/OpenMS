@@ -48,6 +48,14 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  FS_TV operator+(const TV_STATUS left, const TV_STATUS right)
+  {
+    FS_TV r(left);
+    r += right;
+    return r;
+  }
+
   TOPPViewMenu::TOPPViewMenu(TOPPViewBase* const parent, EnhancedWorkspace* const ws, RecentFilesMenu* const recent_files)
     : QObject()
       //parent_(parent)

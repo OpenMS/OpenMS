@@ -66,12 +66,7 @@ namespace OpenMS
   using FS_TV = FlagSet<TV_STATUS>;
 
   /// allow + operations on the enum, e.g. 'HAS_CANVAS + HAS_LAYER + IS_1D_VIEW'
-  FS_TV operator+(const TV_STATUS left, const TV_STATUS right)
-  {
-    FS_TV r(left);
-    r += right;
-    return r;
-  }
+  FS_TV OPENMS_GUI_DLLAPI operator+(const TV_STATUS left, const TV_STATUS right);
 
   /**
     @brief The file menu items for TOPPView
