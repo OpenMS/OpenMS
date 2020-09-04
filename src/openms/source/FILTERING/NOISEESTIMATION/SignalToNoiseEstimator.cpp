@@ -37,6 +37,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <random>
+
 using namespace std;
 
 namespace OpenMS
@@ -49,13 +51,15 @@ namespace OpenMS
 
     if (ms1_indices.empty()) return 0.0f;
 
+    std::default_random_engine generator(time(nullptr));
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
     float noise = 0.0;
     UInt count = 0;
-    srand(time(nullptr));
     vector<float> tmp;
     while (count++ < n_scans)
     {
-      UInt scan = (UInt)(rand() / ((double)RAND_MAX) * (ms1_indices.size() - 1));
+      UInt scan = (UInt)(distribution(generator) * (ms1_indices.size() - 1));
       tmp.clear();
       for (const auto& peak : exp[scan])
       {

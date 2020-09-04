@@ -97,7 +97,6 @@ namespace OpenMS
     QStringList recent_files_;
     /// .. and the actions to go with it
     std::vector<QAction*> recent_actions_;
-
   };
 
 } //namespace

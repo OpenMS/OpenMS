@@ -50,8 +50,7 @@ namespace OpenMS
   class TOPPViewBase;
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
-
-
+    
   */
   class OPENMS_GUI_DLLAPI SpectraSelectionTabs
     : public QTabWidget
@@ -59,7 +58,6 @@ namespace OpenMS
     Q_OBJECT
 
   public:
-
     enum TAB_INDEX
     {
       SPECTRA_IDX = 0,  ///< first tab

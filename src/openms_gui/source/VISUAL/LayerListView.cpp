@@ -202,9 +202,7 @@ namespace OpenMS
     });
 
     context_menu->exec(this->mapToGlobal(event->pos()));
-
   }
-
 
   void LayerListView::itemDoubleClickedAction_(QListWidgetItem* /*item*/)
   {

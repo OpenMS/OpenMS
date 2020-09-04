@@ -65,7 +65,6 @@ namespace OpenMS
     void layerDataChanged();
 
   private:
-
     /// active row was changed by user to new row @p i
     void currentRowChangedAction_(int i);
 
@@ -77,7 +76,6 @@ namespace OpenMS
     void itemDoubleClickedAction_(QListWidgetItem*);
 
     SpectrumWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
-
   };
 
 } //namespace

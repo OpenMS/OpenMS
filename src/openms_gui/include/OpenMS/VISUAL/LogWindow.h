@@ -89,10 +89,8 @@ namespace OpenMS
     void trimText_();
 
   private:
-
     void contextMenuEvent(QContextMenuEvent* event) override;
     int max_length_ { -1 };  ///< -1 by default, which means there is no maximum length
-
   };
 
 } //namespace

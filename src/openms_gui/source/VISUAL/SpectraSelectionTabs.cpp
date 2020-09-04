@@ -127,8 +127,6 @@ namespace OpenMS
         id_view_widget_->setLayer(&cc->getCurrentLayer());
       }
     }
-
-
   }
 
   inline void SpectraSelectionTabs::currentTabChanged(int tab_index)
