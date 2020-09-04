@@ -57,7 +57,7 @@ namespace OpenMS
 
   /// Default constructor
 
-  inline SpectraSelectionTabs::SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv)
+  SpectraSelectionTabs::SpectraSelectionTabs(QWidget* parent, TOPPViewBase* tv)
     : QTabWidget(parent),
     spectra_view_widget_(new SpectraViewWidget(this)),
     id_view_widget_(new SpectraIdentificationViewWidget(Param(), this)),
@@ -93,7 +93,7 @@ namespace OpenMS
     connect(this, &QTabWidget::tabBarDoubleClicked, this, &SpectraSelectionTabs::tabBarDoubleClicked);
   }
 
-  inline void SpectraSelectionTabs::update()
+  void SpectraSelectionTabs::update()
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
     this->blockSignals(true);
@@ -129,7 +129,7 @@ namespace OpenMS
     }
   }
 
-  inline void SpectraSelectionTabs::currentTabChanged(int tab_index)
+  void SpectraSelectionTabs::currentTabChanged(int tab_index)
   {
     // set new behavior
     switch (tab_index)
@@ -153,7 +153,7 @@ namespace OpenMS
     update();
   }
 
-  inline void SpectraSelectionTabs::showSpectrumAs1D(int index)
+  void SpectraSelectionTabs::showSpectrumAs1D(int index)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -184,7 +184,7 @@ namespace OpenMS
     }
   }
 
-  inline void SpectraSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
+  void SpectraSelectionTabs::showSpectrumAs1D(std::vector<int> indices)
   {
     Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     Spectrum2DWidget* widget_2d = tv_->getActive2DWidget();
@@ -205,7 +205,7 @@ namespace OpenMS
     }
   }
 
-  inline void SpectraSelectionTabs::setTabEnabled(int index, bool b)
+  void SpectraSelectionTabs::setTabEnabled(int index, bool b)
   {
     if (index == 0 && b == false)
     {
@@ -214,7 +214,7 @@ namespace OpenMS
     QTabWidget::setTabEnabled(index, b);
   }
 
-  inline void SpectraSelectionTabs::tabBarDoubleClicked(int tab_index)
+  void SpectraSelectionTabs::tabBarDoubleClicked(int tab_index)
   {
     if (!tv_->getActiveSpectrumWidget()) return;
 
@@ -243,12 +243,13 @@ namespace OpenMS
     // update here?
   }
 
-  inline void SpectraSelectionTabs::show(TAB_INDEX which)
+  void SpectraSelectionTabs::show(TAB_INDEX which)
   {
     setTabEnabled(which, true);
     setCurrentIndex(which);
   }
-  inline SpectraIdentificationViewWidget* SpectraSelectionTabs::getSpectraIdentificationViewWidget()
+
+  SpectraIdentificationViewWidget* SpectraSelectionTabs::getSpectraIdentificationViewWidget()
   {
     return id_view_widget_;
   }
