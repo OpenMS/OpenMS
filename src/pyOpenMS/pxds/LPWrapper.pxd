@@ -43,7 +43,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         double getColumnValue(Int index) nogil except +
         Int getNumberOfNonZeroEntriesInRow(Int idx) nogil except +
         void getMatrixRow(Int idx, libcpp_vector[ int ] & indexes) nogil except +
-        void setSolver(SOLVER s) nogil except +
         SOLVER getSolver() nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrapper":

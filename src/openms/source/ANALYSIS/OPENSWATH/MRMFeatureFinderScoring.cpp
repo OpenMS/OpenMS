@@ -106,6 +106,7 @@ namespace OpenMS
     defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
     defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("im_extra_drift", 0.0);
+    defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", ListUtils::create<String>("advanced"));
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -155,8 +156,6 @@ namespace OpenMS
 
     // write defaults into Param object param_
     defaultsToParam_();
-
-    strict_ = true;
   }
 
   MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
@@ -1027,6 +1026,7 @@ namespace OpenMS
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
+    strict_ = (bool)param_.getValue("strict").toBool();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();

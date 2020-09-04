@@ -85,6 +85,8 @@ std::vector<PeptideIdentification> pep_ids = {pep_id_target, pep_id_decoy, pep_i
 std::vector<PeptideIdentification> pep_ids_empty{};
 std::vector<PeptideIdentification> pep_ids_fdr = {pep_id_fdr};
 
+std::vector<PeptideIdentification> two_target_ids = { pep_id_target, pep_id_target, pep_id_decoy, pep_id_empty };
+
 //construct features with peptideIdentifications
 Feature feat_empty_pi;
 feat_empty_pi.setPeptideIdentifications(pep_ids_empty);
@@ -162,8 +164,8 @@ Ms2IdentificationRate ms2ir_ms2_2;
 Ms2IdentificationRate ms2ir_empty_msexp;
 Ms2IdentificationRate ms2ir_empty_fmap;
 
-//tests compute function
-START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_fdr = false))
+//tests compute function with FeatureMap
+START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & exp, bool force_index = false))
 {
   //test with valid input
   ms2ir.compute(fmap, ms_exp);
@@ -196,7 +198,7 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
   }
 
   //no fdr
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "FDR was not made. If you want to continue without FDR use -MS2_id_rate:force_no_fdr")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_fdr.compute(fmap_fdr, ms_exp), "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target")
 
   // force no fdr
   ms2ir_force_fdr.compute(fmap_fdr, ms_exp, true);
@@ -212,6 +214,67 @@ START_SECTION(void compute(FeatureMap const & feature_map, MSExperiment const & 
 
   //no ms2 spectra
   TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_ms1.compute(fmap, ms1_exp), "No MS2 spectra found")
+}
+END_SECTION
+
+Ms2IdentificationRate id_rate;
+Ms2IdentificationRate id_rate_one_ms2;
+Ms2IdentificationRate id_rate_empty_exp;
+Ms2IdentificationRate id_rate_no_ids;
+Ms2IdentificationRate id_rate_no_index;
+Ms2IdentificationRate id_rate_force_no_index;
+Ms2IdentificationRate id_rate_ms1;
+
+//tests compute function with PeptideIdentifications
+START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_index = false))
+{
+  //test with valid input
+  id_rate.compute(pep_ids, ms_exp);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result;
+  result = id_rate.getResults();
+
+  for (const auto& idrd : result)
+  {
+    TEST_EQUAL(idrd.num_peptide_identification, 1)
+    TEST_EQUAL(idrd.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd.identification_rate, 1. / 6)
+  }
+
+  //less ms2 spectra than identifictions
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, id_rate_one_ms2.compute(two_target_ids, ms2_2_exp), "There are more Identifications than MS2 spectra. Please check your data.")
+
+  //empty ms experiment
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, id_rate_empty_exp.compute(pep_ids, ms_empty_exp), "MSExperiment is empty")
+
+  //empty feature map
+  id_rate_no_ids.compute(pep_ids_empty, ms_exp);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result_no_pep_ids;
+  result_no_pep_ids = id_rate_no_ids.getResults();
+
+  for (const auto& idrd_empty_fmap : result_no_pep_ids)
+  {
+    TEST_EQUAL(idrd_empty_fmap.num_peptide_identification, 0)
+    TEST_EQUAL(idrd_empty_fmap.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd_empty_fmap.identification_rate, 0)
+  }
+
+  //no fdr
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, id_rate_no_index.compute(pep_ids_fdr, ms_exp), "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target")
+
+  // force no fdr
+  id_rate_force_no_index.compute(pep_ids_fdr, ms_exp, true);
+  std::vector<Ms2IdentificationRate::IdentificationRateData> result_force_fdr;
+  result_force_fdr = id_rate_force_no_index.getResults();
+
+  for (const auto& idrd_force_fdr : result_force_fdr)
+  {
+    TEST_EQUAL(idrd_force_fdr.num_peptide_identification, 1)
+    TEST_EQUAL(idrd_force_fdr.num_ms2_spectra, 6)
+    TEST_REAL_SIMILAR(idrd_force_fdr.identification_rate, 1. / 6)
+  }
+
+  //no ms2 spectra
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, id_rate_ms1.compute(pep_ids, ms1_exp), "No MS2 spectra found")
 }
 END_SECTION
 
