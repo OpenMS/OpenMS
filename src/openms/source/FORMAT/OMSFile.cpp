@@ -1155,16 +1155,21 @@ namespace OpenMS
   {
     if (id_data_.getMoleculeQueryMatches().empty()) return;
 
-    createTable_(
-      "ID_MoleculeQueryMatch",
+    String table_def =
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
       "identified_molecule_id INTEGER NOT NULL, "                       \
       "data_query_id INTEGER NOT NULL, "                                \
       "adduct_id INTEGER, "                                             \
       "charge INTEGER, "                                                \
       "FOREIGN KEY (identified_molecule_id) REFERENCES ID_IdentifiedMolecule (id), " \
-      "FOREIGN KEY (data_query_id) REFERENCES ID_DataQuery (id), "      \
-      "FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)");
+      "FOREIGN KEY (data_query_id) REFERENCES ID_DataQuery (id)";
+    // add foreign key constraint if the adduct table exists (having the
+    // constraint without the table would cause an error on data insertion):
+    if (tableExists_(db_name_, "AdductInfo"))
+    {
+      table_def += ", FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)";
+    }
+    createTable_("ID_MoleculeQueryMatch", table_def);
 
     QSqlQuery query(QSqlDatabase::database(db_name_));
     query.prepare("INSERT INTO ID_MoleculeQueryMatch VALUES ("  \
