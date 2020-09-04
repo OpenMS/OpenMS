@@ -32,35 +32,87 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#pragma once
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHProFilterAlgorithm.h>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
-#include "boost/dynamic_bitset.hpp"
+
+using namespace OpenMS;
+using namespace std;
+
+//-------------------------------------------------------------
+// Doxygen docu
+//-------------------------------------------------------------
+/**
+  @page TOPP_FLASHDeconv TOPP_FLASHDeconv
+  (Need to be modified)
+
+  @brief  @ref
+  @code
+  @endcode
+  @verbinclude
+  @htmlinclude
+*/
+// We do not want this class to show up in the docu:
+// NEED to fill this part later
 
 
-namespace OpenMS
+class TOPPFLASHProFilter :
+    public TOPPBase
 {
-  class OPENMS_DLLAPI FLASHProFilterAlgorithm
+public:
+  TOPPFLASHProFilter() :
+      TOPPBase("TOPPFLASHProFilter", "tmp",
+               false)
+  {
+  }
+
+protected:
+  void registerOptionsAndFlags_() override
   {
 
-  public:
-    FLASHProFilterAlgorithm(const String& fasta);
-    ~FLASHProFilterAlgorithm();
-    std::map<int, double> getScores(MSSpectrum &decovSpec);
-  protected:
-    std::vector<FASTAFile::FASTAEntry> fastaEntry;
-    std::vector<std::set<Size>> proteinVectorIndex;
-    std::vector<Byte*> proteinVectors;
-    void specToVectors(MSSpectrum &spec, std::set<Size>& vindex,  Byte* vector);
-  };
+  }
+
+  ExitCodes main_(int, const char **) override
+  {
+    MSExperiment map;
+    MzMLFile mzml;
+    String infile = "/Users/kyowonjeong/Google Drive/ProteinFilter/180523_Myoglobin_MS2_HCD_deconv.mzml";
+    String fasta = "/Users/kyowonjeong/Google Drive/ProteinFilter/uniprot-proteome_yeast_UP000002311_Myo.fasta";
+
+    double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
+    //double elapsed_deconv_cpu_secs = 0, elapsed_deconv_wall_secs = 0;
+
+    mzml.setLogType(log_type_);
+    mzml.load(infile, map);
+    auto flashpro = FLASHProFilterAlgorithm(fasta);
+
+
+    for (auto &it : map)
+    {
+      auto begin = clock();
+
+      auto scores = flashpro.getScores(it);
+
+      elapsed_cpu_secs += double(clock() - begin) / CLOCKS_PER_SEC;
+      std::cout << "-- done [took " << elapsed_cpu_secs << " s (CPU), " << elapsed_wall_secs
+                << " s (Wall)] --"
+                << endl;
+    }
+
+    return
+        EXECUTION_OK;
+  }
+
+
+  // the actual main function needed to create an executable
+};
+
+int main(int argc, const char **argv)
+{
+  TOPPFLASHProFilter tool;
+  return tool.main(argc, argv);
 }

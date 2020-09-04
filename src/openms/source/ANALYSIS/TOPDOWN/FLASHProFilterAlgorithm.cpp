@@ -36,5 +36,74 @@
 
 namespace OpenMS
 {
+  FLASHProFilterAlgorithm::FLASHProFilterAlgorithm(const String& fasta)
+  {
+    FASTAFile::load(fasta,fastaEntry);
+    for (auto& fe : fastaEntry)
+    {
+      auto aaSeq = AASequence::fromString(fe.sequence);
+      TheoreticalSpectrumGenerator generator;
+      PeakSpectrum spec;
+      generator.getSpectrum(spec, aaSeq, 1, 1);
+      Byte* pvector = nullptr;
+      std::set<Size> pindices;
+      specToVectors(spec, pindices, pvector);
+      proteinVectors.push_back(pvector);
+      proteinVectorIndex.push_back(pindices);
+    }
+    std::cout<<"Total "<<proteinVectors.size()<< " proteins\n";
+  }
 
+  FLASHProFilterAlgorithm::~FLASHProFilterAlgorithm(){
+    for(auto & pvector : proteinVectors){
+      delete[] pvector;
+    }
+  }
+
+  std::map<int, double> FLASHProFilterAlgorithm::getScores(MSSpectrum &decovSpec)
+  {
+    std::set<Size> specVectorIndex;
+    Byte *specVector = nullptr;
+    specToVectors(decovSpec, specVectorIndex, specVector);
+
+    std::cout<<*specVectorIndex.rbegin()<<std::endl;//TODO
+
+    std::map<int, double> scores;
+    for(int i=0;i<proteinVectors.size();i++){
+      auto size = *proteinVectorIndex[i].rbegin() + *specVectorIndex.rbegin(); // check
+      Byte* vector = new Byte[size];
+      std::fill_n(vector, size, 0);
+      std::set<Size> indices;
+      for (auto &pi : proteinVectorIndex[i])
+      {
+        auto pv = proteinVectors[i][pi];
+        for (auto &si : specVectorIndex)
+        {
+          auto sv = specVector[si];
+          vector[pi + si] += pv * sv;
+          indices.insert(pi + si);
+        }
+      }
+    }
+
+    delete[] specVector;
+
+    return scores;
+  }
+
+  void FLASHProFilterAlgorithm::specToVectors(MSSpectrum &spec,
+                                              std::set<Size> &vindex,
+                                              Byte * vector)
+  {
+    auto maxPeakMass = spec[spec.size()-1].getMZ();
+    auto size = FLASHDeconvAlgorithm::getNominalMass(maxPeakMass);
+    std::fill_n(vector, size, 0);
+    for(auto & p : spec){
+      auto pm = p.getMZ();
+      Size index = FLASHDeconvAlgorithm::getNominalMass(pm);
+      vector[index] ++;
+      vindex.insert(index);
+    }
+
+  }
 }
