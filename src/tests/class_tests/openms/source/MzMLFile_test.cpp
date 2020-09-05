@@ -687,6 +687,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak m/z"),445.347)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak intensity"),120054)
   TEST_REAL_SIMILAR((double)exp[0].getMetaValue("total ion current"),16675500)
+  TEST_REAL_SIMILAR((double)exp[0].getMetaValue("FAIMS compensation voltage"),-50.0)
   TEST_STRING_EQUAL((String)exp[0].getMetaValue("spectrum title"),"title")
   TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list scans"),"15 scans")
   TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list raw scans"),"16 scans")
