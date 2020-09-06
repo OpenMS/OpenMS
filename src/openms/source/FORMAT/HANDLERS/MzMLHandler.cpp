@@ -1647,7 +1647,8 @@ namespace OpenMS
         else if (accession == "MS:1001581") //FAIMS compensation voltage
         {
           //No member => meta data
-          spec_.setMetaValue("FAIMS compensation voltage", termValue);
+          //TODO CV term is wrongly annotated without an xref data type -> cast to double
+          spec_.setMetaValue("FAIMS compensation voltage", value.toDouble());
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
