@@ -71,10 +71,6 @@ namespace OpenMS
   /**
     @brief IsotopeLabelingMDVs is a class to support and analyze isotopic labeling experiments
             (i.e. MDVs)
-
-    Method: TODO
-    
-    Terms: TODO
     
   */
   class OPENMS_DLLAPI IsotopeLabelingMDVs 
@@ -111,12 +107,15 @@ namespace OpenMS
     void calculateIsotopicPurity(Feature& normalized_feature, Feature& feature_with_isotopic_purity, std::vector<double>& experiment_data, std::string& isotopic_purity_name);
 
   /**
-    @brief calculate the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
+    @brief This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
+    using average deviation to the mean
    
     @param[in]  normalized_featuremap FeatureMap with normalized values for each component and the chemical formula of the component group
+    @param[in]  fragment_isotopomer_measured Measured scan values
+    @param[in]  fragment_isotopomer_theoretical Theoretical scan values
     @param[out] featuremap_with_accuracy_info  FeatureMap with the component group accuracy and accuracy for the error for each component
   */
-    void calculateMDVAccuracy(FeatureMap& normalized_featuremap, FeatureMap& featuremap_with_accuracy_info);
+    void calculateMDVAccuracy(Feature& normalized_featuremap, Feature& featuremap_with_accuracy_info, std::vector<double>& fragment_isotopomer_measured, std::vector<double>& fragment_isotopomer_theoretical);
  
     /**
     @brief This function calculates the mass distribution vector (MDV)

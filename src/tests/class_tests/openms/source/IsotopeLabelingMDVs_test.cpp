@@ -271,10 +271,10 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
   OpenMS::Feature                 lactate_1_normalized;
   OpenMS::Feature                 lactate_1_with_isotopic_purity;
 
-  std::vector<double>             L1_norm_max                   {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
-  std::vector<double>             L1_1_2_13C_glucose_experiment {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
-  std::vector<double>             L1_U_13C_glucose_experiment   {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
-  std::vector<double>             L1_isotopic_purity_results    {99.6469, 99.2517};  // [1_2_13C, U_13C]
+  std::vector<double>             L1_norm_max                     {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+  std::vector<double>             L1_1_2_13C_glucose_experiment   {0.5, 0.7, 98.8, 0.0, 0.0, 0.0};
+  std::vector<double>             L1_U_13C_glucose_experiment     {0.5, 0.0, 0.1, 0.2, 3.6, 95.5};
+  std::vector<double>             L1_isotopic_purity_ground_truth {99.6469, 99.2517};  // [1_2_13C, U_13C]
 
   std::string                     L1_1_2_13C_glucose          = "1_2-13C_glucose_experiment";
   std::string                     L1_U_13C_glucose            = "U-13C_glucose_experiment";
@@ -293,10 +293,54 @@ START_SECTION(( void IsotopeLabelingMDVs::calculateIsotopicPurity(
   lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
 
   isotopelabelingmdvs.calculateIsotopicPurity(lactate_1_normalized, lactate_1_with_isotopic_purity, L1_1_2_13C_glucose_experiment, L1_1_2_13C_glucose);
-  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_1_2_13C_glucose)) * 100, L1_isotopic_purity_results[0]);
+  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_1_2_13C_glucose)) * 100, L1_isotopic_purity_ground_truth[0]);
 
   isotopelabelingmdvs.calculateIsotopicPurity(lactate_1_normalized, lactate_1_with_isotopic_purity, L1_U_13C_glucose_experiment, L1_U_13C_glucose);
-  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_U_13C_glucose)) * 100, L1_isotopic_purity_results[1]);
+  TEST_REAL_SIMILAR( (double)(lactate_1_with_isotopic_purity.getMetaValue(L1_U_13C_glucose)) * 100, L1_isotopic_purity_ground_truth[1]);
+
+END_SECTION
+
+
+START_SECTION(( IsotopeLabelingMDVs::calculateMDVAccuracy(
+                                              Feature& normalized_feature,
+                                              Feature& feature_with_accuracy_info,
+                                              std::vector<double>& fragment_isotopomer_measured,
+                                              std::vector<double>& fragment_isotopomer_theoretical) ))
+
+  // case 1: calculating accuracy given theoretical and measured values
+
+  IsotopeLabelingMDVs             isotopelabelingmdvs;
+  OpenMS::Feature                 lactate_1_normalized;
+  OpenMS::Feature                 lactate_1_with_accuracy_info;
+
+  std::vector<double>             L1_norm_max                             {1.00e+00, 3.324e-05, 2.825e-04, 7.174e-05};
+
+  std::vector<double>             accoa_C23H37N7O17P3S_MRM_theoretical_13 {0.69, 0.202, 0.084, 0.019, 0.004, 0.001};
+  std::vector<double>             accoa_C23H37N7O17P3S_MRM_measured_13    {0.627, 0.253, 0.096, 0.02, 0.004, 0.001};
+
+  std::vector<double>             fad_C27H32N9O15P2_EPI_theoretical_48    {0.695, 0.233,  0.059,  0.011,  0.002, 0.0};
+  std::vector<double>             fad_C27H32N9O15P2_EPI_measured_48       {0.638, 0.355, 0.1, 0.0, 0.0, 0.0};
+  std::vector<double>             Average_accuracy_groundtruth            {0.02388, 0.0345}; // [accoa_13, fad_48]
+
+
+  std::vector<OpenMS::Feature>    L1_subordinates_normmax;
+  
+  lactate_1_normalized.setMetaValue("PeptideRef", "Lactate1");
+  for (uint16_t i = 0; i < L1_norm_max.size(); ++i)
+  {
+    OpenMS::Feature sub;
+    sub.setMetaValue("native_id", "Lactate1_"+std::to_string(117+i));
+    sub.setMetaValue("peak_apex_int", L1_norm_max[i]);
+    L1_subordinates_normmax.push_back(sub);
+  }
+  lactate_1_normalized.setSubordinates(L1_subordinates_normmax);
+
+  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, accoa_C23H37N7O17P3S_MRM_measured_13, accoa_C23H37N7O17P3S_MRM_theoretical_13);
+  TEST_REAL_SIMILAR( lactate_1_with_accuracy_info.getMetaValue("average_accuracy"), Average_accuracy_groundtruth[0] );
+  lactate_1_with_accuracy_info.clearMetaInfo();
+
+  isotopelabelingmdvs.calculateMDVAccuracy(lactate_1_normalized, lactate_1_with_accuracy_info, fad_C27H32N9O15P2_EPI_theoretical_48, fad_C27H32N9O15P2_EPI_measured_48);
+  TEST_REAL_SIMILAR( lactate_1_with_accuracy_info.getMetaValue("average_accuracy"), Average_accuracy_groundtruth[1] );
 
 END_SECTION
 

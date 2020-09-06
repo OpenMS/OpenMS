@@ -54,7 +54,7 @@ namespace OpenMS
   {
     // MDV_corrected = correction_matrix_inversed * MDV_observed (normalized_features)
     
-    uint8_t correction_matrix_n = correction_matrix.size();
+    uint16_t correction_matrix_n = correction_matrix.size();
     std::vector<std::vector<double>> correction_matrix_inversed(correction_matrix_n, std::vector<double>(correction_matrix_n,0));
     
     // 1- correction matrix inversion
@@ -88,7 +88,7 @@ namespace OpenMS
     std::string& isotopic_purity_name)
   {
     
-    normalized_featuremap = featuremap_with_isotopic_purity;
+    featuremap_with_isotopic_purity = normalized_featuremap;
     
     double experiment_data_peak = 0.0;
     if ( !experiment_data.empty() )
@@ -108,9 +108,44 @@ namespace OpenMS
   }
 
   
-  void IsotopeLabelingMDVs::calculateMDVAccuracy(FeatureMap& normalized_featuremap, FeatureMap& featuremap_with_accuracy_info)
+  void IsotopeLabelingMDVs::calculateMDVAccuracy(
+    Feature& normalized_feature,
+    Feature& feature_with_accuracy_info,
+    std::vector<double>& fragment_isotopomer_measured,
+    std::vector<double>& fragment_isotopomer_theoretical)
   {
-    // MARK: TODO calculateMDVAccuracy
+    
+    feature_with_accuracy_info = normalized_feature;
+    
+    std::vector<double> fragment_isotopomer_abs_diff;
+    for (size_t i = 0; i < fragment_isotopomer_theoretical.size(); ++i) {
+      fragment_isotopomer_abs_diff.push_back(std::abs(fragment_isotopomer_theoretical[i] - fragment_isotopomer_measured[i]));
+    }
+    
+    double diff_mean = 0.0;
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i) {
+      diff_mean += fragment_isotopomer_abs_diff.at(i);
+    }
+    
+    diff_mean /= fragment_isotopomer_abs_diff.size();
+    
+    
+    
+    std::vector<double> fragment_isotopomer_abs_diff_;
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff.size(); ++i) {
+      fragment_isotopomer_abs_diff_.push_back(std::abs(fragment_isotopomer_abs_diff[i] - diff_mean));
+    }
+    
+    diff_mean = 0.0;
+    for (size_t i = 0; i < fragment_isotopomer_abs_diff_.size(); ++i) {
+      diff_mean += fragment_isotopomer_abs_diff_.at(i);
+    }
+    
+    diff_mean /= fragment_isotopomer_abs_diff_.size();
+    
+    feature_with_accuracy_info = normalized_feature;
+    feature_with_accuracy_info.setMetaValue("average_accuracy", diff_mean);
+    
   }
 
 
