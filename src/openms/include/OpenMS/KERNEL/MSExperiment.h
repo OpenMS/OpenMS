@@ -485,6 +485,7 @@ public:
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
 
+
     void addSpectrum(MSSpectrum&& spectrum)
     {
       spectra_.push_back(std::forward<MSSpectrum>(spectrum));
