@@ -141,6 +141,26 @@ OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:minimal_quality	double	-
 OpenSwathRTNormalizer	-	algorithm:spacing_for_spectra_resampling	double	0.005	0.0:	
 OpenSwathWorkflow	+	Scoring:spacing_for_spectra_resampling	double	5.0e-03	0.0:	
 OpenSwathWorkflow	-	Scoring:spacing_for_spectra_resampling	double	0.005	0.0:	
+OpenSwathWorkflow	-	use_ms1_traces	bool	false		
+OpenSwathWorkflow	+	enable_ms1	true	true,false	
+OpenSwathWorkflow	-	enable_uis_scoring	bool	false		
+OpenSwathWorkflow	+	enable_ipf	true	true,false	
+OpenSwathWorkflow	-	mz_extraction_window	double	0.05	0.0:	
+OpenSwathWorkflow	+	mz_extraction_window	double	50.0	0.0:	
+OpenSwathWorkflow	+	mz_extraction_window_unit	string	ppm	Th,ppm	
+OpenSwathWorkflow	-	mz_extraction_window_unit	string	Th	Th,ppm	
+OpenSwathWorkflow	-	mz_extraction_window_ms1	double	0.05	0.0:	
+OpenSwathWorkflow	+	mz_extraction_window_ms1	double	50.0	0.0:	
+OpenSwathWorkflow	+	mz_extraction_window_ms1_unit	string	ppm	Th,ppm	
+OpenSwathWorkflow	-	mz_extraction_window_ms1_unit	string	Th	Th,ppm	
+OpenSwathWorkflow	-	irt_mz_extraction_window	double	0.05	0.0:	
+OpenSwathWorkflow	+	irt_mz_extraction_window	double	50.0	0.0:	
+OpenSwathWorkflow	+	irt_mz_extraction_window_unit	string	ppm	Th,ppm	
+OpenSwathWorkflow	-	irt_mz_extraction_window_unit	string	Th	Th,ppm	
+OpenSwathWorkflow	+	batchSize	string	int	1000	0:	
+OpenSwathWorkflow	-	batchSize	string	int	250	0:	
+OpenSwathWorkflow	+	ms1_isotopes	int	3	0:		
+OpenSwathWorkflow	-	ms1_isotopes	int	0	0:	
 PSMFeatureExtractor	+	in	input-file			*.idXML,*.mzid
 PSMFeatureExtractor	+	out	output-file			*.idXML,*.mzid
 PSMFeatureExtractor	+	out_type	string		idXML,mzid	
