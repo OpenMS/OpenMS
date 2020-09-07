@@ -1649,7 +1649,9 @@ namespace OpenMS
           // According to the PSI-MS ontology this term should be stored below the "scan" and not "spectrum" parent.
           // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
-          spec_.setMetaValue("FAIMS compensation voltage", value.toDouble());
+          DataValue d(value.toDouble());
+          d.setUnit(218); // voltage
+          spec_.setMetaValue("FAIMS compensation voltage", d);
         }
         //scan polarity
         else if (accession == "MS:1000129") //negative scan
@@ -2117,7 +2119,9 @@ namespace OpenMS
         {
           //No member => meta data
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
-          spec_.setMetaValue("FAIMS compensation voltage", value.toDouble());
+          DataValue d(value.toDouble());
+          d.setUnit(218); // voltage
+          spec_.setMetaValue("FAIMS compensation voltage", d);
         }
         else if (accession == "MS:1000011") //mass resolution
         {
