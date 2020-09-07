@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -52,13 +52,12 @@ namespace OpenMS
 public:
     PeakPickerSH();
 
-    virtual ~PeakPickerSH();
+    ~PeakPickerSH() override;
 
     /**
      @brief Picks peaks in one spectrum.
     */
-    template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, float fWindowWidth)
+    void pick(const MSSpectrum & input, MSSpectrum & output, float fWindowWidth)
     {
       int i, hw, j;
       double cm, toti, min_dh;
@@ -103,7 +102,7 @@ public:
           }
           cm = cm / toti;           // Centre of gravity = centroid
 
-          PeakType peak;
+          Peak1D peak;
           peak.setMZ(cm);
           peak.setIntensity(intens[i]);
           output.push_back(peak);
@@ -117,8 +116,7 @@ public:
      This method picks peaks for each scan in the map consecutively. The
      resulting picked peaks are written to the output map.
     */
-    void pickExperiment(const MSExperiment<> & input, MSExperiment<> & output);
+    void pickExperiment(const PeakMap & input, PeakMap & output);
   };
 }
 
-#endif

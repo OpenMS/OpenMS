@@ -4,12 +4,18 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
+AssayGeneratorMetabo
+ClusterMassTraces
+ClusterMassTracesByPrecursor
 CVInspector
+DatabaseFilter
 DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
+Epifany
 ERPairFinder
+FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
@@ -19,18 +25,21 @@ IDMassAccuracy
 IDScoreSwitcher
 IDSplitter
 LabeledEval
-LowMemPeakPickerHiRes
-LowMemPeakPickerHiRes_RandomAccess
-MapAlignmentEvaluation
 MassCalculator
+MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
+MSFraggerAdapter
 MSSimulator
+MSstatsConverter
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
+NucleicAcidSearchEngine
 OpenMSInfo
 PeakPickerIterative
+PSMFeatureExtractor
 QCCalculator
 QCEmbedder
 QCExporter
@@ -38,27 +47,29 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
-RNPxl
+ProteomicsLFQ
+RNADigestor
+RNAMassCalculator
 RNPxlXICFilter
+RNPxlSearch
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
+SiriusAdapter
 SpecLibCreator
+SpectraSTSearchAdapter
+StaticModification
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-TopPerc
 XMLValidator
-#SimpleSearchEngine
-#RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables
     ${UTILS_executables}
-    ConvertTSVToTraML
-    ConvertTraMLToTSV
+    TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
@@ -71,7 +82,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 ## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
-IDEvaluator
 ImageCreator
 INIUpdater
 )

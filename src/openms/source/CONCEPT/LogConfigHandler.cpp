@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
 #include <iostream>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
-#include <OpenMS/CONCEPT/StreamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 using std::cout;
 using std::cerr;
@@ -97,7 +95,7 @@ namespace OpenMS
 
       if (l.size() < 2 || l.size() > 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
       }
 
       // we parse a command line here, so we append a FILE to each of the arguments
@@ -156,7 +154,7 @@ namespace OpenMS
           {
             if (stream_type_map_[stream_name] != getStreamTypeByName_(stream_type))
             {
-              throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "A stream with the same name but different type was already registered.");
+              throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A stream with the same name but different type was already registered.");
             }
           }
 
@@ -166,7 +164,7 @@ namespace OpenMS
           if (!status)
           {
             // operation failed
-            throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, commands[2]);
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, commands[2]);
           }
 
           log.insert(STREAM_HANDLER.getStream(type, stream_name));
@@ -257,31 +255,31 @@ namespace OpenMS
 
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &OpenMS_Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
-      log = &Log_debug;
+      log = &OpenMS_Log_debug;
     }
     else if (stream_name == "INFO")
     {
-      log = &Log_info;
+      log = &OpenMS_Log_info;
     }
     else if (stream_name == "WARNING")
     {
-      log = &Log_warn;
+      log = &OpenMS_Log_warn;
     }
     else if (stream_name == "ERROR")
     {
-      log = &Log_error;
+      log = &OpenMS_Log_error;
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &Log_fatal;
+      log = &OpenMS_Log_fatal;
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_name);
     }
     return *log;
   }
@@ -311,13 +309,13 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_type);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream_type);
     }
 
     return *s;
   }
 
-  ostream & LogConfigHandler::getStream(const String & name)
+  std::ostream & LogConfigHandler::getStream(const String & name)
   {
     if (stream_type_map_.count(name) != 0)
     {
@@ -326,7 +324,7 @@ namespace OpenMS
     else
     {
       // there is no stream with this name
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There is no stream with the given name.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There is no stream with the given name.");
     }
   }
 
@@ -344,7 +342,7 @@ namespace OpenMS
     else
     {
       // unsupported log type
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The log type " + stream_type + " is not supported");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The log type " + stream_type + " is not supported");
     }
 
     return type;
@@ -379,20 +377,20 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch)
   {
 
-    printStreamConfig_(os, "LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_INFO", lch.info_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
     return os;
   }
 
-  LogConfigHandler * LogConfigHandler::instance_ = NULL;
+  LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
   LogConfigHandler & LogConfigHandler::getInstance()
   {
-    if (LogConfigHandler::instance_ == 0)
+    if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }

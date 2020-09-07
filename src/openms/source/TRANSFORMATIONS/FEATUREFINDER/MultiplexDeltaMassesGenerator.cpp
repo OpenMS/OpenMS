@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,16 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
-
-#include <vector>
-#include <algorithm>
+#include <boost/algorithm/string/classification.hpp>
 #include <iostream>
+#include <ostream>
 
 using namespace std;
 
@@ -95,13 +93,13 @@ namespace OpenMS
     }
     
     // split the labels_ string
-    String temp_labels(labels_);
+    String temp_labels_string(labels_);
     std::vector<String> temp_samples;
     
-    boost::replace_all(temp_labels, "[]", "no_label");
-    boost::replace_all(temp_labels, "()", "no_label");
-    boost::replace_all(temp_labels, "{}", "no_label");
-    boost::split(temp_samples, temp_labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    boost::replace_all(temp_labels_string, "[]", "no_label");
+    boost::replace_all(temp_labels_string, "()", "no_label");
+    boost::replace_all(temp_labels_string, "{}", "no_label");
+    boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
     
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {
@@ -128,38 +126,65 @@ namespace OpenMS
       temp_labels.push_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
-    
+
     // What kind of labelling do we have?
-    // SILAC, Leu, Dimethyl, ICPL or no labelling ??
+    // SILAC, Leu, Dimethyl, ICPL, numeric labelling or no labelling ??
 
     bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
     bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
     bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
     bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
+    // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
+    bool labelling_numeric = true;
+    for (size_t i = 0; i < samples_labels_.size(); i++)
+    {
+      for (size_t j = 0; j < samples_labels_[i].size(); j++)
+      {
+        try
+        {
+          double mass_shift = std::stod(samples_labels_[i][j]);
+          
+          // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
+          // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
+          label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
+          label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+          label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+        }
+        catch(...)
+        {
+          labelling_numeric = false;
+        }
+      }
+    }
     bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
 
-    bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool Leu = (!labelling_SILAC && labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool Dimethyl = (!labelling_SILAC && !labelling_Leu && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool ICPL = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && labelling_ICPL && !labelling_none);
-    bool none = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && labelling_none);
+    bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool Leu = (!labelling_SILAC && labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool Dimethyl = (!labelling_SILAC && !labelling_Leu && labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool ICPL = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool numeric = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && labelling_numeric && !labelling_none);
+    bool none = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && labelling_none);
 
-    if (!(SILAC || Leu || Dimethyl || ICPL || none))
+    if (!(SILAC || Leu || Dimethyl || ICPL || numeric || none))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
     }
     
-    // check if the labels are included in advanced section "labels"
-    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-    for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
+    // Check if the labels are included in advanced section "labels"
+    // unless the labelling is numeric.
+    if (!numeric)
     {
-      for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
+      String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
+      for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
       {
-        if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+        for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
         {
-          std::stringstream stream;
-          stream << "The label " << samples_labels_[i][j] << " is unknown.";
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+          if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+          {
+            std::stringstream stream;
+            stream << "The label " << samples_labels_[i][j] << " is unknown.";
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
+          }
         }
       }
     }
@@ -291,6 +316,25 @@ namespace OpenMS
       }
 
     }
+    else if (numeric)
+    {
+      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+      {
+        MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
+        for (unsigned i = 0; i < samples_labels_.size(); i++)
+        {
+          double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
+          MultiplexDeltaMasses::LabelSet label_set;
+          for (unsigned k = 1; k < (mc + 2); ++k)
+          {
+            label_set.insert(samples_labels_[i][0]);
+          }
+          
+          delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+        }
+        delta_masses_list_.push_back(delta_masses_temp);
+      }    
+    }
     else
     {
       // none (singlet detection)
@@ -322,14 +366,14 @@ namespace OpenMS
     if (delta_masses_list_.empty())
     {
       // Even in the case of a singlet search, there should be one mass shift (zero mass shift) in the list.
-      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+      throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
     
     unsigned n = delta_masses_list_[0].getDeltaMasses().size();    // n=1 for singlets, n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     unsigned m = delta_masses_list_.size();    // number of mass shift patterns before extension of the list
     if (n == 1)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for singlet detection not relevant.");
     }
     else if (n == 2)
     {
@@ -434,54 +478,54 @@ namespace OpenMS
     }
     else if (n > 4)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
     
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
-
+    
   }
   
-  void MultiplexDeltaMassesGenerator::printSamplesLabelsList() const
+  void MultiplexDeltaMassesGenerator::printSamplesLabelsList(std::ostream &stream) const
   {
-    LOG_DEBUG << "\n";
+    stream << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-      LOG_DEBUG << "sample " << (i + 1) << ":    ";
+      stream << "sample " << (i + 1) << ":    ";
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        LOG_DEBUG << samples_labels_[i][j] << "    ";
+        stream << samples_labels_[i][j] << "    ";
       }
-      LOG_DEBUG << "\n";
+      stream << "\n";
     }
   }
   
-  void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
+  void MultiplexDeltaMassesGenerator::printDeltaMassesList(std::ostream &stream) const
   {
-    LOG_DEBUG << "\n";
+    stream << "\n";
     for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
-      LOG_DEBUG << "mass shift " << (i + 1) << ":    ";
+      stream << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
-        LOG_DEBUG << mass_shift << " (";
+        stream << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
           if (it != label_set.begin())
           {
-            LOG_DEBUG << ",";
+            stream << ",";
           }
-          LOG_DEBUG << *it;
+          stream << *it;
         }
-        LOG_DEBUG << ")    ";
+        stream << ")    ";
       }
-      LOG_DEBUG << "\n";
+      stream << "\n";
     }
-    LOG_DEBUG << "\n";
+    stream << "\n";
   }
   
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()

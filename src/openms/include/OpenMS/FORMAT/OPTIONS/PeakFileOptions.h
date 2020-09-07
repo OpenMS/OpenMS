@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
-#define OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -55,12 +54,22 @@ public:
     ///Destructor
     ~PeakFileOptions();
 
-    ///@name Meta data option
+    ///@name Meta data and file format option
     //@{
     ///sets whether or not to load only meta data
     void setMetadataOnly(bool only);
     ///returns whether or not to load only meta data
     bool getMetadataOnly() const;
+
+    /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
+    void setForceMQCompatability(bool forceMQ);
+    /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
+    bool getForceMQCompatability() const;
+
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    void setForceTPPCompatability(bool forceTPP);
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    bool getForceTPPCompatability() const;
     //@}
 
     ///@name Supplemental data option
@@ -136,10 +145,6 @@ public:
     //@}
 
     ///@name lazyload option
-    ///sets whether or not to load only the count
-    void setSizeOnly(bool only);
-    ///returns whether or not to load only meta data
-    bool getSizeOnly() const;
     ///sets whether or not to always append the data to the given map (even if a consumer is given)
     void setAlwaysAppendData(bool only);
     ///returns whether or not to always append the data to the given map (even if a consumer is given)
@@ -166,12 +171,15 @@ public:
     /**
         @name Precision options
 
+        Note that m/z and RT are controlled with the same flag (for spectra and
+        chromatograms) while there is a separate flag for intensity.
+
         @note This option is ignored if the format does not support multiple precisions
     */
     //@{
-    //Sets if mz-data should be stored with 32bit or 64bit precision
+    //Sets if mz-data and rt-data should be stored with 32bit or 64bit precision
     void setMz32Bit(bool mz_32_bit);
-    //returns @c true, if mz-data should be stored with 32bit precision
+    //returns @c true, if mz-data and rt-data should be stored with 32bit precision
     bool getMz32Bit() const;
     //Sets if intensity data should be stored with 32bit or 64bit precision
     void setIntensity32Bit(bool int_32_bit);
@@ -192,6 +200,10 @@ public:
     MSNumpressCoder::NumpressConfig getNumpressConfigurationIntensity() const;
     /// Get numpress configuration options for intensity dimension
     void setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config);
+    /// Set numpress configuration options for float data arrays
+    MSNumpressCoder::NumpressConfig getNumpressConfigurationFloatDataArray() const;
+    /// Get numpress configuration options for float data arrays
+    void setNumpressConfigurationFloatDataArray(MSNumpressCoder::NumpressConfig config);
 
     /**
         @name Data pool size options
@@ -209,8 +221,19 @@ public:
     void setMaxDataPoolSize(Size size);
     //@}
 
+    /// [mzML only!] Whether to use the "selected ion m/z" value as the precursor m/z value (alternative: use the "isolation window target m/z" value)
+    bool getPrecursorMZSelectedIon() const;
+
+    /// [mzML only!] Set whether to use the "selected ion m/z" value as the precursor m/z value (alternative: use the "isolation window target m/z" value)
+    void setPrecursorMZSelectedIon(bool choice);
+
+    /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
+    bool hasFilters();
+
 private:
     bool metadata_only_;
+    bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_;
     bool has_rt_range_;
     bool has_mz_range_;
@@ -222,7 +245,6 @@ private:
     DRange<1> intensity_range_;
     std::vector<Int> ms_levels_;
     bool zlib_compression_;
-    bool size_only_;
     bool always_append_data_;
     bool skip_xml_checks_;
     bool sort_spectra_by_mz_;
@@ -231,9 +253,10 @@ private:
     bool write_index_;
     MSNumpressCoder::NumpressConfig np_config_mz_;
     MSNumpressCoder::NumpressConfig np_config_int_;
+    MSNumpressCoder::NumpressConfig np_config_fda_;
     Size maximal_data_pool_size_;
+    bool precursor_mz_selected_ion_;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H

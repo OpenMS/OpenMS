@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,29 +28,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
-#include <algorithm>
-#include <iterator>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
-
-#ifdef _OPENMP
-#include <omp.h>
-#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <boost/shared_ptr.hpp>
-#endif
 
 // #define DEBUG
 
@@ -61,9 +50,6 @@ namespace OpenMS
   std::map<String, double> SvmTheoreticalSpectrumGenerator::hydrophobicity_;
   std::map<String, double> SvmTheoreticalSpectrumGenerator::helicity_;
   std::map<String, double> SvmTheoreticalSpectrumGenerator::basicity_;
-
-  // do not remove, see ticket #352 for more details
-  SvmTheoreticalSpectrumGenerator init;
 
   bool SvmTheoreticalSpectrumGenerator::initializedMaps_ = false;
 
@@ -569,7 +555,7 @@ namespace OpenMS
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, svm_info_file);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, svm_info_file);
     }
     ++left_marker;
     precursor_charge_ = left_marker->toInt();
@@ -579,7 +565,7 @@ namespace OpenMS
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
-      throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, svm_info_file);
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, svm_info_file);
     }
 
     //Now read the primary types and load the corresponding svm models
@@ -600,7 +586,7 @@ namespace OpenMS
       sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
@@ -610,7 +596,7 @@ namespace OpenMS
       sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
     }
@@ -721,16 +707,16 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(PeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
-    RichPeak1D p_;
-    // just in case someone wants the ion names;
-    p_.metaRegistry().registerName("IonName", "Name of the ion");
-
-
     if (mp_.class_models.empty() || mp_.reg_models.empty() || mp_.ion_types.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no svm models loaded. Call load function before using simulate");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no svm models loaded. Call load function before using simulate");
+    }
+
+    if (peptide.empty())
+    {
+      return;
     }
 
     //load parameters
@@ -742,6 +728,20 @@ namespace OpenMS
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
 
     Int simulation_type = (Int)param_.getValue("svm_mode");
+
+    if (add_metainfo)
+    {
+      if (spectrum.getIntegerDataArrays().size() == 0)
+      {
+        spectrum.getIntegerDataArrays().resize(1);
+        spectrum.getIntegerDataArrays()[0].setName("Charges");
+      }
+      if (spectrum.getStringDataArrays().size() == 0)
+      {
+        spectrum.getStringDataArrays().resize(1);
+        spectrum.getStringDataArrays()[0].setName("IonNames");
+      }
+    }
 
     std::vector<std::set<String> > possible_n_term_losses(peptide.size());
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
@@ -775,7 +775,6 @@ namespace OpenMS
         }
       }
     }
-
 
     std::vector<std::pair<std::pair<IonType, double>, Size> > peaks_to_generate;
 
@@ -819,7 +818,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Requested unsupported ion type" << std::endl;
+          OPENMS_LOG_ERROR << "Requested unsupported ion type" << std::endl;
         }
 
         DescriptorSet descriptor;
@@ -957,28 +956,26 @@ namespace OpenMS
 
       if (add_isotopes)
       {
-        IsotopeDistribution dist = ion_formula.getIsotopeDistribution((Int)max_isotope);
+        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopePatternGenerator((Int)max_isotope));
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          p_.setMZ(mz_pos + (double)j * Constants::NEUTRON_MASS_U / charge);
-          p_.setIntensity(intensity * it->second);
-          if (add_metainfo && j == 0)
+          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->getIntensity()));
+          if (add_metainfo)
           {
-            p_.setMetaValue("IonName", ion_name);
+            spectrum.getStringDataArrays()[0].push_back(ion_name);
+            spectrum.getIntegerDataArrays()[0].push_back(charge);
           }
-          spectrum.push_back(p_);
         }
       }
       else
       {
-        p_.setMZ(mz_pos);
-        p_.setIntensity(intensity);
+        spectrum.push_back(Peak1D(mz_pos, intensity));
         if (add_metainfo)
         {
-          p_.setMetaValue("IonName", ion_name);
+          spectrum.getStringDataArrays()[0].push_back(ion_name);
+          spectrum.getIntegerDataArrays()[0].push_back(charge);
         }
-        spectrum.push_back(p_);
       }
     }
 

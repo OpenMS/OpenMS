@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
     cdef cppclass OpenSwathHelper:
 
         bool checkSwathMapAndSelectTransitions(
-                                MSExperiment[Peak1D, ChromatogramPeak] & exp, 
+                                MSExperiment & exp, 
                                 TargetedExperiment & targeted_exp,
                                 TargetedExperiment & transition_exp_used,
                                 double min_upper_edge_dist
@@ -20,6 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
 
 
         libcpp_pair[double, double] estimateRTRange(LightTargetedExperiment exp) nogil except +
+
+        String computePrecursorId(const String & transition_group_id, int isotope) nogil except +
 
         # static std::map<std::string, double> simpleFindBestFeature(
         #     OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 

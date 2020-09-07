@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="/nfs/wsi/bs/share/usr/nahnsen/sequences/Ecoli_K12_TaxID_83333.proteomes.decoy.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.01" peak_mass_tolerance="0.5" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
@@ -11,7 +11,10 @@
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
 	<IdentificationRun date="2010-05-04T15:18:29" search_engine="Mascot" search_engine_version="2.2.04" search_parameters_ref="SP_2" >
-        <PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
+		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" spectrum_reference="index=1">
             <PeptideHit score="0.92" sequence="QRESTATDILQK" charge="2" >
 				<UserParam type="float" name="E-Value" value="5.4"/>
 			</PeptideHit>
@@ -46,8 +49,9 @@
 	</IdentificationRun>
 	<IdentificationRun date="2010-05-04T07:26:55" search_engine="OMSSA" search_engine_version="2.1.4" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" spectrum_reference="index=1">
 			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" aa_before="K" aa_after="V" >
 				<UserParam type="float" name="E-Value" value="61.4"/>
 			</PeptideHit>
@@ -69,7 +73,10 @@
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2010-05-03T19:50:18" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_1" >
-	<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
+		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" spectrum_reference="index=1">
 			<PeptideHit score="0.54" sequence="QRESTATDILQK" charge="2" aa_before="R" aa_after="G" >
 				<UserParam type="float" name="E-Value" value="0.5"/>
 			</PeptideHit>

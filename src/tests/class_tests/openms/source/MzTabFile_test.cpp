@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,10 @@ using namespace std;
 class MzTabFile2 : public MzTabFile
 {
   public:
-    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
+    String generateMzTabPSMSectionRow2_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns, const MzTabMetaData& meta) const
     {
-      return generateMzTabPSMSectionRow_(row, optional_columns);
+      size_t n_columns = 0;
+      return generateMzTabSectionRow_(row, optional_columns, meta, n_columns);
     }
 };
 
@@ -57,8 +58,8 @@ START_TEST(MzTabFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-MzTabFile* ptr = 0;
-MzTabFile* null_ptr = 0;
+MzTabFile* ptr = nullptr;
+MzTabFile* null_ptr = nullptr;
 
 START_SECTION(MzTabFile())
 {
@@ -171,9 +172,10 @@ START_SECTION(generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const v
   optional_columns.push_back("Percolator_PEP");
   optional_columns.push_back("search_engine_sequence");
   optional_columns.push_back("AScore_1");
- 
+
+  MzTabMetaData m{};
     
-  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns));  
+  String strRow(mzTab.generateMzTabPSMSectionRow2_(row, optional_columns, m));
   std::vector<String> substrings;
   strRow.split('\t', substrings);
   TEST_EQUAL(substrings[substrings.size() - 1],"null")

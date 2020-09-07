@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM2DCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM2DCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -46,6 +45,8 @@
 // QT
 class QPainter;
 class QMouseEvent;
+class QAction;
+class QMenu;
 
 namespace OpenMS
 {
@@ -73,16 +74,16 @@ namespace OpenMS
 
 public:
     /// Default constructor
-    Spectrum2DCanvas(const Param& preferences, QWidget* parent = 0);
+    Spectrum2DCanvas(const Param& preferences, QWidget* parent = nullptr);
 
     /// Destructor
-    ~Spectrum2DCanvas();
+    ~Spectrum2DCanvas() override;
 
     // Docu in base class
-    virtual void showCurrentLayerPreferences();
+    void showCurrentLayerPreferences() override;
 
     // Docu in base class
-    virtual void saveCurrentLayer(bool visible);
+    void saveCurrentLayer(bool visible) override;
 
     /// Merges the features in @p map into the features layer @p i
     void mergeIntoLayer(Size i, FeatureMapSharedPtrType map);
@@ -113,15 +114,15 @@ signals:
 
 public slots:
     // Docu in base class
-    void activateLayer(Size layer_index);
+    void activateLayer(Size layer_index) override;
     // Docu in base class
-    void removeLayer(Size layer_index);
+    void removeLayer(Size layer_index) override;
     //docu in base class
-    virtual void updateLayer(Size i);
+    void updateLayer(Size i) override;
     // Docu in base class
-    virtual void horizontalScrollBarChange(int value);
+    void horizontalScrollBarChange(int value) override;
     // Docu in base class
-    virtual void verticalScrollBarChange(int value);
+    void verticalScrollBarChange(int value) override;
 
     /**
     @brief Updates the projection data and emits some related signals.
@@ -141,7 +142,10 @@ protected slots:
 
 protected:
     // Docu in base class
-    bool finishAdding_();
+    bool finishAdding_() override;
+
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
+    bool collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
@@ -150,18 +154,18 @@ protected:
 
     /** @name Reimplemented QT events */
     //@{
-    void mousePressEvent(QMouseEvent* e);
-    void mouseReleaseEvent(QMouseEvent* e);
-    void mouseMoveEvent(QMouseEvent* e);
-    void paintEvent(QPaintEvent* e);
-    void contextMenuEvent(QContextMenuEvent* e);
-    void keyPressEvent(QKeyEvent* e);
-    void keyReleaseEvent(QKeyEvent* e);
-    void mouseDoubleClickEvent(QMouseEvent* e);
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void paintEvent(QPaintEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void keyReleaseEvent(QKeyEvent* e) override;
+    void mouseDoubleClickEvent(QMouseEvent* e) override;
     //@}
 
     // Docu in base class
-    virtual void updateScrollbars_();
+    void updateScrollbars_() override;
 
     /**
       @brief Paints individual peaks.
@@ -263,9 +267,9 @@ protected:
     void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool hasIdentifications, QPainter& p);
 
     // Docu in base class
-    virtual void intensityModeChange_();
+    void intensityModeChange_() override;
     // DOcu in base class
-    virtual void recalculateSnapFactor_();
+    void recalculateSnapFactor_() override;
 
     /**
       @brief Returns the position on color @p gradient associated with given intensity.
@@ -274,7 +278,7 @@ protected:
     */
     inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
-      float gradientPos;
+      float gradientPos = val;
       switch (intensity_mode_)
       {
       case IM_NONE:
@@ -292,9 +296,6 @@ protected:
       case IM_LOG:
         gradientPos = std::log(val + 1);
         break;
-
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }
@@ -360,13 +361,13 @@ protected:
     virtual void translateVisibleArea_(double mzShiftRel, double rtShiftRel);
 
     //docu in base class
-    virtual void translateLeft_(Qt::KeyboardModifiers m);
+    void translateLeft_(Qt::KeyboardModifiers m) override;
     //docu in base class
-    virtual void translateRight_(Qt::KeyboardModifiers m);
+    void translateRight_(Qt::KeyboardModifiers m) override;
     //docu in base class
-    virtual void translateForward_();
+    void translateForward_() override;
     //docu in base class
-    virtual void translateBackward_();
+    void translateBackward_() override;
 
     /// Finishes context menu after customization to peaks, features or consensus features
     void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
@@ -380,10 +381,13 @@ protected:
     PeakIndex selected_peak_;
     /// start peak/feature of measuring mode
     PeakIndex measurement_start_;
+
+    /// stores the linear color gradient for non-log modes
+    MultiGradient linear_gradient_;
     
-    double pen_size_min_; //< minimum number of pixels for one data point
-    double pen_size_max_; //< maximum number of pixels for one data point
-    double canvas_coverage_min_; //< minimum coverage of the canvas required; if lower, points are upscaled in size
+    double pen_size_min_; ///< minimum number of pixels for one data point
+    double pen_size_max_; ///< maximum number of pixels for one data point
+    double canvas_coverage_min_; ///< minimum coverage of the canvas required; if lower, points are upscaled in size
 
   private:
     /// Default C'tor hidden
@@ -392,4 +396,3 @@ protected:
   };
 }
 
-#endif

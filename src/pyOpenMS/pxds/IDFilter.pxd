@@ -8,6 +8,7 @@ from DefaultParamHandler cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from FASTAFile cimport *
+from ProteaseDigestion cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -44,9 +45,6 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) nogil except +
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) nogil except +
 
-        void filterHitsBySignificance(libcpp_vector[PeptideIdentification]& ids, double threshold_fraction) nogil except +
-        void filterHitsBySignificance(libcpp_vector[ProteinIdentification]& ids, double threshold_fraction) nogil except +
-
         void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) nogil except +
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) nogil except +
 
@@ -74,7 +72,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterPeptidesByMZError(libcpp_vector[PeptideIdentification]& peptides, double mass_error, bool unit_ppm) nogil except +
 
-        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, String& metavalue_key, double threshold) nogil except +
+        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, const String& metavalue_key, double threshold) nogil except +
 
         void removePeptidesWithMatchingModifications(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& modifications) nogil except +
 
@@ -88,10 +86,30 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void removeDuplicatePeptideHits(libcpp_vector[PeptideIdentification]& peptides) nogil except +
 
-        void filterHitsByScore(MSExperiment[Peak1D, ChromatogramPeak]& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
+        void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
 
-        void filterHitsBySignificance(MSExperiment[Peak1D, ChromatogramPeak]& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
+        void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
 
-        void keepNBestHits(MSExperiment[Peak1D, ChromatogramPeak]& experiment, Size n) nogil except +
+        void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
 
-        void keepHitsMatchingProteins(MSExperiment[Peak1D, ChromatogramPeak]& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
+cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
+    
+    cdef cppclass DigestionFilter "OpenMS::IDFilter::DigestionFilter":
+        # wrap-attach:
+        #    IDFilter
+        DigestionFilter() nogil except + # wrap-ignore
+        DigestionFilter(DigestionFilter) nogil except + #wrap-ignore
+
+        # GetMatchingItems[ PeptideEvidence, FASTAEntry ] accession_resolver_
+        ProteaseDigestion digestion_
+        bool ignore_missed_cleavages_
+        bool methionine_cleavage_
+
+        DigestionFilter(libcpp_vector[ FASTAEntry ] & entries, 
+                        ProteaseDigestion & digestion,
+                        bool ignore_missed_cleavages,
+                        bool methionine_cleavage) nogil except +
+
+        # bool operator()(PeptideEvidence & evidence) nogil except +
+        void filterPeptideEvidences(libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+

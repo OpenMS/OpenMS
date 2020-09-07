@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,15 @@
 // $Authors: Stephan Aiche, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_BSPLINE2D_H
-#define OPENMS_MATH_MISC_BSPLINE2D_H
+#pragma once
 
 #include <vector>
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 // forward declaration of impl class BSpline
 namespace eol_bspline
@@ -121,6 +123,12 @@ public:
     double derivative(const double x) const;
 
     /**
+     * Return the first derivative of the spline curve at the given @p x.
+     * Returns zero if the current state is not ok().
+     */
+    double derivatives(double x, unsigned order = 1) const;
+
+    /**
      * Return whether the spline fit was successful.
      */
     bool ok() const;
@@ -131,6 +139,7 @@ public:
     static void debug(bool enable);
 
 private:
+
     // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
     // B-spline implementation behind this pointer to avoid any dependency of the interface to the 
     // implementation. Thus, the eol splines are only required during compilation of OpenMS and 
@@ -140,4 +149,3 @@ private:
 
 }
 
-#endif // OPENMS_MATH_MISC_BSPLINE2D_H

@@ -1,0 +1,15 @@
+PrecursorMz	FragmentMz	NormalizedRetentionTime	RelativeFragmentIntensity	StrippedSequence	ProteinId	ModifiedSequence	PrecursorCharge	FragmentType	FragmentCharge	FragmentSeriesNumber
+500	628.435	0.44	1	PEPTIDEAR	ProteinA	PEPTIDEAR	2	b	2	1
+500	654.38	0.44	2	PEPTIDEAR	ProteinA	PEPTIDEAR	2	b	2	2
+501	618.31	0.2	10000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	2	3
+501	628.435	0.2	2000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	2	4
+501	651.3	0.2	4300	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	3	5
+722.685	358.179	52.2	2714	QVFIGCPASVADQDAFERM	ProteinC	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	3	a	2	6
+510.008269	628.435	0.44	1	PEPTIDEAR	ProteinA	PEPTIDEAR(13C(6) 15N(4) Silac label)	2	b	2	1
+510.008269	654.38	0.44	2	PEPTIDEAR	ProteinA	PEPTIDEAR(13C(6) 15N(4) Silac label)	2	b	2	2
+509.014199	618.31	0.2	10000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	2	y	2	3
+509.014199	628.435	0.2	2000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	2	y	2	4
+730.699199	651.3	0.2	4300	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	2	y	3	5
+900	618.31	0.2	10000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	2	3
+900	628.435	0.2	2000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	2	4
+900	651.3	0.2	4300	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	3	5

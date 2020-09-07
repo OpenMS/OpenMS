@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -43,10 +43,13 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
+
+#include <iomanip>
 
 #include <QFileInfo>
 
@@ -62,7 +65,7 @@ namespace OpenMS
       bool test = true;
       bool this_test;
       char line_buffer[65536];
-      const char* version_string = 0;
+      const char* version_string = nullptr;
       double absdiff = 0.;
       double absdiff_max = 0.;
       double absdiff_max_allowed = 1E-5;
@@ -100,7 +103,7 @@ namespace OpenMS
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
-          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
+          stdcout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
                     << "\"):   whitelist is: " << TEST::whitelist << std::endl;
         }
         return;
@@ -273,7 +276,7 @@ namespace OpenMS
         if (!number_1_is_realtype)
         {
           TEST::this_test = false;
-          std__cout << " -  line " << line << ':'
+          stdcout << " -  line " << line << ':'
                     << "TEST_REAL_SIMILAR(" << number_1_stringified << ','
                     << number_2_stringified << "):"
                                      " argument " << number_1_stringified
@@ -289,7 +292,7 @@ namespace OpenMS
           {
             if (TEST::this_test)
             {
-              std__cout << " +  line " << line << ":  TEST_REAL_SIMILAR("
+              stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
                         << number_1_stringified << ',' << number_2_stringified
                         << "): got " << std::setprecision(number_1_written_digits)
                         << number_1 << ", expected "
@@ -297,7 +300,7 @@ namespace OpenMS
             }
             else
             {
-              std__cout << " -  line " << TEST::test_line
+              stdcout << " -  line " << TEST::test_line
                         << ":  TEST_REAL_SIMILAR(" << number_1_stringified << ','
                         << number_2_stringified << "): got "
                         << std::setprecision(number_1_written_digits) << number_1
@@ -440,10 +443,6 @@ namespace OpenMS
             }
           }
         }
-        // We should never get here ... must have forgotten an condition branch above ... and then we need to fix that.
-        fuzzy_message
-          = "error: ClassTest.cpp:  You should never see this message.  Please report this bug along with the data that produced it.";
-        return false;
       }
 
       void
@@ -461,14 +460,14 @@ namespace OpenMS
           initialNewline();
           if (this_test)
           {
-            std__cout << " +  line " << line << ":  TEST_STRING_EQUAL("
+            stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
                       << string_1_stringified << ',' << string_2_stringified
                       << "): got \"" << string_1 << "\", expected \"" << string_2
                       << "\"" << std::endl;
           }
           else
           {
-            std__cout << " -  line " << line << ":  TEST_STRING_EQUAL("
+            stdcout << " -  line " << line << ":  TEST_STRING_EQUAL("
                       << string_1_stringified << ',' << string_2_stringified
                       << "): got \"" << string_1 << "\", expected \"" << string_2
                       << "\"" << std::endl;
@@ -510,27 +509,27 @@ namespace OpenMS
         TEST::initialNewline();
         if (TEST::this_test)
         {
-          std__cout << " +  line " << line << ":  TEST_STRING_SIMILAR("
+          stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
                     << string_1_stringified << ',' << string_2_stringified << "):  "
                                                                     "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
                     << "), relative: " << TEST::ratio << " ("
                     << TEST::ratio_max_allowed << ")    +\n";
-          std__cout << "got:\n";
+          stdcout << "got:\n";
           TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          std__cout << "expected:\n";
+          stdcout << "expected:\n";
           TEST::printWithPrefix(string_2, TEST::line_num_2_max);
         }
         else
         {
-          std__cout << " -  line " << TEST::test_line
+          stdcout << " -  line " << TEST::test_line
                     << ": TEST_STRING_SIMILAR(" << string_1_stringified << ','
                     << string_2_stringified << ") ...    -\n"
                                      "got:\n";
           TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          std__cout << "expected:\n";
+          stdcout << "expected:\n";
           TEST::printWithPrefix(string_2, TEST::line_num_2_max);
-          std__cout << "message: \n";
-          std__cout << TEST::fuzzy_message;
+          stdcout << "message: \n";
+          stdcout << TEST::fuzzy_message;
           failed_lines_list.push_back(line);
         }
       }

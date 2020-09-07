@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
-
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -56,7 +54,7 @@ namespace OpenMS
   void SimplePairFinder::run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map)
   {
     if (input_maps.size() != 2)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "exactly two input maps required");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly two input maps required");
     checkIds_(input_maps);
 
     // progress dots
@@ -147,13 +145,13 @@ namespace OpenMS
     diff_intercept_[Peak2D::RT] = (double)param_.getValue("similarity:diff_intercept:RT");
     if (diff_intercept_[Peak2D::RT] <= 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "intercept for RT must be > 0");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "intercept for RT must be > 0");
     }
 
     diff_intercept_[Peak2D::MZ] = (double)param_.getValue("similarity:diff_intercept:MZ");
     if (diff_intercept_[Peak2D::MZ] <= 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "intercept for MZ must be > 0");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "intercept for MZ must be > 0");
     }
 
     diff_exponent_[Peak2D::RT] = (double)param_.getValue("similarity:diff_exponent:RT");

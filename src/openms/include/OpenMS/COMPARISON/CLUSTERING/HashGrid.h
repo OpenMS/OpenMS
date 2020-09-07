@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,7 +123,7 @@ private:
       }
 
 public:
-      Iterator(Grid & grid) :
+      explicit Iterator(Grid & grid) :
         grid_(grid), grid_it_(grid.end())
       {}
 
@@ -140,7 +140,7 @@ public:
         return *this;
       }
 
-      Iterator operator++(int)
+      const Iterator operator++(int)
       {
         Iterator ret(*this);
         operator++();
@@ -222,7 +222,7 @@ public:
         return *this;
       }
 
-      ConstIterator operator++(int)
+      const ConstIterator operator++(int)
       {
         ConstIterator ret(*this);
         operator++();
@@ -274,7 +274,7 @@ public:
     const CellIndex & grid_dimension;
 
 public:
-    HashGrid(const ClusterCenter & c_dimension) :
+    explicit HashGrid(const ClusterCenter & c_dimension) :
       cells_(), 
       grid_dimension_(), 
       cell_dimension(c_dimension), 
@@ -311,13 +311,9 @@ public:
     size_type erase(const key_type & key)
     {
       const CellIndex cellkey = cellindexAtClustercenter_(key);
-      try
-      {
-        CellContent & cell = cells_.at(cellkey);
-        return cell.erase(key);
-      }
-      catch (std::out_of_range &) {}
-      return 0;
+      auto cell = cells_.find(cellkey);
+      if (cell == cells_.end()) return 0;
+      return cell->second.erase(key);
     }
 
     /**
@@ -405,16 +401,28 @@ public:
 
     /**
      * @warning Currently needed non-const by HierarchicalClustering.
+    */
+    typename Grid::mapped_type & grid_at(const CellIndex & x) { return cells_.at(x); }
+
+    /**
+     * @brief Returns the grid cell at given index if present, otherwise the grid_end iterator.
+    */
+    const_grid_iterator grid_find(const CellIndex & x) const { return cells_.find(x); }
+
+    /**
+    * @brief Returns the grid cell at given index if present, otherwise the grid_end iterator.
+    */
+    grid_iterator grid_find(const CellIndex & x) { return cells_.find(x); }
+
+
+    /**
+     * @warning Currently needed non-const by HierarchicalClustering.
      */
     grid_iterator grid_begin() { return cells_.begin(); }
     /**
      * @warning Currently needed non-const by HierarchicalClustering.
      */
     grid_iterator grid_end() { return cells_.end(); }
-    /**
-     * @warning Currently needed non-const by HierarchicalClustering.
-     */
-    typename Grid::mapped_type & grid_at(const CellIndex & x) { return cells_.at(x); }
 
 private:
     // XXX: Replace with proper operator
@@ -426,7 +434,7 @@ private:
       for (; it != ret.end(); ++it, ++lit, ++rit)
       {
         double t = std::floor(*lit / *rit);
-        if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+        if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         *it = static_cast<Int64>(t);
       }
       return ret;

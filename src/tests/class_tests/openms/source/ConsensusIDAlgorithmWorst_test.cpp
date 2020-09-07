@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ START_TEST(ConsensusIDAlgorithmWorst, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ConsensusIDAlgorithm* ptr = 0;
-ConsensusIDAlgorithm* null_pointer = 0;
+ConsensusIDAlgorithm* ptr = nullptr;
+ConsensusIDAlgorithm* null_pointer = nullptr;
 START_SECTION(ConsensusIDAlgorithmWorst())
 {
   ptr = new ConsensusIDAlgorithmWorst();
@@ -126,7 +126,8 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   consensus.setParameters(param);
   // apply:
   vector<PeptideIdentification> f = ids;
-  consensus.apply(f);
+  map<String,String> empty;
+  consensus.apply(f, empty);
 
   TEST_EQUAL(f.size(), 1);
   hits = f[0].getHits();
@@ -179,7 +180,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 
 
   ids[2].setHigherScoreBetter(true);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
+  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids, empty));
 }
 END_SECTION
 

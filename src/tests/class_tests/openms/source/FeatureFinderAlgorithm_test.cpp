@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -53,23 +53,23 @@ namespace OpenMS
 			{
 			}
 
-			~FFA()
+			~FFA() override
 			{
 			}
 
-			virtual void run()
+			void run() override
 			{
 
 			}
 
-			virtual Param getDefaultParameters() const
+			Param getDefaultParameters() const override
 			{
 				Param tmp;
 				tmp.setValue("bla","bluff");
 				return tmp;
 			}
 
-      const MSExperiment<Peak1D>* getMap()
+      const PeakMap* getMap()
 			{
 				return this->map_;
 			}
@@ -91,12 +91,12 @@ START_TEST(FeatureFinderAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FFA* ptr = 0;
-FFA* nullPointer = 0;
+FFA* ptr = nullptr;
+FFA* nullPointer = nullptr;
 
-MSExperiment<>* map_nullPointer = 0;
-FeatureMap*  featureMap_nullPointer = 0;
-FeatureFinder*        ff_nullPointer = 0;
+PeakMap* map_nullPointer = nullptr;
+FeatureMap*  featureMap_nullPointer = nullptr;
+FeatureFinder*        ff_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithm()))
   ptr = new FFA();
@@ -123,7 +123,7 @@ START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFind
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
   TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 
-  MSExperiment<> map;
+  PeakMap map;
 	FeatureMap features;
 	FeatureFinder ff;
 	ffa.setData(map, features, ff);

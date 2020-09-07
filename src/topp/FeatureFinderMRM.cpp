@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors:  Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -77,7 +79,7 @@ using namespace std;
  How to find suitable parameters and details of the different algorithms implemented are described
  in the @ref TOPP_example_featuredetection "TOPP tutorial".
 
- Specialized tools are available for some experimental techniques: @ref TOPP_ITRAQAnalyzer.
+ Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureFinderMRM.cli
@@ -102,7 +104,7 @@ public:
   {}
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -113,12 +115,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //input file names and types
     String in = getStringOption_("in");
@@ -149,7 +151,16 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      features.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      features.setPrimaryMSRunPath({in}, exp);
+    }
 
     // Apply the feature finder
     ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);
@@ -165,10 +176,10 @@ protected:
         {
           vector<String> keys;
           it->getKeys(keys);
-          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          OPENMS_LOG_INFO << "Feature " << it->getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
           }
         }
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -51,8 +52,8 @@ START_TEST(SpectraMerger, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SpectraMerger* e_ptr = 0;
-SpectraMerger* e_nullPointer = 0;
+SpectraMerger* e_ptr = nullptr;
+SpectraMerger* e_nullPointer = nullptr;
 START_SECTION((SpectraMerger()))
 	e_ptr = new SpectraMerger;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

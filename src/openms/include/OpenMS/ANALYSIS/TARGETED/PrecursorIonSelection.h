@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTION_H
-#define OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTION_H
+#pragma once
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -84,7 +83,7 @@ public:
 
     PrecursorIonSelection();
     PrecursorIonSelection(const PrecursorIonSelection & source);
-    ~PrecursorIonSelection();
+    ~PrecursorIonSelection() override;
 
     const double & getMaxScore() const;
     void setMaxScore(const double & max_score);
@@ -178,7 +177,7 @@ public:
     void simulateRun(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                      std::vector<ProteinIdentification> & prot_ids,
                      PrecursorIonSelectionPreprocessing & preprocessed_db,
-                     String path, MSExperiment<> & experiment, String precursor_path = "");
+                     String path, PeakMap & experiment, String precursor_path = "");
 
     void setLPSolver(LPWrapper::SOLVER solver)
     {
@@ -199,7 +198,7 @@ public:
     }
 
 private:
-    void simulateILPBasedIPSRun_(FeatureMap & features, MSExperiment<> & experiment,
+    void simulateILPBasedIPSRun_(FeatureMap & features, PeakMap & experiment,
                                  std::vector<PeptideIdentification> & pep_ids,
                                  std::vector<ProteinIdentification> & prot_ids,
                                  PrecursorIonSelectionPreprocessing & preprocessed_db,
@@ -214,7 +213,7 @@ private:
     void shiftUp_(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
     void rescore_(FeatureMap & features, std::vector<PeptideIdentification> & new_pep_ids,
                   PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference);
@@ -261,4 +260,3 @@ private:
 
 }
 
-#endif // #ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTION_H

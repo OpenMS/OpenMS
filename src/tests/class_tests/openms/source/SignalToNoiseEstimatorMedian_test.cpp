@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ START_TEST(SignalToNoiseEstimatorMedian, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SignalToNoiseEstimatorMedian< >* ptr = 0;
-SignalToNoiseEstimatorMedian< >* nullPointer = 0;
+SignalToNoiseEstimatorMedian< >* ptr = nullptr;
+SignalToNoiseEstimatorMedian< >* nullPointer = nullptr;
 START_SECTION((SignalToNoiseEstimatorMedian()))
 	ptr = new SignalToNoiseEstimatorMedian<>;
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -57,7 +57,7 @@ START_SECTION((SignalToNoiseEstimatorMedian()))
 END_SECTION
 
 START_SECTION((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source)))
-  MSSpectrum < > raw_data;
+  MSSpectrum raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2 = sne;
@@ -65,7 +65,7 @@ START_SECTION((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstima
 END_SECTION
 
 START_SECTION((SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source)))
-  MSSpectrum < > raw_data;
+  MSSpectrum raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2(sne);
@@ -77,28 +77,28 @@ START_SECTION((virtual ~SignalToNoiseEstimatorMedian()))
 END_SECTION
 
 
-START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
+START_SECTION([EXTRA](virtual void init(const Container& c)))
 
-  MSSpectrum < > raw_data;
-  MSSpectrum< >::const_iterator it;
+  MSSpectrum raw_data;
+  MSSpectrum::const_iterator it;
   DTAFile dta_file;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimator_test.dta"), raw_data);
   
     
-  SignalToNoiseEstimatorMedian< MSSpectrum < > > sne;  
+  SignalToNoiseEstimatorMedian< MSSpectrum > sne;
 	Param p;
 	p.setValue("win_len", 40.0);
 	p.setValue("noise_for_empty_window", 2.0);
 	p.setValue("min_required_elements", 10);
 	sne.setParameters(p);
-  sne.init(raw_data.begin(),raw_data.end());
+  sne.init(raw_data);
 
-  MSSpectrum < > stn_data;
+  MSSpectrum stn_data;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimatorMedian_test.out"), stn_data);
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)
   {
-    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(it));
+    TEST_REAL_SIMILAR (stn_data[i].getIntensity(), sne.getSignalToNoise(i));
         
     
     //Peak1D peak = (*it);

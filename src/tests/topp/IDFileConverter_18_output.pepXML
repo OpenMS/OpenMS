@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
+<msms_run_summary base_name="IDFileConverter_18_output" raw_data_type="raw" raw_data=".mzML" search_engine="X! Tandem">
+	<sample_enzyme name="unknown_enzyme">
+		<specificity cut="" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="IDFileConverter_18_output" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="" type="AA"/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
+	</search_summary>
+	<spectrum_query spectrum="IDFileConverter_18_output.1.1.3" start_scan="1" end_scan="1" precursor_neutral_mass="1557.7688322857" assumed_charge="3" index="0">
+	<search_result>
+		<search_hit hit_rank="1" peptide="DFASSGGYVLHLHR" peptide_prev_aa="[" peptide_next_aa="E" protein="test2_rev ##1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1557.7688322857" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="56.5"/>
+			<search_score name="nextscore" value="8"/>
+			<search_score name="expect" value="5.6e-11"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_18_output.2.2.3" start_scan="2" end_scan="2" precursor_neutral_mass="3186.6059878437" assumed_charge="3" index="1">
+	<search_result>
+		<search_hit hit_rank="1" peptide="IALSRPNVEVVALNDPFITNDYAAYMFK" peptide_prev_aa="[" peptide_next_aa="E" protein="BSA2 ##2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="3186.6059878437" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="IALSRPNVEVVALNDPFITNDYAAYM[147]FK">
+				<mod_aminoacid_mass position="26" mass="147.0354000171"/>
+			</modification_info>
+			<search_score name="hyperscore" value="77.9"/>
+			<search_score name="nextscore" value="8"/>
+			<search_score name="expect" value="1.4e-15"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_18_output.3.3.3" start_scan="3" end_scan="3" precursor_neutral_mass="2323.1345549126" assumed_charge="3" index="2">
+	<search_result>
+		<search_hit hit_rank="1" peptide="RPGADSDIGGFGGLFDLAQAGFR" peptide_prev_aa="[" peptide_next_aa="A" protein="BSA3 ##3" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2323.1345549126" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="86.6"/>
+			<search_score name="nextscore" value="8"/>
+			<search_score name="expect" value="1e-15"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

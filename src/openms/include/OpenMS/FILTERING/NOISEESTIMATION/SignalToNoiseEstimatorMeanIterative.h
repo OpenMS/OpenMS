@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,13 +33,13 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H
-#define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H
+#pragma once
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
+#include <algorithm> //for std::max_element
 
 namespace OpenMS
 {
@@ -66,7 +66,7 @@ namespace OpenMS
 
     @ingroup SignalProcessing
   */
-  template <typename Container = MSSpectrum<> >
+  template <typename Container = MSSpectrum>
   class SignalToNoiseEstimatorMeanIterative :
     public SignalToNoiseEstimator<Container>
   {
@@ -77,9 +77,6 @@ public:
     enum IntensityThresholdCalculation {MANUAL = -1, AUTOMAXBYSTDEV = 0, AUTOMAXBYPERCENT = 1};
 
     using SignalToNoiseEstimator<Container>::stn_estimates_;
-    using SignalToNoiseEstimator<Container>::first_;
-    using SignalToNoiseEstimator<Container>::last_;
-    using SignalToNoiseEstimator<Container>::is_result_valid_;
     using SignalToNoiseEstimator<Container>::defaults_;
     using SignalToNoiseEstimator<Container>::param_;
 
@@ -157,7 +154,7 @@ public:
 
 
     /// Destructor
-    virtual ~SignalToNoiseEstimatorMeanIterative()
+    ~SignalToNoiseEstimatorMeanIterative() override
     {}
 
 
@@ -165,17 +162,22 @@ protected:
 
 
     /** calculate StN values for all datapoints given, by using a sliding window approach
-                  @param scan_first_ first element in the scan
-                  @param scan_last_ last element in the scan (disregarded)
+                  @param c raw data
                   @exception Throws Exception::InvalidValue
            */
-    virtual void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
+    void computeSTN_(const Container& c) override
     {
+      //first element in the scan
+      PeakIterator scan_first_ = c.begin();
+      //last element in the scan
+      PeakIterator scan_last_ = c.end();
+
       // reset counter for sparse windows
       double sparse_window_percent = 0;
 
       // reset the results
       stn_estimates_.clear();
+      stn_estimates_.resize(c.size());
 
       // maximal range of histogram needs to be calculated first
       if (auto_mode_ == AUTOMAXBYSTDEV)
@@ -193,7 +195,7 @@ protected:
           String s = auto_max_percentile_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!",
                                         s);
         }
@@ -201,31 +203,22 @@ protected:
         std::vector<int> histogram_auto(100, 0);
 
         // find maximum of current scan
-        int size = 0;
-        typename PeakType::IntensityType maxInt = 0;
-        PeakIterator run = scan_first_;
-        while (run != scan_last_)
-        {
-          maxInt = std::max(maxInt, (*run).getIntensity());
-          ++size;
-          ++run;
-        }
+        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() > b.getIntensity();});
+        typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
         double bin_size = maxInt / 100;
 
         // fill histogram
-        run = scan_first_;
-        while (run != scan_last_)
+        for(auto& run : c)
         {
-          ++histogram_auto[(int) (((*run).getIntensity() - 1) / bin_size)];
-          ++run;
+          ++histogram_auto[(int) (((run).getIntensity() - 1) / bin_size)];
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = (int) (auto_max_percentile_ * size / 100);
+        int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
         int elements_seen = 0;
         int i = -1;
-        run = scan_first_;
+        PeakIterator run = scan_first_;
 
         while (run != scan_last_ && elements_seen < elements_below_percentile)
         {
@@ -243,7 +236,7 @@ protected:
           String s = max_intensity_;
           throw Exception::InvalidValue(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!",
                                         s);
         }
@@ -284,15 +277,8 @@ protected:
 
       double noise;      // noise value of a datapoint
 
-      // determine how many elements we need to estimate (for progress estimation)
-      int windows_overall = 0;
-      PeakIterator run = scan_first_;
-      while (run != scan_last_)
-      {
-        ++windows_overall;
-        ++run;
-      }
-      SignalToNoiseEstimator<Container>::startProgress(0, windows_overall, "noise estimation of data");
+      ///start progress estimation
+      SignalToNoiseEstimator<Container>::startProgress(0, c.size(), "noise estimation of data");
 
       // MAIN LOOP
       while (window_pos_center != scan_last_)
@@ -371,7 +357,7 @@ protected:
         }
 
         // store result
-        stn_estimates_[*window_pos_center] = (*window_pos_center).getIntensity() / noise;
+        stn_estimates_[window_count] = (*window_pos_center).getIntensity() / noise;
 
 
 
@@ -402,7 +388,7 @@ protected:
     }   // end of shiftWindow_
 
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_()
+    void updateMembers_() override
     {
       max_intensity_         = (double)param_.getValue("max_intensity");
       auto_max_stdev_Factor_ = (double)param_.getValue("auto_max_stdev_factor");
@@ -413,7 +399,7 @@ protected:
       stdev_                 = (double)param_.getValue("stdev_mp");
       min_required_elements_ = param_.getValue("min_required_elements");
       noise_for_empty_window_ = (double)param_.getValue("noise_for_empty_window");
-      is_result_valid_ = false;
+      stn_estimates_.clear();
     }
 
     /// maximal intensity considered during binning (values above get discarded)
@@ -443,4 +429,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H

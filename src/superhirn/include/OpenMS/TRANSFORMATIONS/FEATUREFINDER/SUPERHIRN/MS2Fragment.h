@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Lukas Mueller, Markus Mueller $
 // --------------------------------------------------------------------------
 //
@@ -48,8 +48,7 @@
 //
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MS2FRAGMENT_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MS2FRAGMENT_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
@@ -162,4 +161,3 @@ public:
 
 } // ns
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_MS2FRAGMENT_H

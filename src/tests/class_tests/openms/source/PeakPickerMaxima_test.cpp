@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <cmath>
 #define PI 3.141592653589793
@@ -47,7 +49,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-std::vector<PeakPickerMaxima::PeakCandidate> ppmax_pick(MSSpectrum<>& spec, PeakPickerMaxima& pp_max)
+std::vector<PeakPickerMaxima::PeakCandidate> ppmax_pick(MSSpectrum& spec, PeakPickerMaxima& pp_max)
 {
   std::vector<PeakPickerMaxima::PeakCandidate> pc;
   std::vector<double> mz_array(spec.size()), int_array(spec.size());
@@ -79,8 +81,8 @@ START_TEST(PeakPickerMaxima, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerMaxima* ptr = 0;
-PeakPickerMaxima* nullPointer = 0;
+PeakPickerMaxima* ptr = nullptr;
+PeakPickerMaxima* nullPointer = nullptr;
 START_SECTION((PeakPickerMaxima()))
   ptr = new PeakPickerMaxima(0,0,0);
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -344,7 +346,7 @@ START_SECTION([EXTRA](pick multiple peaks SN))
 END_SECTION
 
 TOLERANCE_RELATIVE(1.00001);
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //
@@ -480,7 +482,7 @@ output.clear(true);
 
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out_ppmax.mzML"),output);
 
-START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
+START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum& input, MSSpectrum& output)))
 {
   // With the new S/N the meaning of the noise value is slightly different:
   //  instead of the mean of the bin where the median can be found it is now

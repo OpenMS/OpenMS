@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,7 @@ namespace OpenMS
 
   TransformationModelBSpline::TransformationModelBSpline(
     const TransformationModel::DataPoints& data, const Param& params) :
-    spline_(0)
+    spline_(nullptr)
   {
     // parameter handling/checking:
     params_ = params;
@@ -52,7 +52,7 @@ namespace OpenMS
 
     if (data.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "'b_spline' model requires more data");
     }
     Size boundary_condition = params_.getValue("boundary_condition");
@@ -72,7 +72,7 @@ namespace OpenMS
     double wavelength = params_.getValue("wavelength");
     if (wavelength > (xmax_ - xmin_))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "B-spline 'wavelength' can't be larger than the data range (here: " + String(xmax_ - xmin_) + ").", String(wavelength));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "B-spline 'wavelength' can't be larger than the data range (here: " + String(xmax_ - xmin_) + ").", String(wavelength));
     }
 
     // since we can't initialize a BSpline2d object in the init list (no c'tor
@@ -82,7 +82,7 @@ namespace OpenMS
 
     if (!spline_->ok())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                    "TransformationModelBSpline", 
                                    "Unable to fit B-spline to data points.");
     }
@@ -97,7 +97,9 @@ namespace OpenMS
     {
       extrapolate_ = EX_GLOBAL_LINEAR;
       TransformationModelLinear lm(data, Param());
-      lm.getParameters(slope_min_, offset_min_);
+      String x_weight, y_weight;
+      double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+      lm.getParameters(slope_min_, offset_min_, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
       slope_max_ = slope_min_;
       // extrapolation (left/right) considers xmin_/xmax_ as the origin (x = 0):
       offset_min_ = lm.evaluate(xmin_);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,16 +29,22 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
+#pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewPrefDialog.h>
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPViewPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -50,18 +56,27 @@ namespace OpenMS
         @ingroup TOPPView_elements
     */
     class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog,
-      public Ui::TOPPViewPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
+      ~TOPPViewPrefDialog();
+
+      /// initialize GUI values with these parameters
+      void setParam(const Param& param);
+
+      /// update the parameters given the current GUI state.
+      /// Can be used to obtain default parameters and their names.
+      Param getParam() const;
 
 protected slots:
       void browseDefaultPath_();
       void browseTempPath_();
+private:
+      Ui::TOPPViewPrefDialogTemplate* ui_;
+      mutable Param param_; ///< is updated in getParam()
     };
   }
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H

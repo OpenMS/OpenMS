@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[file:///D:/data/Lars/temp/2016-05-21_140120_ukmz1005immz_53576_1/TOPPAS_tmp/TAILS_triple/003_FileFilter/out/CC126.mzML]"/>
 	<dataProcessing completion_time="2016-05-21T14:54:14">
@@ -1582,23 +1582,23 @@
 				<element map="2" id="0" rt="1701.92542719982" mz="967.440497115364" it="1.81017e+09" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="963.417297363281" RT="1691.42016" >
-				<PeptideHit score="0" sequence="(Dimethyl)AYEPQGGSGYDYSYAGGR" charge="2" aa_before="M" aa_after="G" start="359" end="376" protein_refs="PH_143">
+				<PeptideHit score="0" sequence=".(Dimethyl)AYEPQGGSGYDYSYAGGR" charge="2" aa_before="M" aa_after="G" start="359" end="376" protein_refs="PH_143">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.2037656e-23"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="967.44091796875" RT="1686.1284" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))AYEPQGGSGYDYSYAGGR" charge="2" aa_before="M" aa_after="G" start="359" end="376" protein_refs="PH_143">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))AYEPQGGSGYDYSYAGGR" charge="2" aa_before="M" aa_after="G" start="359" end="376" protein_refs="PH_143">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.2037656e-23"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_17749660155506638460" quality="1" charge="3">
@@ -1609,32 +1609,32 @@
 				<element map="2" id="0" rt="1712.13205901493" mz="520.988548370395" it="5.36212e+08" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="515.626220703125" RT="1706.7633" >
-				<PeptideHit score="0" sequence="(Dimethyl)SVVSANDVSDVIK(Dimethyl)R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
+				<PeptideHit score="0" sequence=".(Dimethyl)SVVSANDVSDVIK(Dimethyl)R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.9102004e-17"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="520.988525390625" RT="1702.77354" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))SVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))SVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="4.8127136e-16"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="520.988647460938" RT="1705.62738" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))SVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))SVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="Q" aa_after="E" start="440" end="453" protein_refs="PH_46">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.9102004e-17"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_7804704400743266335" quality="1" charge="3">
@@ -1645,14 +1645,14 @@
 				<element map="2" id="0" rt="1715.2537550956" mz="612.993231704895" it="0" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="610.311767578125" RT="1707.22938" >
-				<PeptideHit score="0" sequence="(Dimethyl)RLVGGPMDASVEEEGVR" charge="3" aa_before="P" aa_after="R" start="33" end="49" protein_refs="PH_313">
+				<PeptideHit score="0" sequence=".(Dimethyl)RLVGGPMDASVEEEGVR" charge="3" aa_before="P" aa_after="R" start="33" end="49" protein_refs="PH_313">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.1851003e-13"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15004869347769368353" quality="1" charge="2">
@@ -1663,14 +1663,14 @@
 				<element map="2" id="0" rt="1716.55127674058" mz="555.807727875908" it="0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="551.785522460938" RT="1703.43168" >
-				<PeptideHit score="0" sequence="(Dimethyl)NQDWLGVSR" charge="2" aa_before="R" aa_after="Q" start="28" end="36" protein_refs="PH_161">
+				<PeptideHit score="0" sequence=".(Dimethyl)NQDWLGVSR" charge="2" aa_before="R" aa_after="Q" start="28" end="36" protein_refs="PH_161">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="2.6061828e-12"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3332699010107892018" quality="1" charge="2">
@@ -1681,14 +1681,14 @@
 				<element map="2" id="0" rt="1717.54430262803" mz="594.299487230938" it="0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="590.277282714844" RT="1720.53294" >
-				<PeptideHit score="0" sequence="(Dimethyl)DFTENPC(Carbamidomethyl)LR" charge="2" aa_before="R" aa_after="N" start="340" end="348" protein_refs="PH_336">
+				<PeptideHit score="0" sequence=".(Dimethyl)DFTENPC(Carbamidomethyl)LR" charge="2" aa_before="R" aa_after="N" start="340" end="348" protein_refs="PH_336">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="3.0973535e-12"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_13440783915218733453" quality="1" charge="2">
@@ -1699,14 +1699,14 @@
 				<element map="2" id="0" rt="1719.84089343542" mz="819.945543278809" it="0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="815.924011230469" RT="1713.30906" >
-				<PeptideHit score="0" sequence="(Dimethyl)TEAPSATGQASSLLGGR" charge="2" aa_before="R" aa_after="L" start="1710" end="1726" protein_refs="PH_162">
+				<PeptideHit score="0" sequence=".(Dimethyl)TEAPSATGQASSLLGGR" charge="2" aa_before="R" aa_after="L" start="1710" end="1726" protein_refs="PH_162">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="3.9907965e-20"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15916652588957785155" quality="1" charge="2">
@@ -1717,14 +1717,14 @@
 				<element map="2" id="0" rt="1726.34781200436" mz="461.791030403128" it="4.01137e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="461.790771484375" RT="1728.15006" >
-				<PeptideHit score="0.00530973451327434" sequence="(Dimethyl:2H(6)13C(2))DAVLDVVR" charge="2" aa_before="V V" aa_after="K K" start="113 113" end="120 120" protein_refs="PH_295 PH_29">
+				<PeptideHit score="0.00530973451327434" sequence=".(Dimethyl:2H(6)13C(2))DAVLDVVR" charge="2" aa_before="V V" aa_after="K K" start="113 113" end="120 120" protein_refs="PH_295 PH_29">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="2.7060346e-10"/>
-					<UserParam type="int" name="map index" value="2"/>
+					<UserParam type="int" name="map_index" value="2"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15157403601844400700" quality="1" charge="2">
@@ -1735,14 +1735,14 @@
 				<element map="2" id="0" rt="1729.85339173021" mz="497.328193819741" it="0" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="493.30615234375" RT="1727.0853" >
-				<PeptideHit score="0.00355871886120996" sequence="(Dimethyl)IALVITDGR" charge="2" aa_before="R" aa_after="S" start="722" end="730" protein_refs="PH_245">
+				<PeptideHit score="0.00355871886120996" sequence=".(Dimethyl)IALVITDGR" charge="2" aa_before="R" aa_after="S" start="722" end="730" protein_refs="PH_245">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.1541805e-10"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_6408859317243173796" quality="1" charge="3">
@@ -1753,23 +1753,23 @@
 				<element map="2" id="0" rt="1738.11719739845" mz="582.682680711485" it="8.0004e+08" charge="3"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="577.320922851563" RT="1730.99016" >
-				<PeptideHit score="0" sequence="(Dimethyl)GQSVVSANDVSDVIK(Dimethyl)R" charge="3" aa_before="N" aa_after="E" start="438" end="453" protein_refs="PH_46">
+				<PeptideHit score="0" sequence=".(Dimethyl)GQSVVSANDVSDVIK(Dimethyl)R" charge="3" aa_before="N" aa_after="E" start="438" end="453" protein_refs="PH_46">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.0922148e-18"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="582.683166503906" RT="1732.11882" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))GQSVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="N" aa_after="E" start="438" end="453" protein_refs="PH_46">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))GQSVVSANDVSDVIK(Dimethyl:2H(6)13C(2))R" charge="3" aa_before="N" aa_after="E" start="438" end="453" protein_refs="PH_46">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="3.005983e-19"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_474525871221756682" quality="1" charge="2">
@@ -1780,14 +1780,14 @@
 				<element map="2" id="0" rt="1742.15036172153" mz="646.819902700578" it="2.53703e+07" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="646.820190429688" RT="1738.5228" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))ASTSNLDMDFR" charge="2" aa_before="V" aa_after="G" start="224" end="234" protein_refs="PH_148">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))ASTSNLDMDFR" charge="2" aa_before="V" aa_after="G" start="224" end="234" protein_refs="PH_148">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="5.2011364e-14"/>
-					<UserParam type="int" name="map index" value="2"/>
+					<UserParam type="int" name="map_index" value="2"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_12999979801269632061" quality="1" charge="2">
@@ -1798,13 +1798,13 @@
 				<element map="2" id="0" rt="1746.87657581059" mz="521.82004387096" it="2.50951e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="521.820434570313" RT="1741.1178" >
-				<PeptideHit score="0.0262345679012346" sequence="(Dimethyl:2H(6)13C(2))IVIEEFTR" charge="2" aa_before="D" aa_after="K" start="362" end="369" protein_refs="PH_164">
+				<PeptideHit score="0.0262345679012346" sequence=".(Dimethyl:2H(6)13C(2))IVIEEFTR" charge="2" aa_before="D" aa_after="K" start="362" end="369" protein_refs="PH_164">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.5651793e-09"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_17413765565443951891" quality="1" charge="2">
@@ -1815,14 +1815,14 @@
 				<element map="2" id="0" rt="1749.43838275088" mz="635.354104417153" it="1.72919e+08" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="635.354125976563" RT="1743.76242" >
-				<PeptideHit score="0" sequence="(Dimethyl:2H(6)13C(2))ANVSVVDLTC(Carbamidomethyl)R" charge="2" aa_before="T" aa_after="L" start="237" end="247" protein_refs="PH_294">
+				<PeptideHit score="0" sequence=".(Dimethyl:2H(6)13C(2))ANVSVVDLTC(Carbamidomethyl)R" charge="2" aa_before="T" aa_after="L" start="237" end="247" protein_refs="PH_294">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="SpecEValue_score" value="1.0900906e-13"/>
-					<UserParam type="int" name="map index" value="2"/>
+					<UserParam type="int" name="map_index" value="2"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>

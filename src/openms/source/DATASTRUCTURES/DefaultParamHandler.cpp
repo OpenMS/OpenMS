@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using namespace std;
 
@@ -103,7 +102,7 @@ namespace OpenMS
     {
       if (defaults_.empty() && warn_empty_defaults_)
       {
-        LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+        OPENMS_LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
       }
 
       //remove registered subsections
@@ -171,6 +170,22 @@ namespace OpenMS
   const std::vector<String>& DefaultParamHandler::getSubsections() const
   {
     return subsections_;
+  }
+
+  void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix)
+  {
+    String prefix_(prefix);
+    if (!prefix_.empty())
+    {
+      if (prefix_.compare(prefix_.size() - 1, 1, ":") != 0) // ends with colon?
+      {
+        prefix_ += ":";
+      }
+    }
+    for (auto it = write_this.begin(); it != write_this.end(); it++)
+    {
+      write_here.setMetaValue(prefix_ + (*it).name, (*it).value);
+    }
   }
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -39,8 +39,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
-
-#include <set>
 
 namespace OpenMS
 {
@@ -72,11 +70,11 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& map = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it != map.getFileDescriptions().end(); ++it)
+      for (ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().begin(); it != map.getColumnHeaders().end(); ++it)
       {
         if (used_ids.find(it->first) != used_ids.end())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "file ids have to be unique");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }
         else
         {

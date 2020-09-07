@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -72,20 +71,20 @@ namespace OpenMS
 
 public:
     /// Construct the behaviour with its parent
-    TOPPViewSpectraViewBehavior(TOPPViewBase * parent);
+    TOPPViewSpectraViewBehavior(TOPPViewBase* parent);
 
 public slots:
     /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int index);
 
     /// Behavior for showSpectrumAs1D
-    virtual void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    virtual void showSpectrumAs1D(const std::vector<int>& indices);
 
     /// Behavior for activate1DSpectrum
     virtual void activate1DSpectrum(int index);
 
     /// Behavior for activate1DSpectrum
-    virtual void activate1DSpectrum(std::vector<int, std::allocator<int> > indices);
+    virtual void activate1DSpectrum(const std::vector<int>& indices);
 
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index);
@@ -96,7 +95,6 @@ public slots:
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();
 private:
-    TOPPViewBase * tv_;
+    TOPPViewBase* tv_;
   };
 }
-#endif // OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H

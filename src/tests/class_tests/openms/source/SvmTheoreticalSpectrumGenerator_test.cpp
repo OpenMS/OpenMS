@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -53,8 +53,8 @@ START_TEST(SvmTheoreticalSpectrumGenerator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SvmTheoreticalSpectrumGenerator* ptr = 0;
-SvmTheoreticalSpectrumGenerator* nullPointer = 0;
+SvmTheoreticalSpectrumGenerator* ptr = nullptr;
+SvmTheoreticalSpectrumGenerator* nullPointer = nullptr;
 
 START_SECTION(SvmTheoreticalSpectrumGenerator())
   ptr = new SvmTheoreticalSpectrumGenerator();
@@ -80,25 +80,32 @@ START_SECTION(SvmTheoreticalSpectrumGenerator& operator = (const SvmTheoreticalS
 END_SECTION
 
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, boost::random::mt19937_64&rng, Size precursor_charge))
+START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, boost::random::mt19937_64&rng, Size precursor_charge))
   // init rng
   boost::random::mt19937_64 rnd_gen (0);
-  RichPeakSpectrum spec;
+  PeakSpectrum spec;
 
   Param p = ptr->getDefaults();
   p.setValue ("hide_losses", "true");
+  p.setValue ("add_metainfo", "true");
   ptr->setParameters (p);
 
   ptr->load();
   ptr->simulate(spec, peptide, rnd_gen, 1);
 
-  MSExperiment<RichPeak1D>exp;
-//  MSExperiment<RichPeak1D>exp2;
-//  exp2.getSpectra().push_back(spec);
+  PeakMap exp;
   MzMLFile mz_file;
-//  MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp2);
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+  TEST_EQUAL(spec.size(), 7);
+#else
+  mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
+  TEST_EQUAL(spec.size(), 8);
+  // the extra peak:
+  TEST_EQUAL(spec.getStringDataArrays()[0][2], "YIon  0++") // TODO: ion_nr is always zero, its actually y4++
+  TEST_EQUAL(spec.getIntegerDataArrays()[0][2], 2)
+#endif
 
   TEST_EQUAL(exp.size(), 1);
   if(exp.size())
@@ -125,8 +132,8 @@ START_SECTION(const std::vector<IonType>& getIonTypes())
 NOT_TESTABLE
 END_SECTION
 
-SvmTheoreticalSpectrumGenerator::IonType* ptr_t = 0;
-SvmTheoreticalSpectrumGenerator::IonType* nullPointer_t = 0;
+SvmTheoreticalSpectrumGenerator::IonType* ptr_t = nullptr;
+SvmTheoreticalSpectrumGenerator::IonType* nullPointer_t = nullptr;
 START_SECTION([SvmTheoreticalSpectrumGenerator::IonType] IonType())
   ptr_t = new SvmTheoreticalSpectrumGenerator::IonType();
   TEST_NOT_EQUAL(ptr_t, nullPointer_t)

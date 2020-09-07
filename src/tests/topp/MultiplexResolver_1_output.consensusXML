@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2016-04-29T14:06:03">
 		<software name="IDMapper" version="2.0.0" />
@@ -5387,7 +5387,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="6.32069388077375e-05"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="948.447448730469" RT="3906.48461914063" >
 				<PeptideHit score="0" sequence="AMADPEVQQIMSDPAMR(Label:13C(6))" charge="2" aa_before="R" aa_after="L" protein_refs="PH_989">
@@ -5396,7 +5396,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.000242162798702882"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="945.437316894531" RT="3898.9990234375" >
 				<PeptideHit score="0" sequence="AMADPEVQQIMSDPAMR" charge="2" aa_before="R" aa_after="L" protein_refs="PH_989">
@@ -5405,7 +5405,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="6.18581128777823e-06"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_17749660155506638460" quality="1" charge="3">
@@ -5422,7 +5422,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0520007955697836"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="555.970031738281" RT="3925.68798828125" >
 				<PeptideHit score="0" sequence="IINEPTAAAIAYGLDK(Label:13C(6)15N(2))" charge="3" aa_before="R X X X X" aa_after="R X X X X" protein_refs="PH_1207 PH_1204 PH_1195 PH_1097 PH_88">
@@ -5431,7 +5431,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00143949345473539"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="553.963134765625" RT="3924.37475585938" >
 				<PeptideHit score="0" sequence="IINEPTAAAIAYGLDK" charge="3" aa_before="R X X X X" aa_after="R X X X X" protein_refs="PH_1207 PH_1204 PH_1195 PH_1097 PH_88">
@@ -5440,7 +5440,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00495196302388471"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_7804704400743266335" quality="1" charge="2">
@@ -5456,9 +5456,9 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.120974853453987"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15004869347769368353" quality="1" charge="2">
@@ -5474,9 +5474,9 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.19903799821167e-05"/>
-					<UserParam type="int" name="map index" value="2"/>
+					<UserParam type="int" name="map_index" value="2"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="841.413269042969" RT="3929.28979492188" >
 				<PeptideHit score="0" sequence="TQEQLASEMAELTAR(Label:13C(6))" charge="2" aa_before="K" aa_after="I" protein_refs="PH_1183">
@@ -5485,7 +5485,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="7.99836423437667e-07"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_3332699010107892018" quality="1" charge="2">
@@ -5502,7 +5502,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00312512553433139"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_13440783915218733453" quality="1" charge="4">
@@ -5519,7 +5519,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0541056750741408"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15916652588957785155" quality="1" charge="2">
@@ -5536,7 +5536,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00178574506932643"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="731.409912109375" RT="3905.23559570313" >
 				<PeptideHit score="0" sequence="NVGLDIEAEVPAVK(Label:13C(6)15N(2))" charge="2" aa_before="K X" aa_after="D X" protein_refs="PH_1149 PH_144">
@@ -5545,7 +5545,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00131703415207915"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_15157403601844400700" quality="1" charge="2">
@@ -5561,9 +5561,9 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.121271304168165"/>
-					<UserParam type="int" name="map index" value="2"/>
+					<UserParam type="int" name="map_index" value="2"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_6408859317243173796" quality="1" charge="3">
@@ -5580,7 +5580,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.327877996648749"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="551.280334472656" RT="3908.501953125" >
 				<PeptideHit score="0" sequence="SQEQLAAELAEYTAK" charge="3" aa_before="K" aa_after="I" protein_refs="PH_1184">
@@ -5589,7 +5589,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00113075865801919"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_474525871221756682" quality="1" charge="2">
@@ -5606,7 +5606,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="5.59783134961266e-07"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_12999979801269632061" quality="1" charge="2">
@@ -5622,9 +5622,9 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.014524186654142"/>
-					<UserParam type="int" name="map index" value="1"/>
+					<UserParam type="int" name="map_index" value="1"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_17413765565443951891" quality="1" charge="2">
@@ -5641,7 +5641,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.14288238343929"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="1"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="526.268310546875" RT="3908.79736328125" >
 				<PeptideHit score="0.00259571706683971" sequence="MDELQLFR" charge="2" aa_before="K" aa_after="G" protein_refs="PH_1050">
@@ -5650,7 +5650,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.120974853453987"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_2927519776102075938" quality="1" charge="2">
@@ -5667,7 +5667,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.0122011053394831"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="937.497192382813" RT="3915.26416015625" >
 				<PeptideHit score="0" sequence="LASVLNTDPALDSELTSK" charge="2" aa_before="R" aa_after="L" protein_refs="PH_783">
@@ -5676,7 +5676,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="7.91400755284285e-08"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_16907355690727166316" quality="1" charge="2">
@@ -5693,7 +5693,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="6.72695410283044e-06"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_10306100746905639127" quality="1" charge="2">
@@ -5710,7 +5710,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="8.34929103186352e-08"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="885.485290527344" RT="3922.58740234375" >
 				<PeptideHit score="0" sequence="VLAQNSGFDLQETLVK(Label:13C(6)15N(2))" charge="2" aa_before="K X" aa_after="V X" protein_refs="PH_1067 PH_305">
@@ -5719,7 +5719,7 @@
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="2.19801904424488e-06"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="2"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_12524258085768770586" quality="1" charge="2">
@@ -5735,9 +5735,9 @@
 					<UserParam type="float" name="consensus_support" value="0"/>
 					<UserParam type="string" name="protein_references" value="non-unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00298908233984607"/>
-					<UserParam type="int" name="map index" value="0"/>
+					<UserParam type="int" name="map_index" value="0"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_1755235105885170967" quality="1" charge="2">
@@ -5754,7 +5754,7 @@
 					<UserParam type="string" name="protein_references" value="unique"/>
 					<UserParam type="float" name="Posterior Error Probability_score" value="0.00022722051669048"/>
 				</PeptideHit>
-				<UserParam type="int" name="map index" value="0"/>
+				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>

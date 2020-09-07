@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
@@ -47,8 +48,12 @@ namespace OpenMS
   FeatureDistance::FeatureDistance(double max_intensity,
                                    bool force_constraints) :
     DefaultParamHandler("FeatureDistance"),
-    params_rt_(), params_mz_(), params_intensity_(),
-    max_intensity_(max_intensity), force_constraints_(force_constraints)
+    params_rt_(),
+    params_mz_(),
+    params_intensity_(),
+    max_intensity_(max_intensity),
+    force_constraints_(force_constraints),
+    log_transform_(false)
   {
     defaults_.setValue("distance_RT:max_difference", 100.0, "Never pair features with a larger RT distance (in seconds).");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
@@ -72,10 +77,14 @@ namespace OpenMS
     defaults_.setMinFloat("distance_intensity:exponent", 0.0);
     defaults_.setValue("distance_intensity:weight", 0.0, "Final intensity distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
+    defaults_.setValue("distance_intensity:log_transform", "disabled", "Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("distance_intensity:log_transform", ListUtils::create<String>("enabled,disabled"));
     defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)");
-
     defaults_.setValue("ignore_charge", "false", "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state");
     defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
+    defaults_.setValue("ignore_adduct", "true", "true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts");
+    defaults_.setValidStrings("ignore_adduct", ListUtils::create<String>("true,false"));
+
 
     defaultsToParam_();
   }
@@ -99,12 +108,23 @@ namespace OpenMS
   {
     params_rt_ = DistanceParams_("RT", param_);
     params_mz_ = DistanceParams_("MZ", param_);
-    // this parameter is not set by the user, but comes from the data:
-    param_.setValue("distance_intensity:max_difference", max_intensity_);
+
+    log_transform_ = (param_.getValue("distance_intensity:log_transform") == "enabled");
+    if (log_transform_)
+    {
+      // this parameter is not set by the user, but comes from the data:
+      param_.setValue("distance_intensity:max_difference", Math::linear2log(max_intensity_));
+    }
+    else
+    {
+      // this parameter is not set by the user, but comes from the data:
+      param_.setValue("distance_intensity:max_difference", max_intensity_);
+    }
     params_intensity_ = DistanceParams_("intensity", param_);
     total_weight_reciprocal_ = 1 / (params_rt_.weight + params_mz_.weight +
                                     params_intensity_.weight);
     ignore_charge_ = String(param_.getValue("ignore_charge")) == "true";
+    ignore_adduct_ = String(param_.getValue("ignore_adduct")) == "true";
   }
 
   double FeatureDistance::distance_(double diff, const DistanceParams_ & params) const
@@ -119,8 +139,8 @@ namespace OpenMS
       double tmp(diff * params.norm_factor);
       return tmp * tmp * params.weight;
     }
-    else 
-    { 
+    else
+    {
       // this pow() is REALLY expensive, since it uses a 'double' as exponent,
       // using 'int' will make it faster, but we will loose fractional
       // exponents (might be useful?).
@@ -137,6 +157,17 @@ namespace OpenMS
       if (charge_left != charge_right)
       {
         if ((charge_left != 0) && (charge_right != 0))
+        {
+          return make_pair(false, infinity);
+        }
+      }
+    }
+
+    if (!ignore_adduct_)
+    {
+      if (left.metaValueExists("dc_charge_adducts") && right.metaValueExists("dc_charge_adducts"))
+      {
+        if (EmpiricalFormula(left.getMetaValue("dc_charge_adducts")) != EmpiricalFormula(right.getMetaValue("dc_charge_adducts")))
         {
           return make_pair(false, infinity);
         }
@@ -182,7 +213,15 @@ namespace OpenMS
     double dist_intensity = 0.0;
     if (params_intensity_.relevant)     // not by default, so worth checking
     {
-      dist_intensity = fabs(left.getIntensity() - right.getIntensity());
+      if (log_transform_)
+      {
+        dist_intensity = fabs(Math::linear2log(left.getIntensity()) - Math::linear2log(right.getIntensity()));
+      }
+      else
+      {
+        dist_intensity = fabs(left.getIntensity() - right.getIntensity());
+      }
+
       dist_intensity = distance_(dist_intensity, params_intensity_);
     }
 

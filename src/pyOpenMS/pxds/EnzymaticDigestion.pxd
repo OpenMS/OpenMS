@@ -1,65 +1,43 @@
 from Types cimport *
-from String cimport *
-from AASequence cimport *
+from DigestionEnzyme cimport *
+from StringView cimport *
+from libcpp cimport bool
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
-    cdef cppclass EnzymaticDigestion:
+    cdef cppclass EnzymaticDigestion "OpenMS::EnzymaticDigestion":
+        EnzymaticDigestion(EnzymaticDigestion) nogil except +
+        EnzymaticDigestion() nogil except +
 
-      EnzymaticDigestion() nogil except +
+        # const String NamesOfSpecificity[SIZE_OF_SPECIFICITY]
+        # const String UnspecificCleavage
 
-      SignedSize getMissedCleavages() nogil except +
-      void setMissedCleavages(SignedSize missed_cleavages) nogil except +
+        Size getMissedCleavages() nogil except +
+        void setMissedCleavages(Size missed_cleavages) nogil except +
+        String getEnzymeName() nogil except +
+        void setEnzyme(DigestionEnzyme* enzyme) nogil except +
+        Specificity getSpecificity() nogil except +
+        void setSpecificity(Specificity spec) nogil except +
+        Specificity getSpecificityByName(const String& name) nogil except +
 
-      # not wrapped due to name clash with Enzyme.h
-      # Enzyme getEnzyme()  nogil except +
-      # void setEnzyme(Enzyme enzyme) nogil except +
-      # Enzyme getEnzymeByName(String & name) nogil except +
+        Size digestUnmodified(StringView sequence,
+                              libcpp_vector[ StringView ]& output,
+                              Size min_length,
+                              Size max_length) nogil except +
 
-      String getEnzymeName() nogil except +
-      void setEnzyme(String name) nogil except +
+        bool isValidProduct(const String& sequence,
+                            int pos, int length,
+                            bool ignore_missed_cleavages) nogil except +
 
-      void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
-      Size peptideCount(AASequence & protein) nogil except +
+        # bool filterByMissedCleavages(const String& sequence,
+        #                              std::function<bool(Int)> filter) nogil except +
 
-      # Returns the specificity for the digestion
-      Specificity getSpecificity() nogil except +
-
-      # Sets the specificity for the digestion (default is SPEC_FULL).
-      void setSpecificity(Specificity spec) nogil except +
-
-      # convert spec string name to enum
-      Specificity getSpecificityByName(String name)nogil except +
-
-      bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length) nogil except +
-
-      # void digestUnmodifiedString(StringView sequence, libcpp_vector[ StringView ] & output, Size min_length, Size max_length) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":
-
-    # protected
-    # cdef cppclass BindingSite:
-    #   BindingSite()
-    #   Size position
-    #   String AAname
-
-    # cdef cppclass CleavageModel:
-    #   CleavageModel()
-    #   double p_cleave
-    #   double p_miss
-
-    # not wrapped due to name clash with Enzyme.h
-    #cdef enum Enzyme:
-    #    # wrap-attach:
-    #    #    EnzymaticDigestion
-    #    TRYPSIN,
-    #    SIZE_OF_TRYPSIN
-
-    cdef enum Specificity:
-        # wrap-attach:
+    cdef enum Specificity "OpenMS::EnzymaticDigestion::Specificity":
+        #wrap-attach:
         #    EnzymaticDigestion
-      SPEC_FULL,    # fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
-      SPEC_SEMI,    # semi specific, i.e., one of the two cleavage sites must fulfill requirements
-      SPEC_NONE,    # no requirements on start / end
-      SIZE_OF_SPECIFICITY
-
+        CROSS
+        MONO
+        LOOP
+        NUMBER_OF_CROSS_LINK_TYPES

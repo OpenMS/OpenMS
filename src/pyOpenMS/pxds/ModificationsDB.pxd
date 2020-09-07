@@ -1,32 +1,56 @@
 from Types cimport *
-from libcpp.set cimport set as libcpp_set
-from libcpp.vector cimport vector as libcpp_vector
 from Map cimport *
+from String cimport *
 from ResidueModification cimport *
+#from libcpp.memory cimport unique_ptr as libcpp_unique_ptr
 
+# see ../addons/ModificationsDB.pyx
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
     
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
+        # wrap-manual-memory:
+        #   cdef AutowrapPtrHolder[_ModificationsDB] inst
+
         ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
-        # Cannot get ModificationsDB since its constructor and destructor is private ... 
-        # POINTER # ModificationsDB * getInstance() nogil except +
+
         Size getNumberOfModifications() nogil except +
-        ResidueModification  getModification(Size index) nogil except +
-        # NAMESPACE # # POINTER # void searchTerminalModifications(libcpp_set[ ResidueModification * ] & mods, String & name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & orgin, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        # NAMESPACE # # POINTER # void searchModifications(libcpp_set[ ResidueModification * ] & mods, String & mod_name, ResidueModification::Term_Specificity term_spec) nogil except +
-        ResidueModification getTerminalModification(String & name, Term_Specificity term_spec) nogil except +
-        ResidueModification getModification(String & residue_name, String & mod_name, Term_Specificity term_spec) nogil except +
-        ResidueModification getModification(String & modification) nogil except +
-        Size findModificationIndex(String & mod_name) nogil except +
-        void getTerminalModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error, Term_Specificity term_spec) nogil except +
-        void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double error) nogil except +
-        void getModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, String & residue, double mass, double error) nogil except +
-        void readFromOBOFile(String & filename) nogil except +
-        void readFromUnimodXMLFile(String & filename) nogil except +
-        void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
+
+        void searchModifications(libcpp_set[ const ResidueModification * ] & mods,
+                                 const String& mod_name,
+                                 const String& residue,
+                                 TermSpecificity term_spec) nogil except +
+
+        const ResidueModification * getModification(Size index) nogil except +
+
+        const ResidueModification * getModification(const String & mod_name) nogil except +
+
+        const ResidueModification * getModification(const String & mod_name,
+                                            const String & residue,
+                                            TermSpecificity term_spec) nogil except +
+
         bool has(String modification) nogil except +
 
-        # POINTER # ResidueModification * getBestModificationsByMonoMass(String residue, double mass, double max_error) nogil except +
-        # POINTER # ResidueModification * getBestModificationsByDiffMonoMass(String residue, double mass, double max_error) nogil except +
+        #void addModification(libcpp_unique_ptr[ResidueModification] new_mod) nogil except +
+
+        Size findModificationIndex(const String & mod_name) nogil except +
+
+        void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
+                                               const String & residue, TermSpecificity term_spec) nogil except +
+
+
+        const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
+                                                                     const String& residue, TermSpecificity term_spec) nogil except +
+
+        void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
+
+        bool isInstantiated() nogil except +
+
+## wrap static methods
+cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
+    
+    ModificationsDB* getInstance() nogil except + # wrap-ignore
+    
+    ModificationsDB* getInstance(String unimod_file, 
+                                 String psimod_file,
+                                 String xlmod_file) nogil except + # wrap-ignore
 

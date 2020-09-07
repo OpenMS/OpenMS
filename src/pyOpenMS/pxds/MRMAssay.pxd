@@ -18,9 +18,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                    double product_mz_threshold,
                                    libcpp_vector[ String ] fragment_types, 
                                    libcpp_vector[ size_t ] fragment_charges, 
-                                   bool enable_reannotation,
                                    bool enable_specific_losses, 
-                                   bool enable_unspecific_losses, int round_decPow) nogil except +
+                                   bool enable_unspecific_losses,
+                                   int round_decPow) nogil except +
 
         void restrictTransitions(TargetedExperiment & exp, 
                                  double lower_mz_limit,
@@ -28,8 +28,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                  libcpp_vector[ libcpp_pair[ double, double ] ] swathes) nogil except +
 
         void detectingTransitions(TargetedExperiment & exp,
-                                  int min_transitions, int max_transitions) nogil except +
+                                  int min_transitions,
+                                  int max_transitions) nogil except +
 
+        void detectingTransitionsCompound(TargetedExperiment & exp,
+                                          int min_transitions,
+                                          int max_transitions) nogil except +
+        
         void uisTransitions(TargetedExperiment & exp, 
                             libcpp_vector[ String ] fragment_types,
                             libcpp_vector[ size_t ] fragment_charges,

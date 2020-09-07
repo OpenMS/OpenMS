@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,18 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
-#define OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 #include <vector>
 #include <svm.h>
@@ -70,99 +71,33 @@ public:
     FeatureHypothesis& operator=(const FeatureHypothesis& rhs);
 
     // getter & setter
-    Size getSize() const
-    {
-      return iso_pattern_.size();
-    }
+    Size getSize() const;
 
-    String getLabel() const
-    {
-      String label;
+    String getLabel() const;
 
-      if (iso_pattern_.size() > 0)
-      {
-        label = iso_pattern_[0]->getLabel();
-      }
+    std::vector<String> getLabels() const;
 
-      for (Size i = 1; i < iso_pattern_.size(); ++i)
-      {
-        String tmp_str = "_" + iso_pattern_[i]->getLabel();
-        label += tmp_str;
-      }
+    double getScore() const;
 
-      return label;
-    }
+    void setScore(const double& score);
 
-    std::vector<String> getLabels() const
-    {
-      std::vector<String> tmp_labels;
+    SignedSize getCharge() const;
 
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        tmp_labels.push_back(iso_pattern_[i]->getLabel());
-      }
+    void setCharge(const SignedSize& ch);
 
-      return tmp_labels;
-    }
+    std::vector<double> getAllIntensities(bool smoothed = false) const;
 
-    double getScore() const
-    {
-      return feat_score_;
-    }
+    std::vector<double> getAllCentroidMZ() const;
 
-    void setScore(const double& score)
-    {
-      feat_score_ = score;
-    }
+    std::vector<double> getAllCentroidRT() const;
 
-    SignedSize getCharge() const
-    {
-      return charge_;
-    }
+    std::vector<double> getIsotopeDistances() const;
 
-    void setCharge(const SignedSize& ch)
-    {
-      charge_ = ch;
-    }
+    double getCentroidMZ() const;
 
-    std::vector<double> getAllIntensities(bool smoothed = false) const
-    {
-      std::vector<double> tmp;
-      for (Size i = 0; i < iso_pattern_.size(); ++i)
-      {
-        tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
-      }
-      return tmp;
-    }
+    double getCentroidRT() const;
 
-    double getCentroidMZ() const
-    {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
-      }
-      return iso_pattern_[0]->getCentroidMZ();
-    }
-
-    double getCentroidRT() const
-    {
-      if (iso_pattern_.empty())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
-      }
-      return iso_pattern_[0]->getCentroidRT();
-    }
-
-    double getFWHM() const
-    {
-      if (iso_pattern_.empty())
-      {
-        return 0.0;
-      }
-      return iso_pattern_[0]->getFWHM();
-    }
+    double getFWHM() const;
 
     /// addMassTrace
     void addMassTrace(const MassTrace&);
@@ -171,6 +106,7 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
+    std::vector< OpenMS::MSChromatogram > getChromatograms(UInt64 feature_id) const;
 
 private:
 
@@ -186,7 +122,7 @@ private:
   {
 public:
 
-    bool operator()(MassTrace x, MassTrace y) const
+    bool operator()(const MassTrace& x, const MassTrace& y) const
     {
       return x.getCentroidMZ() < y.getCentroidMZ();
     }
@@ -197,12 +133,21 @@ public:
   {
 public:
 
-    bool operator()(FeatureHypothesis x, FeatureHypothesis y) const
+    bool operator()(const FeatureHypothesis& x, const FeatureHypothesis& y) const
     {
       return x.getScore() > y.getScore();
     }
 
   };
+
+  /**
+   * @brief Internal structure to store a lower and upper bound of an m/z range
+   */
+  struct OPENMS_DLLAPI  Range
+{
+  double left_boundary;
+  double right_boundary;
+};
 
   /**
     @brief Method for the assembly of mass traces belonging to the same isotope
@@ -238,16 +183,29 @@ public:
     FeatureFindingMetabo();
 
     /// Default destructor
-    virtual ~FeatureFindingMetabo();
+    ~FeatureFindingMetabo() override;
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace>&, FeatureMap&);
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms);
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
-    /// private member functions
+    /**
+     * @brief parses a string of element symbols into a vector of Elements
+     * @param elements_string string of element symbols without whitespaces or commas. e.g. CHNOPSCl
+     * @return vector of Elements
+     */
+    std::vector<const Element*> elementsFromString_(const std::string& elements_string) const;
+    /**
+     * Calculate the maximal and minimal mass defects of isotopes for a given set of elements.
+     *
+     * @param alphabet   chemical alphabet (elements which are expected to be present)
+     * @param peakOffset integer distance between isotope peak and monoisotopic peak (minimum: 1)
+     * @return an interval which should contain the isotopic peak. This interval is relative to the monoisotopic peak.
+     */
+    Range getTheoreticIsotopicMassWindow_(const std::vector<Element const *> alphabet, int peakOffset) const;
 
     /** @brief Computes the cosine similarity between two vectors
      *
@@ -259,14 +217,6 @@ private:
     */
     double computeCosineSim_(const std::vector<double>&, const std::vector<double>&) const;
 
-    /// unused function ???
-    /// TODO: remove
-    double computeOLSCoeff_(const std::vector<double>&, const std::vector<double>&) const;
-
-    /// Only used in debugging output ???  -> seems old model with 7 traces
-    /// TODO: remove
-    bool isLegalIsotopePattern_(const FeatureHypothesis &) const;
-
     /** @brief Compare intensities of feature hypothesis with model 
      *
      * Use a pre-trained SVM model to evaluate the intensity distribution of a
@@ -276,8 +226,10 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
+     * @param feat_hypo A feature hypotheses containing mass traces
+     * @return 0 for 'no'; 1 for 'yes'; -1 if only a single mass trace exists
     */
-    bool isLegalIsotopePattern2_(const FeatureHypothesis &) const;
+    int isLegalIsotopePattern_(const FeatureHypothesis& feat_hypo) const;
 
     void loadIsotopeModel_(const String&);
 
@@ -300,17 +252,37 @@ private:
      *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
+     * An alternative scoring was added which test if isotope m/z distances lie in an expected m/z window.
+     * This window is computed from a given set of elements.
+     *
     */
-    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge, Range isotope_window) const;
 
-    /// Not used any more ???  -> seems to be old model 
-    /// TODO: remove
-    double scoreMZ2_(const MassTrace &, const MassTrace &, Size isotopic_position, Size charge) const;
+    /**
+     * @brief score isotope m/z distance based on the expected m/z distances using C13-C12 or Kenar method
+     * @param iso_pos
+     * @param charge
+     * @param diff_mz
+     * @param mt_variances
+     * @return
+     */
+    double scoreMZByExpectedMean_(Size iso_pos, Size charge, const double diff_mz, double mt_variances) const;
+
+    /**
+     * @brief score isotope m/z distance based on an expected isotope window which was calculated from a set of expected elements
+     * @param charge
+     * @param diff_mz
+     * @param mt_variances m/z variance between the two mass traces which are compared
+     * @param isotope_window
+     * @return
+     */
+    double scoreMZByExpectedRange_(Size charge, const double diff_mz, double mt_variances, Range isotope_window) const;
 
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
-     * (see computeCosineSim_) if some conditions are fulfilled. Mainly the
+     * (see computeCosineSim_) if som#include <OpenMS/KERNEL/MSExperiment.h>
+e conditions are fulfilled. Mainly the
      * overlap between the two peaks at FHWM needs to exceed a certain
      * threshold. The threshold is set at 0.7 (i.e. 70 % overlap) as also
      * described in Kenar et al.
@@ -326,7 +298,7 @@ private:
      * expected for peptides, using the averagine model. Compute the cosine
      * similarity between the two values.
     */
-    double computeAveragineSimScore_(const std::vector<double>& intensities, const double& molecular_weight);
+    double computeAveragineSimScore_(const std::vector<double>& intensities, const double& molecular_weight) const;
 
     /** @brief Identify groupings of mass traces based on a set of reasonable candidates
      *
@@ -336,7 +308,7 @@ private:
      *
      * The resulting possible groupings are appended to output_hypotheses.
     */
-    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypotheses);
+    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM parameters
     svm_model* isotope_filt_svm_;
@@ -350,18 +322,21 @@ private:
     double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    //double mass_error_ppm_;
     double chrom_fwhm_;
 
     bool report_summed_ints_;
     bool enable_RT_filtering_;
-    bool disable_isotope_filtering_;
-    String isotope_model_;
-    String metabo_iso_noisemodel_;
+    String isotope_filtering_model_;
     bool use_smoothed_intensities_;
+    
+    bool use_mz_scoring_C13_;
+    bool use_mz_scoring_by_element_range_;
+    bool report_convex_hulls_;
+    bool report_chromatograms_;
 
+    bool remove_single_traces_;
+    std::vector<const Element*> elements_;
   };
 
 }
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H

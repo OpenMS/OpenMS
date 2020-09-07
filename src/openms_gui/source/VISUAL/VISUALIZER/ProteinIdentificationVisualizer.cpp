@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,12 @@
 #include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QValidator>
-#include <QtGui/QPushButton>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QValidator>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QComboBox>
 
 // STL
 #include <iostream>
@@ -168,7 +168,7 @@ namespace OpenMS
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_mass_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_->text());
+    tmp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_->text()));
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

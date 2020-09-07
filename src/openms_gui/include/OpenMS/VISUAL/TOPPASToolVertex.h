@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASTOOLVERTEX_H
-#define OPENMS_VISUAL_TOPPASTOOLVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -45,6 +44,8 @@
 
 namespace OpenMS
 {
+  class TOPPASScene;
+
   /**
       @brief A vertex representing a TOPP tool
 
@@ -139,12 +140,12 @@ public:
     /// Copy constructor
     TOPPASToolVertex(const TOPPASToolVertex& rhs);
     /// Destructor
-    virtual ~TOPPASToolVertex();
+    ~TOPPASToolVertex() override = default;
     /// Assignment operator
     TOPPASToolVertex& operator=(const TOPPASToolVertex& rhs);
 
     /// returns the name of the TOPP tool
-    virtual String getName() const;
+    String getName() const override;
     /// Returns the type of the tool
     const String& getType() const;
     /// Fills @p input_infos with the required input file/list parameters together with their valid types.
@@ -152,21 +153,19 @@ public:
     /// Fills @p output_infos with the required output file/list parameters together with their valid types.
     void getOutputParameters(QVector<IOInfo>& output_infos) const;
     // documented in base class
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
+    void setTopoNr(UInt nr) override;
     // documented in base class
-    virtual void setTopoNr(UInt nr);
-    // documented in base class
-    virtual void reset(bool reset_all_files = false);
+    void reset(bool reset_all_files = false) override;
     /// Sets the Param object of this tool
     void setParam(const Param& param);
     /// Returns the Param object of this tool
     const Param& getParam();
     /// Checks if all parent nodes have finished the tool execution and, if so, runs the tool
-    void run();
+    void run() override;
     /// Updates the vector containing the lists of current output files for all output parameters
     /// using the input files as guidance
     /// Returns true on success, on failure the error_message is filled
@@ -196,7 +195,7 @@ public:
     /// Called when the QProcess in the queue is called: emits 'toolStarted()'
     virtual void emitToolStarted();
     /// invert status of recycling (overriding base class)
-    virtual bool invertRecylingMode();
+    bool invertRecylingMode() override;
 
 public slots:
 
@@ -215,9 +214,9 @@ public slots:
     /// Called when the tool was scheduled for running
     virtual void toolScheduledSlot();
     /// Called by an incoming edge when it has changed
-    virtual void inEdgeHasChanged();
+    void inEdgeHasChanged() override;
     /// Called by an outgoing edge when it has changed
-    virtual void outEdgeHasChanged();
+    void outEdgeHasChanged() override;
 
 signals:
 
@@ -236,8 +235,12 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
+	
+
+    /// get parent Scene
+    TOPPASScene* getScene_() const;
 
     /// determines if according to current status_, a parameter change would invalidate the pipeline status (e.g., because this node was already processed)
     bool doesParamChangeInvalidate_();
@@ -251,6 +254,9 @@ protected:
     void writeParam_(const Param& param, const QString& ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.
     QString toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str);
+    /// smart naming of round-based filenames
+    /// when basename is not unique we take the preceding directory name
+    void smartFileNames_(std::vector<QStringList>& filenames);
 
     /// The name of the tool
     String name_;
@@ -261,21 +267,11 @@ protected:
     /// The parameters of the tool
     Param param_;
     /// current status of the tool
-    TOOLSTATUS status_;
+    TOOLSTATUS status_{TOOL_READY};
     /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
-    bool tool_ready_;
-
-    /// UID for output files
-    static UInt uid_;
-
+    bool tool_ready_{true};
     /// Breakpoint set?
-    bool breakpoint_set_;
-
-    /// smart naming of round-based filenames
-    /// when basename is not unique we take the preceding directory name
-    void smartFileNames_(std::vector<QStringList>& filenames);
-
+    bool breakpoint_set_{false};
   };
 }
 
-#endif

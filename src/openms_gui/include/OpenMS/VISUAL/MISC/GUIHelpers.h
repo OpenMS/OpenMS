@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_MISC_GUIHELPERS_H
-#define OPENMS_VISUAL_MISC_GUIHELPERS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -44,6 +43,12 @@ class QStringList;
 namespace OpenMS
 {
 
+  /// Macro for Qt's connect() overload resolution (in case signals/slots are overloaded and we need to tell connect what overload to pick
+  /// without repeating ourselves.
+  /// This can be solved in Qt 5.7 by using qOverload<>
+  /// @note: provide the brackets for 'args' yourself, since there might be multiple arguments, separated by comma
+  /// Example: QObject::connect(spinBox, CONNECTCAST(QSpinBox, valueChanged, (double)), slider, &QSlider::setValue);
+  #define CONNECTCAST(class,func,args) static_cast<void(class::*)args>(&class::func)
 
   /**
     @brief Class which holds static GUI-related helper functions.
@@ -73,4 +78,3 @@ namespace OpenMS
   };
 
 }
-#endif

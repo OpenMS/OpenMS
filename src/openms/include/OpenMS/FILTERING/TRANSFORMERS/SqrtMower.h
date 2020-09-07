@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,12 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
 
@@ -57,7 +58,7 @@ public:
     /// default constructor
     SqrtMower();
     /// destructor
-    virtual ~SqrtMower();
+    ~SqrtMower() override;
 
     /// copy constructor
     SqrtMower(const SqrtMower & source);
@@ -99,4 +100,3 @@ public:
 
 }
 
-#endif // OPENMS_FILTERING_TRANSFORMERS_SQRTMOWER_H

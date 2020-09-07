@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+  <NODE name="Enzymes">
+    <NODE name="RNase_T1">
+      <ITEM name="Name" value="RNase_T1" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
+      <ITEM name="CutsAfter" value="G(?!m)" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="cusativin">
+      <ITEM name="Name" value="cusativin" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=C)(?!C)" type="string" />
+      <ITEM name="RegExDescription" value="Cusativin cuts after a row of Cs." type="string" />
+      <ITEM name="CutsAfter" value="C(?!m)" type="string" />
+      <ITEM name="CutsBefore" value="^[^C]+$" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_U2">
+      <ITEM name="Name" value="RNase_U2" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=A|G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase U2 cuts after A or G." type="string" />
+      <ITEM name="CutsAfter" value="G|A(?!m)" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_A">
+      <ITEM name="Name" value="RNase_A" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=C|U)" type="string" />
+      <ITEM name="RegExDescription" value="RNase A cuts after C or U." type="string" />
+      <ITEM name="CutsAfter" value="[CUY](?!m)" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_MC1">
+      <ITEM name="Name" value="RNase_MC1" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=U)" type="string" />
+      <ITEM name="RegExDescription" value="RNase MC1 cuts before U." type="string" />
+      <ITEM name="CutsAfter" value=".*(?!m)$" type="string" />
+      <ITEM name="CutsBefore" value="U|Y" type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="RNase_H">
+      <ITEM name="Name" value="RNase_H" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
+      <ITEM name="RegExDescription" value="RNase H can cut anywhere (in an RNA-DNA duplex)." type="string" />
+      <ITEM name="CutsAfter" value=".*" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+      <ITEM name="ThreePrimeGain" value="" type="string" />
+      <ITEM name="FivePrimeGain" value="p" type="string" />
+    </NODE>
+    <NODE name="no cleavage">
+      <ITEM name="Name" value="no cleavage" type="string" />
+      <ITEM name="RegEx" value="()" type="string" />
+      <ITEM name="RegExDescription" value="No cleavage." type="string" />
+      <ITEM name="CutsAfter" value="" type="string" />
+      <ITEM name="CutsBefore" value="" type="string" />
+    </NODE>
+    <NODE name="unspecific cleavage">
+      <ITEM name="Name" value="unspecific cleavage" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=.)" type="string" />
+      <ITEM name="RegExDescription" value="Unspecific cleavage cuts at every site." type="string" />
+      <ITEM name="CutsAfter" value=".*" type="string" />
+      <ITEM name="CutsBefore" value=".*" type="string" />
+    </NODE>
+  </NODE>
+</PARAMETERS>

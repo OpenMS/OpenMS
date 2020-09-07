@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+///////////////////////////
 
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
 // for comparison
@@ -45,37 +46,38 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
 
 ///////////////////////////
 
-START_TEST(IndexedMzMLFile, "$Id$")
+START_TEST(IndexedMzMLHandler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IndexedMzMLFile* ptr = 0;
-IndexedMzMLFile* nullPointer = 0;
-START_SECTION((IndexedMzMLFile(String filename) ))
-	ptr = new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
-	TEST_NOT_EQUAL(ptr, nullPointer)
+IndexedMzMLHandler* ptr = nullptr;
+IndexedMzMLHandler* nullPointer = nullptr;
+START_SECTION((IndexedMzMLHandler(String filename) ))
+  ptr = new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((~IndexedMzMLFile()))
-	delete ptr;
+START_SECTION((~IndexedMzMLHandler()))
+  delete ptr;
 END_SECTION
 
-START_SECTION((IndexedMzMLFile() ))
-	ptr = new IndexedMzMLFile();
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
+START_SECTION((IndexedMzMLHandler() ))
+  ptr = new IndexedMzMLHandler();
+  TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 END_SECTION
 
-START_SECTION((IndexedMzMLFile(const IndexedMzMLFile &source)))
+START_SECTION((IndexedMzMLHandler(const IndexedMzMLHandler &source)))
 {
-  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-  IndexedMzMLFile file2(file);
+  IndexedMzMLHandler file2(file);
 
   TEST_EQUAL(file.getParsingSuccess(), file2.getParsingSuccess())
   TEST_EQUAL(file.getNrSpectra(), file2.getNrSpectra())
@@ -99,7 +101,7 @@ END_SECTION
 START_SECTION(( bool getParsingSuccess() const))
 {
   {
-    IndexedMzMLFile file;
+    IndexedMzMLHandler file;
     TEST_EQUAL(file.getParsingSuccess(), false)
     TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
@@ -108,12 +110,12 @@ START_SECTION(( bool getParsingSuccess() const))
   }
 
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+    IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), false)
   }
 
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+    IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), true)
   }
 }
@@ -121,7 +123,7 @@ END_SECTION
 
 START_SECTION(( void openFile(String filename) ))
 {
-  IndexedMzMLFile file;
+  IndexedMzMLHandler file;
   TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")))
   TEST_EQUAL(file.getParsingSuccess(), false)
   file.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
@@ -133,24 +135,24 @@ END_SECTION
 
 START_SECTION(( size_t getNrSpectra() const ))
 {
-  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrSpectra(), 2)
 }
 END_SECTION
 
 START_SECTION(( size_t getNrChromatograms() const ))
 {
-  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrChromatograms(), 1)
 }
 END_SECTION
 
 START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 {
-  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
 
@@ -163,7 +165,7 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
   TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById( file.getNrSpectra()+1));
 
   {
-    IndexedMzMLFile file;
+    IndexedMzMLHandler file;
     TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
     TEST_EQUAL(file.getParsingSuccess(), false)
     TEST_EXCEPTION(Exception::ParseError,file.getSpectrumById( 0 ));
@@ -171,18 +173,110 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
 }
 END_SECTION
 
+START_SECTION(( OpenMS::MSSpectrum getMSSpectrumById(int id)  ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
+
+  OpenMS::MSSpectrum spec = file.getMSSpectrumById(0);
+  TEST_EQUAL(spec.size(), exp.getSpectra()[0].size() )
+  // TEST_EQUAL(spec.getNativeID(), exp.getSpectra()[0].getNativeID() )
+
+  // Test Exceptions
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumById(-1));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumById( file.getNrSpectra()+1));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::ParseError,file.getMSSpectrumById( 0 ));
+  }
+}
+END_SECTION
+
+START_SECTION(( void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrSpectra(), exp.getSpectra().size())
+
+  OpenMS::MSSpectrum spec;
+  file.getMSSpectrumByNativeId("controllerType=0 controllerNumber=1 scan=1", spec);
+  TEST_EQUAL(spec.size(), exp.getSpectra()[0].size() )
+  TEST_EQUAL(spec.getNativeID(), exp.getSpectra()[0].getNativeID() )
+
+  // Test Exceptions
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSSpectrumByNativeId("TEST", spec));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSSpectrumByNativeId( "TEST", spec ));
+  }
+}
+END_SECTION
+
 START_SECTION(( OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id) ))
 {
-  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 
-	MSExperiment<> exp;
-	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
 
   TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
 
   OpenMS::Interfaces::ChromatogramPtr chrom = file.getChromatogramById(0);
   TEST_EQUAL(chrom->getTimeArray()->data.size(), exp.getChromatograms()[0].size() )
   TEST_EQUAL(chrom->getIntensityArray()->data.size(), exp.getChromatograms()[0].size() )
+}
+END_SECTION
+
+START_SECTION(( OpenMS::MSChromatogram getMSChromatogramById(int id) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
+
+  OpenMS::MSChromatogram chrom = file.getMSChromatogramById(0);
+  TEST_EQUAL(chrom.size(), exp.getChromatograms()[0].size() )
+  TEST_EQUAL(chrom.getNativeID(), exp.getChromatograms()[0].getNativeID() )
+}
+END_SECTION
+
+START_SECTION(( void getMSChromatogramByNativeId(std::string id, OpenMS::MSChromatogram& c) ))
+{
+  IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  PeakMap exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp);
+
+  TEST_EQUAL(file.getNrChromatograms(), exp.getChromatograms().size())
+
+  OpenMS::MSChromatogram chrom;
+  file.getMSChromatogramByNativeId("TIC", chrom);
+  TEST_EQUAL(chrom.size(), exp.getChromatograms()[0].size() )
+  TEST_EQUAL(chrom.getNativeID(), exp.getChromatograms()[0].getNativeID() )
+
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getMSChromatogramByNativeId("TEST", chrom));
+
+  {
+    IndexedMzMLHandler file;
+    TEST_EXCEPTION(Exception::FileNotFound, file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist")));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::IllegalArgument, file.getMSChromatogramByNativeId( "TEST", chrom ));
+  }
 }
 END_SECTION
 
@@ -196,11 +290,11 @@ START_SECTION(([EXTRA] load broken file))
   // 2^64 bit long...
   if ( sizeof(long long)*8 <= 64 )
   {
-    TEST_EXCEPTION(Exception::ConversionError, new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML")))
+    TEST_EXCEPTION(Exception::ConversionError, new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML")))
   }
   else
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML"));
+    IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), false)
   }
 }
@@ -214,7 +308,7 @@ START_SECTION(([EXTRA] load broken file))
   // actually shorter.
   if (sizeof(std::streampos)*8 > 32 )
   {
-    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML"));
+    IndexedMzMLHandler file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), false)
   }
   else
@@ -230,8 +324,8 @@ START_SECTION(([EXTRA] load broken file))
     // Manually, one can cast the indexoffset variable to int to trigger this
     // behavior in IndexedMzMLDecoder.cpp
     // 
-    TEST_EXCEPTION_WITH_MESSAGE (Exception::ConversionError, 
-      new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML")), 
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError,
+      new IndexedMzMLHandler(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML")), 
       "Could not convert string '9223372036854775807' to an integer on your system." )
   }
 }

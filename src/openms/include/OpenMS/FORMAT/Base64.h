@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BASE64_H
-#define OPENMS_FORMAT_BASE64_H
+#pragma once
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined OPENMS_BIG_ENDIAN
@@ -54,6 +53,10 @@
 #include <QByteArray>
 #include <zlib.h>
 
+#ifdef OPENMS_COMPILER_MSVC
+#pragma comment(linker, "/export:compress")
+#endif
+
 namespace OpenMS
 {
   /**
@@ -67,10 +70,7 @@ namespace OpenMS
 public:
 
     /// default constructor
-    Base64();
-
-    /// Destructor
-    virtual ~Base64();
+    Base64() = default;
 
     /// Byte order type
     enum ByteOrder
@@ -78,7 +78,7 @@ public:
       BYTEORDER_BIGENDIAN,                  ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
-
+	
     /**
         @brief Encodes a vector of floating point numbers to a Base64 string
 
@@ -87,7 +87,7 @@ public:
         @note @p in will be empty after this method
     */
     template <typename FromType>
-    void encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
+    static void encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a vector of floating point numbers
@@ -95,7 +95,7 @@ public:
         You have to specify the byte order of the input and if it is zlib-compressed.
     */
     template <typename ToType>
-    void decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
+    static void decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
 
     /**
         @brief Encodes a vector of integer point numbers to a Base64 string
@@ -105,7 +105,7 @@ public:
         @note @p in will be empty after this method
     */
     template <typename FromType>
-    void encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
+    static void encodeIntegers(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a vector of integer numbers
@@ -113,7 +113,7 @@ public:
         You have to specify the byte order of the input and if it is zlib-compressed.
     */
     template <typename ToType>
-    void decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
+    static void decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
 
     /**
         @brief Encodes a vector of strings to a Base64 string
@@ -127,7 +127,7 @@ public:
       
         @note Unless append_null_byte is false, will add a null byte ("\0") at the end of each input
     */
-    void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_null_byte = true);
+    static void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_null_byte = true);
 
     /**
         @brief Decodes a Base64 string to a vector of (null-terminated) strings
@@ -138,7 +138,7 @@ public:
         @param out A vector containing the decoded data (split at null "\0") bytes
         @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
-    void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
+    static void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a QByteArray
@@ -147,7 +147,7 @@ public:
         @param out A ByteArray containing the decoded data
         @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
-    void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
+    static void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
 
 private:
 
@@ -169,19 +169,19 @@ private:
     static const char decoder_[];
     /// Decodes a Base64 string to a vector of floating point numbers
     template <typename ToType>
-    void decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     ///Decodes a compressed Base64 string to a vector of floating point numbers
     template <typename ToType>
-    void decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     /// Decodes a Base64 string to a vector of integer numbers
     template <typename ToType>
-    void decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     ///Decodes a compressed Base64 string to a vector of integer numbers
     template <typename ToType>
-    void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+    static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
   };
 
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
@@ -237,7 +237,7 @@ private:
         for (Size i = 0; i < in.size(); ++i)
         {
           Reinterpreter64_ tmp;
-          tmp.f = in[i];
+          tmp.f = static_cast<double>(in[i]);
           tmp.i = endianize64(tmp.i);
           in[i] = tmp.f;
         }
@@ -263,7 +263,7 @@ private:
         switch (zlib_error)
         {
         case Z_MEM_ERROR:
-          throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, compressed_length);
+          throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
           break;
 
         case Z_BUF_ERROR:
@@ -274,7 +274,7 @@ private:
 
       if (zlib_error != Z_OK)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compression error?");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
       String(compressed).swap(compressed);
@@ -369,7 +369,7 @@ private:
 
     if (base64_uncompressed.isEmpty())
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
     }
     decompressed.resize(base64_uncompressed.size());
 
@@ -381,7 +381,7 @@ private:
     const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
     if (buffer_size % element_size != 0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
     }
     
     Size float_count = buffer_size / element_size;
@@ -418,7 +418,7 @@ private:
     }
     if (in.size() % 4 != 0)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Malformed base64 input, length is not a multiple of 4.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Malformed base64 input, length is not a multiple of 4.");
     }
 
     Size src_size = in.size();
@@ -429,8 +429,8 @@ private:
 
     src_size -= padding;
 
-    register UInt a;
-    register UInt b;
+    UInt a;
+    UInt b;
 
     UInt offset = 0;
     int inc = 1;
@@ -666,7 +666,7 @@ private:
     QByteArray base64_uncompressed = qUncompress(czip);
     if (base64_uncompressed.isEmpty())
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
     }
     decompressed.resize(base64_uncompressed.size());
 
@@ -682,7 +682,7 @@ private:
       {
         const Int32 * float_buffer = reinterpret_cast<const Int32 *>(byte_buffer);
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
         Size float_count = buffer_size / element_size;
         UInt32 * p = reinterpret_cast<UInt32 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize32);
@@ -700,7 +700,7 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
 
         Size float_count = buffer_size / element_size;
 
@@ -722,7 +722,7 @@ private:
       {
         const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
 
         Size float_count = buffer_size / element_size;
         out.resize(float_count);
@@ -738,7 +738,7 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
 
         Size float_count = buffer_size / element_size;
         out.resize(float_count);
@@ -773,8 +773,8 @@ private:
 
     src_size -= padding;
 
-    register UInt a;
-    register UInt b;
+    UInt a;
+    UInt b;
 
     UInt offset = 0;
     int inc = 1;
@@ -896,4 +896,3 @@ private:
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_BASE64_H */

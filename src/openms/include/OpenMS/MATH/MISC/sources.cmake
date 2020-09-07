@@ -6,6 +6,8 @@ set(sources_list_h
 BilinearInterpolation.h
 BSpline2d.h
 CubicSpline2d.h
+EmgGradientDescent.h
+GridSearch.h
 LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
@@ -14,7 +16,7 @@ RANSAC.h
 RANSACModel.h
 RANSACModelLinear.h
 RANSACModelQuadratic.h
-Spline2d.h
+SplineBisection.h
 )
 
 ### add path to the filenames

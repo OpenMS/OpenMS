@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -94,7 +96,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -106,7 +108,7 @@ protected:
     registerDoubleOption_("calibrant_2_input", "<RT>", -1.0, "The RT of the second calibrant in the input file. Please note that this value needs to be set. The default value -1.0 is not allowed.", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -122,17 +124,17 @@ protected:
 
     if (rt_calibrant_1_input == rt_calibrant_2_input)
     {
-      LOG_ERROR << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_input and rt_calibrant_2_input must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
     if (rt_calibrant_1_reference == rt_calibrant_2_reference)
     {
-      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
     if (rt_calibrant_1_reference == -1 || rt_calibrant_2_reference == -1)
     {
-      LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
+      OPENMS_LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
       return ILLEGAL_PARAMETERS;
     }
 

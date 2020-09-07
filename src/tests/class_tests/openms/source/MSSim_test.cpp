@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Chris Bielow, Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -169,8 +169,8 @@ omp_set_num_threads(1);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSSim* ptr = 0;
-MSSim* nullPointer = 0;
+MSSim* ptr = nullptr;
+MSSim* nullPointer = nullptr;
 START_SECTION(MSSim())
 {
   ptr = new MSSim();
@@ -218,13 +218,12 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SimTypes::
   SimTypes::SampleChannels channels;
   channels.push_back(proteins);
 
-  // TODO: we have to call get parameters first ??
   Param sim_params = mssim.getParameters();
   // define small RT range
   sim_params.setValue("RT:scan_window:min", 210.0);
   sim_params.setValue("RT:scan_window:max", 462.0);
-
   sim_params.setValue("RawTandemSignal:status", "precursor");
+  sim_params.setValue("Ionization:mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
 
   mssim.setParameters(sim_params);
 
@@ -238,7 +237,6 @@ END_SECTION
 START_SECTION((SimTypes::MSSimExperiment const& getExperiment() const ))
 {
   // test experiment simulated above
-  TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 230)
 
   int nr_ms1 = std::count_if(mssim.getExperiment().begin(),
                              mssim.getExperiment().end(),
@@ -248,10 +246,19 @@ START_SECTION((SimTypes::MSSimExperiment const& getExperiment() const ))
                              mssim.getExperiment().end(),
                              InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
+  TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 230)
   TEST_EQUAL(nr_ms1, 127)
   TEST_EQUAL(nr_ms2, 103)
 
   TEST_EQUAL(nr_ms2 + nr_ms1, mssim.getExperiment().getNrSpectra())
+#else
+  TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 234)
+  TEST_EQUAL(nr_ms1, 127)
+  TEST_EQUAL(nr_ms2, 107)
+
+  TEST_EQUAL(nr_ms2 + nr_ms1, mssim.getExperiment().getNrSpectra())
+#endif
 
   // test empty case when no simulation was performed
   SimTypes::MSSimExperiment empty_experiment;
@@ -262,7 +269,11 @@ END_SECTION
 
 START_SECTION((SimTypes::FeatureMapSim const& getSimulatedFeatures() const ))
 {
+#if OPENMS_BOOST_VERSION_MINOR < 56
   TEST_EQUAL(mssim.getSimulatedFeatures().size(), 18)
+#else
+  TEST_EQUAL(mssim.getSimulatedFeatures().size(), 23)
+#endif
 
   // check if all features are contained as expected
   TEST_EQUAL(find_if(mssim.getSimulatedFeatures().begin(), mssim.getSimulatedFeatures().end(), FindFeature("AKLAEQAER", 3)) !=  mssim.getSimulatedFeatures().end(), true)
@@ -288,7 +299,11 @@ END_SECTION
 
 START_SECTION((ConsensusMap& getChargeConsensus() ))
 {
+#if OPENMS_BOOST_VERSION_MINOR < 56
   TEST_EQUAL(mssim.getChargeConsensus().size(), 7)
+#else
+  TEST_EQUAL(mssim.getChargeConsensus().size(), 9)
+#endif
 
   ConsensusMap::iterator cm_it;
 

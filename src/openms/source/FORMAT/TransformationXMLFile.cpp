@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
 #include <fstream>
 
 using namespace std;
@@ -44,13 +42,13 @@ namespace OpenMS
 {
 
   TransformationXMLFile::TransformationXMLFile() :
-    XMLHandler("", "1.0"),
-    XMLFile("/SCHEMAS/TrafoXML_1_0.xsd", "1.0"),
+    XMLHandler("", "1.1"),
+    XMLFile("/SCHEMAS/TrafoXML_1_1.xsd", "1.1"),
     params_(), data_(), model_type_()
   {
   }
 
-  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation, bool fit_model)
+  void TransformationXMLFile::load(const String& filename, TransformationDescription& transformation, bool fit_model)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -63,31 +61,32 @@ namespace OpenMS
 
     transformation.setDataPoints(data_);
 
-    if (fit_model) 
+    if (fit_model)
     {
       transformation.fitModel(model_type_, params_);
     }
   }
 
-  void TransformationXMLFile::store(String filename, const TransformationDescription & transformation)
+  void TransformationXMLFile::store(String filename, const TransformationDescription& transformation)
   {
     if (transformation.getModelType() == "")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "will not write a transformation with empty name");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "will not write a transformation with empty name");
     }
 
     //open stream
     std::ofstream os(filename.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
     os.precision(writtenDigits<double>(0.0));
 
     //write header
-    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
+    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     //add XSLT file if it can be found
-    os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" << "\n";
+    os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/"
+       << schema_location_.suffix('/') << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // open tag
     os << "\t<Transformation name=\"" << transformation.getModelType()
@@ -124,13 +123,18 @@ namespace OpenMS
     }
 
     //write pairs
-    Size pairs_size = transformation.getDataPoints().size();
-    if (pairs_size != 0)
+    if (!transformation.getDataPoints().empty())
     {
-      os << "\t\t<Pairs count=\"" << pairs_size << "\">\n";
-      for (Size i = 0; i < pairs_size; ++i)
+      os << "\t\t<Pairs count=\"" << transformation.getDataPoints().size() << "\">\n";
+      for (TransformationDescription::DataPoints::const_iterator it = transformation.getDataPoints().begin();
+           it != transformation.getDataPoints().end(); ++it)
       {
-        os << "\t\t\t<Pair from=\"" << transformation.getDataPoints()[i].first << "\" to=\"" << transformation.getDataPoints()[i].second << "\"/>\n";
+        os << "\t\t\t<Pair from=\"" << it->first << "\" to=\"" << it->second;
+        if (!it->note.empty())
+        {
+          os << "\" note=\"" << writeXMLEscape(it->note);
+        }
+        os << "\"/>\n";
       }
       os << "\t\t</Pairs>\n";
     }
@@ -139,13 +143,13 @@ namespace OpenMS
     os << "\t</Transformation>\n";
 
     //write footer
-    os << "</TrafoXML>" << "\n";
+    os << "</TrafoXML>\n";
 
     //close stream
     os.close();
   }
 
-  void TransformationXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
 
     String element = sm_.convert(qname);
@@ -190,7 +194,11 @@ namespace OpenMS
     }
     else if (element == "Pair")
     {
-      data_.push_back(make_pair(attributeAsDouble_(attributes, "from"), attributeAsDouble_(attributes, "to")));
+      TransformationDescription::DataPoint point;
+      point.first = attributeAsDouble_(attributes, "from");
+      point.second = attributeAsDouble_(attributes, "to");
+      optionalAttributeAsString_(point.note, attributes, "note");
+      data_.push_back(point);
     }
     else
     {

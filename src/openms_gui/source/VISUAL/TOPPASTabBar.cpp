@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
+#include <QMouseEvent>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 

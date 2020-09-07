@@ -1,0 +1,210 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="xquest_merger">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="xquest_results">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="spectrum_search" maxOccurs="unbounded" minOccurs="0">
+                <xs:complexType mixed="true">
+                  <xs:sequence>
+                    <xs:element name="search_hit" maxOccurs="unbounded" minOccurs="0">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute type="xs:float" name="Mr" use="optional"/>
+                            <xs:attribute type="xs:float" name="TIC" use="optional"/>
+                            <xs:attribute type="xs:float" name="TIC_alpha" use="optional"/>
+                            <xs:attribute type="xs:float" name="TIC_beta" use="optional"/>
+                            <xs:attribute type="xs:string" name="annotated_spec" use="optional"/>
+                            <xs:attribute type="xs:float" name="apriori_match_probs" use="optional"/>
+                            <xs:attribute type="xs:float" name="apriori_match_probs_log" use="optional"/>
+                            <xs:attribute type="xs:string" name="backboneions_matched" use="optional"/>
+                            <xs:attribute type="xs:byte" name="charge" use="optional"/>
+                            <xs:attribute type="xs:float" name="error" use="optional"/>
+                            <xs:attribute type="xs:float" name="error_rel" use="optional"/>
+                            <xs:attribute type="xs:string" name="id" use="optional"/>
+                            <xs:attribute type="xs:float" name="intsum" use="optional"/>
+                            <xs:attribute type="xs:string" name="match_error_mean" use="optional"/>
+                            <xs:attribute type="xs:string" name="match_error_stdev" use="optional"/>
+                            <xs:attribute type="xs:float" name="match_odds" use="optional"/>
+                            <xs:attribute type="xs:float" name="match_odds_alphacommon" use="optional"/>
+                            <xs:attribute type="xs:float" name="match_odds_alphaxlink" use="optional"/>
+                            <xs:attribute type="xs:float" name="match_odds_betacommon" use="optional"/>
+                            <xs:attribute type="xs:float" name="match_odds_betaxlink" use="optional"/>
+                            <xs:attribute type="xs:float" name="measured_mass" use="optional"/>
+                            <xs:attribute type="xs:float" name="mz" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_common_ions_alpha" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_common_ions_beta" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_ions_alpha" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_ions_beta" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_xlink_ions_alpha" use="optional"/>
+                            <xs:attribute type="xs:byte" name="num_of_matched_xlink_ions_beta" use="optional"/>
+                            <xs:attribute type="xs:float" name="prescore" use="optional"/>
+                            <xs:attribute type="xs:float" name="prescore_alpha" use="optional"/>
+                            <xs:attribute type="xs:float" name="prescore_beta" use="optional"/>
+                            <xs:attribute type="xs:string" name="prot1" use="optional"/>
+                            <xs:attribute type="xs:string" name="prot2" use="optional"/>
+                            <xs:attribute type="xs:float" name="score" use="optional"/>
+                            <xs:attribute type="xs:byte" name="search_hit_rank" use="optional"/>
+                            <xs:attribute type="xs:string" name="seq1" use="optional"/>
+                            <xs:attribute type="xs:string" name="seq2" use="optional"/>
+                            <xs:attribute type="xs:float" name="series_score_mean" use="optional"/>
+                            <xs:attribute type="xs:string" name="structure" use="optional"/>
+                            <xs:attribute type="xs:string" name="topology" use="optional"/>
+                            <xs:attribute type="xs:string" name="type" use="optional"/>
+                            <xs:attribute type="xs:float" name="wTIC" use="optional"/>
+                            <xs:attribute type="xs:float" name="weighted_matchodds_mean" use="optional"/>
+                            <xs:attribute type="xs:float" name="weighted_matchodds_sum" use="optional"/>
+                            <xs:attribute type="xs:float" name="xcorrall" use="optional"/>
+                            <xs:attribute type="xs:float" name="xcorrb" use="optional"/>
+                            <xs:attribute type="xs:float" name="xcorrx" use="optional"/>
+                            <xs:attribute type="xs:float" name="xlinkermass" use="optional"/>
+                            <xs:attribute type="xs:string" name="xlinkions_matched" use="optional"/>
+                            <xs:attribute type="xs:string" name="xlinkposition" use="optional"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute type="xs:float" name="Mr_precursor" use="optional"/>
+                  <xs:attribute type="xs:byte" name="addedMass" use="optional"/>
+                  <xs:attribute type="xs:float" name="apriori_pmatch_common" use="optional"/>
+                  <xs:attribute type="xs:float" name="apriori_pmatch_xlink" use="optional"/>
+                  <xs:attribute type="xs:byte" name="charge_precursor" use="optional"/>
+                  <xs:attribute type="xs:float" name="ionintensity_stdev" use="optional"/>
+                  <xs:attribute type="xs:short" name="iontag_ncandidates" use="optional"/>
+                  <xs:attribute type="xs:float" name="mean_ionintensity" use="optional"/>
+                  <xs:attribute type="xs:float" name="mz_precursor" use="optional"/>
+                  <xs:attribute type="xs:string" name="mzscans" use="optional"/>
+                  <xs:attribute type="xs:byte" name="ncommonions" use="optional"/>
+                  <xs:attribute type="xs:byte" name="nxlinkions" use="optional"/>
+                  <xs:attribute type="xs:string" name="rtsecscans" use="optional"/>
+                  <xs:attribute type="xs:string" name="scantype" use="optional"/>
+                  <xs:attribute type="xs:string" name="spectrum" use="optional"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute type="xs:string" name="AArequired"/>
+            <xs:attribute type="xs:byte" name="CID_match2ndisotope"/>
+            <xs:attribute type="xs:float" name="Hatom"/>
+            <xs:attribute type="xs:byte" name="Iontag_charges_for_index"/>
+            <xs:attribute type="xs:short" name="Iontag_writeaftern"/>
+            <xs:attribute type="xs:byte" name="Iontagmode"/>
+            <xs:attribute type="xs:byte" name="RuntimeDecoys"/>
+            <xs:attribute type="xs:float" name="a_ion"/>
+            <xs:attribute type="xs:string" name="author"/>
+            <xs:attribute type="xs:byte" name="averageMS2"/>
+            <xs:attribute type="xs:float" name="b_ion"/>
+            <xs:attribute type="xs:float" name="c_ion"/>
+            <xs:attribute type="xs:byte" name="commonlossxcorrweigth"/>
+            <xs:attribute type="xs:byte" name="commonxcorrweigth"/>
+            <xs:attribute type="xs:byte" name="copydb2resdir"/>
+            <xs:attribute type="xs:short" name="cp_dynamic_range"/>
+            <xs:attribute type="xs:float" name="cp_isotopediff"/>
+            <xs:attribute type="xs:byte" name="cp_minpeaknumber"/>
+            <xs:attribute type="xs:byte" name="cp_nhighest"/>
+            <xs:attribute type="xs:float" name="cp_peakratio"/>
+            <xs:attribute type="xs:string" name="cp_scaleby"/>
+            <xs:attribute type="xs:byte" name="cp_scaleintensity"/>
+            <xs:attribute type="xs:byte" name="cp_threshold"/>
+            <xs:attribute type="xs:short" name="cp_tolerance"/>
+            <xs:attribute type="xs:string" name="cp_tolerancemeasure"/>
+            <xs:attribute type="xs:short" name="cp_tolerancexl"/>
+            <xs:attribute type="xs:string" name="crosslinkername"/>
+            <xs:attribute type="xs:string" name="database"/>
+            <xs:attribute type="xs:string" name="database_dc"/>
+            <xs:attribute type="xs:string" name="date"/>
+            <xs:attribute type="xs:string" name="deffile"/>
+            <xs:attribute type="xs:byte" name="drawlogscale"/>
+            <xs:attribute type="xs:byte" name="drawspectra"/>
+            <xs:attribute type="xs:byte" name="enumerate"/>
+            <xs:attribute type="xs:string" name="enumeration_index_mode"/>
+            <xs:attribute type="xs:byte" name="enzyme_num"/>
+            <xs:attribute type="xs:string" name="experiment"/>
+            <xs:attribute type="xs:string" name="fragmentresiduals"/>
+            <xs:attribute type="xs:string" name="fwd_ions"/>
+            <xs:attribute type="xs:anyURI" name="homepage"/>
+            <xs:attribute type="xs:string" name="indexcharges_common"/>
+            <xs:attribute type="xs:byte" name="intprecision"/>
+            <xs:attribute type="xs:float" name="intsumweight"/>
+            <xs:attribute type="xs:string" name="ioncharge_common"/>
+            <xs:attribute type="xs:string" name="ioncharge_xlink"/>
+            <xs:attribute type="xs:byte" name="ionindexintprecision"/>
+            <xs:attribute type="xs:string" name="ionseries"/>
+            <xs:attribute type="xs:string" name="ionseries_array"/>
+            <xs:attribute type="xs:byte" name="iontag_match_xlinkions"/>
+            <xs:attribute type="xs:float" name="matchoddsweight"/>
+            <xs:attribute type="xs:byte" name="maxdigestlength"/>
+            <xs:attribute type="xs:short" name="maxionsize"/>
+            <xs:attribute type="xs:byte" name="maxiontaghits"/>
+            <xs:attribute type="xs:short" name="maxpepmr"/>
+            <xs:attribute type="xs:byte" name="mindigestlength"/>
+            <xs:attribute type="xs:byte" name="minhits"/>
+            <xs:attribute type="xs:byte" name="minionintensity"/>
+            <xs:attribute type="xs:short" name="minionsize"/>
+            <xs:attribute type="xs:byte" name="miniontaghits"/>
+            <xs:attribute type="xs:short" name="minpepmr"/>
+            <xs:attribute type="xs:byte" name="missed_cleavages"/>
+            <xs:attribute type="xs:string" name="monolinkmw"/>
+            <xs:attribute type="xs:byte" name="ms1tol_maxborder"/>
+            <xs:attribute type="xs:byte" name="ms1tol_minborder"/>
+            <xs:attribute type="xs:byte" name="ms1tolerance"/>
+            <xs:attribute type="xs:float" name="ms2tolerance"/>
+            <xs:attribute type="xs:byte" name="nh3loss"/>
+            <xs:attribute type="xs:byte" name="nocutatxlink"/>
+            <xs:attribute type="xs:byte" name="normxcorr"/>
+            <xs:attribute type="xs:byte" name="ntermxlinkable"/>
+            <xs:attribute type="xs:byte" name="ntestions"/>
+            <xs:attribute type="xs:byte" name="nvariable_mod"/>
+            <xs:attribute type="xs:string" name="outputpath"/>
+            <xs:attribute type="xs:short" name="picktolerance"/>
+            <xs:attribute type="xs:string" name="picktolerance_measure"/>
+            <xs:attribute type="xs:byte" name="poolisotopes"/>
+            <xs:attribute type="xs:byte" name="printcandidatepeps"/>
+            <xs:attribute type="xs:byte" name="printdigestpeps"/>
+            <xs:attribute type="xs:byte" name="printpeptides"/>
+            <xs:attribute type="xs:byte" name="printtables"/>
+            <xs:attribute type="xs:byte" name="realintensities4xcorr"/>
+            <xs:attribute type="xs:byte" name="redundant_peps"/>
+            <xs:attribute type="xs:byte" name="reportnbesthits"/>
+            <xs:attribute type="xs:byte" name="requiredmissed_cleavages"/>
+            <xs:attribute type="xs:string" name="rev_ions"/>
+            <xs:attribute type="xs:byte" name="search_intercrosslinks"/>
+            <xs:attribute type="xs:byte" name="search_intracrosslinks"/>
+            <xs:attribute type="xs:byte" name="search_intralinks"/>
+            <xs:attribute type="xs:short" name="search_maxcandidate_peps"/>
+            <xs:attribute type="xs:byte" name="search_monolinks"/>
+            <xs:attribute type="xs:string" name="testionspick"/>
+            <xs:attribute type="xs:string" name="tolerancemeasure"/>
+            <xs:attribute type="xs:string" name="tolerancemeasure_ms2"/>
+            <xs:attribute type="xs:byte" name="tryptic_termini"/>
+            <xs:attribute type="xs:byte" name="uselossionsformatching"/>
+            <xs:attribute type="xs:byte" name="usenprescores"/>
+            <xs:attribute type="xs:string" name="variable_mod"/>
+            <xs:attribute type="xs:byte" name="verbose"/>
+            <xs:attribute type="xs:float" name="wTICweight"/>
+            <xs:attribute type="xs:byte" name="waterloss"/>
+            <xs:attribute type="xs:int" name="writetodiskaftern"/>
+            <xs:attribute type="xs:float" name="x_ion"/>
+            <xs:attribute type="xs:byte" name="xcorr_tolerance_window"/>
+            <xs:attribute type="xs:float" name="xcorrbweight"/>
+            <xs:attribute type="xs:byte" name="xcorrdelay"/>
+            <xs:attribute type="xs:float" name="xcorrprecision"/>
+            <xs:attribute type="xs:float" name="xcorrxweight"/>
+            <xs:attribute type="xs:string" name="xkinkerID"/>
+            <xs:attribute type="xs:float" name="xlink_ms2tolerance"/>
+            <xs:attribute type="xs:float" name="xlinkermw"/>
+            <xs:attribute type="xs:short" name="xlinktypes"/>
+            <xs:attribute type="xs:byte" name="xlinkxcorrweigth"/>
+            <xs:attribute type="xs:string" name="xquest_version"/>
+            <xs:attribute type="xs:float" name="y_ion"/>
+            <xs:attribute type="xs:float" name="z_ion"/>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute type="xs:string" name="inputfiles"/>
+      <xs:attribute type="xs:float" name="version"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

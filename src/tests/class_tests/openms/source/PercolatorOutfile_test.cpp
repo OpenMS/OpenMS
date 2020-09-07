@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,10 @@ START_TEST(PercolatorOutfile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PercolatorOutfile* ptr = 0;
-PercolatorOutfile* null_pointer = 0;
+PercolatorOutfile* ptr = nullptr;
+PercolatorOutfile* null_pointer = nullptr;
 PercolatorOutfile file;
+
 START_SECTION(PercolatorOutfile())
 {
   ptr = new PercolatorOutfile();
@@ -85,9 +86,9 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
                         enum ScoreType output_score))
 {
   // mock-up raw data like those used for the search:
-  vector<MSSpectrum<> > spectra(3);
+  vector<MSSpectrum> spectra(3);
   double rt = 2.0;
-  for (vector<MSSpectrum<> >::iterator it = spectra.begin();
+  for (vector<MSSpectrum>::iterator it = spectra.begin();
        it != spectra.end(); ++it, rt += 1.0)
   {
     it->setMSLevel(2);
@@ -109,6 +110,10 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
   TEST_STRING_EQUAL(proteins.getHits()[0].getAccession(), "Protein1");
   TEST_STRING_EQUAL(proteins.getHits()[1].getAccession(), "Protein2");
   TEST_STRING_EQUAL(proteins.getHits()[2].getAccession(), "UniProt_P01834");
+
+  TEST_EQUAL(proteins.getSearchParameters().fixed_modifications.size(), 1);
+  TEST_STRING_EQUAL(proteins.getSearchParameters().fixed_modifications[0],
+                    "Carbamidomethyl (C)");
 
   TEST_EQUAL(peptides.size(), 3);
   TEST_REAL_SIMILAR(peptides[0].getRT(), 2.0);

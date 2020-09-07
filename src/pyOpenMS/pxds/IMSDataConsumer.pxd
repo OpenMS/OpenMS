@@ -5,6 +5,7 @@ cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Inte
 
     cdef cppclass IMSDataConsumer[SpectrumType, ChromatogramType]:
         # wrap-ignore
+        # no-pxd-import
         # ABSTRACT class
 
         void consumeSpectrum(SpectrumType &)

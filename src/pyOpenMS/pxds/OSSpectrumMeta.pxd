@@ -1,6 +1,6 @@
 from Types cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
     
     cdef cppclass OSSpectrumMeta "OpenSwath::OSSpectrumMeta":
 

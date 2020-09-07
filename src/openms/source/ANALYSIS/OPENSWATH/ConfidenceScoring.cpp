@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,13 +73,10 @@ namespace OpenMS
     }
 
     /// Get the retention time of an assay
-    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
-                           const String& cv_accession)
+    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay)
     {
-      OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
-      OPENMS_PRECONDITION(assay.rts[0].getCVTerms()[cv_accession].size() >  0, "More than zero cv terms of retention time needed")
-      String value = assay.rts[0].getCVTerms()[cv_accession][0].getValue();
-      return value.toDouble();
+      OPENMS_PRECONDITION(assay.hasRetentionTime(), "More than zero RTs needed")
+      return assay.getRetentionTime();
     }
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
@@ -140,12 +137,12 @@ namespace OpenMS
 
       if (feature_intensities.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature intensities were empty - please provide feature subordinate with intensities");
       }
       if (feature_intensities.size()!=assay_intensities.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Did not find a feature for each assay provided - each feature needs "
           "to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
       }
@@ -160,7 +157,7 @@ namespace OpenMS
 
       double score = glm_(diff_rt, dist_int);
 
-      LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
+      OPENMS_LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
                 << "\ndist_int:  " << dist_int
                 << "\nGLM_score: " << score << endl;
 
@@ -188,7 +185,7 @@ namespace OpenMS
       extractIntensities_(intensity_map, n_transitions_, feature_intensities);
       if ((n_transitions_ > 0) && (feature_intensities.size() < n_transitions_))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "' contains only " << feature_intensities.size()
                  << " transitions." << endl;
       }
@@ -204,10 +201,10 @@ namespace OpenMS
 
       // compare to "true" assay:
       String true_id = feature.getMetaValue("PeptideRef");
-      LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
+      OPENMS_LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature does not contain meta value 'PeptideRef' (reference to assay)");
       }
       scores.push_back(scoreAssay_(library_.getPeptideByRef(true_id), feature_rt,
@@ -229,7 +226,7 @@ namespace OpenMS
         {
           continue;
         }
-        LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
+        OPENMS_LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
                   << "')" << endl;
 
         scores.push_back(scoreAssay_(decoy_assay, feature_rt, feature_intensities));
@@ -240,7 +237,7 @@ namespace OpenMS
       Size n_scores = scores.size();
       if (n_scores - 1 < n_decoys_)
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Couldn't find enough decoy assays with at least "
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;
@@ -248,7 +245,7 @@ namespace OpenMS
       // TODO: this warning may trigger for every feature and get annoying
       if ((n_decoys_ == 0) && (n_scores < library_.getPeptides().size()))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Skipped some decoy assays with fewer than " 
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Witold Wolski, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8.0 FATAL_ERROR)
 project("OpenMS_class_tests_superhirn")
 
 #------------------------------------------------------------------------------
@@ -50,36 +50,45 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES}
 # --------------------------------------------------------------------------
 set(superhirn_tests
   # superhirn classes
-  FeatureFinderAlgorithmSHSuperhirnBackgroundControl_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundIntensityBin_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidData_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidPeak_test
-  FeatureFinderAlgorithmSHSuperhirnClusteredMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnDeisotoper_test
-  FeatureFinderAlgorithmSHSuperhirnFT_PeakDetectController_test
-  FeatureFinderAlgorithmSHSuperhirnIsotopicDist_test
-  FeatureFinderAlgorithmSHSuperhirnLCMSCData_test
-  FeatureFinderAlgorithmSHSuperhirnLC_MS_test
-  FeatureFinderAlgorithmSHSuperhirnLC_elution_peak_test
-  FeatureFinderAlgorithmSHSuperhirnMS1_feature_merger_test
-  FeatureFinderAlgorithmSHSuperhirnMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Fragment_test
-  FeatureFinderAlgorithmSHSuperhirnMS2_feature_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Info_test
-  FeatureFinderAlgorithmSHSuperhirnProcess_Data_test
-  FeatureFinderAlgorithmSHSuperhirnRawData_test
-  FeatureFinderAlgorithmSHSuperhirnconsensIsotopePattern_test
-  FeatureFinderAlgorithmSHSuperhirnfeatureLCprofile_test
-  FeatureFinderAlgorithmSHSuperhirnfeature_test
-  FeatureFinderAlgorithmSHSuperhirnms_peak_test
+  SuperhirnBackgroundControl_test
+  SuperhirnBackgroundIntensityBin_test
+  SuperhirnCentroidData_test
+  SuperhirnCentroidPeak_test
+  SuperhirnClusteredMS2ConsensusSpectrum_test
+  SuperhirnDeisotoper_test
+  SuperhirnFT_PeakDetectController_test
+  SuperhirnIsotopicDist_test
+  SuperhirnLCMSCData_test
+  SuperhirnLC_MS_test
+  SuperhirnLC_elution_peak_test
+  SuperhirnMS1_feature_merger_test
+  SuperhirnMS2ConsensusSpectrum_test
+  SuperhirnMS2Fragment_test
+  SuperhirnMS2_feature_test
+  SuperhirnMS2Info_test
+  SuperhirnProcess_Data_test
+  SuperhirnRawData_test
+  SuperhirnconsensIsotopePattern_test
+  SuperhirnfeatureLCprofile_test
+  Superhirnfeature_test
+  Superhirnms_peak_test
   # superhirn featurefinder
-  FeatureFinderAlgorithmSH_test
+  Superhirn_test
 )
+
+#------------------------------------------------------------------------------
+# QT dependencies
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
+if (NOT Qt5Network_FOUND)
+  message(STATUS "QtNetwork module not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
 
 # --------------------------------------------------------------------------
 # add targets for the executables
 foreach(i ${superhirn_tests})
   add_executable(${i} source/${i}.cpp)
   target_link_libraries(${i} SuperHirn OpenMS)
+  target_compile_definitions(${i} PRIVATE BOOST_ALL_NO_LIB)
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)

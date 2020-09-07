@@ -15,8 +15,29 @@ function build_contrib {
   fi
 }
 
-# fetch contrib and build seqan
-git clone git://github.com/OpenMS/contrib/
+if [ "${PYOPENMS}" = "ON" ]; then
+  # Note: ensure that cmake uses the same python!
+  pyenv versions
+  # select the desired Python version
+  pyenv global 2.7
+  which pip
+  which python
+
+  # small patch to accelerate build
+  pwd
+  ls src/pyOpenMS/create_cpp_extension.py
+  sed -i 's/import time/import time\nPY_NUM_THREADS=4/g' src/pyOpenMS/create_cpp_extension.py
+
+  pip install -U setuptools
+  pip install -U pip
+  pip install -U nose
+  pip install -U numpy
+  pip install -U wheel
+  pip install -U Cython==0.25
+  pip install -U autowrap==0.22.0
+fi
+
+# move to automatically cloned contrib submodule
 pushd contrib
 
 # we build seqan as the versions shipped in Ubuntu are not recent enough
@@ -28,6 +49,9 @@ build_contrib WILDMAGIC
 # we build Eigen as the versions shipped in Ubuntu are not recent enough
 build_contrib EIGEN
 
+# we build Sqlite as the versions shipped in Ubuntu are not recent enough
+build_contrib SQLITE
+
 # leave contrib
 popd
 
@@ -35,15 +59,13 @@ popd
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
-  git checkout 1.65
+  git checkout 1.90
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else
-  # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
-  # remove .svn otherwise we can't check out the other search engines into the same directory
-  rm _thirdparty/.svn -R -f || true
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
+  # regular builds .. merge the search engine executables for this platform from the automatically cloned submodule to _thirdparty
+  mkdir -p _thirdparty
+  cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+  cp -R THIRDPARTY/All/* _thirdparty/
 fi
-
 

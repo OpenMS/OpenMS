@@ -9,8 +9,6 @@ EWATYTCVLGFHVYVPVR
 
 >BSA3 ##3
 AXXXSTFDFYQRRLVTLAESPRAPSX
->BSA3 ##3  (duplicate Accession, but identical sequence... should raise a Warning, but nothing else)
-AXXXSTFDFYQRRLVTLAESPRAPSX
 
 >BSA333 ##4
 AASTFDFYQRRLVTLAESPRAPSA

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_14509930621887606273" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="OpenSwathWorkflow" version="version_string" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="6">
+		<feature id="f_4835329514588776807">
+			<position dim="0">100.999999701977</position>
+			<position dim="1">412.5</position>
+			<intensity>25944.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.27157</overallquality>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.865706760687806"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181819841265678"/>
+			<UserParam type="float" name="var_massdev_score" value="3.78948546767785e-11"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="2.10526970426547e-11"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.773737603010274"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.706588316825436"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="50"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.27157274651"/>
+			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+	</featureList>
+</featureMap>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHM_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -68,16 +67,39 @@ namespace OpenMS
         
         @param ids Peptide identifications (input: more than one, output: one)
         @param number_of_runs Number of ID runs (default: size of "ids")
-    */
-    void apply(std::vector<PeptideIdentification>& ids, 
+        @param se_info map from run identifiers to search engine infos to retain original search engine information
+        @todo we could pass the score_types that we want to carry over in the map as well (right now it always takes main)
+     */
+    void apply(std::vector<PeptideIdentification>& ids,
+               const std::map<String, String>& se_info,
+               Size number_of_runs = 0);
+
+    void apply(std::vector<PeptideIdentification>& ids,
                Size number_of_runs = 0);
 
     /// Virtual destructor
-    virtual ~ConsensusIDAlgorithm();
+    ~ConsensusIDAlgorithm() override;
 
   protected:
+    struct HitInfo
+    {
+      Int charge;
+      std::vector<double> scores;
+      std::vector<String> types;
+      // in case too much information is stored, TD and evidence
+      // could be re-annotated with PeptideIndexer later
+      String target_decoy;
+      std::set<PeptideEvidence> evidence;
+      double final_score;
+      double support;
+      //TODO: we could gather spectrum_refs here as well,
+      // to support passing of spectrum_ref if ALL refs of a group are the same
+      // For now, we do it in the ConsensusID TOPP tool class in cases where we
+      // know that refs will be the same.
+    };
+
     /// Mapping: peptide sequence -> (charge, scores)
-    typedef std::map<AASequence, std::pair<Int, std::vector<double> > > 
+    typedef std::map<AASequence, HitInfo>
       SequenceGrouping;
 
     /// Number of peptide hits considered per ID run (input parameter)
@@ -91,6 +113,9 @@ namespace OpenMS
 
     /// Count empty runs in "min_support" calculation? (input parameter)
     bool count_empty_;
+
+    /// Keep old scores?
+    bool keep_old_scores_;
    
     /// Default constructor
     ConsensusIDAlgorithm();
@@ -99,13 +124,15 @@ namespace OpenMS
        @brief Consensus computation (to be implemented by subclasses).
 
        @param ids Peptide identifications (input)
+       @param se_info mapping from run identifier to search engine to carry over infos to result
        @param results Algorithm results (output). For each peptide sequence, two scores are expected: the actual consensus score and the "support" value, in this order.
     */
     virtual void apply_(std::vector<PeptideIdentification>& ids,
+                        const std::map<String, String>& se_info,
                         SequenceGrouping& results) = 0;
 
     /// Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Compare (and possibly update) charge state information
     void compareChargeStates_(Int& recorded_charge, Int new_charge, 
@@ -122,4 +149,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHM_H

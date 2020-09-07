@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
-#define OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
+#pragma once
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -81,7 +79,7 @@ namespace OpenMS
 
       @return Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed).
     */
-    bool load(const String& filename, OnDiscMSExperiment<>& exp)
+    bool load(const String& filename, OnDiscPeakMap& exp)
     {
       return exp.openFile(filename);
     }
@@ -92,7 +90,7 @@ namespace OpenMS
       @param filename Filename determines where the file will be stored 
       @param exp MS data to be stored
     */
-    void store(const String& filename, OnDiscMSExperiment<>& exp)
+    void store(const String& filename, OnDiscPeakMap& exp)
     {
       // Create a writing data consumer which consumes the experiment (writes it to disk)
       PlainMSDataWritingConsumer consumer(filename);
@@ -102,12 +100,12 @@ namespace OpenMS
       consumer.setOptions(options_);
       for (Size i = 0; i < exp.getNrSpectra(); i++)
       {
-        MSSpectrum<> s = exp.getSpectrum(i);
+        MSSpectrum s = exp.getSpectrum(i);
         consumer.consumeSpectrum(s);
       }
       for (Size i = 0; i < exp.getNrChromatograms(); i++)
       {
-        MSChromatogram<> c = exp.getChromatogram(i);
+        MSChromatogram c = exp.getChromatogram(i);
         consumer.consumeChromatogram(c);
       }
     }
@@ -118,7 +116,7 @@ namespace OpenMS
       @param filename Filename determines where the file will be stored 
       @param exp MS data to be stored
     */
-    void store(const String& filename, MSExperiment<>& exp)
+    void store(const String& filename, PeakMap& exp)
     {
       MzMLFile f;
       options_.setWriteIndex(true);  // ensure that we write the index
@@ -134,4 +132,4 @@ private:
   };
 }
 
-#endif
+

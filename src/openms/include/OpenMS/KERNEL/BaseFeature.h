@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,14 @@
 // $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_BASEFEATURE_H
-#define OPENMS_KERNEL_BASEFEATURE_H
+#pragma once
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
-
+  class FeatureHandle;
   class PeptideIdentification;
 
   /**
@@ -87,7 +87,13 @@ public:
     BaseFeature();
 
     /// Copy constructor
-    BaseFeature(const BaseFeature& feature);
+    BaseFeature(const BaseFeature& feature) = default;
+
+    /// Move constructor
+    BaseFeature(BaseFeature&& feature) = default;
+
+    /// Copy constructor with a new map_index
+    BaseFeature(const BaseFeature& rhs, UInt64 map_index);
 
     /// Constructor from raw data point
     explicit BaseFeature(const Peak2D& point);
@@ -95,8 +101,11 @@ public:
     /// Constructor from raw data point with meta information
     explicit BaseFeature(const RichPeak2D& point);
 
+    /// Constructor from a featurehandle
+    explicit BaseFeature(const FeatureHandle& fh);
+
     /// Destructor
-    ~BaseFeature();
+    ~BaseFeature() override;
     //@}
 
     /// @name Quality methods
@@ -144,7 +153,10 @@ public:
     void setCharge(const ChargeType& ch);
 
     /// Assignment operator
-    BaseFeature& operator=(const BaseFeature& rhs);
+    BaseFeature& operator=(const BaseFeature& rhs) = default;
+
+    /// Move Assignment operator
+    BaseFeature& operator=(BaseFeature&& rhs) & = default;
 
     /// Equality operator
     bool operator==(const BaseFeature& rhs) const;
@@ -175,10 +187,9 @@ protected:
     /// Width (FWHM) for the feature. The default value is 0.0, a feature finding algorithm can compute this form the model.
     WidthType width_;
 
-    /// Peptide PeptideIdentifications belonging to the feature
+    /// PeptideIdentifications belonging to the feature
     std::vector<PeptideIdentification> peptides_;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_BASEFEATURE_H

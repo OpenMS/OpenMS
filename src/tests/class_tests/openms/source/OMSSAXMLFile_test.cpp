@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ using namespace std;
 
 OMSSAXMLFile xml_file;
 OMSSAXMLFile* ptr;
-OMSSAXMLFile* nullPointer = 0;
+OMSSAXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications;
 vector<PeptideIdentification> peptide_identifications2;

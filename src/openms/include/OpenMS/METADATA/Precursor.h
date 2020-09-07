@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PRECURSOR_H
-#define OPENMS_METADATA_PRECURSOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -47,9 +46,11 @@ namespace OpenMS
       @brief Precursor meta information.
 
       This class contains precursor information:
+
         - isolation window
         - activation
         - selected ion (m/z, intensity, charge, possible charge states)
+        - ion mobility drift time
 
       @ingroup Metadata
   */
@@ -82,18 +83,39 @@ public:
       LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
     };
+
+    ///Drift time unit
+    enum DriftTimeUnit
+    {
+      NONE,          ///< No unit
+      MILLISECOND,   ///< milliseconds
+      VSSC,          ///< volt-second per square centimeter
+      SIZE_OF_DRIFTTIMEUNIT
+    };
+
+
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
 
     /// Constructor
     Precursor();
     /// Copy constructor
-    Precursor(const Precursor & source);
+    Precursor(const Precursor &) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    Precursor(Precursor&&) noexcept;
     /// Destructor
-    virtual ~Precursor();
+    ~Precursor() override;
 
     /// Assignment operator
-    Precursor & operator=(const Precursor & source);
+    Precursor & operator=(const Precursor &) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
@@ -117,7 +139,8 @@ public:
      *
      * @note This is an offset relative to the target m/z. The start of the
      * mass isolation window should thus be computed as:
-     *  p.getMZ() - p.getIsolationWindowLowerOffset()
+     *
+     *   p.getMZ() - p.getIsolationWindowLowerOffset()
      *
      * @return the lower offset from the target m/z
      */
@@ -130,13 +153,64 @@ public:
      *
      * @note This is an offset relative to the target m/z. The end of the mass
      * isolation window should thus be computed as:
-     *  p.getMZ() + p.getIsolationWindowUpperOffset()
+     *
+     *   p.getMZ() + p.getIsolationWindowUpperOffset()
      *
      * @return the upper offset from the target m/z
      */
     double getIsolationWindowUpperOffset() const;
     /// sets the upper offset from the target m/z
     void setIsolationWindowUpperOffset(double bound);
+
+    /**
+      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+
+      @note It is possible for the spectrum to not have a Precursor but still
+      have a drift time, please check getDriftTime of MSSpectrum first and only
+      use this function if you need find-grained access to individual precursors.
+    */
+    double getDriftTime() const;
+    /// sets the ion mobility drift time in milliseconds
+    void setDriftTime(double drift_time);
+
+    /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
+
+
+    /**
+     * @brief Returns the lower offset from the target ion mobility in milliseconds
+     *
+     * @note This is an offset relative to the target ion mobility. The start
+     * of the ion mobility isolation window should thus be computed as:
+     *
+     *   p.getDriftTime() + p.getDriftTimeWindowLowerOffset()
+     *
+     * @return the lower offset from the target ion mobility
+    */
+    double getDriftTimeWindowLowerOffset() const;
+    /// sets the lower offset from the target ion mobility
+    void setDriftTimeWindowLowerOffset(double drift_time);
+
+    /**
+     * @brief Returns the upper offset from the target ion mobility in milliseconds
+     *
+     * @note This is an offset relative to the target ion mobility. The end
+     * of the ion mobility isolation window should thus be computed as:
+     *
+     *   p.getDriftTime() + p.getDriftTimeWindowUpperOffset()
+     *
+     * @return the upper offset from the target ion mobility
+    */
+    double getDriftTimeWindowUpperOffset() const;
+    /// sets the upper offset from the target ion mobility
+    void setDriftTimeWindowUpperOffset(double drift_time);
 
     /// Non-mutable access to the charge
     Int getCharge() const;
@@ -164,9 +238,12 @@ protected:
     double activation_energy_;
     double window_low_;
     double window_up_;
+    double drift_time_;
+    double drift_window_low_;
+    double drift_window_up_;
+    DriftTimeUnit drift_time_unit_;
     Int charge_;
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PRECURSOR_H

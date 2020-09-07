@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,13 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <iomanip>     // setw
 
 using namespace OpenMS;
 using namespace std;
@@ -169,13 +172,13 @@ public:
 
 protected:
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", ListUtils::create<String>("featureXML,consensusXML"));
-    registerOutputFile_("out", "<file>", "", "Optional output txt file. If '-' or left out, the output is written to the command line.", false);
+    registerOutputFile_("out", "<file>", "", "Optional output txt file. If empty, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
 
     registerIntOption_("n", "<n>", 4, // 4 slices is the default
@@ -214,7 +217,7 @@ protected:
       return PARSE_ERROR;
     }
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     FeatureMap feat;
     ConsensusMap cons;
 
@@ -285,8 +288,8 @@ protected:
         {
           os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
         }
+        i++;
       }
-      ++i;
     }
 
     //-------------------------------------------------------------
@@ -344,12 +347,12 @@ protected:
            << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
 
         // file descriptions
-        const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
+        const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
         if (!descs.empty())
         {
           os << endl <<
           "File descriptions:" << endl;
-          for (ConsensusMap::FileDescriptions::const_iterator it = descs.begin(); it != descs.end(); ++it)
+          for (ConsensusMap::ColumnHeaders::const_iterator it = descs.begin(); it != descs.end(); ++it)
           {
             os << " - " << it->second.filename << endl
                << "   identifier: " << it->first << endl
@@ -503,12 +506,12 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String out = getStringOption_("out");
 
     //output to command line
-    if (out == "" || out == "-")
+    if (out.empty())
     {
       return outputTo(cout);
     }

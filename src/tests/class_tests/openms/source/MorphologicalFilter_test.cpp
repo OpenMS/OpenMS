@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -234,8 +234,8 @@ START_SECTION(([EXTRA] "struct SimpleTopHat, used as reference implementation"))
 }
 END_SECTION
 
-MorphologicalFilter* tophat_ptr = 0;
-MorphologicalFilter* tophat_nullPointer = 0;
+MorphologicalFilter* tophat_ptr = nullptr;
+MorphologicalFilter* tophat_nullPointer = nullptr;
 
 START_SECTION((MorphologicalFilter()))
 {
@@ -618,9 +618,9 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 }
 END_SECTION
 
-START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
+START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
 {
-   MSSpectrum<Peak1D> raw;
+  MSSpectrum raw;
   Peak1D peak;
   double spacing = 0.25;
   for ( UInt i = 0; i < data_size; ++i )
@@ -632,7 +632,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
   MorphologicalFilter mf;
   for ( double struc_size = .5; struc_size <= 2; struc_size += .1 )
   {
-    MSSpectrum<Peak1D> filtered(raw);
+    MSSpectrum filtered(raw);
 
     Param parameters;
     parameters.setValue("method","dilation");
@@ -656,7 +656,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &exp)))
 {
-   MSSpectrum<Peak1D> raw;
+  MSSpectrum raw;
   raw.setComment("Let's see if this comment is copied by the filter.");
   Peak1D peak;
   double spacing = 0.25;
@@ -669,7 +669,7 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
   MorphologicalFilter mf;
   for ( double struc_size = .5; struc_size <= 2; struc_size += .1 )
   {
-    MSExperiment<Peak1D> mse_raw;
+    PeakMap mse_raw;
     mse_raw.addSpectrum(raw);
     mse_raw.addSpectrum(raw);
     mse_raw.addSpectrum(raw);

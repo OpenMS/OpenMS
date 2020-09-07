@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -75,7 +76,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+		Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     In feature detection algorithms, an early step is generally to identify points of interest in the LC-MS map (so-called seeds) that may later be extended to features. If supported by the feature detection algorithm (currently only the "centroided" algorithm), user-supplied seed lists allow greater control over this process.
 
@@ -122,7 +123,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
@@ -133,7 +134,7 @@ protected:
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
 
-    ExitCodes main_(int, const char **)
+    ExitCodes main_(int, const char **) override
     {
       String in = getStringOption_("in");
       StringList out = getStringList_("out");
@@ -148,7 +149,7 @@ protected:
       {
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
-        num_maps = consensus.getFileDescriptions().size();
+        num_maps = consensus.getColumnHeaders().size();
         if (out.size() != num_maps)
         {
           writeLog_("Error: expected " + String(num_maps) +
@@ -164,7 +165,7 @@ protected:
       }
       else if (in_type == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(in, experiment);
         seed_gen.generateSeedList(experiment, seed_lists[0]);
       }

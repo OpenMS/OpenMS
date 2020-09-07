@@ -9,5 +9,5 @@ cdef extern from "<OpenMS/FORMAT/CVMappingFile.h>" namespace "OpenMS":
 
         CVMappingFile() nogil except +
         # CVMappingFile(CVMappingFile) nogil except + # private
-        void load(String & filename, CVMappings & cv_mappings, bool strip_namespaces) nogil except +
+        void load(const String & filename, CVMappings & cv_mappings, bool strip_namespaces) nogil except +
 

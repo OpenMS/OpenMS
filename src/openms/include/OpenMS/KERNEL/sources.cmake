@@ -13,7 +13,6 @@ ConversionHelper.h
 ConsensusMap.h
 ConversionHelper.h
 DPeak.h
-DRichPeak.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
@@ -29,9 +28,10 @@ Peak2D.h
 PeakIndex.h
 RangeManager.h
 RangeUtils.h
-RichPeak1D.h
 RichPeak2D.h
 StandardTypes.h
+StandardDeclarations.h
+SpectrumHelper.h
 )
 
 ### add path to the filenames

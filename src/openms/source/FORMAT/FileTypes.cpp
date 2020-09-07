@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -115,6 +115,7 @@ namespace OpenMS
     targetMap[FileTypes::PNG] = "png";
     targetMap[FileTypes::XMASS] = "fid";
     targetMap[FileTypes::TSV] = "tsv";
+    targetMap[FileTypes::MZTAB] = "mzTab";
     targetMap[FileTypes::PEPLIST] = "peplist";
     targetMap[FileTypes::HARDKLOER] = "hardkloer";
     targetMap[FileTypes::KROENIK] = "kroenik";
@@ -129,7 +130,20 @@ namespace OpenMS
     targetMap[FileTypes::XSD] = "xsd";
     targetMap[FileTypes::PSQ] = "psq";
     targetMap[FileTypes::MRM] = "mrm";
+    targetMap[FileTypes::SQMASS] = "sqMass";
+    targetMap[FileTypes::PQP] = "pqp";
+    targetMap[FileTypes::MS] = "ms";
+    targetMap[FileTypes::OSW] = "osw";
     targetMap[FileTypes::PSMS] = "psms";
+    targetMap[FileTypes::PIN] = "pin";
+    targetMap[FileTypes::SPLIB] = "splib";
+    targetMap[FileTypes::NOVOR] = "novor";
+    targetMap[FileTypes::PARAMXML] = "paramXML";
+    targetMap[FileTypes::SPECXML] = "spec.xml";
+    targetMap[FileTypes::XQUESTXML] = "xquest.xml";
+    targetMap[FileTypes::JSON] = "json";
+    targetMap[FileTypes::RAW] = "raw";
+    targetMap[FileTypes::EXE] = "exe";
 
     return targetMap;
   }

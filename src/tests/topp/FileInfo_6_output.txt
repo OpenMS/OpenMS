@@ -1,23 +1,30 @@
 
 -- General information --
 
-File name: /home/sachsenb/Development/open-ms/OpenMS/source/TEST/TOPP/FileInfo_6_input.mzData
+File name: C:/dev/openms_test/src/tests/topp/FileInfo_6_input.mzData
 File type: mzData
 
-Peak type (metadata): Peak data
-Peak type (estimated): Unknown
+Instrument: 
+  Mass Analyzer: Unknown (resolution: 0)
 
+MS levels: 1
+Total number of peaks: 9
 Number of spectra: 2
-Number of peaks: 9
 
 Ranges:
-  retention time: 474.56 .. 475.32
+  retention time: 474.56 .. 475.32 sec (0.0 min)
   mass-to-charge: 937.28 .. 941.20
   intensity:      1639.00 .. 18025.00
 
-MS levels: 1
 Number of spectra per MS level:
   level 1: 2
+
+Peak type from metadata (or estimated from data)
+  level 1: Centroid (Unknown)
+
+Activation methods
+
+Precursor charge distribution:
 
 Meta data array:
   SignalToNoise: 2 spectra
@@ -32,18 +39,20 @@ Meta data array:
 -- Detailed spectrum listing --
 
 Spectrum 1:
-  mslevel:  1
-  scanMode: Unknown
-  peaks:    4
-  RT:       474.558
-  m/z:      937.297 .. 940.279
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         474.558
+  m/z:        937.297 .. 940.279
+Precursors:  0
 
 Spectrum 2:
-  mslevel:  1
-  scanMode: Unknown
-  peaks:    5
-  RT:       475.321
-  m/z:      937.276 .. 941.2
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         475.321
+  m/z:        937.276 .. 941.2
+Precursors:  0
 
 -- Statistics --
 

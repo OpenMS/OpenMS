@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ START_TEST(TMTTenPlexQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TMTTenPlexQuantitationMethod* ptr = 0;
-TMTTenPlexQuantitationMethod* null_ptr = 0;
+TMTTenPlexQuantitationMethod* ptr = nullptr;
+TMTTenPlexQuantitationMethod* null_ptr = nullptr;
 START_SECTION(TMTTenPlexQuantitationMethod())
 {
 	ptr = new TMTTenPlexQuantitationMethod();
@@ -64,10 +64,10 @@ START_SECTION(~TMTTenPlexQuantitationMethod())
 }
 END_SECTION
 
-START_SECTION((const String& getName() const ))
+START_SECTION((const String& getMethodName() const ))
 {
   TMTTenPlexQuantitationMethod quant_meth;
-  TEST_EQUAL(quant_meth.getName(), "tmt10plex")
+  TEST_EQUAL(quant_meth.getMethodName(), "tmt10plex")
 }
 END_SECTION
 
@@ -94,71 +94,71 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   // check masses&co
   TEST_EQUAL(channel_list[0].name, "126")
   TEST_EQUAL(channel_list[0].id, 0)
-  TEST_EQUAL(channel_list[0].center, 126.127725)
+  TEST_EQUAL(channel_list[0].center, 126.127726)
   TEST_EQUAL(channel_list[0].channel_id_minus_2, -1)
   TEST_EQUAL(channel_list[0].channel_id_minus_1, -1)
   TEST_EQUAL(channel_list[0].channel_id_plus_1, 2)
-  TEST_EQUAL(channel_list[0].channel_id_plus_2, 3)
+  TEST_EQUAL(channel_list[0].channel_id_plus_2, 4)
 
   TEST_EQUAL(channel_list[1].name, "127N")
   TEST_EQUAL(channel_list[1].id, 1)
-  TEST_EQUAL(channel_list[1].center, 127.124760)
+  TEST_EQUAL(channel_list[1].center, 127.124761)
   TEST_EQUAL(channel_list[1].channel_id_minus_2, -1)
   TEST_EQUAL(channel_list[1].channel_id_minus_1, -1)
   TEST_EQUAL(channel_list[1].channel_id_plus_1, 3)
-  TEST_EQUAL(channel_list[1].channel_id_plus_2, 4)
+  TEST_EQUAL(channel_list[1].channel_id_plus_2, 5)
 
   TEST_EQUAL(channel_list[2].name, "127C")
   TEST_EQUAL(channel_list[2].id, 2)
-  TEST_EQUAL(channel_list[2].center, 127.131079)
+  TEST_EQUAL(channel_list[2].center, 127.131081)
   TEST_EQUAL(channel_list[2].channel_id_minus_2, -1)
   TEST_EQUAL(channel_list[2].channel_id_minus_1, 0)
   TEST_EQUAL(channel_list[2].channel_id_plus_1, 4)
-  TEST_EQUAL(channel_list[2].channel_id_plus_2, 5)
+  TEST_EQUAL(channel_list[2].channel_id_plus_2, 6)
 
   TEST_EQUAL(channel_list[3].name, "128N")
   TEST_EQUAL(channel_list[3].id, 3)
-  TEST_EQUAL(channel_list[3].center, 128.128114)
+  TEST_EQUAL(channel_list[3].center, 128.128116)
   TEST_EQUAL(channel_list[3].channel_id_minus_2, -1)
   TEST_EQUAL(channel_list[3].channel_id_minus_1, 1)
   TEST_EQUAL(channel_list[3].channel_id_plus_1, 5)
-  TEST_EQUAL(channel_list[3].channel_id_plus_2, 6)
+  TEST_EQUAL(channel_list[3].channel_id_plus_2, 7)
 
   TEST_EQUAL(channel_list[4].name, "128C")
   TEST_EQUAL(channel_list[4].id, 4)
-  TEST_EQUAL(channel_list[4].center, 128.134433)
+  TEST_EQUAL(channel_list[4].center, 128.134436)
   TEST_EQUAL(channel_list[4].channel_id_minus_2, 0)
   TEST_EQUAL(channel_list[4].channel_id_minus_1, 2)
   TEST_EQUAL(channel_list[4].channel_id_plus_1, 6)
-  TEST_EQUAL(channel_list[4].channel_id_plus_2, 7)
+  TEST_EQUAL(channel_list[4].channel_id_plus_2, 8)
 
   TEST_EQUAL(channel_list[5].name, "129N")
   TEST_EQUAL(channel_list[5].id, 5)
-  TEST_EQUAL(channel_list[5].center, 129.131468)
+  TEST_EQUAL(channel_list[5].center, 129.131471)
   TEST_EQUAL(channel_list[5].channel_id_minus_2, 1)
   TEST_EQUAL(channel_list[5].channel_id_minus_1, 3)
   TEST_EQUAL(channel_list[5].channel_id_plus_1, 7)
-  TEST_EQUAL(channel_list[5].channel_id_plus_2, 8)
+  TEST_EQUAL(channel_list[5].channel_id_plus_2, 9)
 
   TEST_EQUAL(channel_list[6].name, "129C")
   TEST_EQUAL(channel_list[6].id, 6)
-  TEST_EQUAL(channel_list[6].center, 129.137787)
+  TEST_EQUAL(channel_list[6].center, 129.137790)
   TEST_EQUAL(channel_list[6].channel_id_minus_2, 2)
   TEST_EQUAL(channel_list[6].channel_id_minus_1, 4)
   TEST_EQUAL(channel_list[6].channel_id_plus_1, 8)
-  TEST_EQUAL(channel_list[6].channel_id_plus_2, 9)
+  TEST_EQUAL(channel_list[6].channel_id_plus_2, -1)
 
   TEST_EQUAL(channel_list[7].name, "130N")
   TEST_EQUAL(channel_list[7].id, 7)
-  TEST_EQUAL(channel_list[7].center, 130.134822)
+  TEST_EQUAL(channel_list[7].center, 130.134825)
   TEST_EQUAL(channel_list[7].channel_id_minus_2, 3)
-  TEST_EQUAL(channel_list[7].channel_id_minus_1, 6)
+  TEST_EQUAL(channel_list[7].channel_id_minus_1, 5)
   TEST_EQUAL(channel_list[7].channel_id_plus_1, 9)
   TEST_EQUAL(channel_list[7].channel_id_plus_2, -1)
 
   TEST_EQUAL(channel_list[8].name, "130C")
   TEST_EQUAL(channel_list[8].id, 8)
-  TEST_EQUAL(channel_list[8].center, 130.141141)
+  TEST_EQUAL(channel_list[8].center, 130.141145)
   TEST_EQUAL(channel_list[8].channel_id_minus_2, 4)
   TEST_EQUAL(channel_list[8].channel_id_minus_1, 6)
   TEST_EQUAL(channel_list[8].channel_id_plus_1, -1)
@@ -166,7 +166,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
 
   TEST_EQUAL(channel_list[9].name, "131")
   TEST_EQUAL(channel_list[9].id, 9)
-  TEST_EQUAL(channel_list[9].center, 131.138176)
+  TEST_EQUAL(channel_list[9].center, 131.138180)
   TEST_EQUAL(channel_list[9].channel_id_minus_2, 5)
   TEST_EQUAL(channel_list[9].channel_id_minus_1, 7)
   TEST_EQUAL(channel_list[9].channel_id_plus_1, -1)
@@ -183,6 +183,21 @@ END_SECTION
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
 {
+
+  double test_matrix[10][10] = {{0.9491,0,0.0037,0,0.0008,0,0,0,0,0},
+                                {0,0.9448,0,0.0065,0,0.0001,0,0,0,0},
+                                {0.0509,0,0.9412,0,0.0049,0,0,0,0,0},
+                                {0,0.0527,0,0.9508,0,0.0071,0,0.0002,0,0},
+                                {0,0,0.0536,0,0.9637,0,0.0132,0,0.0003,0},
+                                {0,0,0,0.0417,0,0.9621,0,0.0128,0,0.0008},
+                                {0,0,0.0015,0,0.0306,0,0.9606,0,0.0208,0},
+                                {0,0,0,0.001,0,0.0307,0,0.9342,0,0.0199},
+                                {0,0,0,0,0,0,0.0262,0,0.9566,0},
+                                {0,0,0,0,0,0,0,0.0275,0,0.9628}};
+
+  Matrix<double> test_Matrix;
+	test_Matrix.setMatrix<10,10>(test_matrix);
+
   TMTTenPlexQuantitationMethod quant_meth;
 
   // we only check the default matrix here which is an identity matrix
@@ -198,8 +213,8 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   {
     for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
     {
-      if (i == j) TEST_REAL_SIMILAR(m(i,j), 1.0)
-      else TEST_REAL_SIMILAR(m(i,j), 0.0)
+      if (i == j) TEST_REAL_SIMILAR(m(i,j),test_Matrix(i,j))
+      else TEST_REAL_SIMILAR(m(i,j), test_Matrix(i,j))
     }
   }
 }

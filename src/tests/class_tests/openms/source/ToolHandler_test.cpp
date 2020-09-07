@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(ToolHandler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ToolHandler* ptr = 0;
-ToolHandler* null_ptr = 0;
+ToolHandler* ptr = nullptr;
+ToolHandler* null_ptr = nullptr;
 START_SECTION(ToolHandler())
 {
 	ptr = new ToolHandler();
@@ -86,7 +86,7 @@ END_SECTION
 
 START_SECTION((static StringList getTypes(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getTypes("ITRAQAnalyzer") == StringList(), true);
+  TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer") == StringList(), true);
   TEST_EQUAL(ToolHandler::getTypes("IDMapper") == StringList(), true);
 }
 END_SECTION

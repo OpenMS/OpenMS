@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -54,19 +53,19 @@ namespace OpenMS
     {
 public:
       /// Default constructor
-      UnimodXMLHandler(std::vector<ResidueModification *> & mods, const String & filename);
+      UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
 
       /// Destructor
-      virtual ~UnimodXMLHandler();
+      ~UnimodXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+      void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
 
 private:
 
@@ -78,21 +77,21 @@ private:
 
       EmpiricalFormula diff_formula_;
 
-      EmpiricalFormula neutral_loss_diff_formula_;
+      std::vector<EmpiricalFormula> neutral_loss_diff_formula_;
 
       bool was_valid_peptide_modification_;
-      std::vector<EmpiricalFormula> neutral_loss_diff_formulas_;
+      std::vector<std::vector<EmpiricalFormula>> neutral_loss_diff_formulas_;
+      std::vector<double> neutral_loss_mono_masses_;
+      std::vector<double> neutral_loss_avg_masses_;
 
-      ResidueModification * modification_;
+      ResidueModification* modification_;
 
-      std::vector<ResidueModification *> & modifications_;
+      std::vector<ResidueModification*>& modifications_;
 
-      std::vector<String> sites_;
+      std::vector<char> sites_;
 
-      std::vector<ResidueModification::Term_Specificity> term_specs_;
+      std::vector<ResidueModification::TermSpecificity> term_specs_;
     };
 
   }   // namespace Internal
 } // namespace OpenMS
-
-#endif // OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H

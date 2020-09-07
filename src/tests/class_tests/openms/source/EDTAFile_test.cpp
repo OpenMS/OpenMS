@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -51,8 +52,8 @@ START_TEST(EDTAFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EDTAFile* ptr = 0;
-EDTAFile* null_ptr = 0;
+EDTAFile* ptr = nullptr;
+EDTAFile* null_ptr = nullptr;
 START_SECTION(EDTAFile())
 {
 	ptr = new EDTAFile();

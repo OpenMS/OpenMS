@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,14 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <iostream>
-#include <vector>
-#include <string>
+#include <set>
 
 using namespace std;
 using namespace xercesc;
@@ -51,9 +50,9 @@ namespace OpenMS
   {
 
     XMLHandler::XMLHandler(const String & filename, const String & version) :
-      error_message_(""),
       file_(filename),
-      version_(version)
+      version_(version),
+      load_detail_(LD_ALLDATA)
     {
     }
 
@@ -61,9 +60,8 @@ namespace OpenMS
     {
     }
 
-    void XMLHandler::reset() // reset Xerces XML strings (memleak otherwise)
+    void XMLHandler::reset()
     {
-      sm_.clear();
     }
 
     void XMLHandler::fatalError(const SAXParseException & exception)
@@ -84,46 +82,71 @@ namespace OpenMS
     void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
-        error_message_ =  String("While loading '") + file_ + "': " + msg;
-      else if (mode == STORE)
-        error_message_ =  String("While storing '") + file_ + "': " + msg;
-      if (line != 0 || column != 0)
-        error_message_ += String("( in line ") + line + " column " + column + ")";
-
-      // test if file has the wrong extension and is therefore passed to the wrong parser
-      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-      FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-      if (ft_name != ft_content)
       {
-        error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+        error_message_ =  String("While loading '") + file_ + "': " + msg;
+	// test if file has the wrong extension and is therefore passed to the wrong parser
+        // only makes sense if we are loading/parsing a file
+	FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+        if (ft_name != ft_content)
+        {
+          error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
                           + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
+        }
+      }
+      else if (mode == STORE)
+      {
+        error_message_ =  String("While storing '") + file_ + "': " + msg;
+      }
+      if (line != 0 || column != 0)
+      {
+        error_message_ += String("( in line ") + line + " column " + column + ")";
       }
 
-      LOG_FATAL_ERROR << error_message_ << std::endl;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, error_message_);
+      OPENMS_LOG_FATAL_ERROR << error_message_ << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
-      LOG_ERROR << error_message_ << std::endl;
+      }
+      OPENMS_LOG_ERROR << error_message_ << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
-      LOG_WARN << error_message_ << std::endl;
+      }
+
+// warn only in Debug mode but suppress warnings in release mode (more happy users)
+#ifdef OPENMS_ASSERTIONS
+      OPENMS_LOG_WARN << error_message_ << std::endl;
+#else
+      OPENMS_LOG_DEBUG << error_message_ << std::endl;
+#endif
+
     }
 
     void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
@@ -147,22 +170,51 @@ namespace OpenMS
       return error_message_;
     }
 
-    void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    void XMLHandler::checkUniqueIdentifiers_(const std::vector<ProteinIdentification>& prot_ids)
+    {
+      std::set<String> s;
+      for (const auto& p : prot_ids)
+      {
+        if (s.insert(p.getIdentifier()).second == false) // element already existed
+        {
+          fatalError(ActionMode::STORE, "ProteinIdentifications are not unique, which leads to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:" +
+                                        p.getIdentifier() +
+                                        ".\nThe random chance of this error occuring is 1:2^64. Re-run the last tool and if the error occurs again, please report this as a bug");
+        }
+      }
+    }
+
+    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
 
+      String val;
+      String p_prefix = String(indent, '\t') + "<" + writeXMLEscape(tag_name) + " type=\"";
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"";
+        os << p_prefix;
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        String val;
+        const DataValue& d = meta.getMetaValue(keys[i]);
         // determine type
         if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
         {
           os << "string";
-          val = d;
+          val = writeXMLEscape(d);
         }
         else if (d.valueType() == DataValue::INT_VALUE)
         {
@@ -187,71 +239,26 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          StringList sld = d;
-          val = "[" + ListUtils::concatenate(sld, ",") + "]"; // manual concatenate, as operator<< inserts spaces, which are bad for reconstructing the list
+          // concatenate manually, as operator<< inserts spaces, which are bad
+          // for reconstructing the list
+          val = "[" + writeXMLEscape(ListUtils::concatenate(d.toStringList(), ",")) + "]";
         }
         else
         {
-          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
-        os << "\" name=\"" << keys[i] << "\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+        os << "\" name=\"" << keys[i] << "\" value=\"" << val << "\"/>\n";
       }
     }
 
     //*******************************************************************************************************************
-
-    StringManager::StringManager() :
-      xml_strings_(0),
-      c_strings_(0)
+    
+    StringManager::StringManager()
     {
     }
 
     StringManager::~StringManager()
     {
-      clear();
-    }
-
-    void StringManager::clear()
-    {
-      for (Size i = 0; i < xml_strings_.size(); ++i)
-      {
-        XMLString::release(&xml_strings_[i]);
-      }
-      xml_strings_.clear();
-
-      for (Size i = 0; i < c_strings_.size(); ++i)
-      {
-        XMLString::release(&c_strings_[i]);
-      }
-      c_strings_.clear();
-    }
-
-    XMLCh * StringManager::convert(const char * str) const
-    {
-      XMLCh * result = XMLString::transcode(str);
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const std::string & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const String & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    char * StringManager::convert(const XMLCh * str) const
-    {
-      char * result = XMLString::transcode(str);
-      c_strings_.push_back(result);
-      return result;
     }
 
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
@@ -285,4 +292,5 @@ namespace OpenMS
     }
 
   }   // namespace Internal
+
 } // namespace OpenMS

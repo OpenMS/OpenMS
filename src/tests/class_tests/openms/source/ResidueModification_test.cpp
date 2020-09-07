@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -38,8 +38,11 @@
 
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -51,8 +54,8 @@ START_TEST(Residue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 // Modification tests
-ResidueModification* ptr = 0;
-ResidueModification* nullPointer = 0;
+ResidueModification* ptr = nullptr;
+ResidueModification* nullPointer = nullptr;
 START_SECTION(ResidueModification())
   ptr = new ResidueModification();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -62,6 +65,9 @@ START_SECTION(~ResidueModification())
 	delete ptr;
 END_SECTION
 
+ModificationsDB* mod_DB = ModificationsDB::getInstance();
+ResidueDB* res_DB = ResidueDB::getInstance();
+
 ptr = new ResidueModification();
 
 START_SECTION(ResidueModification(const ResidueModification& modification))
@@ -69,13 +75,20 @@ START_SECTION(ResidueModification(const ResidueModification& modification))
 	TEST_EQUAL(m == *ptr, true)
 END_SECTION
 
-START_SECTION(ResidueModification& operator = (const ResidueModification& modification))
+START_SECTION(ResidueModification& operator=(const ResidueModification& modification))
 	ResidueModification m;
 	m = *ptr;
 	TEST_EQUAL(m == *ptr, true)
 END_SECTION
 
-START_SECTION(void setId(const String &id))
+START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
+  ModificationsDB* ptr = ModificationsDB::getInstance();
+  const ResidueModification* cm = ptr->getModification("Carboxymethyl (C)");
+  const ResidueModification* pm = ptr->getModification("Phospho (S)");
+  TEST_EQUAL(*cm < *pm, true);
+END_SECTION
+
+START_SECTION(void setId(const String& id))
 	ptr->setId("blubb_new_id");
 	TEST_STRING_EQUAL(ptr->getId(), "blubb_new_id")
 END_SECTION
@@ -84,7 +97,7 @@ START_SECTION(const String& getId() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setFullName(const String &full_name))
+START_SECTION(void setFullName(const String& full_name))
 	ptr->setFullName("blubb_new_full_name");
 	TEST_STRING_EQUAL(ptr->getFullName(), "blubb_new_full_name")
 END_SECTION
@@ -93,7 +106,7 @@ START_SECTION(const String& getFullName() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setName(const String &name))
+START_SECTION(void setName(const String& name))
 	ptr->setName("blubb_new_name");
 	TEST_STRING_EQUAL(ptr->getName(), "blubb_new_name")
 END_SECTION
@@ -103,8 +116,10 @@ START_SECTION(const String& getName() const)
 END_SECTION
 
 START_SECTION((void setNeutralLossDiffFormula(const EmpiricalFormula& loss)))
-	ptr->setNeutralLossDiffFormula(EmpiricalFormula("H2O2"));
-	TEST_EQUAL(ptr->getNeutralLossDiffFormula() == EmpiricalFormula("H2O2"), true)
+  vector<EmpiricalFormula> loss_formulas;
+  loss_formulas.push_back(EmpiricalFormula("H2O2"));
+	ptr->setNeutralLossDiffFormulas(loss_formulas);
+	TEST_EQUAL(ptr->getNeutralLossDiffFormulas()[0] == EmpiricalFormula("H2O2"), true)
 END_SECTION
 
 START_SECTION(const EmpiricalFormula& getNeutralLossDiffFormula() const)
@@ -112,8 +127,10 @@ START_SECTION(const EmpiricalFormula& getNeutralLossDiffFormula() const)
 END_SECTION
 
 START_SECTION(void setNeutralLossMonoMass(double mono_mass))
-	ptr->setNeutralLossMonoMass(123.345678);
-	TEST_REAL_SIMILAR(ptr->getNeutralLossMonoMass(), 123.345678);
+  vector<double> neutral_loss_mono_masses;
+  neutral_loss_mono_masses.push_back(123.345678);
+	ptr->setNeutralLossMonoMasses(neutral_loss_mono_masses);
+	TEST_REAL_SIMILAR(ptr->getNeutralLossMonoMasses()[0], 123.345678);
 END_SECTION
 
 START_SECTION((double getNeutralLossMonoMass() const))
@@ -121,8 +138,10 @@ START_SECTION((double getNeutralLossMonoMass() const))
 END_SECTION
 
 START_SECTION((void setNeutralLossAverageMass(double average_mass)))
-	ptr->setNeutralLossAverageMass(23.345678);
-	TEST_REAL_SIMILAR(ptr->getNeutralLossAverageMass(), 23.345678)
+  vector<double> neutral_loss_avg_masses;
+  neutral_loss_avg_masses.push_back(23.345678);
+	ptr->setNeutralLossAverageMasses(neutral_loss_avg_masses);
+	TEST_REAL_SIMILAR(ptr->getNeutralLossAverageMasses()[0], 23.345678)
 END_SECTION
 
 START_SECTION(double getNeutralLossAverageMass() const)
@@ -133,7 +152,9 @@ START_SECTION((bool hasNeutralLoss() const))
 	TEST_EQUAL(ptr->hasNeutralLoss(), true)
 	ResidueModification mod;
 	TEST_EQUAL(mod.hasNeutralLoss(), false)
-	mod.setNeutralLossDiffFormula(EmpiricalFormula("H2O"));
+  vector<EmpiricalFormula> loss_formulas;
+  loss_formulas.push_back(EmpiricalFormula("H2O"));
+	mod.setNeutralLossDiffFormulas(loss_formulas);
 	TEST_EQUAL(mod.hasNeutralLoss(), true)
 END_SECTION
 
@@ -146,13 +167,18 @@ START_SECTION((const String& getFullId() const))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setUniModAccession(const String &id)))
-	ptr->setUniModAccession("blubb_new_UniModAccession");
-	TEST_STRING_EQUAL(ptr->getUniModAccession(), "blubb_new_UniModAccession")
+START_SECTION((void setUniModRecordId(const Int& id)))
+	ptr->setUniModRecordId(42);
+	TEST_EQUAL(ptr->getUniModRecordId(), 42)
+END_SECTION
+
+START_SECTION((const String& getUniModRecordId() const))
+	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((const String& getUniModAccession() const))
-	NOT_TESTABLE
+	ptr->setUniModRecordId(42);
+	TEST_STRING_EQUAL(ptr->getUniModAccession(), "UniMod:42")
 END_SECTION
 
 START_SECTION((void setPSIMODAccession(const String& id)))
@@ -165,7 +191,7 @@ START_SECTION((const String& getPSIMODAccession() const))
 END_SECTION
 
 
-START_SECTION(void setTermSpecificity(Term_Specificity term_spec))
+START_SECTION(void setTermSpecificity(TermSpecificity term_spec))
 	ptr->setTermSpecificity(ResidueModification::ANYWHERE);
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
@@ -174,7 +200,7 @@ START_SECTION(void setTermSpecificity(Term_Specificity term_spec))
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::N_TERM)
 END_SECTION
 
-START_SECTION(void setTermSpecificity(const String &name))
+START_SECTION(void setTermSpecificity(const String& name))
 	ptr->setTermSpecificity("C-term");
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::C_TERM)
 	ptr->setTermSpecificity("N-term");
@@ -183,11 +209,11 @@ START_SECTION(void setTermSpecificity(const String &name))
 	TEST_EQUAL(ptr->getTermSpecificity(), ResidueModification::ANYWHERE)
 END_SECTION
 
-START_SECTION(Term_Specificity getTermSpecificity() const)
+START_SECTION(TermSpecificity getTermSpecificity() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPECIFICITY) const)
+START_SECTION(String getTermSpecificityName(TermSpecificity=NUMBER_OF_TERM_SPECIFICITY) const)
 	ptr->setTermSpecificity(ResidueModification::C_TERM);
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(), "C-term")
 	ptr->setTermSpecificity(ResidueModification::N_TERM);
@@ -199,16 +225,16 @@ START_SECTION(String getTermSpecificityName(Term_Specificity=NUMBER_OF_TERM_SPEC
 	TEST_STRING_EQUAL(ptr->getTermSpecificityName(ResidueModification::ANYWHERE), "none")
 END_SECTION
 
-START_SECTION(void setOrigin(const String &origin))
-	ptr->setOrigin("blubb_new_origin");
-	TEST_STRING_EQUAL(ptr->getOrigin(), "blubb_new_origin")
+START_SECTION(void setOrigin(char origin))
+	ptr->setOrigin('A');
+	TEST_EQUAL(ptr->getOrigin(), 'A')
 END_SECTION
 
-START_SECTION(const String& getOrigin() const)
+START_SECTION(char getOrigin() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setSourceClassification(Source_Classification classification))
+START_SECTION(void setSourceClassification(SourceClassification classification))
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
 	ptr->setSourceClassification(ResidueModification::NATURAL);
@@ -217,7 +243,7 @@ START_SECTION(void setSourceClassification(Source_Classification classification)
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
 END_SECTION
 
-START_SECTION(void setSourceClassification(const String &classification))
+START_SECTION(void setSourceClassification(const String& classification))
 	ptr->setSourceClassification("Artifact");
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::ARTIFACT)
 	ptr->setSourceClassification("Natural");
@@ -226,11 +252,11 @@ START_SECTION(void setSourceClassification(const String &classification))
 	TEST_EQUAL(ptr->getSourceClassification(), ResidueModification::HYPOTHETICAL)
 END_SECTION
 
-START_SECTION(Source_Classification getSourceClassification() const)
+START_SECTION(SourceClassification getSourceClassification() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(String getSourceClassificationName(Source_Classification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
+START_SECTION(String getSourceClassificationName(SourceClassification classification=NUMBER_OF_SOURCE_CLASSIFICATIONS) const)
 	ptr->setSourceClassification(ResidueModification::ARTIFACT);
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(), "Artefact")
 	ptr->setSourceClassification(ResidueModification::NATURAL);
@@ -278,7 +304,7 @@ START_SECTION(double getDiffMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setFormula(const String &composition))
+START_SECTION(void setFormula(const String& composition))
 	ptr->setFormula("blubb_new_formula");
 	TEST_STRING_EQUAL(ptr->getFormula(), "blubb_new_formula")
 END_SECTION
@@ -297,7 +323,7 @@ START_SECTION(const EmpiricalFormula& getDiffFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setSynonyms(const std::set< String > &synonyms))
+START_SECTION(void setSynonyms(const std::set<String>& synonyms))
 	set<String> synonyms;
 	synonyms.insert("blubb_syn1");
 	synonyms.insert("blubb_syn2");
@@ -305,7 +331,7 @@ START_SECTION(void setSynonyms(const std::set< String > &synonyms))
 	TEST_EQUAL(ptr->getSynonyms() == synonyms, true)
 END_SECTION
 
-START_SECTION(void addSynonym(const String &synonym))
+START_SECTION(void addSynonym(const String& synonym))
 	ptr->addSynonym("blubb_syn3");
 	TEST_EQUAL(ptr->getSynonyms().size(), 3)
 END_SECTION
@@ -314,7 +340,7 @@ START_SECTION(const std::set<String>& getSynonyms() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(bool operator==(const ResidueModification &modification) const)
+START_SECTION(bool operator==(const ResidueModification& modification) const)
 	ResidueModification mod1, mod2;
 	mod1.setId("Id");
 	TEST_EQUAL(mod1 == mod2, false)
@@ -336,9 +362,9 @@ START_SECTION(bool operator==(const ResidueModification &modification) const)
 	mod2.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(mod1 == mod2, true)
 
-	mod1.setOrigin("C");
+	mod1.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, false)
-	mod2.setOrigin("C");
+	mod2.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, true)
 
 	mod1.setSourceClassification(ResidueModification::NATURAL);
@@ -382,7 +408,7 @@ START_SECTION(bool operator==(const ResidueModification &modification) const)
 	TEST_EQUAL(mod1 == mod2, true)
 END_SECTION
 
-START_SECTION(bool operator!=(const ResidueModification &modification) const)
+START_SECTION(bool operator!=(const ResidueModification& modification) const)
 	ResidueModification mod1, mod2;
   mod1.setId("Id");
   TEST_EQUAL(mod1 != mod2, true)
@@ -404,9 +430,9 @@ START_SECTION(bool operator!=(const ResidueModification &modification) const)
   mod2.setTermSpecificity(ResidueModification::N_TERM);
   TEST_EQUAL(mod1 != mod2, false)
 
-  mod1.setOrigin("C");
+  mod1.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, true)
-  mod2.setOrigin("C");
+  mod2.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setSourceClassification(ResidueModification::NATURAL);
@@ -418,7 +444,6 @@ START_SECTION(bool operator!=(const ResidueModification &modification) const)
   TEST_EQUAL(mod1 != mod2, true)
   mod2.setAverageMass(0.123);
   TEST_EQUAL(mod1 != mod2, false)
-
 
   mod1.setMonoMass(1.23);
   TEST_EQUAL(mod1 != mod2, true)
@@ -449,6 +474,64 @@ START_SECTION(bool operator!=(const ResidueModification &modification) const)
   TEST_EQUAL(mod1 != mod2, true)
   mod2.addSynonym("new_syn");
   TEST_EQUAL(mod1 != mod2, false)
+END_SECTION
+
+const ResidueModification* combined_mod;
+
+START_SECTION(static const ResidueModification* combineMods(const ResidueModification* base,
+	const std::set<const ResidueModification*>& addons,
+	bool allow_unknown_masses = false,
+	const Residue* residue = nullptr))
+
+
+  const ResidueModification* base = mod_DB->getModification("Phospho (S)");
+	std::set<const ResidueModification*> addons;
+	addons.insert(mod_DB->getModification("Label:15N(1) (S)"));
+	// boring case: 1 base + 1 addon
+	auto res = ResidueModification::combineMods(base, addons, false, res_DB->getResidue('S'));
+	TEST_EQUAL(res == nullptr, false);
+	TEST_EQUAL(res->getOrigin(), 'S');
+	TEST_EQUAL(res->getTermSpecificity(), ResidueModification::ANYWHERE);
+	TEST_REAL_SIMILAR(res->getDiffMonoMass(), base->getDiffMonoMass() + (*addons.begin())->getDiffMonoMass());
+	combined_mod = res; // useful for downstream tests
+
+	// test empty addons
+	TEST_EQUAL(base, ResidueModification::combineMods(base, {}, false, res_DB->getResidue('S')));
+
+	// test empty base + 1 addon
+	res = ResidueModification::combineMods(nullptr, addons, false, res_DB->getResidue('S'));
+	TEST_EQUAL(res, *addons.begin());
+
+	// 1 base, 2 addons (1 is invalid)
+	addons.insert(mod_DB->getModification("Label:15N(1) (T)"));
+	TEST_EXCEPTION(Exception::Precondition, ResidueModification::combineMods(base, addons, false, res_DB->getResidue('S'));)
+
+	// both empty
+	TEST_EQUAL(ResidueModification::combineMods(nullptr, {}, true) == nullptr, true)
+END_SECTION
+
+START_SECTION(String toString() const)
+	const ResidueModification* base = mod_DB->getModification("Phospho (S)");
+	TEST_EQUAL(base->toString(), "S(Phospho)")
+  TEST_EQUAL(combined_mod->toString(), "S[+80.963365999999994]")
+
+END_SECTION
+
+START_SECTION(static String getDiffMonoMassString(const double diff_mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassString(16), "+16.0");
+	TEST_EQUAL(ResidueModification::getDiffMonoMassString(-16), "-16.0");
+END_SECTION
+
+/// return a string of the form '[+&gt;mass&lt;] (the '+' might be a '-', if mass is negative).
+START_SECTION(static String getDiffMonoMassWithBracket(const double diff_mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(-16), "[-16.0]");
+END_SECTION
+
+/// return a string of the form '[&gt;mass&lt;]
+START_SECTION(static String getMonoMassWithBracket(const double mono_mass))
+	TEST_EQUAL(ResidueModification::getDiffMonoMassWithBracket(16), "[+16.0]");
+	TEST_EXCEPTION(Exception::InvalidValue, ResidueModification::getMonoMassWithBracket(-16));
 END_SECTION
 
 

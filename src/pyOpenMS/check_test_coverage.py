@@ -1,4 +1,3 @@
-import numpy
 import os
 import glob
 import pyopenms
@@ -47,7 +46,6 @@ def parse_doc(item, collection):
                     fullname = fullname[:-2]
                 collection.add(fullname)
                 oldclzz = clz
-
 
 def collectRecursed(obj, collection):
     if hasattr(obj, "__dict__"):

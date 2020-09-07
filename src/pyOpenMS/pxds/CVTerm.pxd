@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/METADATA/CVTerm.h>" namespace "OpenMS::CVTerm":
         String accession
         String name
         String cv_ref
-        Unit(String & p_accession, String & p_name, String & p_cv_ref) nogil except +
+        Unit(const String & p_accession, const String & p_name, const String & p_cv_ref) nogil except +
         bool operator==(Unit & rhs) nogil except +
         bool operator!=(Unit & rhs) nogil except +
 

@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
     cdef cppclass FullSwathFileConsumer:
         #wrap-ignore
+        #no-pxd-import
 
         FullSwathFileConsumer() nogil except + #wrap-ignore
         FullSwathFileConsumer(FullSwathFileConsumer) nogil except + #wrap-ignore
@@ -21,8 +22,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
         void retrieveSwathMaps(libcpp_vector[SwathMap]& maps) nogil except +
 
-        void consumeSpectrum(MSSpectrum[Peak1D] & s) nogil except + 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] & c) nogil except + 
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
 
@@ -44,4 +45,22 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         CachedSwathFileConsumer(CachedSwathFileConsumer &) nogil except + # wrap-ignore
         CachedSwathFileConsumer(String cachedir, String basename, 
                                 Size nr_ms1_spectra, libcpp_vector[int] nr_ms2_spectra)
+
+cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
+    
+    cdef cppclass MzMLSwathFileConsumer(FullSwathFileConsumer) :
+        # wrap-inherits:
+        #  FullSwathFileConsumer
+
+        MzMLSwathFileConsumer() nogil except + # wrap-ignore
+        MzMLSwathFileConsumer(MzMLSwathFileConsumer) nogil except + #wrap-ignore
+        MzMLSwathFileConsumer(String cachedir,
+                              String basename, 
+                              Size nr_ms1_spectra, 
+                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
+        MzMLSwathFileConsumer(libcpp_vector[ SwathMap ] known_window_boundaries, 
+                              String cachedir,
+                              String basename,
+                              Size nr_ms1_spectra, 
+                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
 

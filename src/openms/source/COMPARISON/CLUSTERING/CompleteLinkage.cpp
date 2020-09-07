@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,7 +81,7 @@ namespace OpenMS
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
     {
-      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
+      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distance matrix to start from only contains one element");
     }
 
     std::vector<std::set<Size> > clusters(original_distance.dimensionsize());
@@ -103,7 +103,7 @@ namespace OpenMS
     while (original_distance(min.first, min.second) < threshold)
     {
       //grow the tree
-      cluster_tree.push_back(BinaryTreeNode(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second)));
+      cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second));
       if (cluster_tree.back().left_child > cluster_tree.back().right_child)
       {
         std::swap(cluster_tree.back().left_child, cluster_tree.back().right_child);
@@ -155,7 +155,7 @@ namespace OpenMS
     Size sad(*clusters.front().begin());
     for (Size i = 1; i < clusters.size() && (cluster_tree.size() < cluster_tree.capacity()); ++i)
     {
-      cluster_tree.push_back(BinaryTreeNode(sad, *clusters[i].begin(), -1.0));
+      cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
     }
     //~ while(cluster_tree.size() < cluster_tree.capacity())
     //~ {

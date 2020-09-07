@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM1DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM1DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -68,11 +67,11 @@ namespace OpenMS
   {
     Q_OBJECT
 
-public:
+public:    
     /// Default constructor
-    Spectrum1DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum1DWidget(const Param & preferences, QWidget * parent = nullptr);
     ///Destructor
-    virtual ~Spectrum1DWidget();
+    ~Spectrum1DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
     inline Spectrum1DCanvas * canvas()
@@ -81,14 +80,14 @@ public:
     }
 
     // Docu in base class
-    virtual void hideAxes();
+    void hideAxes() override;
 
     // Docu in base class
-    virtual void showLegend(bool show);
+    void showLegend(bool show) override;
 
     /// Switches to mirror view, displays another y-axis for the second spectrum
     void toggleMirrorView(bool mirror);
-
+    
     /// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
     void performAlignment(Size layer_index_1, Size layer_index_2, const Param & param);
 
@@ -96,7 +95,7 @@ public:
     void resetAlignment();
 
     // Docu in base class
-    virtual void saveAsImage();
+    void saveAsImage() override;
 
     // Docu in base class
     virtual void renderForImage(QPainter& painter);
@@ -111,17 +110,23 @@ signals:
     /// Requests to display the whole spectrum in 3D view
     void showCurrentPeaksAs3D();
 
+    /// Requests to display the whole spectrum in ion mobility view
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display a full DIA window
+    void showCurrentPeaksAsDIA();
+
 public slots:
     // Docu in base class
-    virtual void showGoToDialog();
+    void showGoToDialog() override;
 
 protected:
     // Docu in base class
-    virtual Math::Histogram<> createIntensityDistribution_() const;
+    Math::Histogram<> createIntensityDistribution_() const override;
     // Docu in base class
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const;
+    Math::Histogram<> createMetaDistribution_(const String & name) const override;
     // Docu in base class
-    virtual void recalculateAxes_();
+    void recalculateAxes_() override;
 
     /// The second y-axis for the mirror view
     AxisWidget * flipped_y_axis_;
@@ -132,4 +137,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

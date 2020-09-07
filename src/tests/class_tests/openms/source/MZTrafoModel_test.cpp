@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -21,7 +21,7 @@
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES)END_SECTION LOSS OF USE, DATA, OR PROFITS)END_SECTION 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
 // OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
@@ -52,8 +52,8 @@ START_TEST(MZTrafoModel, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MZTrafoModel* ptr = 0;
-MZTrafoModel* null_ptr = 0;
+MZTrafoModel* ptr = nullptr;
+MZTrafoModel* null_ptr = nullptr;
 START_SECTION(MZTrafoModel())
   ptr = new MZTrafoModel();
   TEST_NOT_EQUAL(ptr, null_ptr)
@@ -96,7 +96,7 @@ START_SECTION(static const std::string& enumToName(MODELTYPE mt))
 END_SECTION 
 
 START_SECTION(static void setRANSACParams(const Math::RANSACParam& p))
-  Math::RANSACParam p(10, 1000, 2.0, 25, false, NULL);
+  Math::RANSACParam p(10, 1000, 2.0, 25, false, nullptr);
   MZTrafoModel::setRANSACParams(p);
 END_SECTION
 
@@ -191,7 +191,7 @@ START_SECTION(bool train(std::vector<double> error_mz, std::vector<double> theo_
   std::vector<double> error_mz = ListUtils::create<double>("10,11,9,10,9,11");
   std::vector<double> theo_mz = ListUtils::create<double>("100,200,300,400,500,600");
   std::vector<double> weights;
-  Math::RANSACParam p(3, 1000, 4.0, 1, false, NULL);
+  Math::RANSACParam p(3, 1000, 4.0, 1, false, nullptr);
   MZTrafoModel::setRANSACParams(p);
   m.train(error_mz, theo_mz, weights, MZTrafoModel::LINEAR, true);
   std::cout << m.toString() << std::endl;

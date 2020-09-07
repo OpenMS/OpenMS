@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
+#pragma once
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -68,7 +67,7 @@ public:
     BaseGroupFinder();
 
     /// Destructor
-    virtual ~BaseGroupFinder();
+    ~BaseGroupFinder() override;
 
     /**
       @brief Run the algorithm
@@ -101,4 +100,3 @@ private:
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H
-#define OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -90,7 +89,7 @@ public:
       {
         static GlobalExceptionHandler * globalExceptionHandler_;
 
-        if (globalExceptionHandler_ == 0)
+        if (globalExceptionHandler_ == nullptr)
         {
           globalExceptionHandler_ = new GlobalExceptionHandler;
         }
@@ -139,11 +138,7 @@ protected:
       throw();
 
       /// The OPENMS new handler
-#ifdef OPENMS_COMPILER_MSVC
       static void newHandler();
-#else
-      static void newHandler() throw(OutOfMemory);
-#endif
 
       /**
         @name	Wrapper for static member.
@@ -157,8 +152,8 @@ protected:
       /// wrapper for static member file_
       static std::string & file_()
       {
-        static std::string * file_ = 0;
-        if (file_ == 0)
+        static std::string * file_ = nullptr;
+        if (file_ == nullptr)
         {
           file_  = new std::string;
           *file_ = "unknown";
@@ -169,8 +164,8 @@ protected:
       /// wrapper for static member line_
       static int & line_()
       {
-        static int * line_ = 0;
-        if (line_ == 0)
+        static int * line_ = nullptr;
+        if (line_ == nullptr)
         {
           line_  = new int;
           *line_ = -1;
@@ -181,8 +176,8 @@ protected:
       /// wrapper for static member function_
       static std::string & function_()
       {
-        static std::string * function_ = 0;
-        if (function_ == 0)
+        static std::string * function_ = nullptr;
+        if (function_ == nullptr)
         {
           function_  = new std::string;
           *function_ = "unknown";
@@ -193,8 +188,8 @@ protected:
       /// wrapper for static member name_
       static std::string & name_()
       {
-        static std::string * name_ = 0;
-        if (name_ == 0)
+        static std::string * name_ = nullptr;
+        if (name_ == nullptr)
         {
           name_  = new std::string;
           *name_ = "unknown exception";
@@ -205,8 +200,8 @@ protected:
       /// wrapper for static member what_
       static std::string & what_()
       {
-        static std::string * what_ = 0;
-        if (what_ == 0)
+        static std::string * what_ = nullptr;
+        if (what_ == nullptr)
         {
           what_  = new std::string;
           *what_ = " - ";
@@ -221,4 +216,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H

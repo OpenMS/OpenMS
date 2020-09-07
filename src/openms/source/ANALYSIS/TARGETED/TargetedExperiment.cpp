@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <algorithm>
+#include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
 
 namespace OpenMS
 {
@@ -69,7 +70,7 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment & TargetedExperiment::operator=(const TargetedExperiment & rhs)
+  TargetedExperiment& TargetedExperiment::operator=(const TargetedExperiment & rhs)
   {
     if (&rhs != this)
     {
@@ -154,6 +155,21 @@ namespace OpenMS
   bool TargetedExperiment::operator!=(const TargetedExperiment & rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  TargetedExperiment::SummaryStatistics TargetedExperiment::getSummary() const
+  {
+    SummaryStatistics s;
+    s.protein_count = proteins_.size();
+    s.peptide_count = peptides_.size();
+    s.compound_count = compounds_.size();
+    s.transition_count = transitions_.size();
+    for (const auto& tr : transitions_)
+    {
+      ++s.decoy_counts[tr.getDecoyTransitionType()];
+    }
+    s.contains_invalid_references = containsInvalidReferences();
+    return s;
   }
 
   void TargetedExperiment::clear(bool clear_meta_data)
@@ -291,7 +307,7 @@ namespace OpenMS
     return proteins_;
   }
 
-  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref)
+  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref) const
   {
     if (protein_reference_map_dirty_)
     {
@@ -299,6 +315,15 @@ namespace OpenMS
     }
     OPENMS_PRECONDITION(protein_reference_map_.find(ref) != protein_reference_map_.end(), "Could not find protein in map")
     return *(protein_reference_map_[ref]);
+  }
+
+  bool TargetedExperiment::hasProtein(const String & ref) const
+  {
+    if (protein_reference_map_dirty_)
+    {
+      createProteinReferenceMap_();
+    }
+    return protein_reference_map_.find(ref) != protein_reference_map_.end();
   }
 
   void TargetedExperiment::addProtein(const Protein & protein)
@@ -333,24 +358,42 @@ namespace OpenMS
     return peptides_;
   }
 
-  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref)
+  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref) const
   {
     if (peptide_reference_map_dirty_)
     {
       createPeptideReferenceMap_();
     }
-    OPENMS_PRECONDITION(peptide_reference_map_.find(ref) != peptide_reference_map_.end(), "Could not find peptide in map")
+    OPENMS_PRECONDITION(hasPeptide(ref), "Cannot return peptide that does not exist, check with hasPeptide() first")
     return *(peptide_reference_map_[ref]);
   }
 
-  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref)
+  const TargetedExperiment::Compound & TargetedExperiment::getCompoundByRef(const String & ref) const
   {
     if (compound_reference_map_dirty_)
     {
       createCompoundReferenceMap_();
     }
-    OPENMS_PRECONDITION(compound_reference_map_.find(ref) != compound_reference_map_.end(), "Could not find compound in map")
+    OPENMS_PRECONDITION(hasCompound(ref), "Cannot return compound that does not exist, check with hasCompound() first")
     return *(compound_reference_map_[ref]);
+  }
+
+  bool TargetedExperiment::hasPeptide(const String & ref) const
+  {
+    if (peptide_reference_map_dirty_)
+    {
+      createPeptideReferenceMap_();
+    }
+    return peptide_reference_map_.find(ref) != peptide_reference_map_.end();
+  }
+
+  bool TargetedExperiment::hasCompound(const String & ref) const
+  {
+    if (compound_reference_map_dirty_)
+    {
+      createCompoundReferenceMap_();
+    }
+    return compound_reference_map_.find(ref) != compound_reference_map_.end();
   }
 
   void TargetedExperiment::addPeptide(const Peptide & rhs)
@@ -424,7 +467,7 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
-  bool TargetedExperiment::containsInvalidReferences()
+  bool TargetedExperiment::containsInvalidReferences() const
   {
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -438,7 +481,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
       {
-        LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
         return true;
       }
       unique_protein_map[prot_it->id] = 0;
@@ -451,7 +494,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
       {
-        LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
@@ -464,7 +507,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
       {
-        LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
         return true;
       }
       unique_compounds_map[comp_it->id] = 0;
@@ -477,7 +520,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
       {
-        LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
         return true;
       }
       unique_transition_map[tr_it->getNativeID()] = 0;
@@ -490,7 +533,7 @@ namespace OpenMS
       {
         if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
         {
-          LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -504,7 +547,7 @@ namespace OpenMS
       {
         if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
         {
-          LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -512,21 +555,21 @@ namespace OpenMS
       {
         if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
         {
-          LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
       else
       {
         // It seems that having no associated compound or peptide is valid as both attributes are optional.
-        LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
+        OPENMS_LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
         // return true;
       }
     }
     return false;
   }
 
-  void TargetedExperiment::createProteinReferenceMap_()
+  void TargetedExperiment::createProteinReferenceMap_() const
   {
     for (Size i = 0; i < getProteins().size(); i++)
     {
@@ -535,7 +578,7 @@ namespace OpenMS
     protein_reference_map_dirty_ = false;
   }
 
-  void TargetedExperiment::createPeptideReferenceMap_()
+  void TargetedExperiment::createPeptideReferenceMap_() const
   {
     for (Size i = 0; i < getPeptides().size(); i++)
     {
@@ -544,7 +587,7 @@ namespace OpenMS
     peptide_reference_map_dirty_ = false;
   }
 
-  void TargetedExperiment::createCompoundReferenceMap_()
+  void TargetedExperiment::createCompoundReferenceMap_() const
   {
     for (Size i = 0; i < getCompounds().size(); i++)
     {
@@ -552,5 +595,36 @@ namespace OpenMS
     }
     compound_reference_map_dirty_ = false;
   }
+
+  bool formatCount(const size_t count, const size_t all, const String& name, StringList& sink)
+  {
+    if (count == 0) return false; // nothing to report... 0%....
+    sink.push_back(String(count * 100.0 / all, false) + "% (" + name + ")");
+    return true;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s)
+  {
+    using TYPE = ReactionMonitoringTransition::DecoyTransitionType;
+    auto count_copy = s.decoy_counts; // allow to default construct missing values with 0 counts
+    size_t all = count_copy[TYPE::DECOY] +
+                 count_copy[TYPE::TARGET] +
+                 count_copy[TYPE::UNKNOWN];
+    if (all == 0) all = 1; // avoid division by zero below
+    StringList counts;
+    formatCount(count_copy[TYPE::TARGET], all, "target", counts);
+    formatCount(count_copy[TYPE::DECOY], all, "decoy", counts);
+    formatCount(count_copy[TYPE::UNKNOWN], all, "unknown", counts);
+
+    os << "# Proteins: " << s.protein_count << '\n'
+       << "# Peptides: " << s.peptide_count << '\n'
+       << "# Compounds: " << s.compound_count << '\n'
+       << "# Transitions: " << s.transition_count << '\n'
+       << "Transition Type: " + ListUtils::concatenate(counts, ", ") + "\n"
+       << "All internal references valid: " << (!s.contains_invalid_references ? "yes" : "no") << '\n';
+    return os;
+  }
+
+
 
 } // namespace OpenMS

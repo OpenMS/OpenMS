@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Fabian Kriegel, Frederic Lehnert $
 // --------------------------------------------------------------------------
 
@@ -171,8 +171,8 @@ START_TEST(SILACLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SILACLabeler* ptr = 0;
-SILACLabeler* nullPtr = 0;
+SILACLabeler* ptr = nullptr;
+SILACLabeler* nullPtr = nullptr;
 START_SECTION(SILACLabeler())
 {
   ptr = new SILACLabeler();
@@ -371,7 +371,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = SILACLabeler::create();
-  BaseLabeler* nullPointer = 0;
+  BaseLabeler* nullPointer = nullptr;
   TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }

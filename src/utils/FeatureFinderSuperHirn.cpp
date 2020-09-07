@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
+
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
 
@@ -78,7 +80,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -88,12 +90,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FFSH().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -107,13 +109,13 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mzMLFile;
     mzMLFile.setLogType(log_type_);
-    MSExperiment<Peak1D> input;
+    PeakMap input;
     mzMLFile.getOptions().addMSLevel(1);
     mzMLFile.load(in, input);
 
     if (input.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -152,7 +154,19 @@ protected:
     {
       output[i].ensureUniqueId();
     }
-    output.setPrimaryMSRunPath(input.getPrimaryMSRunPath());
+    StringList ms_runs;
+
+    // annotate "spectra_data" metavalue
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)});
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, input);
+    }    
+
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

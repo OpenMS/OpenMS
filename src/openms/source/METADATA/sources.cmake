@@ -3,6 +3,7 @@ set(directory source/METADATA)
 
 ### list all filenames of the directory here
 set(sources_list
+AbsoluteQuantitationStandards.cpp
 Acquisition.cpp
 AcquisitionInfo.cpp
 CVTerm.cpp
@@ -10,10 +11,12 @@ CVTermList.cpp
 CVTermListInterface.cpp
 ChromatogramSettings.cpp
 ContactPerson.cpp
+DataArrays.cpp
 DataProcessing.cpp
 Digestion.cpp
 DocumentIDTagger.cpp
 DocumentIdentifier.cpp
+ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp

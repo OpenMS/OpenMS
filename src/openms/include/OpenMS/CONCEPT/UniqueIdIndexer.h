@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_UNIQUEIDINDEXER_H
-#define OPENMS_CONCEPT_UNIQUEIDINDEXER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -146,7 +145,7 @@ public:
         ss << "Duplicate valid unique ids detected!   RandomAccessContainer has size()==" << getBase_().size();
         ss << ", num_valid_unique_id==" << num_valid_unique_id;
         ss << ", uniqueid_to_index_.size()==" << uniqueid_to_index_.size();
-        throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, ss.str());
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ss.str());
       }
       return;
     }
@@ -237,4 +236,3 @@ protected:
 
 } //namespace OpenMS
 
-#endif // OPENMS_CONCEPT_UNIQUEIDINDEXER_H

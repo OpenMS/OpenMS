@@ -1,7 +1,7 @@
 from Types cimport *
 from libcpp cimport bool
-from libcpp.string cimport string as libcpp_string
 from IMSElement cimport *
+from String cimport *
 # from IMSAlphabetParser cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namespace "OpenMS::ims::IMSAlphabet":
@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
     cdef cppclass IMSAlphabet "OpenMS::ims::IMSAlphabet":
         IMSAlphabet() nogil except +
         IMSAlphabet(IMSAlphabet) nogil except +
+
         element_type  getElement(name_type & name) nogil except +
         name_type  getName(size_type index) nogil except +
         mass_type getMass(name_type & name) nogil except +
@@ -27,7 +28,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
         void clear() nogil except +
         void sortByNames() nogil except +
         void sortByValues() nogil except +
-        void load(libcpp_string & fname) nogil except +
+        void load(String & fname) nogil except +
         # POINTER # void load(libcpp_string & fname, IMSAlphabetParser[] * parser) nogil except +
         IMSAlphabet(libcpp_vector[IMSElement] & elements) nogil except +
         size_type size() nogil except +

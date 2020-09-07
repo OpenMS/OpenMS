@@ -1,18 +1,14 @@
 <ttd>
 	<tool status="external">
 		<category>FeatureFinding</category>
-		// this is the name of the '-type' which is added to GenericWrapper - so chose carefully
 		<type>hardklor</type>
-		// description of the wrapper
 		<external>
       <text>
         <onstartup>Calling Hardklor ... Wrapper was tested with "Hardklor" v1.34, report issues to the OpenMS team at www.OpenMS.de</onstartup>
         <onfail>Please check everything ... this is still work in progress.</onfail>
         <onfinish>Hardklor finished successfully.</onfinish>
       </text>    
-		  // currently disregarded by TOPPAS, but might become useful
 		  <e_category>FeatureFinding</e_category>
-		  // command line options of your external tool (use placeholders ,e.g. %1 to insert dynamic content)
       <!-- ignored following options
        -m %8
        -s %14
@@ -24,15 +20,8 @@
              runtime problems
        -->
 		  <cloptions> "%23" "%24" -a %1 -cdm %2 -chMin %3 -chMax %4 -corr %5 -d %6 -hdat "%7" -mdat "%9" %10 -p %11 -res %12 %13 -sl %17 -sn %18 -snWin %19 -win %22 %26 %25 %28</cloptions>
-		  // the actual executable (usually it should be in your PATH, to avoid having to specify a full path to it)
 		  <path>hardklor</path>
-      // sets the working directory to this path before calling the external tool. Some tools write to the current working directory
-      // and thus starting the tool from somewhere else might actually lead to trouble
-      // use only real paths here (no placeholders like %TMP)
       <workingdirectory>.</workingdirectory>
-		  // these mappings connect input parameters (from the 'ini_param' section below) and the command line options of your tool
-		  // any INI parameter can be referenced using %%'param_name', e.g. %%in
-		  // additionally you can use %TMP and %BASENAME[X] to get the current temp directory to store data, or the basename of X
 		  <mappings>
 			<mapping id="1" cl="%%algorithm" />
 			<mapping id="2" cl="%%charge_state_determination" />
@@ -63,17 +52,6 @@
       <mapping id="25" cl="%%peak_detection_mode" />    
       <mapping id="26" cl="%%flag_no_base_averagin" />        
       <mapping id="28" cl="%%additional_parameters" />    
-			// output mapping/copying: this is a little hard to explain and usually you will not need it (then you have to delete all file-tags!)
-			// what it does: when the wrapped tool works with in-place files (i.e. overwrites its input), you must copy it before
-			//               ,e.g. TPP's RefreshParser will overwrite its input pepXML file
-			//               The targeted parameter gets replaced with the temporary filename after the copy is done, so that subsequent
-			//               operations target the temp file
-      
-			// output mapping/moving: this is a little hard to explain and usually you will not need it (then you have to delete all file-tags!)
-			// what it does: when you cannot specify an explicit output file to the external tool and it rather determines that by itself
-			//               ,e.g. msconvert will create an output file (call it F_E) which has the same name as the input file with a replaced suffix
-			//               then you might need to move F_E to the name you want (and/or where TOPPAS can find it)
-			//               Thus you specify the name of F_E and the target name (in terms of INI parameter values)
 		  </mappings>
 		  <ini_param>
 			<ITEM name="in" value="" type="string" description="input file in mzXML format(valid formats: &apos;mzXML&apos;)" tags="input file" />

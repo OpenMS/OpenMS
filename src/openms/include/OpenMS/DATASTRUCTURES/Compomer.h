@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
-#define OPENMS_DATASTRUCTURES_COMPOMER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -51,7 +50,7 @@ namespace OpenMS
   /**
     @brief Holds information on an edge connecting two features from a (putative) charge ladder
 
-    A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
+    A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the edge (i.e. ChargePair)
     holding the compomer. Additionally meta information on the edge (net_charge, edge score, id)
     which is kept up-to-date when adducts are added to either side is stored.
 
@@ -62,8 +61,8 @@ public:
     /// side of compomer (LEFT ^ subtract; RIGHT ^ add)
     enum SIDE {LEFT, RIGHT, BOTH};
 
-    typedef std::map<String, Adduct> CompomerSide; /// adducts and their abundance etc
-    typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
+    typedef std::map<String, Adduct> CompomerSide; ///< adducts and their abundance etc
+    typedef std::vector<CompomerSide> CompomerComponents; ///< container for the two sides [0]=left, [1]=right
 
     /// Default Constructor
     Compomer();
@@ -162,17 +161,16 @@ public:
 
 private:
 
-    CompomerComponents cmp_; //< adducts of left and right side
-    Int net_charge_; //< net charge (right - left)
-    double mass_; //< net mass (right - left)
-    Int pos_charges_; //< net charges on the right
-    Int neg_charges_; //< net charges on the left
-    double log_p_; //< log probability of compomer
-    double rt_shift_; //< expected net RT shift of compomer (-shift_leftside + shift_rightside)
+    CompomerComponents cmp_; ///< adducts of left and right side
+    Int net_charge_; ///< net charge (right - left)
+    double mass_; ///< net mass (right - left)
+    Int pos_charges_; ///< net charges on the right
+    Int neg_charges_; ///< net charges on the left
+    double log_p_; ///< log probability of compomer
+    double rt_shift_; ///< expected net RT shift of compomer (-shift_leftside + shift_rightside)
     Size id_;
 
   }; // \Compomer
 
 } // namespace OpenMS
 
-#endif //OPENMS_DATASTRUCTURES_COMPOMER_H

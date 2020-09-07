@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
-#define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -54,10 +55,16 @@ namespace OpenMS
 public:
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
-        double sampling_rate, double filter_zeros);
+    static OpenSwath::SpectrumPtr addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
+                                               double sampling_rate,
+                                               bool filter_zeros);
+
+    /// adds up a list of Spectra by resampling them and then addition of intensities
+    static OpenMS::MSSpectrum addUpSpectra(const std::vector< OpenMS::MSSpectrum> all_spectra,
+                                           double sampling_rate,
+                                           bool filter_zeros);
 
   };
 }
 
-#endif
+

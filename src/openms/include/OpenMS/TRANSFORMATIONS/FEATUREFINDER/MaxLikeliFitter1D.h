@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -64,7 +63,7 @@ public:
     }
 
     /// destructor
-    virtual ~MaxLikeliFitter1D()
+    ~MaxLikeliFitter1D() override
     {
     }
 
@@ -131,7 +130,7 @@ protected:
       return max_correlation;
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       Fitter1D::updateMembers_();
     }
@@ -139,4 +138,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H

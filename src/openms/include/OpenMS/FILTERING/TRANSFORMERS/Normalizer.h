@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,14 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
-#define OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>
 
@@ -62,7 +64,7 @@ public:
     /// default constructor
     Normalizer();
     /// destructor
-    virtual ~Normalizer();
+    ~Normalizer() override;
 
     /// assignment operator
     Normalizer & operator=(const Normalizer & source);
@@ -108,7 +110,7 @@ public:
       // method unknown
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Method not known", method_);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Method not known", method_);
       }
 
       // normalize
@@ -126,7 +128,7 @@ public:
     ///
     void filterPeakMap(PeakMap & exp) const;
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     // @}
 
@@ -136,4 +138,3 @@ private:
 
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H

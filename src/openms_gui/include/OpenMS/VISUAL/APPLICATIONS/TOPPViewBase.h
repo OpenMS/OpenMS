@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -41,12 +40,14 @@
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-#include <OpenMS/VISUAL/SpectrumWidget.h>
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/FilterList.h>
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
-
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+#include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/TOPPViewSpectraViewBehavior.h>
 #include <OpenMS/VISUAL/TOPPViewIdentificationViewBehavior.h>
 
@@ -54,9 +55,9 @@
 #include <map>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QActionGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -79,8 +80,6 @@ class QWorkspace;
 
 namespace OpenMS
 {
-  class EnhancedWorkspace;
-  class EnhancedTabBar;
   class Spectrum1DWidget;
   class Spectrum2DWidget;
   class Spectrum3DWidget;
@@ -91,14 +90,34 @@ namespace OpenMS
   /**
     @brief Main window of TOPPView tool
 
+    Uses the default QMainWindow layout (see Qt documentation) with a central
+    widget in the middle (consistent of a EnhancedTabBar and an
+    EnhancedWorkspace) and multiple docked widgets around it (to the right and
+    below) and multiple tool bars. On top and bottom are a menu bar and a
+    status bar.
+
+    The main layout is using 
+    - Central Widget: 
+      - EnhancedTabBar: tab_bar_
+      - EnhancedWorkspace: ws_
+    - Docked to the right:
+      - layer_dock_widget_
+      - views_dockwidget_
+      - filter_dock_widget_
+    - Docked to the bottom:
+      - log_bar (only connected through slots)
+
+    The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
+    holds the two different views on the data (spectra and identification view)
+    which are implemented using identificationview_behavior_ and
+    spectraview_behavior_.
+
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
 
-        @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
-        This could be more efficient...
+    @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
+    This could be more efficient...
 
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Hiwi, Johannes)
-
-    @todo Add TOPPView live-tutorial (Stephan, Marc)
 
     @ingroup TOPPView_elements
   */
@@ -127,14 +146,16 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     //Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    //Main on-disc managed data type (experiment)
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
     ///Constructor
-    TOPPViewBase(QWidget* parent = 0);
+    TOPPViewBase(QWidget* parent = nullptr);
     ///Destructor
-    ~TOPPViewBase();
+    ~TOPPViewBase() override;
 
     /**
       @brief Opens and displays data from a file
@@ -157,6 +178,7 @@ public:
       @param consensus_map The consensus feature data (empty if not consensus feature data)
       @param peptides The peptide identifications (empty if not ID data)
       @param peak_map The peak data (empty if not peak data)
+      @param on_disc_peak_map The peak data managed on disc (empty if not peak data)
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
@@ -165,7 +187,19 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "", const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addData(FeatureMapSharedPtrType feature_map,
+                 ConsensusMapSharedPtrType consensus_map,
+                 std::vector<PeptideIdentification>& peptides,
+                 ExperimentSharedPtrType peak_map,
+                 ODExperimentSharedPtrType on_disc_peak_map,
+                 LayerData::DataType data_type,
+                 bool show_as_1d,
+                 bool show_options,
+                 bool as_new_window = true,
+                 const String& filename = "",
+                 const String& caption = "",
+                 UInt window_id = 0,
+                 Size spectrum_id = 0);
 
     /// Opens all the files in the string list
     void loadFiles(const StringList& list, QSplashScreen* splash_screen);
@@ -190,7 +224,7 @@ public:
     //@brief The top level enhanced workspace and the EnhancedTabWidgets resing in the EnhancedTabBar.
     //@{
     /// returns a pointer to the EnhancedWorkspace containing SpectrumWidgets
-    EnhancedWorkspace* getWorkspace() const;
+    EnhancedWorkspace* getWorkspace();
 
     /// returns a pointer to the active SpectrumWidget (0 if none is active)
     SpectrumWidget* getActiveSpectrumWidget() const;
@@ -208,7 +242,6 @@ public:
     /// returns a pointer to the active SpectrumCanvas (0 if none is active)
     SpectrumCanvas* getActiveCanvas() const;
 
-
     /// returns a pointer to the SpectraIdentificationViewWidget
     SpectraIdentificationViewWidget* getSpectraIdentificationViewWidget();
 
@@ -218,12 +251,8 @@ public:
 public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
-    /// shows the URL stored in the data of the sender QAction
-    void showURL();
-    /// shows the file dialog for opening files
-    void openFileDialog();
-    /// shows the file dialog for opening example files
-    void openExampleDialog();
+    /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
+    void openFileDialog(const String& initial_directory = "");
     /// shows the DB dialog for opening files
     void showGoToDialog();
     /// shows the preferences dialog
@@ -242,6 +271,9 @@ public slots:
     void layerDeactivated();
     /// closes the active window
     void closeFile();
+
+    /// calls update*Bar and updateMenu_() to make sure the interface matches the current data
+    void updateBarsAndMenus();
     /// updates the toolbar
     void updateToolBar();
     /// adapts the layer bar to the active window
@@ -250,16 +282,15 @@ public slots:
     void updateViewBar();
     /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
     void viewChanged(int);
+    /// adds empty ID structure to allow manual annotations
+    void viewTabwidgetDoubleClicked(int);
     /// adapts the filter bar to the active window
     void updateFilterBar();
     /// enabled/disabled menu entries depending on the current state
     void updateMenu();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
-    /// tile the open windows vertically
-    void tileVertical();
-    /// tile the open windows horizontally
-    void tileHorizontal();
+    void updateTabBar(QMdiSubWindow* w);
+
     /**
       @brief Shows a status message in the status bar.
 
@@ -281,13 +312,15 @@ public slots:
     void showSpectrumAlignmentDialog();
     /// Shows the spectrum with index @p index of the active layer in 1D
     void showSpectrumAs1D(int index);
-    void showSpectrumAs1D(std::vector<int, std::allocator<int> > indices);
+    void showSpectrumAs1D(std::vector<int> indices);
     /// Shows the current peak data of the active layer in 2D
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
-    /// Shows the 'About' dialog
-    void showAboutDialog();
+    /// Shows the current peak data of the active layer as ion mobility
+    void showCurrentPeaksAsIonMobility();
+    /// Shows the current peak data of the active layer as DIA data
+    void showCurrentPeaksAsDIA();
     /// Saves the whole current layer data
     void saveLayerAll();
     /// Saves the visible layer data
@@ -296,6 +329,8 @@ public slots:
     void toggleGridLines();
     /// Toggles the axis legends
     void toggleAxisLegends();
+    /// Toggles drawing of interesting MZs
+    void toggleInterestingMZs();
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data
@@ -316,24 +351,21 @@ public slots:
     /// Loads a file given by the passed string
     void loadFile(QString);
 
+    /// Enables/disables the data filters for the current layer
+    void layerFilterVisibilityChange(bool);
+
 protected slots:
     /** @name Layer manager and filter manager slots
     */
     //@{
     /// slot for layer manager selection change
     void layerSelectionChange(int);
-    /// Enables/disables the data filters for the current layer
-    void layerFilterVisibilityChange(bool);
     /// slot for layer manager context menu
     void layerContextMenu(const QPoint& pos);
     /// slot for log window context menu
     void logContextMenu(const QPoint& pos);
     /// slot for layer manager visibility change (check box)
     void layerVisibilityChange(QListWidgetItem* item);
-    /// slot for filter manager context menu
-    void filterContextMenu(const QPoint& pos);
-    /// slot for editing a filter
-    void filterEdit(QListWidgetItem* item);
     /// slot for editing the preferences of the current layer
     void layerEdit(QListWidgetItem* /*item*/);
     //@}
@@ -400,22 +432,21 @@ protected:
     //@}
 
     /// Layer management widget
-    QListWidget* layer_manager_;
+    QListWidget* layers_view_;
 
-    ///@name Filter widgets
+    ///@name Filter widget
     //@{
-    QListWidget* filters_;
-    QCheckBox* filters_check_box_;
+    FilterList* filter_list_;
     //@}
 
     /// Watcher that tracks file changes (in order to update the data in the different views)
-    FileWatcher* watcher_;
+    FileWatcher* watcher_ = nullptr;
 
     /// Holds the messageboxes for each layer that are currently popped up (to avoid popping them up again, if file changes again before the messagebox is closed)
-    bool watcher_msgbox_;
+    bool watcher_msgbox_ = false;
 
     /// Stores whether the individual windows should zoom together (be linked) or not
-    bool zoom_together_;
+    bool zoom_together_ = false;
 
     QAction* linkZoom_action_;
 
@@ -426,15 +457,15 @@ protected:
     */
     //@{
     QToolBar* tool_bar_;
-    //common intensity modes
 
+    // common intensity modes
     QButtonGroup* intensity_button_group_;
-    //1D specific stuff
 
+    // 1D specific stuff
     QToolBar* tool_bar_1d_;
     QButtonGroup* draw_group_1d_;
 
-    //2D specific stuff
+    // 2D specific stuff
     QToolBar* tool_bar_2d_peak_;
     QToolBar* tool_bar_2d_feat_;
     QToolBar* tool_bar_2d_cons_;
@@ -451,11 +482,11 @@ protected:
     QAction* dm_ident_2d_;
     //@}
 
-    /// Main workspace
-    EnhancedWorkspace* ws_;
 
+    /// Main workspace
+    EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    EnhancedTabBar* tab_bar_;
+    EnhancedTabBar tab_bar_;
 
     /** @name Status bar
     */
@@ -496,7 +527,7 @@ protected:
       String layer_name;
       UInt window_id;
       Size spectrum_id;
-      QProcess* process;
+      QProcess* process = nullptr;
       QTime timer;
       bool visible;
     } topp_;
@@ -506,7 +537,7 @@ protected:
     void checkPreferences_();
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
     //@}
 
     ///Log message states
@@ -533,20 +564,13 @@ protected:
     QTabWidget* views_tabwidget_;
 
     /// TOPPView behavior for the identification view
-    TOPPViewIdentificationViewBehavior* identificationview_behavior_;
+    TOPPViewIdentificationViewBehavior identificationview_behavior_;
     /// TOPPView behavior for the spectra view
-    TOPPViewSpectraViewBehavior* spectraview_behavior_;
+    TOPPViewSpectraViewBehavior spectraview_behavior_;
 
-    // static helper functions
 public:
-    /// Returns true if @p contains at least one MS1 spectrum
-    static bool containsMS1Scans(const ExperimentType& exp);
-
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
-    float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
-
-    /// Returns true of experiment has at least one exact zero valued peak in any of its MS1 spectra
-    static bool hasMS1Zeros(const ExperimentType& exp);
+    static float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);
 
     /// Returns true if the experiment map contains peptide identifications
     static bool hasPeptideIdentifications(const ExperimentType& map);
@@ -558,4 +582,3 @@ private:
 
 } //namespace
 
-#endif

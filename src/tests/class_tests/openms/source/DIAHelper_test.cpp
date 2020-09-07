@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,20 +35,20 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #ifdef USE_BOOST_UNIT_TEST
+
+// include boost unit test framework
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE MyTest
-
 #include <boost/test/unit_test.hpp>
-
-// make work with OpenMS
-#define START_TEST(val)
-#define END_TEST
-#define END_SECTION
-
+// macros for boost
 #define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
 #define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, boost::test_tools::fraction_tolerance(1.e-5) ));
-#include <iomanip>
+  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
+#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
+#define END_SECTION
+#define START_TEST(var1, var2)
+#define END_TEST
+
 #else
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -56,6 +56,8 @@
 
 #include <iterator>
 #include <iomanip>
+
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -68,18 +70,116 @@ START_TEST(DIAHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION(testIntegrateWindows_test)
+{
+  OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+
+  mass->data.push_back(100.);
+  mass->data.push_back(101.);
+  mass->data.push_back(102.);
+  mass->data.push_back(103.);
+  mass->data.push_back(104.);
+  mass->data.push_back(105.);
+  mass->data.push_back(106.);
+
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+  intensity->data.push_back(1.);
+
+  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+  ion_mobility->data.push_back(1.);
+  ion_mobility->data.push_back(2.);
+  ion_mobility->data.push_back(3.);
+  ion_mobility->data.push_back(4.);
+  ion_mobility->data.push_back(5.);
+  ion_mobility->data.push_back(6.);
+  ion_mobility->data.push_back(7.);
+  ion_mobility->description = "Ion Mobility";
+
+  spec->setMZArray( mass);
+  spec->setIntensityArray( intensity);
+  spec->getDataArrays().push_back( ion_mobility );
+
+  double mz, intens;
+  DIAHelpers::integrateWindow(spec, 101., 103., mz, intens);
+  // std::cout << "mz : " << mz << " int : " << intens << std::endl;
+  TEST_REAL_SIMILAR (mz, 101.5);
+  TEST_REAL_SIMILAR (intens, 2)
+
+  std::vector<double> windows, intInt, intMz;
+  windows.push_back(101.);
+  windows.push_back(103.);
+  windows.push_back(105.);
+  DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz);
+  TEST_EQUAL (intInt.size(), intMz.size() )
+  TEST_EQUAL (intInt.size(), 3)
+  TEST_REAL_SIMILAR (intInt[0], 2)
+  TEST_REAL_SIMILAR (intMz[0], 100.5);
+
+  // std::cout << "print Int" << std::endl;
+  // std::copy(intInt.begin(), intInt.end(),
+  //     std::ostream_iterator<double>(std::cout, " "));
+  // std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+  // std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+  // std::copy(intMz.begin(), intMz.end(),
+  //     std::ostream_iterator<double>(std::cout, " "));
+
+  double im(0.0), im_intens(0.0);
+  DIAHelpers::integrateDriftSpectrum(spec, 101., 109., im, im_intens, 2, 5);
+  TEST_REAL_SIMILAR (im, 3.5);
+  TEST_REAL_SIMILAR (im_intens, 4)
+
+  double im2(0.0), im_intens2(0.0);
+  DIAHelpers::integrateDriftSpectrum(spec, 101., 103., im2, im_intens2, 2, 5);
+  TEST_REAL_SIMILAR (im2, 2.5);
+  TEST_REAL_SIMILAR (im_intens2, 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm))
+{
+  // test absolute
+  {
+    double left(500.0), right(500.0);
+    OpenMS::DIAHelpers::adjustExtractionWindow(right, left, 0.5, false);
+    TEST_REAL_SIMILAR(left, 500 - 0.25);
+    TEST_REAL_SIMILAR(right, 500 + 0.25);
+  }
+  // test ppm
+  {
+    double left(500.0), right(500.0);
+    OpenMS::DIAHelpers::adjustExtractionWindow(right, left, 10, true);
+    TEST_REAL_SIMILAR(left, 500 - 500 * 5 /1e6);
+    TEST_REAL_SIMILAR(right, 500 + 500 * 5 /1e6);
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] getBYSeries_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries);
+  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);
   bseries.clear();
-  OpenMS::DIAHelpers::getTheorMasses(a, bseries);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
 }
 END_SECTION
 
+#if 0
 START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 {
 
@@ -89,7 +189,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 
   double mass1[] = { 100, 101.00048, 102.00096, 103.00144 };
   double int1[] =
-      { 0.9512718332, 0.04579662689, 0.002828078664, 0.0001016459634 };
+      { 0.9496341, 0.0473560, 0.0029034, 0.0001064 };
 
   double * mm = &mass1[0];
   double * ii = &int1[0];
@@ -104,7 +204,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
   tmp.clear();
   OpenMS::DIAHelpers::getAveragineIsotopeDistribution(30., tmp);
   double mass2[] = { 30, 31.0005, 32.001, 33.0014 };
-  double int2[] = { 0.989072, 0.010925, 2.4738e-06, 1.41508e-10 };
+  double int2[] = { 0.987254, 0.012721, 2.41038e-05, 2.28364e-08 };
   mm = &mass2[0];
   ii = &int2[0];
   for (unsigned int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
@@ -150,11 +250,18 @@ END_SECTION
 
 START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "false",
+             "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   std::vector<double> masses1;
   std::vector<std::pair<double, double> > tmp, out;
-  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp);
+  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
 
   std::copy(masses1.begin(), masses1.end(),
       std::ostream_iterator<double>(std::cout, " "));
@@ -190,8 +297,7 @@ START_SECTION([EXTRA] addIsotopesToSpec_test)
 
 }
 END_SECTION
-
-
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

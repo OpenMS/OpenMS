@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,12 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
-#define OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
+#pragma once
 
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
-#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 namespace OpenMS
 {
@@ -63,7 +63,7 @@ public:
     ITRAQLabeler();
 
     /// destructor
-    virtual ~ITRAQLabeler();
+    ~ITRAQLabeler() override;
 
     /// create new object (needed by Factory)
     static BaseLabeler* create()
@@ -78,21 +78,21 @@ public:
     }
 
     // redeclaration of virtual methods
-    void preCheck(Param& param) const;
+    void preCheck(Param& param) const override;
 
-    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */);
+    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */) override;
 
-    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */);
+    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */) override;
 
 protected:
 
@@ -114,7 +114,7 @@ protected:
     Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<AASequence, Feature>& unlabeled_features_index) const;
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     // get the closest RT profile factor of a feature for a given RT
     double getRTProfileIntensity_(const Feature& f, const double MS2_RT_time) const;
@@ -141,4 +141,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_ITRAQLabeler_H

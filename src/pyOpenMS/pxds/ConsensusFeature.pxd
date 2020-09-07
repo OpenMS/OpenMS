@@ -2,7 +2,6 @@ from libcpp cimport bool
 from Types cimport *
 from BaseFeature cimport *
 from Peak2D cimport *
-from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
@@ -14,10 +13,20 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
     # do not wrap BaseFeature, due to overloaded base methods
     # -> see Precursor.pxd
 
-    cdef cppclass ConsensusFeature(UniqueIdInterface,Peak2D):
+    cdef cppclass ConsensusFeature(UniqueIdInterface, BaseFeature):
         # wrap-inherits:
         #    UniqueIdInterface
-        #    Peak2D
+        #    BaseFeature
+        #
+        # wrap-doc:
+        #   A consensus feature spanning multiple LC-MS/MS experiments.
+        #   -----
+        #   A ConsensusFeature represents analytes that have been
+        #   quantified across multiple LC-MS/MS experiments. Each analyte in a
+        #   ConsensusFeature is linked to its original LC-MS/MS run through a
+        #   unique identifier.
+        #   -----
+        #   Get access to the underlying features through getFeatureList()
 
         ConsensusFeature() nogil except +
         ConsensusFeature(ConsensusFeature &) nogil except +
@@ -29,42 +38,16 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void computeMonoisotopicConsensus()    nogil except +
         void computeDechargeConsensus(FeatureMap, bool)    nogil except +
 
-        void insert(UInt64, Peak2D, UInt64) nogil except +
-        void insert(UInt64, BaseFeature) nogil except +
-        void insert(UInt64, ConsensusFeature) nogil except +
-
-        float getQuality()  nogil except +
-        void setQuality(float q) nogil except +
-
-        float getWidth() nogil except +
-        void setWidth(float q) nogil except +
-
-        Int getCharge() nogil except +
-        void setCharge(Int q) nogil except +
+        void insert(UInt64 map_idx, Peak2D, UInt64 element_idx) nogil except +
+        void insert(UInt64 map_idx, BaseFeature) nogil except +
+        void insert(UInt64 map_idx, ConsensusFeature) nogil except +
 
         libcpp_vector[FeatureHandle] getFeatureList() nogil except +
 
         Size size() nogil except +
 
-        # returns a mutable reference to the PeptideIdentification vector
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
-        # sets the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
-
         bool operator==(ConsensusFeature) nogil except +
         bool operator!=(ConsensusFeature) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-        void clearMetaInfo() nogil except +
 
         void addRatio(Ratio r) nogil except +
         void setRatios(libcpp_vector[Ratio] rs) nogil except +
@@ -90,5 +73,3 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::Consens
       String denominator_ref_
       String numerator_ref_
       libcpp_vector[String] description_
-
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATIONS1DCONTAINER_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATIONS1DCONTAINER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
@@ -101,6 +100,9 @@ public:
     /// Removes the selected items
     void removeSelectedItems();
 
+    /// Returns the selected items
+    std::vector<Annotation1DItem*> getSelectedItems();
+
     /// Sets the pen_
     void setPen(const QPen & pen);
 
@@ -122,4 +124,3 @@ public:
 
 } // namespace
 
-#endif

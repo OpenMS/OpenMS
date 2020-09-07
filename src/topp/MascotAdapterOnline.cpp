@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -45,7 +46,6 @@
 
 #include <sstream>
 
-#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
@@ -77,19 +77,35 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application generates peptide identifications for MS/MS spectra using the search engine Mascot. It communicates with the Mascot server over the network (i.e. it does not have to run on the server itself).
+    This wrapper application generates peptide identifications for MS/MS
+    spectra using the search engine Mascot. It communicates with the Mascot
+    server over the network (i.e. it does not have to run on the server
+    itself).
 
-    The adapter supports Mascot security features as well as proxy connections. Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully tested (to varying degrees).
+    The adapter supports Mascot security features as well as proxy connections.
+    Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
+    tested (to varying degrees).
 
     @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
     MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
     MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-    @note Some Mascot server instances seem to fail without reporting back an error message. In such cases, try to run the search on another Mascot server or change/validate the search parameters (e.g. using modifications that are known to Mascot and can thus be set in the INI file, but which are unknown to Mascot, might pose a problem).
+    @note Some Mascot server instances seem to fail without reporting back an
+    error message. In such cases, try to run the search on another Mascot
+    server or change/validate the search parameters (e.g. using modifications
+    that are known to Mascot and can thus be set in the INI file, but which are
+    unknown to Mascot, might pose a problem).
 
-    @note Mascot returns incomplete/incorrect protein assignments for most identified peptides (due to protein-level grouping/filtering). By default the protein associations are therefore not included in the output of this adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run after this tool to get correct assignments. The flag @p keep_protein_links can be used to override this behavior.
+    @note Mascot returns incomplete/incorrect protein assignments for most
+    identified peptides (due to protein-level grouping/filtering). By default
+    the protein associations are therefore not included in the output of this
+    adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
+    after this tool to get correct assignments. The flag @p keep_protein_links
+    can be used to override this behavior.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+    @note Currently mzIdentML (mzid) is not directly supported as an
+    input/output format of this tool. Convert mzid files to/from idXML using
+    @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapterOnline.cli
@@ -117,7 +133,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -129,7 +145,7 @@ protected:
     registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "Mascot_server")
     {
@@ -148,7 +164,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int argc, const char** argv)
+  ExitCodes main_(int argc, const char** argv) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -177,7 +193,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -190,7 +206,13 @@ protected:
     //-------------------------------------------------------------
 
     Param mascot_param = getParam_().copy("Mascot_parameters:", true);
-    mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+
+    // overwrite default search title with filename
+    if (mascot_param.getValue("search_title") == "OpenMS_search")
+    {
+      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
+    }
+
     mascot_param.setValue("internal:HTTP_format", "true");
     MascotGenericFile mgf_file;
     mgf_file.setParameters(mascot_param);
@@ -277,10 +299,10 @@ protected:
       }
     }
 
-    Int search_number = mascot_query->getSearchNumber();
-    if (search_number == 0)
+    String search_number = mascot_query->getSearchIdentifier();
+    if (search_number.empty())
     {
-      writeLog_("Error: Failed to extract the Mascot search number.");
+      writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
       if (mascot_query_param.exists("skip_export") &&
           mascot_query_param.getValue("skip_export").toBool())
       {
@@ -297,8 +319,12 @@ protected:
     //-------------------------------------------------------------
 
     vector<ProteinIdentification> prot_ids;
+    prot_id.setPrimaryMSRunPath({ in }, exp);
     prot_ids.push_back(prot_id);
-    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+
+    // write all (!) parameters as metavalues to the search parameters
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), prot_ids[0].getSearchParameters(), this->getToolPrefix());
+
     IdXMLFile().store(out, prot_ids, pep_ids);
     
     return EXECUTION_OK;

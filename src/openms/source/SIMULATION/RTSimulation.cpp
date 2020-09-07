@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
@@ -37,12 +37,6 @@
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <vector>
-#include <iostream>
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/cauchy_distribution.hpp>
@@ -178,7 +172,7 @@ namespace OpenMS
     gradient_max_ = param_.getValue("scan_window:max");
     if (gradient_max_ > total_gradient_time_)
     {
-      LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
+      OPENMS_LOG_WARN << "total_gradient_time_ smaller than scan_window:max -> invalid parameters!" << endl;
     }
 
     rt_sampling_rate_    = param_.getValue("sampling_rate");
@@ -187,14 +181,14 @@ namespace OpenMS
     egh_variance_scale_     = param_.getValue("profile_shape:width:variance");
     if (egh_variance_scale_ < 0.0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The scale parameter for the lorentzian variation of the variance has to be >= 0.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The scale parameter for the lorentzian variation of the variance has to be >= 0.");
     }
 
     egh_tau_location_    = param_.getValue("profile_shape:skewness:value");
     egh_tau_scale_       = param_.getValue("profile_shape:skewness:variance");
     if (egh_tau_scale_ < 0.0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The scale parameter for the lorentzian variation of the time constant has to be >= 0.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The scale parameter for the lorentzian variation of the time constant has to be >= 0.");
     }
 
   }
@@ -213,7 +207,7 @@ namespace OpenMS
    */
   void RTSimulation::predictRT(SimTypes::FeatureMapSim& features)
   {
-    LOG_INFO << "RT Simulation ... started" << std::endl;
+    OPENMS_LOG_INFO << "RT Simulation ... started" << std::endl;
 
     vector<double>  predicted_retention_times;
     bool is_relative = (param_.getValue("auto_scale") == "true");
@@ -310,7 +304,7 @@ namespace OpenMS
 
       if (variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_))
       {
-        LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
+        OPENMS_LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
         variance = egh_variance_location_;
       }
 
@@ -327,7 +321,7 @@ namespace OpenMS
 
       if (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_)
       {
-        LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Setting it to the user defined skewness value of " << egh_tau_location_ << "!" << std::endl;
+        OPENMS_LOG_ERROR << "Tau is to big for a reasonable feature. Tried to resample 10 times and then stopped. Setting it to the user defined skewness value of " << egh_tau_location_ << "!" << std::endl;
         tau = egh_tau_location_;
       }
 
@@ -340,11 +334,11 @@ namespace OpenMS
     // print invalid features:
     if (deleted_features.size() > 0)
     {
-      LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
+      OPENMS_LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
-        LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+        OPENMS_LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
       else
-        LOG_WARN << "  (List is too big to show)" << std::endl;
+        OPENMS_LOG_WARN << "  (List is too big to show)" << std::endl;
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -487,10 +481,13 @@ namespace OpenMS
 
   void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<double>& predicted_retention_times)
   {
-    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
+    predicted_retention_times.clear();
+    predicted_retention_times.reserve(peptide_sequences.size());
+
+    const String& allowed_amino_acid_characters("ACDEFGHIKLMNPQRSTVWY");
     SVMWrapper svm;
     LibSVMEncoder encoder;
-    svm_problem* training_data = NULL;
+    svm_problem* training_data = nullptr;
     SVMData prediction_samples;
     SVMData training_samples;
     UInt k_mer_length = 0;
@@ -499,7 +496,7 @@ namespace OpenMS
     // hard coding prediction bins; larger values only take more memory, result is not affected
     Size max_number_of_peptides(2000);
 
-    LOG_INFO << "Predicting RT ... ";
+    OPENMS_LOG_INFO << "Predicting RT ... ";
 
     svm.loadModel(rt_model_file_);
 
@@ -509,7 +506,7 @@ namespace OpenMS
       String add_paramfile = rt_model_file_ + "_additional_parameters";
       if (!File::readable(add_paramfile))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTSimulation: SVM parameter file " + add_paramfile + " is not readable");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: SVM parameter file " + add_paramfile + " is not readable");
       }
 
       Param additional_parameters;
@@ -519,20 +516,20 @@ namespace OpenMS
       if (additional_parameters.getValue("border_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTSimulation: No border length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
       if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTSimulation: No k-mer length defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
       if (additional_parameters.getValue("sigma") == DataValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTSimulation: No sigma defined in additional parameters file.");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No sigma defined in additional parameters file.");
       }
 
       sigma = ((String)additional_parameters.getValue("sigma")).toFloat();
@@ -545,41 +542,29 @@ namespace OpenMS
     String sample_file = rt_model_file_ + "_samples";
     if (!File::readable(sample_file))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "RTSimulation: SVM sample file " + sample_file + " is not readable");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: SVM sample file " + sample_file + " is not readable");
     }
     training_samples.load(sample_file);
     svm.setTrainingSample(training_samples);
     svm.setTrainingSample(training_data);
 
     // use maximally max_number_of_peptides peptide sequence at once
-    Size tmp_count = 0;
-    Size count = 0;
-    std::vector<AASequence>::iterator pep_iter_start = peptide_sequences.begin();
-    std::vector<AASequence>::iterator pep_iter_stop = peptide_sequences.begin();
-    while (count < peptide_sequences.size())
+    for (Size i = 0; i < peptide_sequences.size(); i += max_number_of_peptides)
     {
-      while (pep_iter_stop != peptide_sequences.end() && tmp_count < max_number_of_peptides)
-      {
-        ++tmp_count;
-        ++pep_iter_stop;
-      }
-      std::vector<AASequence> tmp_peptide_seqs;
-      tmp_peptide_seqs.insert(tmp_peptide_seqs.end(), pep_iter_start, pep_iter_stop);
-      std::vector<double> tmp_rts(tmp_peptide_seqs.size(), 0);
-      std::vector<double> tmp_pred_rts;
+      Size i_end = i + std::min(peptide_sequences.size() - i, max_number_of_peptides);
+      std::vector<AASequence> tmp_peptide_seqs(peptide_sequences.begin() + i, peptide_sequences.begin() + i_end);
+      
       // Encoding test data
       encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs, k_mer_length, allowed_amino_acid_characters, border_length, prediction_samples.sequences);
-      prediction_samples.labels = tmp_rts;
+      prediction_samples.labels = std::vector<double>(tmp_peptide_seqs.size(), 0);
 
+      std::vector<double> tmp_pred_rts;
       svm.predict(prediction_samples, tmp_pred_rts);
       predicted_retention_times.insert(predicted_retention_times.end(), tmp_pred_rts.begin(), tmp_pred_rts.end());
-      pep_iter_start = pep_iter_stop;
-      count += tmp_count;
-      tmp_count = 0;
     }
     LibSVMEncoder::destroyProblem(training_data);
 
-    LOG_INFO << "done" << endl;
+    OPENMS_LOG_INFO << "done" << endl;
   }
 
   void RTSimulation::predictContaminantsRT(SimTypes::FeatureMapSim& contaminants)
@@ -614,7 +599,7 @@ namespace OpenMS
 
     if (isRTColumnOn())
     {
-      LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
+      OPENMS_LOG_INFO << "Creating experiment with #" << number_of_scans << " scans ... ";
 
       experiment.resize(number_of_scans);
 
@@ -642,14 +627,14 @@ namespace OpenMS
     }
     else
     {
-      LOG_INFO << "Creating experiment with a single scan ... ";
+      OPENMS_LOG_INFO << "Creating experiment with a single scan ... ";
 
       experiment.resize(1);
       experiment[0].setRT(-1);
       experiment[0].setNativeID("spectrum=1");
     }
     experiment.updateRanges();
-    LOG_INFO << "done\n";
+    OPENMS_LOG_INFO << "done\n";
   }
 
 //#define MSSIM_DEBUG_MOV_AVG_FILTER
@@ -665,7 +650,7 @@ namespace OpenMS
       double previous = (double) experiment[0].getMetaValue("distortion");
       boost::uniform_real<double> udist(1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_WARN << "d <- c(" << previous << ", ";
+      OPENMS_LOG_WARN << "d <- c(" << previous << ", ";
       vector<double> tmp;
 #endif
       for (Size scan = 1; scan < experiment.size() - 1; ++scan)
@@ -678,21 +663,21 @@ namespace OpenMS
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-        LOG_WARN << current << ", ";
+        OPENMS_LOG_WARN << current << ", ";
         tmp.push_back(smoothed);
 #endif
         experiment[scan].setMetaValue("distortion", smoothed);
       }
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
-      LOG_WARN << next << ");" << endl;
-      LOG_WARN << "smoothed <- c(";
-      LOG_WARN << (double) experiment[0].getMetaValue("distortion") << ", ";
+      OPENMS_LOG_WARN << next << ");" << endl;
+      OPENMS_LOG_WARN << "smoothed <- c(";
+      OPENMS_LOG_WARN << (double) experiment[0].getMetaValue("distortion") << ", ";
       for (Size i = 0; i  < tmp.size(); ++i)
       {
-        LOG_WARN << tmp[i] << ", ";
+        OPENMS_LOG_WARN << tmp[i] << ", ";
       }
-      LOG_WARN << next << ");" << endl;
+      OPENMS_LOG_WARN << next << ");" << endl;
 #endif
     }
   }

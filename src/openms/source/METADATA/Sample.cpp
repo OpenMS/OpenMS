@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/SampleTreatment.h>
 
-#include <iostream>
+#include <OpenMS/METADATA/SampleTreatment.h>
 
 using namespace std;
 
@@ -65,31 +64,24 @@ namespace OpenMS
     concentration_(source.concentration_),
     subsamples_(source.subsamples_)
   {
-    //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+    // delete old treatments
+    for (auto& it : treatments_) delete it;
     treatments_.clear();
-    //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
-    {
-      treatments_.push_back((*it)->clone());
-    }
+    // copy treatments
+    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
   }
 
   Sample::~Sample()
   {
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+    for (auto& it : treatments_) delete it;
   }
 
   Sample & Sample::operator=(const Sample & source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     name_ = source.name_;
     number_ = source.number_;
@@ -101,17 +93,12 @@ namespace OpenMS
     concentration_ = source.concentration_;
     subsamples_ = source.subsamples_;
     MetaInfoInterface::operator=(source);
-    //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
-    {
-      delete(*it);
-    }
+
+    // delete old treatments
+    for (auto& it : treatments_) delete it;
     treatments_.clear();
-    //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
-    {
-      treatments_.push_back((*it)->clone());
-    }
+    // copy treatments
+    for (const auto & it : source.treatments_) treatments_.push_back(it->clone());
 
     return *this;
   }
@@ -135,12 +122,14 @@ namespace OpenMS
       return false;
     }
 
-    //treatments
-    list<SampleTreatment *>::const_iterator it2 = rhs.treatments_.begin();
-    for (list<SampleTreatment *>::const_iterator it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
+    // treatments
+    auto it2 = rhs.treatments_.begin();
+    for (auto it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
     {
       if (*it != *it2)
+      {
         return false;
+      }
     }
     return true;
   }
@@ -244,7 +233,7 @@ namespace OpenMS
   {
     if (before_position > Int(treatments_.size()))
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, before_position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, before_position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it;
     if (before_position >= 0)
@@ -267,7 +256,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -281,7 +270,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -295,7 +284,7 @@ namespace OpenMS
   {
     if (position >= treatments_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
     }
     list<SampleTreatment *>::iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
@@ -312,3 +301,4 @@ namespace OpenMS
   }
 
 }
+

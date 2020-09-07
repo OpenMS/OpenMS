@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,11 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QScrollBar>
-#include <QtGui/QFileDialog>
-#include <QtGui/QPainter>
-#include <QtGui/QPaintEvent>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QFileDialog>
+#include <QPainter>
+#include <QPaintEvent>
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgGenerator>
 
@@ -57,13 +57,13 @@ namespace OpenMS
     //set the label mode for the axes  - side effect
     setCanvas_(new Spectrum1DCanvas(preferences, this));
 
-    x_axis_->setLegend(String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]");
+    x_axis_->setLegend(SpectrumWidget::MZ_AXIS_TITLE);
     x_axis_->setAllowShortNumbers(false);
-    y_axis_->setLegend("Intensity");
+    y_axis_->setLegend(SpectrumWidget::INTENSITY_AXIS_TITLE);
     y_axis_->setAllowShortNumbers(true);
     y_axis_->setMinimumWidth(50);
 
-    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, "Intensity", this);
+    flipped_y_axis_ = new AxisWidget(AxisPainter::LEFT, SpectrumWidget::INTENSITY_AXIS_TITLE, this);
     flipped_y_axis_->setInverseOrientation(true);
     flipped_y_axis_->setAllowShortNumbers(true);
     flipped_y_axis_->setMinimumWidth(50);
@@ -74,6 +74,8 @@ namespace OpenMS
     //Delegate signals
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
     connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
+    connect(canvas(), SIGNAL(showCurrentPeaksAsIonMobility()), this, SIGNAL(showCurrentPeaksAsIonMobility()));
+    connect(canvas(), SIGNAL(showCurrentPeaksAsDIA()), this, SIGNAL(showCurrentPeaksAsDIA()));
   }
 
   void Spectrum1DWidget::recalculateAxes_()
@@ -97,28 +99,32 @@ namespace OpenMS
     mz_axis->setAxisBounds(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
     switch (canvas()->getIntensityMode())
     {
-    case SpectrumCanvas::IM_NONE:
-      if (it_axis->isLogScale())
+      case SpectrumCanvas::IM_NONE:
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
+        break;
+
+      case SpectrumCanvas::IM_PERCENTAGE:
       {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
+        if (it_axis->isLogScale())
+        {
+          it_axis->setLogScale(false);
+          flipped_y_axis_->setLogScale(false);
+        }
+
+        double min_y = canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY();
+        double max_y = canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * Spectrum1DCanvas::TOP_MARGIN;
+
+        it_axis->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        flipped_y_axis_->setAxisBounds(min_y * 100.0, max_y * 100.0);
+        break;
       }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY(), canvas()->getVisibleArea().maxY());
-      break;
-
-    case SpectrumCanvas::IM_PERCENTAGE:
-      if (it_axis->isLogScale())
-      {
-        it_axis->setLogScale(false);
-        flipped_y_axis_->setLogScale(false);
-      }
-
-      it_axis->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      flipped_y_axis_->setAxisBounds(canvas()->getVisibleArea().minY() / canvas()->getDataRange().maxY() * 100.0, canvas()->getVisibleArea().maxY() / canvas()->getDataRange().maxY() * 100.0);
-      break;
-
     case SpectrumCanvas::IM_SNAP:
       if (it_axis->isLogScale())
       {
@@ -142,7 +148,7 @@ namespace OpenMS
       break;
 
     default:
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
   }
 
@@ -238,8 +244,7 @@ namespace OpenMS
     {
       goto_dialog.fixRange();
       SpectrumCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
-        correctAreaToObeyMinMaxRanges_(area);
+      if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }
   }
@@ -320,13 +325,16 @@ namespace OpenMS
 
   void Spectrum1DWidget::saveAsImage()
   {
-    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)");
+    QString filter = "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)";
+    QString sel_filter;
+    QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", filter, &sel_filter);
+    
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
     y_scrollbar_->hide();
 
-    if (file_name.contains(".svg", Qt::CaseInsensitive)) // svg vector format
+    if (sel_filter.contains(".svg", Qt::CaseInsensitive)) // svg vector format
     {
       QSvgGenerator generator;
       generator.setFileName(file_name);

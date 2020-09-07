@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>" namespace 
         #  FilterFunctor
         ComplementFilter() nogil except +
         ComplementFilter(ComplementFilter) nogil except +
-        double apply(MSSpectrum[Peak1D] & ) nogil except +
+        double apply(MSSpectrum & ) nogil except +
         # POINTER # FilterFunctor * create() nogil except +
         String getProductName() nogil except +
 

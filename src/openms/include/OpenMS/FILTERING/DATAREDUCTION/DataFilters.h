@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
-#define OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -56,19 +55,19 @@ public:
     ///Information to filter
     enum FilterType
     {
-      INTENSITY,                ///< Filter the intensity value
-      QUALITY,                    ///< Filter the overall quality value
-      CHARGE,                       ///< Filter the charge value
-      SIZE,                   ///< Filter the number of subordinates/elements
-      META_DATA                     ///< Filter meta data
+      INTENSITY,      ///< Filter the intensity value
+      QUALITY,        ///< Filter the overall quality value
+      CHARGE,         ///< Filter the charge value
+      SIZE,           ///< Filter the number of subordinates/elements
+      META_DATA       ///< Filter meta data
     };
     ///Filter operation
     enum FilterOperation
     {
-      GREATER_EQUAL,          ///< Greater than the value or equal to the value
-      EQUAL,                    ///< Equal to the value
-      LESS_EQUAL,               ///< Less than the value or equal to the value
-      EXISTS                        ///< Only for META_DATA filter type, tests if meta data exists
+      GREATER_EQUAL,  ///< Greater than the value or equal to the value
+      EQUAL,          ///< Equal to the value
+      LESS_EQUAL,     ///< Less than the value or equal to the value
+      EXISTS          ///< Only for META_DATA filter type, tests if meta data exists
     };
 
     ///Representation of a peak/feature filter combining FilterType, FilterOperation and a value
@@ -155,14 +154,13 @@ public:
     }
 
     ///Returns if the @p feature fulfills the current filter criteria
-    bool passes(const Feature & feature) const;
+    bool passes(const Feature& feature) const;
 
     ///Returns if the @p consensus_feature fulfills the current filter criteria
-    bool passes(const ConsensusFeature & consensus_feature) const;
+    bool passes(const ConsensusFeature& consensus_feature) const;
 
     ///Returns if the @p peak fulfills the current filter criteria
-    template <class PeakType>
-    inline bool passes(const MSSpectrum<PeakType> & spectrum, Size peak_index) const
+    inline bool passes(const MSSpectrum& spectrum, Size peak_index) const
     {
       if (!is_active_) return true;
 
@@ -194,7 +192,7 @@ public:
         }
         else if (filter.field == META_DATA)
         {
-          const typename MSSpectrum<PeakType>::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
+          const typename MSSpectrum::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
           //find the right meta data array
           SignedSize f_index = -1;
           for (Size j = 0; j < f_arrays.size(); ++j)
@@ -214,7 +212,7 @@ public:
           }
 
           //if float array not found, search in integer arrays
-          const typename MSSpectrum<PeakType>::IntegerDataArrays & i_arrays = spectrum.getIntegerDataArrays();
+          const typename MSSpectrum::IntegerDataArrays & i_arrays = spectrum.getIntegerDataArrays();
           //find the right meta data array
           SignedSize i_index = -1;
           for (Size j = 0; j < i_arrays.size(); ++j)
@@ -250,38 +248,9 @@ protected:
     bool is_active_;
 
     ///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
-    inline bool metaPasses_(const MetaInfoInterface & meta_interface, const DataFilters::DataFilter & filter, Size index) const
-    {
-      if (!meta_interface.metaValueExists((UInt)index)) return false;
-      else if (filter.op != EXISTS)
-      {
-        const DataValue & data_value = meta_interface.getMetaValue((UInt)index);
-        if (!filter.value_is_numerical)
-        {
-          if (data_value.valueType() != DataValue::STRING_VALUE) return false;
-          else
-          {
-            // for string values, equality is the only valid operation (besides "exists", see above)
-            if (filter.op != EQUAL) return false;
-            else if (filter.value_string != data_value.toString()) return false;
-          }
-        }
-        else             // value_is_numerical
-        {
-          if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
-          else
-          {
-            if (filter.op == EQUAL && (double)data_value != filter.value) return false;
-            else if (filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
-            else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
-          }
-        }
-      }
-      return true;
-    }
+    bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const;
 
   };
 
 } //namespace
 
-#endif

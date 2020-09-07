@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -37,6 +37,10 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -46,8 +50,14 @@ START_TEST(HyperScore, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-HyperScore* ptr = 0;
-HyperScore* null_ptr = 0;
+HyperScore* ptr = nullptr;
+HyperScore* null_ptr = nullptr;
+
+TheoreticalSpectrumGenerator tsg;
+Param param = tsg.getParameters();
+param.setValue("add_metainfo", "true");
+tsg.setParameters(param);
+
 START_SECTION(HyperScore())
 {
   ptr = new HyperScore();
@@ -64,48 +74,46 @@ END_SECTION
 START_SECTION((static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const RichPeakSpectrum &theo_spectrum)))
 {
   PeakSpectrum exp_spectrum;
-  RichPeakSpectrum theo_spectrum;
-  Peak1D p;
-  p.setIntensity(1);
-  RichPeak1D rp;
-  rp.setIntensity(1);
-  
-  // full match, 5 identical masses, identical intensities (=1)
-  for (Size i = 1; i != 6; ++i)
-  {
-    p.setMZ(i);
-    rp.setMZ(i);
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
-  }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.609438);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 3.609438);
+  PeakSpectrum theo_spectrum;
 
-  // full match, 10 identical masses, identical intensities (=1)
-  for (Size i = 6; i <= 10; ++i)
-  {
-    p.setMZ(i);
-    rp.setMZ(i);
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
-  }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 4.302585);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  
+  // empty spectrum
+  tsg.getSpectrum(theo_spectrum, peptide, 1, 1);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 0.0);
+
+  // full match, 11 identical masses, identical intensities (=1)
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 1);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 13.8516496);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 13.8516496);
 
   exp_spectrum.clear(true);
   theo_spectrum.clear(true);
 
+  // no match
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 3);
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("YYYYYY"), 1, 3);
+  TEST_REAL_SIMILAR(HyperScore::compute(1e-5, false, exp_spectrum, theo_spectrum), 0.0);
+  
+  exp_spectrum.clear(true);
+  theo_spectrum.clear(true);
+
+  // full match, 33 identical masses, identical intensities (=1)
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 3);
+  tsg.getSpectrum(theo_spectrum, peptide, 1, 3);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 67.8210771);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.8210771);
+
   // full match if ppm tolerance and partial match for Da tolerance
-  for (Size i = 1; i <= 10; ++i)
+  for (Size i = 0; i < theo_spectrum.size(); ++i)
   {
-    double mz = pow(10.0, static_cast<int>(i));
-    p.setMZ(mz);
-    rp.setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
+    double mz = pow( theo_spectrum[i].getMZ(), 2);
+    exp_spectrum[i].setMZ(mz);
+    theo_spectrum[i].setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
   }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.386294);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 4.302585);
+
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.401197);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.8210771);
 }
 END_SECTION
 

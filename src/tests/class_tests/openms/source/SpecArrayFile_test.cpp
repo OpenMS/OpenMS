@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(SpecArrayFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpecArrayFile* ptr = 0;
-SpecArrayFile* null_ptr = 0;
+SpecArrayFile* ptr = nullptr;
+SpecArrayFile* null_ptr = nullptr;
 START_SECTION(SpecArrayFile())
 {
 	ptr = new SpecArrayFile();
@@ -95,7 +95,7 @@ END_SECTION
 START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
 {
   SpecArrayFile f;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION

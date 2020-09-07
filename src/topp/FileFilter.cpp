@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,26 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -56,69 +63,68 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FileFilter FileFilter
+@page TOPP_FileFilter FileFilter
 
-    @brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
+@brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
 <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
-        </tr>
+<table>
+    <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
+    </tr>
 
-    </table>
+</table>
 </center>
-    With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
-    and to write all data that lies within the given ranges to an output file.
+With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
+and to write all data that lies within the given ranges to an output file.
 
-    Depending on the input file type, additional specific operations are possible:
-    - mzML
-        - extract spectra of a certain MS level
-        - filter by signal-to-noise estimation
-        - filter by scan mode of the spectra
-        - filter by scan polarity of the spectra
-    - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
-    - featureXML
-        - filter by feature charge
-        - filter by feature size (number of subordinate features)
-        - filter by overall feature quality
-    - consensusXML
-        - filter by size (number of elements in consensus features)
-        - filter by consensus feature charge
-        - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
-    - featureXML / consensusXML:
-    - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
-        - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
-        - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
-        - remove features with annotations
-        - remove features without annotations
-        - remove unassigned peptide identifications
-        - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
-        - remove features with id clashes (different sequences mapped to one feature)
+Depending on the input file type, additional specific operations are possible:
+- mzML
+    - extract spectra of a certain MS level
+    - filter by signal-to-noise estimation
+    - filter by scan mode of the spectra
+    - filter by scan polarity of the spectra
+- remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
+- featureXML
+    - filter by feature charge
+    - filter by feature size (number of subordinate features)
+    - filter by overall feature quality
+- consensusXML
+    - filter by size (number of elements in consensus features)
+    - filter by consensus feature charge
+    - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
+- featureXML / consensusXML:
+- remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
+    - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
+    - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
+    - remove features with annotations
+    - remove features without annotations
+    - remove unassigned peptide identifications
+    - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
+    - remove features with id clashes (different sequences mapped to one feature)
 
-    The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
-    MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
-    @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
+@note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FileFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FileFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileFilter.html
 
-    For the parameters of the S/N algorithm section see the class documentation there: @n
-        @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+For the parameters of the S/N algorithm section see the class documentation there: @n
+    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
-    @todo add tests for selecting modes (port remove modes) (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -135,7 +141,49 @@ public:
   }
 
 private:
-  static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
+
+  static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
+                                     const StringList& whitelist, 
+                                     const String& sequence_comparison_method) 
+  {
+    const String& sequence_str = peptide_hit_sequence.toString();
+    const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
+    if (sequence_comparison_method == "substring") 
+    {
+      for (const String & s : whitelist)
+      {
+        if (sequence_str.hasSubstring(s) || sequence_unmodified_str.hasSubstring(s))
+        {
+          return true;
+        }
+      }
+    } 
+    else if (sequence_comparison_method == "exact")
+    {
+      for (const String & s : whitelist)
+      {
+       if (sequence_str == s || sequence_unmodified_str == s)
+       {
+         return true;
+       }
+      } 
+    }
+    else 
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid sequence comparison method given: '" + sequence_comparison_method + "'");
+    }
+    return false;
+  }
+
+
+  static bool checkPeptideIdentification_(BaseFeature& feature,
+                                          const bool remove_annotated_features,
+                                          const bool remove_unannotated_features,
+                                          const StringList& sequences,
+                                          const String& sequence_comparison_method,
+                                          const StringList& accessions,
+                                          const bool keep_best_score_id,
+                                          const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
     if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
@@ -199,18 +247,13 @@ private:
         //loop over all peptideHits
         for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
         {
-          //loop over all sequence entries of the StringList
-          for (StringList::const_iterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
+          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) 
           {
-            if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
-               || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
-            {
-              sequen = true;
-            }
+            sequen = true;
           }
-
+          
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessions();
+          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
@@ -242,9 +285,9 @@ private:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
@@ -275,20 +318,25 @@ protected:
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
+    registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
+    registerStringOption_("peak_options:indexed_file", "true or false", "true", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
+    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
     setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
+    registerDoubleOption_("peak_options:numpress:lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
     setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
+    registerStringOption_("peak_options:numpress:float_da", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms for the float data arrays (recommended: slof or pic)", false);
+    setValidStrings_("peak_options:numpress:float_da", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
@@ -316,6 +364,18 @@ protected:
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
     setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
 
+    registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
+    registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
+                                                                        "Matching tolerances are taken from 'spectra:blackorwhitelist:similarity_threshold|rt|mz' options.\n", false);
+    setValidFormats_("spectra:blackorwhitelist:file", ListUtils::create<String>("mzML"));
+    registerDoubleOption_("spectra:blackorwhitelist:similarity_threshold", "<similarity>", -1, "Similarity threshold when matching MS2 spectra. (-1 = disabled).", false);
+    registerDoubleOption_("spectra:blackorwhitelist:rt", "tolerance", 0.01, "Retention tolerance [s] when matching precursor positions. (-1 = disabled)", false);
+    registerDoubleOption_("spectra:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] when matching precursor positions. (-1 = disabled)", false);
+    registerStringOption_("spectra:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
+    registerStringOption_("spectra:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
+    setValidStrings_("spectra:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
+    setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
+    setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
@@ -323,7 +383,7 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Non-empty list of maps to be extracted from a consensus (indices are 0-based).", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
     // black and white listing
@@ -353,11 +413,15 @@ protected:
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
-    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
+    // XXX: Change description
+    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist  / accessions_whitelist");
     registerFlag_("id:remove_clashes", "Remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
-    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
+    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "Keep only features containing whitelisted substrings, e.g. features containing LYSNLVER or the modification (Oxidation). To control comparison method used for whitelisting, see 'id:sequence_comparison_method'.", false);
+    registerStringOption_("id:sequence_comparison_method", "substring|exact", "substring", "Comparison method used to determine if a feature is whitelisted.", false, true);
     registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
+    // XXX: Proper description of this parameter.
+    setValidStrings_("id:sequence_comparison_method", ListUtils::create<String>("substring,exact"));
     registerFlag_("id:remove_annotated_features", "Remove features with annotations");
     registerFlag_("id:remove_unannotated_features", "Remove features without annotations");
     registerFlag_("id:remove_unassigned_ids", "Remove unassigned peptide identifications");
@@ -377,7 +441,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     SignalToNoiseEstimatorMedian<MapType::SpectrumType> sn;
     Param tmp;
@@ -413,11 +477,11 @@ protected:
     else
     {
       writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Illegal meta value filtering operator!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -480,30 +544,38 @@ protected:
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
-    bool indexed_file;
-    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
-    else {indexed_file = false; }
+    bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
+    bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
 
-    MSNumpressCoder::NumpressConfig npconfig_mz;
-    MSNumpressCoder::NumpressConfig npconfig_int;
+    //-----------------------------------
+    // MS Numpress options
+    //-----------------------------------
+    MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
     npconfig_mz.estimate_fixed_point = true; // critical
     npconfig_int.estimate_fixed_point = true; // critical
-    npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
-    npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    npconfig_fda.estimate_fixed_point = true; // critical
+    // npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
+    // npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    // npconfig_fda.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
     npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
     npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
-    
+    npconfig_fda.setCompression(getStringOption_("peak_options:numpress:float_da"));
+    double mass_acc = getDoubleOption_("peak_options:numpress:lossy_mass_accuracy");
+    npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
-    //id-filtering parameters
+    //-----------------------------------
+    // ID-filtering parameters
+    //-----------------------------------
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
     bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
     bool remove_unassigned_ids = getFlag_("id:remove_unassigned_ids");
     StringList sequences = getStringList_("id:sequences_whitelist");
+    String sequence_comparison_method = getStringOption_("id:sequence_comparison_method");
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
 
-    //convert bounds to numbers
+    // convert bounds to numbers
     try
     {
       //rt
@@ -570,14 +642,16 @@ protected:
       f.getOptions().setMSLevels(levels);
 
       // set precision options
-      if (mz32 == 32) { f.getOptions().setMz32Bit(true); }else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
-      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+      if (mz32 == 32) { f.getOptions().setMz32Bit(true); } else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
+      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); } else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
+      f.getOptions().setCompression(zlib_compression);
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+      f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
       f.load(in, exp);
@@ -605,7 +679,20 @@ protected:
       bool remove_chromatograms(getFlag_("peak_options:remove_chromatograms"));
       if (remove_chromatograms)
       {
-        exp.setChromatograms(vector<MSChromatogram<> >());
+        exp.setChromatograms(vector<MSChromatogram >());
+      }
+
+      bool remove_empty = getFlag_("peak_options:remove_empty");
+      if (remove_empty)
+      {
+        auto& spectra = exp.getSpectra();
+        spectra.erase(
+          remove_if(spectra.begin(), spectra.end(), [](const MSSpectrum & s){ return s.empty();} )
+          ,spectra.end());
+        auto& chroms = exp.getChromatograms();
+        chroms.erase(
+          remove_if(chroms.begin(), chroms.end(), [](const MSChromatogram & c){ return c.empty();} )
+          ,chroms.end());
       }
 
       //-------------------------------------------------------------
@@ -629,7 +716,7 @@ protected:
       {
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
       }
-      
+
 
       // remove by scan mode (might be a lot of spectra)
       String remove_mode = getStringOption_("spectra:remove_mode");
@@ -718,24 +805,24 @@ protected:
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
       //remove empty scans
@@ -747,7 +834,7 @@ protected:
         exp.sortSpectra(true);
         if (getFlag_("peak_options:sort_peaks"))
         {
-          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+          OPENMS_LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
         }
       }
       else if (getFlag_("peak_options:sort_peaks"))
@@ -764,14 +851,14 @@ protected:
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
         Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
-        for (MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto& spec : exp)
         {
-          snm.init(it->begin(), it->end());
-          for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
+          snm.init(spec);
+          for (Size i = 0; i != spec.size(); ++i)
           {
-            if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+            if (snm.getSignalToNoise(i) < sn) spec[i].setIntensity(0);
           }
-          it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), it->end());
+          spec.erase(remove_if(spec.begin(), spec.end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), spec.end());
         }
       }
 
@@ -779,7 +866,7 @@ protected:
       String id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
 
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
@@ -788,22 +875,45 @@ protected:
 
       // check if filtering by consensus feature is enabled
       String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
-
       if (!consensus_blackorwhitelist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using consensus features ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
         double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
         double mz_tol = getDoubleOption_("consensus:blackorwhitelist:mz");
         bool is_ppm = getStringOption_("consensus:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
         bool is_blacklist = getStringOption_("consensus:blackorwhitelist:blacklist") == "true" ? true : false;
-        int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_blackorwhitelist, rt_tol, mz_tol, is_ppm, maps);
-        if (ret != EXECUTION_OK)
-        {
-          return (ExitCodes)ret;
-        }
+        
+        ConsensusMap consensus_map;
+        ConsensusXMLFile cxml_file;
+        cxml_file.load(consensus_blackorwhitelist, consensus_map);
+        consensus_map.sortByMZ();
+
+        int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_map, rt_tol, mz_tol, is_ppm, maps);
+        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
       }
+
+      // filter spectra if they occur in spectra:blackorwhitelist:file 
+      // (determined by comparing rt/mz/similarity)
+      String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
+      if (!lib_file_name.empty())
+      {
+        OPENMS_LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
+        double tol_rt = getDoubleOption_("spectra:blackorwhitelist:rt");
+        double tol_mz = getDoubleOption_("spectra:blackorwhitelist:mz");
+        double tol_sim = getDoubleOption_("spectra:blackorwhitelist:similarity_threshold");
+        bool is_ppm = getStringOption_("spectra:blackorwhitelist:use_ppm_tolerance") == "true" ? true : false; 
+        bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
+
+        PeakMap lib_file;
+        MzMLFile().load(lib_file_name, lib_file);
+
+        int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
+        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+      }
+
+
 
       //-------------------------------------------------------------
       // writing output
@@ -859,7 +969,7 @@ protected:
             {
               meta_ok = checkMetaOk(*fm_it, meta_info);
             }
-            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
@@ -921,7 +1031,7 @@ protected:
             {
               meta_ok = checkMetaOk(*cm_it, meta_info);
             }
-            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, accessions, keep_best_score_id, remove_clashes);
+            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }
@@ -988,9 +1098,9 @@ protected:
 
           for (IntList::iterator map_it = maps.begin(); map_it != maps.end(); ++map_it)
           {
-            cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
-            cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
-            cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+            cm_new.getColumnHeaders()[*map_it].filename = consensus_map_filtered.getColumnHeaders()[*map_it].filename;
+            cm_new.getColumnHeaders()[*map_it].size = consensus_map_filtered.getColumnHeaders()[*map_it].size;
+            cm_new.getColumnHeaders()[*map_it].unique_id = consensus_map_filtered.getColumnHeaders()[*map_it].unique_id;
           }
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
@@ -1071,7 +1181,7 @@ protected:
     {
       if (!(peptide_ids[i].hasRT() && peptide_ids[i].hasMZ()))
       {
-        LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
+        OPENMS_LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
       Peak2D p;
@@ -1111,29 +1221,29 @@ protected:
       }
     }
 
-    LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
+    OPENMS_LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
     if (ids_covered.size() != ids.size())
     {
       if (!blacklist_imperfect)
       {
-        LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                   << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                  << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }
 
 
-    MSExperiment<> exp2 = exp;
+    PeakMap exp2 = exp;
     exp2.clear(false);
 
     for (Size i = 0; i != exp.size(); ++i)
     {
-      if (find(blacklist_idx.begin(), blacklist_idx.end(), i) ==
+      if (blacklist_idx.find(i) ==
           blacklist_idx.end())
       {
         exp2.addSpectrum(exp[i]);
@@ -1144,13 +1254,8 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const String& consensus_blacklist, double rt_tol, double mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const ConsensusMap& consensus_map, double rt_tol, double mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
   {
-    ConsensusMap consensus_map;
-    ConsensusXMLFile cxml_file;
-    cxml_file.load(consensus_blacklist, consensus_map);
-    consensus_map.sortByMZ();
-
     std::vector<Peak2D> feature_pos;
     // if map_id are specified, only use these for blacklisting
     for (ConsensusMap::const_iterator c_it = consensus_map.begin(); c_it != consensus_map.end(); ++c_it)
@@ -1200,7 +1305,83 @@ protected:
     }
 
     // create new experiment
-    MSExperiment<> exp2 = exp; // copy meta data
+    PeakMap exp2;
+    exp2.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
+
+    for (Size i = 0; i != exp.size(); ++i)
+    {
+      // don't need to sort list as it is increasing
+      if (is_blacklist)
+      {
+        // blacklist: add all spectra not contained in list
+        if (list_idx.find(i) == list_idx.end())
+        {
+          exp2.addSpectrum(exp[i]);
+        }
+      }
+      else   // whitelist: add all non MS2 spectra, and MS2 only if in list
+      {
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
+        {
+          exp2.addSpectrum(exp[i]);
+        }
+      }
+    }
+
+    exp = exp2;
+    return EXECUTION_OK;
+  }
+
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol,  bool unit_ppm)
+  {
+    const bool enable_mz_check = (mz_tol >= 0);
+    const bool enable_rt_check = (rt_tol >= 0);
+    const bool enable_sim_check = (sim_tol > -1);
+
+    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
+
+    set<Size> list_idx;
+
+    for (auto const & lib_spectrum : lib_file)
+    {
+      if (!lib_spectrum.getPrecursors().empty())
+      {
+        // extract precursor positions from query file
+        double lib_mz = lib_spectrum.getPrecursors()[0].getMZ();
+        double lib_rt = lib_spectrum.getRT();
+
+        // look-up matching spectra in input file (TODO: use KD-tree)
+        int exp_index = -1;
+        for (auto const & exp_spectrum : exp)
+        {
+          // keep track of current spectrum index
+          ++exp_index;
+
+          // TODO: extend to other MS levels and multiple precursors
+          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty()) { continue; }
+
+          // skip if m/z's don't match
+          const double pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          const double mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
+          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da) { continue; }
+
+          // skip if rt's don't match
+          const double pc_rt = exp_spectrum.getRT();
+          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol) { continue; }
+
+          // skip if not similar enough
+          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol) { continue; }
+
+          writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
+
+          // we have matching spectra
+          list_idx.insert(exp_index); 
+        }
+      }
+    }
+
+    // create new experiment
+    PeakMap exp2 = exp; // copy meta data
     exp2.clear(false); // clear spectra
 
     for (Size i = 0; i != exp.size(); ++i)
@@ -1209,14 +1390,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
-      else   // whitelist: add all non MS2 spectra, and MS2 only if in list
+      else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }

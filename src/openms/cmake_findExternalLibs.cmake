@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,7 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS (note that the paths
-# for these libraries need to be defined on top-level, see the top-level file
-# cmake/OpenMSBuildSystem_externalLibs.cmake)
+# This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -86,13 +84,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-if (${USE_COINOR})
-	set(CF_USECOINOR 1)
-  find_package(COIN REQUIRED)
-else()
-	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)
-endif()
+set(CF_USECOINOR 1)
+find_package(COIN REQUIRED)
 
 #------------------------------------------------------------------------------
 # GLPK
@@ -113,7 +106,7 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find eigen3
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3 3.3.4 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5
@@ -124,11 +117,29 @@ if (WM5_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+## TODO check if necessary
 if (WITH_CRAWDAD)
-  find_package(Crawdad)
+  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
+  find_package(Crawdad REQUIRED)
+  # find archive (static) version and add it to the OpenMS library
+  find_library(Crawdad_LIBRARY
+   NAMES Crawdad.a Crawdad
+    HINTS ${Crawdad_DIR})
 endif()
+
+#------------------------------------------------------------------------------
+# SQLITE
+find_package(SQLITE 3.15.0 REQUIRED)
+
+#------------------------------------------------------------------------------
+# HDF5
+# For MSVC use static linking to the HDF5 libraries
+if(MSVC)
+  set(HDF5_USE_STATIC_LIBRARIES ON)
+endif()
+find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -142,16 +153,37 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "5.5.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtNetwork)
+## TODO Use the component variable during install time 
+## Why were many more QT modules linked? Removed for now until complaints.
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT QT4_FOUND)
-  message(STATUS "QT4 not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+IF (NOT Qt5Core_FOUND)
+  message(STATUS "QT5Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+ELSE()
+  message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
-include(${QT_USE_FILE})
-include(UseQt4)
+
+
+##TODO check if we can integrate the next lines into the openms_add_library cmake macro
+add_definitions(${Qt5Core_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+
+# see https://github.com/ethereum/solidity/issues/4124
+if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT")
+endif()
+
+#------------------------------------------------------------------------------
+# PTHREAD
+#------------------------------------------------------------------------------
+# at least FFSuperHirn requires linking against pthread
+find_package (Threads REQUIRED)
 
 #------------------------------------------------------------------------------

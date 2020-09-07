@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
-#define OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -73,11 +72,16 @@ public:
     /// default constructor
     PeptideIdentification();
     /// destructor
-    virtual ~PeptideIdentification();
+    virtual ~PeptideIdentification() noexcept;
     /// copy constructor
-    PeptideIdentification(const PeptideIdentification& source);
-    /// assignment operator
-    PeptideIdentification& operator=(const PeptideIdentification& source);
+    PeptideIdentification(const PeptideIdentification&) = default;
+    /// Move constructor
+    PeptideIdentification(PeptideIdentification&&) noexcept = default;
+
+    /// Assignment operator
+    PeptideIdentification& operator=(const PeptideIdentification&) = default;
+    /// Move assignment operator
+    PeptideIdentification& operator=(PeptideIdentification&&) = default; // TODO: add noexcept (gcc 4.8 bug)
     /// Equality operator
     bool operator==(const PeptideIdentification& rhs) const;
     /// Inequality operator
@@ -104,6 +108,8 @@ public:
     std::vector<PeptideHit>& getHits();
     /// Appends a peptide hit
     void insertHit(const PeptideHit& hit);
+    /// Appends a peptide hit
+    void insertHit(PeptideHit&& hit);
     /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit>& hits);
 
@@ -160,13 +166,6 @@ public:
     /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
-    /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
-    /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-    const DataValue& getMetaValue(const String& name) const;
-    /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-    void setMetaValue(const String& name, const DataValue& value);
-
-
 protected:
 
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
@@ -174,6 +173,7 @@ protected:
     double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
+    // hint: here is an alignment gap of 7 bytes <-- here --> use it when introducing new members with sizeof(m)<=4
     String base_name_;
     double mz_;
     double rt_;
@@ -181,4 +181,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_PEPTIDEIDENTIFICATION_H

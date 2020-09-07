@@ -4,7 +4,6 @@ set(directory include/OpenMS/DATASTRUCTURES)
 ### list all header files of the directory here
 set(sources_list_h
 Adduct.h
-BigString.h
 BinaryTreeNode.h
 CalibrationData.h
 ChargePair.h
@@ -24,27 +23,25 @@ Date.h
 DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
+FASTAContainer.h
 GridFeature.h
 IsotopeCluster.h
+KDTree.h
 ListUtils.h
 ListUtilsIO.h
+LPWrapper.h
 Map.h
 MassExplainer.h
+MatchedIterator.h
 Matrix.h
 Param.h
 QTCluster.h
 SeqanIncludeWrapper.h
-SparseVector.h
 String.h
 StringUtils.h
 StringListUtils.h
-SuffixArray.h
-SuffixArrayPeptideFinder.h
-SuffixArraySeqan.h
-SuffixArrayTrypticCompressed.h
-SuffixArrayTrypticSeqan.h
 ToolDescription.h
-LPWrapper.h
+
 )
 
 ### add path to the filenames
@@ -57,4 +54,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\DATASTRUCTURES" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

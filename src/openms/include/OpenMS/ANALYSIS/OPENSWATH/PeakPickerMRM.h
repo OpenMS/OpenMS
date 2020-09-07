@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,19 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
-#define OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
+
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #ifdef WITH_CRAWDAD
 #include <CrawdadWrapper.h>
@@ -66,16 +71,16 @@ namespace OpenMS
 
 public:
 
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
-
     //@{
     /// Constructor
     PeakPickerMRM();
 
     /// Destructor
-    ~PeakPickerMRM() {}
+    ~PeakPickerMRM() override {}
     //@}
+
+	/// indices into FloatDataArrays of resulting picked chromatograms
+	enum FLOATINDICES { IDX_FWHM = 0, IDX_ABUNDANCE = 1, IDX_LEFTBORDER = 2, IDX_RIGHTBORDER = 3, SIZE_OF_FLOATINDICES };
 
     /**
       @brief Finds peaks in a single chromatogram and annotates left/right borders
@@ -84,18 +89,28 @@ public:
 
       This function will return a picked chromatogram
     */
-    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
+    
+
+    /**
+      @brief Finds peaks in a single chromatogram and annotates left/right borders
+
+      It uses a modified algorithm of the PeakPickerHiRes
+
+      This function will return a picked chromatogram and a smoothed chromatogram
+    */
+    void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom);
 
 protected:
 
-    void pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
-    void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
     /**
       @brief Compute peak area (peak integration)
     */
-    void integratePeaks_(const RichPeakChromatogram& chromatogram);
+    void integratePeaks_(const MSChromatogram& chromatogram);
 
     /**
       @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
@@ -105,17 +120,17 @@ protected:
 
       It will return the index of the closest peak in the chromatogram.
     */
-    Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
+    Size findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak = 0);
 
     /**
       @brief Helper function to remove overlapping peaks in a single Chromatogram
 
     */
-    void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);
@@ -153,8 +168,11 @@ protected:
     /// Temporary vector to hold the peak right widths
     std::vector<int> right_width_;
 
+    PeakPickerHiRes pp_;
+    SavitzkyGolayFilter sgolay_;
+    GaussFilter gauss_;
+    SignalToNoiseEstimatorMedian<MSChromatogram > snt_;
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
 

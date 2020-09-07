@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -52,8 +52,8 @@ START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-MapAlignmentAlgorithmPoseClustering* ptr = 0;
-MapAlignmentAlgorithmPoseClustering* nullPointer = 0;
+MapAlignmentAlgorithmPoseClustering* ptr = nullptr;
+MapAlignmentAlgorithmPoseClustering* nullPointer = nullptr;
 START_SECTION((MapAlignmentAlgorithmPoseClustering()))
 	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -69,10 +69,10 @@ START_SECTION((template <typename MapType> void setReference(const MapType& map)
 }
 END_SECTION
 
-START_SECTION((void align(const MSExperiment<>& map, TransformationDescription& trafo)))
+START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo)))
 {
   MzMLFile f;
-  std::vector<MSExperiment<> > maps(2);
+  std::vector<PeakMap > maps(2);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in1.mzML.gz"), maps[0]);
   f.load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"), maps[1]);
 
@@ -89,7 +89,9 @@ START_SECTION((void align(const MSExperiment<>& map, TransformationDescription& 
   TransformationModelLinear lm(trafo.getDataPoints(),
                                trafo.getModelParameters());
   double slope, intercept;
-  lm.getParameters(slope, intercept);
+  String x_weight, y_weight;
+  double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+  lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
   TEST_REAL_SIMILAR(slope, 1.01164);
   TEST_REAL_SIMILAR(intercept, -32.0912);
 }

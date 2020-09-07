@@ -9,5 +9,3 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>" namespace 
         ConsensusIDAlgorithmAverage() nogil except +
         ConsensusIDAlgorithmAverage(ConsensusIDAlgorithmAverage) nogil except + #wrap-ignore
 
-        ## void apply(libcpp_vector[ PeptideIdentification ] & ids, Size number_of_runs) nogil except +
-

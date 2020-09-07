@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace xercesc;
 using namespace std;
@@ -90,7 +88,7 @@ namespace OpenMS
     }
     if (missing_sequence) 
     {
-      LOG_WARN << "Warning: Removed " << missing_sequence 
+      OPENMS_LOG_WARN << "Warning: Removed " << missing_sequence 
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);
@@ -104,7 +102,7 @@ namespace OpenMS
     }
     if (no_rt_count)
     {
-      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+      OPENMS_LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
                << ") peptide identifications have no retention time value."
                << endl;
     }
@@ -112,7 +110,7 @@ namespace OpenMS
     if (!lookup.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
-        __FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "No retention time information for peptide identifications found");
     }
 
@@ -136,7 +134,7 @@ namespace OpenMS
   }
 
 
-  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const MSExperiment<>& exp, const String& scan_regex)
+  void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& exp, const String& scan_regex)
   {
     // load spectra and extract scan numbers from the native IDs
     // (expected format: "... scan=#"):

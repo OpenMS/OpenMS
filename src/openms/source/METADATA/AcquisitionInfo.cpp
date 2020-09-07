@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -38,36 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  AcquisitionInfo::AcquisitionInfo() :
-    vector<Acquisition>(),
-    MetaInfoInterface()
-  {
-  }
-
-  AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo & source) :
-    vector<Acquisition>(source),
-    MetaInfoInterface(source),
-    method_of_combination_(source.method_of_combination_)
-  {
-
-  }
-
-  AcquisitionInfo::~AcquisitionInfo()
-  {
-  }
-
-  AcquisitionInfo & AcquisitionInfo::operator=(const AcquisitionInfo & source)
-  {
-    if (&source == this)
-      return *this;
-
-    vector<Acquisition>::operator=(source);
-    MetaInfoInterface::operator=(source);
-    method_of_combination_ = source.method_of_combination_;
-
-    return *this;
-  }
 
   bool AcquisitionInfo::operator==(const AcquisitionInfo & rhs) const
   {
@@ -92,3 +62,4 @@ namespace OpenMS
   }
 
 }
+

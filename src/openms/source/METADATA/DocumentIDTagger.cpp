@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIDTagger.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 
@@ -46,12 +47,8 @@
 #endif
 
 
-#include <algorithm>
-#include <fstream>
 #include <iostream>
-#include <exception>
-#include <cstdio>
-#include <ctime>
+#include <fstream>
 
 using namespace std;
 
@@ -64,24 +61,8 @@ namespace OpenMS
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger & source) :
-    toolname_(source.toolname_),
-    pool_file_(source.pool_file_)
-  {
-  }
-
   DocumentIDTagger::~DocumentIDTagger()
   {
-  }
-
-  DocumentIDTagger & DocumentIDTagger::operator=(const DocumentIDTagger & source)
-  {
-    if (source == *this)
-      return *this;
-
-    toolname_ = source.toolname_;
-    pool_file_ = source.pool_file_;
-    return *this;
   }
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
@@ -143,7 +124,7 @@ namespace OpenMS
     {
       flock.lock();
     }
-    catch (exception /*e*/)
+    catch (exception& /*e*/)
     {
       return false;
     }
@@ -237,7 +218,7 @@ namespace OpenMS
     else
       msg = String("Tool ") + toolname_ + String(" requested identifier from unaccessible ID pool '") + getPoolFile() + String("'. There should be ") + String(free) + String(" identifiers available!");
 
-    throw Exception::DepletedIDPool(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDTagger", msg);
+    throw Exception::DepletedIDPool(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDTagger", msg);
   }
 
   bool DocumentIDTagger::countFreeIDs(Int & free) const
@@ -258,3 +239,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

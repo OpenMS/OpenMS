@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,8 @@ START_TEST(SeedListGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SeedListGenerator* slg_ptr = 0;
-SeedListGenerator* slg_nullPointer = 0;
+SeedListGenerator* slg_ptr = nullptr;
+SeedListGenerator* slg_nullPointer = nullptr;
 
 START_SECTION((SeedListGenerator()))
 {
@@ -69,9 +69,9 @@ START_SECTION(([EXTRA] ~SeedListGenerator()))
 END_SECTION
 
 
-START_SECTION((void generateSeedList(const MSExperiment<>& experiment, SeedList& seeds)))
+START_SECTION((void generateSeedList(const PeakMap& experiment, SeedList& seeds)))
 {
-	MSExperiment<> experiment;
+	PeakMap experiment;
 	String path = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test.mzML");
 	MzMLFile().load(path, experiment);
 	SeedListGenerator::SeedList seeds;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-
-#include <iostream>
 
 using namespace std;
 
@@ -125,7 +124,7 @@ namespace OpenMS
     tmp.split(' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
     //field
     tmp = parts[0];
     tmp.toLower();
@@ -144,7 +143,7 @@ namespace OpenMS
       meta_name = tmp.suffix(tmp.size() - 6);
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid field name.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid field name", tmp);
     //operation
     tmp = parts[1];
     if (tmp == ">=")
@@ -159,7 +158,7 @@ namespace OpenMS
       return;
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid operator.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid operator", tmp);
     //value
     if (size > 3)     // string values may contain spaces, implode to a single string
     {
@@ -171,19 +170,19 @@ namespace OpenMS
     }
     else     // size < 3 && operation is binary (only "exists" is unary) --> invalid
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
     }
     try
     {
       value = tmp.toDouble();
       value_is_numerical = true;
     }
-    catch (Exception::ConversionError)
+    catch (Exception::ConversionError&)
     {
       value_is_numerical = false;
       if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
       else
       {
@@ -191,7 +190,7 @@ namespace OpenMS
       }
       if (!meta)       // non meta values must be numerical
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
       else
       {
@@ -200,7 +199,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilters::add(const DataFilter & filter)
+  void DataFilters::add(const DataFilter& filter)
   {
     //activate if not empty
     is_active_ = true;
@@ -219,7 +218,7 @@ namespace OpenMS
   void DataFilters::remove(Size index)
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     filters_.erase(filters_.begin() + index);
     meta_indices_.erase(meta_indices_.begin() + index);
 
@@ -231,7 +230,7 @@ namespace OpenMS
   void DataFilters::replace(Size index, const DataFilter & filter)
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     filters_[index] = filter;
     if (filter.field == DataFilters::META_DATA)
     {
@@ -258,7 +257,7 @@ namespace OpenMS
   const DataFilters::DataFilter & DataFilters::operator[](Size index) const
   {
     if (index >= filters_.size())
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, filters_.size());
     return filters_[index];
   }
 
@@ -369,6 +368,37 @@ namespace OpenMS
     }
     return true;
   }
+
+  bool DataFilters::metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const
+  {
+    if (!meta_interface.metaValueExists((UInt)index)) return false;
+    else if (filter.op != EXISTS)
+    {
+      const DataValue& data_value = meta_interface.getMetaValue((UInt)index);
+      if (!filter.value_is_numerical)
+      {
+        if (data_value.valueType() != DataValue::STRING_VALUE) return false;
+        else
+        {
+          // for string values, equality is the only valid operation (besides "exists", see above)
+          if (filter.op != EQUAL) return false;
+          else if (filter.value_string != data_value.toString()) return false;
+        }
+      }
+      else             // value_is_numerical
+      {
+        if (data_value.valueType() == DataValue::STRING_VALUE || data_value.valueType() == DataValue::EMPTY_VALUE) return false;
+        else
+        {
+          if (filter.op == EQUAL && (double)data_value != filter.value) return false;
+          else if (filter.op == LESS_EQUAL && (double)data_value > filter.value) return false;
+          else if (filter.op == GREATER_EQUAL && (double)data_value < filter.value) return false;
+        }
+      }
+    }
+    return true;
+  }
+
 
   void DataFilters::setActive(bool is_active)
   {

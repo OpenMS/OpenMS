@@ -1,13 +1,10 @@
 <ttd>
 	<tool status="external">
 		<category>does not really matter</category>
-		// multiple of these are allowed
 		<type>Rscript_qcfigures_inj</type>
-		#name# -- for internal only
-		// multiple of these allowed (same # as 'types') - for external only
 		<external>
 				<text>
-					<onstartup>Calling Rscript acc ...</onstartup>
+					<onstartup>Calling Rscript inj ...</onstartup>
 					<onfail>Something went wrong. Is 'R' in your PATH?</onfail>
 					<onfinish>Tool finished successfully.</onfinish>
 				</text>

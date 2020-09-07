@@ -6,8 +6,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "Open
 
     cdef cppclass DefaultParamHandler:
         #wrap-ignore
+        #no-pxd-import
 
-        # DefaultParamHandler(String & name) nogil except +
+        # DefaultParamHandler(const String & name) nogil except +
         # DefaultParamHandler(DefaultParamHandler & rhs) nogil except +
         # libcpp_vector[ String ] getSubsections() nogil except +
 
@@ -15,4 +16,4 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "Open
         Param getParameters()  nogil except +
         Param getDefaults()  nogil except +
         String getName()  nogil except +
-        void setName(String)  nogil except +
+        void setName(const String&)  nogil except +

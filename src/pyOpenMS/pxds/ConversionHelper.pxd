@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
                    Size n) nogil except +
     
       void convert(UInt64 input_map_index,
-                   MSExperiment[Peak1D, ChromatogramPeak] & input_map,
+                   MSExperiment & input_map,
                    ConsensusMap & output_map,
                    Size n) nogil except +
     

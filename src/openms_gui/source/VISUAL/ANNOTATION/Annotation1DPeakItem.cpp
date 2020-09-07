@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
@@ -61,55 +61,86 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DPeakItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  QRectF Annotation1DPeakItem::calculateBoundingBox(
+    const PointType & peak_position,
+    const PointType & position,
+    const QString & text,
+    Spectrum1DCanvas * const canvas,
+    bool flipped,
+    QPoint & position_widget,
+    QPoint & peak_position_widget,
+    double & horizontal_shift,
+    double & vertical_shift)
   {
-    painter.save();
-
-    painter.setPen(color_);
-    //translate mz/intensity to pixel coordinates
-    QPoint position_widget, peak_position_widget;
-
-    canvas->dataToWidget(position_.getX(), position_.getY(), position_widget, flipped, true);
-    canvas->dataToWidget(peak_position_.getX(), peak_position_.getY(), peak_position_widget, flipped, true);
+    // translate mz/intensity to pixel coordinates
+    canvas->dataToWidget(position.getX(), position.getY(), position_widget, flipped, true);
+    canvas->dataToWidget(peak_position.getX(), peak_position.getY(), peak_position_widget, flipped, true);
 
     // compute bounding box of text_item on the specified painter
-    bounding_box_ = painter.boundingRect(QRectF(position_widget, position_widget), Qt::AlignCenter, text_);
+    QRectF bounding_box = QApplication::fontMetrics().boundingRect(
+      position_widget.x(),
+      position_widget.y(),
+      0, 0,
+      Qt::AlignCenter,
+      text);
 
-    double vertical_shift = 0;
-    double horizontal_shift = 0;
+    vertical_shift = 0;
+    horizontal_shift = 0;
 
     if (canvas->isMzToXAxis())
     {
       // shift pos - annotation should be over peak or, if not possible, next to it
-      vertical_shift = bounding_box_.height() / 2 + 5;
+      vertical_shift = bounding_box.height() / 2 + 5;
       if (!flipped)
       {
         vertical_shift *= -1;
       }
 
-      bounding_box_.translate(0.0, vertical_shift);
+      bounding_box.translate(0.0, vertical_shift);
 
-      if (flipped && bounding_box_.bottom() > canvas->height())
+      if (flipped && bounding_box.bottom() > canvas->height())
       {
-        bounding_box_.moveBottom(canvas->height());
-        bounding_box_.moveLeft(position_widget.x() + 5.0);
+        bounding_box.moveBottom(canvas->height());
+        bounding_box.moveLeft(position_widget.x() + 5.0);
       }
-      else if (!flipped && bounding_box_.top() < 0.0)
+      else if (!flipped && bounding_box.top() < 0.0)
       {
-        bounding_box_.moveTop(0.0);
-        bounding_box_.moveLeft(position_widget.x() + 5.0);
+        bounding_box.moveTop(0.0);
+        bounding_box.moveLeft(position_widget.x() + 5.0);
       }
     }
     else
     {
       // annotation should be next to the peak (to its right)
-      horizontal_shift = bounding_box_.width() / 2 + 5;
-      bounding_box_.translate(horizontal_shift, 0.0);
-      if (bounding_box_.right() > canvas->width())
+      horizontal_shift = bounding_box.width() / 2 + 5;
+      bounding_box.translate(horizontal_shift, 0.0);
+      if (bounding_box.right() > canvas->width())
       {
-        bounding_box_.moveRight(canvas->width());
+        bounding_box.moveRight(canvas->width());
       }
     }
+
+    return bounding_box;
+  }
+
+  void Annotation1DPeakItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  {
+    painter.save();
+
+    painter.setPen(color_);
+
+    QPoint position_widget, peak_position_widget;
+    double horizontal_shift(0), vertical_shift(0);
+
+    bounding_box_ = calculateBoundingBox(peak_position_,
+      position_,
+      text_,
+      canvas,
+      flipped,
+      position_widget,
+      peak_position_widget,
+      horizontal_shift,
+      vertical_shift);
 
     // draw connection line between anchor point and current position if pixel coordinates differ significantly
     if ((position_widget - peak_position_widget).manhattanLength() > 2)
@@ -165,24 +196,119 @@ namespace OpenMS
       painter.setPen(Qt::DashLine);
       if (!found_intersection) // no intersection with bounding box of text -> normal drawing
       {
-        painter.drawLine(peak_position_widget, position_widget);
-        painter.drawLine(peak_position_widget, position_widget);
+        painter.drawLine(peak_position_widget, peak_position_widget + QPoint(0, vertical_shift));
+        painter.drawLine(peak_position_widget + QPoint(0, vertical_shift), position_widget);
       }
       else
       {
-        painter.drawLine(peak_position_widget, *closest_ip);
-        painter.drawLine(peak_position_widget, *closest_ip);
+        QPoint vertical_end = QPoint(peak_position_widget.x(), position_widget.y() + 20);
+
+        if (vertical_end.y() < peak_position_widget.y()) // label is above peak
+        {
+          painter.drawLine(peak_position_widget, vertical_end);
+          painter.drawLine(vertical_end, position_widget);
+        }
+        else // label is below peak
+        {
+          painter.drawLine(peak_position_widget, *closest_ip);
+          painter.drawLine(peak_position_widget, *closest_ip);
+        }
       }
       painter.restore();
       delete(ip);
       delete(closest_ip);
     }
 
-    painter.drawText(bounding_box_, Qt::AlignCenter, text_);
-    if (selected_)
+    // some pretty printing
+    QString text = text_;
+    if (!text.contains("<\\")) // don't process HTML strings again
     {
-      drawBoundingBox_(painter);
+      // extract ion index
+      {
+        QRegExp reg_exp("[abcdwxyz](\\d+)");
+        int match_pos = reg_exp.indexIn(text);
+
+        if (match_pos == 0)
+        {
+          QString index_str = reg_exp.cap(1);
+
+          // put sub html tag around number
+          text = text[match_pos]
+                + QString("<sub>") + index_str + QString("</sub>")
+                + text.right(text.size() - match_pos - index_str.size() - 1);
+        } 
+        else // protein-protein XL specific ion names
+        {
+          QRegExp reg_exp_xlms("(ci|xi)[$][abcxyz](\\d+)");
+          match_pos = reg_exp_xlms.indexIn(text);
+          if ( (match_pos == 6) || (match_pos == 7))
+          {
+            // set the match_pos to the position of the ion index
+            match_pos += 3;
+            QString index_str = reg_exp.cap(1);
+
+            // put sub html tag around number
+            text = text.left(match_pos)
+                  + text[match_pos]
+                  + QString("<sub>") + index_str + QString("</sub>")
+                  + text.right(text.size() - match_pos - index_str.size() - 1);
+          }
+        }
+      }
+
+      // common losses
+      text.replace("H2O1","H<sub>2</sub>O"); // mind the order with H2O substitution
+      text.replace("H2O","H<sub>2</sub>O");
+      text.replace("NH3","NH<sub>3</sub>");
+      text.replace("H3N1","NH<sub>3</sub>");
+      text.replace("C1H4O1S1", "H<sub>4</sub>COS");  // methionine sulfoxide loss
+
+      // nucleotide XL realted losses
+      text.replace("H3PO4","H<sub>3</sub>PO<sub>4</sub>");
+      text.replace("HPO3","HPO<sub>3</sub>");
+      text.replace("C3O","C<sub>3</sub>O");
+
+      // charge format: +z
+      QRegExp charge_rx("[\\+|\\-](\\d+)$");
+      int match_pos = charge_rx.indexIn(text);
+      if (match_pos > 0)
+      {
+        text = text.left(match_pos)
+               + QString("<sup>") + text[match_pos] // + or - 
+               + charge_rx.cap(1) + QString("</sup>"); // charge
+      }
+
+      // charge format: z+
+      charge_rx = QRegExp("(\\d+)[\\+|\\-]$");
+      match_pos = charge_rx.indexIn(text);
+      if (match_pos > 0)
+      {
+        text = text.left(match_pos)
+               + QString("<sup>") + charge_rx.cap(1) // charge 
+               + text[match_pos + charge_rx.cap(1).size()] + QString("</sup>"); // + or -
+      }
+
+      text.replace(QRegExp("\\+\\+$"), "<sup>2+</sup>");
+      text.replace(QRegExp("\\+$"), "");
+      text.replace(QRegExp("\\-\\-$"), "<sup>2-</sup>");
+      text.replace(QRegExp("\\-$"), "");
+
     }
+
+    text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
+    QTextDocument td;
+    td.setHtml(text);
+
+    //draw html text
+    painter.save();
+    double w = td.size().width();
+    double h = td.size().height();
+    painter.translate(position_widget.x() - w/2, position_widget.y() - h);
+    td.drawContents(&painter);
+    painter.restore();
+
+    //painter.drawText(bounding_box_, Qt::AlignCenter, text_);
+    if (selected_) { drawBoundingBox_(painter); }
 
     painter.restore();
   }
@@ -243,4 +369,4 @@ namespace OpenMS
     return color_;
   }
 
-} //Namespace
+} // Namespace

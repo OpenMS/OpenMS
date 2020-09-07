@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck, Chris Bielow$
 // --------------------------------------------------------------------------
 
-//#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -109,7 +113,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.", false);
     setValidFormats_("include", ListUtils::create<String>("featureXML,fasta"));
@@ -138,7 +142,7 @@ protected:
     registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
@@ -153,7 +157,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -225,7 +229,7 @@ protected:
           {
             list.writeTargets(map, out);
           }
-          catch (Exception::UnableToCreateFile)
+          catch (Exception::UnableToCreateFile&)
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -235,15 +239,15 @@ protected:
         {
 
           String raw_data_path = getStringOption_("raw_data");
-          MSExperiment<> exp, ms2;
+          PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
-          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+          out_map.setPrimaryMSRunPath({raw_data_path}, exp);
 
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
-                                           InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+                                           InMSLevelRange<MSSpectrum>(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
@@ -299,7 +303,7 @@ protected:
             }
             else list.writeTargets(out_map, out);
           }
-          catch (Exception::UnableToCreateFile)
+          catch ( Exception::UnableToCreateFile& )
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -354,7 +358,7 @@ protected:
           {
             list.writeTargets(entries, out, incl_charges, rt_model_file);
           }
-          catch (Exception::UnableToCreateFile)
+          catch (Exception::UnableToCreateFile&)
           {
             writeLog_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
@@ -390,7 +394,7 @@ protected:
         {
           list.writeTargets(map, out);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
@@ -405,17 +409,17 @@ protected:
         {
           list.writeTargets(pep_ids, out, excl_charges);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
-        catch (Exception::InvalidSize)
+        catch (Exception::InvalidSize&)
         {
           writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
           return ILLEGAL_PARAMETERS;
         }
-        catch (Exception::MissingInformation)
+        catch (Exception::MissingInformation&)
         {
           writeLog_("Error: Peptide identification contains no RT information.");
           return ILLEGAL_PARAMETERS;
@@ -443,7 +447,7 @@ protected:
         {
           list.writeTargets(entries, out, excl_charges, rt_model_file);
         }
-        catch (Exception::UnableToCreateFile)
+        catch (Exception::UnableToCreateFile&)
         {
           writeLog_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;

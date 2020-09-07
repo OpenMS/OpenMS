@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+#pragma once
 
 #define USE_SP_INTERFACE
 
@@ -41,9 +40,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
@@ -51,6 +52,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -95,27 +98,23 @@ namespace OpenMS
 public:
     ///Type definitions
     //@{
-
-    // All the filters expect MSSpectrum<PeakT>, thus we give it an "MSSpectrum"
-    // but filled with Chromatogram Peaks.
-    
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightTargetedExperiment TargetedExpType;
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
-    // a transition group holds the MSSpectra with the Chromatogram peaks from above
-    typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; 
+    // a transition group holds the chromatographic data and peaks across
+    // multiple chromatograms from the same compound
+    typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
+
     //@}
 
     /// Constructor
     MRMFeatureFinderScoring();
 
     /// Destructor
-    ~MRMFeatureFinderScoring();
+    ~MRMFeatureFinderScoring() override;
 
     /// Picker and prepare functions
     //@{
@@ -132,8 +131,8 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
-                        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map);
+    void pickExperiment(PeakMap & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
+                        TransformationDescription trafo, PeakMap& swath_map);
 
     /** @brief Pick features in one experiment containing chromatogram
      *
@@ -143,14 +142,18 @@ public:
      * @param trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map);
+    void pickExperiment(OpenSwath::SpectrumAccessPtr input,
+                        FeatureMap& output,
+                        OpenSwath::LightTargetedExperiment& transition_exp,
+                        TransformationDescription trafo,
+                        std::vector<OpenSwath::SwathMap> swath_maps,
+                        TransitionGroupMapType& transition_group_map);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
      *
@@ -159,45 +162,8 @@ public:
      * @param transition_exp The transition list describing the experiment
      *
     */
-    void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp);
+    void prepareProteinPeptideMaps_(const OpenSwath::LightTargetedExperiment& transition_exp);
     //@}
-
-    /** @brief Splits combined transition groups into detection transition groups
-     * 
-     * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_detection To be filled with detecting transitions
-    */
-    void splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection);
-
-    /** @brief Splits combined transition groups into identification transition groups
-     * 
-     * For standard assays, transition_group_identification is empty. When UIS scoring
-     * is enabled, it contains the corresponding identification transitions.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification To be filled with identifying transitions
-     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
-    */
-    void splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy);
-
-    /** @brief Provides scoring for target and decoy identification against detecting transitions
-     * 
-     * The function is used twice, for target and decoy identification transitions. The results are
-     * reported analogously to the ones for detecting transitions but must be stored separately.
-     *
-     * @param transition_group Containing all detecting, identifying transitions
-     * @param transition_group_identification Containing all detecting and identifying transitions
-     * @param scorer An instance of OpenSwathScoring
-     * @param feature_idx The index of the current feature
-     * @param native_ids_detection The native IDs of the detecting transitions
-     * @param sn_win_len_ The signal to noise window length
-     * @param sn_bin_count_ The signal to noise bin count
-     * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Scores containing either target or decoy values
-    */
-    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages, OpenSwath::SpectrumAccessPtr swath_map);
 
     /** @brief Score all peak groups of a transition group
      *
@@ -208,15 +174,19 @@ public:
      * @param trafo Optional transformation of the experimental retention time
      *              to the normalized retention time space used in the
      *              transition list.
-     * @param swath_map Optional SWATH-MS (DIA) map corresponding from which
-     *                  the chromatograms were extracted. Use empty map if no
-     *                  data is available.
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     *                   the chromatograms were extracted. Use empty map if no
+     *                   data is available.
      * @param output The output features with corresponding scores (the found
      *               features will be added to this FeatureMap).
+     * @param ms1only Whether to only do MS1 scoring and skip all MS2 scoring
      *
     */
-    void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output);
+    void scorePeakgroups(MRMTransitionGroupType& transition_group,
+                         const TransformationDescription & trafo,
+                         const std::vector<OpenSwath::SwathMap>& swath_maps,
+                         FeatureMap& output,
+                         bool ms1only = false);
 
     /** @brief Set the flag for strict mapping
     */
@@ -254,12 +224,64 @@ public:
      * @param rt_extraction_window The used retention time extraction window
      *
     */
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
-                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
+    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
+                                       OpenSwath::LightTargetedExperiment& transition_exp,
+                                       TransitionGroupMapType& transition_group_map,
+                                       TransformationDescription trafo,
+                                       double rt_extraction_window);
 private:
 
+    /** @brief Splits combined transition groups into detection transition groups
+     *
+     * For standard assays, transition_group_detection is identical to transition_group and the others are empty.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_detection To be filled with detecting transitions
+    */
+    void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
+                                         MRMTransitionGroupType& transition_group_detection);
+
+    /** @brief Splits combined transition groups into identification transition groups
+     *
+     * For standard assays, transition_group_identification is empty. When UIS scoring
+     * is enabled, it contains the corresponding identification transitions.
+     *
+     * @param transition_group Containing all detecting, identifying transitions
+     * @param transition_group_identification To be filled with identifying transitions
+     * @param transition_group_identification_decoy To be filled with identifying decoy transitions
+    */
+    void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
+                                              MRMTransitionGroupType& transition_group_identification,
+                                              MRMTransitionGroupType& transition_group_identification_decoy);
+
+    /** @brief Provides scoring for target and decoy identification against detecting transitions
+     *
+     * The function is used twice, for target and decoy identification transitions. The results are
+     * reported analogously to the ones for detecting transitions but must be stored separately.
+     *
+     * @param transition_group_identification Containing all detecting and identifying transitions
+     * @param scorer An instance of OpenSwathScoring
+     * @param feature_idx The index of the current feature
+     * @param native_ids_detection The native IDs of the detecting transitions
+     * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
+     * @param det_mi_ratio_score The MI score of the detection transitions for normalization
+     * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
+     *                  the chromatograms were extracted. Use empty map if no
+     *                  data is available.
+     * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
+    */
+    OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                                              OpenSwathScoring& scorer,
+                                              const size_t feature_idx,
+                                              const std::vector<std::string> & native_ids_detection,
+                                              const double det_intensity_ratio_score,
+                                              const double det_mi_ratio_score,
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps);
+
+    void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge);
+
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     // parameters
     double rt_extraction_window_;
@@ -267,26 +289,34 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    String scoring_model_;
 
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
+    String spectrum_addition_method_ ;
     double spacing_for_spectra_resampling_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
+
+    double sn_win_len_;
+    unsigned int sn_bin_count_;
+    bool write_log_messages_;
+
+    double im_extra_drift_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
+    OpenMS::SONARScoring sonarscoring_;
     OpenMS::EmgScoring emgscoring_;
 
-    // data 
+    // data
     OpenSwath::SpectrumAccessPtr ms1_map_;
 
   };
 }
 
 #undef run_identifier
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
 

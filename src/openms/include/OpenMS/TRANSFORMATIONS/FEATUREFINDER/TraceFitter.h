@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -88,7 +87,7 @@ protected:
     virtual TraceFitter& operator=(const TraceFitter& source);
 
     /// destructor
-    virtual ~TraceFitter();
+    ~TraceFitter() override;
 
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
@@ -171,7 +170,7 @@ protected:
       bool weighted;
     };
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /**
      * Updates all member variables to the fitted values stored in the solver.
@@ -193,4 +192,3 @@ protected:
 
 }
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_RTFITTING_H

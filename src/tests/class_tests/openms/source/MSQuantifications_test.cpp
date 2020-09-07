@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@ START_TEST(MSQuantifications, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSQuantifications* ptr = 0;
-MSQuantifications* null_ptr = 0;
+MSQuantifications* ptr = nullptr;
+MSQuantifications* null_ptr = nullptr;
 START_SECTION(MSQuantifications())
 {
 	ptr = new MSQuantifications();
@@ -175,7 +175,7 @@ START_SECTION((void assignUIDs()))
 }
 END_SECTION
 
-START_SECTION((void registerExperiment(MSExperiment< Peak1D > &exp, std::vector< std::vector< std::pair< String, double > > > labels)))
+START_SECTION((void registerExperiment(PeakMap &exp, std::vector< std::vector< std::pair< String, double > > > labels)))
 {
   // TODO
 }

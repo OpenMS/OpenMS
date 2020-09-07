@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@ START_TEST(MetaboliteSpectralMatching, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MetaboliteSpectralMatching* ptr = 0;
-MetaboliteSpectralMatching* null_ptr = 0;
+MetaboliteSpectralMatching* ptr = nullptr;
+MetaboliteSpectralMatching* null_ptr = nullptr;
 START_SECTION(MetaboliteSpectralMatching())
 {
 	ptr = new MetaboliteSpectralMatching();
@@ -67,13 +67,13 @@ START_SECTION((virtual ~MetaboliteSpectralMatching()))
 }
 END_SECTION
 
-START_SECTION((double computeHyperScore(MSSpectrum< Peak1D >, MSSpectrum< Peak1D >, const double &, const double &)))
+START_SECTION((double computeHyperScore(MSSpectrum, MSSpectrum, const double &, const double &)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((void run(MSExperiment<> &, MzTab &)))
+START_SECTION((void run(PeakMap &, MzTab &)))
 {
   // TODO
 }

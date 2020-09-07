@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
     
     cdef cppclass RangeManager1 "OpenMS::RangeManager<1>":
         # wrap-ignore
+        # no-pxd-import
         RangeManager1() nogil except +
         RangeManager1(RangeManager1) nogil except +
         DPosition1 getMin() nogil except +
@@ -16,6 +17,7 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
 
     cdef cppclass RangeManager2 "OpenMS::RangeManager<2>":
         # wrap-ignore
+        # no-pxd-import
         RangeManager2() nogil except +
         RangeManager2(RangeManager2) nogil except +
         DPosition2 getMin() nogil except +

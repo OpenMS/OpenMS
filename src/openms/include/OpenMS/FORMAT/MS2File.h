@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MS2FILE_H
-#define OPENMS_FORMAT_MS2FILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -80,11 +79,11 @@ public:
 
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
       if (!File::readable(filename))
       {
-        throw Exception::FileNotReadable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       exp.reset();
@@ -137,7 +136,7 @@ public:
           line.split(' ', split);
           if (split.size() != 4)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain four values, got " + String(split.size()) + "!", "");
           }
           spec.getPrecursors().resize(1);
           spec.getPrecursors()[0].setMZ(split[3].toDouble());
@@ -168,7 +167,7 @@ public:
         line.split(' ', split);
         if (split.size() != 2)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "line (" + String(line_number) + ") '" + line  + "' should contain two values, got " + String(split.size()) + "!", "");
         }
 
         try
@@ -176,9 +175,9 @@ public:
           p.setPosition(split[0].toDouble());
           p.setIntensity(split[1].toFloat());
         }
-        catch (Exception::ConversionError /*&e*/)
+        catch ( Exception::ConversionError& )
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ConversionError: line (" + String(line_number) + ") '" + line  + "' does not contain two numbers!", "");
         }
         spec.push_back(p);
       }
@@ -204,4 +203,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MS2FILE_H

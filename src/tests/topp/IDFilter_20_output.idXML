@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="D:\data\proteome-databases-OpenMS\uniprot_homo-sapiens_June-2017_canonical-without-isoforms_reviewed_plus-contaminants_plus_shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+				<UserParam type="string" name="MS:1001211" value=""/>
+				<UserParam type="string" name="MS:1001256" value=""/>
+				<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
+				<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
+				<UserParam type="string" name="Instrument" value="QExactive"/>
+				<UserParam type="string" name="MaxCharge" value="4"/>
+				<UserParam type="string" name="MaxIsotopeError" value="0"/>
+				<UserParam type="string" name="MaxNumModifications" value="3"/>
+				<UserParam type="string" name="MaxPepLength" value="40"/>
+				<UserParam type="string" name="MinCharge" value="2"/>
+				<UserParam type="string" name="MinIsotopeError" value="0"/>
+				<UserParam type="string" name="MinPepLength" value="7"/>
+				<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
+				<UserParam type="string" name="NumTolerableTermini" value="2"/>
+				<UserParam type="string" name="Protocol" value="Standard"/>
+				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
+	</SearchParameters>
+	<IdentificationRun date="2017-08-16T10:02:38" search_engine="MS-GF+" search_engine_version="Release (v2017.01.27)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[N:\UK\UK181-209_Urinary_biomarkers_individual_samples_labelfree\UK184.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+</IdXML>

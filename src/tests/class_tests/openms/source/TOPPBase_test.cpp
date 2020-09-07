@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -36,13 +36,16 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <cstdlib>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -56,16 +59,28 @@ class TOPPBaseTest
     TOPPBaseTest()
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
-      main(0,0);
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+      main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
       : TOPPBase("TOPPBaseTest", "A test class", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","string default","string description",false);
       registerIntOption_("intoption","<int>",4711,"int description",false);
@@ -131,7 +146,7 @@ class TOPPBaseTest
       return getFlag_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -151,7 +166,7 @@ class TOPPBaseTest
       outputFileWritable_(filename, param_name);
     }
 
-    void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
+    void addDataProcessing(PeakMap& map, DataProcessing::ProcessingAction action)
     {
     	DataProcessing dp = getProcessingInfo_(action);
 
@@ -180,16 +195,28 @@ class TOPPBaseTestNOP
     TOPPBaseTestNOP()
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
-      main(0,0);
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+      main(0,nullptr);
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
       : TOPPBase("TOPPBaseTestNOP", "A test class with non-optional parameters", false)
     {
+      char* var = (char*)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","","string description");
       registerIntOption_("intoption","<int>",0,"int description",false);
@@ -229,7 +256,7 @@ class TOPPBaseTestNOP
       return getDoubleList_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -242,26 +269,32 @@ class TOPPBaseTestParam: public TOPPBase
     TOPPBaseTestParam(const Param& param):
 			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
     {
-      main(0, 0);
+      static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
+      main(0, nullptr);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
-			registerFullParam_(test_param_);
-		}
+      registerFullParam_(test_param_);
+    }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
 
-	  const Param& getParam() const
-		{
-			return getParam_();
-		}
+    const Param& getParam() const
+    {
+      return getParam_();
+    }
 
   private:
-	  Param test_param_;
+    Param test_param_;
 };
 
 //test class with optional parameters
@@ -274,17 +307,29 @@ public:
     : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
   }
 
   ExitCodes run(int argc , const char** argv)
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return EXECUTION_OK;
   }
 };
@@ -299,14 +344,14 @@ public:
   : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerStringOption_("stringoption","<string>","","string description");
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("other", "Other parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String & section) const override
   {
     Param p;
     if (section == "algorithm")
@@ -314,20 +359,30 @@ public:
       p.setValue("param1", "param1_value", "param1_description");
       p.setValue("param2", "param2_value", "param2_description");
     }
-    else
+    else // "other"
     {
       p.setValue("param3", "param3_value", "param3_description");
       p.setValue("param4", "param4_value", "param4_description");
+      p.setValue("flagparam", "false", "this will be a flag");
+      p.setValidStrings("flagparam", {"true","false"});
+      p.setValue("nonflagparam", "true", "this will be a string param with true/false");
+      p.setValidStrings("nonflagparam", {"true","false"});
     }
     return p;
   }
 
   ExitCodes run(int argc , const char** argv)
   {
+    static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv(var);
+#else
+      putenv(var);
+#endif
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
     return EXECUTION_OK;
   }
@@ -349,9 +404,9 @@ public:
 
 /////////////////////////////////////////////////////////////
 
-TOPPBaseTest* ptr = 0;
-TOPPBaseTest* nullPointer = 0;
-START_SECTION((TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "")))
+TOPPBaseTest* ptr = nullptr;
+TOPPBaseTest* nullPointer = nullptr;
+START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -394,6 +449,7 @@ const char* a18 ="-intlist";
 const char* a19 ="-doublelist";
 const char* a20 ="0.411";
 const char* a21 = "-write_ini";
+const char* test = "-test";
 
 START_SECTION(([EXTRA]String const& getIniLocation_() const))
 	//default
@@ -491,6 +547,17 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setMinFloat(doublelist2,0.2);
 	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
+	WHITELIST("version")
+	TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_out.ini"))
+
+  String filename2;
+  NEW_TMP_FILE(filename2);
+  const char* f_name2 = filename2.c_str();
+  const char* b = "TOPPBaseCmdParseSubsectionsTest";
+  const char* write_ini2[3]={b, a21, f_name2};
+  TOPPBaseCmdParseSubsectionsTest tmp10{};
+	tmp10.run(3, write_ini2);
+  TEST_FILE_SIMILAR(filename2, OPENMS_GET_TEST_DATA_PATH("TOPPBase_test_write_ini_subsec_out.ini"))
 END_SECTION
 
 START_SECTION(([EXTRA]String getIntOption_(const String& name) const))
@@ -552,8 +619,8 @@ START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	const char* string_cl[3]={a1, a19, a20}; //commandline:"TOPPBaseTest -doublelist 0.411"
 	TOPPBaseTest tmp2(3, string_cl);
 	TEST_EQUAL(tmp2.getDoubleList("doublelist") == ListUtils::create<double>("0.411"), true)
-	const char* a21 = "4.0";
-	const char* string_cl2[5]={a1,a19,a20,a13,a21};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
+	const char* a210 = "4.0";
+	const char* string_cl2[5]={a1, a19, a20, a13, a210};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
 	TOPPBaseTest tmp3(5,string_cl2);
 	TEST_EQUAL(tmp3.getDoubleList("doublelist") == ListUtils::create<double>("0.411,4.5,4.0"), true)
 
@@ -611,9 +678,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]void inputFileReadable_(const String& filename, const String& param_name) const))
 	TOPPBaseTest tmp;
-	TEST_EXCEPTION(Exception::FileNotFound,tmp.inputFileReadable("/this/file/does/not/exist.txt","someparam"));
-	TEST_EXCEPTION(Exception::FileEmpty,tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
-	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"),"ini");
+	TEST_EXCEPTION(Exception::FileNotFound, tmp.inputFileReadable("/this/file/does/not/exist.txt", "someparam"));
+	TEST_EXCEPTION(Exception::FileEmpty, tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_empty.txt"), "someparam"));
+	tmp.inputFileReadable(OPENMS_GET_TEST_DATA_PATH("TOPPBase_common.ini"), "ini");
 END_SECTION
 
 START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const String& param_name) const))
@@ -661,23 +728,8 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 }
 END_SECTION
 
-START_SECTION(([EXTRA]Param getParam_( const std::string& prefix ) const))
-{
-	//ini file
-	const char* tmp_argv[] = {a1, a3, a7}; //command line: "TOPPBaseTest -ini data/TOPPBase_toolcommon.ini"
-	TOPPBaseTest tmp_topp(sizeof(tmp_argv)/sizeof(*tmp_argv),tmp_argv);
-
-	Param good_params = tmp_topp.getParam();
-	good_params.setValue( "TOPPBaseTest:stringoption", "toolcommon" );
-	good_params.setValue( "ini", OPENMS_GET_TEST_DATA_PATH("TOPPBase_toolcommon.ini") );
-	good_params.setValue( "stringoption", "instance1" );
-
-	TEST_EQUAL(tmp_topp.getParam(), good_params);
-}
-END_SECTION
-
 START_SECTION(([EXTRA] data processing methods))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(2);
 
 	TOPPBaseTest topp;
@@ -727,15 +779,15 @@ END_SECTION
 START_SECTION(([EXTRA] misc options on command line))
 {
   // misc text option
-	const char* string_cl[2] = {a1, a12}; //command line: "TOPPBaseTest commandline"
-	TOPPBaseCmdParseTest tmp1;
-  TOPPBase::ExitCodes ec1 = tmp1.run(2,string_cl);
+  const char* string_cl[3] = {a1, a12, test}; //command line: "TOPPBaseTest commandline"
+  TOPPBaseCmdParseTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(3,string_cl);
   TEST_EQUAL(ec1, TOPPBase::ILLEGAL_PARAMETERS)
 
   // unknown option
   TOPPBaseCmdParseTest tmp2;
-	const char* string_cl_2[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
-  TOPPBase::ExitCodes ec2 = tmp1.run(3,string_cl_2);
+  const char* string_cl_2[4] = {a1, a10, a12, test}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBase::ExitCodes ec2 = tmp1.run(4,string_cl_2);
   TEST_EQUAL(ec2, TOPPBase::ILLEGAL_PARAMETERS)
 }
 END_SECTION
@@ -753,9 +805,9 @@ const char* a30 = temp_a30.c_str();
 
 START_SECTION(([EXTRA] test subsection parameters))
 {
-  const char* string_cl_1[3] = {a1, a10, a12}; //command line: "TOPPBaseTest -stringoption commandline"
-	TOPPBaseCmdParseSubsectionsTest tmp1;
-  TOPPBase::ExitCodes ec1 = tmp1.run(3, string_cl_1);
+  const char* string_cl_1[4] = {a1, a10, a12, test}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(4, string_cl_1);
   TEST_EQUAL(ec1, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp1.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp1.getParam().getValue("algorithm:param1"), "param1_value");
@@ -764,9 +816,9 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp1.getParam().getValue("other:param4"), "param4_value");
 
   // overwrite from cmd
-  const char* string_cl_2[11] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
-	TOPPBaseCmdParseSubsectionsTest tmp2;
-  TOPPBase::ExitCodes ec2 = tmp2.run(11, string_cl_2);
+  const char* string_cl_2[12] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29, test}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp2;
+  TOPPBase::ExitCodes ec2 = tmp2.run(12, string_cl_2);
   TEST_EQUAL(ec2, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp2.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp2.getParam().getValue("algorithm:param1"), "val1");
@@ -775,9 +827,9 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp2.getParam().getValue("other:param4"), "val4");
 
   // overwrite ini values from cmd
-  const char* string_cl_3[9] = {a1, a3, a30, a22, a26, a25, a29, a10, a12 }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
-	TOPPBaseCmdParseSubsectionsTest tmp3;
-  TOPPBase::ExitCodes ec3 = tmp3.run(9, string_cl_3);
+  const char* string_cl_3[10] = {a1, a3, a30, a22, a26, a25, a29, a10, a12, test }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
+  TOPPBaseCmdParseSubsectionsTest tmp3;
+  TOPPBase::ExitCodes ec3 = tmp3.run(10, string_cl_3);
   TEST_EQUAL(ec3, TOPPBase::EXECUTION_OK)
   TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
   TEST_EQUAL(tmp3.getParam().getValue("algorithm:param1"), "val1");

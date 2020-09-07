@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
 
         void createAndSolveILPForKnownLCMSMapFeatureBased(
             FeatureMap & features,
-            MSExperiment[ Peak1D, ChromatogramPeak ] & experiment,
+            MSExperiment & experiment,
             libcpp_vector[ IndexTriple ] & variable_indices,
             libcpp_vector[ libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] & mass_ranges, 
             libcpp_set[ int ] & charges_set,
@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
             PrecursorIonSelectionPreprocessing & preprocessing,
             UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap & precursors, bool solve_ILP) nogil except +
 
-        void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(FeatureMap & features, MSExperiment[ Peak1D, ChromatogramPeak ] & experiment, 
+        void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(FeatureMap & features, MSExperiment & experiment, 
             libcpp_vector[ IndexTriple ] & variable_indices, libcpp_vector[ int ] & solution_indices, 
             libcpp_vector[ libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] & mass_ranges, 
             libcpp_set[ Int ] & charges_set, UInt ms2_spectra_per_rt_bin, Size step_size, bool sequential_order) nogil except + # wrap-ignore

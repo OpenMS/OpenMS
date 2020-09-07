@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,24 +47,24 @@ START_TEST(MRMAssay, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMAssay * ptr = 0;
-MRMAssay* nullPointer = 0;
+MRMAssay * ptr = nullptr;
+MRMAssay* nullPointer = nullptr;
 
 class MRMAssay_test :
   public MRMAssay
 {
 public:
-  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
+  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
   {
     return getMatchingPeptidoforms_(fragment_ion, ions, mz_threshold);
   }
 
-  int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int getSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     return getSwath_(swathes, precursor_mz);
   }
 
-  bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool isInSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     return isInSwath_(swathes, precursor_mz, product_mz);
   }
@@ -84,14 +84,14 @@ public:
     return addModificationsSequences_(sequences, mods_combs, modification);
   }
 
-  std::vector<OpenMS::AASequence> combineModifications_test(OpenMS::AASequence sequence)
+  std::vector<OpenMS::AASequence> generateTheoreticalPeptidoforms_test(OpenMS::AASequence sequence)
   {
-    return combineModifications_(sequence);
+    return generateTheoreticalPeptidoforms_(sequence);
   }
 
-  std::vector<OpenMS::AASequence> combineDecoyModifications_test(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence)
+  std::vector<OpenMS::AASequence> generateTheoreticalPeptidoformsDecoy_test(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence)
   {
-    return combineDecoyModifications_(sequence, decoy_sequence);
+    return generateTheoreticalPeptidoformsDecoy_(sequence, decoy_sequence);
   }
 
 };
@@ -110,7 +110,7 @@ START_SECTION(~MRMAssay())
 
 END_SECTION
 
-START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
+START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold); )
 {
   MRMAssay_test mrma;
 
@@ -357,38 +357,50 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
 
 END_SECTION
 
-START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(OpenMS::AASequence sequence))
+START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::generateTheoreticalPeptidoforms_(OpenMS::AASequence sequence))
 {
   MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
+  std::vector<AASequence> sequences = mrma.generateTheoreticalPeptidoforms_test(AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"));
 
-  TEST_EQUAL(sequences.size(), 7)
-  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PEPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PEPTDIEK(Phospho)"));
-  TEST_EQUAL(sequences[3], AASequence::fromString("PEPT(Acetyl)D(Phospho)IEK"));
-  TEST_EQUAL(sequences[4], AASequence::fromString("PEPT(Acetyl)DIEK(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString("PEPT(Phospho)DIEK(Acetyl)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString("PEPTD(Phospho)IEK(Acetyl)"));
+  TEST_EQUAL(sequences.size(), 13)
+  TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PE(Phospho)PTDIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PEPTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[3], AASequence::fromString(".(Acetyl)PEPTDIE(Phospho)K"));
+  TEST_EQUAL(sequences[4], AASequence::fromString(".(Acetyl)PEPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString("PE(Phospho)PT(Acetyl)DIEK"));
+  TEST_EQUAL(sequences[6], AASequence::fromString("PEPT(Acetyl)D(Phospho)IEK"));
+  TEST_EQUAL(sequences[7], AASequence::fromString("PEPT(Acetyl)DIE(Phospho)K"));
+  TEST_EQUAL(sequences[8], AASequence::fromString("PEPT(Acetyl)DIEK(Phospho)"));
+  TEST_EQUAL(sequences[9], AASequence::fromString("PE(Phospho)PTDIEK(Acetyl)"));
+  TEST_EQUAL(sequences[10], AASequence::fromString("PEPT(Phospho)DIEK(Acetyl)"));
+  TEST_EQUAL(sequences[11], AASequence::fromString("PEPTD(Phospho)IEK(Acetyl)"));
+  TEST_EQUAL(sequences[12], AASequence::fromString("PEPTDIE(Phospho)K(Acetyl)"));
 }
 
 END_SECTION
 
-START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModifications_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence))
+START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::generateTheoreticalPeptidoformsDecoy_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence))
 {
   MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineDecoyModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"), AASequence::fromString("PESTDIEK"));
+  std::vector<AASequence> sequences = mrma.generateTheoreticalPeptidoformsDecoy_test(AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"), AASequence::fromString("PESTDIEK"));
 
-  TEST_EQUAL(sequences.size(), 7)
-  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEST(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PESTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PESTDIEK(Phospho)"));
-  TEST_EQUAL(sequences[3], AASequence::fromString("PEST(Acetyl)D(Phospho)IEK"));
-  TEST_EQUAL(sequences[4], AASequence::fromString("PEST(Acetyl)DIEK(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString("PEST(Phospho)DIEK(Acetyl)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString("PESTD(Phospho)IEK(Acetyl)"));
+  TEST_EQUAL(sequences.size(), 13)
+  TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PE(Phospho)STDIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PEST(Phospho)DIEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PESTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[3], AASequence::fromString(".(Acetyl)PESTDIE(Phospho)K"));
+  TEST_EQUAL(sequences[4], AASequence::fromString(".(Acetyl)PESTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString("PE(Phospho)ST(Acetyl)DIEK"));
+  TEST_EQUAL(sequences[6], AASequence::fromString("PEST(Acetyl)D(Phospho)IEK"));
+  TEST_EQUAL(sequences[7], AASequence::fromString("PEST(Acetyl)DIE(Phospho)K"));
+  TEST_EQUAL(sequences[8], AASequence::fromString("PEST(Acetyl)DIEK(Phospho)"));
+  TEST_EQUAL(sequences[9], AASequence::fromString("PE(Phospho)STDIEK(Acetyl)"));
+  TEST_EQUAL(sequences[10], AASequence::fromString("PEST(Phospho)DIEK(Acetyl)"));
+  TEST_EQUAL(sequences[11], AASequence::fromString("PESTD(Phospho)IEK(Acetyl)"));
+  TEST_EQUAL(sequences[12], AASequence::fromString("PESTDIE(Phospho)K(Acetyl)"));
 }
 
 END_SECTION
@@ -407,7 +419,6 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   fragment_types1.push_back(String("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
-  bool enable_reannotation1 = true;
   bool enable_losses1 = false;
 
   String out1 = "MRMAssay_reannotateTransitions_output_1.TraML";
@@ -416,13 +427,13 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1,
       product_mz_threshold1, fragment_types1, fragment_charges1,
-      enable_reannotation1, enable_losses1, enable_losses1);
+      enable_losses1, enable_losses1);
 
   String test1;
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   double precursor_mz_threshold2 = 0.05;
   double product_mz_threshold2 = 0.05;
@@ -432,41 +443,19 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
-  bool enable_reannotation2 = true;
   bool enable_losses2 = true;
 
   String out2 = "MRMAssay_reannotateTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_reannotation2, enable_losses2, enable_losses2);
+  mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2);
 
   String test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
-
-  double precursor_mz_threshold3 = 0.05;
-  double product_mz_threshold3 = 0.05;
-  std::vector<String> fragment_types3;
-  fragment_types3.push_back(String("y"));
-  std::vector<size_t> fragment_charges3;
-  fragment_charges3.push_back(2);
-  bool enable_reannotation3 = false; // if no reannotation is conducted, all unannotated transitions will be removed
-  bool enable_losses3 = false;
-
-  String out3 = "MRMAssay_reannotateTransitions_output_3.TraML";
-
-  TargetedExperiment targeted_exp3 = targeted_exp;
-
-  mrma.reannotateTransitions(targeted_exp3, precursor_mz_threshold3, product_mz_threshold3, fragment_types3, fragment_charges3, enable_reannotation3, enable_losses3, enable_losses3);
-
-  String test3;
-  NEW_TMP_FILE(test3);
-  traml.store(test3, targeted_exp3);
-
-  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 }
 
 END_SECTION
@@ -526,7 +515,7 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment& exp, double l
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -553,7 +542,34 @@ START_SECTION(void detectingTransitions(OpenMS::TargetedExperiment& exp, int min
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+
+}
+
+END_SECTION
+
+START_SECTION(void detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions))
+{
+  TraMLFile traml;
+  TargetedExperiment targeted_exp;
+  String in = "MRMAssay_detectingTransistionCompound_input.TraML";
+  traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
+  MRMAssay mrma;
+
+  int min_transitions = 3;
+  int max_transitions = 6;
+
+  String out1 = "MRMAssay_detectingTransitionCompound_output.TraML";
+
+  TargetedExperiment targeted_exp1 = targeted_exp;
+
+  mrma.detectingTransitionsCompound(targeted_exp1, min_transitions, max_transitions);
+
+  String test1;
+  NEW_TMP_FILE(test1);
+  traml.store(test1, targeted_exp1);
+
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
 }
 
@@ -610,7 +626,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
+#else
+  String out1 = "MRMAssay_uisTransitions_output_1_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -620,7 +640,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -631,7 +651,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
+#else
+  String out2 = "MRMAssay_uisTransitions_output_2_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -641,7 +665,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
 }
 
@@ -697,7 +721,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
+#else
+  String out1 = "MRMAssay_uisTransitions_output_3_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -707,7 +735,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test1);
   traml.store(test1, targeted_exp1);
 
-  TEST_FILE_EQUAL(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
+  TEST_FILE_SIMILAR(test1.c_str(), OPENMS_GET_TEST_DATA_PATH(out1))
 
   std::vector<String> fragment_types2;
   fragment_types2.push_back(String("y"));
@@ -719,7 +747,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
+#else
+  String out2 = "MRMAssay_uisTransitions_output_4_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -729,7 +761,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
-  TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
+  TEST_FILE_SIMILAR(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
 
   std::vector<String> fragment_types3;
   fragment_types3.push_back(String("y"));
@@ -741,7 +773,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out3 = "MRMAssay_uisTransitions_output_5.TraML";
+#else
+  String out3 = "MRMAssay_uisTransitions_output_5_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 
@@ -751,7 +787,7 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   NEW_TMP_FILE(test3);
   traml.store(test3, targeted_exp3);
 
-  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
+  TEST_FILE_SIMILAR(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
 
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,8 +41,8 @@
 
 #include "OpenSwathTestHelper.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
@@ -50,12 +50,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 
 ///////////////////////////
 
@@ -67,8 +67,8 @@ START_TEST(MRMScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwath::MRMScoring* ptr = 0;
-OpenSwath::MRMScoring* nullPointer = 0;
+OpenSwath::MRMScoring* ptr = nullptr;
+OpenSwath::MRMScoring* nullPointer = nullptr;
 
 START_SECTION(MRMScoring())
 {
@@ -86,9 +86,9 @@ END_SECTION
 ///////////////////////////////////////////////////////////////////////////
 // testing the individual scores that are produced
 // calcXcorrCoelutionScore
-// calcXcorrCoelutionScore_weighted
-// calcXcorrShape_score
-// calcXcorrShape_score_weighted
+// calcXcorrCoelutionWeightedScore
+// calcXcorrShapeScore
+// calcXcorrShapeWeightedScore
 // calcLibraryScore
 START_SECTION([EXTRA] test_scores())
 {
@@ -113,9 +113,9 @@ START_SECTION([EXTRA] test_scores())
   for(Size m =0; m<normalized_library_intensity.size();m++) { normalized_library_intensity[m] /= sumx;}
 
   TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 2.26491106406735)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore_weighted(normalized_library_intensity), 1.375)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), 0.757687954406132)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(normalized_library_intensity), 0.7130856895)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionWeightedScore(normalized_library_intensity), 1.375)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeScore(), 0.757687954406132)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeWeightedScore(normalized_library_intensity), 0.7130856895)
 
   // numpy
   double library_corr, library_rmsd;
@@ -138,13 +138,12 @@ END_SECTION
 // dia_isotope_scores
 // dia_massdiff_score
 // dia_by_ion_score
-// set_dia_parameters
 START_SECTION((virtual void test_dia_scores()))
 {
   OpenSWATH_Test::MRMTransitionGroupType transition_group;
   transition_group = OpenSWATH_Test::createMockTransitionGroup();
 
-  MSExperiment<Peak1D> swath_map;
+  PeakMap swath_map;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), swath_map);
 
   MRMFeature mrmfeature = OpenSWATH_Test::createMockFeature();
@@ -152,11 +151,11 @@ START_SECTION((virtual void test_dia_scores()))
   int by_charge_state = 1;
 
   // find spectrum that is closest to the apex of the peak (set to 3120) using binary search
-  MSSpectrum<Peak1D> OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
+  MSSpectrum OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
 
   OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-  for(MSSpectrum<>::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
+  for(MSSpectrum::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
   {
     mz_array->data.push_back(it->getMZ());
     intensity_array->data.push_back(it->getIntensity());
@@ -167,7 +166,16 @@ START_SECTION((virtual void test_dia_scores()))
 
   OpenSwath::MRMScoring mrmscore;
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  // diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  Param p_dia = diascoring.getDefaults();
+  p_dia.setValue("dia_extraction_window", 0.05);
+  p_dia.setValue("dia_extraction_unit", "Th");
+  p_dia.setValue("dia_centroided", "false");
+  p_dia.setValue("dia_byseries_intensity_min", 30.0);
+  p_dia.setValue("dia_byseries_ppm_diff", 50.0);
+  p_dia.setValue("dia_nr_isotopes", 4);
+  p_dia.setValue("dia_nr_charges", 4);
+  diascoring.setParameters(p_dia);
 
   // calculate the normalized library intensity (expected value of the intensities)
   // Numpy
@@ -193,8 +201,9 @@ START_SECTION((virtual void test_dia_scores()))
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;
+  std::vector<double> ppm_errors;
   diascoring.dia_massdiff_score(transition_group.getTransitions(),
-    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
@@ -202,12 +211,19 @@ START_SECTION((virtual void test_dia_scores()))
   OpenMS::AASequence aas = AASequence::fromString(sequence);
   diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
 
-  TEST_REAL_SIMILAR(isotope_corr, 0.286635451556 * transition_group.getTransitions().size() )
-  TEST_REAL_SIMILAR(isotope_corr, 0.859906354668202)
+  TEST_REAL_SIMILAR(isotope_corr, 0.2866618 * transition_group.getTransitions().size() )
+  TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
-  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)
+  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981 / 3)
   TEST_REAL_SIMILAR(ppm_score_weighted, 0.484116946070573)
+
+  double ppm_expected[] = {618.30999999999995, 0.17257858483247876, 628.43499999999995, 0.79565530730866774, 628.43499999999995, 0.79565530730866774};
+  for (size_t i = 0; i < ppm_errors.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(ppm_errors[i], ppm_expected[i]);
+  }
+
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,26 +28,27 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
+
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QStringList>
-#include <QtGui/QPushButton>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QMessageBox>
-#include <QtGui/QRadioButton>
-#include <QtGui/QFileDialog>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCheckBox>
 #include <QProcess>
 
 using namespace std;
@@ -72,13 +73,14 @@ namespace OpenMS
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
+    editor_->setMinimumSize(500, 500);
     main_grid->addWidget(editor_, 1, 0, 1, 1);
 
     QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load"));
+    QPushButton* load_button = new QPushButton(tr("&Load from file"));
     connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store"));
+    QPushButton* store_button = new QPushButton(tr("&Store to file"));
     connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
     hbox->addWidget(store_button);
     hbox->addStretch();
@@ -98,9 +100,6 @@ namespace OpenMS
     setLayout(main_grid);
 
     editor_->load(*param_);
-
-    String str;
-
     editor_->setFocus(Qt::MouseFocusReason);
 
     setWindowTitle(tool_name.toQString() + " " + tr("configuration"));
@@ -198,7 +197,7 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.store(tmp_ini_file.toStdString(), arg_param_);
       //restore other parameters that might be missing
-      QString executable = File::findExecutable(tool_name_).toQString();
+      QString executable = File::findSiblingTOPPExecutable(tool_name_).toQString();
       QStringList args;
       args << "-write_ini" << filename_ << "-ini" << tmp_ini_file;
       if (tool_type_ != "")
@@ -208,7 +207,7 @@ namespace OpenMS
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(0, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,22 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <iostream>
 #include <fstream>
-#include <limits>
-#include <string>
 
 using namespace std;
 
@@ -106,7 +101,7 @@ namespace OpenMS
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     Size line_number(0);     // used to report in which line an error occurred
@@ -132,14 +127,14 @@ namespace OpenMS
       if (pnovo_modkey_to_mod_id.find(*mod_it) != pnovo_modkey_to_mod_id.end())
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
-        ResidueModification tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
+        const ResidueModification* tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
         if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "$")
         {
-          mod_mask_map[*mod_it] = "(" + tmp_mod.getId() + ")";
+          mod_mask_map[*mod_it] = "(" + tmp_mod->getId() + ")";
         }
         else
         {
-          mod_mask_map[*mod_it] = tmp_mod.getOrigin() + "(" + tmp_mod.getId() + ")";
+          mod_mask_map[*mod_it] = String(tmp_mod->getOrigin()) + "(" + tmp_mod->getId() + ")";
         }
       }
       else
@@ -176,7 +171,7 @@ namespace OpenMS
         //String index = File::basename(line.substr(line.find(' ', strlen(">> ")) + 1));
         if (substrings.size() < 3)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
         }
 
         try
@@ -185,7 +180,7 @@ namespace OpenMS
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
         }
 
         //cout<<"INDEX: "<<index<<endl;
@@ -199,7 +194,7 @@ namespace OpenMS
             peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
-          else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          else throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
 
         if (!success)
@@ -221,7 +216,7 @@ namespace OpenMS
           {
 
           }
-          if (!success) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
+          if (!success) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);
@@ -256,7 +251,7 @@ namespace OpenMS
           {
             result_file.close();
             result_file.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
           }
         }
         while (getline(result_file, line))
@@ -276,7 +271,7 @@ namespace OpenMS
             {
               result_file.close();
               result_file.clear();
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
+              throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough columns in file in line " + String(line_number) + String(" (should be 8)!"), result_filename);
             }
             if (substrings[columns["RnkScr"]].toFloat() >= score_threshold)
             {
@@ -316,7 +311,7 @@ namespace OpenMS
     result_file.close();
     result_file.clear();
 
-    LOG_INFO << "Parsed " << id_count << " ids, retained " << peptide_identifications.size() << "." << std::endl;
+    OPENMS_LOG_INFO << "Parsed " << id_count << " ids, retained " << peptide_identifications.size() << "." << std::endl;
 
   }
 
@@ -328,7 +323,7 @@ namespace OpenMS
     ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
     if (!pepnovo_output_without_parameters)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, pepnovo_output_without_parameters_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pepnovo_output_without_parameters_filename);
     }
 
     ProteinIdentification::SearchParameters search_param;

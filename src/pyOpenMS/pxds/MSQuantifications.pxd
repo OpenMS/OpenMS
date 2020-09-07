@@ -24,6 +24,12 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         MSQuantifications()  nogil
         MSQuantifications(MSQuantifications) nogil
 
+        # Detailed constructor from a FeatureMap
+        MSQuantifications(FeatureMap fm,
+                          ExperimentalSettings& es,
+                          libcpp_vector[DataProcessing]& dps) nogil except +
+        # std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
+        
         bool operator==(MSQuantifications &) nogil
         bool operator!=(MSQuantifications &) nogil
 
@@ -32,8 +38,10 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
 
         libcpp_vector[DataProcessing] getDataProcessingList() nogil except +
         libcpp_vector[Assay] getAssays() nogil except +
+
         # TODO - not implemented in OpenMS, remove from API
         # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
+
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
         libcpp_vector[FeatureMap ] getFeatureMaps() nogil except +
@@ -42,7 +50,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
         void addConsensusMap(ConsensusMap m) nogil except +
         void assignUIDs() nogil except +
-        void registerExperiment(MSExperiment[Peak1D, ChromatogramPeak] exp, 
+        void registerExperiment(MSExperiment exp, 
                                 libcpp_vector[ libcpp_vector[ libcpp_pair[
                                   String, double] ] ] labels) nogil except + # wrap-ignore
 
@@ -57,8 +65,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         SIZE_OF_QUANT_TYPES
 
     cdef cppclass AnalysisSummary:
-        # wrap-attach:
-        #     MSQuantifications
         AnalysisSummary()  nogil except +
         AnalysisSummary(AnalysisSummary) nogil except +
 
@@ -67,8 +73,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         QUANT_TYPES quant_type_
 
     cdef cppclass Assay:
-        # wrap-attach:
-        #     MSQuantifications
         Assay() nogil except +
         Assay(Assay) nogil except +
 

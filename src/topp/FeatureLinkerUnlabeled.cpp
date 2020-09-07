@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 
 #include "FeatureLinkerBase.cpp"
+
+#include <iomanip>     // setw
 
 using namespace OpenMS;
 using namespace std;
@@ -100,20 +102,20 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     TOPPFeatureLinkerBase::registerOptionsAndFlags_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     FeatureGroupingAlgorithmUnlabeled algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     FeatureGroupingAlgorithmUnlabeled * algorithm = new FeatureGroupingAlgorithmUnlabeled();
 
@@ -197,7 +199,8 @@ protected:
         f_fxml_tmp.load(ins[i], tmp_map);
 
         // copy over information on the primary MS run
-        const StringList& ms_runs = tmp_map.getPrimaryMSRunPath();
+        StringList ms_runs;
+        tmp_map.getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         if (i != reference_index)
@@ -208,9 +211,9 @@ protected:
           // keep the same order as they were given in the input independent of
           // which map is the reference.
 
-          dummy.getFileDescriptions()[i].filename = ins[i];
-          dummy.getFileDescriptions()[i].size = tmp_map.size();
-          dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
+          dummy.getColumnHeaders()[i].filename = ins[i];
+          dummy.getColumnHeaders()[i].size = tmp_map.size();
+          dummy.getColumnHeaders()[i].unique_id = tmp_map.getUniqueId();
 
           // add protein identifications to result map
           dummy.getProteinIdentifications().insert(
@@ -219,17 +222,23 @@ protected:
             tmp_map.getProteinIdentifications().end());
 
           // add unassigned peptide identifications to result map
-          dummy.getUnassignedPeptideIdentifications().insert(
-            dummy.getUnassignedPeptideIdentifications().end(),
-            tmp_map.getUnassignedPeptideIdentifications().begin(),
-            tmp_map.getUnassignedPeptideIdentifications().end());
+          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
+          for (const PeptideIdentification& pepID : tmp_map.getUnassignedPeptideIdentifications())
+          {
+            auto newPepID = pepID;
+            //TODO during linking of consensusMaps we have the problem that old identifications
+            // already have a map_index associated. Since we link the consensusFeatures only anyway
+            // (without keeping the subfeatures) it should be ok for now to "re"-index
+            newPepID.setMetaValue("map_index", i);
+            newIDs.push_back(newPepID);
+          }
         }
         else
         {
-          // copy the meta-data from the refernce map
-          dummy.getFileDescriptions()[i].filename = ins[i];
-          dummy.getFileDescriptions()[i].size = ref_size;
-          dummy.getFileDescriptions()[i].unique_id = ref_id;
+          // copy the meta-data from the reference map
+          dummy.getColumnHeaders()[i].filename = ins[i];
+          dummy.getColumnHeaders()[i].size = ref_size;
+          dummy.getColumnHeaders()[i].unique_id = ref_id;
 
           // add protein identifications to result map
           dummy.getProteinIdentifications().insert(
@@ -238,10 +247,16 @@ protected:
             ref_protids.end());
 
           // add unassigned peptide identifications to result map
-          dummy.getUnassignedPeptideIdentifications().insert(
-            dummy.getUnassignedPeptideIdentifications().end(),
-            ref_pepids.begin(),
-            ref_pepids.end());
+          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
+          for (const PeptideIdentification& pepID : ref_pepids)
+          {
+            auto newPepID = pepID;
+            //TODO during linking of consensusMaps we have the problem that old identifications
+            // already have a map_index associated. Since we link the consensusFeatures only anyway
+            // (without keeping the subfeatures) it should be ok for now to "re"-index
+            newPepID.setMetaValue("map_index", i);
+            newIDs.push_back(newPepID);
+          }
         }
       }
 
@@ -264,7 +279,7 @@ protected:
         dummy.getUnassignedPeptideIdentifications().begin(),
         dummy.getUnassignedPeptideIdentifications().end());
 
-      out_map.setFileDescriptions(dummy.getFileDescriptions());
+      out_map.setColumnHeaders(dummy.getColumnHeaders());
 
       // canonical ordering for checking the results, and the ids have no real meaning anyway
       // the way this was done in DelaunayPairFinder and StablePairFinder
@@ -279,7 +294,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
-        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        StringList ms_runs;
+        maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group
@@ -291,9 +307,9 @@ protected:
       {
         for (Size i = 0; i < ins.size(); ++i)
         {
-          out_map.getFileDescriptions()[i].filename = ins[i];
-          out_map.getFileDescriptions()[i].size = maps[i].size();
-          out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+          out_map.getColumnHeaders()[i].filename = ins[i];
+          out_map.getColumnHeaders()[i].size = maps[i].size();
+          out_map.getColumnHeaders()[i].unique_id = maps[i].getUniqueId();
         }
       }
       else
@@ -321,12 +337,12 @@ protected:
       ++num_consfeat_of_size[cmit->size()];
     }
 
-    LOG_INFO << "Number of consensus features:" << endl;
+    OPENMS_LOG_INFO << "Number of consensus features:" << endl;
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+      OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
     }
-    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+    OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 
     delete algorithm;
 

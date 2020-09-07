@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -110,7 +110,6 @@ function xmlentities($string) {
 ######################## declarations ###############################
 $GLOBALS["all_tests"] = array(
   "(none)"               => "performs all tests",
-  "guards"               => "check if header guards present and correct",
   "maintainers"          => "check if maintainers are consistent in header, source and test file",
   "missing_tests"        => "check for missing tests",
   "old_files"            => "check for unneeded .cpp files",
@@ -326,7 +325,7 @@ if (in_array("test_output", $tests) || in_array("topp_output", $tests))
     $log_file = file($lastTestFile);
     foreach ($log_file as $line)
     {
-      if (ereg("[0-9]+/[0-9]+ Testing: (.*)", $line, $parts))
+      if ( preg_match('/[0-9]+\/[0-9]+ Testing: (.*)/', $line, $parts))
       {
         $current_test_name = trim($parts[1]);
       }
@@ -393,8 +392,8 @@ $sourcePaths = array("src/openms/source",
                      "src/topp",
                      "src/utils");
 
-exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\"", $files);
+exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
+exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
 
 //look up Maintainer in first 40 lines of files
 $GLOBALS["maintainer_info"]  = array();
@@ -498,7 +497,7 @@ if (in_array("doxygen_errors", $tests))
   $errorfile = file("$bin_path/doc/doxygen/doxygen-error.log");
   foreach ($errorfile as $line)
   {
-    if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.[hC]):[0-9]+:/', $line, $parts))
     {
       //skip warning where doxygen cannot resolve members
       if (strpos($line, "no uniquely matching class member") === FALSE && strpos($line, "no matching class member") === FALSE)
@@ -576,53 +575,6 @@ foreach ($files_todo as $f)
   else
   {
     unset($class_info);
-  }
-
-  ########################### guards ######################################
-  if (in_array("guards", $tests))
-  {
-    $dont_report = array(
-      "TypeNameIdStringMiscellanyDefs.h",
-    );
-
-    if (endsWith($f, ".h"))
-    {
-      $message = "";
-      $result = true;
-
-      for ($i = 0;$i < count($file);$i++)
-      {
-        $line = trim($file[$i]);
-        if (beginsWith($line, "#ifndef"))
-        {
-          $guard = trim(substr($line, 8));
-          $nextline = trim($file[$i+1]);
-          //header guards
-          if (beginsWith($nextline, "#define") AND trim(substr($nextline, 8)) == $guard)
-          {
-            $right_guard = includeToGuard(suffix($f, strlen($guard)));
-            if ($right_guard != $guard OR !beginsWith($guard, "OPENMS_"))
-            {
-              $message = "Wrong header guard '$guard' in '$f' should be '$right_guard'";
-              $result = false;
-              realOutput($message, $user, $f);
-            }
-            break;
-          }
-        }
-
-        $class = trim(substr($f, strrpos($f, "/")+1));
-        if ($i == count($file)-1 AND !in_array($class, $dont_report))
-        {
-          $message = "Missing header guard in '$f' ";
-          $result = false;
-          realOutput($message, $user, $f);
-        }
-      }
-
-      #report test result to ctest
-      reportTestResult($message, $user, "guards", $f, $result);
-    }
   }
 
   ########################### maintainers #####################################
@@ -831,7 +783,7 @@ foreach ($files_todo as $f)
       elseif (endsWith($f, ".cpp"))
       {
         # $h_file = substr($f, 7,-2).".h";
-        $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
+        $h_file = $src_path."/".str_replace("/source", "/include/OpenMS", $f);
         $h_file = preg_replace("/cpp$/", "h", $h_file);
         if (!file_exists($h_file))
         {
@@ -1201,7 +1153,7 @@ if ($user == "all" && in_array("doxygen_errors", $tests))
   foreach ($file as $line)
   {
     $line = trim($line);
-    if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.doxygen):[0-9]+:/', $line, $parts))
     {
       realOutput("Doxygen errors in '".$parts[1]."'", $user, "");
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
@@ -1351,14 +1303,14 @@ if ($ctestReporting)
     <Test></Test>
   </TestList>
   <Test Status="passed">
-    <Name>BinaryComposeFunctionAdapter_test</Name>
+    <Name>SomeTool_test</Name>
     <Path>./source/TEST</Path>
-    <FullName>./source/TEST/BinaryComposeFunctionAdapter_test</FullName>
-    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</FullCommandLine>
+    <FullName>./source/TEST/SomeTool_test</FullName>
+    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</FullCommandLine>
     <Results>
             <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.469694</Value></NamedMeasurement>
             <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
-            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</Value></NamedMeasurement>
+            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</Value></NamedMeasurement>
             <Measurement>
               <Value>
               </Value>

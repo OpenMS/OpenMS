@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche, Chris Bielow $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Chris Bielow, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # required modules
@@ -81,12 +81,6 @@ endfunction(convert_to_unity_build)
 ## @note This macro will do nothing with non MSVC generators.
 macro(copy_dll_to_extern_bin targetname)
   if(MSVC)
-    get_target_property(WIN32_DLLLOCATION ${targetname} LOCATION)
-    get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-
-    ## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
-    file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
-
     file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
     file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
 
@@ -97,9 +91,9 @@ macro(copy_dll_to_extern_bin targetname)
     add_custom_command(TARGET ${targetname}
                       POST_BUILD
                       COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TEST_TARGET}
+                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
                       COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_DOC_TARGET})
+                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
   endif(MSVC)
 endmacro()
 
@@ -124,7 +118,7 @@ function(openms_add_library)
   # parse arguments to function
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
-  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
+  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -135,7 +129,7 @@ function(openms_add_library)
   # merge into global exported includes
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
-      CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
+  CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
   # Include directories
@@ -153,6 +147,10 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_11)
+
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
@@ -175,7 +173,7 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES} ${openms_add_library_PRIVATE_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 

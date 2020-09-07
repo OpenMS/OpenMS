@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <cmath>
+
 using namespace std;
+using namespace Eigen;
 
 namespace OpenMS
 {
@@ -70,70 +70,19 @@ namespace OpenMS
 
   double SpectraSTSimilarityScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
-    double score(0);
-    BinnedSpectrum bin1(1, 1, s1);
-    BinnedSpectrum bin2(1, 1, s2);
+    // TODO: check if this operator makes sense (as it doesn't allow to fine tune resolution)
+    BinnedSpectrum bin1(s1, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+    BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
 
-    //normalize bins
-
-    //magnitude of the spectral vector
-    float magnitude1(0);
-    float magnitude2(0);
-    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
-          iter1 < bin1.getBins().end(); ++iter1)
-    {
-      magnitude1 += pow((double) * iter1, 2);
-    }
-    magnitude1 = sqrt(magnitude1);
-
-    //normalize bins of bin1
-    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
-          iter1 < bin1.getBins().end(); ++iter1)
-    {
-      *iter1 = (float) * iter1 / magnitude1;
-    }
-
-    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
-          iter2 < bin2.getBins().end(); ++iter2)
-    {
-      magnitude2 += pow((double) * iter2, 2);
-    }
-    magnitude2 = sqrt(magnitude2);
-
-    //normalize bins of bin2
-    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
-          iter2 < bin2.getBins().end(); ++iter2)
-    {
-      *iter2 = (float) * iter2 / magnitude2;
-    }
-
-    Size shared_bins = min(bin1.getBinNumber(), bin2.getBinNumber());
-    for (Size s = 0; s < shared_bins; ++s)
-    {
-      if ((double)bin1.getBins()[s] > 0.0 && (double)bin2.getBins()[s] > 0.0)
-      {
-        score += ((double)bin1.getBins()[s] * (double)bin2.getBins()[s]);
-      }
-    }
-
-    return score;
-
+    // normalized dot product
+    bin1.getBins() /= bin1.getBins().norm();
+    bin2.getBins() /= bin2.getBins().norm();
+    return bin1.getBins().dot(bin2.getBins());
   }
 
   double SpectraSTSimilarityScore::operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2) const
   {
-    double score(0);
-
-    Size shared_bins = min(bin1.getBinNumber(), bin2.getBinNumber());
-    for (Size s = 0; s < shared_bins; ++s)
-    {
-      if (bin1.getBins()[s] > 0 && bin2.getBins()[s] > 0)
-      {
-        score += (bin1.getBins()[s] * bin2.getBins()[s]);
-      }
-    }
-
-    return score;
+    return bin1.getBins().dot(bin2.getBins());
   }
 
   bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec,
@@ -142,13 +91,15 @@ namespace OpenMS
                                             Size min_peak_number,
                                             Size max_peak_number)
   {
-    spec.sortByIntensity(true);
-    double min_high_intensity = 0;
+    double min_high_intensity = 0.;
     if (!spec.empty())
     {
-      min_high_intensity = (1 / cut_peaks_below) * spec[0].getIntensity();
+      double max_el = std::max_element(spec.begin(),spec.end(),Peak1D::IntensityLess())->getIntensity();
+      min_high_intensity = (1.0 / cut_peaks_below) * max_el;
     }
+
     spec.sortByPosition();
+
     PeakSpectrum tmp;
     Size s = 0;
     for (PeakSpectrum::iterator k = spec.begin(); k < spec.end() && s < max_peak_number; ++k, ++s)
@@ -170,36 +121,17 @@ namespace OpenMS
 
   BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum & spec)
   {
-    BinnedSpectrum bin(1, 1, spec);
-    float magnitude(0);
-    for (SparseVector<float>::SparseVectorIterator iter = bin.getBins().begin(); iter < bin.getBins().end(); ++iter)
-    {
-      magnitude += pow((double) * iter, 2);
-    }
-    magnitude = sqrt(magnitude);
-    //normalize bins
-    for (SparseVector<float>::SparseVectorIterator iter = bin.getBins().begin(); iter < bin.getBins().end(); ++iter)
-    {
-      *iter = (float) * iter / magnitude;
-    }
+    // TODO: resolution seems rather low. Check with current original implementations.
+    BinnedSpectrum bin(spec, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+    bin.getBins() /= bin.getBins().norm();
     return bin;
   }
 
   double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product) const
   {
-    double numerator(0);
-
-    Size shared_bins = min(bin1.getBinNumber(), bin2.getBinNumber());
-    for (Size s = 0; s < shared_bins; ++s)
-    {
-      if (bin1.getBins()[s] > 0 && bin2.getBins()[s] > 0)
-      {
-        numerator += (pow(bin1.getBins()[s], 2) * pow(bin2.getBins()[s], 2));
-      }
-    }
-    numerator = sqrt(numerator);
-
-    if (dot_product)
+    double numerator = (bin1.getBins().cwiseProduct(bin2.getBins())).norm();
+    
+    if (dot_product != 0)
     {
       return (double)numerator / dot_product;
     }

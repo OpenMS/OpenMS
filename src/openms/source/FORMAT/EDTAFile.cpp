@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <cmath>
 
 using namespace std;
 
@@ -114,7 +113,7 @@ namespace OpenMS
 
     if (headers.size() <= 2)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
     else if (headers.size() == 3)
       input_type = TYPE_OLD_NOCHARGE;
@@ -124,7 +123,7 @@ namespace OpenMS
     // see if we have a header
     try
     {
-      // try to convert... if not: thats a header
+      // try to convert... if not: that's a header
       rt = headers[0].toDouble();
       mz = headers[1].toDouble();
       it = headers[2].toDouble();
@@ -133,7 +132,7 @@ namespace OpenMS
     {
       offset = 1;
       ++input_it;
-      LOG_INFO << "Detected a header line.\n";
+      OPENMS_LOG_INFO << "Detected a header line.\n";
     }
 
     if (headers.size() >= 5)
@@ -152,15 +151,15 @@ namespace OpenMS
 
     if (offset == 0 && (input_type == TYPE_OLD_CHARGE || input_type == TYPE_CONSENSUS))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
 
     SignedSize input_size = input.end() - input.begin();
 
-    ConsensusMap::FileDescription desc;
+    ConsensusMap::ColumnHeader desc;
     desc.filename = filename;
     desc.size = (input_size) - offset;
-    consensus_map.getFileDescriptions()[0] = desc;
+    consensus_map.getColumnHeaders()[0] = desc;
 
     // parsing features
     consensus_map.reserve(input_size);
@@ -172,7 +171,7 @@ namespace OpenMS
       line_trimmed.trim();
       if (line_trimmed == "")
       {
-        if ((input_it - input.begin()) < input_size - 1) LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
+        if ((input_it - input.begin()) < input_size - 1) OPENMS_LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
         continue;
       }
 
@@ -183,7 +182,7 @@ namespace OpenMS
       //abort if line does not contain enough fields
       if (parts.size() < 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                     String("Failed parsing in line ")
                                     + String((input_it - input.begin()) + 1)
                                     + ": At least three columns are needed! (got  "
@@ -214,7 +213,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -244,7 +243,7 @@ namespace OpenMS
         }
         catch (Exception::BaseException&)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
         }
       }
 
@@ -258,7 +257,7 @@ namespace OpenMS
           //check if column name is ok
           if (headers.size() <= j || headers[j] == "")
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                         String("Error: Missing meta data header for column ") + (j + 1) + "!"
                                         + String("Offending header line: '") + header_trimmed + "'  (line 1)");
           }
@@ -271,8 +270,8 @@ namespace OpenMS
       consensus_map.push_back(cf);
     }
 
-    // register FileDescriptions
-    ConsensusMap::FileDescription fd;
+    // register ColumnHeaders
+    ConsensusMap::ColumnHeader fd;
     fd.filename = filename;
     fd.size = consensus_map.size();
     Size maps = std::max(input_features - 1, Size(1)); // its either a simple feature or a consensus map
@@ -280,13 +279,18 @@ namespace OpenMS
     for (Size i = 0; i < maps; ++i)
     {
       fd.label = String("EDTA_Map ") + String(i);
-      consensus_map.getFileDescriptions()[i] = fd;
+      consensus_map.getColumnHeaders()[i] = fd;
     }
 
   }
 
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::EDTA))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
+    }
+
     TextFile tf;
 
     // search for maximum number of sub-features (since this determines the number of columns)

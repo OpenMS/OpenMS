@@ -1,4 +1,3 @@
-from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from ProgressLogger cimport *
 from String cimport *
@@ -10,12 +9,13 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     cdef cppclass SVMWrapper "OpenMS::SVMWrapper":
         SVMWrapper() nogil except +
         SVMWrapper(SVMWrapper) nogil except + #wrap-ignore
+
         void setParameter(SVM_parameter_type type_, Int value) nogil except +
         void setParameter(SVM_parameter_type type_, double value) nogil except +
         # Int train(struct svm_problem *problem) nogil except +
         Int train(SVMData &problem) nogil except +
-        void saveModel(libcpp_string modelFilename) nogil except +
-        void loadModel(libcpp_string modelFilename) nogil except +
+        void saveModel(String modelFilename) nogil except +
+        void loadModel(String modelFilename) nogil except +
         # void predict(struct svm_problem *problem, libcpp_vector[ double ] &predicted_labels) nogil except +
         void predict(SVMData &problem, libcpp_vector[ double ] &results) nogil except +
         Int getIntParameter(SVM_parameter_type type_) nogil except +
@@ -50,14 +50,15 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     cdef cppclass SVMData "OpenMS::SVMData":
         SVMData() nogil except +
         SVMData(SVMData) nogil except + #wrap-ignore
+
         # TODO nested STL
         # libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] sequences
         libcpp_vector[ double ] labels
         # TODO nested STL
         # SVMData(libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] &seqs, libcpp_vector[ double ] &lbls) nogil except +
         bool operator==(SVMData &rhs) nogil except +
-        bool store(String &filename) nogil except +
-        bool load(String &filename) nogil except +
+        bool store(const String &filename) nogil except +
+        bool load(const String &filename) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrapper":

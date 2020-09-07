@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,6 @@
 //
 
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
 namespace OpenMS
@@ -97,7 +95,7 @@ namespace OpenMS
   }
 
   SpectraMerger::SpectraMerger(const SpectraMerger & source) :
-    DefaultParamHandler(source), ProgressLogger()
+    DefaultParamHandler(source), ProgressLogger() //we probably want a new ProgressLogger when we copy
   {
   }
 

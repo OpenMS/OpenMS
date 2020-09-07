@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #ifdef Debug_StablePairFinder
@@ -87,7 +83,7 @@ namespace OpenMS
     // sanity checks:
     if (input_maps.size() != 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "exactly two input maps required");
     }
     checkIds_(input_maps);
@@ -205,14 +201,7 @@ namespace OpenMS
           ConsensusFeature& f = result_map.back();
 
           f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[0][fi0].getPeptideIdentifications().begin(),
-                                               input_maps[0][fi0].getPeptideIdentifications().end());
-
           f.insert(input_maps[1][fi1]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[1][fi1].getPeptideIdentifications().begin(),
-                                               input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
           double quality = 1.0 - nn_distance_0[fi0].first;

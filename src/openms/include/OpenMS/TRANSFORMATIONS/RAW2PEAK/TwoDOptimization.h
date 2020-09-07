@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
+#pragma once
 
 //#define DEBUG_2D
 #undef DEBUG_2D
@@ -48,6 +47,7 @@
 #include <cmath>
 #include <set>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -97,7 +97,7 @@ public:
     TwoDOptimization(const TwoDOptimization& opt);
 
     /// Destructor
-    virtual ~TwoDOptimization(){}
+    ~TwoDOptimization() override{}
 
     /// Assignment operator
     TwoDOptimization& operator=(const TwoDOptimization& opt);
@@ -158,10 +158,10 @@ public:
         @exception Exception::IllegalArgument is thrown if required meta information from peak picking is missing (area, shape, left width, right width) or if the input data is invalid in some other way
 
     */
-    template <typename InputSpectrumIterator, typename OutputPeakType>
+    template <typename InputSpectrumIterator>
     void optimize(InputSpectrumIterator first,
                   InputSpectrumIterator last,
-                  MSExperiment<OutputPeakType>& ms_exp, bool real2D = true);
+                  PeakMap& ms_exp, bool real2D = true);
 
 
 protected:
@@ -172,8 +172,8 @@ protected:
       std::multimap<double, IsotopeCluster>::iterator iso_map_iter;
       Size total_nr_peaks;
       std::map<Int, std::vector<PeakIndex> > matching_peaks;
-      MSExperiment<> picked_peaks;
-      MSExperiment<Peak1D>::ConstIterator raw_data_first;
+      PeakMap picked_peaks;
+      PeakMap::ConstIterator raw_data_first;
       OptimizationFunctions::PenaltyFactorsIntensity penalties;
       std::vector<double> positions;
       std::vector<double> signal;
@@ -211,7 +211,7 @@ protected:
     double tolerance_mz_;
 
     /// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
-    //  std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
+    //  std::map<Int, std::vector<PeakMap::SpectrumType::Iterator > > matching_peaks_;
     std::map<Int, std::vector<PeakIndex> > matching_peaks_;
 
 
@@ -235,21 +235,21 @@ protected:
                                                     double current_mz);
 
     /** Performs 2D optimization of all regions */
-    template <typename InputSpectrumIterator, typename OutputPeakType>
+    template <typename InputSpectrumIterator>
     void optimizeRegions_(InputSpectrumIterator& first,
                           InputSpectrumIterator& last,
-                          MSExperiment<OutputPeakType>& ms_exp);
+                          PeakMap& ms_exp);
 
     /** Performs an optimization of all regions by calling OptimizePick */
-    template <typename InputSpectrumIterator, typename OutputPeakType>
+    template <typename InputSpectrumIterator>
     void optimizeRegionsScanwise_(InputSpectrumIterator& first,
                                   InputSpectrumIterator& last,
-                                  MSExperiment<OutputPeakType>& ms_exp);
+                                  PeakMap& ms_exp);
 
 
     /// Get the indices of the first and last raw data point of this region
-    template <typename InputSpectrumIterator, typename OutputPeakType>
-    void getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
+    template <typename InputSpectrumIterator>
+    void getRegionEndpoints_(PeakMap& exp,
                              InputSpectrumIterator& first,
                              InputSpectrumIterator& last,
                              Size iso_map_idx,
@@ -258,23 +258,23 @@ protected:
 
     /// Identify matching peak in a peak cluster
     void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
-                            MSExperiment<>& ms_exp);
+                            PeakMap& ms_exp);
 
     //@}
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 
-  template <typename InputSpectrumIterator, typename OutputPeakType>
-  void TwoDOptimization::optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment<OutputPeakType>& ms_exp, bool real2D)
+  template <typename InputSpectrumIterator>
+  void TwoDOptimization::optimize(InputSpectrumIterator first, InputSpectrumIterator last, PeakMap& ms_exp, bool real2D)
   {
     //#define DEBUG_2D
     //check if the input maps have the same number of spectra
     if ((UInt)distance(first, last) != ms_exp.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Raw and peak map do not have the same number of spectra");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: Raw and peak map do not have the same number of spectra");
     }
     //do nothing if there are no scans
     if (ms_exp.empty())
@@ -287,7 +287,7 @@ protected:
       //check if enough meta data arrays are present
       if (ms_exp[i].getFloatDataArrays().size() < 6)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: Not enough meta data arrays present (1:area, 5:shape, 3:left width, 4:right width)");
       }
       bool area = ms_exp[i].getFloatDataArrays()[1].getName() == "maximumIntensity";
       bool wleft = ms_exp[i].getFloatDataArrays()[3].getName() == "leftWidth";
@@ -296,16 +296,14 @@ protected:
 
       if (!area || !wleft || !wright || !shape)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Two2Optimization: One or several meta data arrays missing (1:intensity, 5:shape, 3:left width, 4:right width)");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error in Two2Optimization: One or several meta data arrays missing (1:intensity, 5:shape, 3:left width, 4:right width)");
       }
     }
     real_2D_ = real2D;
-    typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-    typedef typename InputSpectrumType::value_type PeakType;
-    typedef MSSpectrum<PeakType> SpectrumType;
+    typedef MSSpectrum SpectrumType;
 
-    typename MSExperiment<OutputPeakType>::Iterator ms_exp_it = ms_exp.begin();
-    typename MSExperiment<OutputPeakType>::Iterator ms_exp_it_end = ms_exp.end();
+    typename PeakMap::Iterator ms_exp_it = ms_exp.begin();
+    typename PeakMap::Iterator ms_exp_it_end = ms_exp.end();
     if (ms_exp.empty())
     {
       return;
@@ -334,7 +332,7 @@ protected:
 
       //last_rt = current_rt;
       current_rt = (ms_exp_it + curr_scan)->getRT();
-      typename MSExperiment<OutputPeakType>::SpectrumType::Iterator peak_it  = (ms_exp_it + curr_scan)->begin();
+      typename PeakMap::SpectrumType::Iterator peak_it  = (ms_exp_it + curr_scan)->begin();
 
       // copy cluster information of least scan
       iso_last_scan = iso_curr_scan;
@@ -347,7 +345,7 @@ protected:
       std::cout << "Next scan, rt = " << current_rt << " last_rt: " << last_rt << std::endl;
       std::cout << "---------------------------------------------------------------------------" << std::endl;
 #endif
-      MSSpectrum<PeakType> s;
+      MSSpectrum s;
       s.setRT(current_rt);
       // check if there were scans in between
       if (last_rt == 0 || // are we in the first scan
@@ -566,10 +564,10 @@ protected:
 
 
 
-  template <typename InputSpectrumIterator, typename OutputPeakType>
+  template <typename InputSpectrumIterator>
   void TwoDOptimization::optimizeRegions_(InputSpectrumIterator& first,
                                           InputSpectrumIterator& last,
-                                          MSExperiment<OutputPeakType>& ms_exp)
+                                          PeakMap& ms_exp)
   {
     Int counter = 0;
     // go through the clusters
@@ -669,7 +667,7 @@ protected:
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-TwoDOptimization:", "Could not fit the data: Error " + String(status));
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-TwoDOptimization:", "Could not fit the data: Error " + String(status));
       }
 
       Int peak_idx = 0;
@@ -700,17 +698,17 @@ protected:
           if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
           {
             double x_left_endpoint = mz - 1 / left_width* sqrt(height / 1 - 1);
-            double x_rigth_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
+            double x_right_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
             double area_left = -height / left_width* atan(left_width * (x_left_endpoint - mz));
-            double area_right = -height / right_width* atan(right_width * (mz - x_rigth_endpoint));
+            double area_right = -height / right_width* atan(right_width * (mz - x_right_endpoint));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
           else         // it's a sech peak
           {
             double x_left_endpoint = mz - 1 / left_width* boost::math::acosh(sqrt(height / 0.001));
-            double x_rigth_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
+            double x_right_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
             double area_left = -height / left_width * (sinh(left_width * (mz - x_left_endpoint)) / cosh(left_width * (mz - x_left_endpoint)));
-            double area_right = -height / right_width * (sinh(right_width * (mz - x_rigth_endpoint)) / cosh(right_width * (mz - x_rigth_endpoint)));
+            double area_right = -height / right_width * (sinh(right_width * (mz - x_right_endpoint)) / cosh(right_width * (mz - x_right_endpoint)));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
 
@@ -732,10 +730,10 @@ protected:
     //#undef DEBUG_2D
   }
 
-  template <typename InputSpectrumIterator, typename OutputPeakType>
+  template <typename InputSpectrumIterator>
   void TwoDOptimization::optimizeRegionsScanwise_(InputSpectrumIterator& first,
                                                   InputSpectrumIterator& last,
-                                                  MSExperiment<OutputPeakType>& ms_exp)
+                                                  PeakMap& ms_exp)
   {
     Int counter = 0;
     TwoDOptimization::Data d;
@@ -768,7 +766,7 @@ protected:
               << penalties.rWidth << " "
               << penalties.lWidth << std::endl;
 #endif
-//      MSExperiment<Peak1D >::const_iterator help = first;
+//      PeakMap::const_iterator help = first;
 //      // std::cout << "\n\n\n\n---------------------------------------------------------------";
 //      while(help!=last)
 //          {
@@ -820,7 +818,7 @@ protected:
         data.positions.clear();
         data.signal.clear();
 
-        MSExperiment<Peak1D>::SpectrumType::const_iterator ms_it =
+        PeakMap::SpectrumType::const_iterator ms_it =
           (d.raw_data_first + d.signal2D[2 * i].first)->begin() + d.signal2D[2 * i].second;
         Int size = distance(ms_it, (d.raw_data_first + d.signal2D[2 * i].first)->begin() + d.signal2D[2 * i + 1].second);
         data.positions.reserve(size);
@@ -851,7 +849,7 @@ protected:
         while (set_iter != set_iter2)
         {
           const Size peak_index = set_iter->second;
-          const MSSpectrum<>& spec = ms_exp[set_iter->first];
+          const MSSpectrum& spec = ms_exp[set_iter->first];
           PeakShape shape(spec.getFloatDataArrays()[1][peak_index], //intensity
                           spec[peak_index].getMZ(),
                           spec.getFloatDataArrays()[3][peak_index], //left width
@@ -894,7 +892,7 @@ protected:
         Size p = 0;
         while (p < peak_shapes.size())
         {
-          MSSpectrum<>& spec = ms_exp[set_iter->first];
+          MSSpectrum& spec = ms_exp[set_iter->first];
           spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
           spec.getFloatDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
           spec.getFloatDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
@@ -904,18 +902,18 @@ protected:
           {
             PeakShape& ps = peak_shapes[p];
             double x_left_endpoint = ps.mz_position - 1 / ps.left_width* sqrt(ps.height / 1 - 1);
-            double x_rigth_endpoint = ps.mz_position + 1 / ps.right_width* sqrt(ps.height / 1 - 1);
+            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* sqrt(ps.height / 1 - 1);
             double area_left = -ps.height / ps.left_width* atan(ps.left_width * (x_left_endpoint - ps.mz_position));
-            double area_right = -ps.height / ps.right_width* atan(ps.right_width * (ps.mz_position - x_rigth_endpoint));
+            double area_right = -ps.height / ps.right_width* atan(ps.right_width * (ps.mz_position - x_right_endpoint));
             spec[set_iter->second].setIntensity(area_left + area_right); // area is stored as peak intensity
           }
           else        //It's a Sech - Peak
           {
             PeakShape& ps = peak_shapes[p];
             double x_left_endpoint = ps.mz_position - 1 / ps.left_width* boost::math::acosh(sqrt(ps.height / 0.001));
-            double x_rigth_endpoint = ps.mz_position + 1 / ps.right_width* boost::math::acosh(sqrt(ps.height / 0.001));
+            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* boost::math::acosh(sqrt(ps.height / 0.001));
             double area_left = ps.height / ps.left_width * (sinh(ps.left_width * (ps.mz_position - x_left_endpoint)) / cosh(ps.left_width * (ps.mz_position - x_left_endpoint)));
-            double area_right = -ps.height / ps.right_width * (sinh(ps.right_width * (ps.mz_position - x_rigth_endpoint)) / cosh(ps.right_width * (ps.mz_position - x_rigth_endpoint)));
+            double area_right = -ps.height / ps.right_width * (sinh(ps.right_width * (ps.mz_position - x_right_endpoint)) / cosh(ps.right_width * (ps.mz_position - x_right_endpoint)));
             spec[set_iter->second].setIntensity(area_left + area_right); // area is stored as peak intensity
           }
           ++set_iter;
@@ -929,8 +927,8 @@ protected:
     }
   }
 
-  template <typename InputSpectrumIterator, typename OutputPeakType>
-  void TwoDOptimization::getRegionEndpoints_(MSExperiment<OutputPeakType>& exp,
+  template <typename InputSpectrumIterator>
+  void TwoDOptimization::getRegionEndpoints_(PeakMap& exp,
                                              InputSpectrumIterator& first,
                                              InputSpectrumIterator& last,
                                              Size iso_map_idx,
@@ -944,8 +942,7 @@ protected:
 
     double rt, first_peak_mz, last_peak_mz;
 
-    //MSSpectrum<InputPeakType> spec;
-    typename MSExperiment<InputPeakType>::SpectrumType spec;
+    typename PeakMap::SpectrumType spec;
     InputPeakType peak;
 
     MapType::iterator iso_map_iter = iso_map_.begin();
@@ -962,12 +959,12 @@ protected:
     // get left and right endpoint for all scans in the current cluster
     for (Size i = 0; i < iso_map_iter->second.scans.size(); ++i)
     {
-      typename MSExperiment<OutputPeakType>::iterator exp_it;
+      typename PeakMap::iterator exp_it;
 
       // first the right scan through binary search
       rt = exp[iso_map_iter->second.scans[i]].getRT();
       spec.setRT(rt);
-      InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
+      InputSpectrumIterator iter = lower_bound(first, last, spec, MSSpectrum::RTLess());
       //  if(iter->getRT() != rt) --iter;
       exp_it = exp.RTBegin(rt);
 #ifdef DEBUG2D
@@ -1002,7 +999,7 @@ protected:
 
       //std::cout << rt<<": first peak mz "<<first_peak_mz << "\tlast peak mz "<<last_peak_mz <<std::endl;
       peak.setPosition(first_peak_mz);
-      typename MSExperiment<InputPeakType>::SpectrumType::const_iterator raw_data_iter
+      typename PeakMap::SpectrumType::const_iterator raw_data_iter
         = lower_bound(iter->begin(), iter->end(), peak, typename InputPeakType::PositionLess());
       if (raw_data_iter != iter->begin())
       {
@@ -1055,4 +1052,3 @@ protected:
 
 }
 
-#endif //OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H

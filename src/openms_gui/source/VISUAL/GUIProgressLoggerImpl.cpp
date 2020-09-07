@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <QApplication>
 #include <QProgressDialog>
 #include <iostream>
 
@@ -54,23 +55,24 @@ namespace OpenMS
   }
 
   GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
-    dlg_(0),
+    dlg_(nullptr),
     begin_(0),
-    end_(0)
+    end_(0),
+    current_(0)
   {
   }
 
   void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
   {
     begin_ = begin;
+    current_ = begin_;
     end_ = end;
-    if (!dlg_)
-    {
-      dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
-    }
+    delete dlg_; // delete old dialog, if present
+    dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
     dlg_->setWindowTitle(label.c_str());
     dlg_->setWindowModality(Qt::WindowModal);
     dlg_->show();
+    QApplication::processEvents(); // show it...
   }
 
   void GUIProgressLoggerImpl::setProgress(const SignedSize value, const int /* current_recursion_depth */) const
@@ -84,12 +86,17 @@ namespace OpenMS
       if (dlg_)
       {
         dlg_->setValue((int)value);
+        QApplication::processEvents(); // show it...
       }
       else
       {
-        std::cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << std::endl;
+        std::cout << "ProgressLogger warning: 'setProgress' called before 'startProgress'!" << std::endl;
       }
     }
+  }
+  SignedSize GUIProgressLoggerImpl::nextProgress() const
+  {
+    return ++current_;
   }
 
   void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */) const

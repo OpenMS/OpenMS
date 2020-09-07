@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,19 +28,21 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_STANDARDTYPES_H
-#define OPENMS_KERNEL_STANDARDTYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class MSExperiment;
+
   //@{
   /**
       @brief Spectrum consisting of raw data points or peaks.
@@ -49,37 +51,23 @@ namespace OpenMS
 
       @ingroup Kernel
   */
-  typedef MSSpectrum<Peak1D> PeakSpectrum;
+
+  typedef MSSpectrum PeakSpectrum;
   /**
       @brief Two-dimensional map of raw data points or peaks.
 
       @ingroup Kernel
   */
-  typedef MSExperiment<Peak1D> PeakMap;
-
-  /**
-      @brief Spectrum consisting of raw data points or peaks with meta information.
-
-      @ingroup Kernel
-  */
-  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
-
-  /**
-      @brief  Two-dimensional map of raw data points or peaks with meta information.
-
-      @ingroup Kernel
-  */
-  typedef MSExperiment<RichPeak1D> RichPeakMap;
-
+  typedef MSExperiment PeakMap;
 
   /**
       @brief Chromatogram consisting of raw data points or peaks
 
       @ingroup Kernel
   */
-  typedef MSChromatogram<ChromatogramPeak> Chromatogram;
+  typedef MSChromatogram Chromatogram;
   //@}
 
 }
 
-#endif // OPENMS_KERNEL_STANDARDTYPES_H
+

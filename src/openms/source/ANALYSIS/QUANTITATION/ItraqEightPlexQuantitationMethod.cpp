@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -66,7 +65,8 @@ namespace OpenMS
   {
   }
 
-  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other)
+  ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other):
+  IsobaricQuantitationMethod(other)
   {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -141,7 +141,7 @@ namespace OpenMS
     }
     else if (ref_ch == 120)
     {
-      LOG_WARN << "Invalid channel selection." << std::endl;
+      OPENMS_LOG_WARN << "Invalid channel selection." << std::endl;
     }
     else
     {
@@ -149,7 +149,7 @@ namespace OpenMS
     }
   }
 
-  const String& ItraqEightPlexQuantitationMethod::getName() const
+  const String& ItraqEightPlexQuantitationMethod::getMethodName() const
   {
     return ItraqEightPlexQuantitationMethod::name_;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,44 +33,28 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <boost/regex.hpp>
-
-#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
-
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"none","semi","full","unknown","unknown","unknown","unknown","unknown","no-cterm","no-nterm"};
+  const std::string EnzymaticDigestion::NoCleavage = "no cleavage";
+  const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
-    enzyme_(*EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
+    re_(enzyme_->getRegEx()),
     specificity_(SPEC_FULL)
   {
   }
 
-  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs) :
-    missed_cleavages_(rhs.missed_cleavages_),
-    enzyme_(rhs.enzyme_),
-    specificity_(rhs.specificity_)
+  EnzymaticDigestion::~EnzymaticDigestion()
   {
-  }
-
-  /// Assignment operator
-  EnzymaticDigestion& EnzymaticDigestion::operator=(const EnzymaticDigestion& rhs)
-  {
-    if (this != &rhs)
-    {
-      missed_cleavages_ = rhs.missed_cleavages_;
-      enzyme_ = rhs.enzyme_;
-      specificity_ = rhs.specificity_;
-    }
-    return *this;
   }
 
   Size EnzymaticDigestion::getMissedCleavages() const
@@ -83,14 +67,15 @@ namespace OpenMS
     missed_cleavages_ = missed_cleavages;
   }
 
-  void EnzymaticDigestion::setEnzyme(const String enzyme_name)
+  void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
-    enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = enzyme;
+    re_ = boost::regex(enzyme_->getRegEx());
   }
 
   String EnzymaticDigestion::getEnzymeName() const
   {
-    return enzyme_.getName();
+    return enzyme_->getName();
   }
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
@@ -99,7 +84,7 @@ namespace OpenMS
     {
       if (name == NamesOfSpecificity[i]) return Specificity(i);
     }
-    return SIZE_OF_SPECIFICITY;
+    return SPEC_UNKNOWN;
   }
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificity() const
@@ -112,195 +97,322 @@ namespace OpenMS
     specificity_ = spec;
   }
 
-  std::vector<Size> EnzymaticDigestion::tokenize_(const String& s) const
+  std::vector<int> EnzymaticDigestion::tokenize_(const String& sequence, int start, int end) const
   {
-    std::vector<Size> pep_positions;
-    Size pos = 0;
-    boost::regex re(enzyme_.getRegEx());
-    if (enzyme_.getRegEx() != "()") // if it's not "no cleavage"
+    std::vector<int> positions;
+    // set proper boundaries
+    start = std::max(0, start);
+    if (end < 0 || end > (int)sequence.size()) end = (int)sequence.size();
+
+    if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::sregex_token_iterator i(s.begin(), s.end(), re, -1);
+      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, re_, -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {
-        pep_positions.push_back(pos);
-        pos += (i++)->length();
+        positions.push_back(start); // first push 'start' (usually 0), then all the real cleavage sites
+        start += (int)i->length();
+        ++i;
       }
     }
     else
     {
-      pep_positions.push_back(pos);
+      positions.push_back(start);
     }
-    return pep_positions;
+    return positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage)
+  bool EnzymaticDigestion::isValidProduct(const String& sequence,
+                                          int pos,
+                                          int length,
+    bool ignore_missed_cleavages) const
   {
-    if (pep_pos >= protein.size())
+    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
+  }
+
+  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
+  {
+    return filter(Int(tokenize_(sequence).size() - 1));
+  }
+
+  bool EnzymaticDigestion::isValidProduct_(const String& sequence,
+                                           int pos,
+                                           int length,
+                                           bool ignore_missed_cleavages,
+                                           bool allow_nterm_protein_cleavage,
+                                           bool allow_random_asp_pro_cleavage) const
     {
-      LOG_WARN << "Error: start of peptide is beyond end of protein!" << endl;
+    // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
+    // M or MX at the N-terminus might have been cleaved off 
+    if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
+    { // reset the peptide to full length on N-terminus
+      length += pos;
+      pos = 0;
+    }
+    const int seq_size = (int)sequence.size();
+    if (pos >= seq_size)
+    {
+      OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
-    else if (pep_pos + pep_length > protein.size())
+    if (pos + length > seq_size)
     {
-      LOG_WARN << "Error: end of peptide is beyond end of protein!" << endl;
+      OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
-    else if (pep_length == 0 || protein.size() == 0)
+    if (length == 0 || sequence.empty())
     {
-      LOG_WARN << "Error: peptide or protein must not be empty!" << endl;
+      OPENMS_LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
       return false;
     }
+
+    // ignore specificity and missed cleavage settings for unspecific cleavage
+    if (enzyme_->getName() == UnspecificCleavage) { return true; }
+
+    const int end = pos + length; // past-the-end index into sequence of last fragment position
 
     if (specificity_ == SPEC_NONE)
-    {
-      return true; // we don't care about terminal ends
+    { // we don't care about terminal ends
+      if (ignore_missed_cleavages) return true;
+      // tokenize_ is really slow, so reduce work by working on substring:
+      const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
+      return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
-    else // either SPEC_SEMI or SPEC_FULL
-    {
-      bool spec_c = false, spec_n = false;
-
-      std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-      // test each end
-      if (pep_pos == 0 ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos) != pep_positions.end())
-      {
-        spec_n = true;
-      }
-      // if allow methionine cleavage at the protein start position
-      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
-      {
-        spec_n = true;
-      }
-      if (pep_pos + pep_length == protein.size() ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length) != pep_positions.end())
-      {
-        spec_c = true;
-      }
-
-      if (spec_n && spec_c)
-      {
-        return true; // if both are fine, its definitely valid
-      }
-      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))
-      {
-        return true; // one only for SEMI
-      }
-      else
-      {
-        return false;
-      }
+    
+    // either SPEC_SEMI or SPEC_FULL
+    bool spec_c = false, spec_n = false;
+    // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
+    const std::vector<int> cleavage_positions = tokenize_(sequence, pos - 2, end + 2); // has max(0,pos-2) as first site 
+      
+    //
+    // test each terminal end of the fragment
+    //
+    // left end (N-term for peptides):
+    if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pos) != cleavage_positions.end())
+    { // '0' is included in cleavage_positions, so starting fragments will be found as well
+      spec_n = true;
     }
+    // pos is > 0 at this point, so [pos-1] is valid
+    else if (allow_random_asp_pro_cleavage && (sequence[pos - 1] == 'D') && (sequence[pos] == 'P'))
+    {
+      spec_n = true;
+    }
+
+    // right end (C-term for peptides):
+    if (end == seq_size)
+    { // full length match (end of sequence is not in cleavage_positions)
+      spec_c = true;
+    }
+    else if (std::find(cleavage_positions.rbegin(), cleavage_positions.rend(), end) != cleavage_positions.rend())
+    { // use rbegin() since we expect this to be the correct hit
+      spec_c = true;
+    }
+    else if (allow_random_asp_pro_cleavage && (sequence[end - 1] == 'D') && (sequence[end] == 'P'))
+    {
+      spec_c = true;
+    }
+
+    if ((spec_n && spec_c) || // full spec
+          ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
+    {
+      if (ignore_missed_cleavages) return true;
+      return countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_;
+    }
+
+    return false;
   }
 
-  Size EnzymaticDigestion::peptideCount(const AASequence& protein)
+  Size EnzymaticDigestion::countMissedCleavages_(const std::vector<int>& cleavage_positions, Size seq_start, Size seq_end) const
   {
-    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-    Size count = pep_positions.size();
-    // missed cleavages
-    Size sum = count;
-    for (Size i = 1; i < count; ++i)
-    {
-      if (i > missed_cleavages_) break;
-      sum += count - i;
+    Size count(0);
+    for (int pos : cleavage_positions)
+    { // count MCs within fragment borders
+      if (((int)seq_start < pos) && (pos < (int)seq_end)) ++count;
     }
-    return sum;
+    return count;
   }
 
-  void EnzymaticDigestion::digest(const AASequence& protein, vector<AASequence>& output) const
+  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<std::pair<Size,Size>>& output, Size min_length, Size max_length) const
   {
-    // initialization
-    output.clear();
-    // naive cleavage sites
-    Size missed_cleavages = missed_cleavages_;
-    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-    Size count = pep_positions.size();
-    Size begin = pep_positions[0];
-    for (Size i = 1; i < count; ++i)
-    {
-      output.push_back(protein.getSubsequence(begin, pep_positions[i] - begin));
-      begin = pep_positions[i];
-    }
-    output.push_back(protein.getSubsequence(begin, protein.size() - begin));
-
-    //missed cleavages
-    if (pep_positions.size() > 0 && missed_cleavages_ != 0) //there is at least one cleavage site!
-    {
-      //generate fragments with missed cleavages
-      for (Size i = 1; ((i <= missed_cleavages) && (count > i)); ++i)
-      {
-        begin = pep_positions[0];
-        for (Size j = 1; j < count - i; ++j)
-        {
-          output.push_back(protein.getSubsequence(begin, pep_positions[j + i] - begin));
-          begin = pep_positions[j];
-        }
-        output.push_back(protein.getSubsequence(begin, protein.size() - begin));
-      }
-    }
-  }
-
-  void EnzymaticDigestion::digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
-  {
-    // initialization
-    output.clear();
-
-    // naive cleavage sites
-    std::vector<Size> pep_positions = tokenize_(sequence.getString());
-    Size count = pep_positions.size();
-
-    // disable max length filter by setting to maximum length
-    if (max_length == 0)
-    {
-      max_length = sequence.size();
-    }
+    Size count = fragment_positions.size();
+    Size wrong_size(0);
+    Size l(0); //length
 
     // no cleavage sites? return full string
-    if (count == 0) 
+    if (count == 0)
     {
       if (sequence.size() >= min_length && sequence.size() <= max_length)
       {
-        output.push_back(sequence);
+        output.emplace_back(0, sequence.size() - 1);
       }
-      return;
+      return wrong_size;
     }
 
     for (Size i = 1; i != count; ++i)
     {
-      // add if cleavage product larger then min length
-      Size l = pep_positions[i] - pep_positions[i - 1];
+      // add if cleavage product larger than min length
+      l = fragment_positions[i] - fragment_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
+        output.emplace_back(fragment_positions[i - 1], l);
       }
+      else ++wrong_size;
     }
 
-    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
-    Size l = sequence.size() - pep_positions[count - 1];
+    // add last cleavage product (need to add because end is not a cleavage site) if larger than min length
+    l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+      output.emplace_back(fragment_positions[count - 1], l);
     }
+    else ++wrong_size;
 
     // generate fragments with missed cleavages
     for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
     {
       for (Size j = 1; j < count - i; ++j)
       {
-        Size l = pep_positions[j + i] - pep_positions[j - 1];
+        l = fragment_positions[j + i] - fragment_positions[j - 1];
         if (l >= min_length && l <= max_length)
         {
-          output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
+          output.emplace_back(fragment_positions[j - 1], l);
         }
+        else ++wrong_size;
       }
 
       // add last cleavage product (need to add because end is not a cleavage site)
-      Size l = sequence.size() - pep_positions[count - i - 1];
+      l = sequence.size() - fragment_positions[count - i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
+        output.emplace_back(fragment_positions[count - i - 1], l);
       }
+      else ++wrong_size;
     }
+    return wrong_size;
   }
-} //namespace
 
+  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  {
+    Size count = fragment_positions.size();
+    Size wrong_size(0);
+
+    // no cleavage sites? return full string
+    if (count == 0)
+    {
+      if (sequence.size() >= min_length && sequence.size() <= max_length)
+      {
+        output.push_back(sequence);
+      }
+      return wrong_size;
+    }
+
+    for (Size i = 1; i != count; ++i)
+    {
+      // add if cleavage product larger than min length
+      Size l = fragment_positions[i] - fragment_positions[i - 1];
+      if (l >= min_length && l <= max_length)
+      {
+        output.push_back(sequence.substr(fragment_positions[i - 1], l));
+      }
+      else ++wrong_size;
+    }
+
+    // add last cleavage product (need to add because end is not a cleavage site) if larger than min length
+    Size l = sequence.size() - fragment_positions[count - 1];
+    if (l >= min_length && l <= max_length)
+    {
+      output.push_back(sequence.substr(fragment_positions[count - 1], l));
+    }
+    else ++wrong_size;
+
+    // generate fragments with missed cleavages
+    for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
+    {
+      for (Size j = 1; j < count - i; ++j)
+      {
+        Size m = fragment_positions[j + i] - fragment_positions[j - 1];
+        if (m >= min_length && m <= max_length)
+        {
+          output.push_back(sequence.substr(fragment_positions[j - 1], m));
+        }
+        else ++wrong_size;
+      }
+
+      // add last cleavage product (need to add because end is not a cleavage site)
+      Size n = sequence.size() - fragment_positions[count - i - 1];
+      if (n >= min_length && n <= max_length)
+      {
+        output.push_back(sequence.substr(fragment_positions[count - i - 1], n));
+      }
+      else ++wrong_size;
+    }
+    return wrong_size;
+  }
+
+  Size EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  {
+    // initialization
+    output.clear();
+
+    // disable max length filter by setting to maximum length
+    if (max_length == 0 || max_length > sequence.size())
+    {
+      max_length = sequence.size();
+    }
+
+    // Unspecific cleavage:
+    // For unspecific cleavage every site is a cutting position.
+    // All substrings of length min_size..max_size are generated.
+    if (enzyme_->getName() == UnspecificCleavage)
+    {
+      output.reserve(sequence.size() * (max_length - min_length + 1));
+      for (Size i = 0; i <= sequence.size() - min_length; ++i)
+      {
+        const Size right = std::min(i + max_length, sequence.size());
+        for (Size j = i + min_length; j <= right; ++j)
+        {
+          output.emplace_back(sequence.substr(i, j - i));
+        }
+      }
+      return 0;
+    }
+
+    // naive cleavage sites
+    std::vector<int> fragment_positions = tokenize_(sequence.getString());
+    return digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
+  }
+
+  Size EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<std::pair<Size,Size>>& output, Size min_length, Size max_length) const
+  {
+    // initialization
+    output.clear();
+
+    // disable max length filter by setting to maximum length
+    if (max_length == 0 || max_length > sequence.size())
+    {
+      max_length = sequence.size();
+    }
+
+    // Unspecific cleavage:
+    // For unspecific cleavage every site is a cutting position.
+    // All substrings of length min_size..max_size are generated.
+    if (enzyme_->getName() == UnspecificCleavage)
+    {
+      output.reserve(sequence.size() * (max_length - min_length + 1));
+      for (Size i = 0; i <= sequence.size() - min_length; ++i)
+      {
+        const Size right = std::min(i + max_length, sequence.size());
+        for (Size j = i + min_length; j <= right; ++j)
+        {
+          output.emplace_back(i, j - i);
+        }
+      }
+      return 0;
+    }
+
+    // naive cleavage sites
+    std::vector<int> fragment_positions = tokenize_(sequence.getString());
+    return digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
+  }
+
+} //namespace

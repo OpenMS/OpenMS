@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
+<msms_run_summary base_name="IDFileConverter_25_output" raw_data_type="raw" raw_data=".mzML" search_engine="Comet">
+	<sample_enzyme name="unspecific cleavage">
+		<specificity cut="A" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="IDFileConverter_25_output" search_engine="Comet" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" type="AA"/>
+		<aminoacid_modification aminoacid="C" massdiff="57.021464" mass="160.0306489852" variable="Y" binary="N" description="Carbamidomethyl (C)"/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
+	</search_summary>
+	<spectrum_query spectrum="IDFileConverter_25_output.1.1.6" start_scan="1" end_scan="1" precursor_neutral_mass="2123.9827310855" assumed_charge="6" index="0" retention_time_sec="75" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="QRMADVKKVAADMEEEKD" peptide_prev_aa="D" peptide_next_aa="R" protein="DECOY_tr|A0A1S3S7H0|A0A1S3S7H0_SALSA" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2123.9827310855" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<alternative_protein protein="DECOY_tr|A0A1S3S7H4|A0A1S3S7H4_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3S7G4|A0A1S3S7G4_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3S7G5|A0A1S3S7G5_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3S7G8|A0A1S3S7G8_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3S7G7|A0A1S3S7G7_SALSA" num_tol_term="1"/>
+			<modification_info modified_peptide="QRM[147]ADVKKVAADM[147]EEEKD">
+				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="13" mass="147.0354000171"/>
+			</modification_info>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+					<search_score_summary>
+						<parameter name="fval" value="-2.3431"/>
+						<parameter name="isomassd" value="0"/>
+						<parameter name="massd" value="-0.087"/>
+						<parameter name="nmc" value="0"/>
+						<parameter name="ntt" value="0"/>
+					</search_score_summary>
+				</peptideprophet_result>
+			</analysis_result>
+			<search_score name="xcorr" value="0.998"/>
+			<search_score name="deltacn" value="0.045"/>
+			<search_score name="deltacnstar" value="0.001"/>
+			<search_score name="spscore" value="41.8"/>
+			<search_score name="sprank" value="84"/>
+			<search_score name="expect" value="27.9"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_25_output.1.1.6" start_scan="1" end_scan="1" precursor_neutral_mass="2123.9463459579" assumed_charge="6" index="0" retention_time_sec="75" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="QRMADVKQVAADMEEEKD" peptide_prev_aa="D" peptide_next_aa="R" protein="DECOY_tr|A0A1S3M7W0|A0A1S3M7W0_SALSA" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2123.9463459579" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+		<alternative_protein protein="DECOY_tr|A0A1S3M7Q4|A0A1S3M7Q4_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3M863|A0A1S3M863_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A1S3M8E5|A0A1S3M8E5_SALSA" num_tol_term="1"/>
+		<alternative_protein protein="DECOY_tr|A0A060X411|A0A060X411_ONCMY" num_tol_term="1"/>
+			<modification_info modified_peptide="QRM[147]ADVKQVAADM[147]EEEKD">
+				<mod_aminoacid_mass position="3" mass="147.0354000171"/>
+				<mod_aminoacid_mass position="13" mass="147.0354000171"/>
+			</modification_info>
+			<search_score name="xcorr" value="0.998"/>
+			<search_score name="deltacn" value="0.045"/>
+			<search_score name="deltacnstar" value="0"/>
+			<search_score name="spscore" value="41.8"/>
+			<search_score name="sprank" value="84"/>
+			<search_score name="expect" value="27.9"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_25_output.2.2.6" start_scan="2" end_scan="2" precursor_neutral_mass="4008.1951398238" assumed_charge="6" index="1" retention_time_sec="78" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LPVLYSSPAALLALRVCQGVVKVSAGVSRRGCAGAVPVM" peptide_prev_aa="D" peptide_next_aa="-" protein="DECOY_DECOY_tr|E9QEY6|E9QEY6_DANRE_UNMAPPED" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="4008.1951398238" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="LPVLYSSPAALLALRVC[160]QGVVKVSAGVSRRGC[160]AGAVPVM">
+				<mod_aminoacid_mass position="17" mass="160.0306489852"/>
+				<mod_aminoacid_mass position="32" mass="160.0306489852"/>
+			</modification_info>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)">
+					<search_score_summary>
+						<parameter name="fval" value="-1.3443"/>
+						<parameter name="isomassd" value="0"/>
+						<parameter name="massd" value="0.129"/>
+						<parameter name="nmc" value="0"/>
+						<parameter name="ntt" value="1"/>
+					</search_score_summary>
+				</peptideprophet_result>
+			</analysis_result>
+			<search_score name="xcorr" value="1.474"/>
+			<search_score name="deltacn" value="0.018"/>
+			<search_score name="deltacnstar" value="0"/>
+			<search_score name="spscore" value="100.2"/>
+			<search_score name="sprank" value="16"/>
+			<search_score name="expect" value="3.44"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

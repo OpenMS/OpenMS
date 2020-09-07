@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTGENERICFILE_H
-#define OPENMS_FORMAT_MASCOTGENERICFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -54,7 +53,7 @@ namespace OpenMS
     @brief Read/write Mascot generic files (MGF).
 
     For details of the format, see http://www.matrixscience.com/help/data_file_help.html#GEN.
-    
+
     @htmlinclude OpenMS_MascotGenericFile.parameters
 
     @ingroup FileIO
@@ -69,17 +68,17 @@ public:
     MascotGenericFile();
 
     /// destructor
-    virtual ~MascotGenericFile();
+    ~MascotGenericFile() override;
 
     /// docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(const String& filename, const PeakMap& experiment, 
+    void store(const String& filename, const PeakMap& experiment,
                bool compact = false);
 
     /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
-    void store(std::ostream& os, const String& filename, 
+    void store(std::ostream& os, const String& filename,
                const PeakMap& experiment, bool compact = false);
 
     /**
@@ -94,7 +93,7 @@ public:
     {
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       exp.reset();
@@ -118,7 +117,6 @@ public:
         ++spectrum_number;
       } // next spectrum
 
-
       endProgress();
     }
 
@@ -130,6 +128,9 @@ public:
       The @p filename can later be found in the Mascot response.
     */
     std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
+
+    /// writes a spectrum in MGF format to an ostream
+    void writeSpectrum(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
 
 protected:
 
@@ -149,9 +150,6 @@ protected:
      /// writes the full header
     void writeHeader_(std::ostream& os);
 
-    /// writes the spectrum
-    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename);
-
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
@@ -160,8 +158,8 @@ protected:
     bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
     {
       spectrum.resize(0);
-
       spectrum.setNativeID(String("index=") + (spectrum_number));
+
       if (spectrum.metaValueExists("TITLE"))
       {
         spectrum.removeMetaValue("TITLE");
@@ -200,20 +198,20 @@ protected:
                 line.substitute('\t', ' '); // also accept Tab (strictly, only space(s) are allowed)
                 if (line.split(' ', split, false))
                 {
-                  try 
+                  try
                   {
                     p.setPosition(split[0].toDouble());
                     p.setIntensity(split[1].toDouble());
                   }
                   catch (Exception::ConversionError& /*e*/)
                   {
-                    throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The content '" + line + "' at line #" + String(line_number) + " could not be converted to a number! Expected two (m/z int) or three (m/z int charge) numbers separated by whitespace (space or tab).", "");
+                    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + String(line_number) + " could not be converted to a number! Expected two (m/z int) or three (m/z int charge) numbers separated by whitespace (space or tab).", "");
                   }
                   spectrum.push_back(p);
                 }
                 else
                 {
-                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The content '" + line + "' at line #" + String(line_number) + " does not contain m/z and intensity values separated by whitespace (space or tab)!", "");
+                  throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The content '" + line + "' at line #" + String(line_number) + " does not contain m/z and intensity values separated by whitespace (space or tab)!", "");
                 }
               }
               while (getline(is, line, '\n') && ++line_number && line.trim() != "END IONS"); // line.trim() is important here!
@@ -224,7 +222,7 @@ protected:
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
               }
             }
             else if (line.hasPrefix("PEPMASS")) // parse precursor position
@@ -244,7 +242,7 @@ protected:
               }
               else
               {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS in '" + line + "' at line #" + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present)!", "");
+                throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot parse PEPMASS in '" + line + "' at line #" + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present)!", "");
               }
             }
             else if (line.hasPrefix("CHARGE"))
@@ -293,15 +291,20 @@ protected:
                   }
                 }
               }
-              else // just write the title as metainfo to the spectrum
+              else // just write the title as metainfo to the spectrum and add native ID to make the titles unique
               {
-                std::vector<String> split;
-                line.split('=', split);
-                if (split.size() == 2)
+                Size firstEqual = line.find('=', 4);
+                if (firstEqual != std::string::npos)
                 {
-                  if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                  if (String(spectrum.getMetaValue("TITLE")).hasSubstring(spectrum.getNativeID()))
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1));
+                  }
+                  else
+                  {
+                    spectrum.setMetaValue("TITLE", line.substr(firstEqual + 1) + "_" + spectrum.getNativeID());
+                  }
                 }
-                // TODO concatenate the other parts if the title contains additional '=' chars
               }
             }
           }
@@ -314,5 +317,3 @@ protected:
   };
 
 } // namespace OpenMS
-
-#endif // OPENMS_FORMAT_MASCOTGENERICFILE_H

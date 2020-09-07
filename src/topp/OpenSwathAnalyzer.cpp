@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,14 +80,14 @@ using namespace std;
         </table>
     </CENTER>
 
- The idea of the MRM peak-picker is to analyze a series of chromatograms
+ The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
- order to determine likely places of elution of a peptide in MRM/SRM.
+ order to determine likely places of elution of a peptide in targeted
+ proteomics data (derived from SWATH-MS or MRM/SRM).
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathAnalyzer.html
 
  */
@@ -101,13 +101,13 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
   {
   }
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerModelOptions_(const String &default_model)
   {
@@ -123,14 +123,14 @@ protected:
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "",
                        "input file containing the chromatograms." /* , false */);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", ListUtils::create<String>("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "",
                        "RT normalization file (how to map the RTs of this run to the ones stored in the library)",
@@ -162,12 +162,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     StringList file_list = getStringList_("swath_files");
@@ -219,14 +219,14 @@ protected:
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
-      boost::shared_ptr<MapType> empty_swath_map (new MapType());
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(empty_swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+      std::vector< OpenSwath::SwathMap > empty_maps;
+      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
+                                   transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out, out_featureFile);
@@ -277,7 +277,10 @@ protected:
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
         OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
         OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
+        std::vector< OpenSwath::SwathMap > swath_maps(1);
+        swath_maps[0].sptr = swath_ptr;
+        featureFinder.pickExperiment(chromatogram_ptr, featureFile,
+                                     transition_exp_used, trafo, swath_maps, transition_group_map);
 
         // write all features and the protein identifications from tmp_featureFile into featureFile
 #ifdef _OPENMP
