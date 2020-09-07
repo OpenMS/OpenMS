@@ -1646,7 +1646,8 @@ namespace OpenMS
         }
         else if (accession == "MS:1001581") //FAIMS compensation voltage
         {
-          //No member => meta data
+          // According to the PSI-MS ontology this term should be stored below the "scan" and not "spectrum" parent.
+          // Some pwiz version put this term on the "spectrum" level so we also read it here.
           //TODO CV term is wrongly annotated without an xref data type -> cast to double
           spec_.setMetaValue("FAIMS compensation voltage", value.toDouble());
         }
@@ -2111,6 +2112,12 @@ namespace OpenMS
 
           spec_.setDriftTime(value.toDouble());
           spec_.setDriftTimeUnit(unit);
+        }
+        else if (accession == "MS:1001581") //FAIMS compensation voltage.
+        {
+          //No member => meta data
+          //TODO CV term is wrongly annotated without an xref data type -> cast to double
+          spec_.setMetaValue("FAIMS compensation voltage", value.toDouble());
         }
         else if (accession == "MS:1000011") //mass resolution
         {

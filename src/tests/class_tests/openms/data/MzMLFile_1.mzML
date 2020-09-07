@@ -222,7 +222,6 @@
         <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
         <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
-        <cvParam cvRef="MS" accession="MS:1001581" name="FAIMS compensation voltage" value="-50.0"/>
         <cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="title"/>
         <cvParam cvRef="MS" accession="MS:1000797" name="peak list scans" value="15 scans"/>
         <cvParam cvRef="MS" accession="MS:1000798" name="peak list raw scans" value="16 scans"/>
